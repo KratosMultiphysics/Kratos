@@ -90,7 +90,7 @@ public:
 
 
     /// Destructor.
-    ~ILUPreconditioner() override
+    virtual ~ILUPreconditioner()
     {
         if ( L!=NULL) delete[]  L;
         if (iL!=NULL) delete[] iL;
@@ -145,14 +145,14 @@ public:
 
 
 
-    void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
+    virtual void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         VectorType z = rX;
         TSparseSpaceType::Mult(rA,z, rY);
         ApplyLeft(rY);
     }
 
-    void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
+    virtual void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         VectorType z = rX;
         ApplyTransposeLeft(z);
@@ -163,7 +163,7 @@ public:
         then multiply temp by U^-1 and store result in rX
         @param rX  Unknows of preconditioner suystem
     */
-    VectorType& ApplyLeft(VectorType& rX) override
+    virtual VectorType& ApplyLeft(VectorType& rX) override
     {
         const int size = TSparseSpaceType::Size(rX);
         VectorType temp(size);
@@ -194,7 +194,7 @@ public:
         then multiply temp by L^-T and store result in rX
         @param rX  Unknows of preconditioner suystem
     */
-    VectorType& ApplyTransposeLeft(VectorType& rX) override
+    virtual VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
         const int size = TSparseSpaceType::Size(rX);
         VectorType temp(size);
@@ -240,20 +240,20 @@ public:
     ///@{
 
     /// Return information about this object.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ILUPreconditioner";
     }
 
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& OStream) const override
+    virtual void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "ILUPreconditioner";
     }
 
 
-    void PrintData(std::ostream& OStream) const override
+    virtual void PrintData(std::ostream& OStream) const override
     {
     }
 

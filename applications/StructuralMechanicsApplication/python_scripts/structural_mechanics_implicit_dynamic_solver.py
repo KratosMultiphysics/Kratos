@@ -1,134 +1,114 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+#import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import structural_mechanics_solver
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
+# Import the implicit solver (the explicit one is derived from it)
+import solid_mechanics_implicit_dynamic_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return ImplicitMechanicalSolver(main_model_part, custom_settings)
 
-
-class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
-    """The structural mechanics implicit dynamic solver.
-
-    This class creates the mechanical solvers for implicit dynamic analysis.
-    It currently supports Newmark, Bossak and dynamic relaxation schemes.
-
-    Public member variables:
-    dynamic_settings -- settings for the implicit dynamic solvers.
-
-    See structural_mechanics_solver.py for more information.
-    """
-    def __init__(self, main_model_part, custom_settings):
-        # Set defaults and validate custom settings.
-        self.dynamic_settings = KratosMultiphysics.Parameters("""
+class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+    
+    ##constructor. the constructor shall only take care of storing the settings 
+    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
+    ##model part is still not filled and the variables are not yet allocated
+    ##
+    ##real construction shall be delayed to the function "Initialize" which 
+    ##will be called once the model is already filled
+    def __init__(self, main_model_part, custom_settings): 
+        
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
+        self.main_model_part = main_model_part    
+        
+        ##settings string in json format
+        default_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.01,
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
+            "solver_type": "structural_mechanics_implicit_dynamic_solver",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "echo_level": 0,
+            "buffer_size": 2,
+            "solution_type": "Dynamic",
+            "scheme_type": "Newmark",
+            "damp_factor_m" : -0.1,
+            "time_integration_method": "Implicit",
+            "analysis_type": "Non-Linear",
+            "rotation_dofs": false,
+            "pressure_dofs": false,
+            "stabilization_factor": 1.0,
+            "reform_dofs_at_each_step": false,
+            "line_search": false,
+            "implex": false,
+            "compute_reactions": true,
+            "compute_contact_forces": false,
+            "block_builder": false,
+            "clear_storage": false,
+            "component_wise": false,
+            "move_mesh_flag": true,
+            "convergence_criterion": "Residual_criteria",
+            "displacement_relative_tolerance": 1.0e-4,
+            "displacement_absolute_tolerance": 1.0e-9,
+            "residual_relative_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-4,
+            "max_iteration": 10,
+            "split_factor": 10.0,
+            "max_number_splits": 3,
+            "linear_solver_settings":{
+                "solver_type": "Super LU",
+                "max_iteration": 500,
+                "tolerance": 1e-9,
+                "scaling": false,
+                "verbosity": 1
+            },
+            "processes_sub_model_part_list": [""],
+            "problem_domain_sub_model_part_list": ["solid_model_part"]
         }
         """)
-        self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
-        # Validate the remaining settings in the base class.
-        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
-            custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("Newmark")
         
-        # Construct the base solver.
-        super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        print("::[ImplicitMechanicalSolver]:: Construction finished")
+        ##overwrite the default settings with user-provided parameters
+        self.settings = custom_settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
+        
+        #construct the linear solver
+        import linear_solver_factory
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        
+        print("Construction of MechanicalSolver finished")
+
 
     def AddVariables(self):
-        super(ImplicitMechanicalSolver, self).AddVariables()
-        # Add dynamic variables.
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        
+        solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddVariables(self)
+            
         if self.settings["rotation_dofs"].GetBool():
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
-        print("::[ImplicitMechanicalSolver]:: Variables ADDED")
+            # Add specific variables for the problem (rotation dofs)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)
+   
+        print("::[Mechanical Solver]:: Variables ADDED")
+
     
-    def AddDofs(self):
-        super(ImplicitMechanicalSolver, self).AddDofs()
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
-        if(self.settings["rotation_dofs"].GetBool()):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
-        print("::[ImplicitMechanicalSolver]:: DOF's ADDED")
+    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
-    #### Private functions ####
+        if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
+            mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
 
-    def _create_solution_scheme(self):
-        scheme_type = self.settings["scheme_type"].GetString()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
-        if(scheme_type == "Newmark"):
-            damp_factor_m = 0.0
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        elif(scheme_type == "Bossak"):
-            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif(scheme_type == "Relaxation"):
-            damp_factor_f =-0.3
-            dynamic_factor_m = 10.0
-            mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(
-                                                                       damp_factor_f, dynamic_factor_m)
-        else:
-            raise Exception("Unsupported scheme_type: " + scheme_type)
+          #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
+            
+            self.settings.AddEmptyValue("damp_factor_f")  
+            self.settings.AddEmptyValue("dynamic_factor_m")
+            self.settings["damp_factor_f"].SetDouble(-0.3)
+            self.settings["dynamic_factor_m"].SetDouble(10.0) 
+            
+            mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
+                                                                                                                self.settings["dynamic_factor_m"].GetDouble())
+                                
         return mechanical_scheme
-
-    def _create_mechanical_solver(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-        if self.settings["line_search"].GetBool():
-            mechanical_solver = self._create_line_search_strategy()
-        else:
-            mechanical_solver = self._create_newton_raphson_strategy()
-        return mechanical_solver
-
-    def _create_line_search_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.LineSearchStrategy(computing_model_part, 
-                                                     mechanical_scheme, 
-                                                     linear_solver, 
-                                                     mechanical_convergence_criterion, 
-                                                     builder_and_solver, 
-                                                     self.settings["max_iteration"].GetInt(),
-                                                     self.settings["compute_reactions"].GetBool(),
-                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                     self.settings["move_mesh_flag"].GetBool())
-
-    def _create_newton_raphson_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part, 
-                                                                     mechanical_scheme, 
-                                                                     linear_solver, 
-                                                                     mechanical_convergence_criterion, 
-                                                                     builder_and_solver,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())

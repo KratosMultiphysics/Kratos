@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "solid_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
@@ -18,9 +18,6 @@
             "input_type"       : "mdpa",
             "input_filename"   : "patch_test/total_lagrangian/patch_test_3D_shear_hexa",
             "input_file_label" : 0
-        },
-        "material_import_settings" :{
-            "materials_filename": "patch_test/materials_3D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -30,16 +27,17 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "SuperLUSolver",
+            "scaling"     : false
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto6","DISPLACEMENT_Displacement_Auto7","DISPLACEMENT_Displacement_Auto8","SurfaceLoad3D_Load_on_surfaces_Auto2","SurfaceLoad3D_Load_on_surfaces_Auto3","SurfaceLoad3D_Load_on_surfaces_Auto4","SurfaceLoad3D_Load_on_surfaces_Auto5"]
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorProcess",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto6",
@@ -48,10 +46,10 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorProcess",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto7",
@@ -60,10 +58,10 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorProcess",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto8",
@@ -73,11 +71,11 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto2",
@@ -87,11 +85,11 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto3",
@@ -101,11 +99,11 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto4",
@@ -115,11 +113,11 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto5",

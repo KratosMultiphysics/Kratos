@@ -156,7 +156,7 @@ public:
         : BaseType(rOtherCoordinates), mWeight(NewWeight) {}
 
     /// Destructor.
-    ~IntegrationPoint() override {}
+    virtual ~IntegrationPoint() {}
 
 
     ///@}
@@ -236,7 +236,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << TDimension << " dimensional integration point";
@@ -244,13 +244,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << TDimension << " dimensional integration point";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         if(!TDimension)
             return;

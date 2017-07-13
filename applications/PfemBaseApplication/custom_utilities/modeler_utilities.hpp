@@ -1221,9 +1221,9 @@ public:
 	//std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
       }
 
-      rShapeFunctionsN[0] = CalculateTetrahedronVolume(xc,yc,zc,x1,y1,z1,x2,y2,z2,x3,y3,z3) / volume;
-      rShapeFunctionsN[1] = CalculateTetrahedronVolume(x0,y0,z0,xc,yc,zc,x2,y2,z2,x3,y3,z3) / volume;
-      rShapeFunctionsN[2] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,xc,yc,zc,x3,y3,z3) / volume;
+      rShapeFunctionsN[0] = CalculateTetrahedronVolume(x1,y1,z1,x2,y2,z2,x3,y3,z3,xc,yc,zc) / volume;
+      rShapeFunctionsN[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
+      rShapeFunctionsN[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
       rShapeFunctionsN[3] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) / volume;
 
       //std::cout<<" N "<<rShapeFunctionsN[0]<<" "<<rShapeFunctionsN[1]<<" "<<rShapeFunctionsN[2]<<" "<<rShapeFunctionsN[3]<<" "<<std::endl;

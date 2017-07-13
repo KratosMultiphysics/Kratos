@@ -197,7 +197,7 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    ~Point2D() override {}
+    virtual ~Point2D() {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
@@ -256,7 +256,7 @@ public:
         return typename BaseType::Pointer(new Point2D(ThisPoints));
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
+    virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -293,7 +293,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    double Length() const override
+    virtual double Length() const override
     {
         return 0.00;
     }
@@ -309,7 +309,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    double Area() const override
+    virtual double Area() const override
     {
         return 0.00;
     }
@@ -325,7 +325,7 @@ public:
     @see Area()
     @see Volume()
     */
-    double DomainSize() const override
+    virtual double DomainSize() const override
     {
         return 0.00;
     }
@@ -507,12 +507,12 @@ public:
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    SizeType EdgesNumber() const override
+    virtual SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    SizeType FacesNumber() const override
+    virtual SizeType FacesNumber() const override
     {
         return 0;
     }
@@ -546,7 +546,7 @@ public:
     @see PrintData()
     @see PrintInfo()
     */
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "a point geometry in 2D space";
     }
@@ -557,7 +557,7 @@ public:
     @see PrintData()
     @see Info()
     */
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "a point geometry in 2D space";
     }
@@ -570,7 +570,7 @@ public:
     @see PrintInfo()
     @see Info()
     */
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "a point geometry in 2D space";
     }
@@ -688,12 +688,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }

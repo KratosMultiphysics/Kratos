@@ -58,7 +58,7 @@ namespace Kratos
       MeasureMeshQualityProcess(ModelPart& rModelPart, std::size_t Dimension);
 
       /// Destructor.
-      ~MeasureMeshQualityProcess() override;
+      virtual ~MeasureMeshQualityProcess();
 
 
       ///@}
@@ -70,7 +70,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-	  void Execute() override;
+	  virtual void Execute() override;
 
       ///@}
       ///@name Access
@@ -87,13 +87,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override;
+      virtual std::string Info() const override;
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override;
+      virtual void PrintData(std::ostream& rOStream) const override;
 
 
       ///@}

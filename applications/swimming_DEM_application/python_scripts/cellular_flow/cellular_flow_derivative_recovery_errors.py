@@ -44,8 +44,6 @@ max_error = - float("inf")
 average_errors = []
 max_errors = []
 sizes = []
-fig = plt.figure(figsize = (12,10))
-ax = fig.add_subplot(1,1,1)
 
 if show_math_deriv_or_laplacian == 'M':
     marker_type = 'v'
@@ -115,13 +113,11 @@ elif show_math_deriv_or_laplacian == 'L':
         expected_order = 1
         min_error = min(min_error, average_errors[-1])
         max_error = max(max_error, average_errors[0])
-        ax.plot(sizes, average_errors, marker = marker_type, color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
+        plt.plot(sizes, average_errors, marker = marker_type, color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= laplacian_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
-
 plt.semilogx()
 plt.semilogy()
 plt.axis('equal')
-plt.xlim([10 ** -4, 1])
 
 min_error /= 2
 if regular_mesh:
@@ -131,7 +127,7 @@ else:
     slope = [min_error * (size / sizes[-1]) ** expected_order for size in sizes]
     plot_name = 'derivative_recovery_errors_irregular.pdf'
 
-ax.plot(sizes, slope, linestyle='dashed',  label='slope = ' + str(expected_order))
+plt.plot(sizes, slope, linestyle='dashed',  label='slope = ' + str(expected_order))
 plt.ylim((min(slope) / 10, max_error * 10))
 plt.xlabel('$h$', fontsize = 20)
 
@@ -141,5 +137,5 @@ else:
     plt.ylabel('$E_2$', fontsize = 20)
 
 plt.legend(loc = 'upper left')
-plt.savefig(plot_name, format='eps', bbox_inches = 'tight')
+plt.savefig(plot_name)
 plt.show()

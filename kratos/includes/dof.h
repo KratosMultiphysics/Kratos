@@ -244,7 +244,7 @@ public:
 
 
     /// Destructor.
-    ~Dof() override {}
+    virtual ~Dof() {}
 
 
     ///@}
@@ -471,7 +471,7 @@ public:
 
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
 
@@ -488,14 +488,14 @@ public:
 
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -624,7 +624,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Is Fixed", mIsFixed);
@@ -636,7 +636,7 @@ private:
         rSerializer.save("Reaction Type", mReactionType);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         std::string name;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );

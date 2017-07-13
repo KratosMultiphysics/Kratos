@@ -90,14 +90,13 @@ Element::Pointer UpdatedLagrangianVSolidElement<TDim>::Clone( IndexType NewId, N
 
 template< unsigned int TDim>
 bool UpdatedLagrangianVSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-								const ProcessInfo& rCurrentProcessInfo,
-								const ShapeFunctionDerivativesType& rDN_DX,
-								unsigned int g)
+									const ProcessInfo& rCurrentProcessInfo,
+									unsigned int g)
 {
 
   bool computeElement=false;
   double theta=this->GetThetaMomentum();
-  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
   return computeElement;

@@ -629,7 +629,7 @@ public:
     /**
     * Destructor
     */
-    ~ShellCrossSection() override;
+    ~ShellCrossSection();
 
     ///@}
 
@@ -1280,7 +1280,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("th", mThickness);
@@ -1298,7 +1298,7 @@ private:
         rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("th", mThickness);

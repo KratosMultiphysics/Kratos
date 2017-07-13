@@ -9,8 +9,8 @@
 
 namespace Kratos
 {
-template <std::size_t TDim>
-void DerivativeRecoveryMeshingTools<TDim>::FillUpEdgesModelPartFromTetrahedraModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type)
+
+void DerivativeRecoveryMeshingTools::FillUpEdgesModelPartFromTetrahedraModelPart(ModelPart& r_edges_model_part, ModelPart& r_tetra_model_part, std::string element_type)
 {
     std::set< std::set<int> > set_of_all_edges; // actually, this is a set of pairs of Nodes Ids
 
@@ -18,10 +18,10 @@ void DerivativeRecoveryMeshingTools<TDim>::FillUpEdgesModelPartFromTetrahedraMod
         ElementIteratorType it_tetra = r_tetra_model_part.ElementsBegin() + i;
         Geometry<Node<3> >& geom = it_tetra->GetGeometry();
 
-        for (unsigned int i_first_node = 0; i_first_node < TDim; ++i_first_node){
+        for (int i_first_node = 0; i_first_node < 3; ++i_first_node){
             int first_ID = geom[i_first_node].Id();
 
-            for (unsigned int i_second_node = i_first_node + 1; i_second_node < TDim + 1; ++i_second_node){
+            for (int i_second_node = i_first_node + 1; i_second_node < 4; ++i_second_node){
                 int second_ID = geom[i_second_node].Id();
                 std::set<int> pair;
                 pair.insert(first_ID);
@@ -49,9 +49,5 @@ void DerivativeRecoveryMeshingTools<TDim>::FillUpEdgesModelPartFromTetrahedraMod
         ++elem_id;
     }
 }
-
-// Explicit instantiations
-template class DerivativeRecoveryMeshingTools<2>;
-template class DerivativeRecoveryMeshingTools<3>;
 
 }  // namespace Kratos.

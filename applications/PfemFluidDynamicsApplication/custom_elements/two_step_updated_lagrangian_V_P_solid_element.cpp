@@ -322,13 +322,12 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 template< unsigned int TDim>
 bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 									const ProcessInfo& rCurrentProcessInfo,
-									const ShapeFunctionDerivativesType& rDN_DX,
 									unsigned int g)
 {
 
   bool computeElement=false;
   double theta=this->GetThetaMomentum();
-  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
   return computeElement;
@@ -557,12 +556,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
   double theta=this->GetThetaContinuity();
   ElementalVariables rElementalVariables;
   this->InitializeElementalVariables(rElementalVariables);
-  ShapeFunctionDerivativesArrayType DN_DX;
-  Matrix NContainer;
-  VectorType GaussWeights;
-  this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-  bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   if(computeElement==true){
     this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
@@ -639,7 +633,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
     rRightHandSideVector = ZeroVector(NumNodes);
  
-    // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+    MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
     
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -664,14 +658,14 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
       {
-	const double GaussWeight = GaussWeights[g];
-	totalVolume+=GaussWeight;
-	const ShapeFunctionsType& N = row(NContainer,g);
-	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
 	if(computeElement==true){
-	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	  const double GaussWeight = GaussWeights[g];
+	  totalVolume+=GaussWeight;
+	  const ShapeFunctionsType& N = row(NContainer,g);
+
+	  double BulkCoeff =GaussWeight/(VolumetricCoeff);
+	  this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
 
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {
@@ -689,8 +683,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
     this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,lumpedBulkCoeff);
   
-    rLeftHandSideMatrix+=BulkVelMatrixLump;
-    // rLeftHandSideMatrix+=BulkVelMatrix;	
+    // rLeftHandSideMatrix+=BulkVelMatrixLump;
+    rLeftHandSideMatrix+=BulkVelMatrix;	
 
     VectorType UpdatedPressure = ZeroVector(NumNodes);
     VectorType CurrentPressure = ZeroVector(NumNodes);;
@@ -700,8 +694,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
     VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
 
-    rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
-    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+    // rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
+    rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
 
   }
   

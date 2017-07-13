@@ -23,7 +23,6 @@
 // External includes
 
 // Project includes
-#include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
 namespace Kratos
@@ -46,24 +45,18 @@ namespace Kratos
       /// Pointer definition of CalculateDistanceToSkinProcess
       KRATOS_CLASS_POINTER_DEFINITION(CalculateDistanceToSkinProcess);
 
-      //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
-      using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
-	  using CellType = OctreeBinaryCell<ConfigurationType>;
-	  using OctreeType = OctreeBinary<CellType>;
-	  using CellNodeDataType = ConfigurationType::cell_node_data_type;
-
       ///@}
       ///@name Life Cycle
       ///@{
 
 	  /// Constructor to be used.
 	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
-
+	  
 	  /// Destructor.
-      ~CalculateDistanceToSkinProcess() override;
+      virtual ~CalculateDistanceToSkinProcess();
 
 	  ///@}
-	  ///@name Deleted
+	  ///@name Deleted 
 	  ///@{
 
       /// Default constructor.
@@ -78,27 +71,6 @@ namespace Kratos
 	  ///@}
       ///@name Operations
       ///@{
-      void Initialize() override;
-
-      void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
-
-      virtual void InitializeNodalDistances();
-
-      virtual void CalculateNodalDistances();
-
-      virtual void CalculateNodesDistances(); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-
-      virtual void CalculateNodeDistance(Node<3>& rNode); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-
-      virtual double DistancePositionInSpace(double* pCoords); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-
-      virtual void GetRayIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-
-      virtual int GetCellIntersections(OctreeType::cell_type* cell, double* ray,
-                                       OctreeType::key_type* ray_key, int direction,
-                                       std::vector<std::pair<double, Element::GeometryType*> >& intersections); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-
-      virtual int IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
 	  void Execute() override;
 
@@ -107,13 +79,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override;
+      virtual std::string Info() const override;
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override;
+      virtual void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 

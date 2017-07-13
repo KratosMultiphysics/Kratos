@@ -225,7 +225,7 @@ namespace Kratos {
 
         /** Destructor.
          */
-        ~ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent() override {
+        virtual ~ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent() {
         }
 
 
@@ -239,11 +239,11 @@ namespace Kratos {
          */
         //***************************************************************************
 
-        void Update(ModelPart& r_model_part,
+        virtual void Update(ModelPart& r_model_part,
                             DofsArrayType& rDofSet,
                             TSystemMatrixType& A,
                             TSystemVectorType& Dv,
-                            TSystemVectorType& b) override
+                            TSystemVectorType& b)
         {
             KRATOS_TRY;
 
@@ -342,11 +342,11 @@ namespace Kratos {
         //***************************************************************************
         //predicts the solution at the current step as
         // v = vold
-        void Predict(ModelPart& rModelPart,
+        virtual void Predict(ModelPart& rModelPart,
                              DofsArrayType& rDofSet,
                              TSystemMatrixType& A,
                              TSystemVectorType& Dv,
-                             TSystemVectorType& b) override
+                             TSystemVectorType& b)
         {
             // if (rModelPart.GetCommunicator().MyPID() == 0)
             //     std::cout << "prediction" << std::endl;
@@ -427,7 +427,7 @@ namespace Kratos {
                                           LocalSystemMatrixType& LHS_Contribution,
                                           LocalSystemVectorType& RHS_Contribution,
                                           Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo) override
+                                          ProcessInfo& CurrentProcessInfo)
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
@@ -459,7 +459,7 @@ namespace Kratos {
         void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                         LocalSystemVectorType& RHS_Contribution,
                                         Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo) override
+                                        ProcessInfo& CurrentProcessInfo)
         {
             int k = OpenMPUtils::ThisThread();
 
@@ -486,11 +486,11 @@ namespace Kratos {
         /** functions totally analogous to the precedent but applied to
         the "condition" objects
          */
-        void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+        virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo) override
+                                                            ProcessInfo& CurrentProcessInfo)
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
@@ -515,10 +515,10 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+        virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo) override
+                                                          ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY;
 
@@ -549,10 +549,10 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        void InitializeSolutionStep(ModelPart& r_model_part,
+        virtual void InitializeSolutionStep(ModelPart& r_model_part,
                                             TSystemMatrixType& A,
                                             TSystemVectorType& Dx,
-                                            TSystemVectorType& b) override
+                                            TSystemVectorType& b)
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -575,10 +575,10 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        void InitializeNonLinIteration(ModelPart& r_model_part,
+        virtual void InitializeNonLinIteration(ModelPart& r_model_part,
                                                TSystemMatrixType& A,
                                                TSystemVectorType& Dx,
-                                               TSystemVectorType& b) override
+                                               TSystemVectorType& b)
         {
             KRATOS_TRY
 
@@ -588,7 +588,7 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
+        virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
         {
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -649,7 +649,7 @@ namespace Kratos {
             }
         }
 
-        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
+        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
         {
             Element::EquationIdVectorType EquationId;
             LocalSystemVectorType RHS_Contribution;

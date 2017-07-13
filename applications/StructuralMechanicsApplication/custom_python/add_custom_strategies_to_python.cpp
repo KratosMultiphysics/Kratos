@@ -38,8 +38,6 @@
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/residual_displacement_and_other_dof_criteria.h"
 
 // Builders and solvers
 
@@ -61,13 +59,9 @@ void  AddCustomStrategiesToPython()
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef LinearSolverType::Pointer LinearSolverPointer;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-//     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-    typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
     
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
@@ -79,11 +73,10 @@ void  AddCustomStrategiesToPython()
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     
     // Custom convergence criterion types
-    typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
-    typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
 
     // Custom builder and solvers types
-
+    
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
@@ -91,20 +84,20 @@ void  AddCustomStrategiesToPython()
     // Residual Based Arc Length Strategy      
     class_< ResidualBasedArcLengthStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable >
             (
-                "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
+                "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                                                                 unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
             ;
 
     // Eigensolver Strategy
     class_< EigensolverStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
             (
-                "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+                "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>() )
             ;
              
 
     class_< FormfindingUpdatedReferenceStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-        ("FormfindingUpdatedReferenceStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool >())
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool >())
+        ("FormfindingUpdatedReferenceStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
         .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
         .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
         .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)
@@ -135,24 +128,6 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-            
-    // Displacement and other DoF Convergence Criterion
-    class_< DisplacementAndOtherDoFCriteriaType,
-            bases< ConvergenceCriteriaType >, boost::noncopyable >
-            (
-            "DisplacementAndOtherDoFCriteria", 
-            init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
-            
-    // Displacement and other DoF residual Convergence Criterion
-    class_< ResidualDisplacementAndOtherDoFCriteriaType,
-            bases< ConvergenceCriteriaType >, boost::noncopyable >
-            (
-            "ResidualDisplacementAndOtherDoFCriteria", 
-            init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************

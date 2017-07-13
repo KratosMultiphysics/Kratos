@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Structural_Test as Execute_Test
+import Kratos_Execute_Solid_Test as Execute_Test
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -45,3 +45,6 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     
 class SprismPanTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/pan_test"
+
+class Eigen3D3NThinCircleTests(StructuralMechanichsTestFactory):
+    file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"

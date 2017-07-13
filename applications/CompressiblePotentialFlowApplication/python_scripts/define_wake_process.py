@@ -206,33 +206,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     
             KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()
             
-            for elem in self.fluid_model_part.Elements:
-                d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-                for i in range(len(d)):
-                    if(abs(d[i]) < self.epsilon ):
-                        if(d[i] < 0):
-                            d[i] = -self.epsilon
-                        else:
-                            d[i] = self.epsilon
-                elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
                        
-
-                #if(len(d) == 4):
-                    #npos = 0
-                    #nneg = 0
-                    #i = 0
-                    #for node in elem.GetNodes():
-                        ##d[i] = node.Z - 2502.5
-                        #if(d[i] >= 0):
-                            #npos += 1
-                        #else: 
-                            #nneg += 1
-                            
-                        #i += 1
-                        
-                    ##elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
-                    #if(npos > 0 and nneg>0):
-                            #elem.Set(KratosMultiphysics.TO_SPLIT,True)
             
             
             ##chapuza
@@ -257,27 +231,14 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             #elem.Set(KratosMultiphysics.TO_SPLIT,True)
 
             
-            
-            
-            #from here it is to output the wake
             distance_calculator.GenerateSkinModelPart(representation_mp);
             
-            max_node_id = 1
-            for node in self.fluid_model_part.Nodes:
-                if node.Id > max_node_id:
-                    max_node_id = node.Id
-                    
-            max_el_id = 1
-            for elem in self.fluid_model_part.Elements:
-                if elem.Id > max_el_id:
-                    max_el_id = elem.Id    
-                    
-            i = max_node_id+1
+            i = 200000
             for node in representation_mp.Nodes:
                 node.Id = i
                 i += 1
                 
-            i = max_el_id+1
+            i = 2e6
             for elem in representation_mp.Elements:
                 elem.Id = i
                 i+=1

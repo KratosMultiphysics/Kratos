@@ -227,7 +227,7 @@ public:
     
 
     /// Destructor.
-    ~ApplyConstantVectorValueProcess() override {}
+    virtual ~ApplyConstantVectorValueProcess() {}
 
 
     ///@}
@@ -247,11 +247,11 @@ public:
 
 
     /// Execute method is used to execute the ApplyConstantVectorValueProcess algorithms.
-    void Execute() override {}
+    virtual void Execute() override {}
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize() override
+    virtual void ExecuteInitialize() override
     {       
         //compute the value to be applied
         array_1d<double,3> value = mmodulus*mdirection;
@@ -268,37 +268,37 @@ public:
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    void ExecuteBeforeSolutionLoop() override
+    virtual void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
+    virtual void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
+    virtual void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override
+    virtual void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override
+    virtual void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    void ExecuteFinalize() override
+    virtual void ExecuteFinalize() override
     {
     }
 
@@ -318,19 +318,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ApplyConstantVectorValueProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyConstantVectorValueProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

@@ -110,7 +110,7 @@ public:
     }
 
     ///Destructor.
-    ~GidIO() override
+    virtual ~GidIO()
     {
         Timer::PrintTimingInformation();
 

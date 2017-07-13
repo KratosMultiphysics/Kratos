@@ -20,13 +20,12 @@
 // #include "spaces/ublas_space.h"
 // #include "linear_solvers/cuthill_mckee_reorderer.h"
 
- 
+
 namespace Kratos
 {
 	ReorderAndOptimizeModelPartProcess::ReorderAndOptimizeModelPartProcess(ModelPart& rModelPart, Parameters settings)
 		: Process()
-		, mrModelPart(rModelPart.GetRootModelPart()) 
-	{
+		, mrModelPart(rModelPart.GetRootModelPart()) {
 
 		Parameters default_parameters(R"(
                 {
@@ -36,6 +35,9 @@ namespace Kratos
 
 	}
 
+	ReorderAndOptimizeModelPartProcess::~ReorderAndOptimizeModelPartProcess() {
+            
+	}
 
 	void ReorderAndOptimizeModelPartProcess::Execute() 
         {

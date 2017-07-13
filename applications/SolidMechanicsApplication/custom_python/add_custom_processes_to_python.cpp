@@ -32,9 +32,6 @@
 #include "custom_processes/assign_vector_field_to_conditions_process.h"
 #include "custom_processes/fix_scalar_dof_process.h"
 #include "custom_processes/free_scalar_dof_process.h"
-#include "custom_processes/add_dofs_process.h"
-#include "custom_processes/apply_rigid_body_rotation_to_nodes_process.h"
-#include "custom_processes/apply_rigid_body_rotation_field_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -62,7 +59,7 @@ namespace Kratos
       class_< FlagsContainer >( "FlagsContainer", init<>() )
 	.def( "PushBack", Push_Back_Flags )
 	;
-    
+
 
       //**********TRANSFER NODES TO MODEL PART*********//
 
@@ -154,7 +151,7 @@ namespace Kratos
       	(
       	 "FixScalarDofProcess", init<ModelPart&, Parameters>()
       	)
-        .def(init<ModelPart&, Parameters&>())
+        .def(init< ModelPart&, Parameters& >())
         .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, std::size_t>())
         .def(init<ModelPart&, const Variable<double>&, std::size_t>())
         .def(init<ModelPart&, const Variable<int>&, std::size_t>())
@@ -168,7 +165,7 @@ namespace Kratos
       	(
       	 "FreeScalarDofProcess", init<ModelPart&, Parameters>()
       	)
-        .def(init<ModelPart&, Parameters&>())
+        .def(init< ModelPart&, Parameters& >())
         .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, std::size_t>())
         .def(init<ModelPart&, const Variable<double>&, std::size_t>())
         .def(init<ModelPart&, const Variable<int>&, std::size_t>())
@@ -178,40 +175,7 @@ namespace Kratos
       	;
 
  
-      //**********ADD DOFS PROCESS*********//
 
-      class_<AddDofsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AddDofsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init<ModelPart&, Parameters&>())
-	.def(init<ModelPart&, const boost::python::list&, const boost::python::list&>())
-        .def("Execute", &AddDofsProcess::Execute)
-
-      	;
-
-
-      //**********APPLY RIGID BODY ROTATION*********//
-
-      class_<ApplyRigidBodyRotationToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "ApplyRigidBodyRotationToNodesProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def("Execute", &ApplyRigidBodyRotationToNodesProcess::Execute)
-
-      	;
-
-      
-      class_<ApplyRigidBodyRotationFieldToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "ApplyRigidBodyRotationFieldToNodesProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-	.def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &ApplyRigidBodyRotationFieldToNodesProcess::Execute)
-
-      	;
-      
     }
  
   }  // namespace Python.

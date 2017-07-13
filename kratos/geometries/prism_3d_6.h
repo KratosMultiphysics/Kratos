@@ -233,7 +233,7 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    ~Prism3D6() override {}
+    virtual ~Prism3D6() {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
@@ -296,7 +296,7 @@ public:
     }
 
 
-        Geometry< Point<3> >::Pointer Clone() const override
+        virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -314,7 +314,7 @@ public:
 
 
     //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
 	if(rResult.size() != 6)
            rResult.resize( 6, false );
@@ -342,7 +342,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    double Length() const override
+    virtual double Length() const override
     {
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
@@ -372,14 +372,14 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    double Area() const override
+    virtual double Area() const override
     {
         return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
 
 
-    double Volume() const override
+    virtual double Volume() const override
     {
 
         Vector temp;
@@ -412,7 +412,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    double DomainSize() const override
+    virtual double DomainSize() const override
     {
         return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
@@ -423,7 +423,7 @@ public:
     * @param rResult a Matrix that will be overwritten by the results
     * @return the coordinates of all points of the current geometry
     */
-    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if ( rResult.size1() != 6 || rResult.size2() != 3 )
             rResult.resize( 6, 3 );
@@ -458,7 +458,7 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -480,12 +480,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    SizeType EdgesNumber() const override
+    virtual SizeType EdgesNumber() const override
     {
         return 9;
     }
 
-    SizeType FacesNumber() const override
+    virtual SizeType FacesNumber() const override
     {
         return 5;
     }
@@ -496,7 +496,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -530,7 +530,7 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    virtual GeometriesArrayType Faces( void ) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -576,7 +576,7 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
@@ -611,7 +611,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "3 dimensional prism with six nodes in 3D space";
     }
@@ -623,7 +623,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    void PrintInfo( std::ostream& rOStream ) const override
+    virtual void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional prism with six nodes in 3D space";
     }
@@ -637,7 +637,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData( std::ostream& rOStream ) const override
+    virtual void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -666,12 +666,12 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    void load( Serializer& rSerializer ) override
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

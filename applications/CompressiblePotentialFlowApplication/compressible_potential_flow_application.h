@@ -71,7 +71,7 @@ public:
 	KratosCompressiblePotentialFlowApplication();
 
 	/// Destructor.
-	~KratosCompressiblePotentialFlowApplication() override{}
+	virtual ~KratosCompressiblePotentialFlowApplication(){}
 
 
 	///@}
@@ -83,7 +83,7 @@ public:
 	///@name Operations
 	///@{
 
-	void Register() override;
+	virtual void Register();
 
 
 
@@ -102,18 +102,18 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override {
+	virtual std::string Info() const {
 		return "KratosCompressiblePotentialFlowApplication";
 	}
 
 	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override {
+	virtual void PrintInfo(std::ostream& rOStream) const {
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	void PrintData(std::ostream& rOStream) const override {
+	virtual void PrintData(std::ostream& rOStream) const {
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 

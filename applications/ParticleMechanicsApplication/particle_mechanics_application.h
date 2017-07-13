@@ -1,5 +1,5 @@
-//
-//   Project Name:        Kratos
+//   
+//   Project Name:        Kratos       
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream>
+#include <iostream> 
 
 
-// External includes
+// External includes 
 #include "solid_mechanics_application.h"
 //#include "structural_application.h"
 //#include "pfem_solid_mechanics_application.h"
@@ -37,7 +37,7 @@
 
 //element
 #include "custom_elements/updated_lagrangian.hpp"
-#include "custom_elements/updated_lagrangian_UP.hpp"
+//#include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
 //#include "custom_elements/updated_lagrangian_UP_quadrilateral.hpp"
 //#include "custom_elements/total_lagrangian.hpp"
@@ -45,329 +45,301 @@
 //constitutive laws
 #include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
-#include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
-#include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
-
-
-#include "custom_constitutive/hencky_mc_3D_law.hpp"
-#include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 //flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
-#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
-//#include "custom_constitutive/flow_rules/drucker_prager_flow_rule.hpp"
-//yield criteria
-#include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
-//#include "custom_constitutive/yield_criteria/drucker_prager_yield_criterion.hpp"
 namespace Kratos
 {
-///@name Type Definitions
-///@{
-typedef array_1d<double,3> Vector3;
-typedef array_1d<double,6> Vector6;
-///@}
-
-///@name Kratos Globals
-///@{
-
-// Variables definition
-
-//element
-KRATOS_DEFINE_VARIABLE(int, COUNTER )
-KRATOS_DEFINE_VARIABLE(int, MP_NUMBER )
-KRATOS_DEFINE_VARIABLE(int, MP_BOOL )
-KRATOS_DEFINE_VARIABLE(double, WEIGHT )
-KRATOS_DEFINE_VARIABLE(double, MP_MASS )
-KRATOS_DEFINE_VARIABLE(double, MP_DENSITY )
-KRATOS_DEFINE_VARIABLE(double, MP_VOLUME )
-KRATOS_DEFINE_VARIABLE(double, MP_KINETIC_ENERGY )
-KRATOS_DEFINE_VARIABLE(double, MP_STRAIN_ENERGY )
-KRATOS_DEFINE_VARIABLE(double, MP_TOTAL_ENERGY )
-KRATOS_DEFINE_VARIABLE(double, MP_PRESSURE )
-KRATOS_DEFINE_VARIABLE(double, MP_JACOBIAN )
-KRATOS_DEFINE_VARIABLE(double, MP_EQUIVALENT_PLASTIC_STRAIN )
-KRATOS_DEFINE_VARIABLE(double, MP_CONSTITUTIVE_PRESSURE )
-KRATOS_DEFINE_VARIABLE(double, NODAL_MPRESSURE )
-KRATOS_DEFINE_VARIABLE(double, AUX_PRESSURE)
-KRATOS_DEFINE_VARIABLE(double, AUX_MP_PRESSURE)
-
-
-//constitutive law
-
-KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
-
-KRATOS_DEFINE_VARIABLE( double, DILATANCY_COEFFICIENT )
-
-
-KRATOS_DEFINE_VARIABLE(double, COHESION )
-KRATOS_DEFINE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
-
-////nodal dofs
-//KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
-KRATOS_DEFINE_VARIABLE(double, AUX_R)
-KRATOS_DEFINE_VARIABLE(double, AUX_T)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_VEL )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
-KRATOS_DEFINE_VARIABLE(double, NODAL_LUMPED_MASS)
-
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
-//MP element variable
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_DISPLACEMENT )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_ACCELERATION )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_VELOCITY )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_ACCELERATION )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
-KRATOS_DEFINE_VARIABLE(Vector, MP_CAUCHY_STRESS_VECTOR )
-KRATOS_DEFINE_VARIABLE(Vector, MP_ALMANSI_STRAIN_VECTOR )
-KRATOS_DEFINE_VARIABLE(Vector, PREVIOUS_MP_CAUCHY_STRESS_VECTOR )
-KRATOS_DEFINE_VARIABLE(Vector, PREVIOUS_MP_ALMANSI_STRAIN_VECTOR )
-KRATOS_DEFINE_VARIABLE(Matrix, MP_CONSTITUTIVE_MATRIX )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_AUX )
-//grid node variable
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-*/
-class KratosParticleMechanicsApplication : public KratosApplication
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-
-    /// Pointer definition of KratosParticleMechanicsApplication
-    KRATOS_CLASS_POINTER_DEFINITION(KratosParticleMechanicsApplication);
+	///@name Type Definitions
+	///@{
+	typedef array_1d<double,3> Vector3;
+	typedef array_1d<double,6> Vector6;
+	///@}
+
+	///@name Kratos Globals
+	///@{ 
+
+	// Variables definition 
+
+    //element
+    KRATOS_DEFINE_VARIABLE(int, COUNTER )
+    KRATOS_DEFINE_VARIABLE(int, MP_NUMBER )
+    KRATOS_DEFINE_VARIABLE(int, MP_BOOL )
+    KRATOS_DEFINE_VARIABLE(double, WEIGHT )
+    KRATOS_DEFINE_VARIABLE(double, MP_MASS )
+    KRATOS_DEFINE_VARIABLE(double, MP_DENSITY )
+    KRATOS_DEFINE_VARIABLE(double, MP_VOLUME )
+    KRATOS_DEFINE_VARIABLE(double, MP_KINETIC_ENERGY )
+    KRATOS_DEFINE_VARIABLE(double, MP_STRAIN_ENERGY )
+    KRATOS_DEFINE_VARIABLE(double, MP_TOTAL_ENERGY )
+    
+    
+    
+    //constitutive law
+	
+    KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
+    
+    
+    ////nodal dofs
+    //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
+    KRATOS_DEFINE_VARIABLE(double, AUX_R)
+    KRATOS_DEFINE_VARIABLE(double, AUX_T)
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_VEL )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
+    KRATOS_DEFINE_VARIABLE(double, NODAL_LUMPED_MASS)
+
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
+    //MP element variable
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_DISPLACEMENT )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_ACCELERATION )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_VELOCITY )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_ACCELERATION )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
+    KRATOS_DEFINE_VARIABLE(Vector, MP_CAUCHY_STRESS_VECTOR )
+    KRATOS_DEFINE_VARIABLE(Vector, MP_ALMANSI_STRAIN_VECTOR )
+    KRATOS_DEFINE_VARIABLE(Vector, PREVIOUS_MP_CAUCHY_STRESS_VECTOR )
+    KRATOS_DEFINE_VARIABLE(Vector, PREVIOUS_MP_ALMANSI_STRAIN_VECTOR )
+    KRATOS_DEFINE_VARIABLE(Matrix, MP_CONSTITUTIVE_MATRIX )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_AUX )
+    //grid node variable
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
+	///@} 
+	///@name Type Definitions
+	///@{ 
+
+	///@} 
+	///@name  Enum's
+	///@{
+
+	///@}
+	///@name  Functions 
+	///@{
+
+	///@}
+	///@name Kratos Classes
+	///@{
+
+	/// Short class definition.
+	/** Detail class definition.
+	*/
+	class KratosParticleMechanicsApplication : public KratosApplication
+	{
+	public:
+		///@name Type Definitions
+		///@{
+		
+
+		/// Pointer definition of KratosParticleMechanicsApplication
+		KRATOS_CLASS_POINTER_DEFINITION(KratosParticleMechanicsApplication);
+
+		///@}
+		///@name Life Cycle 
+		///@{ 
+
+		/// Default constructor.
+		KratosParticleMechanicsApplication();
+
+		/// Destructor.
+		virtual ~KratosParticleMechanicsApplication(){}
+
+
+		///@}
+		///@name Operators 
+		///@{
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
 
-    /// Default constructor.
-    KratosParticleMechanicsApplication();
+		///@}
+		///@name Operations
+		///@{
 
-    /// Destructor.
-    ~KratosParticleMechanicsApplication() override {}
+		virtual void Register();
 
 
-    ///@}
-    ///@name Operators
-    ///@{
 
+		///@}
+		///@name Access
+		///@{ 
 
-    ///@}
-    ///@name Operations
-    ///@{
 
-    void Register() override;
+		///@}
+		///@name Inquiry
+		///@{
 
 
+		///@}      
+		///@name Input and output
+		///@{
 
-    ///@}
-    ///@name Access
-    ///@{
+		/// Turn back information as a string.
+		virtual std::string Info() const
+		{
+			return "KratosParticleMechanicsApplication";
+		}
 
+		/// Print information about this object.
+		virtual void PrintInfo(std::ostream& rOStream) const
+		{
+			rOStream << Info();
+			PrintData(rOStream);
+		}
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+		///// Print object's data.
+      virtual void PrintData(std::ostream& rOStream) const
+      {
+      	KRATOS_WATCH("in my application");
+      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+		rOStream << "Variables:" << std::endl;
+		KratosComponents<VariableData>().PrintData(rOStream);
+		rOStream << std::endl;
+		rOStream << "Elements:" << std::endl;
+		KratosComponents<Element>().PrintData(rOStream);
+		rOStream << std::endl;
+		rOStream << "Conditions:" << std::endl;
+		KratosComponents<Condition>().PrintData(rOStream);
+      }
 
 
-    ///@}
-    ///@name Input and output
-    ///@{
+		///@}      
+		///@name Friends
+		///@{
 
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "KratosParticleMechanicsApplication";
-    }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-        PrintData(rOStream);
-    }
+		///@}
 
-    ///// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        KRATOS_WATCH("in my application");
-        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-        rOStream << "Variables:" << std::endl;
-        KratosComponents<VariableData>().PrintData(rOStream);
-        rOStream << std::endl;
-        rOStream << "Elements:" << std::endl;
-        KratosComponents<Element>().PrintData(rOStream);
-        rOStream << std::endl;
-        rOStream << "Conditions:" << std::endl;
-        KratosComponents<Condition>().PrintData(rOStream);
-    }
+	protected:
+		///@name Protected static Member Variables 
+		///@{ 
 
 
-    ///@}
-    ///@name Friends
-    ///@{
+		///@} 
+		///@name Protected member Variables 
+		///@{ 
 
 
-    ///@}
+		///@} 
+		///@name Protected Operators
+		///@{ 
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
 
+		///@} 
+		///@name Protected Operations
+		///@{ 
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
 
+		///@} 
+		///@name Protected  Access 
+		///@{ 
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
 
+		///@}      
+		///@name Protected Inquiry 
+		///@{ 
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
+		///@}    
+		///@name Protected LifeCycle 
+		///@{ 
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
 
+		///@}
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+	private:
+		///@name Static Member Variables 
+		///@{ 
 
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
+		//       static const ApplicationCondition  msApplicationCondition; 
 
-    ///@}
+		///@} 
+		///@name Member Variables 
+		///@{ 
+ 		const UpdatedLagrangian mUpdatedLagrangian2D3N;
+ 		const UpdatedLagrangian mUpdatedLagrangian3D4N;
+ 		//const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
+ 		//const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
+ 		const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
+ 		//const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
+ 		
+ 		//const TotalLagrangian mTotalLagrangian2D3N;
+ 		//const TotalLagrangian mTotalLagrangian3D4N;
+		
+        //constitutive laws
 
-private:
-    ///@name Static Member Variables
-    ///@{
+        const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
+        const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
 
+		
+        //Flow Rules
+        //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
+        //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
+        //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
+        const ViscoplasticFlowRule                    mViscoplasticFlowRule;
+        const BinghamViscoplasticFlowRule             mBinghamViscoplasticFlowRule;
+        
+        //Yield Criteria
+        //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
+        //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+        
+        //Hardening Laws
+        //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
+        //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
+        //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
 
+		///@} 
+		///@name Private Operators
+		///@{ 
 
-    //       static const ApplicationCondition  msApplicationCondition;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-    const UpdatedLagrangian mUpdatedLagrangian2D3N;
-    const UpdatedLagrangian mUpdatedLagrangian3D4N;
-    const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
-    //const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
-    const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
-    //const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
+		///@} 
+		///@name Private Operations
+		///@{ 
 
-    //const TotalLagrangian mTotalLagrangian2D3N;
-    //const TotalLagrangian mTotalLagrangian3D4N;
 
-    //constitutive laws
+		///@} 
+		///@name Private  Access 
+		///@{ 
 
-    const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
-    const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
 
-    const HenckyMCPlastic3DLaw                mHenckyMCPlastic3DLaw;
-    const HenckyMCPlasticPlaneStrain2DLaw     mHenckyMCPlasticPlaneStrain2DLaw;
-    const HenckyMCPlasticUP3DLaw              mHenckyMCPlasticUP3DLaw;
-    const HenckyMCPlasticPlaneStrainUP2DLaw   mHenckyMCPlasticPlaneStrainUP2DLaw;
+		///@}    
+		///@name Private Inquiry 
+		///@{ 
 
-    //Flow Rules
-    //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
-    //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
-    //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
-    const ViscoplasticFlowRule                    mViscoplasticFlowRule;
-    const BinghamViscoplasticFlowRule             mBinghamViscoplasticFlowRule;
-    const MCPlasticFlowRule                         mMCPlasticFlowRule;
-    //const DruckerPragerFlowRule                   mDruckerPragerFlowRule;
-    //Yield Criteria
-    //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
-    //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
-    //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
-    const MCYieldCriterion                   mMCYieldCriterion;
-    //Hardening Laws
-    //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
-    //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
-    //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+		///@}    
+		///@name Un accessible methods 
+		///@{ 
 
+		/// Assignment operator.
+		KratosParticleMechanicsApplication& operator=(KratosParticleMechanicsApplication const& rOther);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+		/// Copy constructor.
+		KratosParticleMechanicsApplication(KratosParticleMechanicsApplication const& rOther);
 
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+		///@}    
 
+	}; // Class KratosParticleMechanicsApplication 
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
+	///@} 
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+	///@name Type Definitions       
+	///@{ 
 
-    /// Assignment operator.
-    KratosParticleMechanicsApplication& operator=(KratosParticleMechanicsApplication const& rOther);
 
-    /// Copy constructor.
-    KratosParticleMechanicsApplication(KratosParticleMechanicsApplication const& rOther);
+	///@} 
+	///@name Input and output 
+	///@{ 
 
-
-    ///@}
-
-}; // Class KratosParticleMechanicsApplication
-
-///@}
-
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-///@}
+	///@} 
 
 
 }  // namespace Kratos.

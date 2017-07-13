@@ -94,7 +94,7 @@ public:
     }
 
     /// Destructor.
-    ~VectorPythonInterface() override {}
+    virtual ~VectorPythonInterface() {}
 
 
     ///@}

@@ -167,7 +167,7 @@ public:
     {}
 
     /// Destructor.
-    ~DistanceCalculationElementSimplex() override
+    virtual ~DistanceCalculationElementSimplex()
     {}
 
 
@@ -195,7 +195,7 @@ public:
     }
 
     /// Calculate the element's local contribution to the system for the current step.
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -384,7 +384,7 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo) override
     {
 
@@ -406,7 +406,7 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList,
+    virtual void GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo) override
     {
         unsigned int number_of_nodes = TDim+1;
@@ -452,7 +452,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
 {
         KRATOS_TRY
 
@@ -504,7 +504,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceCalculationElementSimplex #" << Id();
@@ -512,7 +512,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DistanceCalculationElementSimplex" << TDim << "D";
     }
@@ -683,12 +683,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

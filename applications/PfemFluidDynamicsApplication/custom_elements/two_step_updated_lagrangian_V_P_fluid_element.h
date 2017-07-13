@@ -366,7 +366,6 @@ namespace Kratos
 
       bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 				const ProcessInfo& rCurrentProcessInfo,
-				const ShapeFunctionDerivativesType& rDN_DX,
 				unsigned int g);
 
       void GetPositions(Vector& rValues,

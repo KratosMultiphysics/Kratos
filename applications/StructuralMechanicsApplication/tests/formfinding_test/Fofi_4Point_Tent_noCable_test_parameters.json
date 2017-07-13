@@ -17,9 +17,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"
         },
-        "material_import_settings" :{
-            "materials_filename": "formfinding_test/Fofi_4Point_Tent_noCable_test_materials.json"
-        },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
         "residual_relative_tolerance"        : 0.00000001,

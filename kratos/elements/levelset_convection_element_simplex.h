@@ -92,7 +92,7 @@ public:
     {}
 
     /// Destructor.
-    ~LevelSetConvectionElementSimplex() override {};
+    virtual ~LevelSetConvectionElementSimplex() {};
 
 
     ///@}
@@ -313,14 +313,14 @@ public:
 
     /// Turn back information as a string.
 
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "LevelSetConvectionElementSimplex #";
     }
 
     /// Print information about this object.
 
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -429,12 +429,12 @@ private:
     //         {
     //         }
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

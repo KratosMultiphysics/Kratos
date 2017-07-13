@@ -121,7 +121,7 @@ public:
     }
 
     /// Destructor.
-    ~ComputeBDFCoefficientsProcess() override
+    virtual ~ComputeBDFCoefficientsProcess()
     {
     }
 
@@ -141,7 +141,7 @@ public:
     ///@{
     ///this function fills the vector BDF_COEFFICIENTS with the correct values
     ///depending on the time_order chosen
-    void Execute() override
+    virtual void Execute() override
     {
         KRATOS_TRY
         
@@ -208,19 +208,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ComputeBDFCoefficientsProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeBDFCoefficientsProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

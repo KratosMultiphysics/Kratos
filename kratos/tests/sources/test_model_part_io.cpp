@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   
 //
-//
-
+	           
 // System includes
 
 
-// External includes
+// External includes 
 
 
 // Project includes
@@ -29,11 +29,11 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartIOSubModelPartsDivision, KratosCoreFastSuite)
 		{
-			boost::shared_ptr<std::iostream> p_input(new std::stringstream(
+			boost::shared_ptr<std::iostream> p_input(new std::stringstream( 
 				R"input(
 				Begin ModelPartData
                                  DENSITY 2700.000000
-				 BODY_FORCE [3] (0.000000,0.000000,0.000000)
+				 BODY_FORCE [3] (0.000000,0.000000,0.000000)				
 				End ModelPartData
 
 
@@ -58,20 +58,24 @@ namespace Kratos {
 				End Elements
 
 				Begin NodalData DISPLACEMENT_X          //be careful, variables are case sensitive!
-				1 1 100.0                // pos1 is the node, pos2 (a 1) means that the DOF is fixed, then (position 3) we write the fixed displacement (in this case, temperature)
+				1 1 100.0                // pos1 is the node, pos2 (a 1) means that the DOF is fixed, then (position 3) we write the fixed displacement (in this case, temperature)  
 				End NodalData
 
-				Begin NodalData DISPLACEMENT_Y
-				1 1 100.0
+				Begin NodalData DISPLACEMENT_Y          
+				1 1 100.0              
 				End NodalData
+                        
+                                Begin NodalData VELOCITY
+                                1 0 [3] (0.1, 0.2, 0.3)
+                                End NodalData
 
-				Begin NodalData FORCE_Y
-				3    0    5.0             //fixing it or not does not change anything since it is not a degree of freedom, it's just info that will be used by the condition
+				Begin NodalData FORCE_Y             
+				3    0    5.0             //fixing it or not does not change anything since it is not a degree of freedom, it's just info that will be used by the condition  
 				End NodalData
 
 				Begin Conditions Condition2D2N
 				1 1 1 2
-                                2 1 3 4
+                                2 1 3 4                   
 				End Conditions
 
 				Begin SubModelPart BasePart // Note that this would be a sub sub modelpart
@@ -172,3 +176,5 @@ namespace Kratos {
 		}
 	}
 }  // namespace Kratos.
+
+

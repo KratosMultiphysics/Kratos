@@ -194,7 +194,7 @@ public:
 
 
     /// Destructor.
-    ~Mesh() override {}
+    virtual ~Mesh() {}
 
 
     ///@}
@@ -657,19 +657,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "Mesh";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "    Number of Nodes      : " << mpNodes->size() << std::endl;
         rOStream << "    Number of Properties : " << mpProperties->size() << std::endl;
@@ -771,7 +771,7 @@ private:
     friend class Serializer;
 
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
@@ -781,7 +781,7 @@ private:
         rSerializer.save("Conditions",mpConditions);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );

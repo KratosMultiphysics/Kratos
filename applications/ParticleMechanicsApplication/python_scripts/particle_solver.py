@@ -63,8 +63,6 @@ def AddVariables(model_part, config=None):
                 # add specific variables for the problem (pressure dofs)
                 model_part.AddNodalSolutionStepVariable(PRESSURE)
                 model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION);
-                model_part.AddNodalSolutionStepVariable(NODAL_MPRESSURE)
-                model_part.AddNodalSolutionStepVariable(AUX_PRESSURE)
         if hasattr(config, "time_integration_method"):
             if config.time_integration_method == "Explicit" :
                 model_part.AddNodalSolutionStepVariable(NODAL_MASS)

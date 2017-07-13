@@ -123,7 +123,7 @@ public:
         KRATOS_THROW_ERROR (std::logic_error,"copy constructor not correctly implemented","");
     }
     /// Destructor.
-    ~DeflatedGMRESSolver() override {}
+    virtual ~DeflatedGMRESSolver() {}
     ///@}
     ///@name Operators
     ///@{
@@ -143,7 +143,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void Initialize (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void Initialize (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
 	if (mBlocksAreAllocated == true)
 	{
@@ -163,7 +163,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {     
         //copy to local matrices
         if (mBlocksAreAllocated == false)
@@ -187,7 +187,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void PerformSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void PerformSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         unsigned int m = mm;
         unsigned int max_iter = BaseType::GetMaxIterationsNumber();
@@ -200,7 +200,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         
     }
@@ -208,7 +208,7 @@ public:
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
      */
-    void Clear() override
+    virtual void Clear() override
     {
         mK.clear();
         mG.clear();
@@ -231,7 +231,7 @@ public:
     guess for iterative linear solvers.
      @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if (mis_initialized == false)
             this->Initialize (rA,rX,rB);
@@ -253,13 +253,13 @@ public:
     guess for iterative linear solvers.
      @param rB. Right hand side vector.
     */
-    bool Solve (SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
+    virtual bool Solve (SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         return false;
     }
 
     /** Eigenvalue and eigenvector solve method for derived eigensolvers */
-     void Solve (SparseMatrixType& K,
+    virtual  void Solve (SparseMatrixType& K,
                          SparseMatrixType& M,
                          DenseVectorType& Eigenvalues,
                          DenseMatrixType& Eigenvectors) override
@@ -271,7 +271,7 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function tells if the solver requires such data
      */
-    bool AdditionalPhysicalDataIsNeeded() override
+    virtual bool AdditionalPhysicalDataIsNeeded() override
     {
         return true;
     }
@@ -415,17 +415,17 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "Linear solver";
     }
     /// Print information about this object.
-    void PrintInfo (std::ostream& rOStream) const override
+    virtual void PrintInfo (std::ostream& rOStream) const override
     {
         rOStream << "Linear solver";
     }
     /// Print object's data.
-    void PrintData (std::ostream& rOStream) const override
+    virtual void PrintData (std::ostream& rOStream) const override
     {
     }
     ///@}

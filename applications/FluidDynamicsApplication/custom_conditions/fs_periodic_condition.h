@@ -178,7 +178,7 @@ public:
 
 
     /// Destructor.
-    ~FSPeriodicCondition() override;
+    virtual ~FSPeriodicCondition();
 
 
     ///@}
@@ -195,20 +195,20 @@ public:
     /// Create a new FSPeriodicCondition instance
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override;
+                              PropertiesType::Pointer pProperties) const;
 
     /// Check input to ensure that it makes sense.
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      ProcessInfo& rCurrentProcessInfo);
 
-   void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+   virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo);
 
-   void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+   virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo);
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -217,19 +217,19 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& ElementalDofList,
+                            ProcessInfo& CurrentProcessInfo);
 
     /// Returns the values of the unknowns for each node
-    void GetValuesVector(Vector& Values, int Step = 0) override;
+    virtual void GetValuesVector(Vector& Values, int Step = 0);
 
     ///@}
     ///@name Conditional Data
@@ -250,7 +250,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "FSPeriodicCondition #" << Id();
@@ -258,13 +258,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "FSPeriodicCondition #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         Condition::PrintData(rOStream);
     }
@@ -337,9 +337,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer);
 
 
     ///@}

@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosNurbsTestcaseApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+# include_directories( ${CMAKE_SOURCE_DIR}/kratos /home/matthias/Downloads/opennurbs5.0/ )
 
 ## generate variables with the sources
 set( KRATOS_NURBSTESTCASE_APPLICATION_SOURCES     
@@ -18,6 +19,7 @@ set( KRATOS_NURBSTESTCASE_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosNurbsTestcaseApplication SHARED ${KRATOS_NURBSTESTCASE_APPLICATION_SOURCES})
+# set(OPENNURBS_LIB "/home/matthias/Downloads/opennurbs5.0/libopenNURBS.a")
 target_link_libraries(KratosNurbsTestcaseApplication KratosCore ) #${OPENNURBS_LIB})
 set_target_properties(KratosNurbsTestcaseApplication PROPERTIES PREFIX "")
 install(TARGETS KratosNurbsTestcaseApplication DESTINATION libs )

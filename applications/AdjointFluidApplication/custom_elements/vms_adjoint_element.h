@@ -97,7 +97,7 @@ public:
     Element(NewId, pGeometry, pProperties)
     {}
 
-    ~VMSAdjointElement() override
+    virtual ~VMSAdjointElement()
     {}
 
     ///@}
@@ -109,9 +109,9 @@ public:
      *
      * @return pointer to the newly created element
      */
-    Element::Pointer Create(IndexType NewId,
+    virtual Element::Pointer Create(IndexType NewId,
             NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties) const override
+            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
 
@@ -123,9 +123,9 @@ public:
         KRATOS_CATCH("")
     }
 
-    Element::Pointer Create(IndexType NewId,
+    virtual Element::Pointer Create(IndexType NewId,
             GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties) const override
+            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
 
@@ -140,7 +140,7 @@ public:
      *
      * @return 0 after successful completion.
      */
-    int Check(const ProcessInfo &/*rCurrentProcessInfo*/) override
+    virtual int Check(const ProcessInfo &/*rCurrentProcessInfo*/)
     {
         KRATOS_TRY
 
@@ -219,7 +219,7 @@ public:
     }
 
     /// Returns the adjoint values stored in this element's nodes.
-    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
+    virtual void GetFirstDerivativesVector(VectorType& rValues, int Step = 0)
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
@@ -238,7 +238,7 @@ public:
     }
 
     /// Returns the adjoint acceleration values stored in this element's nodes.
-    void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) override
+    virtual void GetSecondDerivativesVector(VectorType& rValues, int Step = 0)
     {
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
@@ -255,9 +255,9 @@ public:
         }
     }
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -267,8 +267,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-            ProcessInfo& /*rCurrentProcessInfo*/) override
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
+            ProcessInfo& /*rCurrentProcessInfo*/)
     {
         KRATOS_TRY
 
@@ -278,8 +278,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-            ProcessInfo& /*rCurrentProcessInfo*/) override
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix,
+            ProcessInfo& /*rCurrentProcessInfo*/)
     {
         KRATOS_TRY
 
@@ -289,8 +289,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-            ProcessInfo& /*rCurrentProcessInfo*/) override
+    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+            ProcessInfo& /*rCurrentProcessInfo*/)
     {
         KRATOS_TRY
 
@@ -359,9 +359,9 @@ public:
      * adjoint step is the \f$(n+1)^{th}\f$ time step.
      *
      */
-    void Calculate(const Variable<Matrix >& rVariable,
+    virtual void Calculate(const Variable<Matrix >& rVariable,
             Matrix& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -397,17 +397,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-            ProcessInfo& /*rCurrentProcessInfo*/) override;
+    virtual void GetDofList(DofsVectorType& rElementalDofList,
+            ProcessInfo& /*rCurrentProcessInfo*/);
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-            ProcessInfo& /*rCurrentProcessInfo*/) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
+            ProcessInfo& /*rCurrentProcessInfo*/);
 
     ///@}
     ///@name Input and output
     ///@{
 
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "VMSAdjointElement" << this->GetGeometry().WorkingSpaceDimension()
@@ -415,7 +415,7 @@ public:
         return buffer.str();
     }
 
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "VMSAdjointElement"
         << this->GetGeometry().WorkingSpaceDimension() << "D #"
@@ -424,7 +424,7 @@ public:
         << std::endl;
     }
 
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         this->PrintInfo(rOStream);
         rOStream << "Geometry Data: " << std::endl;
@@ -1542,7 +1542,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_TRY;
 
@@ -1551,7 +1551,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_TRY;
 

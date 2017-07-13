@@ -59,13 +59,13 @@ public:
     ReorderAndOptimizeModelPartProcess() = delete;
 
     /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
-	ReorderAndOptimizeModelPartProcess(ModelPart& rModelPart, Parameters settings);
+    ReorderAndOptimizeModelPartProcess( ModelPart& rModelPart, Parameters settings);
 
     /// The object is not copyable.
     ReorderAndOptimizeModelPartProcess(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
 
     /// Destructor.
-	~ReorderAndOptimizeModelPartProcess() override {};
+    virtual ~ReorderAndOptimizeModelPartProcess() ;
 
     ///@}
     ///@name Operators
@@ -96,13 +96,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    virtual std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    virtual void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    virtual void PrintData(std::ostream& rOStream) const override;
 
 
     ///@}

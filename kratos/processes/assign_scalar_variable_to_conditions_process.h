@@ -96,7 +96,7 @@ public:
 
 
     /// Destructor.
-    ~AssignScalarVariableToConditionsProcess() override {}
+    virtual ~AssignScalarVariableToConditionsProcess() {}
 
 
     ///@}
@@ -116,7 +116,7 @@ public:
 
 
     /// Execute method is used to execute the AssignScalarVariableToConditionsProcess algorithms.
-    void Execute() override
+    virtual void Execute() override
     {
 
         KRATOS_TRY;
@@ -146,7 +146,7 @@ public:
 
     }
 
-    void ExecuteInitializeSolutionStep() override
+    virtual void ExecuteInitializeSolutionStep() override
     {
         Execute();
     }
@@ -168,19 +168,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         return "AssignScalarVariableToConditionsProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "AssignScalarVariableToConditionsProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 

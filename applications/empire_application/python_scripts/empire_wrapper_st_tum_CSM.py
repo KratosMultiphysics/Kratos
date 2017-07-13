@@ -2,7 +2,8 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 # import libraries
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+# from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.EmpireApplication import *
 from ctypes import *
 import os

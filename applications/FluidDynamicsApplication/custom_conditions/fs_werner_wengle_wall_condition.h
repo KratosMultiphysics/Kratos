@@ -190,7 +190,7 @@ public:
 	}
 
 	/// Destructor.
-	~FSWernerWengleWallCondition() override
+	virtual ~FSWernerWengleWallCondition()
 	{}
 
 	///@}
@@ -216,16 +216,16 @@ public:
 	 @param ThisNodes An array containing the nodes of the new condition
 	 @param pProperties Pointer to the condition's properties
 	 */
-	Condition::Pointer Create(IndexType NewId,
+	virtual Condition::Pointer Create(IndexType NewId,
 			NodesArrayType const& ThisNodes,
-			PropertiesType::Pointer pProperties) const override
+			PropertiesType::Pointer pProperties) const
 	{
 		return Condition::Pointer(new FSWernerWengleWallCondition(NewId,
 						GetGeometry().Create(ThisNodes), pProperties));
 	}
 
 	/// Find the condition's parent element.
-	void Initialize() override
+	void Initialize()
 	{
 		KRATOS_TRY;
 
@@ -313,8 +313,8 @@ public:
 		KRATOS_CATCH("");
 	}
 
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override
+	virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+			ProcessInfo& rCurrentProcessInfo)
 	{
 		VectorType RHS;
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -326,9 +326,9 @@ public:
 	 @param rRightHandSideVector Right-hand side vector
 	 @param rCurrentProcessInfo ProcessInfo instance
 	 */
-	void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+	virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override
+			ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 
@@ -394,7 +394,7 @@ public:
 	}
 
 	/// Check that all data required by this condition is available and reasonable.
-	int Check(const ProcessInfo& rCurrentProcessInfo) override
+	virtual int Check(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 
@@ -454,23 +454,23 @@ public:
 	 * @param rResult A vector containing the global Id of each row
 	 * @param rCurrentProcessInfo the current process info object
 	 */
-	void EquationIdVector(EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo) override;
+	virtual void EquationIdVector(EquationIdVectorType& rResult,
+			ProcessInfo& rCurrentProcessInfo);
 
 	/// Returns a list of the condition's Dofs.
 	/**
 	 * @param ConditionDofList the list of DOFs
 	 * @param rCurrentProcessInfo the current process info instance
 	 */
-	void GetDofList(DofsVectorType& rConditionDofList,
-			ProcessInfo& rCurrentProcessInfo) override;
+	virtual void GetDofList(DofsVectorType& rConditionDofList,
+			ProcessInfo& rCurrentProcessInfo);
 
 	/// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z) for each node.
 	/**
 	 * @param Values Vector of nodal unknowns
 	 * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
 	 */
-	void GetValuesVector(Vector& Values, int Step = 0) override
+	virtual void GetValuesVector(Vector& Values, int Step = 0)
 	{
 		const SizeType LocalSize = TDim * TNumNodes;
 		unsigned int LocalIndex = 0;
@@ -494,28 +494,28 @@ public:
 	///@name Access
 	///@{
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
 	///@}
 	///@name Inquiry
@@ -526,7 +526,7 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override
+	virtual std::string Info() const
 	{
 		std::stringstream buffer;
 		buffer << "FSWernerWengleWallCondition" << TDim << "D";
@@ -534,11 +534,11 @@ public:
 	}
 
 	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override
+	virtual void PrintInfo(std::ostream& rOStream) const
 	{	rOStream << "FSWernerWengleWallCondition";}
 
 	/// Print object's data.
-	void PrintData(std::ostream& rOStream) const override
+	virtual void PrintData(std::ostream& rOStream) const
 	{}
 
 	///@}
@@ -701,7 +701,7 @@ private:
 
 	friend class Serializer;
 
-	void save(Serializer& rSerializer) const override
+	virtual void save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
         rSerializer.save("mInitializeWasPerformed",mInitializeWasPerformed);
@@ -709,7 +709,7 @@ private:
         rSerializer.save("mpElement",mpElement);
 	}
 
-	void load(Serializer& rSerializer) override
+	virtual void load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
         rSerializer.load("mInitializeWasPerformed",mInitializeWasPerformed);

@@ -112,7 +112,7 @@ public:
     }
 
     /// Destructor.
-    ~AdjointSteadyScheme() override
+    virtual ~AdjointSteadyScheme()
     {
     }
 
@@ -124,7 +124,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(ModelPart& rModelPart) override
+    virtual void Initialize(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -156,10 +156,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeSolutionStep(ModelPart& rModelPart,
+    virtual void InitializeSolutionStep(ModelPart& rModelPart,
                                         SystemMatrixType& rA,
                                         SystemVectorType& rDx,
-                                        SystemVectorType& rb) override
+                                        SystemVectorType& rb)
     {
         KRATOS_TRY
 
@@ -183,10 +183,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart,
+    virtual void FinalizeSolutionStep(ModelPart& rModelPart,
                                       SystemMatrixType& rA,
                                       SystemVectorType& rDx,
-                                      SystemVectorType& rb) override
+                                      SystemVectorType& rb)
     {
         KRATOS_TRY
 
@@ -200,11 +200,11 @@ public:
     }
 
     /// Update adjoint.
-    void Update(ModelPart& rModelPart,
+    virtual void Update(ModelPart& rModelPart,
                         DofsArrayType& rDofSet,
                         SystemMatrixType& rA,
                         SystemVectorType& rDx,
-                        SystemVectorType& rb) override
+                        SystemVectorType& rb)
     {
         KRATOS_TRY
 
@@ -234,11 +234,11 @@ public:
     }
 
     /// Calculate residual based element contributions to steady adjoint.
-    void CalculateSystemContributions(Element::Pointer pCurrentElement,
+    virtual void CalculateSystemContributions(Element::Pointer pCurrentElement,
                                               LocalSystemMatrixType& rLHS_Contribution,
                                               LocalSystemVectorType& rRHS_Contribution,
                                               Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+                                              ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -265,10 +265,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
+    virtual void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
                                             LocalSystemMatrixType& LHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo) override
+                                            ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -282,31 +282,31 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_CalculateSystemContributions(
+    virtual void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
         KRATOS_CATCH("")
     }
 
-    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
+    virtual void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
                                                       LocalSystemMatrixType& LHS_Contribution,
                                                       Condition::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo) override
+                                                      ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
         KRATOS_CATCH("")
     }
 
-    void GetElementalDofList(Element::Pointer rCurrentElement,
+    virtual void GetElementalDofList(Element::Pointer rCurrentElement,
                                      Element::DofsVectorType& ElementalDofList,
-                                     ProcessInfo& CurrentProcessInfo) override
+                                     ProcessInfo& CurrentProcessInfo)
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }

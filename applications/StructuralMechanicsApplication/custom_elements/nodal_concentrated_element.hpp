@@ -65,7 +65,7 @@ public:
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
 
     /// Destructor.
-    ~NodalConcentratedElement() override;
+    virtual ~NodalConcentratedElement();
 
     ///@}
     ///@name Operators
@@ -88,7 +88,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
     /**
      * clones the selected element variables, creating a new one
@@ -97,40 +97,34 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
     //************* GETTING METHODS
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(
-        DofsVectorType& rElementalDofList, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(
-        EquationIdVectorType& rResult, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
     //************* STARTING - ENDING  METHODS
 
@@ -138,33 +132,33 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize();
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     //************* COMPUTING  METHODS
 
     /**
-     * This is called during the assembling process in order
+     * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
@@ -172,36 +166,30 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+			      VectorType& rRightHandSideVector, 
+			      ProcessInfo& rCurrentProcessInfo);
 
 
     /**
-     * This calculates just the RHS
+     * this calculates just the RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateRightHandSide( 
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void CalculateRightHandSide( VectorType& rRightHandSideVector,
+                                 ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * This calculates just the LHS
+     * this calculates just the LHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLeftHandSide( 
-        MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
+                                ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -209,10 +197,8 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+		    ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -220,10 +206,23 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
+		    ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
+     */      
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, 
+					 const Variable<VectorType>& rRHSVariable, 
+					 Variable<array_1d<double,3> >& rDestinationVariable, 
+					 const ProcessInfo& rCurrentProcessInfo);
+
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -232,7 +231,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -268,6 +267,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+
+    /**
+     * Clear Nodal Forces
+     */
+    void ClearNodalForces ();
 
     /**
      * Calculation of the Delta Position
@@ -309,9 +313,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer);
 
 
     ///@name Private Inquiry

@@ -154,7 +154,7 @@ public:
     {}
 
     /// Destructor.
-    ~FractionalStepDiscontinuous() override
+    virtual ~FractionalStepDiscontinuous()
     {}
 
 
@@ -165,9 +165,9 @@ public:
     /// this function is essentially identical to the one of the father element, to which it only
     /// adds a term in the momentum equation to allow imposing weakly the tangential component of the velocity
     /// on the cut elements
-        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override;
+                                          ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Operations
@@ -182,11 +182,11 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            Element::PropertiesType::Pointer pProperties) const override
+                            Element::PropertiesType::Pointer pProperties) const
     {
 	return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
-        Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
+        Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const
         {
 	  return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
         }
@@ -216,17 +216,17 @@ public:
             * @param rOutput (unused)
             * @param rCurrentProcessInfo Process info instance (unused)
             */
-    void Calculate(const Variable<double>& rVariable,
+    virtual void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override;
+                           const ProcessInfo& rCurrentProcessInfo);
     /**
              * @param rVariable Use ADVPROJ or VELOCITY
              * @param Output (unused)
              * @param rCurrentProcessInfo Process info instance (unused)
              */
-    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override;
+                           const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Inquiry
@@ -238,7 +238,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "FractionalStepDiscontinuous #" << this->Id();
@@ -246,7 +246,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "FractionalStepDiscontinuous" << TDim << "D";
     }
@@ -275,11 +275,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            ProcessInfo& rCurrentProcessInfo);
 
-    void AddMomentumSystemTerms(Matrix& rLHSMatrix,
+    virtual void AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                         Vector& rRHSVector,
                                         const double Density,
                                         const Vector& rConvOperator,
@@ -291,15 +291,15 @@ protected:
                                         const double MassProjection,
                                         const ShapeFunctionsType& rN,
                                         const ShapeFunctionDerivativesType& rDN_DX,
-                                        const double Weight) override;
+                                        const double Weight);
     ///@}
     ///@name Protected Operations
     ///@{
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-    void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
+    virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
                                        Matrix& rNContainer,
-                                       Vector& rGaussWeights) override;
+                                       Vector& rGaussWeights);
 
 
 
@@ -336,13 +336,13 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, basetype );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, basetype );

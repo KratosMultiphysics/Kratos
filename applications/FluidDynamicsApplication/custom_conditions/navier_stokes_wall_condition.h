@@ -153,7 +153,7 @@ public:
     }
 
     /// Destructor.
-    ~NavierStokesWallCondition() override {}
+    virtual ~NavierStokesWallCondition() {}
 
 
     ///@}
@@ -177,7 +177,7 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
         return Condition::Pointer(new NavierStokesWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -188,7 +188,7 @@ public:
       @param pGeom A pointer to the condition's geometry
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    virtual Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
     {
         return boost::make_shared< NavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
@@ -199,7 +199,7 @@ public:
      * @param ThisNodes: the nodes of the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+    virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
     {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -216,9 +216,9 @@ public:
      * @param rRightHandSideVector: reference to the RHS matrix
      * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -281,8 +281,8 @@ public:
      * @param rLeftHandSideMatrix: reference to the LHS matrix
      * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -303,8 +303,8 @@ public:
      * @param rRightHandSideVector: reference to the RHS matrix
      * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -358,7 +358,7 @@ public:
     /**
      * @param rCurrentProcessInfo: reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -419,14 +419,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -443,7 +443,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "NavierStokesWallCondition" << TDim << "D";
@@ -451,13 +451,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "NavierStokesWallCondition";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
     ///@}
@@ -527,12 +527,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

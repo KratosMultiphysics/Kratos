@@ -114,7 +114,7 @@ public:
 
     /** Destructor.
      */
-    ~ResidualBasedBlockBuilderAndSolverPeriodic() override
+    virtual ~ResidualBasedBlockBuilderAndSolverPeriodic()
     {
     }
 
@@ -129,7 +129,7 @@ public:
     /*@{ */
 
 
-    void SetUpSystem(ModelPart &r_model_part) override
+    virtual void SetUpSystem(ModelPart &r_model_part)
     {
         // Assign an Equation Id to all non-duplicate nodes
         unsigned int EqId = 0;
@@ -167,11 +167,11 @@ public:
         BaseType::mEquationSystemSize = EqId;
     }
 
-    void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
+    virtual void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
                                           ModelPart &r_model_part,
                                           TSystemMatrixType &A,
                                           TSystemVectorType &Dx,
-                                          TSystemVectorType &b) override
+                                          TSystemVectorType &b)
     {
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();

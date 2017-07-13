@@ -300,7 +300,7 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    ~Hexahedra3D27() override {}
+    virtual ~Hexahedra3D27() {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
@@ -362,7 +362,7 @@ public:
         return typename BaseType::Pointer( new Hexahedra3D27( ThisPoints ) );
     }
 
-        Geometry< Point<3> >::Pointer Clone() const override
+        virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -380,7 +380,7 @@ public:
 
 
     //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
         if(rResult.size() != 27)
             rResult.resize( 27, false );
@@ -417,7 +417,7 @@ public:
     /**
      * :TODO: TO BE VERIFIED
      */
-    double Length() const override
+    virtual double Length() const override
     {
         return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
@@ -437,14 +437,14 @@ public:
     /**
      * :TODO: TO BE VERIFIED
      */
-    double Area() const override
+    virtual double Area() const override
     {
         return Volume();
     }
 
 
 
-    double Volume() const override  //Not a closed formula for a hexahedra
+    virtual double Volume() const override  //Not a closed formula for a hexahedra
     {
 
         Vector temp;
@@ -478,7 +478,7 @@ public:
     /**
      * :TODO: TO BE VERIFIED
      */
-    double DomainSize() const override
+    virtual double DomainSize() const override
     {
         return Volume();
     }
@@ -486,7 +486,7 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -511,12 +511,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    SizeType EdgesNumber() const override
+    virtual SizeType EdgesNumber() const override
     {
         return 12;
     }
 
-    SizeType FacesNumber() const override
+    virtual SizeType FacesNumber() const override
     {
         return 6;
     }
@@ -527,7 +527,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -587,7 +587,7 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    virtual GeometriesArrayType Faces( void ) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -670,7 +670,7 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
         double fx1 = 0.5 * ( rPoint[0] - 1.0 ) * ( rPoint[0] );
@@ -758,7 +758,7 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 27) rResult.resize(27,false);
       
@@ -813,7 +813,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "3 dimensional hexahedra with 27 nodes and quadratic shape functions in 3D space";
     }
@@ -825,7 +825,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    void PrintInfo( std::ostream& rOStream ) const override
+    virtual void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional hexahedra with 27 nodes and quadratic shape functions in 3D space";
     }
@@ -839,7 +839,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData( std::ostream& rOStream ) const override
+    virtual void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -859,7 +859,7 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    Matrix& ShapeFunctionsLocalGradients( Matrix& result,
+    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& result,
             const CoordinatesArrayType& rPoint ) const override
     {
         double fx1 = 0.5 * ( rPoint[0] - 1.0 ) * ( rPoint[0] );
@@ -1075,12 +1075,12 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    void load( Serializer& rSerializer ) override
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

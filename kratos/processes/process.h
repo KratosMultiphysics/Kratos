@@ -76,7 +76,7 @@ public:
     Process(Flags options) : Flags( options ) {}
 
     /// Destructor.
-    ~Process() override {}
+    virtual ~Process() {}
 
 
     ///@}
@@ -156,19 +156,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "Process";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Process";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

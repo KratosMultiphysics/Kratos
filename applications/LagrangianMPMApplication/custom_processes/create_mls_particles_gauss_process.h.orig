@@ -33,7 +33,6 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "lagrangian_mpm_application_variables.h"
-#include "lagrangian_mpm_application.h"
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"
@@ -94,7 +93,7 @@ typedef Geometry<Node<3> >::GeometryType GeometryType;
 /** Detail class definition.
 */
 class CreateMLSParticleGauss
-    : public Process
+        : public Process
 {
 public:
     ///@name Type Definitions
@@ -109,7 +108,7 @@ public:
 
     CreateMLSParticleGauss(ModelPart& rModelPart,
                            const std::string ElementName,
-                           const std::string ConditionName,
+                           const std::string ConditionName, 
                            unsigned int PropertyId)
         : mrModelPart(rModelPart), mElementName(ElementName), mConditionName(ConditionName), mPropertyId(PropertyId)
     {
@@ -143,16 +142,15 @@ public:
         //create a copy of the pointers to the elements and conditions in the model, and then remove all elements and conditions
         ModelPart::ElementsContainerType old_elements = mrModelPart.Elements();
         ModelPart::ConditionsContainerType old_conditions = mrModelPart.Conditions();
-
-	
-        for(auto iel = mrModelPart.ElementsBegin(); iel!=mrModelPart.ElementsEnd(); iel++)
+        
+        for(auto iel = mrModelPart.ElementsBegin();iel!=mrModelPart.ElementsEnd(); iel++)
             iel->Set(TO_ERASE, true);
         mrModelPart.RemoveElements( TO_ERASE );
 
-        for(auto icond = mrModelPart.ConditionsBegin(); icond!=mrModelPart.ConditionsEnd(); icond++)
+        for(auto icond = mrModelPart.ElementsBegin();icond!=mrModelPart.ElementsEnd(); icond++)
             icond->Set(TO_ERASE, true);
         mrModelPart.RemoveConditions( TO_ERASE );
-
+        
         const Element& reference_element = KratosComponents<Element>::Get(mElementName.c_str());
 //         const Condition& reference_condition = KratosComponents<Condition>::Get(mConditionName.c_str());
 
@@ -164,7 +162,7 @@ public:
 
             //create a search structure for the nodes
             typedef Node<3>                                         NodeType;
-            typedef Node<3>::Pointer                                NodePointerType;
+            typedef Node<3>::Pointer                                NodePointerType;      
             typedef ModelPart::NodesContainerType::ContainerType    NodesContainerType;
             ModelPart::ElementsContainerType                        temp_container;
             ModelPart::ConditionsContainerType                      temp_condition_container;
@@ -180,7 +178,7 @@ public:
 
             for(auto iel =old_elements.begin(); iel!=old_elements.end(); iel++)
             {
-                //KRATOS_WATCH(iel->Id());
+KRATOS_WATCH(iel->Id());
                 unsigned int MaximumNumberOfResults = 1000;
                 std::vector<NodePointerType>                            results(MaximumNumberOfResults);
                 std::vector<double>                                     distances(MaximumNumberOfResults);
@@ -204,10 +202,9 @@ public:
                 area = geom.Area();
                 tot_area += area;
 
-                double search_radius = 1.0 * lmax;
-                double effective_radius = 0.5 * lmax;
-                mlength = geom.Length();
-
+                double search_radius = 2.0*lmax;
+                double effective_radius = lmax;
+                
                 //create an auxiliary point
                 Node<3> aux_node(0,0.0,0.0,0.0);
 
@@ -215,10 +212,10 @@ public:
                 //get gauss points
 //                 mThisIntegrationMethod = iel->GetGeometry().GetDefaultIntegrationMethod();
 
-                const Element::GeometryType::IntegrationPointsArrayType& integration_points = iel->GetGeometry().IntegrationPoints( GeometryData::GI_GAUSS_2);
+                const Element::GeometryType::IntegrationPointsArrayType& integration_points = iel->GetGeometry().IntegrationPoints(  );
                 Vector detJ0( integration_points.size() );
 
-                const Matrix& Ncontainer = iel->GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+                const Matrix& Ncontainer = iel->GetGeometry().ShapeFunctionsValues(  );
 
                 iel->GetGeometry().DeterminantOfJacobian( detJ0 );
 
@@ -266,18 +263,6 @@ public:
                     p_element->SetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vec, rCurrentProcessInfo);
                 }
             }
-            
-            
-            for(ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin();
-                inode!=mrModelPart.NodesEnd(); inode++)
-        {
-			//std::cout<<" ID NODE "<<inode->Id()<<std::endl;
-			//std::cout<<" mlength "<<mlength<<std::endl;
-			inode->FastGetSolutionStepValue(NODAL_RADIUS) = mlength;
-			
-		}
-            
-            
             KRATOS_WATCH(mrModelPart);
 
         }

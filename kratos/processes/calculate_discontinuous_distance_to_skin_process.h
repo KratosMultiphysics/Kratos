@@ -24,7 +24,6 @@
 
 
 // Project includes
-#include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "includes/checks.h"
 
@@ -41,7 +40,7 @@ namespace Kratos
   /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
       and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
   */
-  class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public Process
+  class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
     {
     public:
       ///@name Type Definitions
@@ -58,18 +57,18 @@ namespace Kratos
 	  CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
 
 	  /// Destructor.
-      ~CalculateDiscontinuousDistanceToSkinProcess() override;
+      virtual ~CalculateDiscontinuousDistanceToSkinProcess();
 
 
       ///@}
-      ///@name Deleted
+      ///@name Deleted 
       ///@{
 
 	  /// Default constructor.
 	  CalculateDiscontinuousDistanceToSkinProcess() = delete;
 
 	  /// Copy constructor.
-	  CalculateDiscontinuousDistanceToSkinProcess(Process const& rOther) = delete;
+	  CalculateDiscontinuousDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
 
 	  /// Assignment operator.
 	  CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther) = delete;
@@ -77,23 +76,11 @@ namespace Kratos
 	  /// Copy constructor.
 	  CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
-      FindIntersectedGeometricalObjectsProcess mFindIntersectedObjectsProcess;
-
       ///@}
       ///@name Operations
       ///@{
 
-      virtual void Initialize();
-
-      virtual void FindIntersections();
-
-      virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
-
-      virtual void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects);
-
-      virtual void Clear();
-
-	  void Execute() override;
+	  virtual void Execute() override;
 
       ///@}
       ///@name Access
@@ -106,13 +93,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override;
+      virtual std::string Info() const override;
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override;
+      virtual void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 
@@ -149,9 +136,6 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-        ModelPart& mrSkinPart;
-        ModelPart& mrVolumePart;
-
 		ModelPart mSkinRepresentation;
 
       ///@}
@@ -159,7 +143,7 @@ namespace Kratos
       ///@{
 
 		void CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
-
+		
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
 
       ///@}

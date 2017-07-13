@@ -31,9 +31,9 @@ namespace Kratos
 HyperElasticViscoplasticPlaneStrain2DLaw::HyperElasticViscoplasticPlaneStrain2DLaw()
     : HyperElasticPlasticPlaneStrain2DLaw()
 {
-    mpHardeningLaw   = HardeningLaw::Pointer( new LinearIsotropicKinematicHardeningLaw() );
-    mpYieldCriterion = YieldCriterion::Pointer( new MisesHuberYieldCriterion(mpHardeningLaw) );
-    mpFlowRule       = FlowRule::Pointer( new BinghamViscoplasticFlowRule(mpYieldCriterion) );
+  mpHardeningLaw   = HardeningLaw::Pointer( new LinearIsotropicKinematicHardeningLaw() );
+  mpYieldCriterion = YieldCriterion::Pointer( new MisesHuberYieldCriterion(mpHardeningLaw) );
+  mpFlowRule       = FlowRule::Pointer( new BinghamViscoplasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -42,9 +42,9 @@ HyperElasticViscoplasticPlaneStrain2DLaw::HyperElasticViscoplasticPlaneStrain2DL
 
 HyperElasticViscoplasticPlaneStrain2DLaw::HyperElasticViscoplasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
-    mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  YieldCriterion::Pointer( new MisesHuberYieldCriterion(mpHardeningLaw) );
-    mpFlowRule        =  pFlowRule;
+  mpHardeningLaw    =  pHardeningLaw;
+  mpYieldCriterion  =  YieldCriterion::Pointer( new MisesHuberYieldCriterion(mpHardeningLaw) );
+  mpFlowRule        =  pFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

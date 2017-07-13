@@ -61,7 +61,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 
-#include "lagrangian_mpm_application.h"
+#include "meshless_application.h"
+//#include "custom_elements/MLSparticle.h"
+//#include "custom_utilities/neighbours_calculator_MLS.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "utilities/math_utils.h"
 //#include "custom_utilities/sd_math_utils.h"
@@ -102,7 +104,7 @@ public:
 
 
 
-    virtual void CalculateNodalVarialbes( const Variable<Matrix >& rVariable)
+    virtual void CalculateNodalStress(const Variable<Matrix >& rVariable)
 
     {
 
@@ -113,7 +115,6 @@ public:
          //const Variable<double >& rVariable;
         Matrix Output;
         const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
-
 
         if(rVariable == NODAL_STRESS)
         {
@@ -141,8 +142,6 @@ public:
 
 
 
-
-
             }
 
 
@@ -156,8 +155,6 @@ public:
                 //inode->FastGetSolutionStepValue(NODAL_STRAIN) /= area;
                 inode->FastGetSolutionStepValue(NODAL_STRESS) /= area;
 
-                //KRATOS_WATCH(inode->FastGetSolutionStepValue(NODAL_AREA));
-                //KRATOS_WATCH(inode->FastGetSolutionStepValue(NODAL_STRESS));
 
 
             }
@@ -282,7 +279,7 @@ public:
 
         }
 
-/*
+
         if(rVariable == NODE_EQUIVALENT_PLASTIC_STRAIN)
         {
 
@@ -354,7 +351,7 @@ public:
 
 
             }
-
+*/
 
 
             for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
@@ -373,7 +370,7 @@ public:
             }
 
 
-        }*/
+        }
 
 
          KRATOS_CATCH("");

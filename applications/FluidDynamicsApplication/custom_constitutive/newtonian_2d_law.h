@@ -52,7 +52,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    ConstitutiveLaw::Pointer Clone() const;
 
     /**
      * Copy constructor.
@@ -70,7 +70,7 @@ public:
     /**
      * Destructor.
      */
-    ~Newtonian2DLaw() override;
+    virtual ~Newtonian2DLaw();
 
     /**
      * Operators
@@ -79,13 +79,13 @@ public:
     /**
      * Operations needed by the base class:
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
 
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures) override;
+    void GetLawFeatures(Features& rFeatures);
 
 
     /**
@@ -97,7 +97,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output
@@ -161,12 +161,12 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }

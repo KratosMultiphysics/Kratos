@@ -94,12 +94,10 @@ void PointMoment3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVe
     rRightHandSideVector[2] = Moment[2];
 
     //current rotations to compute energy
-    if( GetGeometry()[0].SolutionStepsDataHas(ANGULAR_VELOCITY) ){
-      array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
-      Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
-      
-      mEnergy += Moment[0] * Rotation[0] + Moment[1] * Rotation[1] + Moment[2] * Rotation[2];
-    }
+    array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
+    Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+
+    mEnergy += Moment[0] * Rotation[0] + Moment[1] * Rotation[1] + Moment[2] * Rotation[2];
 
     KRATOS_CATCH( "" )
 }

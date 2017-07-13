@@ -111,7 +111,7 @@ public:
     /**
      * Destructor
      */
-    ~CompressiblePotentialFlowElement() override {};
+    virtual ~CompressiblePotentialFlowElement() {};
 
     ///@}
     ///@name Operators
@@ -177,7 +177,7 @@ public:
      * @param rResult: the elemental equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
     {
         if(this->IsNot(MARKER)) //normal element
         {
@@ -224,7 +224,7 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
+    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
     {
         if(this->IsNot(MARKER)) //normal element
         {
@@ -278,7 +278,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem(
+    virtual void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
@@ -338,7 +338,7 @@ public:
             bounded_matrix<double,nvolumes, 2> NEnriched;
             
             for(unsigned int i=0; i<GradientsValue.size(); ++i)
-                GradientsValue[i].resize(2,Dim,false);
+                GradientsValue[i].resize(1,Dim,false);
            
             
             
@@ -450,7 +450,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         //TODO: improve speed
         Matrix tmp;
@@ -467,7 +467,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
 
         KRATOS_TRY
@@ -495,7 +495,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -536,7 +536,7 @@ public:
         }
     }
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
             std::vector< array_1d<double,3> >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -589,7 +589,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "CompressiblePotentialFlowElement #" << Id();
@@ -598,14 +598,14 @@ public:
 
 /// Print information about this object.
 
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "CompressiblePotentialFlowElement #" << Id();
     }
 
 /// Print object's data.
 
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const
     {
         pGetGeometry()->PrintData(rOStream);
     }
@@ -726,12 +726,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
     }

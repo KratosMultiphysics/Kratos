@@ -122,7 +122,7 @@ public:
     {}
 
     /// Destructor.
-    ~StationaryStokes() override
+    virtual ~StationaryStokes()
     {}
 
     ///@}
@@ -135,15 +135,15 @@ public:
     ///@{
 
     /// Create a new StationaryStokes element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const;
 
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
 
     /// Calculate Shape function derivatives and Jacobian at each integration point
-    void Initialize() override;
+    virtual void Initialize();
 
     /// Evaluate the elemental contribution to the problem.
     /**
@@ -151,21 +151,21 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         MatrixType TmpLHS;
         this->CalculateLocalSystem(TmpLHS,rRightHandSideVector,rCurrentProcessInfo);
     }
 
     /// Fill given array with containing the element's degrees of freedom
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
-    void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    void GetFirstDerivativesVector(Vector &rValues, int Step = 0) override;
+    virtual void GetFirstDerivativesVector(Vector &rValues, int Step = 0);
 
     ///@}
     ///@name Access
@@ -182,7 +182,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "StationaryStokes" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id();
@@ -190,7 +190,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "StationaryStokes" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
@@ -198,7 +198,7 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         this->PrintInfo(rOStream);
         rOStream << "Geometry Data: " << std::endl;
@@ -312,7 +312,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -345,7 +345,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,Element);

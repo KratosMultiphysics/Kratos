@@ -331,7 +331,7 @@ private:
 	}
 
       /// Destructor.
-      ~CalculateSignedDistanceTo3DConditionSkinProcess() override
+      virtual ~CalculateSignedDistanceTo3DConditionSkinProcess()
 	{
 	}
       
@@ -353,7 +353,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void Execute() override
+      virtual void Execute() override
       {
           KRATOS_TRY
 	/*
@@ -1993,19 +1993,19 @@ private:
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override
+      virtual std::string Info() const override
 	{
 	  return "CalculateSignedDistanceTo3DConditionSkinProcess";
 	}
       
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override
+      virtual void PrintInfo(std::ostream& rOStream) const override
 	{
 	  rOStream << "CalculateSignedDistanceTo3DConditionSkinProcess";
 	}
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override
+      virtual void PrintData(std::ostream& rOStream) const override
 	{
 	}
       

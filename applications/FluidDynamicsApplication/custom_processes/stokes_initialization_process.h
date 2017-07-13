@@ -139,7 +139,7 @@ public:
 
     /// Destructor.
 
-    ~StokesInitializationProcess() override
+    virtual ~StokesInitializationProcess()
     {
        // mpSolutionStrategy->Clear();
     }
@@ -155,7 +155,7 @@ public:
     ///@{
 
     /// Solve a stationary Stokes problem
-    void Execute() override
+    virtual void Execute()
     {
         KRATOS_TRY;
 
@@ -196,7 +196,7 @@ public:
 
     /// Turn back information as a string.
 
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << " StokesInitializationProcess";
@@ -205,14 +205,14 @@ public:
 
     /// Print information about this object.
 
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << " StokesInitializationProcess";
     }
 
     /// Print object's data.
 
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 

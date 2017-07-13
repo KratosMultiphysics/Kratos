@@ -108,7 +108,7 @@ for line in reversed(E):
     m += 1
 
 
-plt.xlabel('$h$', fontsize = 0.75 * font_size)
+plt.xlabel('$\mathrm{d}t$', fontsize = 0.75 * font_size)
 plt.ylabel('$E(100)$', fontsize = 0.75 * font_size)
 plt.legend(loc='upper left', prop={'size':25})
 plt.semilogx()

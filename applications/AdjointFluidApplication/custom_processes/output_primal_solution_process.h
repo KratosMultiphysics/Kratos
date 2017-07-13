@@ -111,7 +111,7 @@ public:
     }
 
     /// Destructor.
-    ~OutputPrimalSolutionProcess() override {}
+    virtual ~OutputPrimalSolutionProcess() {}
 
     ///@}
     ///@name Operators
@@ -127,9 +127,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override {}
+    virtual void Execute() {}
 
-    void ExecuteInitialize() override
+    virtual void ExecuteInitialize()
     {
         KRATOS_TRY
 
@@ -192,15 +192,15 @@ public:
         KRATOS_CATCH("")
     }
 
-    void ExecuteBeforeSolutionLoop() override
+    virtual void ExecuteBeforeSolutionLoop()
     {
     }
 
-    void ExecuteInitializeSolutionStep() override
+    virtual void ExecuteInitializeSolutionStep()
     {
     }
 
-    void ExecuteFinalizeSolutionStep() override
+    virtual void ExecuteFinalizeSolutionStep()
     {
         KRATOS_TRY
 
@@ -306,15 +306,15 @@ public:
         KRATOS_CATCH("")
     }
 
-    void ExecuteBeforeOutputStep() override
+    virtual void ExecuteBeforeOutputStep()
     {
     }
 
-    void ExecuteAfterOutputStep() override
+    virtual void ExecuteAfterOutputStep()
     {
     }
 
-    void ExecuteFinalize() override
+    virtual void ExecuteFinalize()
     {
     }
 
@@ -331,19 +331,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         return "OutputPrimalSolutionProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << this->Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 

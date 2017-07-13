@@ -201,7 +201,7 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    ~Sphere3D1() override {}
+    virtual ~Sphere3D1() {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
@@ -261,7 +261,7 @@ public:
         return typename BaseType::Pointer( new Sphere3D1( ThisPoints ) );
     }
     
-    Geometry< Point<3> >::Pointer Clone() const override
+    virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -278,7 +278,7 @@ public:
     }
 
     //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
 	if(rResult.size() != 1)
            rResult.resize( 1, false );
@@ -302,7 +302,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    double Length() const override
+    virtual double Length() const override
     {
         std::cout<<"This method (Length) has no meaning for this type of geometry (Sphere)."<<std::endl;
                 
@@ -320,7 +320,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    double Area() const override
+    virtual double Area() const override
     {
         std::cout<<"This method (Area) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0.00;
@@ -337,7 +337,7 @@ public:
     @see Area()
     @see Volume()
     */
-    double DomainSize() const override
+    virtual double DomainSize() const override
     {
         std::cout<<"This method (DomainSize) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0.0;
@@ -368,7 +368,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
+    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {        
         std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -391,7 +391,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
+    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
     {
         std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -414,7 +414,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -431,7 +431,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -448,7 +448,7 @@ public:
     @see Jacobian
     @see InverseOfJacobian
     */
-    Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
+    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -472,7 +472,7 @@ public:
     @see Jacobian
     @see InverseOfJacobian
     */
-    double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
+    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0.0;
@@ -490,7 +490,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
         std::cout<<"This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0.0;
@@ -511,7 +511,7 @@ public:
     @see Jacobian
     @see DeterminantOfJacobian
     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
+    virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -534,7 +534,7 @@ public:
     @see Jacobian
     @see DeterminantOfJacobian
     */
-    Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -551,7 +551,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         std::cout<<"This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
@@ -561,7 +561,7 @@ public:
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    SizeType EdgesNumber() const override
+    virtual SizeType EdgesNumber() const override
     {
         return 1;
     }
@@ -570,14 +570,14 @@ public:
     ///@name Shape Function
     ///@{
 
-    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
         std::cout<<"This method (ShapeFunctionValue) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0;
     }
 
-    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
+    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
         std::cout<<"This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
@@ -586,7 +586,7 @@ public:
 
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return( rResult );
@@ -599,7 +599,7 @@ public:
     @see PrintData()
     @see PrintInfo()
     */
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "a sphere with 1 nodes in its center, in 3D space";
     }
@@ -610,7 +610,7 @@ public:
     @see PrintData()
     @see Info()
     */
-    void PrintInfo( std::ostream& rOStream ) const override
+    virtual void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "a sphere with 1 nodes in its center, in 3D space";
     }
@@ -623,7 +623,7 @@ public:
     @see PrintInfo()
     @see Info()
     */
-    void PrintData( std::ostream& rOStream ) const override
+    virtual void PrintData( std::ostream& rOStream ) const override
     {
         
     }
@@ -688,12 +688,12 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    void load( Serializer& rSerializer ) override
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

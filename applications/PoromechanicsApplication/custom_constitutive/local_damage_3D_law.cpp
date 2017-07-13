@@ -147,8 +147,10 @@ void LocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     ReturnMappingVariables.initialize();
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
+    Matrix AuxMatrix(Dim,Dim);
+    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize
     double CharacteristicSize = 1.0;
@@ -172,8 +174,8 @@ void LocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
-
-        this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
+        
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
     }
 }
 

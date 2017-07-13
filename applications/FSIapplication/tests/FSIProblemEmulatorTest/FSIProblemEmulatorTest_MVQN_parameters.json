@@ -20,10 +20,8 @@
                 "input_filename"   : "FSIProblemEmulatorTest/test_FSI_emulator_Structural",
                 "input_file_label" : 0
             },
-            "material_import_settings" :{
-                "materials_filename": "FSIProblemEmulatorTest/materials_2D.json"
-            },
             "line_search"                        : false,
+            "implex"                             : false,
             "convergence_criterion"              : "Residual_criterion",
             "displacement_relative_tolerance"    : 1e-8,
             "displacement_absolute_tolerance"    : 1e-10,

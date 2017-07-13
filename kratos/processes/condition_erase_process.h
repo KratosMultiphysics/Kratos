@@ -83,7 +83,7 @@ public:
     }
 
     /// Destructor.
-    ~ConditionEraseProcess() override
+    virtual ~ConditionEraseProcess()
     {
     }
 
@@ -102,7 +102,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
+    virtual void Execute() override
     {
         KRATOS_TRY;
         
@@ -127,19 +127,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ConditionEraseProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ConditionEraseProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

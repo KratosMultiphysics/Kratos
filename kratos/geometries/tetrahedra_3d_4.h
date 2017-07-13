@@ -224,7 +224,7 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    ~Tetrahedra3D4() override {}
+    virtual ~Tetrahedra3D4() {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
@@ -285,7 +285,7 @@ public:
         return typename BaseType::Pointer(new Tetrahedra3D4(ThisPoints));
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
+    virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -302,7 +302,7 @@ public:
     }
 
     //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    virtual Vector& LumpingFactors(Vector& rResult) const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);
@@ -329,7 +329,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    double Length() const override
+    virtual double Length() const override
     {
         constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
         return  factor * pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
@@ -349,7 +349,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    double Area() const override
+    virtual double Area() const override
     {
         return this->Volume();
     }
@@ -367,7 +367,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    double Volume() const override {
+    virtual double Volume() const override {
         //closed formula for the linear triangle
         const double onesixth = 1.0/6.0;
 
@@ -392,7 +392,7 @@ public:
         return  detJ*onesixth;
     }
 
-    double DomainSize() const override {
+    virtual double DomainSize() const override {
       return Volume();
     }
 
@@ -403,7 +403,7 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MinEdgeLength() const override {
+    virtual double MinEdgeLength() const override {
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
       auto c = this->GetPoint(2) - this->GetPoint(0);
@@ -429,7 +429,7 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MaxEdgeLength() const override {
+    virtual double MaxEdgeLength() const override {
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
       auto c = this->GetPoint(2) - this->GetPoint(0);
@@ -454,7 +454,7 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    double AverageEdgeLength() const override {
+    virtual double AverageEdgeLength() const override {
       return CalculateAvgEdgeLength(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
@@ -469,7 +469,7 @@ public:
      *
      * @return The circumradius of the geometry
      */
-    double Circumradius() const override {
+    virtual double Circumradius() const override {
       //    | s10 y10 z10 |           | s10 x10 z10 |           | s10 x10 y10 |           | x10 y10 z10 |
       // MX | s20 y20 z20 |        MY | s20 x20 z20 |        MZ | s20 x20 y20 |        AL | x20 y20 z20 |
       //    | s30 y30 z30 |           | s30 x30 z30 |           | s30 x30 y30 |           | x30 y30 z30 |
@@ -513,7 +513,7 @@ public:
      *
      * @return The inradius of the geometry
      */
-    double Inradius() const override {
+    virtual double Inradius() const override {
       //    | x10 y10 z10 |
       // AL | x20 y20 z20 |
       //    | x30 y30 z30 |
@@ -563,7 +563,7 @@ public:
      *
      * @return The inradius to circumradius quality metric.
      */
-    double InradiusToCircumradiusQuality() const override {
+    virtual double InradiusToCircumradiusQuality() const override {
       constexpr double normFactor = 3.0;
 
       return normFactor * Inradius() / Circumradius();
@@ -579,7 +579,7 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    double InradiusToLongestEdgeQuality() const override {
+    virtual double InradiusToLongestEdgeQuality() const override {
       constexpr double normFactor = 4.89897982161;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
@@ -609,7 +609,7 @@ public:
      *
      * @return [description]
      */
-    double ShortestToLongestEdgeQuality() const override {
+    virtual double ShortestToLongestEdgeQuality() const override {
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
       auto c = this->GetPoint(2) - this->GetPoint(0);
@@ -636,7 +636,7 @@ public:
      *
      * @return regualirty quality.
      */
-    double RegualrityQuiality() const override {
+    virtual double RegualrityQuiality() const override {
       KRATOS_ERROR << "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4" << std::endl;
       return 0.0;
     }
@@ -650,7 +650,7 @@ public:
      *
      * @return volume to surface quality.
      */
-    double VolumeToSurfaceAreaQuality() const override {
+    virtual double VolumeToSurfaceAreaQuality() const override {
       KRATOS_ERROR << "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4" << std::endl;
       return 0.0;
     }
@@ -664,7 +664,7 @@ public:
      *
      * @return Volume to edge length quality.
      */
-    double VolumeToEdgeLengthQuality() const override {
+    virtual double VolumeToEdgeLengthQuality() const override {
       constexpr double normFactor = 12.0;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
@@ -695,7 +695,7 @@ public:
      *
      * @return [description]
      */
-    double VolumeToAverageEdgeLength() const override {
+    virtual double VolumeToAverageEdgeLength() const override {
       constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
       return normFactor * Volume() / std::pow(AverageEdgeLength(), 3);
@@ -712,7 +712,7 @@ public:
      *
      * @return [description]
      */
-    double VolumeToRMSEdgeLength() const override {
+    virtual double VolumeToRMSEdgeLength() const override {
       constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
@@ -737,7 +737,7 @@ public:
     * @param rResult a Matrix that will be overwritten by the results
     * @return the coordinates of all points of the current geometry
     */
-    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if(rResult.size1()!= 4 || rResult.size2()!= 3)
             rResult.resize(4, 3, false);
@@ -761,7 +761,7 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
         if( rResult[0] >= 0.0-Tolerance )
@@ -779,12 +779,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    SizeType EdgesNumber() const override
+    virtual SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    SizeType FacesNumber() const override
+    virtual SizeType FacesNumber() const override
     {
         return 4;
     }
@@ -795,7 +795,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges(void) override
+    virtual GeometriesArrayType Edges(void) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -821,7 +821,7 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces(void) override
+    virtual GeometriesArrayType Faces(void) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -845,7 +845,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
     {
         NumberNodesInFaces.resize(4, false);
         // Linear Tetrahedra have elements of 3 nodes as faces
@@ -857,7 +857,7 @@ public:
     }
 
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
     {
         NodesInFaces.resize(4, 4, false);
         NodesInFaces(0,0)=0;//face or other node
@@ -896,7 +896,7 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint) const override
     {
         switch( ShapeFunctionIndex )
@@ -928,7 +928,7 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 4) rResult.resize(4,false);
       rResult[0] =  1.0-(rCoordinates[0]+rCoordinates[1]+rCoordinates[2]);
@@ -947,7 +947,7 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
+    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
             rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
@@ -972,7 +972,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod) const override
     {
@@ -1023,7 +1023,7 @@ public:
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
         , IntegrationMethod ThisMethod) const override
@@ -1085,7 +1085,7 @@ public:
 
 
     /// detect if two tetrahedra are intersected
-    bool HasIntersection( const BaseType& rThisGeometry) override
+    virtual bool HasIntersection( const BaseType& rThisGeometry) override
     {
 
         array_1d<Plane, 4>  plane;
@@ -1110,7 +1110,7 @@ public:
     }
 
 
-    bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
+    virtual bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
     {
         return true;
     }
@@ -1313,7 +1313,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "3 dimensional tetrahedra with four nodes in 3D space";
     }
@@ -1325,7 +1325,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "3 dimensional tetrahedra with four nodes in 3D space";
     }
@@ -1339,7 +1339,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
         std::cout << std::endl;
@@ -1369,12 +1369,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }

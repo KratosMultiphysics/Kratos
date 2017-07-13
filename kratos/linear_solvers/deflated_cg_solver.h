@@ -150,7 +150,7 @@ public:
 
     /// Destructor.
 
-    ~DeflatedCGSolver() override
+    virtual ~DeflatedCGSolver()
     {
     }
 
@@ -227,7 +227,7 @@ public:
 
     /// Turn back information as a string.
 
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Deflated Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -236,14 +236,14 @@ public:
 
     /// Print information about this object.
 
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
 
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

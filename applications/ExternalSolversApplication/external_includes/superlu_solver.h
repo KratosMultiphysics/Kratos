@@ -91,7 +91,7 @@ public:
     /**
      * Destructor
      */
-    ~SuperLUSolver() override {}
+    virtual ~SuperLUSolver() {}
 
     /**
      * Normal solve method.
@@ -101,7 +101,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         //std::cout << "matrix size in solver:  " << rA.size1() << std::endl;
         //std::cout << "RHS size in solver SLU: " << rB.size() << std::endl;
@@ -233,7 +233,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
         /**
          * TODO:
@@ -278,7 +278,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo(std::ostream& rOStream) const override
+    void  PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "SuperLU solver finished.";
     }
@@ -286,7 +286,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData(std::ostream& rOStream) const override
+    void  PrintData(std::ostream& rOStream) const
     {
     }
 

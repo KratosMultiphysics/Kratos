@@ -192,10 +192,9 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
-        #ifdef KRATOS_DEBUG
+        
         DemDebugFunctions::CheckIfNan(additional_forces, "NAN in Additional Force in RHS of Ball");
         DemDebugFunctions::CheckIfNan(additionally_applied_moment, "NAN in Additional Torque in RHS of Ball");     
-        #endif
     }
     
     // ROLLING FRICTION
@@ -221,11 +220,9 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
     
-    #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball"); 
     DemDebugFunctions::CheckIfNan(total_moment, "NAN in Total Torque in RHS of Ball"); 
-    #endif
-    
+
     FinalizeForceComputation(data_buffer);
     KRATOS_CATCH("")
 }
@@ -744,10 +741,9 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
     }// for each neighbor
     
-    #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
     DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
-    #endif
+    
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce

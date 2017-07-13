@@ -126,7 +126,7 @@ public:
 
     //* Destructor.
     
-    ~ResidualCriteria() override {}
+    virtual ~ResidualCriteria() {}
 
 
     ///@} 

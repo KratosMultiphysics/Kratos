@@ -71,7 +71,7 @@ public:
     KratosExternalSolversApplication() {}
 
     /// Destructor.
-    ~KratosExternalSolversApplication() override {}
+    virtual ~KratosExternalSolversApplication() {}
 
 
     ///@}
@@ -83,7 +83,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Register() override;
+    virtual void Register();
 
 
 
@@ -102,20 +102,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         return "KratosExternalSolversApplication";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         KRATOS_WATCH("in KratosALEApplication application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );

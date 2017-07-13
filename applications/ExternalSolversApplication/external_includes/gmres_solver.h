@@ -131,7 +131,7 @@ public:
     GMRESSolver(const GMRESSolver& Other) : BaseType(Other) {}
 
     /// Destructor.
-    ~GMRESSolver() override {}
+    virtual ~GMRESSolver() {}
 
 
     ///@}
@@ -157,7 +157,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -257,7 +257,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
         //DOES NOTHING AT THE MOMENT
         bool is_solved = true;
@@ -282,7 +282,7 @@ public:
     ///@{
 
     /// Return information about this object.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "GMRES iterative solver [at the moment unfortunately without] with " << BaseType::GetPreconditioner()->Info();
@@ -290,14 +290,14 @@ public:
     }
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& OStream) const override
+    void  PrintInfo(std::ostream& OStream) const
     {
         OStream << "GMRES iterative solver [at the moment unfortunately without] with ";
         BaseType::GetPreconditioner()->PrintInfo(OStream);
     }
 
     /// Print object's data.
-    void  PrintData(std::ostream& OStream) const override
+    void  PrintData(std::ostream& OStream) const
     {
         OStream << "GMRES "<<mNumberOfRestarts<<" times restarted"<<std::endl;
         BaseType::PrintData(OStream);

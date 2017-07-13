@@ -71,7 +71,7 @@ namespace Kratos
 	  MeshLocalSmoothingProcess(ModelPart& rModelPart, double AptQuality = 0.5, std::size_t MaxIterationsNumber = 10);
 
       /// Destructor.
-      ~MeshLocalSmoothingProcess() override;
+      virtual ~MeshLocalSmoothingProcess();
       
 
       ///@}
@@ -83,7 +83,7 @@ namespace Kratos
       ///@name Operations
       ///@{
       
-	  void Execute() override;
+	  virtual void Execute() override;
       
       ///@}
       ///@name Access
@@ -100,13 +100,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override;
+      virtual std::string Info() const override;
       
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override;
+      virtual void PrintData(std::ostream& rOStream) const override;
       
             
       ///@}      

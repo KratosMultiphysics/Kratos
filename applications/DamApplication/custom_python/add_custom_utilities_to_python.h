@@ -1,14 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
-//
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
-//
-//  Main authors:    Lorenzo Gracia
-//
+//   
+//   Project Name:                  KratosDamApplication $
+//   Last Modified by:    $Author:        Lorenzo Gracia $
+//   Date:                $Date:           November 2016 $
+//   Revision:            $Revision:                 1.0 $
 //
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )

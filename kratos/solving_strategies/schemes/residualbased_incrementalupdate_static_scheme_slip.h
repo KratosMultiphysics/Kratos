@@ -104,7 +104,7 @@ public:
     {}
 
     /// Destructor.
-    ~ResidualBasedIncrementalUpdateStaticSchemeSlip() override{}
+    virtual ~ResidualBasedIncrementalUpdateStaticSchemeSlip(){}
 
     ///@}
     ///@name Operators
@@ -116,7 +116,7 @@ public:
     ///@{
 
     /// Update the degrees of freedom after a solution iteration.
-    void Update(ModelPart& r_model_part,
+    virtual void Update(ModelPart& r_model_part,
                         DofsArrayType& rDofSet,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
@@ -135,7 +135,7 @@ public:
 
 
     /// Obtain an element's local contribution to the system and apply slip conditions if needed.
-    void CalculateSystemContributions(Element::Pointer rCurrentElement,
+    virtual void CalculateSystemContributions(Element::Pointer rCurrentElement,
                                               LocalSystemMatrixType& LHS_Contribution,
                                               LocalSystemVectorType& RHS_Contribution,
                                               Element::EquationIdVectorType& EquationId,
@@ -152,7 +152,7 @@ public:
     }
 
     /// Obtain an element's local contribution to the RHS and apply slip conditions if needed.
-    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
+    virtual void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                             LocalSystemVectorType& RHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
                                             ProcessInfo& CurrentProcessInfo) override
@@ -168,7 +168,7 @@ public:
     }
 
     /// Obtain an element's local contribution to the system matrix and apply slip conditions if needed.
-    void Calculate_LHS_Contribution(Element::Pointer rCurrentElement,
+    virtual void Calculate_LHS_Contribution(Element::Pointer rCurrentElement,
                                             LocalSystemMatrixType& LHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
                                             ProcessInfo& CurrentProcessInfo) override
@@ -186,7 +186,7 @@ public:
 
 
     /// Obtain a condition's local contribution to the system and apply slip conditions if needed.
-    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+    virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
                                                         LocalSystemMatrixType& LHS_Contribution,
                                                         LocalSystemVectorType& RHS_Contribution,
                                                         Element::EquationIdVectorType& EquationId,
@@ -203,7 +203,7 @@ public:
     }
 
     /// Obtain a condition's local contribution to the RHS and apply slip conditions if needed.
-    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+    virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                       LocalSystemVectorType& RHS_Contribution,
                                                       Element::EquationIdVectorType& EquationId,
                                                       ProcessInfo& CurrentProcessInfo) override

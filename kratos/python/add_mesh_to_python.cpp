@@ -1,16 +1,25 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// Kratos Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
+// All rights reserved.
 //
-//  Main authors:    Riccardo Rossi
-//                   Pooyan Dadvand
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 //
+// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
+// 		in the documentation and/or other materials provided with the distribution.
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
+// 			This product includes Kratos Multi-Physics technology.
+// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 //
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 
 // System includes
 
@@ -109,15 +118,6 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-void ConditionCalculateLocalSystemStandard( Condition& dummy, 
-                                                Matrix& rLeftHandSideMatrix,
-                                                Vector& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-}
-
-
 boost::python::list GetNodesFromCondition( Condition& dummy )
 {
     boost::python::list nodes_list;
@@ -145,22 +145,12 @@ boost::python::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
-boost::python::list CalculateOnIntegrationPointsVector(
-        Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
+boost::python::list CalculateOnIntegrationPointsVector( ModelPart& rModelPart,
+        Element& dummy, const Variable<Vector>& rVariable )
 {
     std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    boost::python::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-        result.append( Output[j] );
-    return result;
-}
-
-boost::python::list CalculateOnIntegrationPointsMatrix(
-        Element& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
-{
-    std::vector<Matrix> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
+    dummy.CalculateOnIntegrationPoints( rVariable, Output,
+                                        rModelPart.GetProcessInfo() );
     boost::python::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
         result.append( Output[j] );
@@ -439,7 +429,6 @@ void  AddMeshToPython()
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Element>)
@@ -560,7 +549,7 @@ void  AddMeshToPython()
     				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     */
     .def("Initialize", &Condition::Initialize)
-    .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
+    //.def("CalculateLocalSystem", &Condition::CalculateLocalSystem)
     .def("Info", &Condition::Info)
     .def(self_ns::str(self))
     ;

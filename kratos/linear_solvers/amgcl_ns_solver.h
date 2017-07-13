@@ -162,7 +162,7 @@ public:
     /**
      * Destructor
      */
-    ~AMGCL_NS_Solver() override {};
+    virtual ~AMGCL_NS_Solver() {};
 
     /**
      * Normal solve method.
@@ -172,7 +172,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
@@ -248,7 +248,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
         return false;
 
@@ -257,7 +257,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo(std::ostream& rOStream) const override
+    void  PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "AMGCL NS Solver finished.";
     }
@@ -265,7 +265,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData(std::ostream& rOStream) const override
+    void  PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -275,7 +275,7 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function tells if the solver requires such data
      */
-    bool AdditionalPhysicalDataIsNeeded() override
+    virtual bool AdditionalPhysicalDataIsNeeded()
     {
         return true;
     }
@@ -292,7 +292,7 @@ public:
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
-    ) override
+    )
     {
 //         int old_ndof = -1;
 //         unsigned int old_node_id = rdof_set.begin()->Id();

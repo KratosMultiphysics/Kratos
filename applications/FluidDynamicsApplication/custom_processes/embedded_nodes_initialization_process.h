@@ -73,13 +73,14 @@ public:
     ///@{
 
     /// Constructor.
-    EmbeddedNodesInitializationProcess(ModelPart& rModelPart, unsigned int MaxIterations = 10) : mrModelPart(rModelPart)
+    EmbeddedNodesInitializationProcess(ModelPart& rModelPart, unsigned int MaxIterations = 10)
     {
+        mrModelPart = rModelPart;
         mMaxIterations = MaxIterations;
     }
 
     /// Destructor.
-    ~EmbeddedNodesInitializationProcess() override{}
+    virtual ~EmbeddedNodesInitializationProcess(){}
 
     ///@}
     ///@name Operators
@@ -201,7 +202,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "EmbeddedNodesInitializationProcess" ;
@@ -209,10 +210,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedNodesInitializationProcess";}
+    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedNodesInitializationProcess";}
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -230,7 +231,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart&                                 mrModelPart;
+    ModelPart                                  mrModelPart;
     unsigned int                            mMaxIterations;
 
     ///@}
@@ -290,13 +291,13 @@ private:
     ///@{
 
     /// Default constructor.
-    EmbeddedNodesInitializationProcess() = delete;
+    EmbeddedNodesInitializationProcess(){}
 
     /// Assignment operator.
-    EmbeddedNodesInitializationProcess& operator=(EmbeddedNodesInitializationProcess const& rOther) = delete;
+    EmbeddedNodesInitializationProcess& operator=(EmbeddedNodesInitializationProcess const& rOther){return *this;}
 
     /// Copy constructor.
-    EmbeddedNodesInitializationProcess(EmbeddedNodesInitializationProcess const& rOther) = delete;
+    EmbeddedNodesInitializationProcess(EmbeddedNodesInitializationProcess const& rOther){}
 
 
     ///@}

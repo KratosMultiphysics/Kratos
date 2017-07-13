@@ -157,7 +157,7 @@ namespace Kratos
        
 	      }
 
-	  ~ExplicitStrategy () override {}
+	  virtual ~ExplicitStrategy () {}
 	           
 
 

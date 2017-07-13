@@ -242,7 +242,7 @@ public:
 
 
     /// Destructor.
-    ~ApplyConstantScalarValueProcess() override {}
+    virtual ~ApplyConstantScalarValueProcess() {}
 
 
     ///@}
@@ -262,11 +262,11 @@ public:
 
 
     /// Execute method is used to execute the ApplyConstantScalarValueProcess algorithms.
-    void Execute() override {}
+    virtual void Execute() override {}
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize() override
+    virtual void ExecuteInitialize() override
     {
         KRATOS_TRY;
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
@@ -299,37 +299,37 @@ public:
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    void ExecuteBeforeSolutionLoop() override
+    virtual void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
+    virtual void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
+    virtual void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override
+    virtual void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override
+    virtual void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    void ExecuteFinalize() override
+    virtual void ExecuteFinalize() override
     {
     }
 
@@ -349,19 +349,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ApplyConstantScalarValueProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyConstantScalarValueProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

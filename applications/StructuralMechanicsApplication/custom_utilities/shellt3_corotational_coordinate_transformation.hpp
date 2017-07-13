@@ -71,18 +71,18 @@ public:
     {
     }
 
-    ~ShellT3_CorotationalCoordinateTransformation() override
+    virtual ~ShellT3_CorotationalCoordinateTransformation()
     {
     }
 
 public:
 
-    ShellT3_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const override
+    virtual ShellT3_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
     {
         return ShellT3_CorotationalCoordinateTransformation::Pointer( new ShellT3_CorotationalCoordinateTransformation( pGeometry ) );
     }
 
-    void Initialize() override
+    virtual void Initialize()
     {
         KRATOS_TRY
 
@@ -110,7 +110,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     {
         for(int i = 0; i < 3; i++)
         {
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
     {
         for(int i = 0; i < 3; i++)
         {
@@ -128,11 +128,11 @@ public:
         }
     }
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+    virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
     }
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+    virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
         const GeometryType & geom = GetGeometry();
         Vector3Type incrementalRotation;
@@ -149,7 +149,7 @@ public:
         }
     }
 
-    ShellT3_LocalCoordinateSystem CreateLocalCoordinateSystem()const override
+    virtual ShellT3_LocalCoordinateSystem CreateLocalCoordinateSystem()const
     {
         const GeometryType & geom = GetGeometry();
 
@@ -200,8 +200,8 @@ public:
 
     }
 
-    VectorType CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS,
-            const VectorType & globalDisplacements) override
+    virtual VectorType CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS,
+            const VectorType & globalDisplacements)
     {
         const GeometryType & geom = GetGeometry();
 
@@ -242,13 +242,13 @@ public:
         return localDisplacements;
     }
 
-    void FinalizeCalculations(const ShellT3_LocalCoordinateSystem & LCS,
+    virtual void FinalizeCalculations(const ShellT3_LocalCoordinateSystem & LCS,
                                       const VectorType & globalDisplacements,
                                       const VectorType & localDisplacements,
                                       MatrixType & rLeftHandSideMatrix,
                                       VectorType & rRightHandSideVector,
                                       const bool RHSrequired,
-                                      const bool LHSrequired) override
+                                      const bool LHSrequired)
     {
         // Get the total rotation matrix (local - to - global)
         // Note: do NOT include the warpage correction matrix!
@@ -337,9 +337,9 @@ public:
         noalias( rLeftHandSideMatrix ) = prod( trans( T ), temp );
     }
 
-    MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+    virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
             const Vector& globalDisplacements,
-            size_t nodeid) override
+            size_t nodeid)
     {
         if(nodeid>2) return IdentityMatrix(3,3);
 
@@ -352,9 +352,9 @@ public:
         return R;
     }
 
-    MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+    virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
             const Vector& globalDisplacements,
-            const Vector& N) override
+            const Vector& N)
     {
         QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
@@ -576,7 +576,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
         rSerializer.save("init", mInitialized);
@@ -588,7 +588,7 @@ private:
         rSerializer.save("RV_conv", mRV_converged);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
         rSerializer.load("init", mInitialized);

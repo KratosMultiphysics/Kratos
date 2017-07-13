@@ -73,7 +73,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
-#include "custom_utilities/fields/pouliot_flow_field_2D.h"
 #include "custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.h"
 #include "custom_utilities/basset_force_tools.h"
 #include "custom_utilities/statistics/sampling_tool.h"
@@ -190,9 +189,6 @@ using namespace boost::python;
         ;
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
-        ;
-
-    class_<PouliotFlowField2D, bases<VelocityField> > ("PouliotFlowField2D", init<>())
         ;
 
     class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
@@ -404,12 +400,8 @@ using namespace boost::python;
         .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidVariableToBeTimeFiltered)
         ;
 
-    class_<DerivativeRecoveryMeshingTools<2> > ("DerivativeRecoveryMeshingTools2D", init<>())
-        .def("FillUpEdgesModelPartFromTetrahedraModelPart", &DerivativeRecoveryMeshingTools<2>::FillUpEdgesModelPartFromTetrahedraModelPart)
-        ;
-
-    class_<DerivativeRecoveryMeshingTools<3> > ("DerivativeRecoveryMeshingTools3D", init<>())
-        .def("FillUpEdgesModelPartFromTetrahedraModelPart", &DerivativeRecoveryMeshingTools<3>::FillUpEdgesModelPartFromTetrahedraModelPart)
+    class_<DerivativeRecoveryMeshingTools> ("DerivativeRecoveryMeshingTools", init<>())
+        .def("FillUpEdgesModelPartFromTetrahedraModelPart", &DerivativeRecoveryMeshingTools::FillUpEdgesModelPartFromTetrahedraModelPart)
         ;
 
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())

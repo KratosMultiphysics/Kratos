@@ -339,25 +339,25 @@ public:
 
     typename Node<TDimension>::Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-        p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
+        Node<3>::Pointer pNewNode = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        pNewNode->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
+        Node<3>::DofsContainerType& MyDoFs = (this)->GetDofs();
+        for (typename DofsContainerType::const_iterator itDoF = MyDoFs.begin(); itDoF != MyDoFs.end(); itDoF++)
         {
-            p_new_node->pAddDof(*it_dof);
+            pNewNode->pAddDof(*itDoF);
         }
 
-        p_new_node->mData = this->mData;
-        p_new_node->mInitialPosition = this->mInitialPosition;
+        pNewNode->mData = this->mData;
+        pNewNode->mInitialPosition = this->mInitialPosition;
 
-        p_new_node->Set(Flags(*this));
+        pNewNode->Set(Flags(*this));
         //KRATOS_ERROR << "Must implement correctly the copy of the flags" << std::endl;
-        return p_new_node;
+        return pNewNode;
     }
 
     /// Destructor.
-    ~Node() override
+    virtual ~Node()
     {
 #ifdef _OPENMP
         omp_destroy_lock(&mNodeLock);
@@ -367,10 +367,10 @@ public:
     void SetId(IndexType NewId) override
     {
         IndexedObject::SetId(NewId);
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for(Node<3>::DofsContainerType::iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
+        Node<3>::DofsContainerType& MyDoFs = (this)->GetDofs();
+        for(Node<3>::DofsContainerType::iterator itDoF = MyDoFs.begin(); itDoF != MyDoFs.end(); itDoF++)
         {
-            it_dof->SetId(NewId);
+            itDoF->SetId(NewId);
         }
     }
 
@@ -406,9 +406,9 @@ public:
         BaseType::operator=(rOther);
 
         // Deep copying the dofs
-        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
+        for(typename DofsContainerType::const_iterator itDoF = rOther.mDofs.begin() ; itDoF != rOther.mDofs.end() ; itDoF++)
         {
-            pAddDof(*it_dof);
+            pAddDof(*itDoF);
         }
 
         mData = rOther.mData;
@@ -425,9 +425,9 @@ public:
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
         IndexedObject::operator=(rOther);
-        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
+        for(typename DofsContainerType::const_iterator itDoF = rOther.mDofs.begin() ; itDoF != rOther.mDofs.end() ; itDoF++)
         {
-            pAddDof(*it_dof);
+            pAddDof(*itDoF);
         }
 
         mData = rOther.mData;
@@ -816,17 +816,17 @@ public:
     template<class TVariableType>
     inline void Fix(const TVariableType& rDofVariable)
     {
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
+        typename DofsContainerType::iterator itDoF = mDofs.find(rDofVariable);
+        if(itDoF != mDofs.end())
         {
-            it_dof->FixDof();
+            itDoF->FixDof();
         }
         else
         {
 #ifdef KRATOS_DEBUG
             if(OpenMPUtils::IsInParallel() != 0)
             {
-                KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+                KRATOS_ERROR << "attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
             }
 #endif
             pAddDof(rDofVariable)->FixDof();
@@ -836,17 +836,17 @@ public:
     template<class TVariableType>
     inline void Free(const TVariableType& rDofVariable)
     {
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
+        typename DofsContainerType::iterator itDoF = mDofs.find(rDofVariable);
+        if(itDoF != mDofs.end())
         {
-            it_dof->FreeDof();
+            itDoF->FreeDof();
         }
         else
         {
 #ifdef KRATOS_DEBUG
             if(OpenMPUtils::IsInParallel() != 0)
             {
-                KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+                KRATOS_ERROR << "attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
             }
 #endif
             pAddDof(rDofVariable)->FreeDof();
@@ -943,13 +943,13 @@ public:
     template<class TVariableType>
     inline DofType& GetDof(TVariableType const& rDofVariable, int pos)
     {
-        typename DofsContainerType::iterator it_begin = mDofs.begin();
-        typename DofsContainerType::iterator it_end = mDofs.end();
+        typename DofsContainerType::iterator itBegin = mDofs.begin();
+        typename DofsContainerType::iterator itEnd = mDofs.end();
         typename DofsContainerType::iterator it;
         //if the guess is exact return the guess
-        if(pos < it_end-it_begin)
+        if(pos < itEnd-itBegin)
         {
-            it = it_begin + pos;
+            it = itBegin + pos;
             if( (it)->GetVariable() == rDofVariable)
             {
                 return *it;
@@ -1019,21 +1019,20 @@ public:
         }
 #endif
 
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            return *(it_dof.base());
-        }
+        typename DofsContainerType::iterator itDoF = mDofs.find(rDofVariable);
+        if(itDoF != mDofs.end())
+            return *(itDoF.base());
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        typename DofType::Pointer pNewDoF =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        mDofs.insert(mDofs.begin(), pNewDoF);
 
 //         if(!mDofs.IsSorted())
         mDofs.Sort();
 
-        return p_new_dof;
+        return pNewDoF;
 
         KRATOS_CATCH_LEVEL_3(*this);
+
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
@@ -1041,30 +1040,33 @@ public:
     {
         KRATOS_TRY_LEVEL_3
         
-        typename DofsContainerType::iterator it_dof = mDofs.find(SourceDof.GetVariable());
-        if(it_dof != mDofs.end())
+
+
+        typename DofsContainerType::iterator itDoF = mDofs.find(SourceDof.GetVariable());
+        if(itDoF != mDofs.end())
         {
-            if(it_dof->GetReaction() != SourceDof.GetReaction())
+            if(itDoF->GetReaction() != SourceDof.GetReaction())
             {
-                *it_dof = SourceDof;
-                it_dof->SetId(Id());
-                it_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+                *itDoF = SourceDof;
+                itDoF->SetId(Id());
+                itDoF->SetSolutionStepsData(&mSolutionStepsNodalData);
             }
-            return *(it_dof.base());
+            return *(itDoF.base());
         }
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(SourceDof);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        typename DofType::Pointer pNewDoF =  boost::make_shared<DofType>(SourceDof);
+        mDofs.insert(mDofs.begin(), pNewDoF);
 
-        p_new_dof->SetId(Id());
+        pNewDoF->SetId(Id());
 
-        p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+        pNewDoF->SetSolutionStepsData(&mSolutionStepsNodalData);
 
         mDofs.Sort();
 
-        return p_new_dof;
+        return pNewDoF;
 
         KRATOS_CATCH_LEVEL_3(*this);
+
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
@@ -1084,20 +1086,20 @@ public:
         }
 #endif
 
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
+        typename DofsContainerType::iterator itDoF = mDofs.find(rDofVariable);
+        if(itDoF != mDofs.end())
         {
-            it_dof->SetReaction(rDofReaction);
-            return *(it_dof.base());
+            itDoF->SetReaction(rDofReaction);
+            return *(itDoF.base());
         }
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        typename DofType::Pointer pNewDoF =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        mDofs.insert(mDofs.begin(), pNewDoF);
 
 //         if(!mDofs.IsSorted())
         mDofs.Sort();
 
-        return p_new_dof;
+        return pNewDoF;
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1116,19 +1118,19 @@ public:
         }
 #endif
 
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
+        typename DofsContainerType::iterator itDoF = mDofs.find(rDofVariable);
+        if(itDoF != mDofs.end())
         {
-            return *it_dof;
+            return *itDoF;
         }
             
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        typename DofType::Pointer pNewDoF =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        mDofs.insert(mDofs.begin(), pNewDoF);
 
 //         if(!mDofs.IsSorted())
         mDofs.Sort();
 
-        return *p_new_dof;
+        return *pNewDoF;
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1151,20 +1153,20 @@ public:
         }
 #endif
 
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
+        typename DofsContainerType::iterator itDoF = mDofs.find(rDofVariable);
+        if(itDoF != mDofs.end())
         {
-            it_dof->SetReaction(rDofReaction);
-            return *it_dof;
+            itDoF->SetReaction(rDofReaction);
+            return *itDoF;
         }
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        typename DofType::Pointer pNewDoF =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        mDofs.insert(mDofs.begin(), pNewDoF);
 
 //         if(!mDofs.IsSorted())
         mDofs.Sort();
 
-        return *p_new_dof;
+        return *pNewDoF;
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1192,7 +1194,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Node #" << Id();
@@ -1200,13 +1202,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
         if(!mDofs.empty())
@@ -1304,7 +1306,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
 // 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
@@ -1321,7 +1323,7 @@ private:
 // 	  KRATOS_WATCH((rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin())-size);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
 // 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());

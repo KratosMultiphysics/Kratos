@@ -122,7 +122,7 @@ public:
 
 
     /// Destructor.
-    ~ScalingSolver() override {}
+    virtual ~ScalingSolver() {}
 
 
     ///@}
@@ -145,7 +145,7 @@ public:
     * which require knowledge on the spatial position of the nodes associated to a given dof.
     * This function tells if the solver requires such data
     */
-    bool AdditionalPhysicalDataIsNeeded() override
+    virtual bool AdditionalPhysicalDataIsNeeded() override
     {
         return mp_linear_solver->AdditionalPhysicalDataIsNeeded();
     }
@@ -167,7 +167,7 @@ public:
         mp_linear_solver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
     }
 
-    void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mp_linear_solver->InitializeSolutionStep(rA,rX,rB);
     }
@@ -178,7 +178,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mp_linear_solver->FinalizeSolutionStep(rA,rX,rB);
     }
@@ -187,7 +187,7 @@ public:
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
      */
-    void Clear() override
+    virtual void Clear() override
     {
         mp_linear_solver->Clear();
     }
@@ -263,7 +263,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Composite Linear Solver. Uses internally the following linear solver " << mp_linear_solver->Info();
@@ -271,13 +271,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

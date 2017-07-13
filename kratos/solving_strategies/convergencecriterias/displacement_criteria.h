@@ -117,7 +117,7 @@ public:
 
     /** Destructor.
     */
-    ~DisplacementCriteria() override {}
+    virtual ~DisplacementCriteria() {}
 
 
     ///@}

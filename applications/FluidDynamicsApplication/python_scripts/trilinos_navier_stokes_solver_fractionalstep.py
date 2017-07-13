@@ -77,7 +77,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-
+        
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
         ## Construct the linear solvers
@@ -199,14 +199,11 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
-        (self.solver).Initialize()
-        (self.solver).Check()
-
         print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
 
 
     def Solve(self):
         (self.solver).Solve()
-
+        
         if self.compute_reactions:
             self.solver.CalculateReactions()

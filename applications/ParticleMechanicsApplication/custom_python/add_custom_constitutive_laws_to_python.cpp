@@ -30,22 +30,15 @@
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-//yield criteria
-#include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
-//flow rules
-#include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
-#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
+
+//constitutive laws
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 
 #include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
 
-#include "custom_constitutive/hencky_mc_3D_law.hpp"
-#include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 
-#include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
-#include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 
 namespace Kratos
 {
@@ -56,7 +49,6 @@ namespace Python
 using namespace boost::python;
 
 typedef FlowRule::Pointer                        FlowRulePointer;
-typedef MPMFlowRule::Pointer                        MPMFlowRulePointer;
 typedef YieldCriterion::Pointer            YieldCriterionPointer;
 typedef HardeningLaw::Pointer                HardeningLawPointer;
 typedef Properties::Pointer                    PropertiesPointer;
@@ -79,33 +71,14 @@ void  AddCustomConstitutiveLawsToPython()
     class_<HyperElasticViscoplastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticViscoplastic3DLaw",
       init<>() )
-    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
     class_<HyperElasticViscoplasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticViscoplasticPlaneStrain2DLaw",
       init<>() )
-    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-    class_<HenckyMCPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlasticPlaneStrain2DLaw",
-      init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-    class_<HenckyMCPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlastic3DLaw",
-      init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-    class_<HenckyMCPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlasticUP3DLaw",
-      init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-    class_<HenckyMCPlasticPlaneStrainUP2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlasticPlaneStrainUP2DLaw",
-      init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
+    
 }
 
 }  // namespace Python.

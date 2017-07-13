@@ -142,7 +142,7 @@
             "table"           : 0
         }
     },{
-        "python_module" : "impose_reservoir_temperature_condition_process",
+        "python_module" : "impose_bofang_condition_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the given scalar variable",
         "process_name"  : "ImposeBofangConditionProcess",

@@ -39,7 +39,7 @@ public:
     MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    ~MembraneElement() override;
+    virtual ~MembraneElement();
 
 
     // Name Operations
@@ -47,57 +47,57 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const override;
+        PropertiesType::Pointer pProperties) const;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
-    void Initialize () override;
+    void Initialize ();
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
     void CalculateOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
     void FinalizeSolutionStep(
-        ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo);
 
     void GetValuesVector(
         Vector& values,
-        int Step = 0) override;
+        int Step = 0);
 
     void GetFirstDerivativesVector(
         Vector& values,
-        int Step = 0) override;
+        int Step = 0);
 
     void GetSecondDerivativesVector(
         Vector& values,
-        int Step = 0) override;
+        int Step = 0);
 
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                     std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+                                     std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
 
 protected:
@@ -162,7 +162,7 @@ private:
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
 
     void MakeCrossMatrix(
@@ -233,7 +233,7 @@ private:
         array_1d<double,3>& a,
         array_1d<double,3>& b);
 
-    int  Check( const ProcessInfo& rCurrentProcessInfo) override;
+    int  Check( const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization
@@ -244,7 +244,7 @@ private:
     // A private default constructor necessary for serialization
     MembraneElement() {}
 
-    void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
         rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
@@ -263,7 +263,7 @@ private:
         rSerializer.save("G_Vector",mG_Vector);
     }
 
-    void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
         rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);

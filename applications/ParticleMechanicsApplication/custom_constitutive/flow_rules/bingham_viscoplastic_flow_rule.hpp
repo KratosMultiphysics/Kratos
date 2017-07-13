@@ -20,31 +20,31 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
-///@{
+  ///@addtogroup ApplicationNameApplication
+  ///@{
 
-///@name Kratos Globals
-///@{
+  ///@name Kratos Globals
+  ///@{
 
-///@}
-///@name Type Definitions
-///@{
+  ///@}
+  ///@name Type Definitions
+  ///@{
 
-///@}
-///@name  Enum's
-///@{
+  ///@}
+  ///@name  Enum's
+  ///@{
 
-///@}
-///@name  Functions
-///@{
+  ///@}
+  ///@name  Functions
+  ///@{
 
-///@}
-///@name Kratos Classes
-///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
 
-/// Short class definition.
-/** Detail class definition.
- */
+  /// Short class definition.
+  /** Detail class definition.
+   */
 
 class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) BinghamViscoplasticFlowRule
     :public NonLinearAssociativePlasticFlowRule
@@ -54,7 +54,7 @@ public:
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-    KRATOS_CLASS_POINTER_DEFINITION( BinghamViscoplasticFlowRule );
+      KRATOS_CLASS_POINTER_DEFINITION( BinghamViscoplasticFlowRule );
 
     ///@}
     ///@name Life Cycle
@@ -73,9 +73,9 @@ public:
     BinghamViscoplasticFlowRule& operator=(BinghamViscoplasticFlowRule const& rOther);
 
     /// Destructor.
-    ~BinghamViscoplasticFlowRule() override;
+    virtual ~BinghamViscoplasticFlowRule();
 
-    void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
+	virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
     ///@}
     ///@name Operators
     ///@{
@@ -84,19 +84,19 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    FlowRule::Pointer Clone() const override;
+    virtual FlowRule::Pointer Clone() const;
 
 protected:
-    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters) override;
+    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
 
 private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer);
 
 };// class BinghamViscoplasticFlowRule
 

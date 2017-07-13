@@ -1,15 +1,25 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pablo Becker
 //
+
+
+
+
+
+
+
+
+
+
 
 
 #if !defined(KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED )
@@ -86,7 +96,6 @@ public:
 		mis_defined_TransferCoefficientVar=false;
 		mis_defined_VelocityVar=false;
 		mis_defined_SpecificHeatVar=false;
-        mis_defined_ReactionVar=false;
 	 };
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
@@ -100,7 +109,6 @@ public:
         mpTransferCoefficientVar(rOther.mpTransferCoefficientVar),
         mpVelocityVar(rOther.mpVelocityVar),
         mpSpecificHeatVar(rOther.mpSpecificHeatVar),
-        mpReactionVar(rOther.mpReactionVar),
         mis_defined_DensityVar(rOther.mis_defined_DensityVar),
 		mis_defined_DiffusionVar(rOther.mis_defined_DiffusionVar),
 		mis_defined_UnknownVar(rOther.mis_defined_UnknownVar),
@@ -111,8 +119,7 @@ public:
 		mis_defined_MeshVelocityVar(rOther.mis_defined_MeshVelocityVar),
 		mis_defined_TransferCoefficientVar(rOther.mis_defined_TransferCoefficientVar),
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
-		mis_defined_SpecificHeatVar(rOther.mis_defined_SpecificHeatVar),
-        mis_defined_ReactionVar(rOther.mis_defined_ReactionVar)
+		mis_defined_SpecificHeatVar(rOther.mis_defined_SpecificHeatVar)
     {
     }
 
@@ -275,21 +282,6 @@ public:
     {
 		return mis_defined_SpecificHeatVar;
 	}
-
-    void SetReactionVariable(const Variable<double>& rvar)
-    {
-        mpReactionVar = &rvar;
-		mis_defined_ReactionVar=true;
-    }
-    const Variable<double>& GetReactionVariable()
-    {
-        return *mpReactionVar;
-    }
-    bool IsDefinedReactionVariable()
-    {
-		return mis_defined_ReactionVar;
-	}
-
     ///@}
     ///@name Operations
     ///@{
@@ -309,10 +301,9 @@ public:
         mpProjectionVar = rOther.mpProjectionVar;
         mpConvectionVar = rOther.mpConvectionVar;
         mpMeshVelocityVar = rOther.mpMeshVelocityVar;
-        mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         mpVelocityVar = rOther.mpVelocityVar;
 		mpSpecificHeatVar = rOther.mpSpecificHeatVar;
-        mpReactionVar = rOther.mpReactionVar;
+        mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         //now the is_defined
         mis_defined_DensityVar = rOther.mis_defined_DensityVar;
 		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar;
@@ -325,7 +316,6 @@ public:
 		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar;
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
 		mis_defined_SpecificHeatVar = rOther.mis_defined_SpecificHeatVar;
-        mis_defined_ReactionVar = rOther.mis_defined_ReactionVar;
 
         return *this;
     }
@@ -386,7 +376,6 @@ protected:
     const Variable<double>* mpTransferCoefficientVar;
     const Variable<array_1d<double,3> >* mpVelocityVar;
     const Variable<double>* mpSpecificHeatVar;
-    const Variable<double>* mpReactionVar;
     bool mis_defined_DensityVar;
     bool mis_defined_DiffusionVar;
     bool mis_defined_UnknownVar;
@@ -398,7 +387,6 @@ protected:
     bool mis_defined_TransferCoefficientVar;
     bool mis_defined_VelocityVar;
     bool mis_defined_SpecificHeatVar;
-    bool mis_defined_ReactionVar;
 
     ///@}
     ///@name Protected Operators
@@ -461,7 +449,6 @@ private:
         rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
 		rSerializer.save("VelocityVar",mpVelocityVar);
  		rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
-        rSerializer.save("ReactionVar",mpReactionVar);
 
 // 	  rSerializer.save("",);
     }
@@ -479,7 +466,6 @@ private:
         rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
         rSerializer.load("VelocityVar",mpVelocityVar);
 		rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
-        rSerializer.load("ReactionVar",mpReactionVar);
     }
 
 
@@ -551,3 +537,4 @@ KRATOS_DEFINE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSIO
 }  // namespace Kratos.
 
 #endif // KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED  defined
+

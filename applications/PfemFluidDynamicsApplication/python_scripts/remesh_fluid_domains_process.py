@@ -154,6 +154,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         mesh_id = 0
 
         # define building utility
+        #skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.main_model_part, self.echo_level, mesh_id)
         model_part_name = self.settings["model_part_name"].GetString()
         skin_build = KratosPfemBase.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
  
@@ -295,6 +296,15 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                 nodal_h=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
                 mean_nodal_h+=nodal_h
 
+                #density=node.GetSolutionStepValue(KratosMultiphysics.DENSITY)
+                #print("density ",density)
+                
+                #viscosity=node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY)
+                #print("VISCOSITY ",viscosity)
+                
+                #bulk_modulus=node.GetSolutionStepValue(KratosMultiphysics.BULK_MODULUS)
+                #print("bulk_modulus ",bulk_modulus)
+
             if (node.Is(KratosMultiphysics.RIGID)):
                 numRigid+=1
                 if (node.Is(KratosMultiphysics.FLUID)):
@@ -333,9 +343,43 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                 if(self.IsMeshingStep()):
                     self.RemeshFluidDomains()
 
+    ###
+
     #
     def ExecuteMeshing(domain):
         domain.ExecuteMeshing()
+
+    #
+    def RemeshDomains(self):
+
+        if( self.echo_level > 1 ):
+            print("::[Meshing_Process]:: MESHING DOMAIN...( call:", self.counter,")")
+            
+        meshing_options = KratosMultiphysics.Flags()
+        #self.model_meshing = KratosPfemBase.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
+        self.model_meshing = KratosPfemFluid.ModelMeshingForFluids(self.main_model_part, meshing_options, self.echo_level)
+        
+        self.model_meshing.ExecuteInitialize()
+
+        #serial
+        for domain in self.meshing_domains:
+            domain.ExecuteMeshing()
+        
+                
+        self.model_meshing.ExecuteFinalize()
+        
+        self.counter += 1 
+
+
+        # schedule next meshing
+        if(self.meshing_frequency > 0.0): # note: if == 0 always active
+            if(self.meshing_control_is_time):
+                while(self.next_meshing <= time):
+                    self.next_meshing += self.meshing_frequency
+            else:
+                while(self.next_meshing <= self.step_count):
+                    self.next_meshing += self.meshing_frequency
+                        
                    
     #
     def GetMeshingStep(self):

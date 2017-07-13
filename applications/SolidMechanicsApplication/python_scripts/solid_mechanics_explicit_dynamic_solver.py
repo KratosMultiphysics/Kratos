@@ -105,17 +105,19 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         self.Check();
 
         print("::[Mechanical Solver]:: -END- ")
-
-    def SetVariables(self):
-
-        solid_mechanics_solver.MechanicalSolver.SetVariables(self)
         
+
+    def AddVariables(self):
+        
+        solid_mechanics_solver.MechanicalSolver.AddVariables(self)
+
         if self.settings["time_integration_method"].GetString() == "Explicit":
             # Add specific variables for the explicit time integration scheme
-            self.nodal_variables = self.nodal_variables + ['NODAL_MASS','FORCE_RESIDUAL','MIDDLE_VELOCITY']     
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.MIDDLE_VELOCITY)
 
-        solid_mechanics_solver.MechanicalSolver.AddVariables(self)
-                     
+                    
         print("::[Mechanical Solver]:: Explicit Variables ADDED")
 
 

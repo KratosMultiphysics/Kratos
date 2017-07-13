@@ -153,7 +153,7 @@ public:
      * Destructor.
      */
 
-    ~LineSearchStrategy() override
+    virtual ~LineSearchStrategy()
     {
     }
 
@@ -243,7 +243,7 @@ protected:
      * Here the database is updated
      */
 
-    void UpdateDatabase(
+    virtual void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,

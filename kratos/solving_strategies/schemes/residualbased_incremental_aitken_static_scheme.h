@@ -92,7 +92,7 @@ public:
     {}
 
     /// Destructor.
-    ~ResidualBasedIncrementalAitkenStaticScheme() override {}
+    virtual ~ResidualBasedIncrementalAitkenStaticScheme() {}
 
 
     ///@}
@@ -111,10 +111,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    void InitializeSolutionStep(ModelPart &r_model_part,
+    virtual void InitializeSolutionStep(ModelPart &r_model_part,
                                         TSystemMatrixType &A,
                                         TSystemVectorType &Dx,
-                                        TSystemVectorType &b) override
+                                        TSystemVectorType &b)
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         mPreviousDx = ZeroVector(Dx.size());
@@ -128,10 +128,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    void InitializeNonLinIteration(ModelPart &r_model_part,
+    virtual void InitializeNonLinIteration(ModelPart &r_model_part,
                                            TSystemMatrixType &A,
                                            TSystemVectorType &Dx,
-                                           TSystemVectorType &b) override
+                                           TSystemVectorType &b)
     {
         BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
     }
@@ -144,11 +144,11 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    void Update(ModelPart &r_model_part,
+    virtual void Update(ModelPart &r_model_part,
                         DofsArrayType &rDofSet,
                         TSystemMatrixType &A,
                         TSystemVectorType &Dx,
-                        TSystemVectorType &b) override
+                        TSystemVectorType &b)
     {
         mIterationCounter++;
 

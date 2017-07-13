@@ -78,7 +78,7 @@ public:
 
   {}
 
-  ~ResidualBasedSimpleSteadyScheme() override {}
+  virtual ~ResidualBasedSimpleSteadyScheme() {}
 
 
   ///@}
@@ -104,11 +104,11 @@ public:
     mPressureRelaxationFactor = factor;
   }
 
-  void Update(ModelPart& rModelPart,
+  virtual void Update(ModelPart& rModelPart,
                       DofsArrayType& rDofSet,
                       TSystemMatrixType& rA,
                       TSystemVectorType& rDx,
-                      TSystemVectorType& rb) override
+                      TSystemVectorType& rb)
   {
     KRATOS_TRY;
 
@@ -137,12 +137,12 @@ public:
     KRATOS_CATCH("");
   }
 
-  void CalculateSystemContributions(
+  virtual void CalculateSystemContributions(
       Element::Pointer rCurrentElement,
       LocalSystemMatrixType& LHS_Contribution,
       LocalSystemVectorType& RHS_Contribution,
       Element::EquationIdVectorType& EquationId,
-      ProcessInfo& CurrentProcessInfo) override
+      ProcessInfo& CurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -166,12 +166,12 @@ public:
     KRATOS_CATCH("");
   }
 
-  void Condition_CalculateSystemContributions(
+  virtual void Condition_CalculateSystemContributions(
       Condition::Pointer rCurrentCondition,
       LocalSystemMatrixType& LHS_Contribution,
       LocalSystemVectorType& RHS_Contribution,
       Condition::EquationIdVectorType& EquationId,
-      ProcessInfo& CurrentProcessInfo) override
+      ProcessInfo& CurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -195,11 +195,11 @@ public:
     KRATOS_CATCH("");
   }
 
-  void Calculate_RHS_Contribution(
+  virtual void Calculate_RHS_Contribution(
       Element::Pointer rCurrentElement,
       LocalSystemVectorType& rRHS_Contribution,
       Element::EquationIdVectorType& rEquationId,
-      ProcessInfo& rCurrentProcessInfo) override
+      ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -210,11 +210,11 @@ public:
     KRATOS_CATCH("");
   }
 
-  void Condition_Calculate_RHS_Contribution(
+  virtual void Condition_Calculate_RHS_Contribution(
       Condition::Pointer rCurrentCondition,
       LocalSystemVectorType& rRHS_Contribution,
       Element::EquationIdVectorType& rEquationId,
-      ProcessInfo& rCurrentProcessInfo) override
+      ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -226,10 +226,10 @@ public:
     KRATOS_CATCH("");
   }
 
-  void InitializeNonLinIteration(ModelPart& rModelPart,
+  virtual void InitializeNonLinIteration(ModelPart& rModelPart,
                                          TSystemMatrixType& rA,
                                          TSystemVectorType& rDx,
-                                         TSystemVectorType& rb) override
+                                         TSystemVectorType& rb)
   {
     KRATOS_TRY;
 
@@ -251,10 +251,10 @@ public:
     KRATOS_CATCH("");
   }
 
-  void FinalizeNonLinIteration(ModelPart &rModelPart,
+  virtual void FinalizeNonLinIteration(ModelPart &rModelPart,
                                        TSystemMatrixType &rA,
                                        TSystemVectorType &rDx,
-                                       TSystemVectorType &rb) override
+                                       TSystemVectorType &rb)
   {
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -297,7 +297,7 @@ public:
   void FinalizeSolutionStep(ModelPart &rModelPart,
                             TSystemMatrixType &rA,
                             TSystemVectorType &rDx,
-                            TSystemVectorType &rb) override
+                            TSystemVectorType &rb)
   {
     LocalSystemVectorType RHS_Contribution;
     LocalSystemMatrixType LHS_Contribution;

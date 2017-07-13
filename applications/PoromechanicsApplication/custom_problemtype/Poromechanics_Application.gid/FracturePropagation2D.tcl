@@ -143,6 +143,19 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     puts $FileVar1 "\}"
     
     close $FileVar1
+
+    ## Start gid_preferences.ini file
+    set filename [file join $dir gid_preferences.ini]
+    set FileVar2 [open $filename w]
+        
+    puts $FileVar2 "GID_OMP_NUM_THREADS [GiD_Set GID_OMP_NUM_THREADS]"
+    puts $FileVar2 "AutomaticCorrectSizes [GiD_Set -meshing_parameters_model AutomaticCorrectSizes]"
+    puts $FileVar2 "SizeTransitionsFactor [GiD_Set -meshing_parameters_model SizeTransitionsFactor]"
+    puts $FileVar2 "BoundaryWeightedTransition [GiD_Set -meshing_parameters_model BoundaryWeightedTransition]"
+    puts $FileVar2 "SurfaceMesher [GiD_Set -meshing_parameters_model SurfaceMesher]"
+    puts $FileVar2 "VolumeMesher [GiD_Set -meshing_parameters_model VolumeMesher]"
+    
+    close $FileVar2
 }
 
 proc GenerateNewFractures { dir problemtypedir PropagationData } {
@@ -442,7 +455,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
     }
     
     # Generate New Mesh
-    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Model Mescape
+    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Preferences escape
 
     ## Update FracturesData.json file
     set filename [file join $dir FracturesData.json]

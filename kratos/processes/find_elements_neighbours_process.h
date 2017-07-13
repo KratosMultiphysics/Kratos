@@ -121,7 +121,7 @@ public:
     }
 
     /// Destructor.
-    ~FindElementalNeighboursProcess() override
+    virtual ~FindElementalNeighboursProcess()
     {
     }
 
@@ -140,7 +140,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
+    virtual void Execute() override
     {
         NodesContainerType& rNodes = mr_model_part.Nodes();
         ElementsContainerType& rElems = mr_model_part.Elements();
@@ -252,19 +252,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "FindElementalNeighboursProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FindElementalNeighboursProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

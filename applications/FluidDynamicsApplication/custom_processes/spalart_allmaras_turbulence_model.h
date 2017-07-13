@@ -176,7 +176,7 @@ public:
 
     /// Destructor.
 
-    ~SpalartAllmarasTurbulenceModel() override
+    virtual ~SpalartAllmarasTurbulenceModel()
     {
     }
 
@@ -191,7 +191,7 @@ public:
     ///@{
 
     /// Solve an iteration of the turbulent viscosity
-    void Execute() override
+    void Execute()
     {
         KRATOS_TRY
 
@@ -311,7 +311,7 @@ public:
 
     /// Turn back information as a string.
 
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SpalartAllmarasTurbulenceModel";
@@ -320,14 +320,14 @@ public:
 
     /// Print information about this object.
 
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "SpalartAllmarasTurbulenceModel";
     }
 
     /// Print object's data.
 
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 

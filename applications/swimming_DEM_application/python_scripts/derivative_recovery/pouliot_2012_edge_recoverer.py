@@ -70,9 +70,10 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
 class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, recoverer.VorticityRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-        self.element_type = self.GetElementType(pp)
+        self.element_type = "ComputeGradientPouliot20123DEdge"
+        # self.condition_type = "Condition1D"
         self.FillUpModelPart(self.element_type)
-        self.DOFs = self.GetDofs(pp)
+        self.DOFs = (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
         self.AddDofs(self.DOFs)
         self.calculate_vorticity = self.pp.CFD_DEM.lift_force_type
 
@@ -99,18 +100,6 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         self.Solve()
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_Z_GRADIENT, VORTICITY)
-
-    def GetElementType(self, pp):
-        if pp.domain_size == 2:
-            return 'ComputeGradientPouliot20122DEdge'
-        else:
-            return 'ComputeGradientPouliot20123DEdge'
-
-    def GetDofs(self, pp):
-        if pp.domain_size == 2:
-            return (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y)
-        else:
-            return (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
 
 class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):

@@ -124,7 +124,7 @@ public:
 
     /** Destructor.
     */
-    ~And_Criteria () override {}
+    virtual ~And_Criteria () {}
 
     ///@}
     ///@name Operators

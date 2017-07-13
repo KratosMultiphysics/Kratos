@@ -135,7 +135,7 @@ public:
 
 
     /// Destructor.
-    ~PowerIterationEigenvalueSolver() override {}
+    virtual ~PowerIterationEigenvalueSolver() {}
 
 
     ///@}
@@ -166,7 +166,7 @@ public:
     void Solve(SparseMatrixType& K,
                SparseMatrixType& M,
                DenseVectorType& Eigenvalues,
-               DenseMatrixType& Eigenvectors) override
+               DenseMatrixType& Eigenvectors)
     {
 
         using boost::numeric::ublas::trans;
@@ -257,7 +257,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Power iteration eigenvalue solver with " << BaseType::GetPreconditioner()->Info();
@@ -265,13 +265,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

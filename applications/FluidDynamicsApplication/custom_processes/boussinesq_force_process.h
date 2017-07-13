@@ -86,7 +86,7 @@ namespace Kratos
       BoussinesqForceProcess(ModelPart::Pointer pModelPart, Parameters& rParameters);
 
       /// Destructor.
-      ~BoussinesqForceProcess() override;
+      virtual ~BoussinesqForceProcess() override;
 
 
       ///@}
@@ -98,11 +98,11 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void Execute() override;
+      virtual void Execute() override;
 
-      void ExecuteInitialize() override;
+      virtual void ExecuteInitialize() override;
 
-      void ExecuteInitializeSolutionStep() override;
+      virtual void ExecuteInitializeSolutionStep() override;
 
       ///@}
       ///@name Access
@@ -119,13 +119,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override;
+      virtual std::string Info() const;
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override;
+      virtual void PrintInfo(std::ostream& rOStream) const;
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override;
+      virtual void PrintData(std::ostream& rOStream) const;
 
 
       ///@}

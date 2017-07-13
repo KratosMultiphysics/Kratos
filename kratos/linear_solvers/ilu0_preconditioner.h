@@ -131,7 +131,7 @@ public:
 
 
     /// Destructor.
-    ~ILU0Preconditioner() override
+    virtual ~ILU0Preconditioner()
     {
         if ( BaseType::L!=NULL) delete[]  BaseType::L;
         if (BaseType::iL!=NULL) delete[] BaseType::iL;
@@ -173,7 +173,7 @@ public:
     @param rX Unknows vector
     @param rB Right side linear system of equations.
     */
-    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         // ILU(0) preconditioner
         // Incomplete LU factorization with same sparcity pattern as original matrix.
@@ -431,20 +431,20 @@ public:
     ///@{
 
     /// Return information about this object.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ILU0Preconditioner";
     }
 
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& OStream) const override
+    virtual void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "ILU0Preconditioner";
     }
 
 
-    void PrintData(std::ostream& OStream) const override
+    virtual void PrintData(std::ostream& OStream) const override
     {
     }
 

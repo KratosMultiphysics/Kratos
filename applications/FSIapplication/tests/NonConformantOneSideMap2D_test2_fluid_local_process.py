@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Importing the Kratos Library
 from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.FSIApplication import *
@@ -43,7 +44,7 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
 
     def ExecuteFinalizeSolutionStep(self):
         pass
-
+                
 
     def ExecuteBeforeOutputStep(self):
         pass

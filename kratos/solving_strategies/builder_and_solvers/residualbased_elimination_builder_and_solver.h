@@ -177,7 +177,7 @@ public:
 
     /** Destructor.
      */
-    ~ResidualBasedEliminationBuilderAndSolver() override
+    virtual ~ResidualBasedEliminationBuilderAndSolver()
     {
     }
 
@@ -971,7 +971,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    int Check(ModelPart& r_model_part) override
+    virtual int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 

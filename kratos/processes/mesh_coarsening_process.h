@@ -69,7 +69,7 @@ namespace Kratos
 	  MeshCoarseningProcess(ModelPart& rModelPart);
 
       /// Destructor.
-      ~MeshCoarseningProcess() override;
+      virtual ~MeshCoarseningProcess();
 
 
       ///@}
@@ -102,13 +102,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override;
+      virtual std::string Info() const override;
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const override;
+      virtual void PrintData(std::ostream& rOStream) const override;
 
 
       ///@}

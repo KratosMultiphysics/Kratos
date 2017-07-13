@@ -124,7 +124,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
-
+        
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         if (self.settings["turbulence_model"].GetString() == "None"):
@@ -162,8 +162,6 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-
-        (self.solver).Initialize()
 
         print ("Monolithic solver initialization finished.")
 
@@ -213,13 +211,16 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             self.settings["divergence_clearance_steps"].SetInt(0)
             print("Finished divergence clearance.")
 
-    def InitializeSolutionStep(self):
+
+    def SolverInitialize(self):
         self.DivergenceClearance()
-        (self.solver).InitializeSolutionStep()
+        (self.solver).Initialize()
+
 
     def Solve(self):
         self.DivergenceClearance()
         (self.solver).Solve()
+
 
     def _ExecuteAfterReading(self):
         super(NavierStokesSolver_VMSMonolithic, self)._ExecuteAfterReading()

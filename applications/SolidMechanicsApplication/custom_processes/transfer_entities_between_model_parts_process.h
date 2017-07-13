@@ -101,88 +101,85 @@ public:
 
 
     /// Execute method is used to execute the TransferEntitiesBetweenModelPartsProcess algorithms.
-    virtual void Execute()
+    virtual void Execute() 
     {
+
         KRATOS_TRY;
 
-        if (mEntityType == "Nodes")
-        {
-            const int nnodes = mrGuestModelPart.Nodes().size();
+	if( mEntityType == "Nodes" ){
 
-            if (nnodes != 0)
-            {
-                ModelPart::NodesContainerType::iterator it_begin =
-                    mrGuestModelPart.NodesBegin();
-                //#pragma omp parallel for  //some nodes are not added in
-                //parallel
-                for (int i = 0; i < nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+	  const int nnodes = mrGuestModelPart.Nodes().size();
+	  
+	  if(nnodes != 0)
+	    {
 
-                    if (this->MatchTransferFlags(*(it.base())))
-                    {
-                        // mrHostModelPart.AddNode(*(it.base()));
-                        this->AssignFlags(*(it.base()));
-                        mrHostModelPart.Nodes().push_back(*(it.base()));
-                        // std::cout<<" Node Inserted "<<it->Id()<<std::endl;
-                    }
-                }
-                mrHostModelPart.Nodes().Unique();
-            }
+	      ModelPart::NodesContainerType::iterator it_begin = mrGuestModelPart.NodesBegin();
+	      //#pragma omp parallel for  //some nodes are not added in parallel
+	      for(int i = 0; i<nnodes; i++)
+		{
+		  ModelPart::NodesContainerType::iterator it = it_begin + i;
+		    
+		  if( this->MatchTransferFlags(*(it.base())) ){
+		    //mrHostModelPart.AddNode(*(it.base()));
+		    this->AssignFlags(*(it.base()));
+		    mrHostModelPart.Nodes().push_back(*(it.base()));
+		    //std::cout<<" Node Inserted "<<it->Id()<<std::endl;
+		    
+		  }
+		}
+	    }
+	}
+	else if( mEntityType == "Elements" ){
+
+	  const int nelements = mrGuestModelPart.Elements().size();
+	  
+	  if(nelements != 0)
+	    {
+
+	      ModelPart::ElementsContainerType::iterator it_begin = mrGuestModelPart.ElementsBegin();
+	      //#pragma omp parallel for  //some elements are not added in parallel
+	      for(int i = 0; i<nelements; i++)
+		{
+		  ModelPart::ElementsContainerType::iterator it = it_begin + i;
+		    
+		  if( this->MatchTransferFlags(*(it.base())) ){
+		    //mrHostModelPart.AddNode(*(it.base()));
+		    this->AssignFlags(*(it.base()));
+		    mrHostModelPart.Elements().push_back(*(it.base()));
+		    //std::cout<<" Element Inserted "<<it->Id()<<std::endl;
+		    
+		  }
+		}
+	    }
+
+	  
         }
-        else if (mEntityType == "Elements")
-        {
-            const int nelements = mrGuestModelPart.Elements().size();
+ 	else if( mEntityType == "Conditions" ){
 
-            if (nelements != 0)
-            {
-                ModelPart::ElementsContainerType::iterator it_begin =
-                    mrGuestModelPart.ElementsBegin();
-                //#pragma omp parallel for  //some elements are not added in
-                // parallel
-                for (int i = 0; i < nelements; i++)
-                {
-                    ModelPart::ElementsContainerType::iterator it = it_begin + i;
+	  const int nconditions = mrGuestModelPart.Conditions().size();
+	  
+	  if(nconditions != 0)
+	    {
 
-                    if (this->MatchTransferFlags(*(it.base())))
-                    {
-                        // mrHostModelPart.AddNode(*(it.base()));
-                        this->AssignFlags(*(it.base()));
-                        mrHostModelPart.Elements().push_back(*(it.base()));
-                        // std::cout<<" Element Inserted "<<it->Id()<<std::endl;
-                    }
-                }
-                mrHostModelPart.Elements().Unique();
-            }
-        }
-        else if (mEntityType == "Conditions")
-        {
-            const int nconditions = mrGuestModelPart.Conditions().size();
-
-            if (nconditions != 0)
-            {
-                ModelPart::ConditionsContainerType::iterator it_begin =
-                    mrGuestModelPart.ConditionsBegin();
-                //#pragma omp parallel for  //some elements are not added in
-                // parallel
-                for (int i = 0; i < nconditions; i++)
-                {
-                    ModelPart::ConditionsContainerType::iterator it = it_begin + i;
-
-                    if (this->MatchTransferFlags(*(it.base())))
-                    {
-                        // mrHostModelPart.AddNode(*(it.base()));
-                        this->AssignFlags(*(it.base()));
-                        mrHostModelPart.Conditions().push_back(*(it.base()));
-                        // std::cout<<" Condition Inserted
-                        // "<<it->Id()<<std::endl;
-                    }
-                }
-                mrHostModelPart.Conditions().Unique();
-            }
-        }
+	      ModelPart::ConditionsContainerType::iterator it_begin = mrGuestModelPart.ConditionsBegin();
+	      //#pragma omp parallel for  //some elements are not added in parallel
+	      for(int i = 0; i<nconditions; i++)
+		{
+		  ModelPart::ConditionsContainerType::iterator it = it_begin + i;
+		    
+		  if( this->MatchTransferFlags(*(it.base())) ){
+		    //mrHostModelPart.AddNode(*(it.base()));
+		    this->AssignFlags(*(it.base()));
+		    mrHostModelPart.Conditions().push_back(*(it.base()));
+		    //std::cout<<" Condition Inserted "<<it->Id()<<std::endl;
+		    
+		  }
+		}
+	    }
+	}
 
         KRATOS_CATCH("");
+
     }
 
     /// this function is designed for being called at the beginning of the computations

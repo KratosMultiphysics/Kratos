@@ -73,6 +73,7 @@ protected:
 
     struct SectionProperties
     {
+
         double Area;                            // Area or the beam section
         double Inertia_z;                       // Moment of Inertia about the local z axis, Iz local
         double Inertia_y;                       // Moment of Inertia about the local y axis, Iy local
@@ -145,7 +146,7 @@ public:
     SmallDisplacementBeamElement3D2N(SmallDisplacementBeamElement3D2N const& rOther);
 
     /// Destructor.
-    ~SmallDisplacementBeamElement3D2N() override;
+    virtual ~SmallDisplacementBeamElement3D2N();
 
 
     ///@}
@@ -160,7 +161,9 @@ public:
       * @param pProperties: the properties assigned to the new element
       * @return a Pointer to the new element
       */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+
 
 
     //************* GETTING METHODS
@@ -170,32 +173,32 @@ public:
      * @return current integration method selected
      */
 
-    IntegrationMethod GetIntegrationMethod() const override;
+    IntegrationMethod GetIntegrationMethod() const;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
     //on integration points:
     /**
@@ -215,7 +218,7 @@ public:
      */
     void GetValueOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
                                       std::vector< array_1d<double, 3 > >& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo ) override;
+                                      const ProcessInfo& rCurrentProcessInfo );
 
 
     //************* STARTING - ENDING  METHODS
@@ -224,18 +227,18 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize();
 
     /**
     * Called at the beginning of each solution step
     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     //************* COMPUTING  METHODS
 
@@ -248,7 +251,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -256,7 +259,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -265,7 +268,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -274,7 +277,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
 
     //on integration points:
@@ -283,9 +286,11 @@ public:
      */
     void CalculateOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
                                        std::vector< array_1d<double, 3 > >& Output,
-                                       const ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo);
 
 
+    //************************************************************************************
+    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -293,8 +298,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-    
+    int Check(const ProcessInfo& rCurrentProcessInfo);
     ///@}
     ///@name Access
     ///@{
@@ -306,7 +310,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "Beam Element #" << Id();
@@ -314,13 +318,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "Beam Element #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         GetGeometry().PrintData(rOStream);
     }
@@ -478,12 +482,12 @@ private:
     // A private default constructor necessary for serialization
 
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

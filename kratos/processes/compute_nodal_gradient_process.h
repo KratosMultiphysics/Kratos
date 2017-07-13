@@ -81,7 +81,7 @@ public:
         , Variable<double>& r_area_variable);
 
     /// Destructor.
-    ~ComputeNodalGradientProcess() override
+    virtual ~ComputeNodalGradientProcess()
     {
     }
 
@@ -100,7 +100,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
+    virtual void Execute() override
     {
         KRATOS_TRY;
         
@@ -176,19 +176,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ComputeNodalGradientProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeNodalGradientProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

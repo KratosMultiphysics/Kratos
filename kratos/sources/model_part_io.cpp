@@ -53,7 +53,7 @@ namespace Kratos
 
         if (!(pFile->is_open()))
         {
-            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening mdpa file : ", mFilename.c_str());
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", mFilename.c_str());
         }
 
         // Store the pointer as a regular std::iostream
@@ -678,7 +678,7 @@ namespace Kratos
 			buffer << mBaseFilename << "_" << i << ".mdpa";
             std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
             if(!(*p_ofstream))
-                KRATOS_THROW_ERROR(std::invalid_argument, "Error opening mdpa file : ", buffer.str());
+                KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", buffer.str());
 
             output_files.push_back(p_ofstream);
         }

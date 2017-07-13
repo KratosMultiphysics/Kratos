@@ -126,7 +126,7 @@ public:
 
     /** Destructor.
     */
-    ~ResidualBasedIncrementalUpdateStaticScheme() override {}
+    virtual ~ResidualBasedIncrementalUpdateStaticScheme() {}
 
 
     /*@} */
@@ -138,7 +138,7 @@ public:
     Performing the update of the solution.
     */
     //***************************************************************************
-    void Update(
+    virtual void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
@@ -164,7 +164,7 @@ public:
     Performing the update of the solution.
     */
     //***************************************************************************
-    void Predict(
+    virtual void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
@@ -274,7 +274,7 @@ public:
     this function calculates at the same time the contribution to the LHS and to the RHS
     of the system
     */
-    void CalculateSystemContributions(
+    virtual void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -294,7 +294,7 @@ public:
 
     //***************************************************************************
     //***************************************************************************
-    void Calculate_RHS_Contribution(
+    virtual void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -311,7 +311,7 @@ public:
 
     //***************************************************************************
     //***************************************************************************
-    void Calculate_LHS_Contribution(
+    virtual void Calculate_LHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -330,7 +330,7 @@ public:
     /** functions totally analogous to the precedent but applied to
     the "condition" objects
     */
-    void Condition_CalculateSystemContributions(
+    virtual void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -346,7 +346,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_Calculate_RHS_Contribution(
+    virtual void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,

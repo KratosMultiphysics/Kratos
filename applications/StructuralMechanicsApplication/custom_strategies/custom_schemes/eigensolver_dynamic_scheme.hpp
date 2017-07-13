@@ -80,7 +80,7 @@ public:
     EigensolverDynamicScheme() : Scheme<TSparseSpace,TDenseSpace>() {}
 
     /// Destructor.
-    ~EigensolverDynamicScheme() override {}
+    virtual ~EigensolverDynamicScheme() {}
 
     ///@}
     ///@name Operators
@@ -90,43 +90,39 @@ public:
     ///@name Operations
     ///@{
 
-    void CalculateSystemContributions(
+    virtual void CalculateSystemContributions(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    ) override
+    )
     {
         KRATOS_TRY
 
         if (CurrentProcessInfo[BUILD_LEVEL] == 1)
         { // mass matrix
             pCurrentElement->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
-            std::size_t LocalSize = LHS_Contribution.size1();
+            auto LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
                 RHS_Contribution.resize(LocalSize,false);
             noalias(RHS_Contribution) = ZeroVector(LocalSize);
         }
         else if (CurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
-        {
             pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-        }
         else
-        {
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
-        }
+            KRATOS_THROW_ERROR(std::logic_error, "Invalid BUILD_LEVEL", "");
 
         pCurrentElement->EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
-    void Calculate_LHS_Contribution(
+    virtual void Calculate_LHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -142,44 +138,38 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_CalculateSystemContributions(
+    virtual void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
         if (CurrentProcessInfo[BUILD_LEVEL] == 1)
         { // mass matrix
             pCurrentCondition->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
-            std::size_t LocalSize = LHS_Contribution.size1();
+            auto LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
-            {
                 RHS_Contribution.resize(LocalSize,false);
-            }
             noalias(RHS_Contribution) = ZeroVector(LocalSize);
         }
         else if (CurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
-        {
             pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-        }
         else
-        {
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
-        }
+            KRATOS_THROW_ERROR(std::logic_error, "Invalid BUILD_LEVEL", "");
 
         pCurrentCondition->EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
-    void Condition_Calculate_LHS_Contribution(
+    virtual void Condition_Calculate_LHS_Contribution(
             Condition::Pointer pCurrentCondition,
             LocalSystemMatrixType& LHS_Contribution,
             Condition::EquationIdVectorType& EquationId,
-            ProcessInfo& CurrentProcessInfo) override
+            ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 

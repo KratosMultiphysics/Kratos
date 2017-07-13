@@ -63,6 +63,7 @@ void PointTorque3DCondition::Initialize()
 {
     KRATOS_TRY
 
+    mEnergy = 0;
 
     KRATOS_CATCH( "" )
 }
@@ -75,6 +76,7 @@ void PointTorque3DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrent
 {
     KRATOS_TRY
 
+    mEnergy = 0;
 
     KRATOS_CATCH( "" )
 }
@@ -94,6 +96,11 @@ void PointTorque3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVe
     rRightHandSideVector[1] = Torque[1];
     rRightHandSideVector[2] = Torque[2];
 
+    //current rotations to compute energy
+//     array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
+//     Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+// 
+//     mEnergy += Torque[0] * Rotation[0] + Torque[1] * Rotation[1] + Torque[2] * Rotation[2];
 
     KRATOS_CATCH( "" )
 }
@@ -115,6 +122,15 @@ void PointTorque3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     rRightHandSideVector[0] = Torque[0];
     rRightHandSideVector[1] = Torque[1];
     rRightHandSideVector[2] = Torque[2];
+
+
+    //current rotations to compute energy
+//     array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
+//     Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+// 
+//     //std::cout<<" Torque "<<Torque<<" Rotation "<<Rotation<<std::endl;
+// 
+//     mEnergy += Torque[0] * Rotation[0] + Torque[1] * Rotation[1] + Torque[2] * Rotation[2];
 
 
 
@@ -156,13 +172,49 @@ void PointTorque3DCondition::GetDofList(DofsVectorType& ConditionalDofList,Proce
     }
 }
 
+//***********************************************************************************
+//***********************************************************************************
+
+void PointTorque3DCondition::AddExplicitContribution(const VectorType& rRHS, 
+						     const Variable<VectorType>& rRHSVariable, 
+						     Variable<array_1d<double,3> >& rDestinationVariable, 
+						     const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		MomentResidual[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+}
+
 //*********************************GET DOUBLE VALUE***********************************
 //************************************************************************************
 
 void PointTorque3DCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo )
-{
+							  std::vector<double>& rValues,
+							  const ProcessInfo& rCurrentProcessInfo )
+{ 
     this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
@@ -174,6 +226,19 @@ void PointTorque3DCondition::CalculateOnIntegrationPoints( const Variable<double
 
     KRATOS_TRY
 
+//     const unsigned int integration_points_number = 1;
+// 
+//     if ( rOutput.size() != integration_points_number )
+//         rOutput.resize( integration_points_number, false );
+// 
+//     if ( rVariable == EXTERNAL_ENERGY )
+//     {
+//       //reading integration points
+//       for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+//         {
+// 	  rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
+// 	}
+//     }
 
     KRATOS_CATCH( "" )
 }

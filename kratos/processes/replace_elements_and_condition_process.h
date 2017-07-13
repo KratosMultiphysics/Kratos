@@ -87,7 +87,7 @@ public:
 
     
     /// Destructor.
-    ~ReplaceElementsAndConditionsProcess() override {}
+    virtual ~ReplaceElementsAndConditionsProcess() {}
 
 
     ///@}
@@ -107,10 +107,11 @@ public:
 
 
     /// Execute method is used to execute the ReplaceElementsAndConditionsProcess algorithms.
-    void Execute()  override
+    virtual void Execute()  override
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
         
+	KRATOS_WATCH(mSettings.PrettyPrintJsonString());
         const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
         
@@ -121,10 +122,8 @@ public:
             
             Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
             
-            //deep copy elemental data
-            p_element->Data() = it->Data();
-            
             (*it.base()) = p_element;
+
         }
         
         #pragma omp parallel for
@@ -133,9 +132,6 @@ public:
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
             
             Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
-            
-            //deep copy elemental data
-            p_condition->Data() = it->Data();
             
             (*it.base()) = p_condition;
 
@@ -166,19 +162,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "ReplaceElementsAndConditionsProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ReplaceElementsAndConditionsProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

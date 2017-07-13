@@ -31,24 +31,25 @@ protected:
 
     struct GaussPoint
     {
-        // Default Constructor
-        GaussPoint() {}
-
-        // Constructor 1
-        GaussPoint (ConstitutiveLaw::Pointer pConstitutiveLawPointer,
-                    const array_1d<double,3>& Coords,
-                    const double& IntegrationWeight)
-        {
-            pConstitutiveLaw = pConstitutiveLawPointer;
-            noalias(Coordinates) = Coords;
-            Weight = IntegrationWeight;
-        }
-
-        // Member variables
         ConstitutiveLaw::Pointer pConstitutiveLaw;
         array_1d<double,3> Coordinates;
         double Weight;
-        std::vector<GaussPoint*> NeighbourPoints;
+    };
+
+    ///------------------------------------------------------------------------------------
+
+    struct NeighbourPoint
+    {
+        ConstitutiveLaw::Pointer pConstitutiveLaw;
+        double Weight, Distance;
+    };
+
+    ///------------------------------------------------------------------------------------
+
+    struct NonlocalPoint
+    {
+        ConstitutiveLaw::Pointer pConstitutiveLaw;
+        std::vector<NeighbourPoint> NeighbourPoints;
     };
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,47 +66,45 @@ public:
     /// Destructor
     virtual ~NonlocalDamageUtilities()
     {
-        for (unsigned int i = 0; i < mGaussPointList.size(); i++)
-            delete mGaussPointList[i];
+        //mNonlocalPointList.clear();
+        //mNonlocalPointList.shrink_to_fit();
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     virtual void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart)
     {
-        KRATOS_ERROR << "Calling the default SearchGaussPointsNeighbours method" << std::endl;
+        KRATOS_THROW_ERROR( std::logic_error, "Calling the default SearchGaussPointsNeighbours method", "" )
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateNonlocalEquivalentStrain (Parameters* pParameters, const ProcessInfo& CurrentProcessInfo)
     {
-        int NGPoints = static_cast<int>(mGaussPointList.size());
+        int NGPoints = static_cast<int>(mNonlocalPointList.size());
         double CharacteristicLength = (*pParameters)["characteristic_length"].GetDouble();
         
         // Loop through all Gauss Points
         #pragma omp parallel for
         for(int i = 0; i < NGPoints; i++)
         {
-            const GaussPoint& ReceiverPoint = *(mGaussPointList[i]);
             double LocalEquivalentStrain;
-            LocalEquivalentStrain = ReceiverPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);;
-            double Numerator = ReceiverPoint.Weight*LocalEquivalentStrain;
-            double WeightingFunctionDenominator = ReceiverPoint.Weight;
+            double NonlocalEquivalentStrain;
+            double Numerator = 0.0;
+            double WeightingFunctionDenominator = 0.0;
             
             //Loop through neighbours
-            for(unsigned int j = 0; j < ReceiverPoint.NeighbourPoints.size(); j++)
+            for(unsigned int j = 0; j < mNonlocalPointList[i].NeighbourPoints.size(); j++)
             {
-                const GaussPoint& SourcePoint = *(ReceiverPoint.NeighbourPoints[j]);
-                double Distance;
-                this->ComputeNeighbourDistance(Distance,ReceiverPoint,SourcePoint);
-                LocalEquivalentStrain = SourcePoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);
-
-                Numerator += SourcePoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength))*LocalEquivalentStrain;
-                WeightingFunctionDenominator += SourcePoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength));
+                const NeighbourPoint& MyNeighbourPoint = mNonlocalPointList[i].NeighbourPoints[j];
+                const double& Distance = MyNeighbourPoint.Distance;
+                LocalEquivalentStrain = MyNeighbourPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);
+                
+                Numerator += MyNeighbourPoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength))*LocalEquivalentStrain;
+                WeightingFunctionDenominator += MyNeighbourPoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength));
             }
-            double NonlocalEquivalentStrain = Numerator/WeightingFunctionDenominator;
-            ReceiverPoint.pConstitutiveLaw->SetValue(NONLOCAL_EQUIVALENT_STRAIN,NonlocalEquivalentStrain,CurrentProcessInfo);
+            NonlocalEquivalentStrain = Numerator/WeightingFunctionDenominator;
+            mNonlocalPointList[i].pConstitutiveLaw->SetValue(NONLOCAL_EQUIVALENT_STRAIN,NonlocalEquivalentStrain,CurrentProcessInfo);
         }
     }
 
@@ -114,17 +113,7 @@ public:
 protected:
 
     /// Member Variables
-    std::vector<GaussPoint*> mGaussPointList;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    virtual void ComputeNeighbourDistance(
-        double& rDistance,
-        const GaussPoint& ReceiverPoint,
-        const GaussPoint& SourcePoint)
-    {
-        KRATOS_ERROR << "Calling the default ComputeNeighbourDistance method" << std::endl;
-    }
+    std::vector<NonlocalPoint> mNonlocalPointList;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

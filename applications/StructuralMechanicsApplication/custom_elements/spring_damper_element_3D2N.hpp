@@ -65,7 +65,7 @@ public:
     SpringDamperElement3D2N(SpringDamperElement3D2N const& rOther);
 
     /// Destructor.
-    ~SpringDamperElement3D2N() override;
+    virtual ~SpringDamperElement3D2N();
 
     ///@}
     ///@name Operators
@@ -88,7 +88,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
     /**
      * clones the selected element variables, creating a new one
@@ -97,34 +97,34 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
     //************* GETTING METHODS
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
     //************* STARTING - ENDING  METHODS
 
@@ -132,27 +132,27 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize();
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     //************* COMPUTING  METHODS
@@ -168,7 +168,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
 			      VectorType& rRightHandSideVector, 
-			      ProcessInfo& rCurrentProcessInfo) override;
+			      ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -179,7 +179,7 @@ public:
      */
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo) override;
+                                 ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this calculates just the LHS
@@ -189,7 +189,7 @@ public:
      */
 
     void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -198,7 +198,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix, 
-		    ProcessInfo& rCurrentProcessInfo) override;
+		    ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -207,7 +207,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
-		    ProcessInfo& rCurrentProcessInfo) override;
+		    ProcessInfo& rCurrentProcessInfo);
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -216,7 +216,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -291,9 +291,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer);
 
 
     ///@name Private Inquiry

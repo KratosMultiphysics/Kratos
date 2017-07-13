@@ -64,7 +64,7 @@ public:
     DirectSolver() {}
     DirectSolver(Parameters settings) {}
     /// Destructor.
-    ~DirectSolver() override {}
+    virtual ~DirectSolver() {}
 
     /// Copy constructor.
     DirectSolver(const DirectSolver& Other) {}

@@ -7,26 +7,11 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ReadMaterialsProcess(Model, settings["Parameters"])
 
+    
 
+##all the processes python processes should be derived from "python_process"
 class ReadMaterialsProcess(Process):
-    def __init__(self, Model, settings):
-        """Read constitutive law and material properties from a json file and assign them to elements and conditions.
-
-        Arguments:
-        Model -- a dictionary of model parts to which properties may be assigned.
-        settings -- Kratos parameters object specifying the name of the json file containing property information.
-
-        Example:
-        params = Parameters('{"materials_filename" : "materials.json"}')
-        read_materials_process = ReadMaterialsProcess(params)
-
-        The json file must include a list of properties:
-        {
-            "properties" : []
-        }
-
-        See _AssignPropertyBlock for detail on how properties are imported.
-        """
+    def __init__(self, Model, settings ):
         Process.__init__(self) 
         default_settings = Parameters("""
             {
@@ -49,12 +34,6 @@ class ReadMaterialsProcess(Process):
         print("finished reading materials")
         
     def _GetItemFromModule(self,my_string):
-        """Return the python object named by the string argument.
-
-        Example:
-        constitutive_law = self._GetItemFromModule('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
-        model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
-        """
         splitted = my_string.split(".")
         if(len(splitted) == 0):
             raise Exception("something wrong. Trying to split the string "+my_string)
@@ -69,45 +48,30 @@ class ReadMaterialsProcess(Process):
 
             module = importlib.import_module(module_name)
             return getattr(module,splitted[-1]) 
-             
+            
+            
+            
     def _AssignPropertyBlock(self, data):
-        """Set constitutive law and material properties and assign to elements and conditions.
-
-        Arguments:
-        data -- a dictionary or json object defining properties for a model part.
-
-        Example:
-        data = {
-            "model_part_name" : "Plate",
-            "properties_id" : 1,
-            "Material" : {
-                "constitutive_law" : {
-                    "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
-                },
-                "Variables" : {
-                    "YOUNG_MODULUS" : 200e9,
-                    "POISSION_RATIO" : 0.3
-                },
-                "Tables" : {}
-            }
-        }
-        """
-        # Get the properties for the specified model part.
         model_part = self.Model[data["model_part_name"]]
         property_id = data["properties_id"]
         mesh_id = 0
         prop = model_part.GetProperties(property_id, mesh_id)
         
-        # Assign the properties to the model part's elements and conditions.
+        ####################################
+        #assign property to the list of elements and conditions in the model part
         for elem in model_part.Elements:
             elem.Properties = prop
             
         for cond in model_part.Conditions:
             cond.Properties = prop
         
+        
+        ####################################
+        ## read material data
+        
         mat = data["Material"]
 
-        # Set the CONSTITUTIVE_LAW for the current properties.
+        #read constitutive law and assign it to prop
         if "Variables" in mat["constitutive_law"].keys(): #pass the list of variables when constructing the constitutive law
            constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"])(mat["constitutive_law"]["Variables"])
         else:
@@ -115,12 +79,12 @@ class ReadMaterialsProcess(Process):
            
         prop.SetValue(CONSTITUTIVE_LAW, constitutive_law)
         
-        # Add / override the values of material parameters in the properties
+        #read variables 
         for key, value in mat["Variables"].items():
             var = self._GetItemFromModule(key)
             prop.SetValue( var, value)
 
-        # Add / override tables in the properties
+        #read table
         for key, table in mat["Tables"].items():
             table_name = key
 
@@ -131,3 +95,7 @@ class ReadMaterialsProcess(Process):
             for i in range(len(table["data"])):
                 new_table.AddRow(table["data"][i][0], table["data"][i][1])
             prop.SetTable(input_var,output_var,new_table)
+      
+        
+                
+        

@@ -258,7 +258,7 @@ public:
      * Destructor.
      */
      
-    ~ResidualBasedNewtonRaphsonStrategy() override
+    virtual ~ResidualBasedNewtonRaphsonStrategy()
     {
         Clear();
     }
@@ -339,7 +339,7 @@ public:
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level) override
+    virtual void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -353,7 +353,7 @@ public:
      * values of the solution step of interest are assumed equal to the old values 
      */
      
-    void Predict() override
+    virtual void Predict() override
     {
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
@@ -389,7 +389,7 @@ public:
      * Initialization of member variables and prior operations
      */
      
-    void Initialize() override
+    virtual void Initialize() override
     {
         KRATOS_TRY;
 
@@ -436,7 +436,7 @@ public:
      * All those functions can otherwise be called separately.
      */
      
-    double Solve() override
+    virtual double Solve() override
     {
         Initialize();
         InitializeSolutionStep();
@@ -450,7 +450,7 @@ public:
      * Clears the internal storage
      */
      
-    void Clear() override
+    virtual void Clear() override
     {
         KRATOS_TRY;
 
@@ -486,7 +486,7 @@ public:
      * analysis - the convergence criteria used is the one used inside the "solve" step
      */
      
-    bool IsConverged() override
+    virtual bool IsConverged() override
     {
         KRATOS_TRY;
 
@@ -513,7 +513,7 @@ public:
      * negligible cost
      */
      
-    void CalculateOutputData() override
+    virtual void CalculateOutputData() override
     {
         TSystemMatrixType& A = *mpA;
         TSystemVectorType& Dx = *mpDx;
@@ -528,7 +528,7 @@ public:
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
     
-    void InitializeSolutionStep() override
+    virtual void InitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -604,7 +604,7 @@ public:
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
     
-    void FinalizeSolutionStep() override
+    virtual void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -645,7 +645,7 @@ public:
      * Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     
-    bool SolveSolutionStep() override
+    virtual bool SolveSolutionStep() override
     {
         // Pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
@@ -1024,7 +1024,7 @@ protected:
      * It is designed to be called ONCE to verify that the input is correct.
      */
      
-    int Check() override
+    virtual int Check() override
     {
         KRATOS_TRY
 

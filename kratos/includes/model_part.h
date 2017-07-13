@@ -255,7 +255,7 @@ public:
 
 
     /// Destructor.
-    ~ModelPart() override;
+    virtual ~ModelPart();
 
 
     ///@}
@@ -1234,13 +1234,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    virtual std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    virtual void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    virtual void PrintData(std::ostream& rOStream) const override;
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const;
@@ -1314,9 +1314,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access

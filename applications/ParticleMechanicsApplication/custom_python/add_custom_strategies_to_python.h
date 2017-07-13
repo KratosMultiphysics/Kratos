@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosTestApplication
+KratosTestApplication 
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
+pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-
-//
-//   Project Name:        Kratos
+ 
+//   
+//   Project Name:        Kratos       
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $

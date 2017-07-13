@@ -67,18 +67,18 @@ namespace Kratos
 		{
 		}
 
-		~ShellQ4_CorotationalCoordinateTransformation() override
+		virtual ~ShellQ4_CorotationalCoordinateTransformation()
 		{
 		}
 
 	public:
 
-		ShellQ4_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const override
+		virtual ShellQ4_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
 		{
 			return ShellQ4_CorotationalCoordinateTransformation::Pointer( new ShellQ4_CorotationalCoordinateTransformation( pGeometry ) );
 		}
 
-		void Initialize() override
+		virtual void Initialize()
 		{
 			KRATOS_TRY 
 
@@ -106,7 +106,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+		virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 		{
 			for(int i = 0; i < 4; i++)
 			{
@@ -115,7 +115,7 @@ namespace Kratos
 			}
 		}
     
-		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+		virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 		{
 			for(int i = 0; i < 4; i++)
 			{
@@ -124,11 +124,11 @@ namespace Kratos
 			}
 		}
     
-		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+		virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 		{
 		}
     
-		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+		virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 		{
 			const GeometryType & geom = GetGeometry();
 			Vector3Type incrementalRotation;
@@ -145,7 +145,7 @@ namespace Kratos
 			}
 		}
 
-		ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem()const override
+		virtual ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem()const
 		{
 			const GeometryType & geom = GetGeometry();
 
@@ -193,8 +193,8 @@ namespace Kratos
 			return ShellQ4_LocalCoordinateSystem( geom[0], geom[1], geom[2], geom[3], alpha );
 		}
 
-		VectorType CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS, 
-													   const VectorType & globalDisplacements) override
+		virtual VectorType CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS, 
+													   const VectorType & globalDisplacements)
 		{
 			const GeometryType & geom = GetGeometry();
 
@@ -235,13 +235,13 @@ namespace Kratos
 			return localDisplacements;
 		}
 
-		void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
+		virtual void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
 										  const VectorType & globalDisplacements,
 										  const VectorType & localDisplacements,
 										  MatrixType & rLeftHandSideMatrix,
 										  VectorType & rRightHandSideVector,
 										  const bool RHSrequired,
-										  const bool LHSrequired) override
+										  const bool LHSrequired)
 		{
 			// Get the total rotation matrix (local - to - global)
 			// Note: do NOT include the warpage correction matrix!
@@ -333,9 +333,9 @@ namespace Kratos
 			noalias( rLeftHandSideMatrix ) = prod( trans( T ), temp );
 		}
 
-		MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
+		virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
 			                                                   const Vector& globalDisplacements,
-															   size_t nodeid) override
+															   size_t nodeid)
 		{
 			if(nodeid>3) return IdentityMatrix(3,3);
 
@@ -348,9 +348,9 @@ namespace Kratos
 			return R;
 		}
 
-		MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
+		virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
 			                                                   const Vector& globalDisplacements,
-															   const Vector& N) override
+															   const Vector& N)
 		{
 			QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
@@ -548,7 +548,7 @@ namespace Kratos
 
 		friend class Serializer;
 
-		void save(Serializer& rSerializer) const override
+		virtual void save(Serializer& rSerializer) const
 		{
 			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellQ4_CoordinateTransformation );
 			rSerializer.save("init", mInitialized);
@@ -560,7 +560,7 @@ namespace Kratos
 			rSerializer.save("RV_conv", mRV_converged);
 		}
 
-		void load(Serializer& rSerializer) override
+		virtual void load(Serializer& rSerializer)
 		{
 			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellQ4_CoordinateTransformation );
 			rSerializer.load("init", mInitialized);

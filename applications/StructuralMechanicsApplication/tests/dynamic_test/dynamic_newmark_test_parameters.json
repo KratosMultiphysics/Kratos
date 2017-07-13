@@ -9,7 +9,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Dynamic",
         "time_integration_method"            : "Implicit",
@@ -26,7 +26,11 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-                "solver_type": "SkylineLUFactorizationSolver"
+                "solver_type": "SuperLUSolver",
+                "max_iteration": 500,
+                "tolerance": 1e-9,
+                "scaling": false,
+                "verbosity": 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]

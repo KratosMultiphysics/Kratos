@@ -133,7 +133,7 @@ public:
         : BaseType(rOther), mAdaptor(rOther.mAdaptor) {}
 
     /// Destructor.
-    ~VariableComponent() override {}
+    virtual ~VariableComponent() {}
 
 
     ///@}
@@ -190,7 +190,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
@@ -198,7 +198,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
     }

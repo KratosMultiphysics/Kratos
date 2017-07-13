@@ -25,7 +25,7 @@ namespace Kratos
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements
+ * The functionality is limited to large displacements 
  */
 
 class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HyperElasticViscoplastic3DLaw : public HyperElastic3DLaw
@@ -96,12 +96,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    ConstitutiveLaw::Pointer Clone() const;
 
     /**
      * Destructor.
      */
-    ~HyperElasticViscoplastic3DLaw() override;
+    virtual ~HyperElasticViscoplastic3DLaw();
 
     /**
      * Operators
@@ -114,7 +114,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override
+    SizeType WorkingSpaceDimension()
     {
         return 3;
     };
@@ -122,7 +122,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize()
     {
         return 6;
     };
@@ -132,44 +132,44 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures) override;
+    void GetLawFeatures(Features& rFeatures);
 
 
-    bool Has( const Variable<double>& rThisVariable ) override;
-    bool Has( const Variable<Vector>& rThisVariable ) override;
-    bool Has( const Variable<Matrix>& rThisVariable ) override;
+    bool Has( const Variable<double>& rThisVariable );
+    bool Has( const Variable<Vector>& rThisVariable );
+    bool Has( const Variable<Matrix>& rThisVariable );
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
 
     void SetValue( const Variable<double>& rVariable,
                    const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override;
+                   const ProcessInfo& rCurrentProcessInfo );
     void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override;
+                   const ProcessInfo& rCurrentProcessInfo );
     void SetValue( const Variable<Matrix>& rThisVariable,
                    const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override;
+                   const ProcessInfo& rCurrentProcessInfo );
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
-                             const Vector& rShapeFunctionsValues ) override;
+                             const Vector& rShapeFunctionsValues );
 
 
     void InitializeSolutionStep( const Properties& rMaterialProperties,
                                  const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
+                                 const Vector& rShapeFunctionsValues ,
+                                 const ProcessInfo& rCurrentProcessInfo);
 
     void FinalizeSolutionStep( const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+                               const Vector& rShapeFunctionsValues ,
+                               const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -178,7 +178,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    virtual void CalculateMaterialResponsePK2 (Parameters & rValues);
 
     /**
      * Computes the material response:
@@ -186,7 +186,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues);
 
 
     /**
@@ -198,7 +198,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -208,15 +208,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+       //virtual String Info() const;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+       //virtual void PrintInfo(std::ostream& rOStream) const;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+       //virtual void PrintData(std::ostream& rOStream) const;
 
 protected:
 
@@ -225,15 +225,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+  
     Matrix mElasticLeftCauchyGreen;
-
+    
     FlowRulePointer       mpFlowRule;
 
     YieldCriterionPointer mpYieldCriterion;
-
+	
     HardeningLawPointer   mpHardeningLaw;
-
+	
     ///@}
     ///@name Protected Operators
     ///@{
@@ -250,8 +250,8 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            FlowRule::RadialReturnVariables & rReturnMappingVariables,
-            Matrix& rConstitutiveMatrix);
+						     FlowRule::RadialReturnVariables & rReturnMappingVariables,		     
+						     Matrix& rConstitutiveMatrix);
 
 
     /**
@@ -259,11 +259,11 @@ protected:
      */
 
     double& PlasticConstitutiveComponent( double & rCabcd,
-                                          const MaterialResponseVariables& rElasticVariables,
-                                          const Matrix & rIsoStressMatrix,
-                                          const FlowRule::PlasticFactors & rScalingFactors,
-                                          const unsigned int& a, const unsigned int& b,
-                                          const unsigned int& c, const unsigned int& d);
+            const MaterialResponseVariables& rElasticVariables,
+            const Matrix & rIsoStressMatrix,
+            const FlowRule::PlasticFactors & rScalingFactors,			 
+            const unsigned int& a, const unsigned int& b,
+            const unsigned int& c, const unsigned int& d);
 
 
     /**
@@ -275,10 +275,10 @@ protected:
      * @param rIsoStressVector vector where the stress result is stored
      */
     virtual void CalculatePlasticIsochoricStress( MaterialResponseVariables & rElasticVariables,
-            FlowRule::RadialReturnVariables & rReturnMappingVariables,
-            StressMeasure rStressMeasure,
-            Matrix& rIsoStressMatrix,
-            Vector& rIsoStressVector);
+						  FlowRule::RadialReturnVariables & rReturnMappingVariables,
+						  StressMeasure rStressMeasure,
+						  Matrix& rIsoStressMatrix,
+						  Vector& rIsoStressVector);
 
 
 
@@ -288,7 +288,7 @@ protected:
      * @param Parameters
      * @return
      */
-    bool CheckParameters(Parameters& rValues) override;
+    virtual bool CheckParameters(Parameters& rValues);
 
 private:
 
@@ -311,24 +311,24 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-
-        rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
-        rSerializer.save("mpFlowRule",mpFlowRule);
-        rSerializer.save("mpYieldCriterion",mpYieldCriterion);
-        rSerializer.save("mpHardeningLaw",mpHardeningLaw);
+	
+	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+	rSerializer.save("mpFlowRule",mpFlowRule);
+	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
+	rSerializer.save("mpHardeningLaw",mpHardeningLaw);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-
-        rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
-        rSerializer.load("mpFlowRule",mpFlowRule);
-        rSerializer.load("mpYieldCriterion",mpYieldCriterion);
-        rSerializer.load("mpHardeningLaw",mpHardeningLaw);
+	  
+	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+	rSerializer.load("mpFlowRule",mpFlowRule);
+	rSerializer.load("mpYieldCriterion",mpYieldCriterion);
+	rSerializer.load("mpHardeningLaw",mpHardeningLaw);
     }
 
 

@@ -155,7 +155,7 @@ public:
     }
 
     /// Destructor.
-    ~MonolithicWallCondition() override {}
+    virtual ~MonolithicWallCondition() {}
 
 
     ///@}
@@ -180,13 +180,13 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
         return Condition::Pointer(new MonolithicWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
-    Condition::Pointer Create(IndexType NewId,
+    virtual Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const override
+                           PropertiesType::Pointer pProperties) const
     {
         return boost::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
@@ -199,7 +199,7 @@ public:
      * @return a Pointer to the new element
      */
     
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+    virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
     {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
         
@@ -213,9 +213,9 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      ProcessInfo& rCurrentProcessInfo)
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -234,8 +234,8 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo)
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -250,8 +250,8 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo)
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -264,8 +264,8 @@ public:
 
 
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                            ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                            ProcessInfo& rCurrentProcessInfo)
     {
         VectorType RHS;
         this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);
@@ -279,13 +279,13 @@ public:
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            ProcessInfo& rCurrentProcessInfo);
 
 
     /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -353,8 +353,8 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo);
 
 
     /// Returns a list of the element's Dofs
@@ -362,8 +362,8 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& ConditionDofList,
+                            ProcessInfo& CurrentProcessInfo);
 
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -371,8 +371,8 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetFirstDerivativesVector(Vector& Values,
-                                           int Step = 0) override
+    virtual void GetFirstDerivativesVector(Vector& Values,
+                                           int Step = 0)
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -395,8 +395,8 @@ public:
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetSecondDerivativesVector(Vector& Values,
-                                            int Step = 0) override
+    virtual void GetSecondDerivativesVector(Vector& Values,
+                                            int Step = 0)
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -414,29 +414,29 @@ public:
     }
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                              std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+                                             const ProcessInfo& rCurrentProcessInfo);
 
 
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                              std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+                                             const ProcessInfo& rCurrentProcessInfo);
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                              std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+                                             const ProcessInfo& rCurrentProcessInfo);
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                              std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+                                             const ProcessInfo& rCurrentProcessInfo);
 
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                              std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+                                             const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -454,7 +454,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "MonolithicWallCondition" << TDim << "D";
@@ -462,13 +462,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "MonolithicWallCondition";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
     ///@}
@@ -627,12 +627,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

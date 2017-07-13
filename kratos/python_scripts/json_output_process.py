@@ -22,7 +22,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             "model_part_name"      : "",
             "sub_model_part_name"  : "",
             "time_frequency"       : 1.00,
-            "historical_value"     : true,
             "resultant_solution"   : false
         }
         """)
@@ -51,7 +50,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.output_variables = self.__generate_variable_list_from_input(self.params["output_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.resultant_solution = self.params["resultant_solution"].GetBool()
-        self.historical_value = self.params["historical_value"].GetBool()
         
     def ExecuteBeforeSolutionLoop(self):
         data = {}
@@ -66,10 +64,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             for i in range(self.params["output_variables"].size()):
                 out = self.params["output_variables"][i]
                 variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
-                if (self.historical_value == True):
-                    value = node.GetSolutionStepValue(variable, 0)
-                else:
-                    value = node.GetValue(variable)
+                value = node.GetSolutionStepValue(variable, 0)
                 if isinstance(value,float):
                     if (self.resultant_solution == False):
                         data["NODE_"+str(node.Id)][out.GetString() ] = []
@@ -115,11 +110,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     out = self.params["output_variables"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                    if (self.historical_value == True):
-                        value = node.GetSolutionStepValue(variable, 0)
-                    else:
-                        value = node.GetValue(variable)
-                    
+                    value = node.GetSolutionStepValue(variable, 0)
                     if isinstance(value,float):
                         if (self.resultant_solution == False):
                             data["NODE_"+str(node.Id)][out.GetString() ].append(value)
@@ -129,6 +120,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             else:
                                 data["RESULTANT"][out.GetString() ][-1] += value
                     else: # It is a vector
+                        
                         if (KratosMultiphysics.KratosGlobals.HasVariable( out.GetString() + "_X" )): # We will asume to be components
                             if (self.resultant_solution == False):
                                 data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
@@ -145,8 +137,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                     data["RESULTANT"][out.GetString()  + "_Z"][-1] += value[2]
                         else:
                             if (self.resultant_solution == False):
-                                list = self.__kratos_vector_to__python_list(value)
-                                data["NODE_"+str(node.Id)][out.GetString() ].append(list)
+                                data["NODE_"+str(node.Id)][out.GetString() ].append(value)
                             else:
                                 aux = 0.0
                                 for index in range(len(value)):
@@ -168,12 +159,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
     def ExecuteFinalize(self):
         pass
       
-    def __kratos_vector_to__python_list(self,value):
-        list = []
-        for index in range(len(value)):
-            list.append(value[index])
-        return list
-        
     def __generate_variable_list_from_input(self,param):
       '''Parse a list of variables from input.'''
       # At least verify that the input is a string

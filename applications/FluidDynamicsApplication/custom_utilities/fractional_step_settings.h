@@ -88,7 +88,7 @@ public:
     {}
 
     /// Destructor.
-    ~FractionalStepSettings() override{}
+    virtual ~FractionalStepSettings(){}
 
     ///@}
     ///@name Operators
@@ -103,10 +103,10 @@ public:
     ///@name Access
     ///@{
 
-    void SetStrategy(StrategyLabel const& rStrategyLabel,
+    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) override
+                             const unsigned int MaxIter)
     {
         KRATOS_TRY;
 
@@ -175,10 +175,10 @@ public:
         KRATOS_CATCH("");
     }
 
-    void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
+    virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter) override
+                                    const unsigned int MaxIter)
     {
         KRATOS_TRY;
 
@@ -202,7 +202,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void SetTurbulenceModel(ProcessPointerType pTurbulenceModel) override
+    virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
     {
         BaseType::SetTurbulenceModel(pTurbulenceModel);
     }
@@ -216,7 +216,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "FractionalStepSettings" ;
@@ -224,10 +224,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FractionalStepSettings";}
+    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "FractionalStepSettings";}
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
     ///@}

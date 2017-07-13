@@ -181,7 +181,7 @@ public:
     }
 
     /// Destructor.
-    ~WallConditionDiscontinuous() override {}
+    virtual ~WallConditionDiscontinuous() {}
 
 
     ///@}
@@ -206,14 +206,14 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Condition::Pointer(new WallConditionDiscontinuous(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
 
 
-       Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+       virtual Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
         {
 			return Condition::Pointer(new WallConditionDiscontinuous(NewId, pGeom, pProperties));
 		}
@@ -225,7 +225,7 @@ public:
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -336,7 +336,7 @@ public:
 
 
     /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -475,7 +475,7 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -484,7 +484,7 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList,
+    virtual void GetDofList(DofsVectorType& ConditionDofList,
                             ProcessInfo& CurrentProcessInfo) override;
 
 
@@ -503,7 +503,7 @@ public:
     ///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override
+	virtual std::string Info() const override
 	{
 		std::stringstream buffer;
 		this->PrintInfo(buffer);
@@ -511,13 +511,13 @@ public:
 	}
 
 	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override
+	virtual void PrintInfo(std::ostream& rOStream) const override
 	{
 		rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
 	}
 
 	/// Print object's data.
-	void PrintData(std::ostream& rOStream) const override
+	virtual void PrintData(std::ostream& rOStream) const override
 	{
 		this->pGetGeometry()->PrintData(rOStream);
 	}
@@ -586,13 +586,13 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
         typedef WallCondition<TDim,TNumNodes> BaseType;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
         typedef WallCondition<TDim,TNumNodes> BaseType;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );

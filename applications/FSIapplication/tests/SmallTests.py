@@ -11,6 +11,7 @@ import KratosExecuteConvergenceAcceleratorTest as ExecuteConvergenceAcceleratorT
 import KratosExecuteFSIProblemEmulatorTest as ExecuteFSIProblemEmulatorTest
 
 try:
+    from KratosMultiphysics.SolidMechanicsApplication import *
     from KratosMultiphysics.StructuralMechanicsApplication import *
     from KratosMultiphysics.FluidDynamicsApplication import *
     missing_external_dependencies = False

@@ -205,7 +205,12 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             print("Finished divergence clearance.")
 
 
-    def InitializeSolutionStep(self):
+    def SolverInitialize(self):
+        self.DivergenceClearance()
+        (self.solver).Initialize()
+
+
+    def SolverInitializeSolutionStep(self):
         (self.bdf_process).Execute()
         (self.solver).InitializeSolutionStep()
 

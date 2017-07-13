@@ -1,11 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+#~ from KratosMultiphysics import *
+#~ from KratosMultiphysics.FSIApplication import *
+#~ from KratosMultiphysics.SolidMechanicsApplication import *
+
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 try:
     import KratosMultiphysics.ALEApplication as KratosALE
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+    import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
     import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 except ImportError as e:
     pass
@@ -67,7 +72,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
 
     def Solve(self):
 
-        self.structure_solver.Initialize()
+        self.structure_solver.SolverInitialize()
 
         # Stepping and time settings
         Dt = self.ProjectParameters["structure_solver_settings"]["problem_data"]["time_step"].GetDouble()
@@ -104,8 +109,8 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
 
-            self.structure_solver.InitializeSolutionStep()
-            self.structure_solver.Predict()
+            self.structure_solver.SolverInitializeSolutionStep()
+            self.structure_solver.SolverPredict()
 
             self.coupling_utility.InitializeSolutionStep()
 
@@ -127,7 +132,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
                     self.coupling_utility.UpdateSolution(disp_residual, self.iteration_value)
                     self.coupling_utility.FinalizeNonLinearIteration()
 
-            self.structure_solver.FinalizeSolutionStep()
+            self.structure_solver.SolverFinalizeSolutionStep()
             self.coupling_utility.FinalizeSolutionStep()
 
             for process in self.list_of_processes:
@@ -182,12 +187,12 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             point_load[1] = - K*self.iteration_value[i+1]
             point_load[2] = 0.0
 
-            node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, point_load)
+            node.SetSolutionStepValue(KratosSolid.POINT_LOAD, 0, point_load)
 
             i += 2
 
         # Solve structure problem
-        self.structure_solver.SolveSolutionStep()
+        self.structure_solver.SolverSolveSolutionStep()
 
         # Compute the displacement residual
         disp_residual = KratosMultiphysics.Vector(self._GetInterfaceProblemSize()*2)

@@ -17,6 +17,7 @@
 #include "includes/define.h"
 #include "custom_elements/spring_damper_element_3D2N.hpp"
 
+#include "solid_mechanics_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 #define OPT_NUM_NODES 2
@@ -107,7 +108,7 @@ void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, Pro
     
     rElementalDofList.resize( 0 );
 
-    for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
+    for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
@@ -129,9 +130,9 @@ void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, P
         rResult.resize( OPT_NUM_DOFS, false );
     }
 
-    for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
+    for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
-        const unsigned int index = i * 6;
+        unsigned int index = i * 6;
         rResult[index]   = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
         rResult[index+1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
         rResult[index+2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();            
@@ -152,12 +153,12 @@ void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
 	    rValues.resize( OPT_NUM_DOFS, false );
     }
 
-    for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
+    for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
         const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT, Step );
         const array_1d<double, 3>& rot  = GetGeometry()[i].FastGetSolutionStepValue( ROTATION, Step );
 
-        const unsigned int index = i * 6;
+        unsigned int index = i * 6;
         rValues[index]   = disp[0];
         rValues[index+1] = disp[1];
         rValues[index+2] = disp[2];
@@ -179,7 +180,7 @@ void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int St
 	    rValues.resize( OPT_NUM_DOFS, false );
     }
 
-    for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
+    for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
         const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY, Step );
         // const array_1d<double, 3>& avel = GetGeometry()[i].FastGetSolutionStepValue( ANGULAR_VELOCITY, Step );
@@ -207,7 +208,7 @@ void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int S
 	    rValues.resize( OPT_NUM_DOFS, false );
     }
 
-    for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
+    for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
         const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION, Step );
         // const array_1d<double, 3>& aacc = GetGeometry()[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION, Step );
@@ -277,11 +278,7 @@ void SpringDamperElement3D2N::FinalizeSolutionStep( ProcessInfo& rCurrentProcess
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::CalculateLocalSystem( 
-    MatrixType& rLeftHandSideMatrix, 
-    VectorType& rRightHandSideVector, 
-    ProcessInfo& rCurrentProcessInfo    
-    )
+void SpringDamperElement3D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY;
@@ -311,27 +308,26 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
 
     array_1d<double, OPT_NUM_DOFS > current_displacement = ZeroVector( OPT_NUM_DOFS );
     array_1d<double, 2*OPT_NUM_DIMS > elemental_stiffness = ZeroVector( 2*OPT_NUM_DIMS ); 
-    const array_1d<double, 3> NodalStiffness = Element::GetValue( NODAL_STIFFNESS );
-    elemental_stiffness[0] = NodalStiffness[0];
-    elemental_stiffness[1] = NodalStiffness[1];
-    elemental_stiffness[2] = NodalStiffness[2];
-    // TODO: Rotational stiffness not yet implemented..
-//     const array_1d<double, 3> NodalRotStiffness = Element::GetValue( NODAL_ROTATIONAL_STIFFNESS );
-//     elemental_stiffness[3] = NodalRotStiffness[0];
-//     elemental_stiffness[4] = NodalRotStiffness[1];
-//     elemental_stiffness[5] = NodalRotStiffness[2];
+    elemental_stiffness[0] = Element::GetValue( NODAL_STIFFNESS_X );
+    elemental_stiffness[1] = Element::GetValue( NODAL_STIFFNESS_Y );
+    elemental_stiffness[2] = Element::GetValue( NODAL_STIFFNESS_Z );
+    // Rotational stiffness not yet implemented..
 
-    const array_1d<double, 3> ddisp =this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT)
-                                   - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
+        - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
+        - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    const double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
+        - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
 
-    current_displacement[0] = -ddisp[0];
-    current_displacement[1] = -ddisp[1];
-    current_displacement[2] = -ddisp[2];
-    current_displacement[6] = ddisp[0];
-    current_displacement[7] = ddisp[1];
-    current_displacement[8] = ddisp[2];
+    current_displacement[0] = -du;
+    current_displacement[1] = -dv;
+    current_displacement[2] = -dw;
+    current_displacement[6] = du;
+    current_displacement[7] = dv;
+    current_displacement[8] = dw;
 
-    for ( std::size_t i = 0; i < OPT_NUM_DOFS; ++i )
+    for ( size_t i = 0; i < OPT_NUM_DOFS; ++i )
     {
         rRightHandSideVector[i]  -= elemental_stiffness[i % 6] * current_displacement[i];
     }
@@ -355,22 +351,17 @@ void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMa
 
     // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, 2*OPT_NUM_DIMS > elemental_stiffness = ZeroVector( 2*OPT_NUM_DIMS ); 
-    const array_1d<double, 3> NodalStiffness = Element::GetValue( NODAL_STIFFNESS );
-    elemental_stiffness[0] = NodalStiffness[0];
-    elemental_stiffness[1] = NodalStiffness[1];
-    elemental_stiffness[2] = NodalStiffness[2];
-    // TODO: Rotational stiffness not yet implemented..
-//     const array_1d<double, 3> NodalRotStiffness = Element::GetValue( NODAL_ROTATIONAL_STIFFNESS );
-//     elemental_stiffness[3] = NodalRotStiffness[0];
-//     elemental_stiffness[4] = NodalRotStiffness[1];
-//     elemental_stiffness[5] = NodalRotStiffness[2];
-    
-    for ( std::size_t i = 0; i < 2*OPT_NUM_DIMS; ++i )
+    elemental_stiffness[0] = Element::GetValue( NODAL_STIFFNESS_X );
+    elemental_stiffness[1] = Element::GetValue( NODAL_STIFFNESS_Y );
+    elemental_stiffness[2] = Element::GetValue( NODAL_STIFFNESS_Z );
+    // Rotational stiffness not yet implemented..
+
+    for ( size_t i = 0; i < 2*OPT_NUM_DIMS; ++i )
     {
-        rLeftHandSideMatrix(i    ,i    ) += elemental_stiffness[i];
-        rLeftHandSideMatrix(i + 6,i + 6) += elemental_stiffness[i];
-        rLeftHandSideMatrix(i    ,i + 6) -= elemental_stiffness[i];
-        rLeftHandSideMatrix(i + 6,i    ) -= elemental_stiffness[i];
+        rLeftHandSideMatrix( i, i) += elemental_stiffness[i];
+        rLeftHandSideMatrix( i+6, i+6) += elemental_stiffness[i];
+        rLeftHandSideMatrix( i, i+6) -= elemental_stiffness[i];
+        rLeftHandSideMatrix( i+6, i) -= elemental_stiffness[i];
     }
     
 }
@@ -430,17 +421,15 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
     if ( Element::Has( NODAL_DAMPING_RATIO ) )
     {
         array_1d<double, 2*OPT_NUM_DIMS> elemental_damping_ratio = ZeroVector( 2*OPT_NUM_DIMS );
-        const array_1d<double, 3> NodalDamping = Element::GetValue( NODAL_DAMPING_RATIO );
-        elemental_damping_ratio[0] = NodalDamping[0];
-        elemental_damping_ratio[1] = NodalDamping[1];
-        elemental_damping_ratio[2] = NodalDamping[2];
-        
-        for ( std::size_t i = 0; i < 2*OPT_NUM_DIMS; ++i )
+        elemental_damping_ratio[0] = Element::GetValue( NODAL_DAMPING_RATIO_X );
+        elemental_damping_ratio[1] = Element::GetValue( NODAL_DAMPING_RATIO_Y );
+        elemental_damping_ratio[2] = Element::GetValue( NODAL_DAMPING_RATIO_Z );
+        for ( size_t i = 0; i < 2*OPT_NUM_DIMS; ++i )
         {
-            rDampingMatrix(i    , i   ) += elemental_damping_ratio[i];
-            rDampingMatrix(i + 6,i + 6) += elemental_damping_ratio[i];
-            rDampingMatrix(i    ,i + 6) -= elemental_damping_ratio[i];
-            rDampingMatrix(i + 6,i    ) -= elemental_damping_ratio[i];
+            rDampingMatrix( i, i) += elemental_damping_ratio[i];
+            rDampingMatrix( i+6, i+6) += elemental_damping_ratio[i];
+            rDampingMatrix( i, i+6) -= elemental_damping_ratio[i];
+            rDampingMatrix( i+6, i) -= elemental_damping_ratio[i];
         }
     }
 
@@ -452,7 +441,7 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
 
 int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+    KRATOS_TRY;
 
     // Verify that the variables are correctly initialized
 
@@ -486,41 +475,41 @@ int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
     }
 
-    for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ )
+    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
-        {
-            KRATOS_ERROR << "Missing variable VOLUME_ACCELERATION on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
+	{
+            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << this->GetGeometry()[i].Id() << std::endl;
+	}
     }
 
     // Verify that the dofs exist
-    for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ )
+    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-        {
-            KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
+	    {
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
+	    }
 
         if ( this->GetGeometry()[i].SolutionStepsDataHas( ROTATION ) == false )
-        {
-            KRATOS_ERROR << "Missing variable ROTATION on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
+	    {
+            KRATOS_ERROR << "missing variable ROTATION on node " << this->GetGeometry()[i].Id() << std::endl;
+	    }
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-        {
-            KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
-        }
+	    {
+            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
+	    }
 
         if ( this->GetGeometry()[i].HasDofFor( ROTATION_X ) == false || this->GetGeometry()[i].HasDofFor( ROTATION_Y ) == false || this->GetGeometry()[i].HasDofFor( ROTATION_Z ) == false )
-        {
-            KRATOS_ERROR << "Missing one of the dofs for the variable ROTATION on node " << GetGeometry()[i].Id() << std::endl;
-        }
+	    {
+            KRATOS_ERROR << "missing one of the dofs for the variable ROTATION on node " << GetGeometry()[i].Id() << std::endl;
+	    }
     }
-    
+
     return 0;
 
-    KRATOS_CATCH( "Problem in the Check in the SpringDamperElement3D2N" )
+    KRATOS_CATCH( "" );
 }
 
 

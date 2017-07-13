@@ -172,7 +172,7 @@ public:
     }
 
     /// Destructor.
-    ~LevelSetConvectionProcess() override
+    virtual ~LevelSetConvectionProcess()
     {
     }
 
@@ -191,7 +191,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
+    virtual void Execute() override
     {
         KRATOS_TRY;
 
@@ -299,19 +299,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "LevelSetConvectionProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "LevelSetConvectionProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

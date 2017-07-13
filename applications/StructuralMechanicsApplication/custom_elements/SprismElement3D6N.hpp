@@ -23,10 +23,8 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-#include "includes/constitutive_law.h"
 #include "includes/variables.h"
-#include "structural_mechanics_application_variables.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -38,12 +36,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
-    #if !defined(INITIAL_CURRENT)
-    #define INITIAL_CURRENT
-        enum Configuration {Initial = 0, Current = 1};
-    #endif
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -59,27 +51,27 @@ class CartesianDerivatives
     public:
         /* Declare cartesian derivatives (reference configuration) */
         /* In-plane components */
-        bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss1;
-        bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss2;
-        bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss3;
-        bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss4;
-        bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss5;
-        bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss6;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss1;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss2;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss3;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss4;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss5;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss6;
 
         /* Transversal components */
         // Central node
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
         // Gauss nodes
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss1;
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss2;
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss3;
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss4;
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss5;
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss6;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss1;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss2;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss3;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss4;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss5;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss6;
 
         /* Inverse of the Jaconians */
-        bounded_matrix<double, 2, 2 > Jinv_plane_lower;
-        bounded_matrix<double, 2, 2 > Jinv_plane_upper;
+        boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_lower;
+        boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_upper;
 
         /**
             * Reset components
@@ -113,17 +105,17 @@ class CommonComponents
 {
     public:
         /* Declaring operators */
-        bounded_matrix<double, 3, 18 > B_membrane_lower; // Membrane (lower)
-        bounded_matrix<double, 3, 18 > B_membrane_upper; // Membrane (upper)
-        bounded_matrix<double, 2, 18 > B_shear_lower;    // Transverse shear (lower)
-        bounded_matrix<double, 2, 18 > B_shear_upper;    // Transverse shear (upper)
-        bounded_matrix<double, 1, 18 > B_normal;         // Transverse normal
+        boost::numeric::ublas::bounded_matrix<double, 3, 18 > B_membrane_lower; // Membrane (lower)
+        boost::numeric::ublas::bounded_matrix<double, 3, 18 > B_membrane_upper; // Membrane (upper)
+        boost::numeric::ublas::bounded_matrix<double, 2, 18 > B_shear_lower;    // Transverse shear (lower)
+        boost::numeric::ublas::bounded_matrix<double, 2, 18 > B_shear_upper;    // Transverse shear (upper)
+        boost::numeric::ublas::bounded_matrix<double, 1, 18 > B_normal;         // Transverse normal
 
         /* Components of Cauchy tensor C*/
-        bounded_matrix<double, 3, 1 > C_membrane_lower; // Membrane (lower)
-        bounded_matrix<double, 3, 1 > C_membrane_upper; // Membrane (upper)
-        bounded_matrix<double, 2, 1 > C_shear_lower;    // Transverse shear (lower)
-        bounded_matrix<double, 2, 1 > C_shear_upper;    // Transverse shear (upper)
+        boost::numeric::ublas::bounded_matrix<double, 3, 1 > C_membrane_lower; // Membrane (lower)
+        boost::numeric::ublas::bounded_matrix<double, 3, 1 > C_membrane_upper; // Membrane (upper)
+        boost::numeric::ublas::bounded_matrix<double, 2, 1 > C_shear_lower;    // Transverse shear (lower)
+        boost::numeric::ublas::bounded_matrix<double, 2, 1 > C_shear_upper;    // Transverse shear (upper)
         double C_normal;                                                       // Transverse normal
 
         /**
@@ -180,7 +172,7 @@ class EASComponents
         /* The EAS components*/
         double rhs_alpha;
         double stiff_alpha;
-        bounded_matrix<double, 1, 36 > H_EAS;
+        boost::numeric::ublas::bounded_matrix<double, 1, 36 > H_EAS;
 
         /**
         * Reset components
@@ -368,7 +360,7 @@ public:
     SprismElement3D6N(SprismElement3D6N const& rOther);
 
     /* Destructor */
-    ~SprismElement3D6N() override;
+    virtual ~SprismElement3D6N();
 
     ///@}
     ///@name Operators
@@ -391,7 +383,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const override;
+        PropertiesType::Pointer pProperties) const;
 
     /**
      * Clones the selected element variables, creating a new one
@@ -401,7 +393,7 @@ public:
      */
     Element::Pointer Clone(
             IndexType NewId,
-            NodesArrayType const& ThisNodes) const override;
+            NodesArrayType const& ThisNodes) const;
 
     //************* GETTING  METHODS *************//
 
@@ -409,7 +401,7 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-     IntegrationMethod GetIntegrationMethod() const override;
+     IntegrationMethod GetIntegrationMethod() const;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -419,7 +411,7 @@ public:
      void EquationIdVector(
              EquationIdVectorType& rResult,
              ProcessInfo& rCurrentProcessInfo
-             ) override;
+             );
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -429,7 +421,7 @@ public:
      void GetDofList(
              DofsVectorType& rElementalDofList,
              ProcessInfo& rCurrentProcessInfo
-             ) override;
+             );
 
     /**
      * Sets on rValues the nodal displacements
@@ -439,7 +431,7 @@ public:
      void GetValuesVector(
              Vector& rValues,
              int Step = 0
-             ) override;
+             );
 
     /**
      * Sets on rValues the nodal velocities
@@ -449,7 +441,7 @@ public:
     void GetFirstDerivativesVector(
             Vector& rValues,
             int Step = 0
-            ) override;
+            );
 
     /**
      * Sets on rValues the nodal accelerations
@@ -459,7 +451,7 @@ public:
     void GetSecondDerivativesVector(
             Vector& rValues,
             int Step = 0
-            ) override;
+            );
 
     //************* COMPUTING  METHODS *************//
 
@@ -472,7 +464,7 @@ public:
      void CalculateRightHandSide(
              VectorType& rRightHandSideVector,
              ProcessInfo& rCurrentProcessInfo
-             ) override;
+             );
 
      /**
       * This function provides a more general interface to the element.
@@ -485,7 +477,7 @@ public:
              std::vector< VectorType >& rRightHandSideVectors,
              const std::vector< Variable< VectorType > >& rRHSVariables,
              ProcessInfo& rCurrentProcessInfo
-             ) override;
+             );
 
      /**
       * This is called during the assembling process in order
@@ -496,7 +488,7 @@ public:
      void CalculateLeftHandSide(
              MatrixType& rLeftHandSideMatrix,
              ProcessInfo& rCurrentProcessInfo
-             ) override;
+             );
 
     /**
      * This is called during the assembling process in order
@@ -510,7 +502,7 @@ public:
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
      /**
       * This function provides a more general interface to the element.
@@ -528,7 +520,7 @@ public:
              std::vector< VectorType >& rRightHandSideVectors,
              const std::vector< Variable< VectorType > >& rRHSVariables,
              ProcessInfo& rCurrentProcessInfo
-             ) override;
+             );
 
     /**
       * This is called during the assembling process in order
@@ -539,7 +531,7 @@ public:
     void CalculateMassMatrix(
             MatrixType& rMassMatrix,
             ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
       * This is called during the assembling process in order
@@ -550,7 +542,7 @@ public:
     void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
             ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
     
     /**
       * This is called during the assembling process in order
@@ -568,6 +560,22 @@ public:
         ProcessInfo& rCurrentProcessInfo
         );
 
+    /**
+     * This function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
+      * @param rCurrentProcessInfo: the current process info instance
+     */
+    void AddExplicitContribution(
+            const VectorType& rRHSVector,
+            const Variable<VectorType>& rRHSVariable,
+            Variable<array_1d<double,3> >& rDestinationVariable,
+            const ProcessInfo& rCurrentProcessInfo
+            );
+
     /* On integration points: */
     /**
      * Calculate a double Variable on the Element Constitutive Law
@@ -579,7 +587,7 @@ public:
             const Variable<double>& rVariable,
             std::vector<double>& rOutput,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
@@ -591,7 +599,7 @@ public:
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rOutput,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Calculate a Matrix Variable on the Element Constitutive Law
@@ -603,7 +611,7 @@ public:
             const Variable<Matrix >& rVariable,
             std::vector< Matrix >& rOutput,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
 
     //************* ON INTEGRATION POINTS *************//
@@ -625,11 +633,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    virtual void SetValueOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Set a Vector Value on the Element Constitutive Law
@@ -641,7 +649,7 @@ public:
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Set a Matrix Value on the Element Constitutive Law
@@ -653,7 +661,7 @@ public:
             const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
     * Set a Constitutive Law Value
@@ -665,7 +673,7 @@ public:
             const Variable<ConstitutiveLaw::Pointer>& rVariable,
             std::vector<ConstitutiveLaw::Pointer>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     //GET:
     /**
@@ -674,11 +682,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void GetValueOnIntegrationPoints(
+    virtual void GetValueOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
@@ -686,11 +694,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void GetValueOnIntegrationPoints(
+    virtual void GetValueOnIntegrationPoints(
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Get on rVariable a Matrix Value from the Element Constitutive Law
@@ -698,11 +706,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void GetValueOnIntegrationPoints(
+    virtual void GetValueOnIntegrationPoints(
             const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     /**
      * Get a Constitutive Law Value
@@ -714,7 +722,7 @@ public:
             const Variable<ConstitutiveLaw::Pointer>& rVariable,
             std::vector<ConstitutiveLaw::Pointer>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            );
 
     //****************** CHECK VALUES *****************//
     /**
@@ -724,14 +732,14 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo: The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Input and output
     ///@{
 
     // Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SPRISM Element #" << Id();
@@ -739,13 +747,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "SPRISM Element #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -756,31 +764,31 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    virtual void Initialize();
 
 protected:
 
@@ -819,7 +827,7 @@ protected:
                      // Container for the total deformation gradient determinants for Updated Lagrangian
 
     /* The coordinates in the previous iteration (not necessarily in the previous time step) */
-    bounded_matrix<double, 36, 1 > mPreviousCoor;
+    boost::numeric::ublas::bounded_matrix<double, 36, 1 > mPreviousCoor;
     
     EASComponents mEAS;
 
@@ -883,9 +891,9 @@ protected:
      * It gets the nodal coordinates, according to the configutaion
      */
     virtual void GetNodalCoordinates(
-            bounded_matrix<double, 12, 3 > & NodesCoord,
+            boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
             WeakPointerVector< Node < 3 > >& nodal_neigb,
-            const Configuration ThisConfiguration
+            const std::string Configuration
             );
 
     /**
@@ -917,11 +925,11 @@ protected:
 
     /**
      * Calculate the local derivatives of the element for a given coordinates
-     * @return LocalDerivativePatch: The local derivatives of the element
+     * @return local_der_patch: The local derivatives of the element
      * @param xi, eta, zeta: The local coordinates
      */
     void ComputeLocalDerivatives(
-            bounded_matrix<double, 6, 3 > & LocalDerivativePatch,
+            boost::numeric::ublas::bounded_matrix<double, 6, 3 > & local_der_patch,
             const double xi,
             const double eta,
             const double zeta
@@ -929,12 +937,12 @@ protected:
 
     /**
      * Calculate the local quadratic derivatives of the element for a given gauss node
-     * @return LocalDerivativePatch: The local derivatives of the element
-     * @param NodeGauss: The Gauss node index
+     * @return local_der_patch: The local derivatives of the element
+     * @param node_gauss: The Gauss node index
      */
     void ComputeLocalDerivativesQuadratic(
-            bounded_matrix<double, 4, 2 > & LocalDerivativePatch,
-            const int NodeGauss
+            boost::numeric::ublas::bounded_matrix<double, 4, 2 > & local_der_patch,
+            const int node_gauss
             );
 
     /**
@@ -958,34 +966,34 @@ protected:
      * @return detJ: Determinant of the Jacobian
      * @return J: The Jacobian of the element
      * @return Jinv: The inverse of the Jacobian
-     * @return LocalDerivativePatch: The local derivatives of the element
-     * @param NodesCoord: The matrix with the coordinates of the nodes of the element
+     * @return local_der_patch: The local derivatives of the element
+     * @param nodes_coord: The matrix with the coordinates of the nodes of the element
      * @param xi, eta, zeta: The local coordinates
      */
     void CalculateJacobian(
             double & detJ,
-            bounded_matrix<double, 3, 3 > & J,
-            bounded_matrix<double, 6, 3 > & LocalDerivativePatch,
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
+            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & J,
+            boost::numeric::ublas::bounded_matrix<double, 6, 3 > & local_der_patch,
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
             const double xi,
             const double eta,
             const double zeta
             );
 
     void CalculateJacobianAndInv(
-            bounded_matrix<double, 3, 3 > & J,
-            bounded_matrix<double, 3, 3 > & Jinv,
-            bounded_matrix<double, 6, 3 > & LocalDerivativePatch,
-            const bounded_matrix<double, 3, 6 > & NodesCoord,
+            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & J,
+            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Jinv,
+            boost::numeric::ublas::bounded_matrix<double, 6, 3 > & local_der_patch,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & nodes_coord,
             const double xi,
             const double eta,
             const double zeta
             );
 
     void CalculateJacobianAndInv(
-            bounded_matrix<double, 3, 3 > & J,
-            bounded_matrix<double, 3, 3 > & Jinv,
-            const bounded_matrix<double, 3, 6 > & NodesCoord,
+            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & J,
+            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Jinv,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & nodes_coord,
             const double xi,
             const double eta,
             const double zeta
@@ -994,38 +1002,38 @@ protected:
     /**
      * Calculate the Cartesian derivatives in the Gauss points, for the plane
      * @param index: The index that indicates upper or lower face
-     * @param NodesCoord: The matrix with the coordinates of the nodes of the element
+     * @param nodes_coord: The matrix with the coordinates of the nodes of the element
      * @return CartesianDerivativesCenter: The cartesian derivatives in the plane
      */
     void CalculateCartesianDerOnCenter_plane(
             const int index,
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
-            bounded_matrix<double, 2, 4 > & CartesianDerivativesCenter
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > & CartesianDerivativesCenter
             );
 
     /**
      * Calculate the Cartesian derivatives in the Gauss points, for the plane
-     * @param NodeGauss: Number of Gauss node calculated
+     * @param node_gauss: Number of Gauss node calculated
      * @param index: The index that indicates upper or lower face
-     * @param NodesCoord: The matrix with the coordinates of the nodes of the element
+     * @param nodes_coord: The matrix with the coordinates of the nodes of the element
      * @return InPlaneCartesianDerivativesGauss: The cartesian derivatives in the plane
      */
     void CalculateCartesianDerOnGauss_plane(
-            const int NodeGauss,
+            const int node_gauss,
             const int index,
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
-            bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss
             );
 
     /**
      * Calculate the Cartesian derivatives in the Gauss points, for the transversal direction
-     * @param NodesCoord: The matrix with the coordinates of the nodes of the element
+     * @param nodes_coord: The matrix with the coordinates of the nodes of the element
      * @return TransversalCartesianDerivativesGauss: The cartesian derivatives in the transversal direction
      * @param xi, eta, zeta: Local coordinates
      */
     void CalculateCartesianDerOnGauss_trans(
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
-            bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
             const double xi,
             const double eta,
             const double zeta
@@ -1033,12 +1041,12 @@ protected:
 
     /**
      * Calculate the Cartesian derivatives in the center, for the transversal direction
-     * @param NodesCoord: The matrix with the coordinates of the nodes of the element
+     * @param nodes_coord: The matrix with the coordinates of the nodes of the element
      * @param part: 0 for center node of the element, 1 for upper part and 2 for lower part
      */
     void CalculateCartesianDerOnCenter_trans(
             CartesianDerivatives& CartDeriv,
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
             const int part
             );
 
@@ -1046,15 +1054,15 @@ protected:
      * Calculate the components of the deformation gradient in the plane, for the Gauss nodes:
      * @return InPlaneGradientFGauss: The components of the deformation gradient in the plane, for the gauss node
      * @param InPlaneCartesianDerivativesGauss: The cartesian derivatives of a Gauss node in the plane
-     * @param NodesCoord: The coordinates of the nodes of the element
-     * @param NodeGauss: Number of Gauss node calculated
+     * @param nodes_coord: The coordinates of the nodes of the element
+     * @param node_gauss: Number of Gauss node calculated
      * @param index: The index that indicates upper or lower face
      */
     void CalculateInPlaneGradientFGauss(
-            bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
-            const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
-            const int NodeGauss,
+            boost::numeric::ublas::bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+            const int node_gauss,
             const int index
             );
 
@@ -1062,25 +1070,25 @@ protected:
      * Calculate the transversal components of the deformation gradient, in the Gauss points:
      * @return TransverseGradientF: The transversal components of the deformation gradient
      * @param TransversalCartesianDerivativesGauss: The transversal cartesian derivatives
-     * @param NodesCoord: The coordinates of the nodes of the element
+     * @param nodes_coord: The coordinates of the nodes of the element
      */
     void CalculateTransverseGradientF(
             array_1d<double, 3 > & TransverseGradientF,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-            const bounded_matrix<double, 12, 3 > & NodesCoord
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord
             );
 
     /**
      * Calculate the transversal components of the deformation gradient, in each one of the faces:
      * @return TransverseGradientFt, TransverseGradientFeta, TransverseGradientFxi: Auxilar components of the deformation gradient
-     * @param NodesCoord: The coordinates of the nodes of the element
+     * @param nodes_coord: The coordinates of the nodes of the element
      * @param index: The index that indicates if calculate upper or lower components
      */
     void CalculateTransverseGradientFinP(
             array_1d<double, 3 > & TransverseGradientFt,
             array_1d<double, 3 > & TransverseGradientFxi,
             array_1d<double, 3 > & TransverseGradientFeta,
-            const bounded_matrix<double, 12, 3 > & NodesCoord,
+            const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
             const int index
             );
 
@@ -1090,14 +1098,14 @@ protected:
      * @return C_membrane: Membrane component of the Cauchy tensor
      * @param InPlaneCartesianDerivativesGauss: The in-plane cartesian derivatives of the Gauss points
      * @param InPlaneGradientFGauss: The in-plane deformation gradient components
-     * @param NodeGauss: Number of Gauss node calculated
+     * @param node_gauss: Number of Gauss node calculated
      */
     void CalculateAndAdd_B_Membrane(
-            bounded_matrix<double, 3, 18 > & B_membrane,
-            bounded_matrix<double, 3, 1 > & C_membrane,
-            const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-            const bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
-            const int NodeGauss
+            boost::numeric::ublas::bounded_matrix<double, 3, 18 > & B_membrane,
+            boost::numeric::ublas::bounded_matrix<double, 3, 1 > & C_membrane,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
+            const int node_gauss
             );
 
     /**
@@ -1109,10 +1117,10 @@ protected:
      * @param index: The index that indicates upper or lower face
      */
     void CalculateAndAdd_Membrane_Kgeometric(
-            bounded_matrix<double, 36, 36 > & Kgeometricmembrane,
-            const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss1,
-            const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss2,
-            const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss3,
+            boost::numeric::ublas::bounded_matrix<double, 36, 36 > & Kgeometricmembrane,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss1,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss2,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss3,
             const array_1d<double, 3 > & S_membrane,
             const int index
             );
@@ -1128,18 +1136,18 @@ protected:
      * @param index: The index that indicates upper or lower face
      */
     void CalculateAndAdd_B_Shear(
-            bounded_matrix<double, 2, 18 > & mB_shear,
-            bounded_matrix<double, 2, 1 > & C_shear,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
+            boost::numeric::ublas::bounded_matrix<double, 2, 18 > & mB_shear,
+            boost::numeric::ublas::bounded_matrix<double, 2, 1 > & C_shear,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
             const array_1d<double, 3 > & TransverseGradientFGauss1,
             const array_1d<double, 3 > & TransverseGradientFGauss2,
             const array_1d<double, 3 > & TransverseGradientFGauss3,
             const array_1d<double, 3 > & TransverseGradientFt,
             const array_1d<double, 3 > & TransverseGradientFxi,
             const array_1d<double, 3 > & TransverseGradientFeta,
-            const bounded_matrix<double, 2, 2 > & Jinv_plane,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 2 > & Jinv_plane,
             const int index
             );
 
@@ -1152,11 +1160,11 @@ protected:
      * @param index: The index that indicates upper or lower face
      */
     void CalculateAndAdd_Shear_Kgeometric(
-            bounded_matrix<double, 18, 18 > & Kgeometricshear,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
-            const bounded_matrix<double, 2, 2 > & Jinv_plane,
+            boost::numeric::ublas::bounded_matrix<double, 18, 18 > & Kgeometricshear,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 2 > & Jinv_plane,
             const array_1d<double, 2 > & S_shear,
             const int index
             );
@@ -1168,9 +1176,9 @@ protected:
      * @param TransversalDeformationGradientF: Transversal components of the deformation gradient in the central point of the element
      */
     void CalculateAndAdd_B_Normal(
-            bounded_matrix<double, 1, 18 > & B_normal,
+            boost::numeric::ublas::bounded_matrix<double, 1, 18 > & B_normal,
             double & C_normal,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGaussCenter,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGaussCenter,
             const array_1d<double, 3 > & TransversalDeformationGradientF
             );
 
@@ -1181,8 +1189,8 @@ protected:
      * @param mS_normal: Enhanced transversal component of the PK2 tensor
      */
     void CalculateAndAdd_Normal_Kgeometric(
-            bounded_matrix<double, 18, 18 > & Kgeometricnormal,
-            const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGaussCenter,
+            boost::numeric::ublas::bounded_matrix<double, 18, 18 > & Kgeometricnormal,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGaussCenter,
             const double S_normal
             );
 
@@ -1191,26 +1199,26 @@ protected:
      * @return disp_vec: Vector of displacement
      * @param step: The step where the displacements are calculated
      */
-    bounded_matrix<double, 36, 1 > CalculateDisp(const int& step);
+    boost::numeric::ublas::bounded_matrix<double, 36, 1 > CalculateDisp(const int& step);
 
     /**
      * Calculates the vector of current position
      * @return VectorCurrentPosition: Vector of current position
      */
-    bounded_matrix<double, 36, 1 > GetVectorCurrentPosition();
+    boost::numeric::ublas::bounded_matrix<double, 36, 1 > GetVectorCurrentPosition();
 
     /**
      * Integrates in zeta using the Gauss Quadrature
      * @param rVariables: The internal variables in the element
-     * @param AlphaEAS: The internal variable for the EAS
-     * @param ZetaGauss: The zeta coordinate for the Gauss Quadrature
+     * @param alpha_eas: The internal variable for the EAS
+     * @param zeta_gauss: The zeta coordinate for the Gauss Quadrature
      * @param rIntegrationWeight: Contribution in the numerical integration
      */
     void IntegrateInZeta(
             GeneralVariables& rVariables,
             StressIntegratedComponents& IntStress,
-            const double& AlphaEAS,
-            const double& ZetaGauss,
+            const double& alpha_eas,
+            const double& zeta_gauss,
             const double& rIntegrationWeight
             );
 
@@ -1219,7 +1227,7 @@ protected:
      * @return rLocalSystem: The local system of equations
      * @param rVariables: The internal variables in the element
      * @param rValues: Values of the ContstitutiveLaw
-     * @param AlphaEAS: The internal variable for the EAS
+     * @param alpha_eas: The internal variable for the EAS
      */
     virtual void CalculateAndAddLHS(
             LocalSystemComponents& rLocalSystem,
@@ -1228,7 +1236,7 @@ protected:
             const StressIntegratedComponents& IntStress,
             const CommonComponents& CC,
             const CartesianDerivatives& CartDeriv,
-            double& AlphaEAS
+            double& alpha_eas
             );
 
     /**
@@ -1241,7 +1249,7 @@ protected:
     virtual void CalculateAndAddDynamicLHS(
             MatrixType& rLeftHandSideMatrix,
             GeneralVariables& rVariables,
-            const double& rIntegrationWeight
+            double& rIntegrationWeight
             );
 
     /**
@@ -1249,7 +1257,7 @@ protected:
      * @return rLocalSystem: The local system of equations
      * @param rVariables: The internal variables in the element
      * @param rVolumeForce: The force due to the acceleration of the body
-     * @param AlphaEAS: The internal variable for the EAS
+     * @param alpha_eas: The internal variable for the EAS
      */
     virtual void CalculateAndAddRHS(
             LocalSystemComponents& rLocalSystem,
@@ -1257,7 +1265,7 @@ protected:
             Vector& rVolumeForce,
             const StressIntegratedComponents& IntStress,
             const CommonComponents& CC,
-            double& AlphaEAS
+            double& alpha_eas
             );
 
     /**
@@ -1268,12 +1276,11 @@ protected:
      * @param rIntegrationWeight: Contribution in the numerical integration
      */
 
-    virtual void CalculateAndAddDynamicRHS(
-        VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
-        ProcessInfo& rCurrentProcessInfo,
-        const double& rIntegrationWeight
-        );
+    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                       GeneralVariables& rVariables,
+                       ProcessInfo& rCurrentProcessInfo,
+                       double& rIntegrationWeight);
+
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
@@ -1307,11 +1314,11 @@ protected:
     /**
      * Update the RHS of the system with the EAS and the internal variable alpha
      * @return rhs_full: The full internal forces vector
-     * @return AlphaEAS: The internal variable for the EAS
+     * @return alpha_eas: The internal variable for the EAS
      */
     void ApplyEASRHS(
-            bounded_matrix<double, 36, 1 > & rhs_full,
-            double& AlphaEAS
+            boost::numeric::ublas::bounded_matrix<double, 36, 1 > & rhs_full,
+            double& alpha_eas
             );
 
     /**
@@ -1334,7 +1341,7 @@ protected:
             VectorType& rRightHandSideVector,
             const StressIntegratedComponents& IntStress,
             const CommonComponents& CC,
-            double& AlphaEAS
+            double& alpha_eas
             );
 
     /**
@@ -1369,7 +1376,7 @@ protected:
     /**
      * Reset the Constitutive Law Parameters
      */
-    void ResetConstitutiveLaw() override;
+    void ResetConstitutiveLaw();
 
     /**
      * Clear Nodal Forces
@@ -1387,15 +1394,15 @@ protected:
      * Calculate Element Kinematics
      * @param rVariables: The internal variables in the element
      * @param rPointNumber: The integration points of the prism
-     * @param AlphaEAS: The internal variable for the EAS
-     * @param ZetaGauss: The zeta coordinate for the Gauss Quadrature
+     * @param alpha_eas: The internal variable for the EAS
+     * @param zeta_gauss: The zeta coordinate for the Gauss Quadrature
      */
     virtual void CalculateKinematics(
             GeneralVariables& rVariables,
             const CommonComponents& CC,
             const int& rPointNumber,
-            const double& AlphaEAS,
-            const double& ZetaGauss
+            const double& alpha_eas,
+            const double& zeta_gauss
             );
 
     /**
@@ -1412,14 +1419,14 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      * @return rB: Deformation matrix
-     * @param ZetaGauss: The zeta coordinate for the Gauss Quadrature
-     * @param AlphaEAS: The internal variable for the EAS
+     * @param zeta_gauss: The zeta coordinate for the Gauss Quadrature
+     * @param alpha_eas: The internal variable for the EAS
      */
     virtual void CalculateDeformationMatrix(
             Matrix& rB,
             const CommonComponents& CC,
-            const double& ZetaGauss,
-            const double& AlphaEAS
+            const double& zeta_gauss,
+            const double& alpha_eas
             );
 
     /**
@@ -1458,6 +1465,24 @@ protected:
      * @param rVariables: The internal variables in the element
      */
     virtual void CalculateLinearIsotropicStress(GeneralVariables& rVariables);
+
+    /**
+     * Calculate of the Hyperelastic Neo-Hookean stress:
+     * @param rVariables: The internal variables in the element
+     */
+    virtual void CalculateHyperelasticNeoHookeanStress(GeneralVariables& rVariables);
+
+    /**
+     * Calculate of the Hyperelastic Neo-Hookean logarithmic stress:
+     * @param rVariables: The internal variables in the element
+     */
+    virtual void CalculateLogStress(GeneralVariables& rVariables);
+
+    /**
+     * Calculate the linear constitutive matrix:
+     * @param rVariables: The internal variables in the element
+     */
+    virtual void LinearConstitutiveMatrix(GeneralVariables& rVariables);
     
     /**
      * Calculation of the Green-Lagrange strain tensor:
@@ -1554,9 +1579,9 @@ private:
     /**
      * Serialization, load and save respectively
      */
-    void save(Serializer& rSerializer) const override;
+    virtual void save(Serializer& rSerializer) const;
 
-    void load(Serializer& rSerializer) override;
+    virtual void load(Serializer& rSerializer);
 
     // Constructor
 

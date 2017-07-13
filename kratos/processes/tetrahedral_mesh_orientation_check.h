@@ -107,7 +107,7 @@ public:
     }
 
     /// Destructor.
-    ~TetrahedralMeshOrientationCheck() override {}
+    virtual ~TetrahedralMeshOrientationCheck() {}
 
 
     ///@}
@@ -127,7 +127,7 @@ public:
 
 
     /// Check elements to make sure that their jacobian is positive and conditions to ensure that their face normals point outwards
-    void Execute() override
+    virtual void Execute() override
     {
         KRATOS_TRY;
         
@@ -379,19 +379,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
         return "TetrahedralMeshOrientationCheck";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TetrahedralMeshOrientationCheck";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         this->PrintInfo(rOStream);
     }

@@ -734,11 +734,6 @@ public:
 
     BlockType* Data(VariableData const & rThisVariable)
     {
-        #ifdef KRATOS_DEBUG
-        if ( !mpVariablesList->Has(rThisVariable) ) {            
-            KRATOS_ERROR << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
-        }
-        #endif      
         return Position(rThisVariable);
     }
 
