@@ -116,10 +116,6 @@
         "constraints" : [],
         "design_variables" : {
             "design_variables_type"     : "vertex_morphing",
-            "iterative_mapping"         : true,
-            "integration"               : false,
-            "integration_method"        : 2,
-            "use_transpose"             : true,
             "input_model_part_name"     : "3D_Shell",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
@@ -127,7 +123,7 @@
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 3,
                 "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false 
+                "matrix_free_filtering"      : false
             },
             "damping" : {
                 "perform_damping" : true,
