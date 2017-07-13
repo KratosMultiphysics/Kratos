@@ -37,6 +37,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "manual_ALM"                  : false,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
+            "use_scale_factor"            : true,
             "penalty"                     : 0.0,
             "scale_factor"                : 1.0,
             "tangent_factor"              : 0.1,
@@ -190,6 +191,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             alm_var_parameters.AddValue("penalty_scale_factor",self.params["penalty_scale_factor"])
             self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(self.contact_model_part,KratosMultiphysics.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
+            # We don't consider scale factor
+            if (self.params["use_scale_factor"].GetBool() == False):
+                self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR] = 1.0
         else:
             # We set the values in the process info
             self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER] = self.params["penalty"].GetDouble()
@@ -197,8 +201,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
         # We print the parameters considered
         print("The parameters considered finally are: ")            
-        print("SCALE_FACTOR: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER]))
-        print("PENALTY_PARAMETER: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]))
+        print("SCALE_FACTOR: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]))
+        print("PENALTY_PARAMETER: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER]))
             
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)
