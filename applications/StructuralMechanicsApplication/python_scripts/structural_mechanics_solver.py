@@ -402,7 +402,7 @@ class MechanicalSolver(object):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
+        import new_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 
