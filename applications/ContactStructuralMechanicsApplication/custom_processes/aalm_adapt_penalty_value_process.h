@@ -110,7 +110,8 @@ public:
         KRATOS_TRY;
         
         // We initialize the zero vector
-        const double penalty_parameter = mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER];
+        const double& penalty_parameter = mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER];
+        const double& max_gap_factor = mrThisModelPart.GetProcessInfo()[MAX_GAP_FACTOR];
         
         // We iterate over the node
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -127,7 +128,7 @@ public:
             
             // Nodal H
             const double& nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-            const double max_gap = 0.1 * nodal_h; // NOTE: This value must be studied
+            const double max_gap = max_gap_factor * nodal_h; // NOTE: This value must be studied
             
             if ((current_gap * previous_gap) < 0.0)
             {

@@ -54,6 +54,7 @@ KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                  
 KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                                    // The proportion between the tangent and normal penalty
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                           // A value used to check if consider normal variation or not
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                             // A value used to check if consider variation or not in the active inactive pairs
+KRATOS_DEFINE_VARIABLE( double, MAX_GAP_FACTOR )                                    // The factor between the nodal H and the max gap considered to recalculate the penalty
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                               // The variable name for the mesh tying  
