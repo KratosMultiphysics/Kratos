@@ -45,26 +45,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
+// #include "spaces/ublas_space.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 // Application includes
-#include "custom_utilities/bins_dynamic_mpi.h"
-#include "custom_utilities/bins_dynamic_objects_mpi.h"
-#include "custom_utilities/mpi_discrete_particle_configure.h"
 #include "custom_utilities/mpi_dem_search.h"
-#include "custom_utilities/mpi_utilities.h" 
-
-// Linear solvers
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/mpi_utilities.h"
 
 namespace Kratos
 {
     namespace Python
     {
         using namespace boost::python;
-                    
+
         void AddCustomUtilitiesToPython()
         {
             typedef MPI_DEMSearch   DemSearchType;
@@ -73,7 +67,7 @@ namespace Kratos
             class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
                     ("MPI_DEMSearch", init< Communicator& >())
                     ;
-                    
+
             class_<MpiUtilitiesType, boost::noncopyable>
                     ("MpiUtilities", init<>())
                     .def("Repart",                  &MpiUtilitiesType::ParallelPartitioning)
@@ -87,6 +81,5 @@ namespace Kratos
         }
 
     }  // namespace Python.
-    
-} // Namespace Kratos
 
+} // Namespace Kratos
