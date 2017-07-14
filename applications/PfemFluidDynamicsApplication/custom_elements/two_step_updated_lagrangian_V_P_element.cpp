@@ -27,106 +27,21 @@ namespace Kratos {
   TwoStepUpdatedLagrangianVPElement<TDim>::TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement  const& rOther)
   :Element(rOther)
   {
-
-    // if (mOldFgrad.size() !=   rOther.mOldFgrad.size() )
-    //   mOldFgrad.resize(  rOther.mOldFgrad.size());
-
-    // for(unsigned int i=0; i<  rOther.mOldFgrad.size(); i++)
-    //   {
-    //     mOldFgrad[i] =   rOther.mOldFgrad[i];
-    //   }
-
-
-    if ( mCurrentTotalCauchyStress.size() !=   rOther.mCurrentTotalCauchyStress.size() )
-      mCurrentTotalCauchyStress.resize(  rOther.mCurrentTotalCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mCurrentTotalCauchyStress.size(); i++)
-      {
-        mCurrentTotalCauchyStress[i] =   rOther.mCurrentTotalCauchyStress[i];
-      }
-
-
-    if ( mCurrentDeviatoricCauchyStress.size() !=   rOther.mCurrentDeviatoricCauchyStress.size() )
-      mCurrentDeviatoricCauchyStress.resize(  rOther.mCurrentDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mCurrentDeviatoricCauchyStress.size(); i++)
-      {
-        mCurrentDeviatoricCauchyStress[i] =   rOther.mCurrentDeviatoricCauchyStress[i];
-      }
-
-
-    if ( mUpdatedTotalCauchyStress.size() !=   rOther.mUpdatedTotalCauchyStress.size() )
-      mUpdatedTotalCauchyStress.resize(  rOther.mUpdatedTotalCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mUpdatedTotalCauchyStress.size(); i++)
-      {
-        mUpdatedTotalCauchyStress[i] =   rOther.mUpdatedTotalCauchyStress[i];
-      }
-
-
-    if ( mUpdatedDeviatoricCauchyStress.size() !=   rOther.mUpdatedDeviatoricCauchyStress.size() )
-      mUpdatedDeviatoricCauchyStress.resize(  rOther.mUpdatedDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i<  rOther.mUpdatedDeviatoricCauchyStress.size(); i++)
-      {
-        mUpdatedDeviatoricCauchyStress[i] =   rOther.mUpdatedDeviatoricCauchyStress[i];
-      }
-    
+    KRATOS_TRY;
+    KRATOS_CATCH("");
   }
 
 
   template< unsigned int TDim >
   Element::Pointer TwoStepUpdatedLagrangianVPElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
+    KRATOS_TRY;
 
     TwoStepUpdatedLagrangianVPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-
-    // if ( NewElement.mOldFgrad.size() !=  mOldFgrad.size() )
-    //   NewElement.mOldFgrad.resize( mOldFgrad.size());
-
-    // for(unsigned int i=0; i< mOldFgrad.size(); i++)
-    //   {
-    //     NewElement.mOldFgrad[i] =  mOldFgrad[i];
-    //   }
-
-
-    if ( NewElement.mCurrentTotalCauchyStress.size() !=  mCurrentTotalCauchyStress.size() )
-      NewElement.mCurrentTotalCauchyStress.resize( mCurrentTotalCauchyStress.size());
-
-    for(unsigned int i=0; i< mCurrentTotalCauchyStress.size(); i++)
-      {
-        NewElement.mCurrentTotalCauchyStress[i] =  mCurrentTotalCauchyStress[i];
-      }
-
-
-    if ( NewElement.mCurrentDeviatoricCauchyStress.size() !=  mCurrentDeviatoricCauchyStress.size() )
-      NewElement.mCurrentDeviatoricCauchyStress.resize( mCurrentDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i< mCurrentDeviatoricCauchyStress.size(); i++)
-      {
-        NewElement.mCurrentDeviatoricCauchyStress[i] =  mCurrentDeviatoricCauchyStress[i];
-      }
-
-
-    if ( NewElement.mUpdatedTotalCauchyStress.size() !=  mUpdatedTotalCauchyStress.size() )
-      NewElement.mUpdatedTotalCauchyStress.resize( mUpdatedTotalCauchyStress.size());
-
-    for(unsigned int i=0; i< mUpdatedTotalCauchyStress.size(); i++)
-      {
-        NewElement.mUpdatedTotalCauchyStress[i] =  mUpdatedTotalCauchyStress[i];
-      }
-
-
-    if ( NewElement.mUpdatedDeviatoricCauchyStress.size() !=  mUpdatedDeviatoricCauchyStress.size() )
-      NewElement.mUpdatedDeviatoricCauchyStress.resize( mUpdatedDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i< mUpdatedDeviatoricCauchyStress.size(); i++)
-      {
-        NewElement.mUpdatedDeviatoricCauchyStress[i] =  mUpdatedDeviatoricCauchyStress[i];
-      }
-
-    
     return Element::Pointer( new TwoStepUpdatedLagrangianVPElement(NewElement) );
+    
+    KRATOS_CATCH("");
+
   }
 
 
@@ -2093,16 +2008,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
       }
   }
 
-  template< >
-  void TwoStepUpdatedLagrangianVPElement<2>::AddDeviatoricInternalForces(Vector& rRHSVector,const ShapeFunctionDerivativesType& rDN_DX, ElementalVariables& rElementalVariables, const double Weight)
-  {
- 
-  }
-  template< >
-  void TwoStepUpdatedLagrangianVPElement<3>::AddDeviatoricInternalForces(Vector& rRHSVector,const ShapeFunctionDerivativesType& rDN_DX, ElementalVariables& rElementalVariables, const double Weight)
-  {
- 
-  }
+
 
   template< >
   void TwoStepUpdatedLagrangianVPElement<2>::AddInternalForces(Vector& rRHSVector,

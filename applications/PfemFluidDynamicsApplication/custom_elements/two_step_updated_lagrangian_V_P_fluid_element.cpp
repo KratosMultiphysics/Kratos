@@ -28,58 +28,6 @@ namespace Kratos {
  
     TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
-
-    if ( NewElement.mCurrentFgrad.size() != this->mCurrentFgrad.size() )
-      NewElement.mCurrentFgrad.resize(this->mCurrentFgrad.size());
-
-    for(unsigned int i=0; i<this->mCurrentFgrad.size(); i++)
-      {
-	NewElement.mCurrentFgrad[i] = this->mCurrentFgrad[i];
-      }
-
-    if ( NewElement.mUpdatedFgrad.size() != this->mUpdatedFgrad.size() )
-      NewElement.mUpdatedFgrad.resize(this->mUpdatedFgrad.size());
-
-    for(unsigned int i=0; i<this->mUpdatedFgrad.size(); i++)
-      {
-	NewElement.mUpdatedFgrad[i] = this->mUpdatedFgrad[i];
-      }
-
-    if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
-      NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
-
-    for(unsigned int i=0; i<this->mCurrentTotalCauchyStress.size(); i++)
-      {
-	NewElement.mCurrentTotalCauchyStress[i] = this->mCurrentTotalCauchyStress[i];
-      }
-
-
-    if ( NewElement.mCurrentDeviatoricCauchyStress.size() != this->mCurrentDeviatoricCauchyStress.size() )
-      NewElement.mCurrentDeviatoricCauchyStress.resize(this->mCurrentDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i<this->mCurrentDeviatoricCauchyStress.size(); i++)
-      {
-	NewElement.mCurrentDeviatoricCauchyStress[i] = this->mCurrentDeviatoricCauchyStress[i];
-      }
-
-
-    if ( NewElement.mUpdatedTotalCauchyStress.size() != this->mUpdatedTotalCauchyStress.size() )
-      NewElement.mUpdatedTotalCauchyStress.resize(this->mUpdatedTotalCauchyStress.size());
-
-    for(unsigned int i=0; i<this->mUpdatedTotalCauchyStress.size(); i++)
-      {
-	NewElement.mUpdatedTotalCauchyStress[i] = this->mUpdatedTotalCauchyStress[i];
-      }
-
-
-    if ( NewElement.mUpdatedDeviatoricCauchyStress.size() != this->mUpdatedDeviatoricCauchyStress.size() )
-      NewElement.mUpdatedDeviatoricCauchyStress.resize(this->mUpdatedDeviatoricCauchyStress.size());
-
-    for(unsigned int i=0; i<this->mUpdatedDeviatoricCauchyStress.size(); i++)
-      {
-	NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
-      }
-
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
@@ -94,47 +42,6 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::Initialize()
   {
     KRATOS_TRY; 
- 
-    // LargeDisplacementElement::Initialize();
-    const GeometryType& rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
-
-    if ( this->mCurrentFgrad.size() != integration_points_number )
-      this->mCurrentFgrad.resize( integration_points_number );
-
-    if ( this->mUpdatedFgrad.size() != integration_points_number )
-      this->mUpdatedFgrad.resize( integration_points_number );
-
-    if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
-      this->mCurrentTotalCauchyStress.resize( integration_points_number );
-    
-    if ( this->mCurrentDeviatoricCauchyStress.size() != integration_points_number )
-      this->mCurrentDeviatoricCauchyStress.resize( integration_points_number );
-    
-    if ( this->mUpdatedTotalCauchyStress.size() != integration_points_number )
-      this->mUpdatedTotalCauchyStress.resize( integration_points_number );
-    
-    if ( this->mUpdatedDeviatoricCauchyStress.size() != integration_points_number )
-      this->mUpdatedDeviatoricCauchyStress.resize( integration_points_number );
-
-    unsigned int voigtsize  = 3;
-    if( TDim == 3 )
-      {
-        voigtsize  = 6;
-      }
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
-      {
-        // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
-        this->mCurrentFgrad[PointNumber] = identity_matrix<double> (dimension);
-        this->mUpdatedFgrad[PointNumber] = identity_matrix<double> (dimension);
-	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
-	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
-	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
-	this->mUpdatedDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
-      }
-
     KRATOS_CATCH( "" );
   }
   
@@ -1120,8 +1027,6 @@ namespace Kratos {
   {
     KRATOS_TRY;
 
-
-
     unsigned int voigtsize  = 3;
     if( TDim == 3 )
       {
@@ -1173,9 +1078,6 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
   {
 
-    // rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
-    // rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
-
     double Density  = 0;
     double CurrSecondLame  = 0;
     double CurrBulkModulus = 0;
@@ -1223,21 +1125,12 @@ namespace Kratos {
     rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
     rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
 
-    // this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
-    this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
-    // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
-    this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
-
   }
 
 
   template < > 
   void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
-
-
-    // rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
-    // rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
 
     double Density  = 0;
     double CurrSecondLame  = 0;
@@ -1316,19 +1209,6 @@ namespace Kratos {
     rElementalVariables.UpdatedTotalCauchyStress[4]=sigmaTot_xz;
     rElementalVariables.UpdatedTotalCauchyStress[5]=sigmaTot_yz;
 
-    // this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
-    this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
-    // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
-    this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
-
-  }
-
-
-  template < unsigned int TDim > 
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo)
-  {
-    this->mCurrentTotalCauchyStress[g]=this->mUpdatedTotalCauchyStress[g];
-    this->mCurrentDeviatoricCauchyStress[g]=this->mUpdatedDeviatoricCauchyStress[g];
   }
 
 

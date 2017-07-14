@@ -28,23 +28,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
   TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
-
-  if ( NewElement.mCurrentFgrad.size() != this->mCurrentFgrad.size() )
-    NewElement.mCurrentFgrad.resize(this->mCurrentFgrad.size());
-
-  for(unsigned int i=0; i<this->mCurrentFgrad.size(); i++)
-    {
-      NewElement.mCurrentFgrad[i] = this->mCurrentFgrad[i];
-    }
-
-  if ( NewElement.mUpdatedFgrad.size() != this->mUpdatedFgrad.size() )
-    NewElement.mUpdatedFgrad.resize(this->mUpdatedFgrad.size());
-
-  for(unsigned int i=0; i<this->mUpdatedFgrad.size(); i++)
-    {
-      NewElement.mUpdatedFgrad[i] = this->mUpdatedFgrad[i];
-    }
-
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
 
@@ -96,14 +79,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
     // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
-
-    if ( this->mCurrentFgrad.size() != integration_points_number )
-      this->mCurrentFgrad.resize( integration_points_number );
-
-    if ( this->mUpdatedFgrad.size() != integration_points_number )
-      this->mUpdatedFgrad.resize( integration_points_number );
-
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
     
@@ -123,9 +98,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       }
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-        // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
-	this->mCurrentFgrad[PointNumber] = identity_matrix<double> (dimension);
-        this->mUpdatedFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);

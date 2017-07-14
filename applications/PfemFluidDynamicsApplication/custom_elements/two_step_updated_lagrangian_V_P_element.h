@@ -349,12 +349,12 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      std::vector< Matrix > mCurrentFgrad;
-      std::vector< Matrix > mUpdatedFgrad;
-      std::vector< Vector > mCurrentTotalCauchyStress;
-      std::vector< Vector > mCurrentDeviatoricCauchyStress;
-      std::vector< Vector > mUpdatedTotalCauchyStress;
-      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
+      /* std::vector< Matrix > mCurrentFgrad; */
+      /* std::vector< Matrix > mUpdatedFgrad; */
+      /* std::vector< Vector > mCurrentTotalCauchyStress; */
+      /* std::vector< Vector > mCurrentDeviatoricCauchyStress; */
+      /* std::vector< Vector > mUpdatedTotalCauchyStress; */
+      /* std::vector< Vector > mUpdatedDeviatoricCauchyStress; */
 
       ///@}
       ///@name Protected Operators
@@ -470,11 +470,6 @@ namespace Kratos
 			      ElementalVariables& rElementalVariables,
 			      const double Weight);
 
-
-      void AddDeviatoricInternalForces( Vector& rRHSVector,
-					const ShapeFunctionDerivativesType& rDN_DX,
-					ElementalVariables& rElementalVariables,
-					const double Weight);
 
       virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,

@@ -290,7 +290,10 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-
+      std::vector< Vector > mCurrentTotalCauchyStress;
+      std::vector< Vector > mCurrentDeviatoricCauchyStress;
+      std::vector< Vector > mUpdatedTotalCauchyStress;
+      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
       ///@}
       ///@name Protected Operators
       ///@{

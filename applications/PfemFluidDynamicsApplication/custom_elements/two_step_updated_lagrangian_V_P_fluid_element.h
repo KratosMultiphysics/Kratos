@@ -230,10 +230,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
 
-      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo);
-
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
-      /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
       ///@}
       ///@name Access

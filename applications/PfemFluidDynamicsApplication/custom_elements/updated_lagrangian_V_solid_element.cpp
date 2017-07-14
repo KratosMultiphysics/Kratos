@@ -28,22 +28,6 @@ Element::Pointer UpdatedLagrangianVSolidElement<TDim>::Clone( IndexType NewId, N
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
   UpdatedLagrangianVSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
  
-  if ( NewElement.mCurrentFgrad.size() != this->mCurrentFgrad.size() )
-    NewElement.mCurrentFgrad.resize(this->mCurrentFgrad.size());
-
-  for(unsigned int i=0; i<this->mCurrentFgrad.size(); i++)
-    {
-      NewElement.mCurrentFgrad[i] = this->mCurrentFgrad[i];
-    }
-
-  if ( NewElement.mUpdatedFgrad.size() != this->mUpdatedFgrad.size() )
-    NewElement.mUpdatedFgrad.resize(this->mUpdatedFgrad.size());
-
-  for(unsigned int i=0; i<this->mUpdatedFgrad.size(); i++)
-    {
-      NewElement.mUpdatedFgrad[i] = this->mUpdatedFgrad[i];
-    }
-
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
 
@@ -84,25 +68,6 @@ Element::Pointer UpdatedLagrangianVSolidElement<TDim>::Clone( IndexType NewId, N
 
   return Element::Pointer( new UpdatedLagrangianVSolidElement(NewElement) );
 }
-
-
-
-
-// template< unsigned int TDim>
-// bool UpdatedLagrangianVSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-// 								const ProcessInfo& rCurrentProcessInfo,
-// 								const ShapeFunctionDerivativesType& rDN_DX,
-// 								unsigned int g)
-// {
-
-//   bool computeElement=false;
-//   double theta=this->GetThetaMomentum();
-//   computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-//   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-//   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-//   return computeElement;
-// } 
-
 
 
 
