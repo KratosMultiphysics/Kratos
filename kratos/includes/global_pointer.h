@@ -23,8 +23,6 @@ template<class TDataType>
 class GlobalPointer {
 private:
 
-  TDataType GetPointer() { return mDataPointer; }
-
   /// Pointer to the data
   TDataType * mDataPointer;
 
@@ -168,8 +166,8 @@ public:
 	  return *mDataPointer;
   }
 
-  /** Pointer Operator
-  * Pointer Operator
+  /** Const Pointer Operator
+  * Const Pointer Operator
   */
   TDataType const& operator*() const {
 	  return *mDataPointer;
@@ -179,6 +177,13 @@ public:
    * Arrow Operator
    */
   TDataType * operator->() {
+    return mDataPointer;
+  }
+
+  /** Const Arrow Operator
+   * Const Arrow Operator
+   */
+  TDataType const* operator->() const {
     return mDataPointer;
   }
 
