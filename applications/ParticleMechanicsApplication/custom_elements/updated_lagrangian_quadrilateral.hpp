@@ -461,7 +461,7 @@ public:
                               const std::vector< Variable< MatrixType > >& rLHSVariables,
                               std::vector< VectorType >& rRightHandSideVectors,
                               const std::vector< Variable< VectorType > >& rRHSVariables,
-                              ProcessInfo& rCurrentProcessInfo);
+                              ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -481,7 +481,7 @@ public:
      */
     void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
                                 const std::vector< Variable< VectorType > >& rRHSVariables,
-                                ProcessInfo& rCurrentProcessInfo);
+                                ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
