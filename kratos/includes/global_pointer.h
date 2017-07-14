@@ -197,7 +197,20 @@ public:
   void Load(char * buffer) {
     memcpy(this, buffer, sizeof(GlobalPointer));
   }
+
+  /** Returns the rank of the global pointer
+   * Returns the rank of the global pointer data is located or 0 if no mpi
+   * @return rank of the global pointer data or 0
+   */
+  int GetRank() {
+#ifdef KRATOS_USING_MPI
+    return this->rank;
+#else
+    return 0;
+#endif
+  }
 };
+
 
 } // namespace Kratos
 
