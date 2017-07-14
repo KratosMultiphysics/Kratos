@@ -566,7 +566,7 @@ TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValu
 }
 
 template<class TDataType>
-TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType& rSendPartial, TDataType& rReceiveAccumulated)
+TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
 {
     TDataType SendPartial = rSendPartial;
     TDataType ReceiveAccumulated = rReceiveAccumulated;
