@@ -129,6 +129,7 @@ private:
     const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
     const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
 
+    const ComputeGradientPouliot2012Edge<2> mComputeGradientPouliot20122DEdge;
     const ComputeGradientPouliot2012Edge<3> mComputeGradientPouliot20123DEdge;
 
     const ComputeGradientPouliot2012<2> mComputeGradientPouliot20122D;
