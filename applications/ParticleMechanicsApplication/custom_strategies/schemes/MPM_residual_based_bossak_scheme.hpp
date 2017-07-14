@@ -521,9 +521,9 @@ public:
 
 
 
-        double RatioNormVel = 1.0;
-        double RatioNormAcc = 1.0;
-        double RatioNormPres = 1.0;
+        //double RatioNormVel = 1.0;
+        //double RatioNormAcc = 1.0;
+        //double RatioNormPres = 1.0;
         double NormVel = 1.0;
         double NormAcc = 1.0;
         double NormPres = 1.0;
@@ -534,11 +534,11 @@ public:
         //double TolAcc = 5.0e-4;
         //double TolPres = 1.0e-4;
         int ItNum = 1;
-        if (CurrentProcessInfo.Has(PRESSURE)==false)
-        {
-            RatioNormPres = 1.0e-5;
+        //if (CurrentProcessInfo.Has(PRESSURE)==false)
+        //{
+            //RatioNormPres = 1.0e-5;
 
-        }
+        //}
         //for (unsigned int i = 0; i<20; i++)//
         //while(RatioNormVel > TolVel || RatioNormAcc > TolAcc)
         //while (RatioNormVel > TolVel || RatioNormPres > TolPres)// && ItNum <1000)
@@ -804,9 +804,12 @@ public:
             //}
             //std::cout<<"  InitialNormVel "<< InitialNormVel<<std::endl;
             //std::cout<<"  InitialNormAcc "<< InitialNormAcc<<std::endl;
-            RatioNormVel = NormDeltaVel/NormVel;
-            RatioNormAcc = NormDeltaAcc/NormAcc;
-            RatioNormPres = NormDeltaPres/NormPres;
+            
+            //RatioNormVel = NormDeltaVel/NormVel;
+            //RatioNormAcc = NormDeltaAcc/NormAcc;
+            //RatioNormPres = NormDeltaPres/NormPres;
+            
+            
             //if (InitialNormVel == 0.0 || InitialNormAcc == 0.0)
             //{
             //RatioNormVel = 0.0;
