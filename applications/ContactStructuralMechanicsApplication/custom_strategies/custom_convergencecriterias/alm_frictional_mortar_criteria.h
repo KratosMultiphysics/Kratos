@@ -125,7 +125,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-//         BaseType::CalculateContactReactions(rModelPart, rDofSet, b); // NOTE: Already computed in the PreCriteria
+        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         // Defining the convergence
         unsigned int is_converged_active = 0;
