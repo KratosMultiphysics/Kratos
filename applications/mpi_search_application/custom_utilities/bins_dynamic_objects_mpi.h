@@ -36,8 +36,8 @@
 #include "spatial_containers/tree.h"
 #include "spatial_containers/cell.h"
 
-#include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_configures/partition_configure.h"
+#include "spatial_containers/bins_dynamic_objects.h"
 
 // ACTIVATES AND DISABLES TIMER
 #define CUSTOMTIMER 1
@@ -76,7 +76,7 @@ namespace Kratos {
  * Mpi version of the Bins.
  */
 template<class TObjectConfigure, class TPartConfigure = PartitionConfigure<TObjectConfigure>>
-class BinsObjectDynamicMpi : public BinsObjectDynamic<TPartConfigure> {
+class BinsObjectDynamicMpi {
 
 public:
   ///@name Type Definitions
@@ -104,28 +104,28 @@ public:
 
   /// Note: Please note that cell store TPartConfigure
   typedef Cell<TPartConfigure>                            CellType;
-  typedef std::vector<CellType>                           CellContainerType;
-  typedef std::vector<int>                                DomainContainerType;
-  typedef typename CellContainerType::iterator            CellContainerIterator;
+  typedef std::vector<CellType>                          CellContainerType;
+  typedef std::vector<int>                               DomainContainerType;
+  typedef typename CellContainerType::iterator           CellContainerIterator;
 
   typedef TreeNode<
     Dimension, PointType, PointerType, IteratorType,
     typename TPartConfigure::DistanceIteratorType>        TreeNodeType;
-  typedef typename TreeNodeType::CoordinateType           CoordinateType;  // double
-  typedef typename TreeNodeType::SizeType                 SizeType;        // std::size_t
-  typedef typename TreeNodeType::IndexType                IndexType;       // std::size_t
+  typedef typename TreeNodeType::CoordinateType          CoordinateType;  // double
+  typedef typename TreeNodeType::SizeType                SizeType;        // std::size_t
+  typedef typename TreeNodeType::IndexType               IndexType;       // std::size_t
 
-  typedef Tvector<IndexType,Dimension>                    IndexArray;
-  typedef Tvector<SizeType,Dimension>                     SizeArray;
-  typedef Tvector<CoordinateType,Dimension>               CoordinateArray;
+  typedef Tvector<IndexType,Dimension>                   IndexArray;
+  typedef Tvector<SizeType,Dimension>                    SizeArray;
+  typedef Tvector<CoordinateType,Dimension>              CoordinateArray;
 
   /// Contact Pair
   typedef typename TPartConfigure::ContainerContactType   ContainerContactType;
   typedef typename TPartConfigure::IteratorContactType    IteratorContactType;
 
   /// typedef TreeNodeType LeafType;
-  typedef typename TreeNodeType::IteratorIteratorType     IteratorIteratorType;
-  typedef typename TreeNodeType::SearchStructureType      SearchStructureType;
+  typedef typename TreeNodeType::IteratorIteratorType    IteratorIteratorType;
+  typedef typename TreeNodeType::SearchStructureType     SearchStructureType;
 
   /// Partition Bins configuration files
   typedef typename TPartConfigure::ResultContainerType    PartitionResultContainerType;
@@ -413,6 +413,46 @@ public:
     // rout << "]" << std::endl;
   }
 
+  /**
+   * [GetCellContainer description]
+   * @return [description]
+   */
+  CellContainerType& GetCellContainer() {
+    return mCells;
+  }
+
+  /**
+   * [GetDivisions description]
+   * @return [description]
+   */
+  SizeArray& GetDivisions() {
+    return mN;
+  }
+
+  /**
+   * [GetCellSize description]
+   * @return [description]
+   */
+  CoordinateArray& GetCellSize() {
+    return mCellSize;
+  }
+
+  /**
+   * [GetMinPoint description]
+   * @return [description]
+   */
+  PointType& GetMinPoint() {
+    return mMinPoint;
+  }
+
+  /**
+   * [GetMaxPoint description]
+   * @return [description]
+   */
+  PointType& GetMaxPoint() {
+    return mMaxPoint;
+  }
+
   /** GetLocalCellContainer
    * GetLocalCellContainer
    * @return [description]
@@ -452,6 +492,56 @@ public:
   PointType& GetLocalMaxPoint() {
     return mpObjectBins->GetMaxPoint();
   }
+
+  /** Calculates the IndexArray (x[,y[,z]]) of the provided object.
+   * Calculates the IndexArray (x[,y[,z]]) of the provided object.
+   * The provided object must provide its coordinates through the [] operator.
+   * @param  ThisObject Input Object
+   * @return            Cell coordinates of 'ThisObject' in the bins
+   */
+  IndexArray CalculateCell(const PointType& ThisObject) {
+    IndexArray IndexCell;
+
+    for(SizeType i = 0 ; i < Dimension ; i++) {
+      IndexCell[i] = CalculatePosition(ThisObject[i],i);
+    }
+
+    return IndexCell;
+  }
+
+  /*
+   * Calculates the Index of the provided object.
+   * The provided object must provide its coordinates through the [] operator.
+   * @param  ThisObject Input Object
+   * @return            Cell index of 'ThisObject' in the bins
+   */
+  template<class GenericCoordType>
+  IndexType CalculateIndex(const GenericCoordType& ThisObject) {
+   IndexType Index = 0;
+
+   for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--) {
+     Index += CalculatePosition(ThisObject[iDim],iDim);
+     Index *= mN[iDim-1];
+   }
+
+   Index += CalculatePosition(ThisObject[0],0);
+
+   return Index;
+  }
+
+  /** Calculates the position of a coordinate
+   * Calculates the position of a coordinate inside the bins
+   * @param  ThisCoord     [description]
+   * @param  ThisDimension [description]
+   * @return               [description]
+   */
+  virtual IndexType CalculatePosition(CoordinateType const& ThisCoord, const SizeType& ThisDimension) {
+    CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
+    IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+
+    return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
+  }
+
 
 private:
 
@@ -571,7 +661,7 @@ private:
       numberOfCells[findex++] *= 2;
       findex %= 3;
     }
-    
+
     this->CalculateCustomCellSize(numberOfCells);
     this->AllocateContainer();
 
@@ -997,6 +1087,16 @@ private:
     }
   }
 
+  /**
+   * Creates the container
+   */
+  void AllocateContainer()
+  {
+      SizeType Size = mN[0];
+      for(SizeType i = 1 ; i < Dimension ; i++)
+          Size *= mN[i];
+      mCells.resize(Size);
+  }
 
   /**
    * Mpi related variables
@@ -1011,6 +1111,20 @@ private:
    * @mPartitionBin: Stores where the partitions are located in the space
    * @mObjectBin: Stores where the objects of the partition/s associated to this process are located in the space
    */
+
+  PointType    mMinPoint;
+  PointType    mMaxPoint;
+
+  SizeType     mObjectsSize;
+  IteratorType mObjectsBegin;
+  IteratorType mObjectsEnd;
+
+  CoordinateArray  mCellSize;
+  CoordinateArray  mInvCellSize;
+  SizeArray        mN;
+
+  CellContainerType mCells;  ///The bin
+
   BinsObjectDynamic<TObjectConfigure> * mpObjectBins;
 
 };
