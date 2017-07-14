@@ -17,10 +17,6 @@
 
 #include "includes/define.h"
 
-#ifdef KRATOS_USING_MPI
-#include "mpi.h"
-#endif
-
 namespace Kratos {
 
 template<class TDataType>
@@ -55,10 +51,10 @@ public:
    * Constructor by Data Pointer
    * @param DataPointer Pointer to the data.
    */
-  GlobalPointer(TDataType * DataPointer)
+  GlobalPointer(TDataType * DataPointer, int Rank = 0)
     : mDataPointer(DataPointer)
 #ifdef KRATOS_USING_MPI
-    , mRank(GetLocalRank())
+    , mRank(Rank)
 #endif
     {
   }
@@ -67,10 +63,10 @@ public:
    * Constructor by boost::shared_ptr
    * @param DataPointer Boost Shared Pointer to the Data.
    */
-  GlobalPointer(boost::shared_ptr<TDataType> DataPointer)
+  GlobalPointer(boost::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
 #ifdef KRATOS_USING_MPI
-    , mRank(GetLocalRank())
+    , mRank(Rank)
 #endif
     {
   }
@@ -79,10 +75,10 @@ public:
    * Constructor by boost::weak_ptr
    * @param DataPointer Boost Weak Pointer to the Data.
    */
-  GlobalPointer(boost::weak_ptr<TDataType> DataPointer)
+  GlobalPointer(boost::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
   #ifdef KRATOS_USING_MPI
-    , mRank(GetLocalRank())
+    , mRank(Rank)
   #endif
     {
   }
@@ -98,10 +94,10 @@ public:
    * Constructor by std::shared_ptr
    * @param DataPointer Std Shared Pointer to the Data.
    */
-  GlobalPointer(std::shared_ptr<TDataType> DataPointer)
+  GlobalPointer(std::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
 #ifdef KRATOS_USING_MPI
-    , mRank(GetLocalRank())
+    , mRank(Rank)
 #endif
     {
   }
@@ -110,10 +106,10 @@ public:
    * Constructor by std::weak_ptr
    * @param DataPointer Std Weak Pointer to the Data.
    */
-  GlobalPointer(std::weak_ptr<TDataType> DataPointer)
+  GlobalPointer(std::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
   #ifdef KRATOS_USING_MPI
-    , mRank(GetLocalRank())
+    , mRank(Rank)
   #endif
       {
     }
@@ -122,7 +118,7 @@ public:
    * Constructor by std::unique_ptr
    * @param DataPointer Std Unique Pointer to the Data.
    */
-  GlobalPointer(std::unique_ptr<TDataType> DataPointer) = delete;
+  GlobalPointer(std::unique_ptr<TDataType> DataPointer, int Rank = 0) = delete;
 
   /** Copy constructor
    * Copy constructor
@@ -186,18 +182,6 @@ public:
     return mDataPointer;
   }
 
-  /** Returns the rank of the data owner
-   * Returns the rank of the data owner
-   * @return rank of the data owner
-   */
-  int GetRank() const {
-#ifdef KRATOS_USING_MPI
-    return mRank;
-#else
-    return 0;
-#endif
-  }
-
   /** Fills buffer with the GlobalPoiter data
    * Fills buffer with the GlobalPoiter data
    * @param buffer Object data buffer
@@ -213,24 +197,6 @@ public:
   void Load(char * buffer) {
     memcpy(this, buffer, sizeof(GlobalPointer));
   }
-
-private:
-  /** Returns the rank of the current process
-   * Returns the rank of the current process
-   * @return Rank of the current process
-   */
-  int GetLocalRank() const {
-#ifdef KRATOS_USING_MPI
-    int mpi_rank;
-
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-
-    return mpi_rank;
-#else
-    return 0;
-#endif
-  }
-
 };
 
 } // namespace Kratos
