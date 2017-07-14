@@ -21,6 +21,8 @@
 #include "utilities/openmp_utils.h"
 #include "meshing_application.h"
 #include "processes/compute_nodal_gradient_process.h" // TODO: Not prism or quadrilaterals implemented yet
+#include "processes/find_nodal_neighbours_process.h"
+
 
 namespace Kratos
 {
@@ -157,6 +159,7 @@ public:
         int numNodes = NodesArray.end() - NodesArray.begin();
         
         CalculateAuxiliarHessian();
+        CalculateSuperconvergentPatchRecovery();
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -394,6 +397,23 @@ private:
         const Vector Metric = MetricsMathUtils<TDim>::TensorToVector(MetricMatrix);
         
         return Metric;
+    }
+
+
+
+    void CalculateSuperconvergentPatchRecovery()
+    {
+       FindNodalNeighboursProcess findNeighbours(mThisModelPart);
+       findNeighbours.Execute();
+       //iteration over all nodes  
+       ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
+       for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+       {
+           int neighbour_size = in->GetValue(NEIGHBOUR_ELEMENTS).size();
+           std::cout << "Node: " << in->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
+           for( WeakPointerVector< Element >::iterator i = in->GetValue(NEIGHBOUR_ELEMENTS).begin(); i != in->GetValue(NEIGHBOUR_ELEMENTS).end(); i++) {
+            std::cout << "\tElement: " << i->Id() << std::endl;}
+       }
     }
     
     /**
