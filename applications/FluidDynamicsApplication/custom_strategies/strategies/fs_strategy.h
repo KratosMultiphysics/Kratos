@@ -227,6 +227,9 @@ public:
     ///@name Operations
     ///@{
 
+    void Initialize() override 
+    {}
+
     int Check() override
     {
         KRATOS_TRY;
