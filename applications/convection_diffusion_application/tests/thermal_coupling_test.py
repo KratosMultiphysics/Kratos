@@ -35,7 +35,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
         self.nsteps = 1
         self.theta = 1.0 # Since it is steady state, use backward Euler
         # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
-        self.num_coupling_iterations = 1000
+        self.num_coupling_iterations = 5
 
         self.rho = 1.0
         self.c = 1.0
@@ -69,8 +69,8 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
             self.setUpOuterBoundaryCondition(self.left_model_part,0.0,303.15)
             self.setUpOuterBoundaryCondition(self.right_model_part,1.0,293.15)
-            #self.setUpDirichletCouplingBoundary(self.right_model_part)
-            self.setUpDirichletCouplingBoundary(self.left_model_part)
+            self.setUpDirichletCouplingBoundary(self.right_model_part)
+            #self.setUpDirichletCouplingBoundary(self.left_model_part)
 
             self.runTest()
 
@@ -112,8 +112,8 @@ class ThermalCouplingTest(UnitTest.TestCase):
         thermal_solver.AddVariables(self.right_model_part)
         # Also add mapper variables
         ncosm.AddVariables(self.left_model_part,self.right_model_part)
-        self.left_model_part.AddNodalSolutionStepVariable(NORMAL_TO_WALL)
-        self.right_model_part.AddNodalSolutionStepVariable(NORMAL_TO_WALL)
+        # auxiliary container for reaction->distributed flux conversion
+        self.right_model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
 
         model_part_io_left = ModelPartIO(self.left_input_file)
         model_part_io_left.ReadModelPart(self.left_model_part)
@@ -170,7 +170,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 node.Set(INTERFACE,True)
 
         self.mapper = ncosm.NonConformant_OneSideMap(self.left_model_part,self.right_model_part,
-                 search_radius_factor=2.0, it_max=25, tol=1e-5)
+                 search_radius_factor=2.0, it_max=50, tol=1e-5)
         
     def runTest(self):
         time = 0.0
@@ -180,23 +180,25 @@ class ThermalCouplingTest(UnitTest.TestCase):
             self.left_model_part.CloneTimeStep(time)
             self.right_model_part.CloneTimeStep(time)
 
+            for node in self.right_model_part.Nodes:
+                node.SetSolutionStepValue(TEMPERATURE, 303.15 - node.X*10.0 )
+
             iter = 0
             while iter < self.num_coupling_iterations:
-                self.left_solver.Solve()
-                #self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,TEMPERATURE,True)
-                for node in self.left_model_part.Nodes:
-                    node.SetSolutionStepValue(NORMAL_TO_WALL_X,node.GetSolutionStepValue(REACTION_FLUX))
-                self.mapper.FluidToStructure_VectorMap(NORMAL_TO_WALL,NORMAL_TO_WALL,False,True)
-                for node in self.right_model_part.Nodes:
-                    node.SetSolutionStepValue(FACE_HEAT_FLUX,node.GetSolutionStepValue(NORMAL_TO_WALL_X))
+
+                # Solve Dirichlet side -> Get reactions
                 self.right_solver.Solve()
-                self.mapper.StructureToFluid_ScalarMap(TEMPERATURE,TEMPERATURE,True)
-                #for node in self.right_model_part.Nodes:
-                #    node.SetSolutionStepValue(NORMAL_TO_WALL_X,node.GetSolutionStepValue(REACTION_FLUX))
-                #self.mapper.StructureToFluid_VectorMap(NORMAL_TO_WALL,NORMAL_TO_WALL,False,True)
-                #for node in self.left_model_part.Nodes:
-                #    node.SetSolutionStepValue(FACE_HEAT_FLUX,node.GetSolutionStepValue(NORMAL_TO_WALL_X))
-                #self.mapper.StructureToFluid_ScalarMap(REACTION_FLUX,FACE_HEAT_FLUX,True)
+
+                # Map reactions
+                VariableRedistributionUtility.DistributePointValues(
+                    self.mapper.str_interface, REACTION_FLUX, NODAL_PAUX, 1e-5, 50)
+                self.mapper.StructureToFluid_ScalarMap(NODAL_PAUX,FACE_HEAT_FLUX,False)
+
+                # Solve Neumann side
+                self.left_solver.Solve()
+
+                # Get updated temperature
+                self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,TEMPERATURE,True)
 
                 iter += 1
 
