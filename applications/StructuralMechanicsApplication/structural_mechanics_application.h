@@ -50,8 +50,8 @@
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* Adding solid elements */
-#include "custom_elements/kinematic_linear.h"
-#include "custom_elements/axisym_kinematic_linear.h"
+#include "custom_elements/small_displacement.h"
+#include "custom_elements/axisym_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/updated_lagrangian.h"
@@ -268,24 +268,24 @@ private:
     const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     // Linear kinematic elements
-    const KinematicLinear mKinematicLinear2D3N;
-    const KinematicLinear mKinematicLinear2D4N;
-    const KinematicLinear mKinematicLinear2D6N;
-    const KinematicLinear mKinematicLinear2D8N;
-    const KinematicLinear mKinematicLinear2D9N;
-    const KinematicLinear mKinematicLinear3D4N;
-    const KinematicLinear mKinematicLinear3D6N;
-    const KinematicLinear mKinematicLinear3D8N;
-    const KinematicLinear mKinematicLinear3D10N;
-    const KinematicLinear mKinematicLinear3D15N;
-    const KinematicLinear mKinematicLinear3D20N;
-    const KinematicLinear mKinematicLinear3D27N;
+    const SmallDisplacement mSmallDisplacement2D3N;
+    const SmallDisplacement mSmallDisplacement2D4N;
+    const SmallDisplacement mSmallDisplacement2D6N;
+    const SmallDisplacement mSmallDisplacement2D8N;
+    const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D6N;
+    const SmallDisplacement mSmallDisplacement3D8N;
+    const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D15N;
+    const SmallDisplacement mSmallDisplacement3D20N;
+    const SmallDisplacement mSmallDisplacement3D27N;
     
-    const AxisymKinematicLinear mAxisymKinematicLinear2D3N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D4N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D6N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D8N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D9N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
     
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
