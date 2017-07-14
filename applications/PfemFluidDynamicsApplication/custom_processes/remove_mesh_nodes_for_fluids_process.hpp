@@ -681,10 +681,11 @@ private:
     array_1d<unsigned int,3> FirstEdgeNode(3,0);
     array_1d<unsigned int,3> SecondEdgeNode(3,0);
     double wallLength=0;
-    array_1d<double,3> CoorDifference(3,0.0);
+    // array_1d<double,3> CoorDifference(3,0.0);
 
-    ////////  to compute the length of the wall edge /////////
-    noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+    // ////////  to compute the length of the wall edge /////////
+    // noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+    array_1d<double,3> CoorDifference= Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -815,11 +816,12 @@ private:
     array_1d<unsigned int,6> SecondEdgeNode(6,0);
     double wallLength=0;
     double minimumLength=0;
-    array_1d<double,3> CoorDifference(3,0.0);
+    // array_1d<double,3> CoorDifference(3,0.0);
 
+    // ////////  to compute the length of the wall edge /////////
+    // CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    array_1d<double,3> CoorDifference= Element[1].Coordinates() - Element[0].Coordinates();
 
-    ////////  to compute the length of the wall edge /////////
-    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] +
       CoorDifference[1]*CoorDifference[1] +
       CoorDifference[2]*CoorDifference[2];
@@ -837,7 +839,8 @@ private:
     for (unsigned int i = 2; i < Element.size(); i++){
       for(unsigned int j = 0; j < i; j++)
 	{
-	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+	  // CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 	  SquaredLength = CoorDifference[0]*CoorDifference[0] +
 	    CoorDifference[1]*CoorDifference[1] +
 	    CoorDifference[2]*CoorDifference[2];
@@ -1042,8 +1045,8 @@ private:
 		//getting the data of the solution step
 		double& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		double& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		double& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		node_data = (0.5*node0_data + 0.5*node1_data);
 		  
@@ -1058,10 +1061,10 @@ private:
 		//getting the data of the solution step
 		array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
-		node_data = (0.5*node0_data + 0.5*node1_data);		  
+		array_1d<double, 3> node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		array_1d<double, 3> node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		noalias(node_data) = (0.5*node0_data + 0.5*node1_data);		  
+		// node_data = (0.5*node0_data + 0.5*node1_data);		  
 	      }
 
 	  }
@@ -1084,14 +1087,14 @@ private:
 		//getting the data of the solution step
 		Matrix& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		Matrix& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		Matrix& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		Matrix node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		Matrix node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		if( node_data.size1() > 0 && node_data.size2() ){
 		  if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
 		      node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
-		      
-		    node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
+		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
 		  }
 		}
 	      }
@@ -1106,14 +1109,14 @@ private:
 		//getting the data of the solution step
 		Vector& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		Vector& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		Vector& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		Vector node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		Vector node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		if( node_data.size() > 0 ){
 		  if( node_data.size() == node0_data.size() &&
 		      node_data.size() == node1_data.size()) {
-		      
-		    node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
+		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
 		  }
 		}
 	      }
