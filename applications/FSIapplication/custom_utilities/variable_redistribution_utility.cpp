@@ -186,7 +186,6 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
         double error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
-        KRATOS_WATCH(error_l2_norm)
 
         // Check convergence
         iteration++;
