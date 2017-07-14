@@ -149,9 +149,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
                 value_j += size * MassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
             }
 
-            r_geometry[j].SetLock();
-            r_geometry[j].GetValue(rPointVariable) += value_j;
-            r_geometry[j].UnSetLock();
+            ThreadsafeAdd(r_geometry[j].GetValue(rPointVariable), value_j);
         }
     }
 }
@@ -188,6 +186,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
         double error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
+        KRATOS_WATCH(error_l2_norm)
 
         // Check convergence
         iteration++;
@@ -272,8 +271,8 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_T
 template< unsigned int TNumNodes, class TValueType >
 void VariableRedistributionUtility::UpdateDistributionRHS(
     ModelPart& rModelPart,
-    const Variable< TValueType >& rDistributedVariable,
     const Variable< TValueType >& rPointVariable,
+    const Variable< TValueType >& rDistributedVariable,
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix)
 {
     const Variable<TValueType>& rhs_variable = GetRHSVariable(rDistributedVariable);
@@ -309,9 +308,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
                 rhs_j -= size * rMassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
             }
 
-            r_geometry[j].SetLock();
-            r_geometry[j].SetValue(rhs_variable,rhs_j);
-            r_geometry[j].UnSetLock();
+            ThreadsafeAdd(r_geometry[j].GetValue(rhs_variable), rhs_j);
         }
     }
 
@@ -374,6 +371,23 @@ template<>
 double VariableRedistributionUtility::AddToNorm< array_1d<double,3> >(array_1d<double,3> NodalValue, double NodalSize)
 {
     return NodalSize*( NodalValue[0]*NodalValue[0]+NodalValue[1]*NodalValue[1]+NodalValue[2]*NodalValue[2] );
+}
+
+template<>
+void VariableRedistributionUtility::ThreadsafeAdd<double>(double& rLHS, const double& rRHS)
+{
+    #pragma omp atomic
+    rLHS += rRHS;
+}
+
+template<>
+void VariableRedistributionUtility::ThreadsafeAdd< array_1d<double,3> >(array_1d<double,3>& rLHS, const array_1d<double,3>& rRHS)
+{
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        #pragma omp atomic
+        rLHS[i] += rRHS[i];
+    }
 }
 
 }

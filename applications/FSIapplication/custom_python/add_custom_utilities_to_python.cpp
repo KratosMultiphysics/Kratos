@@ -76,7 +76,7 @@ void  AddCustomUtilitiesToPython()
     ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
 
     // Note: The StaticMethod thing should be done only once for each set of overloads
-    class_< VariableRedistributionUtility, boost::noncopyable >("VariableRedistributionUtilities", no_init)
+    class_< VariableRedistributionUtility, boost::noncopyable >("VariableRedistributionUtility", no_init)
     .def("DistributePointValues",DistributePointDouble)
     .def("DistributePointValues",DistributePointArray).staticmethod("DistributePointValues")
     .def("ConvertDistributedValuesToPoint",ConvertDistributedDouble)

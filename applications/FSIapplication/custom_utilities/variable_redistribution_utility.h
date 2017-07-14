@@ -221,8 +221,8 @@ namespace Kratos
       template< unsigned int TNumNodes, class TValueType >
       static void UpdateDistributionRHS(
           ModelPart& rModelPart,
-          const Variable< TValueType >& rDistributedVariable,
           const Variable< TValueType >& rPointVariable,
+          const Variable< TValueType >& rDistributedVariable,
           boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
 
       template< class TValueType >
@@ -235,6 +235,9 @@ namespace Kratos
 
       template< class TValueType >
       static double AddToNorm(TValueType NodalValue, double NodalSize);
+
+      template< class TValueType >
+      static void ThreadsafeAdd(TValueType& rLHS, const TValueType& rRHS);
             
       ///@}
       ///@name Private  Access
