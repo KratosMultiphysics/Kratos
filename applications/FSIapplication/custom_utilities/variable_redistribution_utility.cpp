@@ -129,6 +129,17 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     const Variable< TValueType >& rDistributedVariable,
     const Variable< TValueType >& rPointVariable)
 {
+    const int number_of_nodes_in_model_part = rModelPart.NumberOfNodes();
+    TValueType Zero = rPointVariable.Zero();
+
+    // Initialize result to zero
+    #pragma omp parallel for
+    for (int i = 0; i < number_of_nodes_in_model_part; i++)
+    {
+        ModelPart::NodeIterator node_iter = rModelPart.NodesBegin() + i;
+        node_iter->FastGetSolutionStepValue(rDistributedVariable) = Zero;
+    }
+
     boost::numeric::ublas::bounded_matrix<double,TPointNumber,TPointNumber> MassMatrix;
     ConsistentMassMatrix<TFamily,TPointNumber>(MassMatrix);
 
@@ -149,7 +160,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
                 value_j += size * MassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
             }
 
-            ThreadsafeAdd(r_geometry[j].GetValue(rPointVariable), value_j);
+            ThreadsafeAdd(r_geometry[j].FastGetSolutionStepValue(rPointVariable), value_j);
         }
     }
 }
