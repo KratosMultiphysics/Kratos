@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_KINEMATIC_LINEAR_H_INCLUDED )
-#define  KRATOS_KINEMATIC_LINEAR_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_H_INCLUDED
 
 // System includes
 
@@ -55,7 +55,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class KinematicLinear
+class SmallDisplacement
     : public BaseSolidElement
 {
 public:
@@ -68,19 +68,19 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of KinematicLinear
-    KRATOS_CLASS_POINTER_DEFINITION(KinematicLinear);
+    /// Counted pointer of SmallDisplacement
+    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry);
-    KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~KinematicLinear() override;
+    ~SmallDisplacement() override;
 
     ///@}
     ///@name Operators
@@ -140,7 +140,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	KinematicLinear() : BaseSolidElement()
+	SmallDisplacement() : BaseSolidElement()
     {
     }
 
@@ -276,12 +276,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //KinematicLinear& operator=(const KinematicLinear& rOther);
+    //SmallDisplacement& operator=(const SmallDisplacement& rOther);
     /// Copy constructor.
-    //KinematicLinear(const KinematicLinear& rOther);
+    //SmallDisplacement(const SmallDisplacement& rOther);
     ///@}
 
-}; // Class KinematicLinear
+}; // Class SmallDisplacement
 
 ///@}
 ///@name Type Definitions
@@ -292,4 +292,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_KINEMATIC_LINEAR_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined 
