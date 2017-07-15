@@ -130,9 +130,12 @@ namespace Kratos
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
 
-		const double J = this->GetProperties()[IT];
-		const double Iy = this->GetProperties()[IY];
-		const double Iz = this->GetProperties()[IZ];
+		Matrix inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
+		const double J = inertia(0, 0);
+		const double Iy = inertia(0, 1);
+		const double Iz = inertia(0, 2);
+
+
 
 
 		double Ay = 0.00;
@@ -344,9 +347,10 @@ namespace Kratos
 		const double G = this->CalculateShearModulus();
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
-		const double J = this->GetProperties()[IT];
-		const double Iy = this->GetProperties()[IY];
-		const double Iz = this->GetProperties()[IZ];
+		Matrix inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
+		const double J = inertia(0, 0);
+		const double Iy = inertia(0, 1);
+		const double Iz = inertia(0, 2);
 
 		double Ay = 0.00;
 		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
@@ -1515,8 +1519,10 @@ namespace Kratos
 		const double rho = this->GetProperties()[DENSITY];
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double E = this->GetProperties()[YOUNG_MODULUS];
-		const double Iy = this->GetProperties()[IY];
-		const double Iz = this->GetProperties()[IZ];
+		Matrix inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
+		const double J = inertia(0, 0);
+		const double Iy = inertia(0, 1);
+		const double Iz = inertia(0, 2);
 		const double G = this->CalculateShearModulus();
 
 		double Ay = 0.00;
@@ -1785,21 +1791,9 @@ namespace Kratos
 				<< std::endl;
 		}
 
-		if (this->GetProperties().Has(IT) == false)
+		if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR) == false)
 		{
-			KRATOS_ERROR << "IT not provided for this element" << this->Id()
-				<< std::endl;
-		}
-
-		if (this->GetProperties().Has(IY) == false)
-		{
-			KRATOS_ERROR << "IY not provided for this element" << this->Id()
-				<< std::endl;
-		}
-
-		if (this->GetProperties().Has(IZ) == false)
-		{
-			KRATOS_ERROR << "IZ not provided for this element" << this->Id()
+			KRATOS_ERROR << "LOCAL_INERTIA_TENSOR not provided for this element" << this->Id()
 				<< std::endl;
 		}
 
