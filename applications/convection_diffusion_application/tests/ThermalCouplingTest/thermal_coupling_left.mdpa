@@ -59,7 +59,7 @@ End Elements
 
 
 
-Begin Conditions ThermalFace2D
+Begin Conditions FluxCondition2D2N
 1 0 21 19
 2 0 4 3
 3 0 19 14

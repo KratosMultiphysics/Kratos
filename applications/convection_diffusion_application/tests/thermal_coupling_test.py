@@ -31,9 +31,9 @@ class ThermalCouplingTest(UnitTest.TestCase):
         self.right_input_file = "thermal_coupling_right"
         self.reference_file = "coupling_reference"
 
-        self.dt = 1e10 # This is steady state test
-        self.nsteps = 1
-        self.theta = 1.0 # Since it is steady state, use backward Euler
+        self.dt = 0.01 #1e10 # This is steady state test
+        self.nsteps = 50
+        self.theta = 1.0 # Note: I don't think the face condition supports Crank-Nicolson (JC)
         # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
         self.num_coupling_iterations = 5
 
@@ -72,17 +72,17 @@ class ThermalCouplingTest(UnitTest.TestCase):
             self.setUpDirichletCouplingBoundary(self.right_model_part)
             #self.setUpDirichletCouplingBoundary(self.left_model_part)
 
+            if self.print_output:
+                num_left_nodes = len(self.left_model_part.Nodes)
+                for node in self.right_model_part.Nodes:
+                    node.Id = node.Id + num_left_nodes
+                self.InitializeOutput()
+
             self.runTest()
 
             #self.checkResults(TEMPERATURE)
             if self.print_output:
-                self.printOutput(self.left_model_part,self.left_input_file)
-                num_left_nodes = len(self.left_model_part.Nodes)
-                for node in self.right_model_part.Nodes:
-                    node.Id = node.Id + num_left_nodes
-                self.printOutput(self.right_model_part,self.right_input_file)
-
-
+                self.FinalizeOutput()
 
 
     def setUpModel(self):
@@ -150,10 +150,10 @@ class ThermalCouplingTest(UnitTest.TestCase):
             node.SetSolutionStepValue(SPECIFIC_HEAT,self.c)
             node.SetSolutionStepValue(HEAT_FLUX,self.source)
             node.SetSolutionStepValue(VELOCITY,velocity)
+            node.SetSolutionStepValue(TEMPERATURE,boundary_value)
 
             if node.X == boundary_x:
                 node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE,boundary_value)
     
     def setUpDirichletCouplingBoundary(self,model_part):
         for cond in model_part.Conditions:
@@ -180,9 +180,6 @@ class ThermalCouplingTest(UnitTest.TestCase):
             self.left_model_part.CloneTimeStep(time)
             self.right_model_part.CloneTimeStep(time)
 
-            for node in self.right_model_part.Nodes:
-                node.SetSolutionStepValue(TEMPERATURE, 303.15 - node.X*10.0 )
-
             iter = 0
             while iter < self.num_coupling_iterations:
 
@@ -199,6 +196,11 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
                 # Get updated temperature
                 self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,TEMPERATURE,True)
+                for node in self.mapper.str_interface.Nodes:
+                    node.SetSolutionStepValue(TEMPERATURE,1,node.GetSolutionStepValue(TEMPERATURE))
+
+                if self.print_output:
+                    self.PrintOutput()
 
                 iter += 1
 
@@ -229,30 +231,42 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 if line != '': # If we did not reach the end of the reference file
                     self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
-    def printOutput(self, model_part, output_file_name):
+
+    def InitializeOutput(self):
         gid_mode = GiDPostMode.GiD_PostBinary
         multifile = MultiFileFlag.SingleFile
         deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
         write_conditions = WriteConditionsFlag.WriteElementsOnly
-        gid_io = GidIO(output_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+        self.left_gid_io = GidIO(self.left_input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+        self.right_gid_io = GidIO(self.right_input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
         mesh_name = 0.0
-        gid_io.InitializeMesh( mesh_name)
-        gid_io.WriteMesh( model_part.GetMesh() )
-        gid_io.FinalizeMesh()
-        gid_io.InitializeResults(mesh_name,model_part.GetMesh())
+        self.left_gid_io.InitializeMesh( mesh_name)
+        self.left_gid_io.WriteMesh( self.left_model_part.GetMesh() )
+        self.left_gid_io.FinalizeMesh()
+        self.left_gid_io.InitializeResults(mesh_name,(self.left_model_part).GetMesh())
 
-        label = model_part.ProcessInfo[TIME]
-        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DENSITY,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(CONDUCTIVITY,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(SPECIFIC_HEAT,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(HEAT_FLUX,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(FACE_HEAT_FLUX,model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(REACTION_FLUX,model_part.Nodes,label,0)
+        
+        self.right_gid_io.InitializeMesh( mesh_name)
+        self.right_gid_io.WriteMesh( self.right_model_part.GetMesh() )
+        self.right_gid_io.FinalizeMesh()
+        self.right_gid_io.InitializeResults(mesh_name,(self.right_model_part).GetMesh())
 
-        gid_io.FinalizeResults()
+    def FinalizeOutput(self):
+        self.left_gid_io.FinalizeResults()
+        self.right_gid_io.FinalizeResults()
+
+    def PrintOutput(self):
+        for model_part,gid_io in [[self.left_model_part,self.left_gid_io],[self.right_model_part,self.right_gid_io]]:
+            label = model_part.ProcessInfo[TIME]
+            gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(DENSITY,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(CONDUCTIVITY,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(SPECIFIC_HEAT,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(HEAT_FLUX,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(FACE_HEAT_FLUX,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(REACTION_FLUX,model_part.Nodes,label,0)
 
 if __name__ == '__main__':
     test = ThermalCouplingTest()
