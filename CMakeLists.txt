@@ -6,6 +6,26 @@ set (KratosMultiphysics_MAJOR_VERSION 5)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
+# Define custom compiler build types
+SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}"
+    CACHE STRING "Flags used by the C++ compiler during Release builds." FORCE)
+SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DKRATOS_BUILD_SUFFIX=-RelWithDebInfo"
+    CACHE STRING "Flags used by the C++ compiler during RelWithDebInfo builds." FORCE)
+SET( CMAKE_CXX_FLAGS_FASTDEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG -DKRATOS_BUILD_SUFFIX=-FastDebug"
+    CACHE STRING "Flags used by the C++ compiler during FastDebug builds." FORCE)
+SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG -DKRATOS_BUILD_SUFFIX=-Debug"
+    CACHE STRING "Flags used by the C++ compiler during Debug builds." FORCE)
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG -DKRATOS_BUILD_SUFFIX=-FullDebug"
+    CACHE STRING "Flags used by the C++ compiler during FullDebug builds." FORCE)
+
+message("BASIC_DEBUG_FLAGS ${BASIC_DEBUG_FLAGS}")
+message("RELEASE:        ${CMAKE_CXX_FLAGS_RELEASE}")
+message("RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+message("FASTDEBUG:      ${CMAKE_CXX_FLAGS_FASTDEBUG}")
+message("DEBUG:          ${CMAKE_CXX_FLAGS_DEBUG}")
+message("FULLDEBUG:      ${CMAKE_CXX_FLAGS_FULLDEBUG}")
+
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
@@ -22,7 +42,6 @@ else(GIT_FOUND)
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
 
-
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
   "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
@@ -33,11 +52,6 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-
-#   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-#   endif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
