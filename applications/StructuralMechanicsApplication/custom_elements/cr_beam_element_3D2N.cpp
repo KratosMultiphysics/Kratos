@@ -130,13 +130,10 @@ namespace Kratos
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
 
-		Matrix inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
-		const double J = inertia(0, 0);
-		const double Iy = inertia(0, 1);
-		const double Iz = inertia(0, 2);
-
-
-
+		Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
+		const double J = inertia[0];
+		const double Iy = inertia[1];
+		const double Iz = inertia[2];
 
 		double Ay = 0.00;
 		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
@@ -347,10 +344,11 @@ namespace Kratos
 		const double G = this->CalculateShearModulus();
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
-		Matrix inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
-		const double J = inertia(0, 0);
-		const double Iy = inertia(0, 1);
-		const double Iz = inertia(0, 2);
+
+		Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
+		const double J = inertia[0];
+		const double Iy = inertia[1];
+		const double Iz = inertia[2];
 
 		double Ay = 0.00;
 		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
@@ -1519,10 +1517,10 @@ namespace Kratos
 		const double rho = this->GetProperties()[DENSITY];
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double E = this->GetProperties()[YOUNG_MODULUS];
-		Matrix inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
-		const double J = inertia(0, 0);
-		const double Iy = inertia(0, 1);
-		const double Iz = inertia(0, 2);
+		Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
+		const double J = inertia[0];
+		const double Iy = inertia[1];
+		const double Iz = inertia[2];
 		const double G = this->CalculateShearModulus();
 
 		double Ay = 0.00;
@@ -1560,12 +1558,15 @@ namespace Kratos
 		//longitudinal forces + torsional moment
 		const double M00 = (1.00 / 3.00)*A*rho*L;
 		const double M06 = M00 / 2.00;
+		const double M33 = (J*L) / 3.00;
+		const double M39 = M33 / 2.00;
+
 		rMassMatrix(0, 0) = M00;
 		rMassMatrix(0, 6) = M06;
 		rMassMatrix(6, 6) = M00;
-		rMassMatrix(3, 3) = M00;
-		rMassMatrix(3, 9) = M06;
-		rMassMatrix(9, 9) = M00;
+		rMassMatrix(3, 3) = M33;
+		rMassMatrix(3, 9) = M39;
+		rMassMatrix(9, 9) = M33;
 
 		Matrix TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
 		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L);
@@ -1791,9 +1792,9 @@ namespace Kratos
 				<< std::endl;
 		}
 
-		if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR) == false)
+		if (this->GetProperties().Has(LOCAL_INERTIA_VECTOR) == false)
 		{
-			KRATOS_ERROR << "LOCAL_INERTIA_TENSOR not provided for this element" << this->Id()
+			KRATOS_ERROR << "LOCAL_INERTIA_VECTOR not provided for this element" << this->Id()
 				<< std::endl;
 		}
 
