@@ -876,24 +876,6 @@ public:
 
         return( rResult );
     }
-    
-    /**
-     * Returns the local coordinates of a given arbitrary point, once this node has been projected if possible
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
-     * @return The vector containing the local coordinates of the point
-     */
-    virtual CoordinatesArrayType& PointLocalCoordinatesWhenProjected( 
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint,
-            const array_1d<double,3> Direction = ZeroVector(3) 
-            )
-    {
-        KRATOS_ERROR << "Calling base class PointLocalCoordinatesWhenProjected method instead of derived class one. Please check the definition of derived class. " << *this << "Remember the normal can be computed (necessary to project) just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        
-        rResult.clear();
-        return rResult;
-    }
 
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
@@ -913,25 +895,6 @@ public:
         return false;
     }
     
-    /**
-     * Returns whether given arbitrary point is inside, once this node has been projected if possible,
-     * the Geometry and the respective local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
-     */
-    virtual bool IsInsideWhenProjected( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon(),
-        const array_1d<double,3> Direction = ZeroVector(3) 
-        )
-    {
-        KRATOS_ERROR << "Calling base class IsInsideWhenProjected method instead of derived class one. Please check the definition of derived class. " << *this << "Remember the normal can be computed (necessary to project) just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        return false;
-    }
-
     ///@}
     ///@name Inquiry
     ///@{
