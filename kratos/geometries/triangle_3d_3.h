@@ -824,37 +824,6 @@ public:
     }
     
     /**
-     * Returns whether given arbitrary point is inside, once this node has been projected if possible,
-     * the Geometry and the respective local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
-     */
-    virtual bool IsInsideWhenProjected( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon(),
-        const array_1d<double,3> Direction = ZeroVector(3) 
-        ) override
-    {
-        PointLocalCoordinatesWhenProjected( rResult, rPoint, Direction );
-
-        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
-        {
-            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
-            {
-                if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-    
-    /**
      * Returns the local coordinates of a given arbitrary point
      * @param rResult: The vector containing the local coordinates of the point
      * @param rPoint: The point in global coordinates
@@ -932,51 +901,6 @@ public:
         }
 
         return( rResult );
-    }
-    
-    /**
-     * Returns the local coordinates of a given arbitrary point, once this node has been projected if possible
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
-     * @return The vector containing the local coordinates of the point
-     */
-    virtual CoordinatesArrayType& PointLocalCoordinatesWhenProjected(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint,
-            const array_1d<double,3> Direction = ZeroVector(3) 
-            ) override
-    {
-        // We define the tolerance
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        
-        // We compute the normal
-        rResult.clear();
-        const array_1d<double, 3> Normal = this->Normal(rResult);
-        
-        // Vector point and distance
-        const array_1d<double,3> VectorPoints = this->Center().Coordinates() - rPoint;
-        
-        // We define the distance and the projected point
-        double DistanceProjected;
-        CoordinatesArrayType ProjectedPoint;
-        
-        if( norm_2( Direction ) < Tolerance && norm_2( Normal ) > Tolerance )
-        {
-            DistanceProjected = inner_prod(VectorPoints, Normal)/norm_2(Normal);
-            ProjectedPoint = rPoint + Direction * DistanceProjected;
-        }
-        else if (std::abs(inner_prod(Direction, Normal) ) > Tolerance)
-        {
-            DistanceProjected = inner_prod(VectorPoints, Normal)/inner_prod(Direction, Normal); 
-            ProjectedPoint = rPoint + Direction * DistanceProjected;
-        }
-        else
-        {
-            ProjectedPoint = rPoint;
-            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
-        }
-        
-        return PointLocalCoordinates(rResult, ProjectedPoint);
     }
 
     ///@}
