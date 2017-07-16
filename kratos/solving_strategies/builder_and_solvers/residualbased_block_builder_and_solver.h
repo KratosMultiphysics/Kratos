@@ -176,7 +176,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ResidualBasedBlockBuilderAndSolver()
+    ~ResidualBasedBlockBuilderAndSolver() override
     {
     }
 
@@ -957,7 +957,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
+    int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
     {
         KRATOS_TRY
 

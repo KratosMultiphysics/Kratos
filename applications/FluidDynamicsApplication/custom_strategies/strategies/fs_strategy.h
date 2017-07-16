@@ -216,7 +216,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~FSStrategy(){}
+    ~FSStrategy() override{}
 
     ///@}
     ///@name Operators
@@ -227,7 +227,10 @@ public:
     ///@name Operations
     ///@{
 
-    virtual int Check()
+    void Initialize() override 
+    {}
+
+    int Check() override
     {
         KRATOS_TRY;
 
@@ -266,7 +269,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve()
+    double Solve() override
     {
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -386,7 +389,7 @@ public:
         mExtraIterationSteps.clear();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mpMomentumStrategy->Clear();
         mpPressureStrategy->Clear();
@@ -397,7 +400,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         int StrategyLevel = Level > 0 ? Level - 1 : 0;

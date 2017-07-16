@@ -9,15 +9,15 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
-#if !defined(KRATOS_AXISYM_KINEMATIC_LINEAR_H_INCLUDED )
-#define  KRATOS_AXISYM_KINEMATIC_LINEAR_H_INCLUDED
+#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_H_INCLUDED )
+#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/kinematic_linear.h"
+#include "custom_elements/updated_lagrangian.h"
 
 namespace Kratos
 {
@@ -38,14 +38,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisymmetric Kinemaic Linear element 
+/// Axisymmetric Updated Lagrangian element 
 
 /**
- * Implements a Axisymmetric Kinemaic Linear definition for structural analysis.
+ * Implements a Axisymmetric Total Lagrangian definition for structural analysis.
  */
 
-class AxisymKinematicLinear
-    : public KinematicLinear
+class AxisymUpdatedLagrangian
+    : public UpdatedLagrangian
 {
 public:
     ///@name Type Definitions
@@ -57,19 +57,19 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of AxisymKinematicLinear
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymKinematicLinear);
+    /// Counted pointer of AxisymUpdatedLagrangian
+    KRATOS_CLASS_POINTER_DEFINITION(AxisymUpdatedLagrangian);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymKinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry);
-    AxisymKinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymUpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymUpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~AxisymKinematicLinear() override;
+    ~AxisymUpdatedLagrangian() override;
 
     ///@}
     ///@name Operators
@@ -121,7 +121,7 @@ protected:
     ///@name Protected Operators
     ///@{
     
-    AxisymKinematicLinear() : KinematicLinear()
+    AxisymUpdatedLagrangian() : UpdatedLagrangian()
     {
     }
     
@@ -155,25 +155,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * Calculation of the Deformation Matrix B
-     * @param B: The deformation matrix
-     * @param DN_DX: The derivatives of the shape functions
-     */
-    void CalculateB(
-        Matrix& rB,
-        const Matrix& DN_DX,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
-        ) override;
-    
-    /**
-     * Calculation of the equivalent deformation gradient
-     * @param StrainVector: The strain tensor (Voigt notation)
-     * @return The deformation gradient F
-     */
-    Matrix ComputeEquivalentF(const Vector& rStrainVector) override;
-    
     /**
      * This functions computes the integration weight to consider
      * @param IntegrationPoints: The array containing the integration points
@@ -209,12 +190,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //AxisymKinematicLinear& operator=(const AxisymKinematicLinear& rOther);
+    //AxisymUpdatedLagrangian& operator=(const AxisymUpdatedLagrangian& rOther);
     /// Copy constructor.
-    //AxisymKinematicLinear(const AxisymKinematicLinear& rOther);
+    //AxisymUpdatedLagrangian(const AxisymUpdatedLagrangian& rOther);
     ///@}
 
-}; // Class AxisymKinematicLinear
+}; // Class AxisymUpdatedLagrangian
 
 ///@}
 ///@name Type Definitions
@@ -225,4 +206,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_KINEMATIC_LINEAR_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_H_INCLUDED  defined 

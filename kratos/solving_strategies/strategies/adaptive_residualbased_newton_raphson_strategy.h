@@ -300,7 +300,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~AdaptiveResidualBasedNewtonRaphsonStrategy() {}
+    ~AdaptiveResidualBasedNewtonRaphsonStrategy() override {}
 
     /** Destructor.
     */

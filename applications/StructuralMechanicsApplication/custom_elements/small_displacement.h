@@ -7,13 +7,12 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 
-#if !defined(KRATOS_KINEMATIC_LINEAR_H_INCLUDED )
-#define  KRATOS_KINEMATIC_LINEAR_H_INCLUDED
-
-
+#if !defined(KRATOS_SMALL_DISPLACEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_H_INCLUDED
 
 // System includes
 
@@ -56,7 +55,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class KinematicLinear
+class SmallDisplacement
     : public BaseSolidElement
 {
 public:
@@ -69,19 +68,19 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of KinematicLinear
-    KRATOS_CLASS_POINTER_DEFINITION(KinematicLinear);
+    /// Counted pointer of SmallDisplacement
+    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry);
-    KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~KinematicLinear() override;
+    ~SmallDisplacement() override;
 
     ///@}
     ///@name Operators
@@ -141,7 +140,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	KinematicLinear() : BaseSolidElement()
+	SmallDisplacement() : BaseSolidElement()
     {
     }
 
@@ -179,6 +178,7 @@ protected:
      * @param rValues: The CL parameters
      * @param PointNumber: The integration point considered
      * @param IntegrationPoints: The list of integration points
+     * @param ThisStressMeasure: The stress measure considered
      * @param Displacements: The displacements vector
      */ 
     void CalculateConstitutiveVariables(
@@ -187,6 +187,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         ) override;
 
@@ -208,12 +209,6 @@ protected:
      * @return The deformation gradient F
      */
     virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
-
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    );
 
     ///@}
     ///@name Protected Operations
@@ -241,12 +236,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
 
     void CalculateBodyForces(
         Vector& BodyForce,
@@ -287,12 +276,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //KinematicLinear& operator=(const KinematicLinear& rOther);
+    //SmallDisplacement& operator=(const SmallDisplacement& rOther);
     /// Copy constructor.
-    //KinematicLinear(const KinematicLinear& rOther);
+    //SmallDisplacement(const SmallDisplacement& rOther);
     ///@}
 
-}; // Class KinematicLinear
+}; // Class SmallDisplacement
 
 ///@}
 ///@name Type Definitions
@@ -303,4 +292,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_KINEMATIC_LINEAR_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined 

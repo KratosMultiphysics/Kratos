@@ -248,7 +248,7 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    virtual ~Tetrahedra3D10() {}
+    ~Tetrahedra3D10() override {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
@@ -310,7 +310,7 @@ public:
         return typename BaseType::Pointer( new Tetrahedra3D10( ThisPoints ) );
     }
 
-        virtual Geometry< Point<3> >::Pointer Clone() const override
+        Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -328,7 +328,7 @@ public:
 
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const override
+    Vector& LumpingFactors( Vector& rResult ) const override
     {
         if(rResult.size() != 10)
             rResult.resize( 10, false );
@@ -356,7 +356,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Length() const override
+    double Length() const override
     {
         return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
@@ -375,13 +375,13 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Area() const override
+    double Area() const override
     {
         return Volume();
     }
 
 
-    virtual double Volume() const override //Not a closed formula for a quadratic tetrahedra
+    double Volume() const override //Not a closed formula for a quadratic tetrahedra
     {
 
         Vector temp;
@@ -412,7 +412,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double DomainSize() const override
+    double DomainSize() const override
     {
         return  Volume();
     }
@@ -458,12 +458,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const override
+    SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    virtual SizeType FacesNumber() const override
+    SizeType FacesNumber() const override
     {
         return 4;
     }
@@ -474,7 +474,7 @@ public:
     @see EdgesNumber()
     @see Edge()
     */
-    virtual GeometriesArrayType Edges( void ) override
+    GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -506,7 +506,7 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces( void ) override
+    GeometriesArrayType Faces( void ) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -557,7 +557,7 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
         double fourthCoord = 1.0 - ( rPoint[0] + rPoint[1] + rPoint[2] );
@@ -603,7 +603,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "3 dimensional tetrahedra with ten nodes in 3D space";
     }
@@ -615,7 +615,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const override
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional tetrahedra with ten nodes in 3D space";
     }
@@ -629,7 +629,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -658,12 +658,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

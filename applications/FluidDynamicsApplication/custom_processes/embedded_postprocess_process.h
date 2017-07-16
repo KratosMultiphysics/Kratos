@@ -75,7 +75,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~EmbeddedPostprocessProcess(){}
+    ~EmbeddedPostprocessProcess() override{}
 
     ///@}
     ///@name Operators
@@ -137,7 +137,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "EmbeddedPostprocessProcess" ;
@@ -145,10 +145,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedPostprocessProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedPostprocessProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
