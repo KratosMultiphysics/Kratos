@@ -664,9 +664,9 @@ public:
     */
     virtual Point<3> Center() const
     {
-        const SizeType PointsNumber = this->size();
+        const SizeType points_number = this->size();
 
-        if ( PointsNumber == 0 )
+        if ( points_number == 0 )
         {
             KRATOS_ERROR << "can not compute the ceneter of a geometry of zero points" << std::endl;
             // return PointType();
@@ -674,12 +674,12 @@ public:
 
         Point<3> result = ( *this )[0];
 
-        for ( IndexType i = 1 ; i < PointsNumber ; i++ )
+        for ( IndexType i = 1 ; i < points_number ; i++ )
         {
             result.Coordinates() += ( *this )[i];
         }
 
-        const double temp = 1.0 / double( PointsNumber );
+        const double temp = 1.0 / double( points_number );
 
         result.Coordinates() *= temp;
 
@@ -1947,12 +1947,12 @@ public:
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const
     {
-        const unsigned int integration_PointsNumber = this->IntegrationPointsNumber( ThisMethod );
+        const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
 
-        if ( integration_PointsNumber == 0 )
+        if ( integration_points_number == 0 )
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        if ( rResult.size() != integration_PointsNumber )
+        if ( rResult.size() != integration_points_number )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
 
         //calculating the local gradients
@@ -1961,7 +1961,7 @@ public:
         //loop over all integration points
         Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension()),Jinv(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
         double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_PointsNumber; pnt++ )
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
@@ -1975,14 +1975,14 @@ public:
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod ) const
     {
-        const unsigned int integration_PointsNumber = this->IntegrationPointsNumber( ThisMethod );
+        const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
 
-        if ( integration_PointsNumber == 0 )
+        if ( integration_points_number == 0 )
             KRATOS_ERROR << "This integration method is not supported " << *this << std::endl;
 
-        if ( rResult.size() != integration_PointsNumber )
+        if ( rResult.size() != integration_points_number )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
-        if ( determinants_of_jacobian.size() != integration_PointsNumber )
+        if ( determinants_of_jacobian.size() != integration_points_number )
             determinants_of_jacobian.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
 
         //calculating the local gradients
@@ -1992,7 +1992,7 @@ public:
         Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
         Matrix Jinv(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
         double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_PointsNumber; pnt++ )
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
