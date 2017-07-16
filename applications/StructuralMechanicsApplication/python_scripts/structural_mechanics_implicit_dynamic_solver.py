@@ -26,7 +26,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.01,
+            "damp_factor_m" :-0.3,
             "rayleigh_alpha": 0.0,
             "rayleigh_beta" : 0.0
         }
