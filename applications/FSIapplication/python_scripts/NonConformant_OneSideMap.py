@@ -86,13 +86,31 @@ class NonConformant_OneSideMap:
 
     # Standard mappers
     def StructureToFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.StructureToFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.str_interface,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            map_origin = VAUX_EQ_TRACTION
+            map_destination = VAUX_EQ_TRACTION
+        else:
+            map_origin = VectorVar_Origin
+            map_destination = VectorVar_Destination
+        (self.StructureToFluidMapper).VectorMap(map_origin, map_destination, self.it_max, self.tol, sign_pos, False)
+        if distributed:
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.fl_interface,VAUX_EQ_TRACTION,VectorVar_Destination)
 
     def StructureToFluid_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.StructureToFluidMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
 
     def FluidToStructure_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.FluidToStructureMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.fl_interface,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            map_origin = VAUX_EQ_TRACTION
+            map_destination = VAUX_EQ_TRACTION
+        else:
+            map_origin = VectorVar_Origin
+            map_destination = VectorVar_Destination
+        (self.FluidToStructureMapper).VectorMap(map_origin, map_destination, self.it_max, self.tol, sign_pos, False)
+        if distributed:
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.str_interface,VAUX_EQ_TRACTION,VectorVar_Destination)
 
     def FluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.FluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
