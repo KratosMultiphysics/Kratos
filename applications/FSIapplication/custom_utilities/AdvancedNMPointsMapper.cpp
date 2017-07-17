@@ -1479,8 +1479,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
                                        const Variable<array_1d<double,3> >& rDestVar,
                                        const int MaxIter,
                                        const double TolIter,
-                                       const bool sign_pos,
-                                       const bool distributed)
+                                       const bool sign_pos)
 {
     const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -1492,18 +1491,6 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
-
-    // If dealing with punctual loads, obtain their equivalent tractions
-    if (distributed == true)
-    {
-        int MaxIterTractions = MaxIter;
-        double TolIterTractions = TolIter;
-        ComputeEquivalentTractions(rOriginVar, MaxIterTractions, TolIterTractions);
-    }
-
-    // If distributed, set VAUX_EQ_TRACTION as origin and destination variable
-    Variable<array_1d<double,3>> AuxDestVar = (distributed == false) ? rDestVar : VAUX_EQ_TRACTION;
-    Variable<array_1d<double,3>> AuxOriginVar = (distributed == false) ? rOriginVar : VAUX_EQ_TRACTION;
 
     if (dimension == 2) // 2D case
     {
@@ -1551,7 +1538,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             // Get the Gauss pts. values
             for (unsigned int i=0; i<ngauss; ++i)
             {
-                mGaussPointList[GPi + i]->GetProjectedValue(AuxOriginVar, TempValues);
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, TempValues);
                 for (unsigned int j = 0; j < 3; j++)
                 {
                      GPValues[3*i + j] = TempValues[j];
@@ -1601,8 +1588,8 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    LastSolution[j]     = sign * rGeom[0].FastGetSolutionStepValue(AuxDestVar)[j];
-                    LastSolution[3 + j] = sign * rGeom[1].FastGetSolutionStepValue(AuxDestVar)[j];
+                    LastSolution[j]     = sign * rGeom[0].FastGetSolutionStepValue(rDestVar)[j];
+                    LastSolution[3 + j] = sign * rGeom[1].FastGetSolutionStepValue(rDestVar)[j];
                 }
 
                 array_1d<double,6> CondValues = *pInterpValues[IV_iter];
@@ -1632,7 +1619,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
                 const double & NodeLength = node_it->GetValue(NODAL_MAUX);
                 noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeLength;
-                array_1d<double, 3>& rDestinationValue = node_it->FastGetSolutionStepValue(AuxDestVar);
+                array_1d<double, 3>& rDestinationValue = node_it->FastGetSolutionStepValue(rDestVar);
                 rDestinationValue += sign * dVal;
 
                 // Variables for convergence check
@@ -1679,13 +1666,10 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
             array_1d<double,3> TempValues = ZeroVector(3);
 
-            // If distributed, set VAUX_EQ_TRACTION as origin variable
-            Variable<array_1d<double,3>> AuxOriginVar = (distributed == false) ? rOriginVar : VAUX_EQ_TRACTION;
-
             // Get the Gauss pts. values
             for (unsigned int i=0; i<ngauss; ++i)
             {
-                mGaussPointList[GPi + i]->GetProjectedValue(AuxOriginVar, TempValues);
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, TempValues);
                 for (unsigned int j = 0; j < 3; j++)
                 {
                      GPValues[3*i + j] = TempValues[j];
@@ -1736,9 +1720,9 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    LastSolution[j]     = sign * rGeom[0].FastGetSolutionStepValue(AuxDestVar)[j];
-                    LastSolution[3 + j] = sign * rGeom[1].FastGetSolutionStepValue(AuxDestVar)[j];
-                    LastSolution[6 + j] = sign * rGeom[2].FastGetSolutionStepValue(AuxDestVar)[j];
+                    LastSolution[j]     = sign * rGeom[0].FastGetSolutionStepValue(rDestVar)[j];
+                    LastSolution[3 + j] = sign * rGeom[1].FastGetSolutionStepValue(rDestVar)[j];
+                    LastSolution[6 + j] = sign * rGeom[2].FastGetSolutionStepValue(rDestVar)[j];
                 }
 
                 array_1d<double,9> CondValues = *pInterpValues[IV_iter];
@@ -1770,7 +1754,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
                 noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeArea;
-                array_1d<double, 3>& rDestinationValue = node_it->FastGetSolutionStepValue(AuxDestVar);
+                array_1d<double, 3>& rDestinationValue = node_it->FastGetSolutionStepValue(rDestVar);
                 rDestinationValue += sign * dVal;
 
                 // Variables for convergence check
@@ -1797,13 +1781,6 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
         }
         // End of Iteration
     }
-
-    // Convert the computed equivalent tractions to punctual nodal loads
-    if (distributed == true)
-    {
-        ComputeNodalLoadsFromTractions(rDestVar);
-    }
-
 } // End of Map (vector version)
 
 /**
@@ -1939,356 +1916,6 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
                 #pragma omp atomic
                 nm += (1.0/3.0) * CondArea;
             }
-        }
-    }
-}
-
-/**
- * Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
- * @param rOriginVar: Origin variable to be converted to tractions
- * @param MaxIter: Maximum iterations
- * @param TolIter: Absolute tolerance
- */
-void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<double,3> >& rOriginVar,
-                                                        const int MaxIter,
-                                                        const double TolIter)
-{
-    const unsigned int dimension = mrOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
-
-    // Initialization of equivalent tractions
-    VariableUtils().SetToZero_VectorVar(VAUX_EQ_TRACTION, mrOriginModelPart.Nodes());
-
-    if (dimension == 2)
-    {
-
-        boost::numeric::ublas::bounded_matrix<double,2,2> MassMat; // Elemental consistent mass matrix 2 Gauss points in a 1D element
-
-        MassMat(0, 0) = 2.0/3.0; MassMat(0, 1) = 1.0/3.0;
-        MassMat(1, 0) = 1.0/3.0; MassMat(1, 1) = 2.0/3.0;
-
-        // Store the initial guess
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-        {
-            ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-            for(unsigned int j = 0; j < 2; j++)
-            {
-                const double NodeLength = node_it->GetValue(NODAL_MAUX);
-                node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j] = (node_it->FastGetSolutionStepValue(rOriginVar)[j])/NodeLength;
-            }
-        }
-
-        // Iteration
-        for (int k = 0; k < MaxIter; k++)
-        {
-            // At the begining of each iteration initialize the variable containing the assembled RHS as 0
-            #pragma omp parallel for
-            for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-            {
-                ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
-            }
-
-            array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
-            array_1d<double, 6> LastSolution;
-            array_1d<double, 6> OriginNodalValues;
-
-            for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
-                cond_it != mrOriginModelPart.ConditionsEnd();
-                cond_it++)
-            {
-
-                double CondLength = 0.0;
-                CondLength = cond_it->GetGeometry().Length();
-                const double Jac = 0.5*CondLength;
-
-                LocalRHS0 = ZeroVector(3);
-                LocalRHS1 = ZeroVector(3);
-                OriginNodalValues = ZeroVector(6);
-
-                // Original nodal values (assembled)
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    OriginNodalValues[j]     = cond_it->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar)[j];
-                    OriginNodalValues[3 + j] = cond_it->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar)[j];
-                }
-
-                // Unassemble the nodal values to obtain their elemental contributions
-                double aux0 = Jac/(cond_it->GetGeometry()[0].GetValue(NODAL_MAUX));
-                double aux1 = Jac/(cond_it->GetGeometry()[1].GetValue(NODAL_MAUX));
-
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    OriginNodalValues[j]     *= aux0;
-                    OriginNodalValues[3 + j] *= aux1;
-                }
-
-                // Previous iteration solution
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    LastSolution[j]     = cond_it->GetGeometry()[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                    LastSolution[3 + j] = cond_it->GetGeometry()[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                }
-
-                // Compute the nodal RHS
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    LocalRHS0[j] = OriginNodalValues[j]     - Jac * (MassMat(0,0)*LastSolution[j] + MassMat(0,1)*LastSolution[j + 3]);
-                    LocalRHS1[j] = OriginNodalValues[j + 3] - Jac * (MassMat(1,0)*LastSolution[j] + MassMat(1,1)*LastSolution[j + 3]);
-                }
-
-                // Accumulate the nodal RHS (localRHS)
-                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
-            }
-
-            // Solve
-            array_1d<double,3> dVal = ZeroVector(3);
-            double dValNorm      = 0.0;
-            double ValNorm       = 0.0;
-            const unsigned int NodeNum = mrOriginModelPart.NumberOfNodes();
-
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
-            for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-            {
-                ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-                const double NodeLength = node_it->GetValue(NODAL_MAUX);
-                noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeLength;
-                array_1d<double, 3>& rEquivalentTraction = node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION);
-                rEquivalentTraction += dVal;
-
-                // Variables for convergence check
-                for (unsigned int j = 0; j < 3; j++)
-                {
-                    dValNorm += dVal[j] * dVal[j];
-                    ValNorm += rEquivalentTraction[j]*rEquivalentTraction[j];
-                }
-            }
-
-            // std::cout << "Compute equivalent tractions iteration: " << k+1 << " dValNorm " << dValNorm << std::endl;
-
-            // Check Convergence
-            const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
-            if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
-            {
-                std::cout << "ComputeEquivalentTractions converged in " << k + 1 << " iterations." << std::endl;
-                break;
-            }
-            else if ( (k + 1) == MaxIter)
-            {
-                std::cout << "WARNING: ComputeEquivalentTractions did not converge in " << k + 1 << " iterations." << std::endl;
-            }
-        } // End of Iteration
-    }
-    else
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,3> MassMat; // Elemental consistent mass matrix 3 Gauss points in a 2D triangular element
-
-        MassMat(0, 0) = 1.0/12.0; MassMat(0, 1) = 1.0/24.0; MassMat(0, 2) = 1.0/24.0;
-        MassMat(1, 0) = 1.0/24.0; MassMat(1, 1) = 1.0/12.0; MassMat(1, 2) = 1.0/24.0;
-        MassMat(2, 0) = 1.0/24.0; MassMat(2, 1) = 1.0/24.0; MassMat(2, 2) = 1.0/12.0;
-
-        // Store the initial guess
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-        {
-            ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j] = (node_it->FastGetSolutionStepValue(rOriginVar)[j])/NodeArea;
-            }
-        }
-
-        // Iteration
-        for (int k = 0; k < MaxIter; k++)
-        {
-            // At the begining of each iteration initialize the variable containing the assembled RHS as 0
-            #pragma omp parallel for
-            for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-            {
-                ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
-            }
-
-            array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
-            array_1d<double, 9> LastSolution;
-            array_1d<double, 9> OriginNodalValues;
-
-            for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
-                cond_it != mrOriginModelPart.ConditionsEnd();
-                cond_it++)
-            {
-                GeometryType& rGeom = cond_it->GetGeometry();
-                const double CondArea = rGeom.Area();
-                const double Jac = 2.0*CondArea;
-
-                LocalRHS0 = ZeroVector(3);
-                LocalRHS1 = ZeroVector(3);
-                LocalRHS2 = ZeroVector(3);
-                OriginNodalValues = ZeroVector(9);
-
-                // Original nodal values (unassemble the nodal values to obtain their elemental contributions)
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    OriginNodalValues[j]     = rGeom[0].FastGetSolutionStepValue(rOriginVar)[j]*(CondArea/3.0)/(rGeom[0].GetValue(NODAL_MAUX));
-                    OriginNodalValues[3 + j] = rGeom[1].FastGetSolutionStepValue(rOriginVar)[j]*(CondArea/3.0)/(rGeom[1].GetValue(NODAL_MAUX));
-                    OriginNodalValues[6 + j] = rGeom[2].FastGetSolutionStepValue(rOriginVar)[j]*(CondArea/3.0)/(rGeom[2].GetValue(NODAL_MAUX));
-                }
-
-                // Previous iteration solution
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    LastSolution[j]     = rGeom[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                    LastSolution[3 + j] = rGeom[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                    LastSolution[6 + j] = rGeom[2].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                }
-
-                // Compute the nodal RHS
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    LocalRHS0[j] = OriginNodalValues[j]     - Jac * (MassMat(0,0)*LastSolution[j] + MassMat(0,1)*LastSolution[j + 3] + MassMat(0,2)*LastSolution[j + 6]);
-                    LocalRHS1[j] = OriginNodalValues[j + 3] - Jac * (MassMat(1,0)*LastSolution[j] + MassMat(1,1)*LastSolution[j + 3] + MassMat(1,2)*LastSolution[j + 6]);
-                    LocalRHS2[j] = OriginNodalValues[j + 6] - Jac * (MassMat(2,0)*LastSolution[j] + MassMat(2,1)*LastSolution[j + 3] + MassMat(2,2)*LastSolution[j + 6]);
-                }
-
-                // Accumulate the nodal RHS (localRHS)
-                rGeom[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
-                rGeom[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
-                rGeom[2].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS2;
-            }
-
-            // Solve
-            array_1d<double,3> dVal = ZeroVector(3);
-            double dValNorm      = 0.0;
-            double ValNorm       = 0.0;
-            const unsigned int NodeNum = mrOriginModelPart.NumberOfNodes();
-
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
-            for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-            {
-                ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-                const double NodeArea = node_it->GetValue(NODAL_MAUX);
-                noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeArea;
-                node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += dVal;
-
-                // Variables for convergence check
-                for (unsigned int j = 0; j < 3; j++)
-                {
-                    dValNorm += dVal[j] * dVal[j];
-                    ValNorm += std::pow(node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j], 2);
-                }
-            }
-
-            //~ std::cout << "Compute equivalent tractions iteration: " << k+1 << " dValNorm " << dValNorm << std::endl;
-
-            // Check Convergence
-            const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
-            if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
-            {
-                std::cout << "Compute equivalent tractions converged in " << k + 1 << " iterations." << std::endl;
-                break;
-            }
-            else if ( (k + 1) == MaxIter)
-            {
-                std::cout << "WARNING: Compute equivalent tractions did not converge in " << k + 1 << " iterations." << std::endl;
-            }
-        } // End of Iteration
-    }
-}
-
-/**
- * Auxiliar function to recover punctual loads from equivalent tractions.
- * @param rOriginVar: Destination variable to store the recovered nodal values
- */
-void AdvancedNMPointsMapper::ComputeNodalLoadsFromTractions(const Variable<array_1d<double,3> >& rDestVar)
-{
-    const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
-
-    if (dimension == 2)
-    {
-
-        boost::numeric::ublas::bounded_matrix<double,2,2> MassMat; // Elemental consistent mass matrix 2 Gauss points in a 1D element
-        MassMat(0, 0) = 2.0/3.0; MassMat(0, 1) = 1.0/3.0;
-        MassMat(1, 0) = 1.0/3.0; MassMat(1, 1) = 2.0/3.0;
-
-        array_1d<double, 3> Node0Values;
-        array_1d<double, 3> Node1Values;
-        array_1d<double, 6> NodalTractions;
-
-        for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrDestinationModelPart.ConditionsBegin();
-            cond_it != mrDestinationModelPart.ConditionsEnd();
-            cond_it++)
-        {
-            GeometryType& rGeom = cond_it->GetGeometry();
-            const double Jac = 0.5*rGeom.Length();
-
-            Node0Values = ZeroVector(3);
-            Node1Values = ZeroVector(3);
-            NodalTractions = ZeroVector(6);
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                NodalTractions[j]     = rGeom[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                NodalTractions[3 + j] = rGeom[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-            }
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                Node0Values[j] = Jac*(MassMat(0,0)*NodalTractions[j]+MassMat(0,1)*NodalTractions[j+3]);
-                Node1Values[j] = Jac*(MassMat(1,0)*NodalTractions[j]+MassMat(1,1)*NodalTractions[j+3]);
-            }
-
-            // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
-            rGeom[0].FastGetSolutionStepValue(rDestVar) += Node0Values;
-            rGeom[1].FastGetSolutionStepValue(rDestVar) += Node1Values;
-        }
-    }
-    else
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,3> MassMat; // Elemental consistent mass matrix 3 Gauss points in a 2D triangular element
-        MassMat(0, 0) = 1.0/12.0; MassMat(0, 1) = 1.0/24.0; MassMat(0, 2) = 1.0/24.0;
-        MassMat(1, 0) = 1.0/24.0; MassMat(1, 1) = 1.0/12.0; MassMat(1, 2) = 1.0/24.0;
-        MassMat(2, 0) = 1.0/24.0; MassMat(2, 1) = 1.0/24.0; MassMat(2, 2) = 1.0/12.0;
-
-        array_1d<double, 3> Node0Values;
-        array_1d<double, 3> Node1Values;
-        array_1d<double, 3> Node2Values;
-        array_1d<double, 9> NodalTractions;
-        int IV_iter = 0;
-
-        for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrDestinationModelPart.ConditionsBegin();
-            cond_it != mrDestinationModelPart.ConditionsEnd();
-            cond_it++)
-        {
-            GeometryType& rGeom = cond_it->GetGeometry();
-            const double Jac = 2.0*rGeom.Area();
-
-            Node0Values = ZeroVector(3);
-            Node1Values = ZeroVector(3);
-            Node2Values = ZeroVector(3);
-            NodalTractions = ZeroVector(9);
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                NodalTractions[j]     = rGeom[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                NodalTractions[3 + j] = rGeom[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-                NodalTractions[6 + j] = rGeom[2].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
-            }
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                Node0Values[j] = Jac*(MassMat(0,0)*NodalTractions[j] + MassMat(0,1)*NodalTractions[j+3] + MassMat(0,2)*NodalTractions[j+6]);
-                Node1Values[j] = Jac*(MassMat(1,0)*NodalTractions[j] + MassMat(1,1)*NodalTractions[j+3] + MassMat(1,2)*NodalTractions[j+6]);
-                Node2Values[j] = Jac*(MassMat(2,0)*NodalTractions[j] + MassMat(2,1)*NodalTractions[j+3] + MassMat(2,2)*NodalTractions[j+6]);
-            }
-
-            // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
-            rGeom[0].FastGetSolutionStepValue(rDestVar) += Node0Values;
-            rGeom[1].FastGetSolutionStepValue(rDestVar) += Node1Values;
-            rGeom[2].FastGetSolutionStepValue(rDestVar) += Node2Values;
-
-            IV_iter++;
         }
     }
 }
