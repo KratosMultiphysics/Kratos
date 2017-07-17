@@ -137,7 +137,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     for (int i = 0; i < number_of_nodes_in_model_part; i++)
     {
         ModelPart::NodeIterator node_iter = rModelPart.NodesBegin() + i;
-        node_iter->FastGetSolutionStepValue(rDistributedVariable) = Zero;
+        node_iter->FastGetSolutionStepValue(rPointVariable) = Zero;
     }
 
     boost::numeric::ublas::bounded_matrix<double,TPointNumber,TPointNumber> MassMatrix;
