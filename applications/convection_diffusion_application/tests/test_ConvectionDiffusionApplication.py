@@ -7,6 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suites
 from source_term_test import SourceTermTest
+from thermal_coupling_test import ThermalCouplingTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -28,6 +29,7 @@ def AssembleTestSuites():
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
     smallSuite.addTest(SourceTermTest('testReaction'))
+    smallSuite.addTest(ThermalCouplingTest('testDirichletNeumann'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

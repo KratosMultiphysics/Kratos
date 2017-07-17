@@ -32,10 +32,12 @@ class ThermalCouplingTest(UnitTest.TestCase):
         self.reference_file = "coupling_reference"
 
         self.dt = 0.01 #1e10 # This is steady state test
-        self.nsteps = 50
+        self.nsteps = 30
         self.theta = 1.0 # Note: I don't think the face condition supports Crank-Nicolson (JC)
         # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
-        self.num_coupling_iterations = 5
+        self.num_coupling_iterations = 10
+        self.temperature_relaxation_factor = 0.7
+        self.coupling_relative_tolerance = 1e-5
 
         self.rho = 1.0
         self.c = 1.0
@@ -80,7 +82,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
             self.runTest()
 
-            #self.checkResults(TEMPERATURE)
+            self.checkResults(self.mapper.str_interface.Nodes,TEMPERATURE)
             if self.print_output:
                 self.FinalizeOutput()
 
@@ -114,6 +116,8 @@ class ThermalCouplingTest(UnitTest.TestCase):
         ncosm.AddVariables(self.left_model_part,self.right_model_part)
         # auxiliary container for reaction->distributed flux conversion
         self.right_model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
+        # Temporary container for un-relaxed temperature
+        self.left_model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
 
         model_part_io_left = ModelPartIO(self.left_input_file)
         model_part_io_left.ReadModelPart(self.left_model_part)
@@ -129,11 +133,13 @@ class ThermalCouplingTest(UnitTest.TestCase):
         self.left_solver = thermal_solver.ConvectionDiffusionSolver(self.left_model_part,self.domain_size)
         self.left_solver.calculate_reactions = self.calculate_reactions
         self.left_solver.theta = self.theta
+        self.left_solver.echo_level = 0
         self.left_solver.Initialize()
 
         self.right_solver = thermal_solver.ConvectionDiffusionSolver(self.right_model_part,self.domain_size)
         self.right_solver.calculate_reactions = self.calculate_reactions
         self.right_solver.theta = self.theta
+        self.right_solver.echo_level = 0
         self.right_solver.Initialize()
 
     def setUpOuterBoundaryCondition(self,model_part,boundary_x,boundary_value):
@@ -195,31 +201,38 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 self.left_solver.Solve()
 
                 # Get updated temperature
-                self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,TEMPERATURE,True)
+                self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,NODAL_PAUX,True)
+                temperature_difference = 0.0
                 for node in self.mapper.str_interface.Nodes:
-                    node.SetSolutionStepValue(TEMPERATURE,1,node.GetSolutionStepValue(TEMPERATURE))
-
-                if self.print_output:
-                    self.PrintOutput()
+                    old_temperature = node.GetSolutionStepValue(TEMPERATURE)
+                    new_temperature = node.GetSolutionStepValue(NODAL_PAUX)
+                    interpolated_temperature = (1.0-self.temperature_relaxation_factor)*old_temperature + self.temperature_relaxation_factor*new_temperature
+                    temperature_difference += (old_temperature-new_temperature)**2
+                    node.SetSolutionStepValue(TEMPERATURE, interpolated_temperature )
 
                 iter += 1
+                if (temperature_difference**0.5)/len(self.mapper.str_interface.Nodes) <= self.coupling_relative_tolerance:
+                    #print("Convergence after {0} coupling iterations".format(iter))
+                    break
+
+            if self.print_output:
+                self.PrintOutput()
 
 
-    def checkResults(self,checked_variable):
+    def checkResults(self,nodes,checked_variable):
 
         if self.print_reference_values:
             with open(self.reference_file+'.csv','w') as ref_file:
-                ref_file.write("#ID, {0}\n".format(checked_variable.Name))
-                for node in self.model_part.Nodes:
+                ref_file.write("#ID, {0}\n".format(checked_variable.Name()))
+                for node in nodes:
                     value = node.GetSolutionStepValue(checked_variable,0)
                     ref_file.write("{0}, {1}\n".format(node.Id, value))
         else:
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()
-                node_iter = self.model_part.Nodes
 
-                for node in self.model_part.Nodes:
+                for node in nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                     node_id = values[0]
                     reference_value = values[1]
@@ -271,7 +284,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = ThermalCouplingTest()
     test.setUp()
-    test.print_reference_values = True
+    #test.print_reference_values = True
     test.print_output = True
     test.testDirichletNeumann()
     test.tearDown()
