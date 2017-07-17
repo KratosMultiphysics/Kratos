@@ -325,6 +325,40 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                              in a unique submodelpart and all the negative ones in another submodelpart.")
 
 
+    def _SetStructureNeumannCondition(self):
+
+        structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
+
+        # Get the maximum condition id
+        max_cond_id = 0
+        for condition in self.structure_solver.main_model_part.Conditions:
+            max_cond_id = max(max_cond_id, condition.Id)
+
+        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().MaxAll(max_cond_id)
+
+        # Set up the point load condition in the structure interface
+        for i in range(self.settings["coupling_solver_settings"]["structure_interfaces_list"].size()):
+            interface_submodelpart_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][i].GetString()
+            interface_submodelpart_i = self.structure_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
+
+            # Get the number of conditions to be set in each processor
+            local_nodes_number_accumulated = -1
+            local_nodes_number = len(interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes)
+            local_nodes_number_accumulated = interface_submodelpart_i.GetCommunicator().ScanSum(local_nodes_number, local_nodes_number_accumulated)
+
+            # Create the point load condition
+            aux_count = max_cond_id + local_nodes_number_accumulated
+            if self.domain_size == 2:
+                for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
+                    aux_count+=1
+                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N", int(aux_count), [node.Id], self.structure_solver.main_model_part.Properties[0])
+
+            elif self.domain_size == 3:
+                for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
+                    aux_count+=1
+                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N", int(aux_count), [node.Id], self.structure_solver.main_model_part.Properties[0])
+
+
     # TODO: GET IT FROM THE SERIAL BASE SOLVER ONCE THE MAPPER IN MAPPING APPLICATION IS USED IN SERIAL PROBLEMS AS WELL
     def _ComputeMeshPredictionSingleFaced(self):
 
