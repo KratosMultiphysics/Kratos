@@ -446,7 +446,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangianQuadrilateral, COMPUTE_LHS_MATRIX_WIT
         Flags &ConstitutiveLawOptions=Values.GetOptions();
         
         //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
         
@@ -1547,7 +1547,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
         //ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
         //compute element kinematics B, F, DN_DX ...
@@ -2603,7 +2603,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
             ////set constitutive law flags:
             //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-            //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
             //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
             

@@ -436,7 +436,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         Flags &ConstitutiveLawOptions=Values.GetOptions();
         
         //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
         
@@ -1453,7 +1453,7 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //compute element kinematics B, F, DN_DX ...
@@ -2321,7 +2321,7 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
             ////set constitutive law flags:
             //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-            //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
             //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
             

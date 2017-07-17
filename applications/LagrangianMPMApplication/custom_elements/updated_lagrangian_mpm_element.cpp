@@ -135,7 +135,7 @@ void UpdatedLagrangianMPMElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     //compute element kinematics B, F, DN_DX ...
@@ -308,7 +308,7 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
