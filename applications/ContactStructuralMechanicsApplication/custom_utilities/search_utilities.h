@@ -264,11 +264,16 @@ public:
                         {
                             if (SlaveGeometry[i_node].Is(ACTIVE) == false)
                             {
+                                const array_1d<double, 3> delta_disp = SlaveGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 0) - SlaveGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
+                                
+                                // We check if the movement is in the direction of the normal
+                                const bool moving_gap_direction = norm_2(delta_disp) > 0.0 ? (inner_prod(delta_disp, SlaveNormal) > 0 ) : true;
+                                
                                 const array_1d<double, TDim> aux_array = row(Dx1Mx2, i_node);
                                 
                                 const double nodal_gap = inner_prod(aux_array, - aux_slave_normal); 
                                 
-                                if (nodal_gap < ActiveCheckLength)
+                                if ((nodal_gap < ActiveCheckLength) && (moving_gap_direction == true))
                                 {
                                     SlaveGeometry[i_node].Set(ACTIVE, true);
                                     condition_is_active = true;
