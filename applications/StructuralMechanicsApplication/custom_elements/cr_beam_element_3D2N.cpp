@@ -1558,7 +1558,7 @@ namespace Kratos
 		//longitudinal forces + torsional moment
 		const double M00 = (1.00 / 3.00)*A*rho*L;
 		const double M06 = M00 / 2.00;
-		const double M33 = (J*L) / 3.00;
+		const double M33 = (J*L*rho) / 3.00;
 		const double M39 = M33 / 2.00;
 
 		rMassMatrix(0, 0) = M00;
