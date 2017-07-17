@@ -88,7 +88,7 @@ public:
     /**
      * Flags related to the Parameters of the Contitutive Law
      */   
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN );
+    KRATOS_DEFINE_LOCAL_FLAG( USE_ELEMENT_PROVIDED_STRAIN );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRESS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_CONSTITUTIVE_TENSOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN_ENERGY );
@@ -101,6 +101,9 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_STRAIN_MEASURE );
 
+    
+    ///the next two flags are designed for internal use within the constitutive law.
+    ///please DO NOT use them from the API
     KRATOS_DEFINE_LOCAL_FLAG( INITIALIZE_MATERIAL_RESPONSE );    
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
 
@@ -190,7 +193,7 @@ public:
 
      * @param mDeterminantF copy of the determinant of the Current DeformationGradient (although Current F  is also included as a matrix) (input data)
      * @param mpDeformationGradientF  pointer to the current deformation gradient (can be an empty matrix if a linear strain measure is used) (input data)
-     * @param mpStrainVector pointer to the current strains (total strains) (input data) (*can be also OUTPUT with COMPUTE_STRAIN flag)
+     * @param mpStrainVector pointer to the current strains (total strains) (input data) (*can be also OUTPUT with USE_ELEMENT_PROVIDED_STRAIN flag)
      * @param mpStressVector pointer to the current stresses (*OUTPUT with COMPUTE_STRESS flag)
      * @param mpConstitutiveMatrix pointer to the material tangent matrix (*OUTPUT with COMPUTE_CONSTITUTIVE_TENSOR flag)
 

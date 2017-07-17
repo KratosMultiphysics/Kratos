@@ -26,7 +26,7 @@ namespace Kratos
     /**
      * Flags related to the Parameters of the Contitutive Law
      */
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN,               0 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, USE_ELEMENT_PROVIDED_STRAIN,               0 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR,  2 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,        3 );
