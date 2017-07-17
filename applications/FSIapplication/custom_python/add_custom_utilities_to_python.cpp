@@ -51,6 +51,8 @@ void  AddCustomUtilitiesToPython()
         .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceVectorResidual)
         .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeCorrectedInterfaceDisplacementDerivatives",&PartitionedFSIUtilities<TSpace,2>::ComputeCorrectedInterfaceDisplacementDerivatives)
+        .def("ComputeAndPrintFluidInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintStructureInterfaceNorms)
         ;
 
     class_<PartitionedFSIUtilities <TSpace,3>, boost::noncopyable >("PartitionedFSIUtilities3D", init< >())
@@ -60,6 +62,8 @@ void  AddCustomUtilitiesToPython()
         .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,3>::ComputeInterfaceVectorResidual)
         .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeCorrectedInterfaceDisplacementDerivatives",&PartitionedFSIUtilities<TSpace,3>::ComputeCorrectedInterfaceDisplacementDerivatives)
+        .def("ComputeAndPrintFluidInterfaceNorms",&PartitionedFSIUtilities<TSpace,3>::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms",&PartitionedFSIUtilities<TSpace,3>::ComputeAndPrintStructureInterfaceNorms)
         ;
 
 }

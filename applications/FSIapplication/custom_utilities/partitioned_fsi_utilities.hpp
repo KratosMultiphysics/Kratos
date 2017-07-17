@@ -146,66 +146,11 @@ public:
     }
 
     /**
-     * This function sets the variable data contained in a vector over the the
-     * fluid interface.
-     * @param rInterfaceModelPart: interface modelpart in where the vector variable is set
-     * @param rVariable: variable to be set
-     * @param rInterfaceDataVector: vector containing the data values to be set
+     * This function resizes and sets to zero an interface vector (length equal to the
+     * residual size).
+     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
+     * @param pInterfaceVector: pointer to the vector that is to be resized
      */
-    // void SetInterfaceVectorVariable(ModelPart& rInterfaceModelPart,
-    //                                 const Variable<array_1d<double, 3 > >& rVariable,
-    //                                 const VectorType& rInterfaceDataVector)
-    // {
-    //     // Initialize the variable value
-    //     VariableUtils().SetToZero_VectorVar(rVariable, rInterfaceModelPart.Nodes());
-    //
-    //     #pragma omp parallel for
-    //     for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
-    //     {
-    //         ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
-    //         unsigned int base_i = k*TDim;
-    //
-    //         array_1d<double,3>& value_to_set = it_node->FastGetSolutionStepValue(rVariable);
-    //         for (unsigned int jj=0; jj<TDim; ++jj)
-    //         {
-    //             value_to_set[jj] = rInterfaceDataVector[base_i+jj];
-    //         }
-    //     }
-    // }
-
-    /**
-     * This function sets the variable data contained in a vector over the the
-     * fluid interface. The variable can be fixed or not.
-     * @param rInterfaceModelPart: interface modelpart in where the vector variable is set
-     * @param rVariable: variable to be set
-     * @param rFluidInterfaceDataVector: vector containing the data values to be set
-     * @param FixVariable: if true, fixes the variable in the fluid interface model part
-     */
-    // void SetAndFixInterfaceVectorVariable(ModelPart& rInterfaceModelPart,
-    //                                       const Variable<array_1d<double, 3 > >& rVariable,
-    //                                       const VectorType& rFluidInterfaceDataVector,
-    //                                       const bool FixVariable)
-    // {
-    //     this->SetInterfaceVectorVariable(rInterfaceModelPart, rVariable, rFluidInterfaceDataVector);
-    //
-    //     // If needed, apply fixity to rVariable
-    //     if (FixVariable)
-    //     {
-    //         // Get the variable components
-    //         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-    //
-    //         const std::string variable_name = rVariable.Name();
-    //         const component_type varx = KratosComponents< component_type >::Get(variable_name+std::string("_X"));
-    //         const component_type vary = KratosComponents< component_type >::Get(variable_name+std::string("_Y"));
-    //         const component_type varz = KratosComponents< component_type >::Get(variable_name+std::string("_Z"));
-    //
-    //         // Fix the variable components
-    //         VariableUtils().ApplyFixity(varx, true, rInterfaceModelPart.Nodes());
-    //         VariableUtils().ApplyFixity(vary, true, rInterfaceModelPart.Nodes());
-    //         VariableUtils().ApplyFixity(varz, true, rInterfaceModelPart.Nodes());
-    //     }
-    // }
-
     virtual void SetUpInterfaceVector(ModelPart& rInterfaceModelPart,
                                       VectorPointerType& pInterfaceVector)
     {
@@ -384,7 +329,106 @@ public:
         rInterfaceModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
         rInterfaceModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
         rInterfaceModelPart.GetCommunicator().SynchronizeVariable(ACCELERATION);
+    }
 
+    /**
+     * Computes and prints the fluid interface residual norms for debugging purposes
+     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
+     */
+    virtual void ComputeAndPrintFluidInterfaceNorms(ModelPart& rInterfaceModelPart)
+    {
+        double p_norm = 0.0;
+        double vx_norm = 0.0;
+        double vy_norm = 0.0;
+        double vz_norm = 0.0;
+        double rx_norm = 0.0;
+        double ry_norm = 0.0;
+        double rz_norm = 0.0;
+        double ux_mesh_norm = 0.0;
+        double uy_mesh_norm = 0.0;
+        double uz_mesh_norm = 0.0;
+
+        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin) reduction(+ : p_norm, vx_norm, vy_norm, vz_norm, rx_norm, ry_norm, rz_norm, ux_mesh_norm, uy_mesh_norm, uz_mesh_norm)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
+        {
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
+
+            p_norm += std::pow(it_node->FastGetSolutionStepValue(PRESSURE), 2);
+            vx_norm += std::pow(it_node->FastGetSolutionStepValue(VELOCITY_X), 2);
+            vy_norm += std::pow(it_node->FastGetSolutionStepValue(VELOCITY_Y), 2);
+            vz_norm += std::pow(it_node->FastGetSolutionStepValue(VELOCITY_Z), 2);
+            rx_norm += std::pow(it_node->FastGetSolutionStepValue(REACTION_X), 2);
+            ry_norm += std::pow(it_node->FastGetSolutionStepValue(REACTION_Y), 2);
+            rz_norm += std::pow(it_node->FastGetSolutionStepValue(REACTION_Z), 2);
+            ux_mesh_norm += std::pow(it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT_X), 2);
+            uy_mesh_norm += std::pow(it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT_Y), 2);
+            uz_mesh_norm += std::pow(it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT_Z), 2);
+        }
+
+        rInterfaceModelPart.GetCommunicator().SumAll(p_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(vx_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(vy_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(vz_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(rx_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(ry_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(rz_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(ux_mesh_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(uy_mesh_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(uz_mesh_norm);
+
+        if (rInterfaceModelPart.GetCommunicator().MyPID() == 0)
+        {
+            std::cout << " " << std::endl;
+            std::cout << "|p_norm| = " << std::sqrt(p_norm) << std::endl;
+            std::cout << "|vx_norm| = " << std::sqrt(vx_norm) << std::endl;
+            std::cout << "|vy_norm| = " << std::sqrt(vy_norm) << std::endl;
+            std::cout << "|vz_norm| = " << std::sqrt(vz_norm) << std::endl;
+            std::cout << "|rx_norm| = " << std::sqrt(rx_norm) << std::endl;
+            std::cout << "|ry_norm| = " << std::sqrt(ry_norm) << std::endl;
+            std::cout << "|rz_norm| = " << std::sqrt(rz_norm) << std::endl;
+            std::cout << "|ux_mesh_norm| = " << std::sqrt(ux_mesh_norm) << std::endl;
+            std::cout << "|uy_mesh_norm| = " << std::sqrt(uy_mesh_norm) << std::endl;
+            std::cout << "|uz_mesh_norm| = " << std::sqrt(uz_mesh_norm) << std::endl;
+            std::cout << " " << std::endl;
+        }
+    }
+
+    /**
+     * Computes and prints the structure interface residual norms for debugging purposes
+     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
+     */
+    virtual void ComputeAndPrintStructureInterfaceNorms(ModelPart& rInterfaceModelPart)
+    {
+        double ux_norm = 0.0;
+        double uy_norm = 0.0;
+        double uz_norm = 0.0;
+
+        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin) reduction(+ : ux_norm, uy_norm, uz_norm)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
+        {
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
+
+            ux_norm += std::pow(it_node->FastGetSolutionStepValue(DISPLACEMENT_X), 2);
+            uy_norm += std::pow(it_node->FastGetSolutionStepValue(DISPLACEMENT_Y), 2);
+            uz_norm += std::pow(it_node->FastGetSolutionStepValue(DISPLACEMENT_Z), 2);
+        }
+
+        rInterfaceModelPart.GetCommunicator().SumAll(ux_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(uy_norm);
+        rInterfaceModelPart.GetCommunicator().SumAll(uz_norm);
+
+        if (rInterfaceModelPart.GetCommunicator().MyPID() == 0)
+        {
+            std::cout << " " << std::endl;
+            std::cout << "|ux_norm| = " << std::sqrt(ux_norm) << std::endl;
+            std::cout << "|uy_norm| = " << std::sqrt(uy_norm) << std::endl;
+            std::cout << "|uz_norm| = " << std::sqrt(uz_norm) << std::endl;
+            std::cout << " " << std::endl;
+        }
     }
 
     /*@} */
