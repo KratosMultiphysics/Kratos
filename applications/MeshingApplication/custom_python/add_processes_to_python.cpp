@@ -130,18 +130,18 @@ void  AddProcessesToPython()
         
         //SPR_ERROR
         // SPR_ERROR DOUBLE
-        class_<ComputeSPRErrorSolMetricProcess<2, Variable<double>>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&, Variable<double>&>())
-        .def(init<ModelPart&, Variable<double>&, Parameters>())
-        .def("Execute",&ComputeSPRErrorSolMetricProcess<2, Variable<double>>::Execute)
+        class_<ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&, Variable<Vector>&>())
+        .def(init<ModelPart&, Variable<Vector>&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>::Execute)
         ;
    
-        class_<ComputeSPRErrorSolMetricProcess<3, Variable<double>>, bases<Process> >("ComputeSPRErrorSolMetricProcess3D", init<ModelPart&, Variable<double>&>())
-        .def(init<ModelPart&, Variable<double>&, Parameters>())
-        .def("Execute",&ComputeSPRErrorSolMetricProcess<3, Variable<double>>::Execute)
+        class_<ComputeSPRErrorSolMetricProcess<3, Variable<Vector>>, bases<Process> >("ComputeSPRErrorSolMetricProcess3D", init<ModelPart&, Variable<Vector>&>())
+        .def(init<ModelPart&, Variable<Vector>&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<3, Variable<Vector>>::Execute)
         ;
         
         // SPR_ERROR ARRAY 1D
-        class_<ComputeSPRErrorSolMetricProcess<2, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp2D", init<ModelPart&, component_type&>())
+        /*class_<ComputeSPRErrorSolMetricProcess<2, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp2D", init<ModelPart&, component_type&>())
         .def(init<ModelPart&, component_type&, Parameters>())
         .def("Execute",&ComputeSPRErrorSolMetricProcess<2, component_type>::Execute)
         ;
@@ -149,7 +149,7 @@ void  AddProcessesToPython()
         class_<ComputeSPRErrorSolMetricProcess<3, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp3D", init<ModelPart&, component_type&>())
         .def(init<ModelPart&, component_type&, Parameters>())
         .def("Execute",&ComputeSPRErrorSolMetricProcess<3, component_type>::Execute)
-        ;
+        ;*/
 
         /* MMG PROCESS */
         #ifdef INCLUDE_MMG

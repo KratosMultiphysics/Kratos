@@ -155,12 +155,12 @@ public:
     virtual void Execute()
     {
         // Iterate in the nodes
-        NodesArrayType& NodesArray = mThisModelPart.Nodes();
-        int numNodes = NodesArray.end() - NodesArray.begin();
+        //NodesArrayType& NodesArray = mThisModelPart.Nodes();
+        //int numNodes = NodesArray.end() - NodesArray.begin();
         
-        CalculateAuxiliarHessian();
+        //CalculateAuxiliarHessian();
         CalculateSuperconvergentPatchRecovery();
-        
+        /*
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
@@ -220,7 +220,8 @@ public:
             {
                 Metric = ComputeHessianMetricTensor(Hessian, Ratio, ElementMinSize, ElementMaxSize);    
             }
-        }
+            
+        }*/
     }
     
     ///@}
@@ -407,13 +408,23 @@ private:
        findNeighbours.Execute();
        //iteration over all nodes  
        ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
+       //std::vector<array_1d<double, 3ul>> stress_vector(1);
+       //const Variable<array_1d<double, 3ul>> var("CAUCHY_STRESS_VECTOR");
+       std::vector<Vector> stress_vector(1);
+       const Variable<Vector> var("CAUCHY_STRESS_VECTOR");
+
        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
        {
            int neighbour_size = in->GetValue(NEIGHBOUR_ELEMENTS).size();
            std::cout << "Node: " << in->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
            for( WeakPointerVector< Element >::iterator i = in->GetValue(NEIGHBOUR_ELEMENTS).begin(); i != in->GetValue(NEIGHBOUR_ELEMENTS).end(); i++) {
-            std::cout << "\tElement: " << i->Id() << std::endl;}
+            std::cout << "\tElement: " << i->Id() << std::endl;
+            i->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
+            std::cout << "\tstress_xx: " << stress_vector[0][0] << std::endl;
+            std::cout << "\tstress_xx: " << mVariable << std::endl;
+            }
        }
+
     }
     
     /**

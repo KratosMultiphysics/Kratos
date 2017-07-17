@@ -195,6 +195,7 @@ class MmgProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         pass
+        #self._ExecuteRefinement()
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -267,12 +268,12 @@ class MmgProcess(KratosMultiphysics.Process):
             for current_metric_variable in self.metric_variable:
                 if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
                     if (self.dim == 2):
-                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcessComp2D(
+                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
                             self.Model[self.model_part_name],
                             current_metric_variable,
                             hessian_parameters))
                     else:
-                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcessComp3D(
+                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
                             self.Model[self.model_part_name],
                             current_metric_variable,
                             hessian_parameters))
@@ -312,7 +313,8 @@ class MmgProcess(KratosMultiphysics.Process):
             metric_process.Execute()
 
         print("Remeshing")
-        self.MmgProcess.Execute()
+        if (self.strategy != "Error"):
+            self.MmgProcess.Execute()
 
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
@@ -349,11 +351,13 @@ class MmgProcess(KratosMultiphysics.Process):
           if isinstance(val,float):
               variable_list.append(aux_var)
           else:
-              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
-              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
-              if (self.dim == 3):
-                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
-
+            if (self.strategy == "Hessian"):
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
+                if (self.dim == 3):
+                    variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
+            elif (self.strategy == "Error"):
+                variable_list.append(aux_var)       
       return variable_list
 
 def linear_interpolation(x, x_list, y_list):
