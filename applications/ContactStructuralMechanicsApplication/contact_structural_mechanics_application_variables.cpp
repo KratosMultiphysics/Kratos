@@ -46,6 +46,7 @@ KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )                                  
 KRATOS_CREATE_VARIABLE( double, TANGENT_FACTOR )                                     // The proportion between the tangent and normal penalty
 KRATOS_CREATE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                            // A value used to check if consider normal variation or not
 KRATOS_CREATE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                              // A value used to check if consider variation or not in the active inactive pairs
+KRATOS_CREATE_VARIABLE( bool, ADAPT_PENALTY )                                        // To set if the penalty is recalculated or not
 KRATOS_CREATE_VARIABLE( double, MAX_GAP_FACTOR )                                     // The factor between the nodal H and the max gap considered to recalculate the penalty
 
 /* For mesh tying mortar condition */

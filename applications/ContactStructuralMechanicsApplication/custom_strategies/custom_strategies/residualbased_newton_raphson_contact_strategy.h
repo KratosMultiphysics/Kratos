@@ -487,8 +487,11 @@ protected:
             pScheme->InitializeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
 
             // To be able to calculate the current gap and recalulate the penalty
-            TSparseSpace::SetToZero(b);
-            pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+            if (StrategyBaseType::GetModelPart().GetProcessInfo()[ADAPT_PENALTY] == true)
+            {
+                TSparseSpace::SetToZero(b);
+                pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+            }
                     
             is_converged = BaseType::mpConvergenceCriteria->PreCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
 

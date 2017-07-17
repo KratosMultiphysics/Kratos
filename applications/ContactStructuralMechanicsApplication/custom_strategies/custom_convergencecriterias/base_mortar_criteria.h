@@ -121,11 +121,14 @@ public:
             ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
         }
         
-        CalculateContactReactions(rModelPart, rDofSet, b);
-        
         // We recalculate the penalty parameter
-        AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart );
-        aalm_adaptation_of_penalty.Execute();
+        if (rModelPart.GetProcessInfo()[ADAPT_PENALTY] == true)
+        {
+            CalculateContactReactions(rModelPart, rDofSet, b);
+            
+            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart );
+            aalm_adaptation_of_penalty.Execute();
+        }
         
         return true;
     }

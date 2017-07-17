@@ -47,7 +47,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "database_step_update"        : 1,
             "integration_order"           : 2,
             "predict_with_linear_solver"  : false,
-            "max_gap_factor"              : 1.0e-02,
+            "max_gap_factor"              : 0.0,
             "linear_solver_settings"      : {
                 "solver_type"             : "SuperLUSolver",
                 "max_iteration"           : 500,
@@ -118,7 +118,12 @@ class ALMContactProcess(KratosMultiphysics.Process):
         # We recompute the pairs at each iteration (true by default)
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_PAIR_VARIATION] = self.params["pair_variation"].GetBool()
         # We set the max gap factor for the gap adaptation
-        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.MAX_GAP_FACTOR] = self.params["max_gap_factor"].GetDouble()
+        max_gap_factor = self.params["max_gap_factor"].GetDouble()
+        if (max_gap_factor > 0.0):
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = True
+        else:
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = False
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.MAX_GAP_FACTOR] = max_gap_factor
         
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.params["contact_type"].GetString() == "Frictional":
