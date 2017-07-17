@@ -115,11 +115,12 @@ void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar,
                                        double& Value)
 {
     Value = 0.0;    // Value initialization (if mProjStatus == 2 it will remain as 0.0)
-    GeometryType& rOriginGeom = (mpOriginCond.lock())->GetGeometry();
-    const unsigned int dimension = rOriginGeom.WorkingSpaceDimension();
 
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
+        GeometryType& rOriginGeom = (mpOriginCond.lock())->GetGeometry();
+        const unsigned int dimension = rOriginGeom.WorkingSpaceDimension();
+
         // Shape functions values in the projected Gauss pt.
         Point<3> GPloccoords = (dimension == 2) ? Point(mOriginCoords[0], 0.0, 0.0) : Point(mOriginCoords[0], mOriginCoords[1], 0.0);
         Vector shfunc_values;
