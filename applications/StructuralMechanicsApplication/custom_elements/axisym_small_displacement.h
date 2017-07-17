@@ -9,15 +9,15 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
-#if !defined(KRATOS_AXISYM_KINEMATIC_LINEAR_H_INCLUDED )
-#define  KRATOS_AXISYM_KINEMATIC_LINEAR_H_INCLUDED
+#if !defined(KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/kinematic_linear.h"
+#include "custom_elements/small_displacement.h"
 
 namespace Kratos
 {
@@ -44,8 +44,8 @@ namespace Kratos
  * Implements a Axisymmetric Kinemaic Linear definition for structural analysis.
  */
 
-class AxisymKinematicLinear
-    : public KinematicLinear
+class AxisymSmallDisplacement
+    : public SmallDisplacement
 {
 public:
     ///@name Type Definitions
@@ -57,19 +57,19 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of AxisymKinematicLinear
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymKinematicLinear);
+    /// Counted pointer of AxisymSmallDisplacement
+    KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymKinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry);
-    AxisymKinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymSmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymSmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~AxisymKinematicLinear() override;
+    ~AxisymSmallDisplacement() override;
 
     ///@}
     ///@name Operators
@@ -121,7 +121,7 @@ protected:
     ///@name Protected Operators
     ///@{
     
-    AxisymKinematicLinear() : KinematicLinear()
+    AxisymSmallDisplacement() : SmallDisplacement()
     {
     }
     
@@ -209,12 +209,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //AxisymKinematicLinear& operator=(const AxisymKinematicLinear& rOther);
+    //AxisymSmallDisplacement& operator=(const AxisymSmallDisplacement& rOther);
     /// Copy constructor.
-    //AxisymKinematicLinear(const AxisymKinematicLinear& rOther);
+    //AxisymSmallDisplacement(const AxisymSmallDisplacement& rOther);
     ///@}
 
-}; // Class AxisymKinematicLinear
+}; // Class AxisymSmallDisplacement
 
 ///@}
 ///@name Type Definitions
@@ -225,4 +225,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_KINEMATIC_LINEAR_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED  defined 
