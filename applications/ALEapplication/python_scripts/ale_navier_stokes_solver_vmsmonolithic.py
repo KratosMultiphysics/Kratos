@@ -49,7 +49,7 @@ class ALENavierStokesSolverVMSMonolithic(navier_stokes_solver_vmsmonolithic.Navi
 
     def Solve(self):
         self.GetMeshMotionSolver().Solve()
-        self.GetFluidSolver.Solve()
+        self.GetFluidSolver().Solve()
 
     def MoveMesh(self):
         self.GetMeshMotionSolver().MoveMesh()
