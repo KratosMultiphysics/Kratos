@@ -204,10 +204,10 @@ public:
                 }
             }
 
-            if(DispSolutionNorm == 0.0)
-            {
-                DispSolutionNorm = 1.0;
-            }
+            if(DispIncreaseNorm == 0.0) DispIncreaseNorm = 1.0;
+            if(LMIncreaseNorm == 0.0) LMIncreaseNorm = 1.0;
+            if(DispSolutionNorm == 0.0) DispSolutionNorm = 1.0;
+
             if(LMSolutionNorm == 0.0)
             {
                 LMSolutionNorm = 1.0;

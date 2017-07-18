@@ -208,6 +208,7 @@ public:
                 }
             }
 
+            if(LMIncreaseNorm == 0.0) LMIncreaseNorm = 1.0;
             if(LMSolutionNorm == 0.0)
             {
                 LMSolutionNorm = 1.0;
@@ -226,21 +227,22 @@ public:
             // We initialize the solution
             if (mInitialResidualIsSet == false)
             {
-                mDispInitialResidualNorm = DispResidualSolutionNorm;
+                if (DispResidualSolutionNorm == 0.0)
+                {
+                    mDispInitialResidualNorm = 1.0;
+                }
+                else
+                {
+                    mDispInitialResidualNorm = DispResidualSolutionNorm;
+                }
+                
                 ResidualDispRatio = 1.0;
                 mInitialResidualIsSet = true;
             }
             
             // We calculate the ratio of the displacements
-            if(mDispInitialResidualNorm == 0.0)
-            {
-                ResidualDispRatio = 0.0;
-            }
-            else
-            {
-                ResidualDispRatio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
-            }
-            
+            ResidualDispRatio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
+
             // We calculate the absolute norms
             TDataType ResidualDispAbs = mDispCurrentResidualNorm/DispDofNum;
 

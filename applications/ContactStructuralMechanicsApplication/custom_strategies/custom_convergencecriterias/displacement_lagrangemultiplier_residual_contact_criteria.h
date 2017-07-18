@@ -213,32 +213,32 @@ public:
             // We initialize the solution
             if (mInitialResidualIsSet == false)
             {
-                mDispInitialResidualNorm = DispResidualSolutionNorm;
-                mLMInitialResidualNorm = LMResidualSolutionNorm;
+                if (DispResidualSolutionNorm == 0.0)
+                {
+                    mDispInitialResidualNorm = 1.0;
+                }
+                else
+                {
+                    mDispInitialResidualNorm = DispResidualSolutionNorm;
+                }
+                if (LMResidualSolutionNorm == 0.0)
+                {
+                    mLMInitialResidualNorm = 1.0;
+                }
+                else
+                {
+                    mLMInitialResidualNorm = LMResidualSolutionNorm;
+                }
                 ResidualDispRatio = 1.0;
                 ResidualLMRatio = 1.0;
                 mInitialResidualIsSet = true;
             }
             
             // We calculate the ratio of the displacements
-            if(mDispInitialResidualNorm == 0.0)
-            {
-                ResidualDispRatio = 0.0;
-            }
-            else
-            {
-                ResidualDispRatio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
-            }
+            ResidualDispRatio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
             
             // We calculate the ratio of the LM
-            if(mLMInitialResidualNorm == 0.0)
-            {
-                ResidualLMRatio = 0.0;
-            }
-            else
-            {
-                ResidualLMRatio = mLMCurrentResidualNorm/mLMInitialResidualNorm;
-            }
+            ResidualLMRatio = mLMCurrentResidualNorm/mLMInitialResidualNorm;
 
             if (mEnsureContact == true)
             {
