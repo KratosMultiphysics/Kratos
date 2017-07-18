@@ -449,7 +449,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -1640,7 +1640,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrent
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     //ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
     //compute element kinematics B, F, DN_DX ...
@@ -2700,7 +2700,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix&
 ////set constitutive law flags:
 //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+//ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 
