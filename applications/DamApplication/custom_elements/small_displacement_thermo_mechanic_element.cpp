@@ -334,7 +334,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
         
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
 	
         //reading integration points

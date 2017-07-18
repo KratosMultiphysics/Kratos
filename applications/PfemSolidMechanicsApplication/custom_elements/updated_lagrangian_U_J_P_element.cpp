@@ -382,7 +382,7 @@ namespace Kratos
          //set constitutive law flags:
          Flags &ConstitutiveLawOptions = Values.GetOptions();
 
-         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
          ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
          // for integration points
@@ -1993,7 +1993,7 @@ namespace Kratos
       //set constitutive law flags:
       Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 

@@ -118,9 +118,9 @@ void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Paramet
       }  
 
     }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRAIN)){ //This should be COMPUTE_THERMAL_STRAIN
+    else if(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)){ //This should be COMPUTE_THERMAL_STRAIN
 
-      // COMPUTE_STRAIN
+      // USE_ELEMENT_PROVIDED_STRAIN
       if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY)){
 
 	double Temperature;

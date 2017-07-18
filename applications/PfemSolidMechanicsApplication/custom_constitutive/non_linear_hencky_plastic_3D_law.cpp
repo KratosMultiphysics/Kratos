@@ -149,7 +149,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     ElasticVariables.CauchyGreenMatrix = mElasticLeftCauchyGreen;
 
     //4.-Almansi Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);

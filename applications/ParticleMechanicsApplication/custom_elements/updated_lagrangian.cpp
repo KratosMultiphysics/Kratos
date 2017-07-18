@@ -487,6 +487,62 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
 
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        
+       
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+        
+        //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        
+        
+        //auxiliary terms
+        Vector VolumeForce;
+        
+        
+        //compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables,rCurrentProcessInfo);
+        
+        //set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables,Values);
+        
+        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+        
+        //this->SetValue(MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
+        //this->SetValue(MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
+        
+        //at the first iteration I recover the previous state of stress and strain
+        //if(rCurrentProcessInfo[NL_ITERATION_NUMBER] == 1)
+        //{
+            //this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
+            //this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
+        //}
+        //the MP density is updated
+        double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
+        this->SetValue(MP_DENSITY, MP_Density);
+        //if(this->Id() == 1786 || this->Id() == 1836)
+            //{
+                //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
+            //}
+        
+        //the integration weight is evaluated
+        double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
+        
+        //this->SetValue(MP_DENSITY, MP_Density);
+        this->SetValue(MP_VOLUME, MP_Volume);
+        
+        
+        
+        
+        if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        {
+        
         //contributions to stiffness matrix calculated on the reference config
         this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_Volume );
 
@@ -1438,19 +1494,8 @@ void UpdatedLagrangian::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcess
 ////************************************************************************************
 ////************************************************************************************
 
-void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-    //const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    //unsigned int voigtsize  = 3;
-    //array_1d<double,3> NodalStress;
-    //if( dimension == 3 )
-    //{
-    //voigtsize  = 6;
-    //array_1d<double,6> NodalStress;
-    //}
-    //Vector NodalStress = ZeroVector(voigtsize);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     //create and initialize element variables:
     GeneralVariables Variables;
@@ -2328,8 +2373,8 @@ Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
 //GeneralVariables Variables;
 //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-////create constitutive law parameters:
-//ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 ////set constitutive law flags:
 //Flags &ConstitutiveLawOptions=Values.GetOptions();
