@@ -248,7 +248,8 @@ public:
 
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        data.charVel = rCurrentProcessInfo[CHARACTERISTIC_VELOCITY];
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
@@ -329,7 +330,8 @@ public:
 
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        data.charVel = rCurrentProcessInfo[CHARACTERISTIC_VELOCITY];
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
