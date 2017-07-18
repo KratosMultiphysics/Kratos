@@ -979,7 +979,7 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -1105,7 +1105,7 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
         //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         ////std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-        //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        //ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
