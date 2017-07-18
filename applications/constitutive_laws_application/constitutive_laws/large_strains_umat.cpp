@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "includes/define.h"
-#include "constitutive_laws/umat.h"
+#include "constitutive_laws/large_strains_umat.h"
 
 
 //#include "includes/constitutive_law.h"
@@ -72,11 +72,11 @@ namespace Kratos
 
 
    //constructor:
-   Umat::Umat() : HyperElastic3DLaw() {}
+   LargeStrainsUmat::LargeStrainsUmat() : HyperElastic3DLaw() {}
 
 
    //destructor:
-   Umat::~Umat()
+   LargeStrainsUmat::~LargeStrainsUmat()
    {
    }
 
@@ -86,12 +86,15 @@ namespace Kratos
    // Additionally, looking at mises_umat it can be seen that NDI == 3, since in the calculation of J2 all the three stress components are used.
    // I think it is better to use the philosophy of ConstitutiveModelsApplication, with laws and models 
    // (this is a model)
-   void Umat::InitializeMaterial( const Properties& props,
+   void LargeStrainsUmat::InitializeMaterial( const Properties& props,
          const GeometryType& geom,
          const Vector& ShapeFunctionsValues )
    {
 
       KRATOS_TRY
+
+      mPreviousDeformationGradient = identity_matrix<double>(3);
+
 
       // 1. Define sizes of vectors
       int NDI[1]; NDI[0] = 3;
@@ -185,7 +188,7 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   void Umat::InitializeSolutionStep( const Properties& props,
+   void LargeStrainsUmat::InitializeSolutionStep( const Properties& props,
          const GeometryType& geom,
          const Vector& ShapeFunctionsValues ,
          const ProcessInfo& CurrentProcessInfo )
@@ -193,7 +196,7 @@ namespace Kratos
       //does nothing
    }
 
-   void Umat::LoadPreviousInformation()
+   void LargeStrainsUmat::LoadPreviousInformation()
    {
       KRATOS_TRY
 
@@ -207,7 +210,7 @@ namespace Kratos
    }
 
 
-   void Umat::CalculateMaterialResponseCauchy(  Parameters & rValues)
+   void LargeStrainsUmat::CalculateMaterialResponseCauchy(  Parameters & rValues)
    {
 
       KRATOS_TRY
@@ -225,9 +228,10 @@ namespace Kratos
       Flags &Options=rValues.GetOptions();
 
       const ProcessInfo & rCurrentProcessInfo = rValues.GetProcessInfo();
+      const Matrix& DeformationGradientF     = rValues.GetDeformationGradientF();
 
-      const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-      const Vector& rStrainVector            = rValues.GetStrainVector();
+      const Properties& MaterialProperties   = rValues.GetMaterialProperties();
+      //const Vector& rStrainVector            = rValues.GetStrainVector();
       Vector& rStressVector                  = rValues.GetStressVector();
       Matrix& rConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
@@ -269,7 +273,7 @@ namespace Kratos
          if ( MaterialNumber[0] == 0 || MaterialNumber[0] == 1 )
          {
             //DSTRAN[i] = rStrainVector[i] - STATEV_FINALIZED[i] - STATEV_FINALIZED[i+6];
-            DSTRAN[i] = rStrainVector(i) - STRAN_FINALIZED[i];
+            //DSTRAN[i] = rStrainVector(i) - STRAN_FINALIZED[i];
          }
 
          for ( int j = 0; j < NTENS[0]; j++ )
@@ -278,8 +282,34 @@ namespace Kratos
          }
       }
 
-      Matrix AlgorithmicTangent = ZeroMatrix(6,6);
-      Vector StressVector = ZeroVector(6);
+      // Compute f_n^n+1
+      Matrix RelativeDeformationGradient = ZeroMatrix(3);
+
+      double det;
+      MathUtils<double>::InvertMatrix( mPreviousDeformationGradient, RelativeDeformationGradient, det);
+      RelativeDeformationGradient = prod( DeformationGradientF, RelativeDeformationGradient);
+
+      // project previous stress
+      Matrix PreviousStressTensor = ZeroMatrix(3);
+      Vector StressVectorAUX = ZeroVector(6);
+      for (unsigned int i = 0; i < 6; i++)
+         StressVectorAUX(i) = STRESS_FINALIZED[i];
+      PreviousStressTensor = MathUtils<double>::StressVectorToTensor( StressVectorAUX);
+      PreviousStressTensor = prod( RelativeDeformationGradient, Matrix( prod( PreviousStressTensor, trans(RelativeDeformationGradient) ) ));
+      StressVectorAUX = MathUtils<double>::StressTensorToVector( PreviousStressTensor, 6 );
+      for (unsigned int i = 0; i < 6; i++)
+         STRESS[i] = StressVectorAUX(i);
+
+      // compute delta strain
+      Matrix AuxMatrix = ZeroMatrix(3);
+      MathUtils<double>::InvertMatrix( RelativeDeformationGradient, AuxMatrix, det);
+      Matrix StrainMatrix = identity_matrix<double> (3);
+
+      StrainMatrix -= prod( trans(AuxMatrix), AuxMatrix);
+      Vector StrainVectorAux = ZeroVector(6);
+      StrainVectorAux = MathUtils<double>::StrainTensorToVector( StrainMatrix, 6);
+      for (unsigned int i = 0; i < 6;i++)
+         DSTRAN[i] = StrainVectorAux(i) / 2.0;
 
       // NOTE: parameters that are not required by the umat implementations used so far are given as NULL pointers
       // if any new umat is implemented, please check the required parameters and add them accordingly
@@ -293,7 +323,10 @@ namespace Kratos
             TIM, DTIME, NULL, NULL, NULL, NULL, NULL, NDI, NSHR, NTENS, NSTATV, PROPS, NPROPS,
             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NPT, NULL, NULL, NULL, NULL, MaterialNumber );
 
+
       //copy variables back
+      Matrix AlgorithmicTangent = ZeroMatrix(6,6);
+      Vector StressVector = ZeroVector(6);
       for ( int i = 0; i < NTENS[0]; i++ )
       {
          for ( int j = 0; j < NTENS[0]; j++ )
@@ -320,7 +353,7 @@ namespace Kratos
 
 
 
-   void Umat::FinalizeMaterialResponseCauchy( Parameters & rValues)
+   void LargeStrainsUmat::FinalizeMaterialResponseCauchy( Parameters & rValues)
    {
       KRATOS_TRY
 
@@ -328,10 +361,12 @@ namespace Kratos
       for (unsigned int i = 0; i < 6; i++)
          STRAN_FINALIZED[i] = rStrainVector(i);
 
+      const Matrix& DeformationGradientF     = rValues.GetDeformationGradientF();
+      mPreviousDeformationGradient = DeformationGradientF;
       KRATOS_CATCH("")
    }
 
-   void Umat::FinalizeSolutionStep( const Properties& props,
+   void LargeStrainsUmat::FinalizeSolutionStep( const Properties& props,
          const GeometryType& geom,
          const Vector& ShapeFunctionsValues ,
          const ProcessInfo& CurrentProcessInfo )
@@ -347,12 +382,12 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   int Umat::Check(const Properties& rMaterialProperties, const GeometryType & rElementGeometry, const ProcessInfo & rCurrentProcessInfo)
+   int LargeStrainsUmat::Check(const Properties& rMaterialProperties, const GeometryType & rElementGeometry, const ProcessInfo & rCurrentProcessInfo)
    {
       return 0;
    }
 
-   void Umat::GetLawFeatures(Features& rFeatures)
+   void LargeStrainsUmat::GetLawFeatures(Features& rFeatures)
    {
       //Set the type of law
       rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );

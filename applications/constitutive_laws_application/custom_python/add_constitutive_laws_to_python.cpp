@@ -32,6 +32,7 @@
 #include "custom_python/add_constitutive_laws_to_python.h"
 //constitutive laws
 #include "constitutive_laws/umat.h"
+#include "constitutive_laws/large_strains_umat.h"
 
 namespace Kratos
 {
@@ -48,6 +49,9 @@ void  AddConstitutiveLawsToPython()
 {
     class_< Umat, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "Umat", init<>() )
+    ;
+    class_< LargeStrainsUmat, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LargeStrainsUmat", init<>() )
     ;
 }
 }  // namespace Python.
