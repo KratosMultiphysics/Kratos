@@ -1382,6 +1382,7 @@ namespace Kratos
 		//ELEMENT TRANSFER CHECK//
 	      }
 
+	    temporal_elements.clear();
 	    //std::cout<<" on distances "<<on_distance<<" on connectitivies "<<on_connectivities<<" same selection "<<same_selection<<std::endl;
 	    //std::cout<<" [ MOVED TRANSFERS: "<<moved_transfers<<" ]"<<std::endl;
 	    //std::cout<<" [ Finished ELEMENT to ELEMENT Transfer ]"<<std::endl;

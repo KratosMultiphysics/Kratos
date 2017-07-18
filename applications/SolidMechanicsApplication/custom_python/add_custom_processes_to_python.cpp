@@ -33,6 +33,8 @@
 #include "custom_processes/fix_scalar_dof_process.h"
 #include "custom_processes/free_scalar_dof_process.h"
 #include "custom_processes/add_dofs_process.h"
+#include "custom_processes/apply_rigid_body_rotation_to_nodes_process.h"
+#include "custom_processes/apply_rigid_body_rotation_field_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -188,6 +190,28 @@ namespace Kratos
 
       	;
 
+
+      //**********APPLY RIGID BODY ROTATION*********//
+
+      class_<ApplyRigidBodyRotationToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "ApplyRigidBodyRotationToNodesProcess", init<ModelPart&, Parameters>()
+      	)
+        .def(init< ModelPart&, Parameters& >())
+        .def("Execute", &ApplyRigidBodyRotationToNodesProcess::Execute)
+
+      	;
+
+      
+      class_<ApplyRigidBodyRotationFieldToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "ApplyRigidBodyRotationFieldToNodesProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
+      	)
+	.def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
+        .def("Execute", &ApplyRigidBodyRotationFieldToNodesProcess::Execute)
+
+      	;
+      
     }
  
   }  // namespace Python.
