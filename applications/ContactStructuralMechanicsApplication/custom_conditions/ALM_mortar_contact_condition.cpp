@@ -22,8 +22,8 @@
 
 /* Utilities */
 #include "utilities/math_utils.h"
-#include "custom_utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/search_utilities.h"
+#include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos 
 {
@@ -489,11 +489,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     // Create the mortar operators
     MortarConditionMatrices rThisMortarConditionMatrices;
     
-    // Compute Ae and its derivative
-    const bool dual_LM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo); 
-    
     // We call the exact integration utility
-    ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(mIntegrationOrder);
+    ExactMortarIntegrationUtility<TDim, TNumNodes>  integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes> (mIntegrationOrder);
     
     // Iterate over the master segments
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
@@ -507,10 +504,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             ConditionArrayListType conditions_points_slave;
             const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
             
-            IntegrationMethod this_integration_method = GetIntegrationMethod();
-            
             if (is_inside == true)
             {            
+                IntegrationMethod this_integration_method = GetIntegrationMethod();
+                
                 // Initialize general variables for the current master element
                 rVariables.Initialize();
                 
@@ -525,6 +522,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 //                     // Compute the normal derivatives of the master
 //                     this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
 //                 }
+                
+                const bool dual_LM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo, pair_index, conditions_points_slave, this_integration_method, master_normal);
                 
                 for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
@@ -640,97 +639,70 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateAeAndDeltaAe(
     DerivativeDataType& rDerivativeData,
     GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo,
+    const unsigned int PairIndex,
+    ConditionArrayListType& ConditionsPointsSlave,
+    IntegrationMethod ThisIntegrationMethod,
+    const array_1d<double, 3>& MasterNormal
     )
 {
-    bool is_integrated = false; 
-    
     // We initilize the Ae components
     AeData rAeData;
     rAeData.Initialize();
     
     rDerivativeData.InitializeDeltaAeComponents();
-    
-    // We call the exact integration utility
-    ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(mIntegrationOrder);
-    
-    for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
-    {
-        if (mThisMasterElementsActive[pair_index] == true)
-        {
-            // The normal of the master condition
-            const array_1d<double, 3>& master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
 
-            // Reading integration points
-            ConditionArrayListType conditions_points_slave;
-            const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
+    // Initialize general variables for the current master element
+    rVariables.Initialize();
+    
+    // Update slave element info
+    rDerivativeData.UpdateMasterPair(mThisMasterElements[PairIndex]);
+    
+    for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
+    {
+        std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+        for (unsigned int i_node = 0; i_node < TDim; i_node++)
+        {
+            PointType global_point;
+            GetGeometry().GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
+            points_array[i_node] = boost::make_shared<PointType>(global_point);
+        }
+        
+        DecompositionType decomp_geom( points_array );
+        
+        const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+        
+        if (bad_shape == false)
+        {
+            Matrix delta_position;
+            delta_position = CalculateDeltaPosition(delta_position, ConditionsPointsSlave[i_geom]);
             
-            IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+            const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
             
-            if (is_inside == true)
+            // Integrating the mortar operators
+            for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
             {
-                is_integrated = true;
+                const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                PointType local_point_parent;
+                PointType gp_global;
+                decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                 
-                // Initialize general variables for the current master element
-                rVariables.Initialize();
+                // Calculate the kinematic variables
+                this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, PairIndex, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                 
-                // Update slave element info
-                rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
+                // Update the derivative of DetJ
+                this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
                 
-                for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
-                {
-                    std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                    for (unsigned int i_node = 0; i_node < TDim; i_node++)
-                    {
-                        PointType global_point;
-                        GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                        points_array[i_node] = boost::make_shared<PointType>(global_point);
-                    }
-                    
-                    DecompositionType decomp_geom( points_array );
-                    
-                    const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
-                    
-                    if (bad_shape == false)
-                    {
-                        Matrix delta_position;
-                        delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
-                        
-                        const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
-                        
-                        // Integrating the mortar operators
-                        for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
-                        {
-                            const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
-                            PointType local_point_parent;
-                            PointType gp_global;
-                            decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                            GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
-                            
-                            // Calculate the kinematic variables
-                            this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
-                            
-                            // Update the derivative of DetJ
-                            this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
-                            
-                            // Integrate
-                            const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
-                            
-                            rAeData.CalculateDeltaAeComponents(rVariables, rDerivativeData, integration_weight);
-                        }
-                    }
-                }
+                // Integrate
+                const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
+                
+                rAeData.CalculateDeltaAeComponents(rVariables, rDerivativeData, integration_weight);
             }
         }
     }
     
-    // We can consider the pair if at least one integration point is considered
-    if (is_integrated == true)
-    {
-        return rAeData.CalculateDeltaAe(rDerivativeData);
-    }
-    
-    return false;
+    return rAeData.CalculateDeltaAe(rDerivativeData);
 }
 
 /*********************************COMPUTE KINEMATICS*********************************/

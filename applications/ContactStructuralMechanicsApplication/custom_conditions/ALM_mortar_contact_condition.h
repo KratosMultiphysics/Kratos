@@ -545,7 +545,11 @@ protected:
     bool CalculateAeAndDeltaAe( 
         DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        const unsigned int PairIndex,
+        ConditionArrayListType& ConditionsPointsSlave,
+        IntegrationMethod ThisIntegrationMethod,
+        const array_1d<double, 3>& MasterNormal
         );
     
     /**
