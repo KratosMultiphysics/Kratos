@@ -26,6 +26,7 @@
 
 #include "includes/constitutive_law.h"
 #include "constitutive_laws/umat.h"
+#include "constitutive_laws/large_strains_umat.h"
 
 namespace Kratos
 {
@@ -185,6 +186,7 @@ private:
 
 
     const Umat mUmatLaw;
+    const LargeStrainsUmat mLargeStrainsUmatLaw;
 
     ///@}
     ///@name Member Variables
