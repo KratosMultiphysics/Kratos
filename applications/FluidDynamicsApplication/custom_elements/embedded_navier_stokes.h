@@ -1354,8 +1354,8 @@ protected:
         const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BtransAtrans = prod(trans(B_matrix_exp), trans(voigt_normal_projection_matrix));
         const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tangential_projection_matrix);
         const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix_exp);
-        const bounded_matrix<double, (TDim-1)*3, TDim> aux_matrix_ACB = prod(voigt_normal_projection_matrix, aux_matrix_CB);
-        const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BtransAtransPtanACB = prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+        const bounded_matrix<double, TDim, MatrixSize> aux_matrix_ACB = prod(voigt_normal_projection_matrix, aux_matrix_CB);
+        const bounded_matrix<double, MatrixSize, MatrixSize> aux_matrix_BtransAtransPtanACB = prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
 
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
