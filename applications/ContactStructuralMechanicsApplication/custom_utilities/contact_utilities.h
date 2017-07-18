@@ -419,6 +419,78 @@ public:
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
+            noalias(it_node->GetValue(NORMAL)) = zero_vect;
+        }
+        
+        // Aux coordinates
+        CoordinatesArrayType aux_coords;
+        aux_coords.clear();
+        
+        // Sum all the nodes normals
+        ConditionsArrayType& conditions_array = rModelPart.Conditions();
+        const int numConditions = static_cast<int>(conditions_array.size());
+        
+        #pragma omp parallel for
+        for(int i = 0; i < numConditions; i++) 
+        {
+            auto it_cond = conditions_array.begin() + i;
+            
+            if (it_cond->Is(SLAVE) || it_cond->Is(MASTER) || it_cond->Is(ACTIVE))
+            {
+                array_1d<double, 3>& rNormal = it_cond->GetValue(NORMAL);
+                rNormal = it_cond->GetGeometry().Normal(aux_coords);
+                
+                const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
+                
+                for (unsigned int i = 0; i < number_nodes; i++)
+                {
+                    #pragma omp critical
+                    noalias( it_cond->GetGeometry()[i].GetValue(NORMAL) ) += rNormal;
+                }
+            }
+        }
+        
+        if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
+        {
+            // Applied laziness - MUST be calculated BEFORE normalizing the normals
+            ComputeDeltaNodesMeanNormalModelPart( rModelPart ); 
+        }
+
+        #pragma omp parallel for 
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+
+            const double norm_normal = norm_2(it_node->GetValue(NORMAL));
+            
+            if (norm_normal > tolerance)
+            {
+                it_node->GetValue(NORMAL) /= norm_normal;
+            }
+        }
+    }
+    
+    /**
+     * It computes the mean of the normal in the condition in all the nodes using the area to weight it
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the normal computed
+     */
+    
+    static inline void ComputeNodesMeanNormalAreaWeightedModelPart(ModelPart & rModelPart) 
+    {
+        // Tolerance
+        const double tolerance = std::numeric_limits<double>::epsilon();
+
+        // Initialize normal vectors
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+        
+        NodesArrayType& nodes_array = rModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
+        
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
             it_node->GetValue(NODAL_AREA)      = 0.0;
             noalias(it_node->GetValue(NORMAL)) = zero_vect;
         }
@@ -459,7 +531,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
 
-            const double total_area = it_node->GetValue(NODAL_AREA);
+            const double& total_area = it_node->GetValue(NODAL_AREA);
             if (total_area > tolerance)
             {
                 it_node->GetValue(NORMAL) /= total_area;
