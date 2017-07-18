@@ -67,7 +67,7 @@ public:
 
     StressMeasure GetStressMeasure()
     {
-        return StressMeasure_Kirchhoff;
+        return StressMeasure_Cauchy;
     }
 
 
@@ -89,7 +89,9 @@ public:
 
 
 
-    virtual void CalculateMaterialResponseKirchhoff( Parameters & rValues) override;
+    virtual void CalculateMaterialResponseCauchy( Parameters & rValues) override;
+
+    virtual void  FinalizeMaterialResponseCauchy( Parameters & rValues) override;
 
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -102,19 +104,20 @@ private:
     //member variables for umat
     double* STRESS;
     double* STATEV;
-    double* PROPS;
+
+    double* STRESS_FINALIZED;
+    double* STATEV_FINALIZED;
+
+    double* STRAN_FINALIZED; 
+
     int* NSTATV;
+
+    double* PROPS;
     int* NPROPS;
 
-    double* STRESS_END;
-    double* STATEV_END;
-
     //static member variables for umat
-    double* STRAN;
-    double* DSTRAN;
-    int* NDI;
-    int* NSHR;
-    int* NTENS;
+    //double* STRAN;
+    //double* DSTRAN;
 
 
     //variable for wrapper
