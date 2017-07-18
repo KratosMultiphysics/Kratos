@@ -175,6 +175,53 @@ namespace Kratos
     ///@name Access
     ///@{
         
+    virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
+			  const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // A method to compute the initial linear strain from the stress is needed
+      //if(rThisVariable == INITIAL_STRESS_VECTOR)
+	
+      // A method to compute the initial linear strain from the stress is needed
+      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
+      //   mStrainVector = rValue;
+      // }
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+			  const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // A method to compute the initial linear strain from the stress is needed
+      //if(rThisVariable == INITIAL_STRESS_VECTOR)
+	
+      // A method to compute the initial linear strain from the stress is needed
+      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
+      //   mStrainVector = rValue;
+      // }
+
+      KRATOS_CATCH(" ")
+    }
+    
+    /**
+     * method to ask the plasticity model the list of variables (dofs)  needed from the domain
+     * @param rScalarVariables : list of scalar dofs
+     * @param rComponentVariables :  list of vector dofs
+     */
+    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    {
+      KRATOS_TRY
+
+      rComponentVariables.push_back(DISPLACEMENT);
+ 	
+      KRATOS_CATCH(" ")
+    }
     
     ///@}
     ///@name Inquiry
