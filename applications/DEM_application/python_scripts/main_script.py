@@ -39,6 +39,7 @@ class Solution(object):
         self.SetAnalyticParticleWatcher()
 
         self.procedures.CheckInputParameters(DEM_parameters)
+        self.PreUtilities = PreUtilities()
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
@@ -153,6 +154,12 @@ class Solution(object):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
+
+    def FillAnalyticSubModelPartsWithNewParticles(self):
+        self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
+        self.PreUtilities.FillAnalyticSubModelPartUtility(self.spheres_model_part, self.analytic_model_part)
+        #analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
+        #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
         self.AddVariables()
@@ -344,11 +351,13 @@ class Solution(object):
         pass
 
     def BeforeSolveOperations(self):
-        pass
+        if (hasattr(DEM_parameters, "PostNormalImpactVelocity")):
+            if (DEM_parameters.PostNormalImpactVelocity):
+                self.FillAnalyticSubModelPartsWithNewParticles()
 
     def AfterSolveOperations(self):
-        if (hasattr(DEM_parameters, "AnalyticParticle")):
-            if (DEM_parameters.AnalyticParticle):
+        if (hasattr(DEM_parameters, "PostNormalImpactVelocity")):
+            if (DEM_parameters.PostNormalImpactVelocity):
                 self.particle_watcher.MakeMeasurements(self.analytic_model_part)
                 time_to_print = self.time - self.time_old_print
                 if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * self.dt):
