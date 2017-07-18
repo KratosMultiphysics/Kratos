@@ -47,7 +47,7 @@ if(cl.WorkingSpaceDimension() != dim):
 ##set the parameters to be employed
 #note that here i am adding them all to check that this does not fail
 cl_options = Flags()
-cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN, True)
+cl_options.Set(ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
 cl_options.Set(ConstitutiveLaw.COMPUTE_STRESS, True)
 cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)

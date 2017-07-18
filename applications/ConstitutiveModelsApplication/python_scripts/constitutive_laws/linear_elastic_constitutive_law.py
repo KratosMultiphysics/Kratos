@@ -56,7 +56,7 @@ class LinearElasticLaw:
         young_modulus = Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
         poisson_coefficient = Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
         
-        if(LawOptions.Is(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN) == True):
+        if(LawOptions.Is(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN) == True):
             deformation_gradient = LawParameters.GetDeformationGradientF()
             self.CalculateStrainMatrix(deformation_gradient) 
             
