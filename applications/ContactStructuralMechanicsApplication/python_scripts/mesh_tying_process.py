@@ -12,7 +12,9 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MeshTyingProcess(Model, settings["Parameters"])
 
-class MeshTyingProcess(KratosMultiphysics.Process):
+import python_process
+##all the processes python processes should be derived from "python_process"
+class MeshTyingProcess(python_process.PythonProcess):
   
     def __init__(self,model_part,params):
         

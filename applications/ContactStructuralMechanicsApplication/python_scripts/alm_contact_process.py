@@ -11,7 +11,9 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ALMContactProcess(Model, settings["Parameters"])
 
-class ALMContactProcess(KratosMultiphysics.Process):
+import python_process
+##all the processes python processes should be derived from "python_process"
+class ALMContactProcess(python_process.PythonProcess):
   
     def __init__(self,model_part,params):
         
