@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
+//    . \  |   (   | |   (   |\__ \.
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
@@ -701,6 +701,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SEARCH_RADIUS )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_WEIGHT )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
