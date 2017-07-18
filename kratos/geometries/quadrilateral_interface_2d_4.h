@@ -465,26 +465,43 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs(rResult[0]) <= (1.0+Tolerance) )
-            if ( fabs(rResult[1]) <= (1.0+Tolerance) )
+        if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
+        {
+            if ( std::abs(rResult[1]) <= (1.0+Tolerance) )
+            {
                 return true;
+            }
+        }
 
         return false;
     }
 
     /**
-    * Returns the local coordinates of a given arbitrary point
-    */
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
     // TODO: Check if correct
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint )
+            const CoordinatesArrayType& rPoint 
+            ) override
     {
         rResult.clear();
 

@@ -126,7 +126,7 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         
         #set calculation flags
         self.options = KratosMultiphysics.Flags()
-        self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN, True)
+        self.options.Set(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS, True)
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)

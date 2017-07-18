@@ -212,9 +212,9 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
       }
     }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRAIN))
+    else if(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
     {
-      // COMPUTE_STRAIN
+      // USE_ELEMENT_PROVIDED_STRAIN
       if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY))
       {
         // Thermal strain
