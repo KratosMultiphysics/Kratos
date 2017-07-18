@@ -185,7 +185,7 @@ namespace Kratos
 	
       // A method to compute the initial linear strain from the stress is needed
       // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-      //   mStrainVector = rValue;
+      //   this->mHistoryVector = rValue;
       // }
 
       KRATOS_CATCH(" ")
@@ -202,7 +202,7 @@ namespace Kratos
 	
       // A method to compute the initial linear strain from the stress is needed
       // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-      //   mStrainVector = rValue;
+      //   this->mHistoryVector = rValue;
       // }
 
       KRATOS_CATCH(" ")
@@ -364,7 +364,7 @@ namespace Kratos
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
     }
 
      ///@}

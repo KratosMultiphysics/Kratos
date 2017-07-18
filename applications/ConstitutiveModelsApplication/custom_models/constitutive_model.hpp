@@ -56,6 +56,11 @@ namespace Kratos
 
   public:
 
+    //state flags
+    KRATOS_DEFINE_LOCAL_FLAG( ADD_HISTORY_VECTOR );    
+    KRATOS_DEFINE_LOCAL_FLAG( HISTORY_STRAIN_MEASURE );
+    KRATOS_DEFINE_LOCAL_FLAG( HISTORY_STRESS_MEASURE );
+    
     ///@name Type Definitions
     ///@{  
     typedef ConstitutiveModelData::SizeType                    SizeType;
@@ -75,23 +80,19 @@ namespace Kratos
     ///@{
 
     /// Default constructor.    
-    ConstitutiveModel() {}
+    ConstitutiveModel();
 
     /// Copy constructor.
-    ConstitutiveModel(ConstitutiveModel const& rOther) {}
+    ConstitutiveModel(ConstitutiveModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const
-    {
-      return ( ConstitutiveModel::Pointer(new ConstitutiveModel(*this)) );
-    }
-
+    virtual ConstitutiveModel::Pointer Clone() const;
+    
     /// Assignment operator.
-    ConstitutiveModel& operator=(ConstitutiveModel const& rOther) {return *this;}
-
+    ConstitutiveModel& operator=(ConstitutiveModel const& rOther);
 
     /// Destructor.
-    virtual ~ConstitutiveModel(){}
+    virtual ~ConstitutiveModel();
 
 
     ///@}
@@ -106,102 +107,54 @@ namespace Kratos
     /**
      * Initialize member data
      */    
-    virtual void InitializeModel(ModelDataType& rValues)
-    {
-      KRATOS_TRY
-	
-      KRATOS_ERROR << "calling ConstitutiveModel Initialize base class " << std::endl;
-
-      KRATOS_CATCH(" ")
-    }
+    virtual void InitializeModel(ModelDataType& rValues);
 
     /**
      * Finalize member data
      */    
-    virtual void FinalizeModel(ModelDataType& rValues)
-    {
-      KRATOS_TRY
-
-      KRATOS_ERROR << "calling ConstitutiveModel Finalize base class " << std::endl;	
-
-      KRATOS_CATCH(" ")
-    }
+    virtual void FinalizeModel(ModelDataType& rValues);
 
     
     /**
      * Calculate Strain Energy Density Functions
      */
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
-    
-      
+    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction);
+
+          
     /**
      * Calculate Stresses
      */    
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix);
 
-    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix);
     
-    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix);
 
     
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive) 
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive);
     
-    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive) 
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive); 
     
-    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive) 
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive); 
 
     
     /**
      * Calculate Stress and Constitutive Tensor
      */
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive);
     
-    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive);
     
-    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-    }
+    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive);
 
     
     /**
      * Check
      */    
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
-    {
-      KRATOS_ERROR << "calling ConstitutiveModel base class " << std::endl;
-      return 0;
-    }
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo);
     
     ///@}
     ///@name Access
@@ -210,25 +163,24 @@ namespace Kratos
     /**
      * Has Values
      */   
-    virtual bool Has(const Variable<double>& rThisVariable) {return false;}
+    virtual bool Has(const Variable<double>& rThisVariable);
     
     /**
      * Set Values
      */
     virtual void SetValue(const Variable<double>& rVariable, const double& rValue,
-			  const ProcessInfo& rCurrentProcessInfo) {}
+			  const ProcessInfo& rCurrentProcessInfo);
 
     virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
-			  const ProcessInfo& rCurrentProcessInfo ) {}
+			  const ProcessInfo& rCurrentProcessInfo);
 
     virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-			  const ProcessInfo& rCurrentProcessInfo ) {}
+			  const ProcessInfo& rCurrentProcessInfo);
     
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) { rValue=0; return rValue;}   
-
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
     
     /**
      * method to ask the constituitve model the list of variables (dofs) needed from the domain
@@ -236,14 +188,7 @@ namespace Kratos
      * @param rComponentVariables :  list of vector dofs
      */
     virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
-					std::vector<Variable<array_1d<double,3> > >& rComponentVariables)
-    {
-      KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the Constitutive Model base class Variables List... illegal operation" << std::endl;
-	
-      KRATOS_CATCH(" ")
-    }
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables);
     
     ///@}
     ///@name Inquiry
@@ -291,6 +236,10 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
+    Flags mOptions;
+    
+    //initial or historical strains/stresses    
+    VectorType mHistoryVector;
     
     ///@}
     ///@name Protected Operators
@@ -353,10 +302,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
+      rSerializer.save("mHistoryVector",mHistoryVector);
     }
 
     virtual void load(Serializer& rSerializer)
     {
+      rSerializer.load("mHistoryVector",mHistoryVector);
     }
 
     ///@}

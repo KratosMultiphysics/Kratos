@@ -311,7 +311,7 @@ namespace Kratos
 	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
 	
 	//historical strain matrix
-	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 	
 	//current strain matrix
 	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeformationGradientF);
@@ -319,7 +319,7 @@ namespace Kratos
 
 	ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rValues.StrainMatrix, rVariables.Strain.Matrix);  
 
-	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);       
+	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);       
 	
       }
       else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = GreenLagrangeTensor
@@ -328,7 +328,7 @@ namespace Kratos
 	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
 	
 	//historical strain matrix
-	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 	
 	//current strain matrix
 	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeformationGradientF));
@@ -341,7 +341,7 @@ namespace Kratos
 	noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rDeformationGradientF0 );
 
 	//set as the current strain
-	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
 
 
       }
@@ -364,7 +364,7 @@ namespace Kratos
 
       noalias(rStressVector) = prod(rConstitutiveTensor,rStrainVector);
       
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
+      rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
       KRATOS_CATCH(" ")
     }
@@ -391,7 +391,7 @@ namespace Kratos
       rStressMatrix(1,1) += trace;
       rStressMatrix(2,2) += trace;
 	    
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
+      rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
       KRATOS_CATCH(" ")
     }
@@ -430,7 +430,7 @@ namespace Kratos
       rConstitutiveTensor ( 2 , 1 ) = rConstitutiveTensor ( 0 , 1 );
 
     
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+      rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
 
     
       KRATOS_CATCH(" ")

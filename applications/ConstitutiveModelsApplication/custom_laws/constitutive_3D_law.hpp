@@ -134,6 +134,32 @@ namespace Kratos
     virtual void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
 
+    
+    /**
+     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    virtual void InitializeMaterialResponsePK1 (Parameters& rValues) override;
+
+    /**
+     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    virtual void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+
+    /**
+     * Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    virtual void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
+
+    /**
+     * Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    virtual void InitializeMaterialResponseCauchy (Parameters& rValues) override;
+
+       
     /**
      * Updates the material response:
      * Cauchy stresses and Internal Variables
@@ -238,6 +264,22 @@ namespace Kratos
 
     virtual array_1d<double,6>& GetValue(const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6>& rValue) override;
 
+    /**
+     * Calculate Values
+     */
+    virtual int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue) override;
+
+    virtual double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+  
+    virtual Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    
+    virtual Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    
+    virtual array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rVariable, array_1d<double,3> & rValue) override;
+    
+    virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rVariable, array_1d<double,6> & rValue) override;
+
+    
     ///@}
     ///@name Inquiry
     ///@{

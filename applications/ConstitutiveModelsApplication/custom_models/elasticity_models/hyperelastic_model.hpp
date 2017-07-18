@@ -231,7 +231,7 @@ namespace Kratos
 	
       // A method to compute the initial linear strain from the stress is needed
       // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-      //   mStrainVector = rValue;
+      //   this->mHistoryVector = rValue;
       // }
 
       KRATOS_CATCH(" ")
@@ -248,7 +248,7 @@ namespace Kratos
 	
       // A method to compute the initial linear strain from the stress is needed
       // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-      //   mStrainVector = rValue;
+      //   this->mHistoryVector = rValue;
       // }
 
       KRATOS_CATCH(" ")
@@ -313,13 +313,10 @@ namespace Kratos
 
     const MatrixType msIdentityMatrix;
     
-    //initial or historical strains
-    VectorType    mStrainVector;
 
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
@@ -712,13 +709,11 @@ namespace Kratos
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
-      rSerializer.save("mStrainVector",mStrainVector);
     }
 
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
-      rSerializer.load("mStrainVector",mStrainVector);	
     }
 
     ///@}

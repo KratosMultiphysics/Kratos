@@ -252,7 +252,7 @@ namespace Kratos
     KRATOS_TRY
 
     //0.- Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
+    //CheckParameters(rValues);
     
     const Flags& rOptions = rValues.GetOptions();
     
@@ -264,7 +264,7 @@ namespace Kratos
 
     this->InitializeModelData(rValues, ModelValues);
     
-    //2.-Get problem variables (Temperature, Pressure, Size) and calculate material parameters
+    //2.-Calculate domain variables (Temperature, Pressure, Size) and calculate material parameters
     this->CalculateDomainVariables(rValues, ModelValues);
 
     ConstitutiveModelData::CalculateMaterialParameters(ModelValues);    
@@ -319,7 +319,7 @@ namespace Kratos
     KRATOS_TRY
  
     //0.- Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
+    //CheckParameters(rValues);
 
     const Flags& rOptions = rValues.GetOptions();
     

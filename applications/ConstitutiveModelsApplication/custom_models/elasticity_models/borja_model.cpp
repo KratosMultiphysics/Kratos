@@ -194,7 +194,7 @@ namespace Kratos
       }
 
 
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+      rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
 
       KRATOS_CATCH("")
    }

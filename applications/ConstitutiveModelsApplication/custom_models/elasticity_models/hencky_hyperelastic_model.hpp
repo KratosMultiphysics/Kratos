@@ -105,7 +105,7 @@ namespace Kratos
             const MatrixType& rDeformationGradientF  = rValues.GetDeformationGradientF();
 
             //historical strain matrix
-            rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+            rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
             rValues.StrainMatrix = prod( rDeformationGradientF, rValues.StrainMatrix);
             rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(rDeformationGradientF));
 
@@ -208,7 +208,7 @@ namespace Kratos
                rVariables.Strain.Matrix = prod( trans(EigenVectors), rVariables.Strain.Matrix);
 
 
-               rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+               rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
 
             }
             else{

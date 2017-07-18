@@ -89,7 +89,18 @@ namespace Kratos
     //set model data pointer
     rVariables.SetModelData(rValues);
     rVariables.SetState(rValues.State);     
-    
+
+    //add initial strain
+    if(this->mOptions.Is(ConstitutiveModel::ADD_HISTORY_VECTOR) && this->mOptions.Is(ConstitutiveModel::HISTORY_STRAIN_MEASURE) ){
+      VectorType StrainVector;
+      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+      for(unsigned int i=0; i<StrainVector.size(); i++)
+	{
+	  StrainVector[i] += this->mHistoryVector[i];	
+	}
+      rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
+    }
+        
     KRATOS_CATCH(" ")
   }
   
@@ -140,7 +151,7 @@ namespace Kratos
 
     noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
       
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
+    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -261,7 +272,7 @@ namespace Kratos
     rVariables.ConstitutiveTensor ( 2 , 1 ) = rVariables.ConstitutiveTensor ( 0 , 1 );
 
     
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
 
     
     KRATOS_CATCH(" ")
