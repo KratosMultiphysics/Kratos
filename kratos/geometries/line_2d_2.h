@@ -864,41 +864,33 @@ public:
         const double tol = 1e-14; // Tolerance
 
         // Normal
-        array_1d<double,2> Normal = ZeroVector(2);
+        array_1d<double,3> Normal(3, 0.0);
         Normal[0] = SecondPoint[1] -  FirstPoint[1];
         Normal[1] =  FirstPoint[0] - SecondPoint[0];
         const double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
         Normal /= norm;
 
         // Vector point and distance
-        array_1d<double,2> VectorPoint = ZeroVector(2);
+        array_1d<double,2> VectorPoint(2, 0.0);
         VectorPoint[0] = rPoint[0] - FirstPoint[0];
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
         const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
 
-//        KRATOS_WATCH(rPoint);
-//        KRATOS_WATCH(Point_projected);
-//        KRATOS_WATCH(dist_proy);
-
-        if (dist_proy < tol)
+        if (std::abs(dist_proy) < tol)
         {
+            const CoordinatesArrayType ProjectedPoint = rPoint - Normal * dist_proy;
+
             const double L  = Length();
 
-            const double l1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
-                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
+            const double l1 = std::sqrt((ProjectedPoint[0] - FirstPoint[0]) * (ProjectedPoint[0] - FirstPoint[0])
+                        + (ProjectedPoint[1] - FirstPoint[1]) * (ProjectedPoint[1] - FirstPoint[1]));
 
-            const double l2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
-                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
+            const double l2 = std::sqrt((ProjectedPoint[0] - SecondPoint[0]) * (ProjectedPoint[0] - SecondPoint[0])
+                        + (ProjectedPoint[1] - SecondPoint[1]) * (ProjectedPoint[1] - SecondPoint[1]));
 
-//            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
-
-            if (l1 <= (L + tol) && l2 <= (L + tol))
+            if ((l1 <= (L + tol) && l2 <= (L + tol)) || (l1 > (L + tol)))
             {
                 rResult[0] = 2.0 * l1/(L + tol) - 1.0;
-            }
-            else if (l1 > (L + tol))
-            {
-                rResult[0] = 2.0 * l1/(L + tol) - 1.0; // NOTE: The same value as before, but it will be > than 1
             }
             else if (l2 > (L + tol))
             {
@@ -906,17 +898,15 @@ public:
             }
             else
             {
-                rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
+                std::cout << "First line point coordinates:       X: " << FirstPoint[0]  << " Y: " << FirstPoint[1]  << std::endl;  
+                std::cout << "Second line point coordinates:      X: " << SecondPoint[0] << " Y: " << SecondPoint[1] << std::endl;  
+                std::cout << "Point to compute local coordinates: X: " << rPoint[0]      << " Y: " << rPoint[1]      << std::endl;  
+                KRATOS_ERROR << "WARNING:: The local coordinates can not be calculated. Check the points" << std::endl;
             }
-
-        }
-        else
-        {
-            rResult[0] = 2.0; // Out of the line!!!
         }
 
         return( rResult );
-    }
+}
 
     ///@}
     ///@name Friends
