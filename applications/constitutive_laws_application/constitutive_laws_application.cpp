@@ -30,6 +30,7 @@ void KratosConstitutiveLawsApplication::Register()
     std::cout << "Initializing KratosConstitutiveLawsApplication... " << std::endl;
 
     Serializer::Register( "UmatLaw" , mUmatLaw);
+    Serializer::Register( "LargeStrainsUmatLaw" , mLargeStrainsUmatLaw);
 
 }
 
