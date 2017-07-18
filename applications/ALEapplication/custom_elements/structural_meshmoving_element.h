@@ -179,8 +179,6 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector);
-
     ///@}
     ///@name Access
     ///@{
