@@ -254,6 +254,7 @@ void AddCustomUtilitiesToPython() {
         .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
         .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
         .def("BreakBondUtility", &PreUtilities::BreakBondUtility)
+        .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
         ;
          
     class_<PostUtilities, boost::noncopyable >

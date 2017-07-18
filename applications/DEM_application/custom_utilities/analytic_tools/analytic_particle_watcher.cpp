@@ -55,9 +55,11 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
     }
 }
 
-
 void AnalyticParticleWatcher::SetNodalMaxImpactVelocities(ModelPart& analytic_model_part)
 {
+    double normal_velocity_sum = 0.0;
+    double tangential_velocity_sum = 0.0;
+    int number_of_elements = 0;
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
         AnalyticParticle& particle = dynamic_cast<Kratos::AnalyticSphericParticle&>(*(*(i_elem.base())));
 
@@ -68,13 +70,20 @@ void AnalyticParticleWatcher::SetNodalMaxImpactVelocities(ModelPart& analytic_mo
         particle_database.GetMaxVelocities(db_normal_impact_velocity, db_tangential_impact_velocity);
 
         // get current nodal values
-        double& current_max_normal_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(NORMAL_IMPACT_VELOCITY);//set initial value somewhere
+        double& current_max_normal_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(NORMAL_IMPACT_VELOCITY);
         double& current_max_tangential_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY);
+
+        normal_velocity_sum += current_max_normal_velocity;
+        tangential_velocity_sum += current_max_tangential_velocity;
+        number_of_elements += 1;
 
         // choose max between current and database
         current_max_normal_velocity = std::max(current_max_normal_velocity, db_normal_impact_velocity);
         current_max_tangential_velocity = std::max(current_max_tangential_velocity, db_tangential_impact_velocity);
     }
+
+    //double avg_normal_impact_velocity = normal_velocity_sum/number_of_elements;
+    //double avg_tangential_impact_velocity = tangential_velocity_sum/number_of_elements;
 }
 
 

@@ -85,7 +85,6 @@ void AnalyticSphericParticle::ClearImpactMemberVariables()
 Element::Pointer AnalyticSphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer p_geom = GetGeometry().Create(ThisNodes);
-    KRATOS_WATCH(NewId)
 
     return Element::Pointer(new AnalyticSphericParticle(NewId, p_geom, pProperties));
 }
