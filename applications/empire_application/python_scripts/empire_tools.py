@@ -13,7 +13,7 @@ class EmpireTools:
       
     def ExtractInterface(self,num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
       num_nodes.append(self.model_part.NumberOfNodes())
-      num_elements.append(self.model_part.NumberOfConditions())
+      num_elements.append(self.model_part.NumberOfElements())
       
       for node in self.model_part.Nodes:
         node_coords.append(node.X)
@@ -21,12 +21,12 @@ class EmpireTools:
         node_coords.append(node.Z)
         node_IDs.append(node.Id)
         
-      for cond in self.model_part.Conditions:
+      for cond in self.model_part.Elements:
         num_nodes_per_element.append(len(cond.GetNodes()))
         for node in cond.GetNodes():
             element_table.append(node.Id)
 
-    def ConstructMesh(self, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table, construct_conditions):
+    def ConstructMesh(self, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
         # This function requires an empty ModelPart
         # It constructs Nodes and Conditions from what was received from Empire
 
@@ -38,30 +38,29 @@ class EmpireTools:
         for i in range(num_nodes):
             self.model_part.CreateNewNode(node_IDs[i], node_coords[3*i+0], node_coords[3*i+1], node_coords[3*i+2]) # Id, X, Y, Z
 
-        if construct_conditions:
-            # Create Property for Condition
-            self.model_part.AddProperties(Properties(1))
-            prop = self.model_part.GetProperties()[1]
+        # Create dummy Property for Element
+        self.model_part.AddProperties(Properties(1))
+        prop = self.model_part.GetProperties()[1]
 
-            element_table_counter = 0
-            # Create Conditions
-            for i in range(num_elements):
-                num_nodes_condition = num_nodes_per_element[i]
-                if num_nodes_condition == 2:
-                    name_condition = "LineCondition3D2N"
-                elif num_nodes_condition == 3:
-                    name_condition = "SurfaceCondition3D3N"
-                elif num_nodes_condition == 4:
-                    name_condition = "SurfaceCondition3D4N"
-                else:
-                    raise Exception("Wrong number of nodes for creating the condition")
+        element_table_counter = 0
+        # Create Conditions
+        for i in range(num_elements):
+            num_nodes_element = num_nodes_per_element[i]
+            if num_nodes_element == 2:
+                name_condition = "Element2D2N"
+            elif num_nodes_element == 3:
+                name_condition = "Element2D3N"
+            elif num_nodes_element == 4: # TODO how to distinguish from Tetras?
+                name_condition = "Element2D4N"
+            else:
+                raise Exception("Wrong number of nodes for creating the condition")
 
-                condition_nodes = []
-                for j in range(num_nodes_condition):
-                    condition_nodes.append(int(element_table[element_table_counter]))
-                    element_table_counter += 1
-                  
-                self.model_part.CreateNewCondition(name_condition, i+1, condition_nodes, prop)
+            condition_nodes = []
+            for j in range(num_nodes_element):
+                condition_nodes.append(int(element_table[element_table_counter]))
+                element_table_counter += 1
+                
+            self.model_part.CreateNewElement(name_condition, i+1, condition_nodes, prop)
 
     def GetDataField(self, data_field_name, data_field):
         for node in self.model_part.Nodes:

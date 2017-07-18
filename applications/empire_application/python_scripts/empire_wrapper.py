@@ -142,7 +142,7 @@ class EmpireWrapper:
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    def ReceiveMesh(self, construct_conditions=False):
+    def ReceiveMesh(self):
         ''' Recieve mesh from the server
         \param[in] name name of the mesh
         \param[in] numNodes number of nodes
@@ -199,7 +199,7 @@ class EmpireWrapper:
         numNodesPerElem = c_numNodesPerElem.contents
         elemTable = c_elemTable.contents
         
-        self.tools.ConstructMesh(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable, construct_conditions)
+        self.tools.ConstructMesh(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
 
     # -------------------------------------------------------------------------------------------------
 
