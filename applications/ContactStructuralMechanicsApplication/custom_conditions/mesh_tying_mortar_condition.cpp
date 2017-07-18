@@ -565,10 +565,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
                                             
     // Initialize the DoF data
     this->InitializeDofData(rDofData, rCurrentProcessInfo);
-    
-    // Compute Ae and its derivative
-    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
-    
+  
 //     // We calculate the Equation ID, LHS and RHS of the slave parent element
 //     boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
 //     array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution;
@@ -591,8 +588,12 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
     
     // Iterate over the master segments
 //     ExactMortarIntegrationUtility<TDim, NumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
+    
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
     {
+        // Compute Ae 
+        this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo, pair_index); 
+    
         // The normal of the master condition
         const array_1d<double, 3> master_normal = mThisMasterConditions[pair_index]->GetValue(NORMAL);
         
@@ -682,7 +683,8 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     DofData& rDofData,
     GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo,
+    const unsigned int PairIndex
     )
 {
     // We initilize the Ae components
@@ -691,36 +693,27 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     
     rDofData.InitializeAeComponents();
     
-    double total_weight = 0.0;
+    // The normal of the master condition
+    const array_1d<double, 3> master_normal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
     
-    for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
-    {
-        // The normal of the master condition
-        const array_1d<double, 3> master_normal = mThisMasterConditions[pair_index]->GetValue(NORMAL);
+    // Get the integration points
+    const IntegrationPointsType integration_points_slave = mIntegrationPointsVector[PairIndex];
+    
+    // Initialize general variables for the current master element
+    rVariables.Initialize();
         
-        // Get the integration points
-        const IntegrationPointsType integration_points_slave = mIntegrationPointsVector[pair_index];
+    // Calculating the proportion between the integrated area and segment area
+    for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+    {            
+        // Calculate the kinematic variables
+        this->CalculateKinematics( rVariables, rDofData, master_normal, point_number, integration_points_slave, PairIndex );
         
-        // Initialize general variables for the current master element
-        rVariables.Initialize();
-            
-        // Calculating the proportion between the integrated area and segment area
-        for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
-        {            
-            // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, master_normal, point_number, integration_points_slave, pair_index );
-            
-            const double& integration_weight = integration_points_slave[point_number].Weight();
-            total_weight += integration_weight;
-            
-            rAeData.CalculateAeComponents(rVariables, integration_weight);
-        }
+        const double& integration_weight = integration_points_slave[point_number].Weight();
+        
+        rAeData.CalculateAeComponents(rVariables, integration_weight);
     }
     
-    if (total_weight > 0.0)
-    {
-        noalias(rDofData.Ae) = rAeData.CalculateAe();
-    }
+    noalias(rDofData.Ae) = rAeData.CalculateAe();
 }
 
 /***********************************************************************************/

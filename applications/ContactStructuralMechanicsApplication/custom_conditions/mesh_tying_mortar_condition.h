@@ -612,7 +612,8 @@ protected:
     void CalculateAe( 
         DofData& rDofData,
         GeneralVariables& rVariables,
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        const unsigned int PairIndex
         );
     
     /**
