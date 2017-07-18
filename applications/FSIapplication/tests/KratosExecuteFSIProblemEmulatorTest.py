@@ -67,7 +67,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
 
     def Solve(self):
 
-        self.structure_solver.InitializeStrategy()
+        self.structure_solver.Initialize()
 
         # Stepping and time settings
         Dt = self.ProjectParameters["structure_solver_settings"]["problem_data"]["time_step"].GetDouble()

@@ -69,13 +69,13 @@ public:
     ///@{
 
     /// Constructor.
-    EmbeddedPostprocessProcess(ModelPart& rModelPart)
+    EmbeddedPostprocessProcess(ModelPart& rModelPart) : mrModelPart(rModelPart)
     {
-        mrModelPart = rModelPart;
+
     }
 
     /// Destructor.
-    virtual ~EmbeddedPostprocessProcess(){}
+    ~EmbeddedPostprocessProcess() override{}
 
     ///@}
     ///@name Operators
@@ -137,7 +137,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "EmbeddedPostprocessProcess" ;
@@ -145,10 +145,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedPostprocessProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedPostprocessProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -166,7 +166,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart                                  mrModelPart;
+    ModelPart&                                  mrModelPart;
 
     ///@}
     ///@name Protected Operators
@@ -230,13 +230,13 @@ private:
     ///@{
 
     /// Default constructor.
-    EmbeddedPostprocessProcess(){}
+    EmbeddedPostprocessProcess() = delete;
 
     /// Assignment operator.
-    EmbeddedPostprocessProcess& operator=(EmbeddedPostprocessProcess const& rOther){return *this;}
+    EmbeddedPostprocessProcess& operator=(EmbeddedPostprocessProcess const& rOther) = delete;
 
     /// Copy constructor.
-    EmbeddedPostprocessProcess(EmbeddedPostprocessProcess const& rOther){}
+    EmbeddedPostprocessProcess(EmbeddedPostprocessProcess const& rOther) = delete;
 
 
     ///@}
