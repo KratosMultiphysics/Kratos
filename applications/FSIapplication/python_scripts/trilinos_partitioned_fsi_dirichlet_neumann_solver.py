@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Import utilities
 import math
-# import NonConformant_OneSideMap                # Import non-conformant mapper #TODO: USE THE NEW MAPPER
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 
 # Import kratos core and applications
@@ -48,6 +47,9 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Get the domain size
         self.domain_size = self._GetDomainSize()
 
+        # Get the nodal update FSI utilities
+        self.nodal_update_utilities = self._GetNodalUpdateUtilities()
+
         # Get the partitioned FSI utilities
         self.trilinos_partitioned_fsi_utilities = self._GetPartitionedFSIUtilities()
 
@@ -64,6 +66,9 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Python mesh solver initialization
         self.mesh_solver.Initialize()
 
+        # Initialize the Dirichlet-Neumann interface
+        self._InitializeDirichletNeumannInterface()
+
         # Construct the interface mapper
         self._SetUpMapper()
 
@@ -73,8 +78,6 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Initialize the iteration value vector
         self._InitializeIterationValueVector()
 
-        # Initialize the Dirichlet-Neumann interface
-        self._InitializeDirichletNeumannInterface()
 
         # Compute the fluid domain NODAL_AREA values (required as weight in the residual norm computation)
         KratosMultiphysics.CalculateNodalAreaProcess(self.fluid_solver.GetComputingModelPart(), self.domain_size).Execute()
@@ -107,15 +110,11 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
             self.coupling_utility.InitializeNonLinearIteration()
 
             if (KratosMPI.mpi.rank == 0) : print("     Residual computation starts...")
-            # Sets self.iteration_value as MESH_DISPLACEMENT
-            # Solves the mesh problem
-            # Sets self.iteration_value derivatives as VELOCITY, ACCELERATION and MESH_VELOCITY
-            # Solves the fluid problem and computes the nodal fluxes (REACTION)
+
+            # Solve the mesh problem as well as the fluid problem
             self._SolveMeshAndFluid()
 
-            # Sets the structure POINT_LOAD as the fluid interface REACTION
-            # Solves the structure problem
-
+            # Solve the structure problem and computes the displacement residual
             if (self.double_faced_structure):
                 self._SolveStructureDoubleFaced()
                 dis_residual = self._ComputeDisplacementResidualDoubleFaced()
@@ -141,7 +140,15 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                     print("     Performing non-linear iteration ",nl_it," correction.")
 
                 self.coupling_utility.UpdateSolution(dis_residual.GetReference(), self.iteration_value.GetReference())
-                self.coupling_utility.FinalizeNonLinearIteration()
+
+                if ((nl_it == self.max_nl_it) and (KratosMPI.mpi.rank == 0)):
+                    print("***********************************************************")
+                    print("***********************************************************")
+                    print("         NON-LINEAR ITERATION CONVERGENCE ACHIEVED         ")
+                    print("***********************************************************")
+                    print("***********************************************************")
+
+            self.coupling_utility.FinalizeNonLinearIteration()
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         self.trilinos_partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
@@ -168,13 +175,13 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
 
     def _InitializeDirichletNeumannInterface(self):
-        # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
-        # TODO: This method allows to supress the set_interface_process
+        # Initialize Dirichlet fluid interface
         num_fl_interfaces = self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
 
+            # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_X, True, fl_interface_submodelpart.Nodes)
@@ -186,11 +193,22 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                 KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
                 KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Z, True, fl_interface_submodelpart.Nodes)
 
+            # Set the interface flag
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, fl_interface_submodelpart.Nodes)
+
+        # Initialize Neumann structure interface
+        num_str_interfaces = self.settings["coupling_solver_settings"]["structure_interfaces_list"].size()
+        for str_interface_id in range(num_str_interfaces):
+            str_interface_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][str_interface_id].GetString()
+            str_interface_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(str_interface_name)
+
+            # Set the interface flag
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, str_interface_submodelpart.Nodes)
 
 
     def _SolveMeshAndFluid(self):
 
-        # Set the mesh displacement as the iteration_value displacement
+        # Set the iteration_value displacement as MESH_DISPLACEMENT
         num_fl_interfaces = self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
@@ -205,14 +223,11 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         else:
             self.mesh_solver.MoveNodes()
 
-        # Fluid domain velocities imposition
-        # Compute the velocity associated to the iteration_value displacement and set it to VELOCITY and MESH_VELOCITY
-        # Note that the VELOCITY and the MESH_VELOCITY values only coincide if the same time schemes are used
-        # Currently, the mesh solver only includes the BDF2 so the MESH_VELOCITY values are forced to be the fluid ones
-        self.trilinos_partitioned_fsi_utilities.ComputeCorrectedInterfaceDisplacementDerivatives(self._GetFluidInterfaceSubmodelPart(),
-                                                                                                 self.settings["fluid_solver_settings"]["alpha"].GetDouble(),
-                                                                                                 self.time_step,
-                                                                                                 self.iteration_value.GetReference())
+        # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
+        self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_main_model_part, self.time_step)
+
+        # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
+        self.nodal_update_utilities.UpdateTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()

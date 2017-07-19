@@ -31,8 +31,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
         if (KratosMPI.mpi.rank == 0) : print("** Calling the partitioned FSI Trilinos base solver constructor...")
 
-        #TODO: Overwrite the fields in the base class default_settings and call the base class constructor?¿?¿
-
         # Initial tests
         start_time_structure = project_parameters["structure_solver_settings"]["problem_data"]["start_time"].GetDouble()
         start_time_fluid = project_parameters["fluid_solver_settings"]["problem_data"]["start_time"].GetDouble()
@@ -44,7 +42,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         if end_time_structure != end_time_fluid:
             if (KratosMPI.mpi.rank == 0) : raise("ERROR: Different final time among subdomains!")
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.structure_main_model_part = structure_main_model_part
         self.fluid_main_model_part = fluid_main_model_part
 
@@ -212,16 +209,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             print("** Partitioned FSI base solver constructed.")
 
 
-    # FROM BASE SOLVER, TODO: should this be return max()?¿?¿?¿
-    # def GetMinimumBufferSize(self):
-    #     # Get structure buffer size
-    #     buffer_structure = self.structure_solver.GetMinimumBufferSize()
-    #     # Get fluid buffer size
-    #     buffer_fluid = self.fluid_solver.GetMinimumBufferSize()
-    #
-    #     return min(buffer_structure,buffer_fluid)
-
-
     def AddVariables(self):
         ## Structure variables addition
         # Standard CSM variables addition
@@ -231,12 +218,11 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         # Standard CFD variables addition
         self.fluid_solver.AddVariables()
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION) # TODO: This should be added in the mesh solvers
         # Mesh solver variables addition
         self.mesh_solver.AddVariables()
 
         ## FSIApplication variables addition
-        # NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part) TODO: Add MAPPING app variables
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL)
@@ -260,12 +246,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     ### TODO: SUBSTITUTE IN THIS METHOD THE OLD MAPPER BY THE ONE IN THE FSI APPLICATION
     def _SetUpMapper(self):
 
-        # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
-        # Currently this is done with the FSI application Python process set_interface_process.py
-        # TODO: SINCE WE HAVE SUBMODELPARTS, TO SET THE INTERFACE FLAG SEEMS TO NOT BE STRICKLY NECESSARY
-        search_radius_factor = 2.0
-        mapper_max_iterations = 200
-        mapper_tolerance = 1e-12
 
         if (self.settings["mapper_settings"].size() == 1):
             fluid_submodelpart_name = self.settings["mapper_settings"][0]["fluid_interface_submodelpart_name"].GetString()
@@ -299,10 +279,11 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             neg_fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(neg_face_submodelpart_name)
             structure_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(structure_submodelpart_name)
 
-
-
-
             # TODO: SET THE DOUBLE SIDE SURFACE MAPPING
+
+            # search_radius_factor = 2.0
+            # mapper_max_iterations = 200
+            # mapper_tolerance = 1e-12
 
             # self.interface_mapper = NonConformant_OneSideMap.NonConformantTwoFaces_OneSideMap(pos_fluid_submodelpart,
             #                                                                                   neg_fluid_submodelpart,
@@ -312,9 +293,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             #                                                                                   mapper_tolerance)
 
             # TODO: SET THE DOUBLE SIDE SURFACE MAPPING
-
-
-
 
             self.double_faced_structure = True
 
