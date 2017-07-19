@@ -24,8 +24,8 @@ main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"]
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 ## Solver construction
-solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+import python_solvers_wrapper_structural
+solver = python_solvers_wrapper_structural.CreateSolver(main_model_part, ProjectParameters)
 
 solver.AddVariables()
 
@@ -70,8 +70,6 @@ if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
 import process_factory
 list_of_processes = process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["constraints_process_list"])
 list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["loads_process_list"])
-if (ProjectParameters.Has("contact_process_list") == True):
-    list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["contact_process_list"])
 if (ProjectParameters.Has("list_other_processes") == True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
 if (ProjectParameters.Has("json_output_process") == True):
