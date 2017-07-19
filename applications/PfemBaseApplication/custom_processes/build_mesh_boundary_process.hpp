@@ -178,6 +178,25 @@ namespace Kratos
     ///@name Protected Operators
     ///@{
 
+
+    //**************************************************************************
+    //**************************************************************************
+
+    bool ClearMasterEntities( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions)
+    {
+      KRATOS_TRY
+
+      for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
+	{
+	  WeakPointerVector< Element >& MasterElements = ic->GetValue(MASTER_ELEMENTS);
+	  MasterElements.clear();
+	  WeakPointerVector< Node<3> >& MasterNodes = ic->GetValue(MASTER_NODES);
+	  MasterNodes.clear();
+	}
+		
+      KRATOS_CATCH( "" )
+    }
+
     //**************************************************************************
     //**************************************************************************
 
@@ -185,6 +204,8 @@ namespace Kratos
     {
 
       KRATOS_TRY
+
+      ClearMasterEntities(rModelPart, rTemporaryConditions);
 
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();

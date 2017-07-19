@@ -410,6 +410,7 @@ namespace Kratos
 
     //delete triangle other structures
     DeleteTrianglesList(tr);
+    DeletePointsList(tr);
     ClearTrianglesList(tr);
 
     //delete modeler container
@@ -506,28 +507,23 @@ namespace Kratos
     KRATOS_TRY
 
     //always for "out":
-    if(tr.numberoftriangles)
-      trifree (tr.trianglelist);
-
-    if(tr.triangleattributelist) 
-      delete [] tr.triangleattributelist;
-
-    if(tr.holelist)
-      delete [] tr.holelist;
-    
-    // if( tr.regionlist != NULL )
-    //   delete [] tr.regionlist;      
-
-    //if p is switched then in and out are pointed:(free only once)
-    //delete [] tr.segmentlist;
-    //delete [] tr.segmentmarkerlist;
+    delete [] tr.trianglelist;
+    delete [] tr.triangleattributelist;
+    delete [] tr.trianglearealist;
 
     //in case of n switch not used
-    //delete [] tr.neighborlist;
-    //delete [] tr.trianglearealist;
+    delete [] tr.neighborlist;
+    
+    //if p is switched then in and out are pointed:(free only once)
+    delete [] tr.segmentlist;
+    delete [] tr.segmentmarkerlist;
 
-    //delete [] tr.edgelist;
-    //delete [] tr.edgemarkerlist;
+    delete [] tr.holelist;
+    delete [] tr.regionlist;      
+
+    delete [] tr.edgelist;
+    delete [] tr.edgemarkerlist;
+    delete [] tr.normlist;
 
     KRATOS_CATCH(" ")
   }

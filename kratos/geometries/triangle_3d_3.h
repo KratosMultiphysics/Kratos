@@ -380,8 +380,9 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double Length() const override {
-		  return std::sqrt(2.0 * Area());
+    virtual double Length() const override
+    {
+        return std::sqrt(2.0 * Area());
     }
 
     /** This method calculates and returns area or surface area of
@@ -399,14 +400,15 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double Area() const override {
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+    virtual double Area() const override 
+    {
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      double s = (a+b+c) / 2.0;
+        const double s = (a+b+c) / 2.0;
 
-      return std::sqrt(s*(s-a)*(s-b)*(s-c));
+        return std::sqrt(s*(s-a)*(s-b)*(s-c));
     }
 
     /** This method calculates and returns length, area or volume of
@@ -423,8 +425,9 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double DomainSize() const override {
-      return Area();
+    virtual double DomainSize() const override 
+    {
+        return Area();
     }
 
     /// Class Interface
@@ -437,16 +440,17 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MinEdgeLength() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+    virtual double MinEdgeLength() const override 
+    {
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return CalculateMinEdgeLength(sa, sb, sc);
+        return CalculateMinEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the maximum edge
@@ -457,16 +461,17 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MaxEdgeLength() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+    virtual double MaxEdgeLength() const override 
+    {
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return CalculateMaxEdgeLength(sa, sb, sc);
+        return CalculateMaxEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the average edge
@@ -477,12 +482,13 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    double AverageEdgeLength() const override {
-      return CalculateAvgEdgeLength(
+    virtual double AverageEdgeLength() const override 
+    {
+        return CalculateAvgEdgeLength(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
         MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        );
     }
 
     /** Calculates the circumradius of the geometry.
@@ -492,12 +498,13 @@ public:
      *
      * @see Inradius()
      */
-    double Circumradius() const override {
-      return CalculateCircumradius(
+    virtual double Circumradius() const override 
+    {
+        return CalculateCircumradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
         MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        );
     }
 
     /** Calculates the inradius of the geometry.
@@ -507,112 +514,117 @@ public:
      *
      * @see Circumradius()
      */
-    double Inradius() const override {
-      return CalculateInradius(
+    virtual double Inradius() const override 
+    {
+        return CalculateInradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
         MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        );
     }
 
 
-	bool AllSameSide(array_1d<double, 3> const& Distances) {
-		constexpr double epsilon = std::numeric_limits<double>::epsilon();
-		// put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
-		double du0 = Distances[0];
-		double du1 = Distances[1];
-		double du2 = Distances[2];
+	bool AllSameSide(array_1d<double, 3> const& Distances) 
+    {
+        constexpr double epsilon = std::numeric_limits<double>::epsilon();
+        
+        // put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
+        double du0 = Distances[0];
+        double du1 = Distances[1];
+        double du2 = Distances[2];
 
-		// coplanarity robustness check //
-		if (fabs(du0)<epsilon) du0 = 0.0;
-		if (fabs(du1)<epsilon) du1 = 0.0;
-		if (fabs(du2)<epsilon) du2 = 0.0;
+        // coplanarity robustness check //
+        if (std::abs(du0)<epsilon) du0 = 0.0;
+        if (std::abs(du1)<epsilon) du1 = 0.0;
+        if (std::abs(du2)<epsilon) du2 = 0.0;
 
-		double du0du1 = du0*du1;
-		double du0du2 = du0*du2;
+        const double du0du1 = du0*du1;
+        const double du0du2 = du0*du2;
 
-		if (du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
-			return true;                   // no intersection occurs //
+        if (du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
+            return true;                   // no intersection occurs //
 
-		return false;
+        return false;
 
 	}
 
-	int GetMajorAxis(array_1d<double, 3> const& V) {
-		int index = static_cast<int>(fabs(V[0]) < fabs(V[1]));
-		return (fabs(V[index]) > fabs(V[2])) ? index : 2;
+	int GetMajorAxis(array_1d<double, 3> const& V) 
+    {
+        int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
+        return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
 	}
 
-	bool HasIntersection(const GeometryType& ThisGeometry) override {
-		// Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
-		// and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
-		// http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
+	bool HasIntersection(const GeometryType& ThisGeometry) override 
+	{
+        // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
+        // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
+        // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
 
-		Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
-		array_1d<double, 3> distances_1;
-		for (int i = 0; i < 3; i++)
-			distances_1[i] = plane_1.CalculateSignedDistance(ThisGeometry[i]);
-		if (AllSameSide(distances_1))
-			return false;
+        Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
+        array_1d<double, 3> distances_1;
+        for (int i = 0; i < 3; i++)
+            distances_1[i] = plane_1.CalculateSignedDistance(ThisGeometry[i]);
+        if (AllSameSide(distances_1))
+            return false;
 
-		Plane3D plane_2(ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
-		array_1d<double, 3> distances_2;
-		for (int i = 0; i < 3; i++)
-			distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
-		if (AllSameSide(distances_2))
-			return false;
+        Plane3D plane_2(ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
+        array_1d<double, 3> distances_2;
+        for (int i = 0; i < 3; i++)
+            distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
+        if (AllSameSide(distances_2))
+            return false;
 
-		// compute direction of intersection line //
-		array_1d<double, 3> intersection_direction;
-		MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
+        // compute direction of intersection line //
+        array_1d<double, 3> intersection_direction;
+        MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
 
-		int index = GetMajorAxis(intersection_direction);
+        int index = GetMajorAxis(intersection_direction);
 
-		// this is the simplified projection onto L//
-		double vp0 = this->GetPoint(0)[index];
-		double vp1 = this->GetPoint(1)[index];
-		double vp2 = this->GetPoint(2)[index];
+        // this is the simplified projection onto L//
+        double vp0 = this->GetPoint(0)[index];
+        double vp1 = this->GetPoint(1)[index];
+        double vp2 = this->GetPoint(2)[index];
 
-		double up0 = ThisGeometry[0][index];
-		double up1 = ThisGeometry[1][index];
-		double up2 = ThisGeometry[2][index];
-
-
-		// compute interval for triangle 1 //
-		double a, b, c, x0, x1;
-		if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
-		{
-			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
-		}
-
-		// compute interval for triangle 2 //
-		double d, e, f, y0, y1;
-		if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
-		{
-			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
-		}
+        double up0 = ThisGeometry[0][index];
+        double up1 = ThisGeometry[1][index];
+        double up2 = ThisGeometry[2][index];
 
 
-		double xx, yy, xxyy, tmp;
-		xx = x0*x1;
-		yy = y0*y1;
-		xxyy = xx*yy;
+        // compute interval for triangle 1 //
+        double a, b, c, x0, x1;
+        if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
+        {
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+        }
 
-		array_1d<double, 2> isect1, isect2;
+        // compute interval for triangle 2 //
+        double d, e, f, y0, y1;
+        if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
+        {
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+        }
 
-		tmp = a*xxyy;
-		isect1[0] = tmp + b*x1*yy;
-		isect1[1] = tmp + c*x0*yy;
 
-		tmp = d*xxyy;
-		isect2[0] = tmp + e*xx*y1;
-		isect2[1] = tmp + f*xx*y0;
+        double xx, yy, xxyy, tmp;
+        xx = x0*x1;
+        yy = y0*y1;
+        xxyy = xx*yy;
 
-		std::sort(isect1.begin(), isect1.end());
-		std::sort(isect2.begin(), isect2.end());
+        array_1d<double, 2> isect1, isect2;
 
-		if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
-		return true;
+        tmp = a*xxyy;
+        isect1[0] = tmp + b*x1*yy;
+        isect1[1] = tmp + c*x0*yy;
+
+        tmp = d*xxyy;
+        isect2[0] = tmp + e*xx*y1;
+        isect2[1] = tmp + f*xx*y0;
+
+        std::sort(isect1.begin(), isect1.end());
+        std::sort(isect2.begin(), isect2.end());
+
+        if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
+        return true;
 
 	}
 
@@ -629,14 +641,15 @@ public:
      *
      * @return The inradius to circumradius quality metric.
      */
-    double InradiusToCircumradiusQuality() const override {
-      constexpr double normFactor = 1.0;
+    virtual double InradiusToCircumradiusQuality() const override 
+    {
+        constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
+        return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
 
     /** Calculates the inradius to longest edge quality metric.
@@ -649,18 +662,19 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    double InradiusToLongestEdgeQuality() const override {
-      constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+    virtual double InradiusToLongestEdgeQuality() const override 
+    {
+        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
+        return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
     }
 
     /** Calculates the area to edge length quality metric.
@@ -674,18 +688,19 @@ public:
      *
      * @return The Inradius to Circumradius Quality metric.
      */
-    double AreaToEdgeLengthRatio() const override {
-      constexpr double normFactor = 1.0;
+    virtual double AreaToEdgeLengthRatio() const override 
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * Area() / (sa+sb+sc);
+        return normFactor * Area() / (sa+sb+sc);
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -702,13 +717,13 @@ public:
     double ShortestAltitudeToEdgeLengthRatio() const override {
       constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+      const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+      const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+      const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
       // Shortest altitude is the one intersecting the largest base.
       double base = CalculateMaxEdgeLength(sa,sb,sc);
@@ -730,9 +745,9 @@ public:
     virtual double AreaToEdgeLengthSquareRatio() const {
       constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+      const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
       return normFactor * Area() / std::pow(a+b+c, 2);
     }
@@ -748,41 +763,76 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToLongestEdge() const {
-      constexpr double normFactor = 1.0;
+    virtual double ShortestAltitudeToLongestEdge() const 
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      // Shortest altitude is the one intersecting the largest base (or edge).
-      double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base (or edge).
+        const double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return normFactor * (Area() * 2 / base ) / base;
+        return normFactor * (Area() * 2 / base ) / base;
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
      */
+    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    {
+        const array_1d<double, 3> TangentXi  = this->GetPoint(1) - this->GetPoint(0);
+        const array_1d<double, 3> TangentEta = this->GetPoint(2) - this->GetPoint(0);
+        
+        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+    }
 
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) override
     {
         PointLocalCoordinates( rResult, rPoint );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
+        {
             if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
+            {
                 if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
+                {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
-
-    CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint ) override
+    
+    /**
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates( 
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint 
+        ) override
     {
         boost::numeric::ublas::bounded_matrix<double,3,3> X;
         boost::numeric::ublas::bounded_matrix<double,3,2> DN;
@@ -1944,9 +1994,9 @@ private:
 
 		// first project onto an axis-aligned plane, that maximizes the area //
 		// of the triangles, compute indices: i0,i1. //
-		A[0] = fabs(N[0]);
-		A[1] = fabs(N[1]);
-		A[2] = fabs(N[2]);
+		A[0] = std::abs(N[0]);
+		A[1] = std::abs(N[1]);
+		A[2] = std::abs(N[2]);
 		if (A[0]>A[1])
 		{
 			if (A[0]>A[2])
@@ -2040,8 +2090,8 @@ private:
 		f = Ay*Bx - Ax*By;
 		d = By*Cx - Bx*Cy;
 
-		if (std::fabs(f)<1E-10) f = 0.00;
-		if (std::fabs(d)<1E-10) d = 0.00;
+		if (std::abs(f)<1E-10) f = 0.00;
+		if (std::abs(d)<1E-10) d = 0.00;
 
 
 		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f))

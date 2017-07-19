@@ -325,7 +325,7 @@ public:
         //making a copy of the nodes TO POINTS (not Nodes!!!)
         for ( IndexType i = 0 ; i < this->size() ; i++ )
         {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+            NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
         }
 
         //creating a geometry with the new points
@@ -408,65 +408,65 @@ public:
      */
     double Area() const override
     {
-		// Old
+        // Old
 
         /*Vector d = this->Points()[2] - this->Points()[0];
         return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );*/
 
-		// New - 24/01/2014 - Massimo Petracca
-		// the following procedure calculates the area of a general
-		// quadrilateral (flat or warped) using the parametric representation
-		// of ruled hyperbolic paraboloid surface.
-		// the integration of the normal is then performed with a 2x2 gauss quadrature
-		// in the U-V domain [0,1].
-		// results explicitly written after symbolic calculation.
+        // New - 24/01/2014 - Massimo Petracca
+        // the following procedure calculates the area of a general
+        // quadrilateral (flat or warped) using the parametric representation
+        // of ruled hyperbolic paraboloid surface.
+        // the integration of the normal is then performed with a 2x2 gauss quadrature
+        // in the U-V domain [0,1].
+        // results explicitly written after symbolic calculation.
 
-		const TPointType& p1 = this->Points()[0];
-		const TPointType& p2 = this->Points()[1];
-		const TPointType& p3 = this->Points()[2];
-		const TPointType& p4 = this->Points()[3];
+        const TPointType& p1 = this->Points()[0];
+        const TPointType& p2 = this->Points()[1];
+        const TPointType& p3 = this->Points()[2];
+        const TPointType& p4 = this->Points()[3];
 
-		double p1x = p1.X();
-		double p1y = p1.Y();
-		double p1z = p1.Z();
+        const double p1x = p1.X();
+        const double p1y = p1.Y();
+        const double p1z = p1.Z();
 
-		double p2x = p2.X();
-		double p2y = p2.Y();
-		double p2z = p2.Z();
+        const double p2x = p2.X();
+        const double p2y = p2.Y();
+        const double p2z = p2.Z();
 
-		double p3x = p3.X();
-		double p3y = p3.Y();
-		double p3z = p3.Z();
+        const double p3x = p3.X();
+        const double p3y = p3.Y();
+        const double p3z = p3.Z();
 
-		double p4x = p4.X();
-		double p4y = p4.Y();
-		double p4z = p4.Z();
+        const double p4x = p4.X();
+        const double p4y = p4.Y();
+        const double p4z = p4.Z();
 
-		double pos = 0.5 + 0.5 / std::sqrt(3.0);
-		double w = 0.25;
+        const double pos = 0.5 + 0.5 / std::sqrt(3.0);
+        const double w = 0.25;
 
-		double C1  = pos*(p1z - p2z + p3z - p4z);
-		double C2  = pos*(p1y - p2y + p3y - p4y);
-		double C3  = pos*(p1x - p2x + p3x - p4x);
-		double C4  = C1 - p1z + p2z;
-		double C5  = C1 + p1z - p2z;
-		double C6  = C2 + p1y - p2y;
-		double C7  = C2 - p1y + p2y;
-		double C8  = C3 - p1x + p2x;
-		double C9  = C3 + p1x - p2x;
-		double C10 = C1 - p1z + p4z;
-		double C11 = C2 - p1y + p4y;
-		double C12 = C3 - p1x + p4x;
-		double C13 = C1 + p1z - p4z;
-		double C14 = C2 + p1y - p4y;
-		double C15 = C3 + p1x - p4x;
+        const double C1  = pos*(p1z - p2z + p3z - p4z);
+        const double C2  = pos*(p1y - p2y + p3y - p4y);
+        const double C3  = pos*(p1x - p2x + p3x - p4x);
+        const double C4  = C1 - p1z + p2z;
+        const double C5  = C1 + p1z - p2z;
+        const double C6  = C2 + p1y - p2y;
+        const double C7  = C2 - p1y + p2y;
+        const double C8  = C3 - p1x + p2x;
+        const double C9  = C3 + p1x - p2x;
+        const double C10 = C1 - p1z + p4z;
+        const double C11 = C2 - p1y + p4y;
+        const double C12 = C3 - p1x + p4x;
+        const double C13 = C1 + p1z - p4z;
+        const double C14 = C2 + p1y - p4y;
+        const double C15 = C3 + p1x - p4x;
 
-		return w * (
-			std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) + 
-			std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) + 
-			std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) + 
-			std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
-			);
+        return w * (
+            std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) + 
+            std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) + 
+            std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) + 
+            std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
+            );
     }
 
     /** This method calculates and returns length, area or volume of
@@ -516,26 +516,66 @@ public:
 
 		return Area();
     }
-
-
-
+    
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
      */
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    {
+        // We define the normal and tangents
+        array_1d<double,3> TangentXi, TangentEta;
+
+        Matrix JNode = ZeroMatrix( 3, 2 ); 
+        this->Jacobian( JNode, rPointLocalCoordinates);
+    
+        for (unsigned int iDim = 0; iDim < 3; iDim++)
+        {
+            // Using the Jacobian tangent directions 
+            TangentXi[iDim]  = JNode(iDim, 0);
+            TangentEta[iDim] = JNode(iDim, 1);
+        }
+        
+        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+    }
+    
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (-1.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
-            if ( (rResult[1] >= (-1.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
+        if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
+        {
+            if ( std::abs(rResult[1]) <= (1.0+Tolerance) )
+            {
                 return true;
+            }
+        }
 
         return false;
     }
-
-
-    CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint ) override
+    
+    /**
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates( 
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint 
+        ) override
     {
         boost::numeric::ublas::bounded_matrix<double,3,4> X;
         boost::numeric::ublas::bounded_matrix<double,3,2> DN;
@@ -1369,8 +1409,6 @@ public:
         rResult( 3, 1 ) = 0.25 * ( 1.0 - rPoint[0] );
         return rResult;
     }
-
-
 
     /**
      * returns the shape function gradients in an arbitrary point,

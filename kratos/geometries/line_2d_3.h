@@ -353,17 +353,51 @@ public:
         return sqrt( length );
     }
 
-
-
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
      */
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    {
+        // We define the normal and tangents
+        array_1d<double,3> TangentXi, TangentEta;
+        
+        Matrix JNode = ZeroMatrix( 2,1 ); 
+        this->Jacobian( JNode, rPointLocalCoordinates);
+    
+        for (unsigned int iDim = 0; iDim < 2; iDim++)
+        {
+            // Using the Jacobian tangent directions 
+            TangentXi[iDim]  = JNode(iDim, 0);
+            TangentEta[iDim] = 0.0;
+        }
+        
+        TangentXi[2] = 0.0;
+        TangentEta[2] = 1.0;
+        
+        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+    }
+    
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
+        {
             return true;
+        }
 
         return false;
     }
