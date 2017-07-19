@@ -821,7 +821,6 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
       }
     //------
 
-    std::cout<<" N[i] "<<rVariables.N<<std::endl;
     
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);

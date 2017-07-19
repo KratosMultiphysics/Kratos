@@ -150,10 +150,6 @@ namespace Kratos
     KRATOS_TRY
 
     noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
-
-    std::cout<<" ConstitutiveTensor "<<rVariables.ConstitutiveTensor<<std::endl;
-    
-    std::cout<<" Stress "<<rStressVector<<" Strain "<<rStrainVector<<std::endl;
     
     rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
@@ -237,9 +233,6 @@ namespace Kratos
     this->CalculateAndAddConstitutiveTensor(rVariables);
     
     rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor,rConstitutiveMatrix);
-
-
-    std::cout<<" rConstitutiveMatrix "<<rConstitutiveMatrix<<std::endl;
     
     KRATOS_CATCH(" ")
   }

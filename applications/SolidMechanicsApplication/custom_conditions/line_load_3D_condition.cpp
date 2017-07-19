@@ -271,7 +271,7 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
       }
 
 
-    std::cout<<" rVectorForce "<<rVectorForce<<std::endl;
+    //std::cout<<" rVectorForce "<<rVectorForce<<std::endl;
 
     return rVectorForce;
 
