@@ -45,7 +45,6 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
-#include "utilities/connectivity_preserve_modeler.h"
 #include "utilities/cutting_utility.h"
 
 #include "utilities/python_function_callback_utility.h"
@@ -56,23 +55,6 @@ namespace Kratos
 
 namespace Python
 {
-
-
-
-
-void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
-{
-    if( !KratosComponents< Element >::Has( ElementName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", ElementName);
-    if( !KratosComponents< Condition >::Has( ConditionName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
-
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(ElementName),
-                         KratosComponents<Condition>::Get(ConditionName));
-
-}
-
 
 
 void AddUtilitiesToPython()
@@ -319,10 +301,6 @@ void AddUtilitiesToPython()
     .def("TestHexahedra3D8N", &GeometryTesterUtility::TestHexahedra3D8N)
     .def("TestHexahedra3D27N", &GeometryTesterUtility::TestHexahedra3D27N)
     .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
-    ;
-
-    class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
-    .def("GenerateModelPart", GenerateModelPart)
     ;
 
     class_<CuttingUtility >("CuttingUtility", init< >())
