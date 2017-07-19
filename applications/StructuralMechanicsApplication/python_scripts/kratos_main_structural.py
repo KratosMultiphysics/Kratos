@@ -23,8 +23,8 @@ main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"]
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 ## Solver construction
-solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+import python_solvers_wrapper_structural
+solver = python_solvers_wrapper_structural.CreateSolver(main_model_part, ProjectParameters)
 
 solver.AddVariables()
 
