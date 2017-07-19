@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes
@@ -115,34 +116,29 @@ namespace Kratos
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             // Calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
+            double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
 
             if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
             {
-                IntToReferenceWeight *= GetProperties()[THICKNESS];
+                int_to_reference_weight *= GetProperties()[THICKNESS];
             }
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 // Contributions to stiffness matrix calculated on the reference config
                 /* Material stiffness matrix */
-                Matrix temp = prod(this_constitutive_variables.D, this_kinematic_variables.B);
-                noalias( rLeftHandSideMatrix ) += IntToReferenceWeight *prod( trans( this_kinematic_variables.B ), temp);
-                
+                this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
+
                 /* Geometric stiffness matrix */
-                CalculateAndAddKg( rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, IntToReferenceWeight );
+                this->CalculateAndAddKg( rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight );
             }
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
-                // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-                this->CalculateAndAddExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, IntToReferenceWeight );
-
-                // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-                noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
+                this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
             }
         }
 
@@ -158,15 +154,17 @@ namespace Kratos
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         )
     {
+        const IntegrationMethod this_integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        
         // Shape functions
         rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
 
-        // Calculating actual jacobian
+        // Calculating jacobian
         Matrix J;
-        J = GetGeometry().Jacobian( J, PointNumber );
-    
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod());
-
+        J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
+        
+        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        
         if (rThisKinematicVariables.detJ0 < 0.0)
         {
             KRATOS_ERROR << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
@@ -175,25 +173,9 @@ namespace Kratos
         // Deformation gradient
         noalias( rThisKinematicVariables.F ) = prod( J, rThisKinematicVariables.InvJ0 );
 
-        // Calculating operator B
-        const unsigned int strain_size = (rThisKinematicVariables.B).size1();
-        CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-    
-    void TotalLagrangian::CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables, 
-        ConstitutiveVariables& rThisConstitutiveVariables, 
-        ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const Vector Displacements
-        )
-    {
         // Axisymmetric case
-        if (rThisConstitutiveVariables.StrainVector.size() == 4)
+        const unsigned int strain_size = (rThisKinematicVariables.B).size1();
+        if (strain_size == 4)
         {
             rThisKinematicVariables.F.resize(3, 3); // We keep the old values
             for (unsigned int index = 0; index < 1; index++)
@@ -208,8 +190,26 @@ namespace Kratos
             rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
         }
         
-        // Here we essentially set the input parameters
         rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+        
+        // Calculating operator B
+        CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+    
+    void TotalLagrangian::CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
+        ConstitutiveLaw::Parameters& rValues,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+        const Vector Displacements
+        )
+    {        
+        // Here we essentially set the input parameters
         rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
         rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
         
@@ -218,25 +218,7 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
         
         // Actually do the computations in the ConstitutiveLaw    
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(rValues); //here the calculations are actually done 
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void TotalLagrangian::CalculateAndAddKg(
-        MatrixType& K,
-        Matrix& DN_DX,
-        Vector& stress_vector,
-        double weight )
-    {
-        KRATOS_TRY
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix StressTensor = MathUtils<double>::StressVectorToTensor( stress_vector );
-        Matrix ReducedKg = prod( DN_DX, weight * Matrix( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
-        MathUtils<double>::ExpandAndAddReducedMatrix( K, ReducedKg, dimension );
-
-        KRATOS_CATCH( "" )
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done 
     }
 
     //************************************************************************************
@@ -244,9 +226,9 @@ namespace Kratos
 
     void TotalLagrangian::CalculateB(
         Matrix& B,
-        Matrix& F,
-        Matrix& DN_DX,
-        unsigned int StrainSize,
+        const Matrix& F,
+        const Matrix& DN_DX,
+        const unsigned int StrainSize,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         )

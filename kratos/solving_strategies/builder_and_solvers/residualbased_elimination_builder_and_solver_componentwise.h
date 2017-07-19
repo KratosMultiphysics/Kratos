@@ -149,7 +149,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedEliminationBuilderAndSolverComponentwise() {}
+    ~ResidualBasedEliminationBuilderAndSolverComponentwise() override {}
 
 
     /*@} */
