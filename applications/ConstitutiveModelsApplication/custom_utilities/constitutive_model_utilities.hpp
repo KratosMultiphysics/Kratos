@@ -525,6 +525,109 @@ namespace Kratos
         
         KRATOS_CATCH("");
      }
+
+    /**
+     * Transforms a given symmetric Strain Tensor to Voigt Notation:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * @param rStrainTensor the given symmetric second order stress tensor
+     * @return the corresponding stress tensor in vector form
+     */
+    
+    static inline MatrixType& StrainVectorToTensor(const Vector& rStrainVector, MatrixType& rStrainTensor)
+    {
+        KRATOS_TRY;
+        
+	if (rStrainVector.size() == 3)
+        {
+   	    rStrainTensor(0,0) = rStrainVector[0];
+	    rStrainTensor(0,1) = 0.5*rStrainVector[2];
+	    rStrainTensor(0,2) = 0.0;
+
+	    rStrainTensor(1,0) = 0.5*rStrainVector[2];
+	    rStrainTensor(1,1) = rStrainVector[1];
+	    rStrainTensor(1,2) = 0.0;
+
+	    rStrainTensor(2,0) = 0.0;
+	    rStrainTensor(2,1) = 0.0;
+	    rStrainTensor(2,2) = 0.0;
+        }
+        else if (rStrainVector.size() == 4)
+        {
+   	    rStrainTensor(0,0) = rStrainVector[0];
+	    rStrainTensor(0,1) = 0.5*rStrainVector[3];
+	    rStrainTensor(0,2) = 0.0;
+
+	    rStrainTensor(1,0) = 0.5*rStrainVector[3];
+	    rStrainTensor(1,1) = rStrainVector[1];
+	    rStrainTensor(1,2) = 0.0;
+
+	    rStrainTensor(2,0) = 0.0;
+	    rStrainTensor(2,1) = 0.0;
+	    rStrainTensor(2,2) = rStrainVector[2];
+        }
+        else if (rStrainVector.size() == 6)
+        {
+	    rStrainTensor(0,0) = rStrainVector[0];
+	    rStrainTensor(0,1) = 0.5*rStrainVector[3];
+	    rStrainTensor(0,2) = 0.5*rStrainVector[5];
+
+	    rStrainTensor(1,0) = 0.5*rStrainVector[3];
+	    rStrainTensor(1,1) = rStrainVector[1];
+	    rStrainTensor(1,2) = 0.5*rStrainVector[4];
+
+	    rStrainTensor(2,0) = 0.5*rStrainVector[5];
+	    rStrainTensor(2,1) = 0.5*rStrainVector[4];
+	    rStrainTensor(2,2) = rStrainVector[2];	    
+        }
+
+        return rStrainTensor;
+	
+        KRATOS_CATCH("");
+    }
+    
+    /**
+     * Transforms a given symmetric Strain Tensor to Voigt Notation:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * @param rStrainTensor the given symmetric second order stress tensor
+     * @return the corresponding stress tensor in vector form
+     */
+    
+    static inline Vector& StrainTensorToVector(const MatrixType& rStrainTensor, Vector& rStrainVector)
+    {
+        KRATOS_TRY;
+	
+	if (rStrainVector.size() == 3)
+        {
+	    rStrainVector[0] = rStrainTensor(0,0);
+            rStrainVector[1] = rStrainTensor(1,1);
+            rStrainVector[2] = 2.0*rStrainTensor(0,1);
+        }
+        else if (rStrainVector.size() == 4)
+        {
+	    rStrainVector[0] = rStrainTensor(0,0);
+            rStrainVector[1] = rStrainTensor(1,1);
+            rStrainVector[2] = rStrainTensor(2,2);
+            rStrainVector[3] = 2.0*rStrainTensor(0,1);            
+        }
+        else if (rStrainVector.size() == 6)
+        {
+	    rStrainVector[0] = rStrainTensor(0,0);
+            rStrainVector[1] = rStrainTensor(1,1);
+            rStrainVector[2] = rStrainTensor(2,2);
+            rStrainVector[3] = 2.0*rStrainTensor(0,1);
+            rStrainVector[4] = 2.0*rStrainTensor(1,2);
+            rStrainVector[5] = 2.0*rStrainTensor(0,2);
+        }
+
+        return rStrainVector;
+
+        
+        KRATOS_CATCH("");
+    }
     
     /**
      * Transforms a given symmetric Stress Tensor to Voigt Notation:
