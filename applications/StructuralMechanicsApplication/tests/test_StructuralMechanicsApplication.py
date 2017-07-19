@@ -20,6 +20,7 @@ except ImportError as e:
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
+from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 # Test loading conditions
 from test_loading_conditions import TestLoadingConditions as TestLoadingConditions
 # Basic moving mesh test
@@ -111,6 +112,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_triangle'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_3D_hexa'))
+    smallSuite.addTest(TTestQuadraticElements('test_Quad8'))
     # Test loading conditions
     smallSuite.addTest(TestLoadingConditions('test_execution'))
     # Basic moving mesh test
@@ -190,6 +192,7 @@ def AssambleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TTestPatchTestSmallStrain,
             TTestPatchTestLargeStrain,
+            TTestQuadraticElements,
             TestLoadingConditions,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
