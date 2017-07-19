@@ -110,8 +110,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             self.coupling_utility.InitializeSolutionStep()
 
             for nl_it in range(1,max_nl_it+1):
-                self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it  ###### USELESS?¿?¿
-
+                
                 self.coupling_utility.InitializeNonLinearIteration()
 
                 # Residual computation
