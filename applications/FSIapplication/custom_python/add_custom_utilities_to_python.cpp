@@ -21,6 +21,7 @@
 #include "custom_utilities/FSI_utils.h"
 #include "custom_utilities/aitken_utils.h"
 #include "custom_utilities/partitioned_fsi_utilities.hpp"
+#include "custom_utilities/nodal_update_utilities.h"
 
 namespace Kratos
 {
@@ -32,6 +33,8 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
     typedef UblasSpace<double, Matrix, Vector > TSpace;
+    typedef NodalUpdateBaseClass< 2 > NodalUpdateBaseClass2DType;
+    typedef NodalUpdateBaseClass< 3 > NodalUpdateBaseClass3DType;
 
     class_<FSIUtils>("FSIUtils", init<>())
 //		.def("FSIUtils",&FSIUtils::GenerateCouplingElements)
@@ -50,9 +53,10 @@ void  AddCustomUtilitiesToPython()
         .def("UpdateInterfaceValues",&PartitionedFSIUtilities<TSpace,2>::UpdateInterfaceValues)
         .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceVectorResidual)
         .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
-        .def("ComputeCorrectedInterfaceDisplacementDerivatives",&PartitionedFSIUtilities<TSpace,2>::ComputeCorrectedInterfaceDisplacementDerivatives)
         .def("ComputeAndPrintFluidInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid",&PartitionedFSIUtilities<TSpace,2>::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure",&PartitionedFSIUtilities<TSpace,2>::CheckCurrentCoordinatesStructure)
         ;
 
     class_<PartitionedFSIUtilities <TSpace,3>, boost::noncopyable >("PartitionedFSIUtilities3D", init< >())
@@ -61,9 +65,30 @@ void  AddCustomUtilitiesToPython()
         .def("UpdateInterfaceValues",&PartitionedFSIUtilities<TSpace,3>::UpdateInterfaceValues)
         .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,3>::ComputeInterfaceVectorResidual)
         .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
-        .def("ComputeCorrectedInterfaceDisplacementDerivatives",&PartitionedFSIUtilities<TSpace,3>::ComputeCorrectedInterfaceDisplacementDerivatives)
         .def("ComputeAndPrintFluidInterfaceNorms",&PartitionedFSIUtilities<TSpace,3>::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms",&PartitionedFSIUtilities<TSpace,3>::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid",&PartitionedFSIUtilities<TSpace,3>::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure",&PartitionedFSIUtilities<TSpace,3>::CheckCurrentCoordinatesStructure)
+        ;
+
+    class_< NodalUpdateBaseClass <2>, boost::noncopyable > ("BaseNodalUpdate2D", init< >())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<2>::UpdateMeshTimeDerivatives)
+        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateBaseClass<2>::UpdateTimeDerivativesOnInterface)
+        ;
+
+    class_< NodalUpdateBaseClass <3>, boost::noncopyable > ("BaseNodalUpdate3D", init< >())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<3>::UpdateMeshTimeDerivatives)
+        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateBaseClass<3>::UpdateTimeDerivativesOnInterface)
+        ;
+
+    class_< NodalUpdateNewmark <2>, bases <NodalUpdateBaseClass2DType>, boost::noncopyable > ("NodalUpdateNewmark2D", init< const double >())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<2>::UpdateMeshTimeDerivatives)
+        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateNewmark<2>::UpdateTimeDerivativesOnInterface)
+        ;
+
+    class_< NodalUpdateNewmark <3>, bases <NodalUpdateBaseClass3DType>, boost::noncopyable > ("NodalUpdateNewmark3D", init< const double >())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<3>::UpdateMeshTimeDerivatives)
+        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::UpdateTimeDerivativesOnInterface)
         ;
 
 }

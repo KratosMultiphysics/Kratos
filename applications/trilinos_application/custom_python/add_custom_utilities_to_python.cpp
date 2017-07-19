@@ -169,9 +169,10 @@ void  AddCustomUtilitiesToPython()
       .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities2DType::ComputeInterfaceVectorResidual)
       .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities2DType::UpdateInterfaceValues)
       .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
-      .def("ComputeCorrectedInterfaceDisplacementDerivatives", &TrilinosPartitionedFSIUtilities2DType::ComputeCorrectedInterfaceDisplacementDerivatives)
       .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintFluidInterfaceNorms)
       .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintStructureInterfaceNorms)
+      .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesFluid)
+      .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure)
     ;
 
     class_< TrilinosPartitionedFSIUtilities3DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities3D", init < const Epetra_MpiComm& >())
@@ -181,9 +182,10 @@ void  AddCustomUtilitiesToPython()
       .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities3DType::ComputeInterfaceVectorResidual)
       .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities3DType::UpdateInterfaceValues)
       .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
-      .def("ComputeCorrectedInterfaceDisplacementDerivatives", &TrilinosPartitionedFSIUtilities3DType::ComputeCorrectedInterfaceDisplacementDerivatives)
       .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintFluidInterfaceNorms)
       .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintStructureInterfaceNorms)
+      .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesFluid)
+      .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure)
     ;
 
 
