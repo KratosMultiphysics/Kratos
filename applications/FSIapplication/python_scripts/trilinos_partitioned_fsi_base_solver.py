@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import utilities
-# import NonConformant_OneSideMap                # Import non-conformant mapper TODO: CALL THE MAPPING APPLICATION MAPPER
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
+import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -182,9 +182,8 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
 
         # Construct the structure solver
-        structure_solver_module = __import__(self.settings["structure_solver_settings"]["solver_type"].GetString())
-        self.structure_solver = structure_solver_module.CreateSolver(self.structure_main_model_part,
-                                                                     self.settings["structure_solver_settings"])
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part,
+                                                                               project_parameters["structure_solver_settings"])
         if (KratosMPI.mpi.rank == 0) : print("* Structure solver constructed.")
 
         # Construct the fluid solver
