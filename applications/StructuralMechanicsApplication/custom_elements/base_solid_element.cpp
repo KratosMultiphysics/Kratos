@@ -606,6 +606,40 @@ namespace Kratos
             }
         }
     }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateOnIntegrationPoints( 
+        const Variable<array_1d<double, 3>>& rVariable, 
+        std::vector<array_1d<double, 3>>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+        
+        if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
+        {
+            rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+        }
+
+        if (rVariable == INTEGRATION_COORDINATES)
+        {
+            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+            {
+                Point<3> global_point;
+                GetGeometry().GlobalCoordinates(global_point, integration_points[point_number]);
+                
+                rOutput[point_number] = global_point.Coordinates();
+            }
+        }
+    }
 
     //************************************************************************************
     //************************************************************************************
@@ -960,6 +994,18 @@ namespace Kratos
                                                             );
         }
 
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::GetValueOnIntegrationPoints( 
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
 
     //************************************************************************************

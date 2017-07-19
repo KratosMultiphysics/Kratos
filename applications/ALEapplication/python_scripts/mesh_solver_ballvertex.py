@@ -1,92 +1,73 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ALEApplication import *
-CheckForPreviousImport()
-
-# import mesh solver base class
+import KratosMultiphysics
+import KratosMultiphysics.ALEApplication as ALEApplication
+KratosMultiphysics.CheckForPreviousImport()
 import mesh_solver_base
+
 
 def CreateSolver(model_part, custom_settings):
     return MeshSolverBallvertex(model_part,custom_settings)
 
 
 class MeshSolverBallvertex(mesh_solver_base.MeshSolverBase):
-
     def __init__(self, model_part, custom_settings):
+        super(MeshSolverBallvertex, self).__init__(model_part, custom_settings)
+        print("::[MeshSolverBallvertex]:: Construction finished")
 
-        # default settings for ballvertex mesh solver
-        default_settings = Parameters("""
-        {
-            "mesh_reform_dofs_each_step": false
-        }""")
-
-        custom_settings.ValidateAndAssignDefaults(default_settings)
-
-        # assign parameters
-        self.model_part = model_part
-        self.domain_size = model_part.ProcessInfo[DOMAIN_SIZE]
-        self.mesh_reform_dofs_each_step = custom_settings["mesh_reform_dofs_each_step"].GetBool()
-
-        # neighbour search
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
-
-        # assignation of parameters to be used
-        self.time_order = 2
-
-        # definition of the solvers
-        # pILUPrecond = ILU0Preconditioner()
-        # self.linear_solver =  BICGSTABSolver(1e-5, 300,pILUPrecond)
-        # pDiagPrecond = DiagonalPreconditioner()
-        # self.linear_solver = CGSolver(1e-3, 300, pDiagPrecond)
-        self.linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
+    #### Public user interface functions ####
 
     def AddVariables(self):
-
-        self.model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-
-        print("Mesh solver variables added correctly.")
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        print("::[MeshSolverBallvertex]:: Variables ADDED.")
 
     def AddDofs(self):
-
-        for node in self.model_part.Nodes:
-
-            node.AddDof(DISPLACEMENT_X)
-            node.AddDof(DISPLACEMENT_Y)
-            node.AddDof(DISPLACEMENT_Z)
-
-        print("Mesh solver DOFs added correctly.")
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+        print("::[MeshSolverBallvertex]:: DOFs ADDED.")
 
     def Initialize(self):
-        (self.neighbour_search).Execute()
-
-        if(self.domain_size == 2):
-            self.solver = BallVertexMeshMoving2D()
-        else:
-            self.solver = BallVertexMeshMoving3D()
-
-        self.move_mesh_utilities = MoveMeshUtilities()
-
-        if(self.mesh_reform_dofs_each_step == False):
-            self.solver.ConstructSystem(self.model_part)
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        neighbour_search = FindNodalNeighboursProcess(self.model_part,
+                                                      number_of_avg_elems,
+                                                      number_of_avg_nodes)
+        neighbour_search.Execute()
+        solver = self.get_mesh_motion_solver()
+        if self.settings["reform_dofs_each_step"].GetBool() == False:
+            solver.ConstructSystem(self.model_part)
+        print("::[MeshSolverBallvertex]:: Finished initialization.")
 
     def Solve(self):
-        if(self.mesh_reform_dofs_each_step):
+        solver = self.get_mesh_motion_solver()
+        linear_solver = self.get_linear_solver()
+        if self.settings["reform_dofs_each_step"].GetBool() == True:
             (self.neighbour_search).Execute()
-
-            self.solver.ConstructSystem(self.model_part)
-
-            self.solver.BuildAndSolveSystem(self.model_part, self.linear_solver);
-
-            self.solver.ClearSystem()
+            solver.ConstructSystem(self.model_part)
+            solver.BuildAndSolveSystem(self.model_part, linear_solver)
+            solver.ClearSystem()
         else:
-            self.solver.BuildAndSolveSystem(self.model_part, self.linear_solver);
+            solver.BuildAndSolveSystem(model_part, linear_solver)
+        # Move mesh and calculate mesh velocity.
+        time_order = self.settings("time_order").GetInt()
+        ALEApplication.MoveMeshUtilities().BDF_MoveMesh(time_order, self.model_part)
 
-        # move mesh and calculate mesh velocity
-        self.move_mesh_utilities.BDF_MoveMesh(self.time_order, self.model_part)
+    def MoveMesh(self):
+        time_order = self.settings("time_order").GetInt()
+        ALEApplication.MoveMeshUtilities().BDF_MoveMesh(time_order, self.model_part)
 
-    def MoveNodes(self):
-        self.move_mesh_utilities.BDF_MoveMesh(self.time_order, self.model_part)
+    #### Private functions ####
+
+    def _create_linear_solver(self):
+        linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
+        return linear_solver
+
+    def _create_mesh_motion_solver(self):
+        domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        if(domain_size == 2):
+            solver = BallVertexMeshMoving2D()
+        else:
+            solver = BallVertexMeshMoving3D()
+        return solver
