@@ -1,15 +1,14 @@
-//    |  /           |
+//    |  /           |             
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Pooyan Dadvand
-//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 
 // System includes
@@ -60,6 +59,22 @@ typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
 typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
 typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+typedef Point<3>::CoordinatesArrayType CoordinatesArrayType;
+
+array_1d<double,3> GetNormalFromCondition( 
+    Condition& dummy, 
+    CoordinatesArrayType& LocalCoords
+    )
+{
+    return( dummy.GetGeometry().Normal(LocalCoords) );
+}
+
+array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
+{
+    CoordinatesArrayType LocalCoords;
+    LocalCoords.clear();
+    return( dummy.GetGeometry().Normal(LocalCoords) );
+}
 
 double GetAreaFromCondition( Condition& dummy )
 {
@@ -572,7 +587,9 @@ void  AddMeshToPython()
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
-	.def("GetArea",GetAreaFromCondition)
+    .def("GetNormal",GetNormalFromCondition)
+    .def("GetNormal",FastGetNormalFromCondition)
+    .def("GetArea",GetAreaFromCondition)
 
 
 
