@@ -687,45 +687,13 @@ public:
     }
     
     /**
-     * It computes the unit normal of the geometry, if possible
+     * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
     virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates)
     {
-        const unsigned int local_space_dimension = this->LocalSpaceDimension();
-        const unsigned int dimension = this->WorkingSpaceDimension();
-        
-        if (dimension == local_space_dimension)
-        {
-            KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        }
-        
-        // We define the normal and tangents
-        array_1d<double,3> tangent_xi(0.0);
-        array_1d<double,3> tangent_eta(0.0);
-        
-        Matrix j_node = ZeroMatrix( dimension, local_space_dimension ); 
-        this->Jacobian( j_node, rPointLocalCoordinates);
-        
-        // Using the Jacobian tangent directions
-        if (dimension == 2)
-        {
-            tangent_eta[2] = 1.0;
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
-                tangent_xi[i_dim]  = j_node(i_dim, 0);
-            } 
-        }
-        else
-        {
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
-                tangent_xi[i_dim]  = j_node(i_dim, 0);
-                tangent_eta[i_dim] = j_node(i_dim, 1);
-            } 
-        }
-
-        return MathUtils<double>::UnitCrossProduct( tangent_eta, tangent_xi );
+        KRATOS_ERROR << "Calling base class Normal method instead of derived class one. Please check the definition of derived class." << *this << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
+        return ZeroVector(3);
     }
     
     /** Calculates the quality of the geometry according to a given criteria.

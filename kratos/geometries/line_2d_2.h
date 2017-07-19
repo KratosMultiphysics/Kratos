@@ -792,10 +792,10 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry, if possible
+     * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
     {
         // We define the normal
         array_1d<double,3> normal;

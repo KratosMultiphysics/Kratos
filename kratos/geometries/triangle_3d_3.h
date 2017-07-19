@@ -380,7 +380,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double Length() const override
+    virtual double Length() const override
     {
         return std::sqrt(2.0 * Area());
     }
@@ -400,7 +400,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double Area() const override 
+    virtual double Area() const override 
     {
         const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
         const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
@@ -425,7 +425,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double DomainSize() const override 
+    virtual double DomainSize() const override 
     {
         return Area();
     }
@@ -440,7 +440,7 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MinEdgeLength() const override 
+    virtual double MinEdgeLength() const override 
     {
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -461,7 +461,7 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MaxEdgeLength() const override 
+    virtual double MaxEdgeLength() const override 
     {
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -482,7 +482,7 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    double AverageEdgeLength() const override 
+    virtual double AverageEdgeLength() const override 
     {
         return CalculateAvgEdgeLength(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
@@ -498,7 +498,7 @@ public:
      *
      * @see Inradius()
      */
-    double Circumradius() const override 
+    virtual double Circumradius() const override 
     {
         return CalculateCircumradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
@@ -514,7 +514,7 @@ public:
      *
      * @see Circumradius()
      */
-    double Inradius() const override 
+    virtual double Inradius() const override 
     {
         return CalculateInradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
@@ -641,7 +641,7 @@ public:
      *
      * @return The inradius to circumradius quality metric.
      */
-    double InradiusToCircumradiusQuality() const override 
+    virtual double InradiusToCircumradiusQuality() const override 
     {
         constexpr double normFactor = 1.0;
 
@@ -662,7 +662,7 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    double InradiusToLongestEdgeQuality() const override 
+    virtual double InradiusToLongestEdgeQuality() const override 
     {
         constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
 
@@ -688,7 +688,7 @@ public:
      *
      * @return The Inradius to Circumradius Quality metric.
      */
-    double AreaToEdgeLengthRatio() const override 
+    virtual double AreaToEdgeLengthRatio() const override 
     {
         constexpr double normFactor = 1.0;
 
@@ -782,10 +782,10 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry, if possible
+     * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
     {
         const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
@@ -801,7 +801,7 @@ public:
      * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside( 
+    virtual bool IsInside( 
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -829,7 +829,7 @@ public:
      * @param rPoint: The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PointLocalCoordinates( 
+    virtual CoordinatesArrayType& PointLocalCoordinates( 
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint 
         ) override

@@ -352,6 +352,31 @@ public:
 
         return sqrt( length );
     }
+
+    /**
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    {
+        // We define the normal and tangents
+        array_1d<double,3> tangent_xi, tangent_eta;
+        
+        Matrix j_node = ZeroMatrix( 2,1 ); 
+        this->Jacobian( j_node, rPointLocalCoordinates);
+    
+        for (unsigned int i_dim = 0; i_dim < 2; i_dim++)
+        {
+            // Using the Jacobian tangent directions 
+            tangent_xi[i_dim]  = j_node(i_dim, 0);
+            tangent_eta[i_dim] = 0.0;
+        }
+        
+        tangent_xi[2] = 0.0;
+        tangent_eta[2] = 1.0;
+        
+        return MathUtils<double>::UnitCrossProduct( tangent_eta, tangent_xi );
+    }
     
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
