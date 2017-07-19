@@ -785,12 +785,12 @@ public:
      * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
     {
-        const array_1d<double, 3> TangentXi  = this->GetPoint(1) - this->GetPoint(0);
-        const array_1d<double, 3> TangentEta = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
         
-        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+        return MathUtils<double>::UnitCrossProduct( tangent_eta, tangent_xi );
     }
 
     /**
