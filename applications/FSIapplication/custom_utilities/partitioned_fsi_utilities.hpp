@@ -276,62 +276,6 @@ public:
     }
 
     /**
-     * Computes the displacement time derivatives according to the corrected interface values.
-     * Note that this is done using the Bossak formulaes.
-     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
-     * @param alphaBossak: Bossak scheme alpha coefficient
-     * @param timeStep: time step value
-     * @param rCorrectedGuess: vector containing the interface corrected values
-     */
-    virtual void ComputeCorrectedInterfaceDisplacementDerivatives(ModelPart& rInterfaceModelPart,
-                                                                  const double alphaBossak,
-                                                                  const double timeStep,
-                                                                  VectorType& rCorrectedGuess)
-    {
-        const double gamma = 0.5 - alphaBossak;
-        const double beta = 0.25*std::pow(1.0-alphaBossak, 2.0);
-
-        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
-        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
-        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
-        {
-            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
-            const unsigned int base_i = k*TDim;
-
-            const array_1d<double, 3>& u_n = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1); // Previous step mesh displacement
-            const array_1d<double, 3>& v_n = it_node->FastGetSolutionStepValue(VELOCITY, 1);          // Previous step velocity
-            const array_1d<double, 3>& a_n = it_node->FastGetSolutionStepValue(ACCELERATION, 1);      // Previous step acceleration
-
-            array_1d<double, 3> u_n1 = ZeroVector(3);
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                u_n1[jj] = this->GetLocalValue( rCorrectedGuess, base_i+jj );  // Current step displacement (taken from the corrected interface value)
-            }
-
-            array_1d<double, 3>& a_n1 = it_node->FastGetSolutionStepValue(ACCELERATION);  // Current step acceleration (computed with Bossak scheme)
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                a_n1[jj] = (u_n1[jj] - u_n[jj] - timeStep*v_n[jj] - (timeStep*timeStep)*(0.5-beta)*a_n[jj])/((timeStep*timeStep)*beta);
-            }
-
-            array_1d<double, 3>& v_n1 = it_node->FastGetSolutionStepValue(VELOCITY);            // Current step velocity (computed with Bossak scheme)
-            array_1d<double, 3>& vmesh_n1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);   // Current step mesh velocity (equal to current step velocity)
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                const double updated_velocity = v_n[jj] + timeStep*(1-gamma)*a_n[jj] + timeStep*gamma*a_n1[jj];
-                v_n1[jj] = updated_velocity;
-                vmesh_n1[jj] = updated_velocity;
-            }
-
-        }
-
-        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
-        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
-        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(ACCELERATION);
-    }
-
-    /**
      * Computes and prints the fluid interface residual norms for debugging purposes
      * @param rInterfaceModelPart: interface modelpart in where the residual is computed
      */
