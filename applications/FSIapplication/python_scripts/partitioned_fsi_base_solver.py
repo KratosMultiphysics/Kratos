@@ -35,7 +35,6 @@ class PartitionedFSIBaseSolver:
         if end_time_structure != end_time_fluid:
             raise("ERROR: Different final time among subdomains!")
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.structure_main_model_part = structure_main_model_part
         self.fluid_main_model_part = fluid_main_model_part
 
@@ -214,7 +213,7 @@ class PartitionedFSIBaseSolver:
         # Get fluid buffer size
         buffer_fluid = self.fluid_solver.GetMinimumBufferSize()
 
-        return min(buffer_structure,buffer_fluid)
+        return max(buffer_structure,buffer_fluid)
 
 
     def AddVariables(self):
@@ -226,7 +225,7 @@ class PartitionedFSIBaseSolver:
         # Standard CFD variables addition
         self.fluid_solver.AddVariables()
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION) # TODO: This should be added in the mesh solvers
         # Mesh solver variables addition
         self.mesh_solver.AddVariables()
 
@@ -340,6 +339,14 @@ class PartitionedFSIBaseSolver:
             raise("ERROR: Solid domain size and fluid domain size are not equal!")
 
         return fluid_domain_size
+
+
+    def _GetNodalUpdateUtilities(self):
+
+        if (self.domain_size == 2):
+            return KratosFSI.NodalUpdateNewmark2D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
+        else:
+            return KratosFSI.NodalUpdateNewmark3D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
 
 
     def _GetPartitionedFSIUtilities(self):
