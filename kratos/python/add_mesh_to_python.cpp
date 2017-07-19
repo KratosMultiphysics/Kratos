@@ -145,6 +145,32 @@ boost::python::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
+boost::python::list CalculateOnIntegrationPointsDouble(
+        Element& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<double> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    boost::python::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
+boost::python::list CalculateOnIntegrationPointsArray1d(
+        Element& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<array_1d<double, 3>> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    boost::python::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
 boost::python::list CalculateOnIntegrationPointsVector(
         Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
 {
@@ -152,7 +178,9 @@ boost::python::list CalculateOnIntegrationPointsVector(
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
     boost::python::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
+    {
         result.append( Output[j] );
+    }
     return result;
 }
 
@@ -438,6 +466,8 @@ void  AddMeshToPython()
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
