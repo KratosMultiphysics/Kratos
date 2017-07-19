@@ -521,22 +521,22 @@ public:
      * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
     {
         // We define the normal and tangents
-        array_1d<double,3> TangentXi, TangentEta;
+        array_1d<double,3> tangent_xi, tangent_eta;
 
-        Matrix JNode = ZeroMatrix( 3, 2 ); 
-        this->Jacobian( JNode, rPointLocalCoordinates);
+        Matrix j_node = ZeroMatrix( 3, 2 ); 
+        this->Jacobian( j_node, rPointLocalCoordinates);
     
-        for (unsigned int iDim = 0; iDim < 3; iDim++)
+        for (unsigned int i_dim = 0; i_dim < 3; i_dim++)
         {
             // Using the Jacobian tangent directions 
-            TangentXi[iDim]  = JNode(iDim, 0);
-            TangentEta[iDim] = JNode(iDim, 1);
+            tangent_xi[i_dim]  = j_node(i_dim, 0);
+            tangent_eta[i_dim] = j_node(i_dim, 1);
         }
         
-        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+        return MathUtils<double>::UnitCrossProduct( tangent_eta, tangent_xi );
     }
     
     /**

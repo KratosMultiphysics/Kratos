@@ -690,7 +690,7 @@ public:
      * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates)
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates)
     {
         KRATOS_ERROR << "Calling base class Normal method instead of derived class one. Please check the definition of derived class." << *this << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
         return ZeroVector(3);
