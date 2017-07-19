@@ -8,7 +8,7 @@
 //  Original author:  Ruben Zorrilla
 //
 
-#if !defined(KRATOS_PARTITIONED_FSI_UTILITIES )
+#if !defined( KRATOS_PARTITIONED_FSI_UTILITIES )
 #define  KRATOS_PARTITIONED_FSI_UTILITIES
 
 
@@ -288,8 +288,8 @@ public:
                                                                   const double timeStep,
                                                                   VectorType& rCorrectedGuess)
     {
-        const double gamma = 0.5*(1-2*alphaBossak);
-        const double beta = ((1-alphaBossak)*(1-alphaBossak))/4;
+        const double gamma = 0.5 - alphaBossak;
+        const double beta = 0.25*std::pow(1.0-alphaBossak, 2.0);
 
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
@@ -312,14 +312,14 @@ public:
             array_1d<double, 3>& a_n1 = it_node->FastGetSolutionStepValue(ACCELERATION);  // Current step acceleration (computed with Bossak scheme)
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                a_n1[jj] = (u_n1[jj] - u_n[jj] - timeStep*v_n[jj] - (timeStep*timeStep)*(0.5-beta+beta*alphaBossak)*a_n[jj])/((timeStep*timeStep)*beta*(1-alphaBossak));
+                a_n1[jj] = (u_n1[jj] - u_n[jj] - timeStep*v_n[jj] - (timeStep*timeStep)*(0.5-beta)*a_n[jj])/((timeStep*timeStep)*beta);
             }
 
             array_1d<double, 3>& v_n1 = it_node->FastGetSolutionStepValue(VELOCITY);            // Current step velocity (computed with Bossak scheme)
             array_1d<double, 3>& vmesh_n1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);   // Current step mesh velocity (equal to current step velocity)
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                const double updated_velocity = v_n[jj] + timeStep*(1-gamma)*a_n[jj] + timeStep*gamma*(1-alphaBossak)*a_n1[jj] + timeStep*gamma*alphaBossak*a_n[jj];
+                const double updated_velocity = v_n[jj] + timeStep*(1-gamma)*a_n[jj] + timeStep*gamma*a_n1[jj];
                 v_n1[jj] = updated_velocity;
                 vmesh_n1[jj] = updated_velocity;
             }
@@ -431,14 +431,70 @@ public:
         }
     }
 
+    /**
+     * Checks if X = X0 + deltaX
+     * @param rModelPart: reference to the model part in where the check has to be performed
+     */
+    virtual void CheckCurrentCoordinatesFluid(ModelPart& rModelPart, const double tolerance)
+    {
+        auto& rLocalMesh = rModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
+        {
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
+            const array_1d<double, 3> disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+
+            if (std::fabs(it_node->X() - (it_node->X0() + disp[0])) > tolerance)
+            {
+                KRATOS_ERROR << "Node " << it_node->Id() << " X != X0 + deltaX";
+            }
+            if (std::fabs(it_node->Y() - (it_node->Y0() + disp[1])) > tolerance)
+            {
+                KRATOS_ERROR << "Node " << it_node->Id() << " Y != Y0 + deltaY";
+            }
+            if (std::fabs(it_node->Z() - (it_node->Z0() + disp[2])) > tolerance)
+            {
+                KRATOS_ERROR << "Node " << it_node->Id() << " Z != Z0 + deltaZ";
+            }
+        }
+    }
+
+    /**
+     * Checks if X = X0 + deltaX
+     * @param rModelPart: reference to the model part in where the check has to be performed
+     */
+    virtual void CheckCurrentCoordinatesStructure(ModelPart& rModelPart, const double tolerance)
+    {
+        auto& rLocalMesh = rModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
+        {
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
+            const array_1d<double, 3> disp = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+            if (std::fabs(it_node->X() - (it_node->X0() + disp[0])) > tolerance)
+            {
+                KRATOS_ERROR << "Node " << it_node->Id() << " X != X0 + deltaX";
+            }
+            if (std::fabs(it_node->Y() - (it_node->Y0() + disp[1])) > tolerance)
+            {
+                KRATOS_ERROR << "Node " << it_node->Id() << " Y != Y0 + deltaY";
+            }
+            if (std::fabs(it_node->Z() - (it_node->Z0() + disp[2])) > tolerance)
+            {
+                KRATOS_ERROR << "Node " << it_node->Id() << " Z != Z0 + deltaZ";
+            }
+        }
+    }
+
     /*@} */
 
 protected:
+
     /**@name Protected static Member Variables */
     /*@{ */
-
-    // ModelPart&      mrFluidInterfaceModelPart;
-    // ModelPart&      mrStructureInterfaceModelPart;
 
     /*@} */
     /**@name Protected member Variables */
