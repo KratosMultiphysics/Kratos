@@ -84,133 +84,125 @@ namespace Kratos
     {
         KRATOS_TRY;
         
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         // Resizing as needed the LHS
-        const unsigned int MatSize = NumberOfNodes * Dimension;
+        const unsigned int mat_size = number_of_nodes * dimension;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
-            if ( rLeftHandSideMatrix.size1() != MatSize )
+            if ( rLeftHandSideMatrix.size1() != mat_size )
             {
-                rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+                rLeftHandSideMatrix.resize( mat_size, mat_size, false );
             }
 
-            noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+            noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
         }
 
         //resizing as needed the RHS
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
-            if ( rRightHandSideVector.size( ) != MatSize )
+            if ( rRightHandSideVector.size( ) != mat_size )
             {
-                rRightHandSideVector.resize( MatSize, false );
+                rRightHandSideVector.resize( mat_size, false );
             }
 
-            noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
+            noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
         }
 
-        IntegrationMethod IntegrationMethod = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
 
         // Reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(IntegrationMethod);
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(IntegrationMethod);
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
 
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(IntegrationMethod);
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
 
-        //calculating actual jacobian
-        GeometryType::JacobiansType J;
-
-        J = GetGeometry().Jacobian( J , IntegrationMethod);
-
-        ////sizing work matrices
-        Vector PressureOnNodes = ZeroVector( NumberOfNodes );
+        // Sizing work matrices
+        Vector pressure_on_nodes = ZeroVector( number_of_nodes );
 
         // Pressure applied to the element itself
-        double PressureOnCondition = 0.0;
+        double pressure_on_condition = 0.0;
         if( this->Has( PRESSURE ) )
         {
-            PressureOnCondition += this->GetValue( PRESSURE );
+            pressure_on_condition += this->GetValue( PRESSURE );
         }
         if( this->Has( NEGATIVE_FACE_PRESSURE ) )
         {
-            PressureOnCondition += this->GetValue( NEGATIVE_FACE_PRESSURE );
+            pressure_on_condition += this->GetValue( NEGATIVE_FACE_PRESSURE );
         }
         if( this->Has( POSITIVE_FACE_PRESSURE ) )
         {
-            PressureOnCondition -= this->GetValue( POSITIVE_FACE_PRESSURE );
+            pressure_on_condition -= this->GetValue( POSITIVE_FACE_PRESSURE );
         }
 
-        for ( unsigned int i = 0; i < PressureOnNodes.size(); i++ )
+        for ( unsigned int i = 0; i < pressure_on_nodes.size(); i++ )
         {
-            PressureOnNodes[i] = PressureOnCondition;
+            pressure_on_nodes[i] = pressure_on_condition;
             if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
             {
-                PressureOnNodes[i] += GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+                pressure_on_nodes[i] += GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
             }
             if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
             {
-                PressureOnNodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+                pressure_on_nodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
             }
         }
 
         // Vector with a loading applied to the elemnt
-        array_1d<double, 3 > LineLoad = ZeroVector(3);
+        array_1d<double, 3 > line_load = ZeroVector(3);
         if( this->Has( LINE_LOAD ) )
         {
-            noalias(LineLoad) = this->GetValue( LINE_LOAD );
+            noalias(line_load) = this->GetValue( LINE_LOAD );
         }
         
-        array_1d<double, 2> Normal;; //normal direction (not normalized)
-        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
-        {
-            const double detJ = MathUtils<double>::GeneralizedDet(J[PointNumber]);
+        for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
+        {            
+            const double det_j = GetGeometry().DeterminantOfJacobian( integration_points[point_number] );
 
-            const double IntegrationWeight = GetIntegrationWeight(IntegrationPoints, PointNumber, detJ); 
-
-            Normal[0] = -J[PointNumber]( 1, 0 );
-            Normal[1] = J[PointNumber]( 0, 0 );
-            Normal /= norm_2(Normal);
+            const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
+            
+            const array_1d<double, 3> normal = GetGeometry().Normal( integration_points[point_number] );
             
             // Calculating the pressure on the gauss point
-            double GaussPressure = 0.0;
-            for ( unsigned int ii = 0; ii < NumberOfNodes; ii++ )
+            double gauss_pressure = 0.0;
+            for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
             {
-                GaussPressure += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
+                gauss_pressure += Ncontainer( point_number, ii ) * pressure_on_nodes[ii];
             }
 
             if ( CalculateStiffnessMatrixFlag == true )
             {
-                if ( GaussPressure != 0.0 )
+                if ( gauss_pressure != 0.0 )
                 {
-                    CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussPressure, IntegrationWeight );
+                    CalculateAndSubKp( rLeftHandSideMatrix, DN_De[point_number], row( Ncontainer, point_number ), gauss_pressure, integration_weight );
                 }
             }
-            //adding contributions to the residual vector
+            // Adding contributions to the residual vector
             if ( CalculateResidualVectorFlag == true )
             {
-                if ( GaussPressure != 0.0 )
+                if ( gauss_pressure != 0.0 )
                 {
-                    CalculateAndAddPressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), Normal, GaussPressure, IntegrationWeight );
+                    CalculateAndAddPressureForce( rRightHandSideVector, row( Ncontainer, point_number ), normal, gauss_pressure, integration_weight );
                 }
             }
 
-            array_1d<double,3> GaussLoad = LineLoad;
-            for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+            array_1d<double,3> gauss_load = line_load;
+            for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 if( GetGeometry()[ii].SolutionStepsDataHas( LINE_LOAD ) )
                 {
-                    noalias(GaussLoad) += ( Ncontainer( PointNumber, ii ))*GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
+                    noalias(gauss_load) += ( Ncontainer( point_number, ii )) * GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
                 }
             }
-            for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+            for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                const unsigned int base = ii * Dimension;
-                for(unsigned int k = 0; k < Dimension; ++k)
+                const unsigned int base = ii * dimension;
+                for(unsigned int k = 0; k < dimension; ++k)
                 {
-                    rRightHandSideVector[base + k] += IntegrationWeight * Ncontainer( PointNumber, ii )*GaussLoad[k];
+                    rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
                 }
             }
         }
@@ -267,17 +259,17 @@ namespace Kratos
     void LineLoadCondition2D::CalculateAndAddPressureForce(
         Vector& rRightHandSideVector,
         const Vector& N,
-        array_1d<double, 2>& Normal,
+        const array_1d<double, 3>& Normal,
         double Pressure,
         double IntegrationWeight 
         )
     {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = 2;
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = 2;
 
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            const int index = Dimension * i;
+            const int index = dimension * i;
             const double coeff = Pressure * N[i] * IntegrationWeight;
             
             rRightHandSideVector[index]   += coeff * Normal[0];

@@ -36,7 +36,9 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "ale_trilinos_navier_stokes_solver_vmsmonolithic",
-        "ale_solver_type"              : "trilinos_mesh_solver_structural_similarity",
+        "ale_settings" : {
+            "solver_type" : "trilinos_mesh_solver_structural_similarity"
+        },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "test_structural_mesh_motion_2d/rectangle_2D3N_test"

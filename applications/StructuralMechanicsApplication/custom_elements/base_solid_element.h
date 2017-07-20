@@ -287,6 +287,18 @@ public:
         std::vector<double>& rOutput, 
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+        
+    /**
+     * Calculate a double array_1d on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable, 
+        std::vector<array_1d<double, 3>>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
@@ -360,6 +372,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * Get on rVariable a array_1d Value from the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rValues: The results in the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable, 
+        std::vector<array_1d<double, 3>>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+        
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
      * @param rVariable: The variable we want to get
