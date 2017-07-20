@@ -537,6 +537,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     
                     DecompositionType decomp_geom( points_array );
                     
+//                     // DEBUG
+//                     std::cout << "\nGraphics3D[{EdgeForm[Thick],Triangle[{{" << decomp_geom[0].X() << "," << decomp_geom[0].Y() << "," << decomp_geom[0].Z()  << "},{" << decomp_geom[1].X() << "," << decomp_geom[1].Y() << "," << decomp_geom[1].Z()  << "},{" << decomp_geom[2].X() << "," << decomp_geom[2].Y() << "," << decomp_geom[2].Z()  << "}}]}],";// << std::endl;
+                    
                     const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
                     
                     if (bad_shape == false)
