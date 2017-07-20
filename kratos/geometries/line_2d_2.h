@@ -792,28 +792,28 @@ public:
     }
 
     /**
-     * It computes the normal of the geometry, if possible
+     * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
     {
         // We define the normal
-        array_1d<double,3> Normal;
+        array_1d<double,3> normal;
         
         // We get the local points
-        const TPointType& FirstPoint  = BaseType::GetPoint(0);
-        const TPointType& SecondPoint = BaseType::GetPoint(1);
+        const TPointType& first_point  = BaseType::GetPoint(0);
+        const TPointType& second_point = BaseType::GetPoint(1);
         
         // We compute the normal
-        Normal[0] = SecondPoint[1] -  FirstPoint[1];
-        Normal[1] =  FirstPoint[0] - SecondPoint[0];
-        Normal[2] = 0.0;
+        normal[0] = second_point[1] -  first_point[1];
+        normal[1] =  first_point[0] - second_point[0];
+        normal[2] = 0.0;
         
         // We normalize
-        const double Norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
-        Normal /= Norm;
+        const double norm = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+        normal /= norm;
         
-        return Normal;
+        return normal;
     }
 
     /**

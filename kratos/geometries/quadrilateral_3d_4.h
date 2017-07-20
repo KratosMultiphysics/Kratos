@@ -497,7 +497,7 @@ public:
 
     double Volume() const override
     {
-		// Old
+        // Old
 
         //Vector temp;
         //DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
@@ -512,31 +512,9 @@ public:
         ////KRATOS_WATCH(temp)
         //return Volume;
 
-		// New - 24/01/2014 - Massimo Petracca
+        // New - 24/01/2014 - Massimo Petracca
 
-		return Area();
-    }
-    
-    /**
-     * It computes the normal of the geometry, if possible
-     * @return The normal of the geometry
-     */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
-    {
-        // We define the normal and tangents
-        array_1d<double,3> TangentXi, TangentEta;
-
-        Matrix JNode = ZeroMatrix( 3, 2 ); 
-        this->Jacobian( JNode, rPointLocalCoordinates);
-    
-        for (unsigned int iDim = 0; iDim < 3; iDim++)
-        {
-            // Using the Jacobian tangent directions 
-            TangentXi[iDim]  = JNode(iDim, 0);
-            TangentEta[iDim] = JNode(iDim, 1);
-        }
-        
-        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+        return Area();
     }
     
     /**
