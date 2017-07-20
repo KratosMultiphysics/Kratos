@@ -173,7 +173,7 @@ namespace Kratos
                   // elastic loading step
                   rConstitutiveMatrix.clear();
                   this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
-                  rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix);
+                  rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix);
                   return;
                }
 
@@ -207,7 +207,7 @@ namespace Kratos
 
                this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
                ComputeElastoPlasticTangentMatrix( rValues, Variables, ConstitutiveMatrix);
-               rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix);
+               rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix );
 
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
                   this->UpdateInternalVariables( rValues, Variables, rStressMatrix );
@@ -278,14 +278,65 @@ namespace Kratos
             ///@name Protected Operations
             ///@{
 
+
+            //***************************************************************************************
+            //***************************************************************************************
+            // function to compress the tensor my way
+            int AuxiliarCompressTensor( const unsigned int & rI, const unsigned int & rJ , double & rVoigtNumber) 
+            {
+            
+               unsigned int index;
+               if ( rI == rJ) {
+                  index = rI;
+               } else if ( rI > rJ) {
+                  index = AuxiliarCompressTensor( rJ, rI, rVoigtNumber);
+               } else {
+                  rVoigtNumber *= 0.5;
+                  if ( rI == 0) {
+                     if ( rJ == 1) {
+                        index =3;
+                     } else {
+                        index = 5;
+                     }
+                  } else {
+                     index = 4;
+                  }
+               }
+               return index;
+
+            }
+
             //***************************************************************************************
             //***************************************************************************************
             // Correct Yield Surface Drift According to 
-
-            Matrix & SetConstitutiveMatrixToTheApropiateSize( Matrix & rConstitutiveMatrix, const Matrix & rConstMatrixBig)
+            Matrix & SetConstitutiveMatrixToTheApropiateSize( Matrix & rConstitutiveMatrix, Matrix & rConstMatrixBig, const MatrixType & rStressMatrix)
             {
 
                KRATOS_TRY
+
+               // 1. Add what I think it is a missing term
+               Matrix ExtraMatrix = ZeroMatrix(6);
+               MatrixType Identity = identity_matrix<double>(3);
+
+               unsigned int indexi, indexj;
+               for (unsigned int i = 0; i < 3; i++) {
+                  for (unsigned int j = 0; j < 3; j++) {
+                     for (unsigned int k = 0; k < 3; k++) {
+                        for (unsigned int l = 0; l < 3; l++) {
+                           double voigtNumber = 1.0;
+                           indexi = AuxiliarCompressTensor( i, j, voigtNumber);
+                           indexj = AuxiliarCompressTensor( k, l, voigtNumber);
+                           ExtraMatrix(indexi, indexj) -= voigtNumber * (Identity(i,k)*rStressMatrix(j,l) + Identity(j,k) * rStressMatrix(i,l) );
+                        }
+                     }
+                  }
+               }
+               rConstMatrixBig += ExtraMatrix;
+
+
+
+
+               // 2. Set the matrix to the appropiate size
 
                if ( rConstitutiveMatrix.size1() == 6) {
                   noalias( rConstitutiveMatrix ) = rConstMatrixBig;
@@ -626,7 +677,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType HenckyTensor;
+                  MatrixType HenckyTensor;
                HenckyTensor.clear();
 
                ConstitutiveModelUtilities::StrainVectorToTensor( rHenckyVector, HenckyTensor);
