@@ -10,7 +10,7 @@ add_definitions( -w )
 ###############################################################
 add_library(mpipython SHARED ${MPI_PYTHON_SOURCES})
 
-target_link_libraries(mpipython ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(mpipython ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${MPI_LIBRARIES})
 
 set_target_properties(mpipython PROPERTIES PREFIX "")
 
