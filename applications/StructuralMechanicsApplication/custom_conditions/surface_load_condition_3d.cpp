@@ -275,8 +275,8 @@ namespace Kratos
             ge[2] = J[point_number](2, 0);
             gn[2] = J[point_number](2, 1);
 
-            const array_1d<double, 3 > v3 = MathUtils<double>::UnitCrossProduct(ge, gn);
-
+            const array_1d<double, 3 > v3 = MathUtils<double>::UnitCrossProduct(gn, ge);
+            
             // Calculating the pressure on the gauss point
             double pressure = 0.0;
             for (unsigned int ii = 0; ii < number_of_nodes; ii++)
