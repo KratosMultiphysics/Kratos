@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix
 //
 
 // System includes
@@ -151,11 +152,11 @@ namespace Kratos
     //***********************************************************************************
 
     void SurfaceLoadCondition3D::CalculateAndAddPressureForce(
-        VectorType& residualvector,
+        VectorType& rResidualVector,
         const Vector& N,
-        const array_1d<double, 3 >& v3,
-        double pressure,
-        double weight,
+        const array_1d<double, 3 >& Normal,
+        const double Pressure,
+        const double Weight,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -166,10 +167,10 @@ namespace Kratos
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const int index = 3 * i;
-            const double coeff = pressure * N[i] * weight;
-            residualvector[index] += coeff * v3[0];
-            residualvector[index + 1] += coeff * v3[1];
-            residualvector[index + 2] += coeff * v3[2];
+            const double coeff = Pressure * N[i] * Weight;
+            rResidualVector[index    ] -= coeff * Normal[0];
+            rResidualVector[index + 1] -= coeff * Normal[1];
+            rResidualVector[index + 2] -= coeff * Normal[2];
         }
 
         KRATOS_CATCH("")
@@ -275,7 +276,7 @@ namespace Kratos
             ge[2] = J[point_number](2, 0);
             gn[2] = J[point_number](2, 1);
 
-            const array_1d<double, 3 > v3 = MathUtils<double>::UnitCrossProduct(gn, ge);
+            const array_1d<double, 3 > normal = MathUtils<double>::UnitCrossProduct(ge, gn);
             
             // Calculating the pressure on the gauss point
             double pressure = 0.0;
@@ -298,7 +299,7 @@ namespace Kratos
             {
                 if (pressure != 0.0)
                 {
-                    CalculateAndAddPressureForce(rRightHandSideVector, N, v3, pressure, integration_weight, rCurrentProcessInfo);
+                    CalculateAndAddPressureForce(rRightHandSideVector, N, normal, pressure, integration_weight, rCurrentProcessInfo);
                 }
             }
 
