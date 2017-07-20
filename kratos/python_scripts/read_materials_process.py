@@ -118,22 +118,7 @@ class ReadMaterialsProcess(Process):
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
             var = self._GetItemFromModule(key)
-            if isinstance(value, (list, tuple)):
-                size_1 = len(value)
-                if isinstance(value[0], (list, tuple)):
-                    size_2 = len(value[0])
-                    matrix = Matrix(size_1,size_2)
-                    for i in range(size_1):
-                        for j in range(size_2):
-                            matrix[i, j] = value[i][j]
-                    prop.SetValue( var, matrix)
-                else:
-                    vector = Vector(size_1)
-                    for i in range(size_1):
-                        vector[i] = value[i]
-                    prop.SetValue( var, vector)
-            else:
-                prop.SetValue( var, value)
+            prop.SetValue( var, value)
 
         # Add / override tables in the properties
         for key, table in mat["Tables"].items():
