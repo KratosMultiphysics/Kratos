@@ -120,7 +120,6 @@ void ShellRigid::CalculateLocalGlobalTransformation(
     double& area
 )
 {
-    KRATOS_TRY
     array_1d<double,3> temp;
 
     //forming the base vectors - align with the side 1-2
@@ -152,7 +151,6 @@ void ShellRigid::CalculateLocalGlobalTransformation(
     y23 = y21-y31;
 
     //calculating
-    KRATOS_CATCH("");
 }
 
 

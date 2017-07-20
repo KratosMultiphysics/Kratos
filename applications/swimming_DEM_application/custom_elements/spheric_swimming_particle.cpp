@@ -26,7 +26,6 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
                                                                     const ProcessInfo& r_current_process_info,
                                                                     const array_1d<double,3>& gravity)
 {
-    KRATOS_TRY
 
     if (!mCouplingType){
         TBaseElement::ComputeAdditionalForces(non_contact_force, non_contact_moment, r_current_process_info, gravity);
@@ -100,7 +99,6 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     non_contact_force *= force_reduction_coeff; //TODO: put noalias here?
     mFirstStep = false;
 
-    KRATOS_CATCH( "" )
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1044,7 +1042,6 @@ double SphericSwimmingParticle<TBaseElement>::ComputeStokesDragCoefficient()
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info)
 {
-    KRATOS_TRY
 
     const double particle_density              = GetDensity();
     const array_1d<double, 3>& gravity         = r_current_process_info[GRAVITY];
@@ -1111,7 +1108,6 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
 
     return drag_coeff;
 
-    KRATOS_CATCH("")
 }
 
 //**************************************************************************************************************************************************
@@ -1211,7 +1207,6 @@ double SphericSwimmingParticle<TBaseElement>::CalculateShahsTerm(double power_la
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(const ProcessInfo& r_current_process_info)
 {
-    KRATOS_TRY
 
     const int isometric_shape                = 1; // TEMPORARY!! yes (1) or no (0); shold be given as data
     const double surface_area                = 4 * KRATOS_M_PI * SWIMMING_POW_2(mRadius); // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
@@ -1236,7 +1231,6 @@ double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(const
 
     return drag_coeff;
 
-    KRATOS_CATCH("")
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

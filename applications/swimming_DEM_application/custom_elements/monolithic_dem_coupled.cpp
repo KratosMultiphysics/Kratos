@@ -565,7 +565,6 @@ template <>
 void MonolithicDEMCoupled<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
                            const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
 {
-    KRATOS_TRY
 
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -578,7 +577,6 @@ void MonolithicDEMCoupled<2,3>::CalculateB( boost::numeric::ublas::bounded_matri
         rB(2, index) = rShapeDeriv(i, 1);
         rB(2, index + 1) = rShapeDeriv(i, 0);
     }
-    KRATOS_CATCH("")
 }
 
 /**
@@ -588,7 +586,6 @@ template <>
 void MonolithicDEMCoupled<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
                            const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
 {
-    KRATOS_TRY
 
     const unsigned int Dim = 3;
     const unsigned int NumNodes = 4;
@@ -617,7 +614,6 @@ void MonolithicDEMCoupled<3,4>::CalculateB( boost::numeric::ublas::bounded_matri
         rB(5, index + 2) = rShapeDeriv(i, 0);
     }
 
-    KRATOS_CATCH("")
 }
 
 /**
