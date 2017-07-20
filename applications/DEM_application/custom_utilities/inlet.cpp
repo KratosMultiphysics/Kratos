@@ -524,7 +524,6 @@ namespace Kratos {
         
     void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees)
     {
-        KRATOS_TRY
         const double vector_modulus = DEM_MODULUS_3(vector);
         array_1d<double, 3 > unitary_vector;
         noalias(unitary_vector) = vector / vector_modulus;
@@ -571,7 +570,6 @@ namespace Kratos {
         }
 
         noalias(vector) += local_added_vector[0] * normal_1 + local_added_vector[1] * normal_2;
-        KRATOS_CATCH("")
     }
     
     void DEM_Inlet::ThrowWarningTooSmallInlet(const ModelPart& mp) {

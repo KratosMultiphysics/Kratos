@@ -43,7 +43,6 @@ std::string ParticleContactElement::Info() const
 }
 
 void ParticleContactElement::Initialize() {
-    KRATOS_TRY
     
     mFailureCriterionState = 0.0;    
     mLocalContactForce[0] = 0.0;
@@ -62,11 +61,9 @@ void ParticleContactElement::Initialize() {
     this->SetValue(FAILURE_CRITERION_STATE, 0.0);
     this->SetValue(UNIDIMENSIONAL_DAMAGE, 0.0); 
    
-    KRATOS_CATCH( "" )
 }
 
 void ParticleContactElement::PrepareForPrinting() {
-    KRATOS_TRY
             
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = mLocalContactForce[0];
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = mLocalContactForce[1];
@@ -77,7 +74,6 @@ void ParticleContactElement::PrepareForPrinting() {
     this->GetValue(FAILURE_CRITERION_STATE)= mFailureCriterionState;
     this->GetValue(UNIDIMENSIONAL_DAMAGE)  = mUnidimendionalDamage; 
     
-    KRATOS_CATCH( "" )    
 }
 
 void ParticleContactElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info)

@@ -10,9 +10,6 @@
 namespace Kratos {
 
     void DEM_KDEM::Initialize() {
-
-        KRATOS_TRY
-        KRATOS_CATCH("")  
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM::Clone() const {
@@ -26,13 +23,10 @@ namespace Kratos {
     }
 
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
-
-        KRATOS_TRY
         double radius_sum = radius + other_radius;
         double equiv_radius = radius * other_radius / radius_sum;
         //double equiv_radius = 0.5 * radius_sum;
         calculation_area = KRATOS_M_PI * equiv_radius * equiv_radius;
-        KRATOS_CATCH("")  
     }
     
     double DEM_KDEM::CalculateContactArea(double radius, double other_radius, Vector& v) {            
@@ -51,14 +45,10 @@ namespace Kratos {
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double current_distance, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
-        
-        KRATOS_TRY
-        
+                
         const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
         kn_el = equiv_young * calculation_area / current_distance;
         kt_el = equiv_shear * calculation_area / current_distance;
-
-        KRATOS_CATCH("")  
     }
                         
     void DEM_KDEM::CalculateViscoDampingCoeff(double& equiv_visco_damp_coeff_normal,
@@ -67,9 +57,7 @@ namespace Kratos {
                                               SphericContinuumParticle* element2,
                                               const double kn_el,
                                               const double kt_el) {
-        
-        KRATOS_TRY
-        
+                
         double aux_norm_to_tang = sqrt(kt_el / kn_el);
         const double mRealMass = element1->GetMass();
         const double other_real_mass = element2->GetMass();
@@ -79,8 +67,6 @@ namespace Kratos {
 
         equiv_visco_damp_coeff_normal = (1.0 - equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
-        
-        KRATOS_CATCH("")  
     }
 
     double DEM_KDEM::LocalMaxSearchDistance(const int i,
@@ -150,7 +136,6 @@ namespace Kratos {
                                 double LocalRelVel[3],
                                 double ViscoDampingLocalContactForce[3]) {
                 
-        KRATOS_TRY
         CalculateNormalForces(LocalElasticContactForce,
                 kn_el,
                 equiv_young,
@@ -197,7 +182,6 @@ namespace Kratos {
                               sliding,
                               element1->mIniNeighbourFailureId[i_neighbour_count]);
         
-        KRATOS_CATCH("")      
     }
 
     void DEM_KDEM::CalculateNormalForces(double LocalElasticContactForce[3],
@@ -211,7 +195,6 @@ namespace Kratos {
             int i_neighbour_count,
             int time_steps) {
 
-        KRATOS_TRY       
       
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;  
@@ -232,7 +215,6 @@ namespace Kratos {
             }
         }
         
-        KRATOS_CATCH("")      
     }
 
     void DEM_KDEM::CalculateTangentialForces(double OldLocalElasticContactForce[3],
@@ -255,7 +237,6 @@ namespace Kratos {
             vector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
-        KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];                
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
@@ -302,7 +283,6 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")      
     }
     
     void DEM_KDEM::CalculateViscoDamping(double LocalRelVel[3],
@@ -312,8 +292,6 @@ namespace Kratos {
                                          double equiv_visco_damp_coeff_tangential,
                                          bool& sliding,
                                          int failure_id) {
-
-        KRATOS_TRY  
                 
         if ((indentation > 0) || (failure_id == 0)) {
             ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
@@ -323,7 +301,6 @@ namespace Kratos {
             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
         
-        KRATOS_CATCH("")
     }
     
     void DEM_KDEM::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -337,7 +314,6 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
 
-        KRATOS_TRY 
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -395,7 +371,6 @@ namespace Kratos {
         }
         */
         //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
-        KRATOS_CATCH("")
     }//ComputeParticleRotationalMoments
     
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 

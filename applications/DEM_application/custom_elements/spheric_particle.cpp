@@ -85,7 +85,6 @@ SphericParticle::~SphericParticle(){
 
 void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 {
-    KRATOS_TRY
     
     SetValue(NEIGHBOUR_IDS, boost::numeric::ublas::vector<int>());
     
@@ -136,7 +135,6 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
     SetIntegrationScheme(integration_scheme);
     
-    KRATOS_CATCH( "" )
 }
 
 void SphericParticle::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme) {
@@ -145,7 +143,6 @@ void SphericParticle::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integr
 
 void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control)
 {
-    KRATOS_TRY
 
     // Creating a data buffer to store those variables that we want to reuse so that we can keep function parameter lists short
 
@@ -227,7 +224,6 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     #endif
     
     FinalizeForceComputation(data_buffer);
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::InitializeForceComputation(ProcessInfo& r_process_info){}
@@ -653,7 +649,6 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                     array_1d<double, 3>& r_contact_force,
                                                     double& RollingResistance)
 {
-    KRATOS_TRY
 
     const array_1d<double, 3>& velocity     = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -749,7 +744,6 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
     #endif
 
-    KRATOS_CATCH("")
 }// ComputeBallToBallContactForce
 
 void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
@@ -790,7 +784,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                                                          double mTimeStep,
                                                          int search_control)
 {
-    KRATOS_TRY
 
     RenewData();
 
@@ -906,7 +899,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         } //ContactType if
     } //rNeighbours.size loop
 
-    KRATOS_CATCH("")
 }// ComputeBallToRigidFaceContactForce
 
 void SphericParticle::RenewData()
@@ -1085,8 +1077,6 @@ void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, Process
 
 void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info)
 {
-    KRATOS_TRY
-
     ElementalDofList.resize(0);
 
     for (unsigned int i = 0; i < GetGeometry().size(); i++) {
@@ -1105,12 +1095,10 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
         }
     }
 
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 {
-    KRATOS_TRY
 
     mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
     mPartialRepresentativeVolume = 0.0;
@@ -1125,7 +1113,6 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
         }
     }
 
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[3],
@@ -1133,7 +1120,6 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
                                                              const double distance,
                                                              const double radius_sum,
                                                              SphericParticle* element) {
-    KRATOS_TRY
 
     double gap = distance - radius_sum;
     double real_distance = GetInteractionRadius() + 0.5 * gap;
@@ -1150,7 +1136,6 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
             (*mStressTensor)(i,j) += x_centroid[j] * Force[i]; //ref: Katalin Bagi 1995 Mean stress tensor
         }
     }
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
@@ -1158,7 +1143,6 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
                                                         const double distance,
                                                         const double contact_area) {
 
-    KRATOS_TRY
 
     double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
     rRepresentative_Volume += 0.33333333333333 * (distance * contact_area);
@@ -1176,12 +1160,10 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
         }
     }
 
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/) {
 
-    KRATOS_TRY
 
     const double sphere_volume = CalculateVolume();
 
@@ -1190,12 +1172,10 @@ void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume
         //is_smaller_than_sphere = true;
     }
 
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
 
-    KRATOS_TRY
 
     ComputeReactions();
 	
@@ -1230,7 +1210,6 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
 
         SymmetrizeStressTensor();
     }
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::SymmetrizeStressTensor(){
@@ -1254,7 +1233,6 @@ void SphericParticle::SymmetrizeStressTensor(){
 }
 
 void SphericParticle::ComputeReactions(){
-    KRATOS_TRY
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         Node<3>& node = GetGeometry()[0];
         array_1d<double, 3>& reaction_force=node.FastGetSolutionStepValue(FORCE_REACTION);
@@ -1271,7 +1249,6 @@ void SphericParticle::ComputeReactions(){
             reaction_moment[2] = node.Is(DEMFlags::FIXED_ANG_VEL_Z) * (-r_total_moment[2]);
         }
     }
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
@@ -1286,20 +1263,16 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
                                               const ProcessInfo& r_process_info,
                                               const array_1d<double,3>& gravity)
 {
-    KRATOS_TRY
     noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
     noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
     noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
-    KRATOS_CATCH("")
 }
 
 array_1d<double,3> SphericParticle::ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info) {
     
-    KRATOS_TRY
     
     return GetMass() * gravity;
     
-    KRATOS_CATCH("")
 }
 
 void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
@@ -1432,7 +1405,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
 
 double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
-    KRATOS_TRY
 
     double max_sqr_period = 0.0;
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
@@ -1442,7 +1414,6 @@ double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const Proces
 
     return max_sqr_period;
 
-    KRATOS_CATCH("")
 }
 
 
@@ -1456,7 +1427,6 @@ double SphericParticle::GetInitialDeltaWithFEM(int index) //only available in co
 
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info)
 {
-    KRATOS_TRY
 
     //CRITICAL DELTA CALCULATION
 
@@ -1539,7 +1509,6 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     AdditionalCalculate(rVariable, Output, r_process_info);
 
-    KRATOS_CATCH("")
 
 } //Calculate
 
@@ -1656,8 +1625,6 @@ void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, dou
 
 void SphericParticle::ApplyGlobalDampingToContactForces() {
         
-    KRATOS_TRY
-
     array_1d<double, 3>& contact_force = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
     const array_1d<double, 3> velocity = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
@@ -1671,7 +1638,6 @@ void SphericParticle::ApplyGlobalDampingToContactForces() {
         contact_force[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(contact_force[2] * velocity[2]));
     }
 
-    KRATOS_CATCH("")
 }
 
 int    SphericParticle::GetClusterId()                                                           { return mClusterId;      }

@@ -25,7 +25,6 @@ namespace Kratos {
                                                           double ViscoLocalRotationalMoment[3],
                                                           double equiv_poisson,
                                                           double indentation) {
-        KRATOS_TRY
         
         double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
         
@@ -35,14 +34,11 @@ namespace Kratos {
         DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, fabric_coefficient);
         DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
         
-        KRATOS_CATCH("")
     }
     
     void DEM_KDEMFabric::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
-        KRATOS_TRY         
-        KRATOS_CATCH("")
     }
 
 } // namespace Kratos

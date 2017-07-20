@@ -36,7 +36,6 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
 
-        KRATOS_TRY 
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -90,7 +89,6 @@ namespace Kratos {
         }
         */
         //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
-        KRATOS_CATCH("")
     }//ComputeParticleRotationalMoments
 
 } /* namespace Kratos.*/

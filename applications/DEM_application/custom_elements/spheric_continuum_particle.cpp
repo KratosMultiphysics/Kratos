@@ -212,7 +212,6 @@ namespace Kratos {
 
     /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
     
-    KRATOS_TRY
         
     SphericParticle::InitializeSolutionStep(r_process_info);
     
@@ -220,7 +219,6 @@ namespace Kratos {
         DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
     }
     
-    KRATOS_CATCH("")
     }*/
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
@@ -229,7 +227,6 @@ namespace Kratos {
                                                                  array_1d<double, 3>& rContactForce,
                                                                  double& RollingResistance)
     {
-        KRATOS_TRY
         
         const int time_steps = r_process_info[TIME_STEPS];
         const int& search_control = r_process_info[SEARCH_CONTROL];
@@ -424,7 +421,6 @@ namespace Kratos {
 
         ComputeBrokenBondsRatio();
                        
-        KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
@@ -471,7 +467,6 @@ namespace Kratos {
     void SphericContinuumParticle::AddContributionToRepresentativeVolume(const double distance,
                                                                          const double radius_sum,
                                                                          const double contact_area) {
-        KRATOS_TRY
 
         double gap = distance - radius_sum;
         double real_distance = GetInteractionRadius() + 0.5 * gap;
@@ -479,13 +474,11 @@ namespace Kratos {
         //rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
         mPartialRepresentativeVolume += 0.33333333333333 * real_distance * contact_area;
 
-        KRATOS_CATCH("")
     }
 
     /*
     void SphericContinuumParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) {
     
-        KRATOS_TRY
         
         SphericParticle::CorrectRepresentativeVolume(rRepresentative_Volume, is_smaller_than_sphere);
         
@@ -493,12 +486,10 @@ namespace Kratos {
                                                                                    // So the minimum volume for a skin sphere is that of a cylinder
         //if (*mSkinSphere) rRepresentative_Volume *= 0.5;
                 
-        KRATOS_CATCH("")
     }
     */
         
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
-        KRATOS_TRY
 
         SphericParticle::FinalizeSolutionStep(r_process_info);
 
@@ -508,7 +499,6 @@ namespace Kratos {
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
         
-        KRATOS_CATCH("")
     }
     
     void SphericContinuumParticle::GetStressTensorFromNeighbourStep1(){
@@ -565,7 +555,6 @@ namespace Kratos {
     
     void SphericContinuumParticle::MarkNewSkinParticlesDueToBreakage() {
         
-        KRATOS_TRY
         
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             
@@ -575,12 +564,10 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& TempNeighbourElements) {
         
-        KRATOS_TRY
         
         unsigned int current_neighbors_size = mNeighbourElements.size();
         unsigned int initial_neighbors_size = mIniNeighbourIds.size();
@@ -631,13 +618,11 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")
     }
             
 
     void SphericContinuumParticle::ReorderFEMneighbours() {
         
-        KRATOS_TRY
 
         unsigned int current_neighbors_size = mNeighbourRigidFaces.size();
         unsigned int initial_neighbors_size = mFemIniNeighbourIds.size();
@@ -665,14 +650,12 @@ namespace Kratos {
 
         mNeighbourRigidFaces.swap(TempNeighbourElements);
 
-        KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info){}
     
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
         
-        KRATOS_TRY
 
         double max_local_search = 0.0;
 
@@ -685,12 +668,10 @@ namespace Kratos {
         
         return max_local_search;
         
-        KRATOS_CATCH("")
     }
 
     bool SphericContinuumParticle::OverlappedParticleRemoval() {
         
-        KRATOS_TRY
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             if (mNeighbourElements[i] == NULL) continue;
@@ -710,12 +691,10 @@ namespace Kratos {
         }
         return false;
         
-        KRATOS_CATCH("")
     }
 
     double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
         
-        KRATOS_TRY
         
         double max_sqr_period = 0.0;
 
@@ -731,12 +710,10 @@ namespace Kratos {
         }
         return max_sqr_period;
         
-        KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {
 
-        KRATOS_TRY
         
         Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
 
@@ -779,12 +756,10 @@ namespace Kratos {
             }
         } //loop neighbors
 
-        KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
         
-        KRATOS_TRY
 
         if (rVariable == DELTA_TIME) {
             double coeff = r_process_info[NODAL_MASS_COEFF];
@@ -803,7 +778,6 @@ namespace Kratos {
         
         SphericParticle::Calculate(rVariable, Output, r_process_info);
 
-        KRATOS_CATCH("")
     }//Calculate
 
     void SphericContinuumParticle::Initialize(const ProcessInfo& r_process_info){
@@ -828,7 +802,6 @@ namespace Kratos {
 
     void SphericContinuumParticle::CalculateOnContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
         
-        KRATOS_TRY
 
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
         ParticleContactElement* bond = mBondElements[i];
@@ -845,7 +818,6 @@ namespace Kratos {
         if ((time_steps == 0) || (acumulated_damage > bond->mUnidimendionalDamage)) {
             bond->mUnidimendionalDamage = acumulated_damage;
         }
-        KRATOS_CATCH("")
     }
 
 } // namespace Kratos

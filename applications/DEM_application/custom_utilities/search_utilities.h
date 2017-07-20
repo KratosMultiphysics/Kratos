@@ -73,14 +73,12 @@ namespace Kratos
       template<class TVariableType>
       void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, ModelPart& rBinsModelPart, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
-          KRATOS_TRY
           
           NodesArrayType& rSearchNodes  = rSearchModelPart.GetCommunicator().LocalMesh().Nodes();
           NodesArrayType& rBinsNodes    = rBinsModelPart.GetCommunicator().LocalMesh().Nodes();
           
           SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadius,rDistanceVar);
           
-          KRATOS_CATCH("")
       }
 
       /**
@@ -93,13 +91,11 @@ namespace Kratos
       template<class TVariableType>
       void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
-          KRATOS_TRY
           
           NodesArrayType& rSearchNodes  = rSearchModelPart.GetCommunicator().LocalMesh().Nodes();
           
           SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadius,rDistanceVar);
           
-          KRATOS_CATCH("")
       }
 
       /**
@@ -112,13 +108,11 @@ namespace Kratos
       template<class TVariableType> 
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, ModelPart& rBinsModelPart, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
-          KRATOS_TRY
           
           NodesArrayType& rBinsNodes    = rBinsModelPart.GetCommunicator().LocalMesh().Nodes();
           
           SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadius,rDistanceVar);
           
-          KRATOS_CATCH("")
       }
    
       /**
@@ -132,7 +126,6 @@ namespace Kratos
       template<class TVariableType>
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
-          KRATOS_TRY 
           KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0); 
 
           if(rSearchNodes.size() && rBinsNodes.size())
@@ -174,7 +167,6 @@ namespace Kratos
               }
           }
           
-          KRATOS_CATCH("")
       }
 
       //************************************************************************

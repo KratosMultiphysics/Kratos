@@ -17,11 +17,9 @@ namespace Kratos {
 
     void DEM_KDEM2D::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
         
-        KRATOS_TRY
         double radius_sum = radius + other_radius;
         double equiv_radius = radius * other_radius / radius_sum;
         calculation_area = 2.0 * equiv_radius;
-        KRATOS_CATCH("")
     }
 
 } /* namespace Kratos.*/

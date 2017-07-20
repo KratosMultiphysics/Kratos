@@ -13,15 +13,12 @@
 namespace Kratos {
 
     void DEM_Dempack::Initialize() {
-        
-    KRATOS_TRY  
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
         mHistoryMaxForce            = 0.0; //maximum force achieved
         mHistoryDamage              = 0.0; //cumulated_damage
         mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
         mHistoryDisp                = 0.0; //displacement;
         mHistoryShearFlag           = 0.0; //shear limit achived;
-    KRATOS_CATCH("")  
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEM_Dempack::Clone() const {
@@ -103,11 +100,9 @@ namespace Kratos {
                                                 SphericContinuumParticle* element1,
                                                 SphericContinuumParticle* element2) {
         
-        KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
-        KRATOS_CATCH("")  
     }
 
     void DEM_Dempack::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -117,7 +112,6 @@ namespace Kratos {
                                                 const double kn_el,
                                                 const double kt_el) {
         
-        KRATOS_TRY 
         double aux_norm_to_tang = 0.0;               // sqrt(kt_el / kn_el);
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
@@ -127,7 +121,6 @@ namespace Kratos {
 
         equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // not used in Dempack
-        KRATOS_CATCH("")  
     }
 
     void DEM_Dempack::CalculateForces(const ProcessInfo& r_process_info,
@@ -158,7 +151,6 @@ namespace Kratos {
                                     double LocalRelVel[3],
                                     double ViscoDampingLocalContactForce[3]) {
 
-        KRATOS_TRY
 
         CalculateNormalForces(LocalElasticContactForce,
                 kn_el,
@@ -206,7 +198,6 @@ namespace Kratos {
                               sliding,
                               element1->mIniNeighbourFailureId[i_neighbour_count]);
 
-        KRATOS_CATCH("")  
     }
 
     void DEM_Dempack::CalculateNormalForces(double LocalElasticContactForce[3],
@@ -220,7 +211,6 @@ namespace Kratos {
             int i_neighbour_count,
             int time_steps) {
         
-        KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
@@ -364,7 +354,6 @@ namespace Kratos {
             else {fn = 0.0;}
         } //Tension
 
-    KRATOS_CATCH("")  
     }
 
 
@@ -396,7 +385,6 @@ namespace Kratos {
                                                 const ProcessInfo& r_process_info) {
 
 
-        KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
@@ -495,7 +483,6 @@ namespace Kratos {
                 search_control_vector[OpenMPUtils::ThisThread()] = 1;
             }
         }
-    KRATOS_CATCH("")
     }
 
 //     */

@@ -55,7 +55,6 @@ namespace Kratos {
                                                 SphericContinuumParticle* element1,
                                                 SphericContinuumParticle* element2) {
         
-        KRATOS_TRY 
 
 //        double rmin = element1->GetRadius();    // test rebalance solo resistencia
 //        const double other_radius = element2->GetRadius();
@@ -70,7 +69,6 @@ namespace Kratos {
 //        outputfile << kn_el << " " << kt_el << "\n";
 //        outputfile.close();
 
-        KRATOS_CATCH("")  
     }
 
 
@@ -86,7 +84,6 @@ namespace Kratos {
             int i_neighbour_count,
             int time_steps) {
 
-        KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
@@ -236,7 +233,6 @@ namespace Kratos {
             else {fn = 0.0;}
         } //Tension
 
-    KRATOS_CATCH("")
     }
 
 
@@ -396,7 +392,6 @@ namespace Kratos {
             vector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
-        KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
@@ -448,7 +443,6 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")
     }
 
     
@@ -463,7 +457,6 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
 
-        KRATOS_TRY
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
 
@@ -519,7 +512,6 @@ namespace Kratos {
         }
         */
         //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
-        KRATOS_CATCH("")
     }//ComputeParticleRotationalMoments
 
 

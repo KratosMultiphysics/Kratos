@@ -14,10 +14,7 @@
 
 namespace Kratos {
 
-	void DEM_sintering_continuum::Initialize() {
-
-		KRATOS_TRY
-			KRATOS_CATCH("")
+	void DEM_sintering_continuum::Initialize() { //TODO: overwritting this might be an error, we lose all the operations of the parent classes
 	}
 
 	DEMContinuumConstitutiveLaw::Pointer DEM_sintering_continuum::Clone() const {
@@ -151,9 +148,6 @@ namespace Kratos {
 
 	{
 
-		KRATOS_TRY
-		//SphericParticle* element1;
-		//SphericParticle* element2;
 
 			if (indentation >= 0.0) { //COMPRESSION
 				CalculateSinteringForces(r_process_info,
@@ -171,7 +165,6 @@ namespace Kratos {
 			{
 				//std::system("pause");
 			}
-		KRATOS_CATCH("")
 	}
 
 ////////////////////// CALCULATE FORCE /////////////////////////////////////
@@ -223,7 +216,6 @@ namespace Kratos {
                                                     double LocalRelVel[3],
                                                     double ViscoDampingLocalContactForce[3]) {
                 
-        KRATOS_TRY
         
         SinteringSphericContinuumParticle* p_sintering_element1 = dynamic_cast<SinteringSphericContinuumParticle*>(element1);
         p_sintering_element1->mSinteringDisplacement = p_sintering_element1->mOldNeighbourSinteringDisplacement[i_neighbour_count];
@@ -287,10 +279,7 @@ namespace Kratos {
             //DEM_KDEM::mContinuumConstitutiveLawArray[i]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, this, neighbour_iterator, kn_el, kt_el);
             //DEM_KDEM::mContinuumConstitutiveLawArray[i]->CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, penetration, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding, failure_id);
         }
-                        
-        
-    KRATOS_CATCH("")      
-    }	
+        }	
 
 	void DEM_sintering_continuum::CalculateNormalForcesAfterSintering(double LocalElasticContactForce[3], // HERTZIAN CL
 		double sintering_displ,
@@ -300,9 +289,8 @@ namespace Kratos {
 		SphericContinuumParticle* element2,
 		int i_neighbour_count) {
 
-		KRATOS_TRY
 
-			int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+                int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
 		Properties& element1_props = element1->GetProperties();
 		Properties& element2_props = element2->GetProperties();
@@ -328,7 +316,6 @@ namespace Kratos {
 			}
 			else LocalElasticContactForce[2] = 0.0;
 		}
-		KRATOS_CATCH("")
 	}
 
 	void DEM_sintering_continuum::InitializeContact(SphericContinuumParticle* const element1, SphericContinuumParticle* const element2, double& indentation, 

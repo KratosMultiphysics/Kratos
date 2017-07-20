@@ -12,7 +12,6 @@
 
 namespace Kratos {
     boost::python::object AuxiliaryUtilities::GetIthSubModelPartIsForceIntegrationGroup(ModelPart& rParentModelPart, const int& required_i){
-        KRATOS_TRY;                             
         int current_i = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = rParentModelPart.SubModelPartsBegin(); sub_model_part != rParentModelPart.SubModelPartsEnd(); ++sub_model_part) {
 
@@ -24,12 +23,9 @@ namespace Kratos {
         }
 
         KRATOS_THROW_ERROR(std::runtime_error, "The function GetIthSubModelPartIsForceIntegrationGroup required a position greater than the number of SubModelParts! The number of present submodelparts is ", rParentModelPart.NumberOfSubModelParts());
-        
-        KRATOS_CATCH("");        
     };
     
     boost::python::object AuxiliaryUtilities::GetIthSubModelPartName(ModelPart& rParentModelPart, const int& required_i){
-        KRATOS_TRY;                             
         int current_i = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = rParentModelPart.SubModelPartsBegin(); sub_model_part != rParentModelPart.SubModelPartsEnd(); ++sub_model_part) {
 
@@ -41,13 +37,9 @@ namespace Kratos {
         }
 
         KRATOS_THROW_ERROR(std::runtime_error, "The function GetIthSubModelPartName required a position greater than the number of SubModelParts! The number of present submodelparts is ", rParentModelPart.NumberOfSubModelParts());
-        
-        KRATOS_CATCH("");  
     };
     
     boost::python::object AuxiliaryUtilities::GetIthSubModelPartIdentifier(ModelPart& rParentModelPart, const int& required_i){
-        KRATOS_TRY; 
-        
         int current_i = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = rParentModelPart.SubModelPartsBegin(); sub_model_part != rParentModelPart.SubModelPartsEnd(); ++sub_model_part) {
 
@@ -60,13 +52,10 @@ namespace Kratos {
         }
 
         KRATOS_THROW_ERROR(std::runtime_error, "The function GetIthSubModelPartIdentifier required a position greater than the number of SubModelParts! The number of present submodelparts is ", rParentModelPart.NumberOfSubModelParts());
-        
-        KRATOS_CATCH("");  
     };
     
     template<class T>
     boost::python::object AuxiliaryUtilities::GetIthSubModelPartData(ModelPart& rParentModelPart, const int& required_i, const Variable<T>& rVariable){
-        KRATOS_TRY; 
         
         int current_i = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = rParentModelPart.SubModelPartsBegin(); sub_model_part != rParentModelPart.SubModelPartsEnd(); ++sub_model_part) {
@@ -81,7 +70,6 @@ namespace Kratos {
 
         KRATOS_THROW_ERROR(std::runtime_error, "The function GetIthSubModelPartData required a position greater than the number of SubModelParts! The number of present submodelparts is ", rParentModelPart.NumberOfSubModelParts());
         
-        KRATOS_CATCH("");  
     }      
     
     // Explicit instantiations of the previous template function (otherwise it does not link):
@@ -92,7 +80,6 @@ namespace Kratos {
        
     
     ModelPart::NodesContainerType::Pointer AuxiliaryUtilities::GetIthSubModelPartNodes(ModelPart& rParentModelPart, const int& required_i){
-        KRATOS_TRY; 
         
         int current_i = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = rParentModelPart.SubModelPartsBegin(); sub_model_part != rParentModelPart.SubModelPartsEnd(); ++sub_model_part) {
@@ -106,7 +93,6 @@ namespace Kratos {
 
         KRATOS_THROW_ERROR(std::runtime_error, "The function GetIthSubModelPartNodes required a position greater than the number of SubModelParts! The number of present submodelparts is ", rParentModelPart.NumberOfSubModelParts());
         
-        KRATOS_CATCH("");  
         
     }       
     

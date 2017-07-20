@@ -13,7 +13,6 @@
 namespace Kratos
 {             
 	void BondingSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {
-            KRATOS_TRY
             if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
             
             const unsigned int initial_number_of_cont_neighbours = mContinuumInitialNeighborsSize;
@@ -94,7 +93,6 @@ namespace Kratos
                 mBondElements.push_back(NULL);
             }                      
 
-            KRATOS_CATCH("")
 	};        
         
         bool BondingSphericContinuumParticle::NeighbourIsToBeBonded(const int neighbour_id) {

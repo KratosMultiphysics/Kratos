@@ -92,11 +92,8 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
                          Variable<array_1d<double,3> >& rDestinationVariable,
-                         const ProcessInfo& r_process_info)
-{
-    KRATOS_TRY
-
-
+                         const ProcessInfo& r_process_info) {
+     
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -118,26 +115,22 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
       }
       }
 
-    if( rDestinationVariable == FORCE_RESIDUAL )
-      {
+    if( rDestinationVariable == FORCE_RESIDUAL ) {
 
-    for(unsigned int i=0; i< number_of_nodes; i++)
-      {
-        int index = dimension * i;
+        for(unsigned int i=0; i< number_of_nodes; i++) {
+            int index = dimension * i;
 
-        GetGeometry()[i].SetLock();
+            GetGeometry()[i].SetLock();
 
-        array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-        for(unsigned int j=0; j<dimension; j++)
-          {
-        ForceResidual[j] += rRHS[index + j];
-          }
+            array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for(unsigned int j=0; j<dimension; j++)
+              {
+            ForceResidual[j] += rRHS[index + j];
+              }
 
-        GetGeometry()[i].UnSetLock();
-      }
-      }
-
-    KRATOS_CATCH( "" )
+            GetGeometry()[i].UnSetLock();
+        }
+    }
 }
 
  

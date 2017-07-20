@@ -12,7 +12,6 @@
 namespace Kratos {
 
     void DEM_ExponentialHC::Initialize() {        
-        KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
         mHistoryMaxForce            = 0.0; //maximum force achieved
         mHistoryDamage              = 0.0; //cumulated_damage
@@ -22,8 +21,6 @@ namespace Kratos {
         mGamma2                     = 0.0;
         mGamma3                     = 0.0;
         mMaxDef                     = 0.0;
-        
-        KRATOS_CATCH("")  
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEM_ExponentialHC::Clone() const {
