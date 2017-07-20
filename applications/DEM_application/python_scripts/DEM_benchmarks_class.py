@@ -22,21 +22,21 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==2:
 
         final_time                      = 0.007
-        dt                              = 3e-7 #3e-7 # Complies Rayleigh's condition????????????????
+        dt                              = 3e-7 # Complies Rayleigh's condition????????????????
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==3:
 
         final_time                      = 0.00031
-        dt                              = 1.0e-8  #1.1e-9 # Complies Rayleigh's condition
+        dt                              = 8.1e-9 #1.1e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==4:
 
         final_time                      = 0.0002  #0.00003
-        dt                              = 1.9e-8  #1.9e-9 # Complies Rayleigh's condition
+        dt                              = 2e-8 #1.9e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 17
 
@@ -57,28 +57,28 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==7:
 
         final_time                      = 0.0005
-        dt                              = 4e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
+        dt                              = 4.4614e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==8:
 
         final_time                      = 0.02
-        dt                              = 1.0e-6 #5.0e-7 # Complies Rayleigh's condition
+        dt                              = 2.0e-6 #5.0e-7 # Complies Rayleigh's condition
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==9:
 
         final_time                      = 0.001 #0.0005
-        dt                              = 5.0e-8 #6.4e-8 # Complies Rayleigh's condition
+        dt                              = 5.0e-8 # 3.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==10:
 
         final_time                      = 0.00015 #0.0005
-        dt                              = 2.0e-8 #2.0e-9  #3.6e-12 # Complies Rayleigh's condition
+        dt                              = 2.0e-8  #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
@@ -86,7 +86,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==11:
 
         final_time                      = 0.00015 #0.0005
-        dt                              = 2.0e-8 #2.0e-9 #3.6e-12 # Complies Rayleigh's condition
+        dt                              = 1.0e-7 #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4

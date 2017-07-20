@@ -12,6 +12,7 @@ sys.path.append(path)
 path = os.getcwd()
 path += '/basic_benchmarks'
 os.chdir(path)
+print("checkpoint 1")
                   
 Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two identical spheres\n",
                   "Running DEM Benchmark 2.... Elastic normal impact of a sphere against a rigid plane\n",
@@ -81,6 +82,8 @@ def Run():
             else:
                 os.system("export OMP_NUM_THREADS=1")
                 if sys.version_info >= (3, 0):
+                    print("checkpoint 2")
+                    print(path)
                     subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
                     
                 else:

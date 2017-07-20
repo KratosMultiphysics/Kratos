@@ -18,7 +18,6 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.envi
     import DEM_material_test_script_mpi as DEM_material_test_script
     def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-
 else:
     print("Running under OpenMP........")
     import DEM_procedures
@@ -137,8 +136,8 @@ class Solution(object):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
 
-    def Run(self):
-
+    def Run(self, iteration=0, coeff_of_restitution_iteration=0):
+        print("entro run2")  
         self.Initialize()
 
         self.RunMainTemporalLoop()
@@ -154,7 +153,7 @@ class Solution(object):
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
 
-    def Initialize(self):
+    def Initialize(self, iteration=0, coeff_of_restitution_iteration=0):
         self.AddVariables()
 
         self.ReadModelParts()
@@ -224,19 +223,29 @@ class Solution(object):
         self.report.total_steps_expected = int(DEM_parameters.FinalTime / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
 
+    def GetMpFilename(self):
+        return DEM_parameters.problem_name + "DEM"
+    
+    def GetInletFilename(self):
+        return DEM_parameters.problem_name + "DEM_Inlet"   
+    
+    def GetProblemTypeFilename(self):
+        return DEM_parameters.problem_name
+    
+    def SetInitialData(self, iteration, coeff_of_restitution_iteration):
+        pass
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
 
         os.chdir(self.main_path)
         # Reading the model_part
-        spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
+        spheres_mp_filename   = self.GetMpFilename()
         model_part_io_spheres = model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
         if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
             pass
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
-
         os.chdir(self.main_path)
         [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
 
@@ -248,10 +257,10 @@ class Solution(object):
         rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
         model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
-
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
+
         clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
         model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_clusters.ReadModelPart(self.cluster_model_part)
@@ -262,7 +271,7 @@ class Solution(object):
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
-        DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+        DEM_Inlet_filename = self.GetInletFilename()
 
 
         model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
@@ -289,7 +298,7 @@ class Solution(object):
 
             self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time,self.dt,self.step)
 
-            self.BeforeSolveOperations()
+            self.BeforeSolveOperations(self.time)
 
             #### SOLVE #########################################
             self.solver.Solve()
@@ -328,7 +337,7 @@ class Solution(object):
                 self.PrintResultsForGid(self.time)
                 self.time_old_print = self.time
 
-            self.FinalizeTimeStep()
+            self.FinalizeTimeStep(self.time)
 
 
     def SetInlet(self):
@@ -343,7 +352,7 @@ class Solution(object):
     def InitializeTimeStep(self):
         pass
 
-    def BeforeSolveOperations(self):
+    def BeforeSolveOperations(self, time):
         pass
 
     def AfterSolveOperations(self):
@@ -355,7 +364,7 @@ class Solution(object):
                     self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                     #self.particle_watcher.MakeMeasurements(self.all_model_parts.Get('AnalyticParticlesPart'))
 
-    def FinalizeTimeStep(self):
+    def FinalizeTimeStep(self, time):
         pass
 
     def Finalize(self):
@@ -371,6 +380,8 @@ class Solution(object):
         
 
         os.chdir(self.main_path)
+    
+        #def CleanUpOperations(self):
 
         objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
                               self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
