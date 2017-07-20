@@ -77,11 +77,12 @@ namespace Kratos
 		//~ array_1d<double,2> BDFcoeffs = {1.0, 1.0};
 		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
 
-		boost::numeric::ublas::bounded_matrix<double,9,9> msMass   = ZeroMatrix(9,9);     // Mass matrix
-		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX  = ZeroMatrix(3,2);     // Shape functions gradients
-		boost::numeric::ublas::bounded_matrix<double,3,1> ms_hU    = ZeroMatrix(3,1);     // Iteration matrix: momentum unknown
-		boost::numeric::ublas::bounded_matrix<double,9,9> msC      = ZeroMatrix(9,9);     // Nt*A*B (LHS)
-		boost::numeric::ublas::bounded_matrix<double,3,9> msN      = ZeroMatrix(3,9);     // Shape functions type
+		boost::numeric::ublas::bounded_matrix<double,9,9> msMass    = ZeroMatrix(9,9);     // Mass matrix
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX   = ZeroMatrix(3,2);     // Shape functions gradients
+		boost::numeric::ublas::bounded_matrix<double,3,1> ms_hU     = ZeroMatrix(3,1);     // Iteration matrix: momentum unknown
+		boost::numeric::ublas::bounded_matrix<double,9,9> msC       = ZeroMatrix(9,9);     // Nt*A*B (LHS)
+		boost::numeric::ublas::bounded_matrix<double,3,9> msN       = ZeroMatrix(3,9);     // Shape functions type
+		boost::numeric::ublas::bounded_matrix<double,9,9> msMass_mom= ZeroMatrix(9,9);     // momentum mass matrix
 		//
 		boost::numeric::ublas::bounded_matrix<double,2,9> msN_mom        = ZeroMatrix(2,9);   // Shape functions type matrix (for momentum unknown)
 		boost::numeric::ublas::bounded_matrix<double,1,9> msN_height     = ZeroMatrix(1,9);   // Shape functions type matrix (for height unknown)
@@ -95,7 +96,7 @@ namespace Kratos
 		array_1d<double,9> ms_proj_unknown;
 		array_1d<double,9> ms_inv_unknown;
 		array_1d<double,2> momentum;
-		array_1d<double,2> inv_h_grad;
+		// array_1d<double,2> inv_h_grad;
 		//~ boost::numeric::ublas::bounded_matrix<double,2,1> inv_h_grad;
 		double height;
 		// double inv_height;
@@ -140,7 +141,7 @@ namespace Kratos
 
 			ms_depth[counter]   = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
 			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
-			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_HEIGHT);
+			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT,1);
 			counter++;
 		}
 
@@ -192,6 +193,14 @@ namespace Kratos
 		msN_mom(1,5) = msNGauss[1];
 		msN_mom(1,7) = msNGauss[2];
 
+		msMass_mom(0,0) = 1;
+		msMass_mom(1,1) = 1;
+		msMass_mom(3,3) = 1;
+		msMass_mom(4,4) = 1;
+		msMass_mom(6,6) = 1;
+		msMass_mom(7,7) = 1;
+		msMass_mom *= 0.33333333333333;
+
 
 		// Previous height iteration at current time step
 		height = norm_1(prod(msN_height,ms_unknown));
@@ -200,8 +209,8 @@ namespace Kratos
 		// Previous momentum iteration at current time step
 		momentum = prod(msN_mom,ms_unknown);
 		// Previous inv height gradient at current time step
-		inv_h_grad[0] = msDN_DX(0,0)/ms_unknown[2] + msDN_DX(1,0)/ms_unknown[5] + msDN_DX(2,0)/ms_unknown[8];
-		inv_h_grad[1] = msDN_DX(0,1)/ms_unknown[2] + msDN_DX(1,1)/ms_unknown[5] + msDN_DX(2,1)/ms_unknown[8];
+		// inv_h_grad[0] = msDN_DX(0,0)/ms_unknown[2] + msDN_DX(1,0)/ms_unknown[5] + msDN_DX(2,0)/ms_unknown[8];
+		// inv_h_grad[1] = msDN_DX(0,1)/ms_unknown[2] + msDN_DX(1,1)/ms_unknown[5] + msDN_DX(2,1)/ms_unknown[8];
 		// Previous div(U) iteration
 		divU  = msDN_DX(0,0)*ms_unknown[0]/ms_unknown[2];
 		divU += msDN_DX(0,1)*ms_unknown[1]/ms_unknown[2];
@@ -230,32 +239,32 @@ namespace Kratos
 		// LHS
 		// Cross terms
 		noalias(rLeftHandSideMatrix)  = ZeroMatrix(9,9);
-		//~ noalias(rLeftHandSideMatrix)  = prod(trans(msN_height),msDN_DX_mom);                 // Add <q,div(hu)> to Mass Eq.
+		noalias(rLeftHandSideMatrix)  = prod(trans(msN_height),msDN_DX_mom);                 // Add <q,div(hu)> to Mass Eq.
 		noalias(msC)                  = gravity*height*prod(trans(msN_mom),msDN_DX_height);  // Add <w,g*h*grad(h)> to Momentum Eq.
 		noalias(rLeftHandSideMatrix) += msC;
 
 		// Non linear terms
-		array_1d<double,9> v_aux1x9 = ZeroVector(9);
-		boost::numeric::ublas::bounded_matrix<double,1,9> m_aux1x9 = ZeroMatrix(1,9);
-		boost::numeric::ublas::bounded_matrix<double,2,9> m_aux2x9 = ZeroMatrix(2,9);
-		boost::numeric::ublas::bounded_matrix<double,9,9> m_aux9x9 = ZeroMatrix(9,9);
-		noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
-		for (unsigned int i = 0; i < 9; i++)
-			m_aux1x9(0,i) = v_aux1x9[i];
-		noalias(m_aux9x9) = prod(trans(msN_height),m_aux1x9);
+		// array_1d<double,9> v_aux1x9 = ZeroVector(9);
+		// boost::numeric::ublas::bounded_matrix<double,1,9> m_aux1x9 = ZeroMatrix(1,9);
+		// boost::numeric::ublas::bounded_matrix<double,2,9> m_aux2x9 = ZeroMatrix(2,9);
+		// boost::numeric::ublas::bounded_matrix<double,9,9> m_aux9x9 = ZeroMatrix(9,9);
+		// noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
+		// for (unsigned int i = 0; i < 9; i++)
+		// 	m_aux1x9(0,i) = v_aux1x9[i];
+		// noalias(m_aux9x9) = prod(trans(msN_height),m_aux1x9);
 		//~ noalias(rLeftHandSideMatrix) += height * m_aux9x9;              // Add <q,h*grad(1/h)*(hu)> to Mass Eq.
 
-		noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
-		noalias(m_aux2x9) = outer_prod(momentum,v_aux1x9);
-		noalias(m_aux9x9) = prod(trans(msN_mom),m_aux2x9);
+		// noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
+		// noalias(m_aux2x9) = outer_prod(momentum,v_aux1x9);
+		// noalias(m_aux9x9) = prod(trans(msN_mom),m_aux2x9);
 		//~ noalias(rLeftHandSideMatrix) += m_aux9x9;                       // Add <w,(hu)*grad(1/h)*(hu)> to Momentum Eq.
 
-		noalias(m_aux2x9) = prod(ms_hU,msGrad_mom);
-		noalias(m_aux9x9) = prod(msN_mom,m_aux2x9);
+		// noalias(m_aux2x9) = prod(ms_hU,msGrad_mom);
+		// noalias(m_aux9x9) = prod(msN_mom,m_aux2x9);
 		//~ noalias(rLeftHandSideMatrix) += inv_height * m_aux9x9;          // Add <w,(1/h)*(hu)*grad(hu)> to Momentum Eq.
 
 		//~ noalias(rLeftHandSideMatrix) += divU * prod(msN_height,msN_height);  // Add <q,div(u)*h> to Mass Eq. UNSTABLE
-		//~ noalias(rLeftHandSideMatrix) += divU * prod(msN_mom,msN_mom);        // Add <w,div(u)*hu> to Momentum Eq. UNSTABLE
+		noalias(rLeftHandSideMatrix) += divU * msMass_mom;        // Add <w,div(u)*hu> to Momentum Eq. UNSTABLE
 
 
 		//~ KRATOS_WATCH(rLeftHandSideMatrix)
@@ -271,7 +280,7 @@ namespace Kratos
 
 
 		//~ noalias(rLeftHandSideMatrix) += prod(trans(msN_height),msDN_DX_mom);   // Add <q,div(hu)> to Mass Eq.
-		noalias(rLeftHandSideMatrix) += divU * msMass;        // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
+		//~ noalias(rLeftHandSideMatrix) += divU * msMass;        // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
 
 
 
