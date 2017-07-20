@@ -167,12 +167,12 @@ protected:
         );
 
     void CalculateAndAddPressureForce(
-        VectorType& residualvector,
+        VectorType& rResidualVector,
         const Vector& N,
-        const array_1d<double, 3>& v3,
-        double pressure,
-        double weight,
-        const ProcessInfo& rCurrentProcessInfo 
+        const array_1d<double, 3 >& Normal,
+        const double Pressure,
+        const double Weight,
+        const ProcessInfo& rCurrentProcessInfo
         );
     
     ///@}
