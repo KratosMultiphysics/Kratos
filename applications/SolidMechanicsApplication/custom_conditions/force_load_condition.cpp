@@ -821,7 +821,6 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
       }
     //------
 
-    
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
