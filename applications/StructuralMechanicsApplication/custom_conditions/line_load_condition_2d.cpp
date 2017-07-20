@@ -159,12 +159,12 @@ namespace Kratos
         }
         
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
-        {            
+        {                   
             const double det_j = GetGeometry().DeterminantOfJacobian( integration_points[point_number] );
 
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
             
-            const array_1d<double, 3> normal = GetGeometry().Normal( integration_points[point_number] );
+            const array_1d<double, 3> normal = - GetGeometry().Normal( integration_points[point_number] );
             
             // Calculating the pressure on the gauss point
             double gauss_pressure = 0.0;
