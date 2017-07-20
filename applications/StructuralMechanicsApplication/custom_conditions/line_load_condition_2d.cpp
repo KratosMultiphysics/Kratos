@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix
 //
 
 // System includes
@@ -164,7 +165,7 @@ namespace Kratos
 
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
             
-            const array_1d<double, 3> normal = - GetGeometry().Normal( integration_points[point_number] );
+            const array_1d<double, 3> normal = GetGeometry().Normal( integration_points[point_number] );
             
             // Calculating the pressure on the gauss point
             double gauss_pressure = 0.0;
@@ -272,8 +273,8 @@ namespace Kratos
             const int index = dimension * i;
             const double coeff = Pressure * N[i] * IntegrationWeight;
             
-            rRightHandSideVector[index]   += coeff * Normal[0];
-            rRightHandSideVector[index+1] += coeff * Normal[1];
+            rRightHandSideVector[index   ]  -= coeff * Normal[0];
+            rRightHandSideVector[index + 1] -= coeff * Normal[1];
         }
     }
 
