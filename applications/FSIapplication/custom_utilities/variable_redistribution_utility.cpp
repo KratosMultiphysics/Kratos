@@ -232,7 +232,7 @@ void VariableRedistributionUtility::ComputeNodalSizes(ModelPart& rModelPart)
         Geometry< Node<3> >& r_geometry = condition_iterator->GetGeometry();
         const double condition_size = r_geometry.DomainSize();
         const unsigned int nodes_in_condition = r_geometry.PointsNumber();
-        const double nodal_factor = 1.0 / float(nodes_in_condition);
+        const double nodal_factor = 1.0 / double(nodes_in_condition);
         for (unsigned int j = 0; j < nodes_in_condition; j++)
         {
             double& lumped_mass = r_geometry[j].GetValue(NODAL_MAUX);
@@ -310,8 +310,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
         
         for (unsigned int j = 0; j < TNumNodes; j++)
         {
-            const double nodal_fraction = size / (TNumNodes * r_geometry[j].GetValue(NODAL_MAUX));
-            TValueType rhs_j = nodal_fraction * r_geometry[j].FastGetSolutionStepValue(rPointVariable);
+            TValueType rhs_j = rhs_zero;
 
             for (unsigned int k = 0; k < TNumNodes; k++)
             {
@@ -324,6 +323,14 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
 
     // Assemble distributed contributions
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rhs_variable);
+
+    // Add the nodal part of the RHS (the point-wise values)
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes_in_model_part; i_node++ )
+    {
+        ModelPart::NodesContainerType::iterator node_iter = rModelPart.NodesBegin() + i_node;
+        node_iter->GetValue(rhs_variable) += node_iter->FastGetSolutionStepValue(rPointVariable);
+    }
 }
 
 template< class TValueType >
