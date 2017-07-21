@@ -1280,13 +1280,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
     {
-        bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry()[i_slave].GetValue(DELTA_NORMAL);
-//         bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), i_slave);
+        const bounded_matrix<double, TDim, TDim>& delta_normal = GetGeometry()[i_slave].GetValue(DELTA_NORMAL);
+//         const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(GetGeometry(), i_slave);
         for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
         {
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(DeltaNormal, i_dof)); 
+                row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
             }
         }
     }

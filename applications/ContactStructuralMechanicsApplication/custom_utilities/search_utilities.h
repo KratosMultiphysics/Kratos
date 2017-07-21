@@ -217,19 +217,19 @@ public:
                         SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
                         
                         // Calculate the kinematic variables
-                        const PointType& LocalPoint = integration_points_slave[point_number].Coordinates();
+                        const PointType& local_point = integration_points_slave[point_number].Coordinates();
 
                         /// SLAVE CONDITION ///
-                        SlaveGeometry.ShapeFunctionsValues( rVariables.NSlave, LocalPoint.Coordinates() );
+                        SlaveGeometry.ShapeFunctionsValues( rVariables.NSlave, local_point.Coordinates() );
                         rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
-                        rVariables.DetjSlave = SlaveGeometry.DeterminantOfJacobian( LocalPoint );
+                        rVariables.DetjSlave = SlaveGeometry.DeterminantOfJacobian( local_point );
                         
                         /// MASTER CONDITION ///
                         PointType projected_gp_global;
                         const array_1d<double,3> gp_normal = ContactUtilities::GaussPointNormal(rVariables.NSlave, SlaveGeometry);
                         
                         GeometryType::CoordinatesArrayType slave_gp_global;
-                        SlaveGeometry.GlobalCoordinates( slave_gp_global, LocalPoint );
+                        SlaveGeometry.GlobalCoordinates( slave_gp_global, local_point );
                         ContactUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
                         
                         GeometryType::CoordinatesArrayType projected_gp_local;
@@ -439,7 +439,7 @@ private:
                 }  
                 
                 array_1d<double, 3> result;
-                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                 {
                     at_least_one_node_potential_contact = true;
                     
@@ -449,7 +449,7 @@ private:
                 if (DualCheck == true)
                 {
                     aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, -ContactNormal2);
-                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     {
                         at_least_one_node_potential_contact = true;
                         

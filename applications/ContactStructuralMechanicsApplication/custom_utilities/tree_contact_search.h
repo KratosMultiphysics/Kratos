@@ -226,7 +226,7 @@ public:
             if (it_node->Is(ACTIVE) == true)
             {
                 it_node->Set( ACTIVE, false );
-                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+                noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
             }
         }  
     }
@@ -290,7 +290,7 @@ public:
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(ACTIVE) == false)
             {
-                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+                noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
             }
         } 
     }
@@ -597,7 +597,7 @@ public:
                 boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
                 
                 // Initialize geometries
-                const array_1d<double, 3> contact_normal = it_cond->GetValue(NORMAL);
+                const array_1d<double, 3>& contact_normal = it_cond->GetValue(NORMAL);
                 const double active_check_length = it_cond->GetGeometry().Length() * it_cond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
                 
                 if (mUseExactIntegration == false) // LEGACY WAY

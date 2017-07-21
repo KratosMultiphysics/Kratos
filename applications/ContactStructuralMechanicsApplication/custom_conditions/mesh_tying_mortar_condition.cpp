@@ -595,7 +595,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
         this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo, pair_index); 
     
         // The normal of the master condition
-        const array_1d<double, 3> master_normal = mThisMasterConditions[pair_index]->GetValue(NORMAL);
+        const array_1d<double, 3>& master_normal = mThisMasterConditions[pair_index]->GetValue(NORMAL);
         
         // Initialize general variables for the current master element
         rVariables.Initialize();
@@ -694,7 +694,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     rDofData.InitializeAeComponents();
     
     // The normal of the master condition
-    const array_1d<double, 3> master_normal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
+    const array_1d<double, 3>& master_normal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
     
     // Get the integration points
     const IntegrationPointsType integration_points_slave = mIntegrationPointsVector[PairIndex];
