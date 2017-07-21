@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-print("main_script")
+print("import main_script")
 import main_script
 
 # Kratos
@@ -62,17 +62,19 @@ class Solution(main_script.Solution):
         super().__init__()
         os.chdir('..')
         self.main_path = os.getcwd()
-        print(self.main_path)
+        print("-----execute init")
         self.dt = self.output_time_step = self.number_of_coeffs_of_restitution = self.number_of_points_in_the_graphic = 0
         self.PreviousOperations()
          
     def Initialize(self, iteration, coeff_of_restitution_iteration):
+        print("execute initialize") 
         super().Initialize(iteration, coeff_of_restitution_iteration)
         
     def SetInitialData(self, iteration, coeff_of_restitution_iteration):
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
     def GetMpFilename(self):
+        print("getmpfilename-benchmark")
         return 'benchmark' + str(benchmark_number) + "DEM"
     
     def GetInletFilename(self):
@@ -112,7 +114,7 @@ class Solution(main_script.Solution):
                 self.tang_plotter.plot_tangential_force(time)
 
     def Run(self, iteration, coeff_of_restitution_iteration):  
-        print("entro run")      
+        print("execute run")      
         self.Initialize(iteration, coeff_of_restitution_iteration)
         self.BeforeRunMainTemporalLoopOperations(iteration)
         self.RunMainTemporalLoop()

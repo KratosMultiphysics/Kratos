@@ -4,7 +4,7 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-
+print("entering main script")
 sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
@@ -31,6 +31,7 @@ else:
 class Solution(object):
 
     def __init__(self):
+        print("----execute init main script")
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
@@ -61,7 +62,7 @@ class Solution(object):
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
 
-
+       
         mp_list = []
         mp_list.append(self.spheres_model_part)
         mp_list.append(self.rigid_face_model_part)
@@ -137,7 +138,7 @@ class Solution(object):
 
 
     def Run(self, iteration=0, coeff_of_restitution_iteration=0):
-        print("entro run2")  
+        print("execute run main script") 
         self.Initialize()
 
         self.RunMainTemporalLoop()
@@ -145,6 +146,7 @@ class Solution(object):
         self.Finalize()
 
     def AddVariables(self):
+        print("execute addvariables main script") 
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
 
     def FillAnalyticSubModelParts(self):
@@ -154,6 +156,7 @@ class Solution(object):
         self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self, iteration=0, coeff_of_restitution_iteration=0):
+        print("execute  initialize main script") 
         self.AddVariables()
 
         self.ReadModelParts()
@@ -223,7 +226,7 @@ class Solution(object):
         self.report.total_steps_expected = int(DEM_parameters.FinalTime / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
 
-    def GetMpFilename(self):
+    def GetMpFilename(self):       
         return DEM_parameters.problem_name + "DEM"
     
     def GetInletFilename(self):
@@ -237,19 +240,23 @@ class Solution(object):
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
 
+        print("execute readmodelparts main script") 
         os.chdir(self.main_path)
         # Reading the model_part
         spheres_mp_filename   = self.GetMpFilename()
+        print(spheres_mp_filename)
         model_part_io_spheres = model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
         if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
             pass
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
+
         os.chdir(self.main_path)
         [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-
+        
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
+        print(self.spheres_model_part)
         max_node_Id += self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
         max_elem_Id += self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         old_max_elem_Id_spheres = max_elem_Id
@@ -257,6 +264,7 @@ class Solution(object):
         rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
         model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
+
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
