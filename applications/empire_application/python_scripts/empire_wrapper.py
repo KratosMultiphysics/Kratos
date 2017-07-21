@@ -33,6 +33,7 @@ class EmpireWrapper:
         ##### Constructor #####
         # -------------------------------------------------------------------------------------------------
         def __init__(self):
+            self.model_parts = {}
             self._LoadEmpireLibrary()
         # -------------------------------------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def SendMesh(self, model_part):
+        def SendMesh(self, mesh_name, model_part):
             ''' Send the mesh to the server
             \param[in] name name of the mesh
             \param[in] numNodes number of nodes
@@ -64,7 +65,11 @@ class EmpireWrapper:
             
             void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs,
                     int *numNodesPerElem, int *elems); '''
-                    
+            # mesh_name: name of mesh in the emperor input
+            
+            # Save the ModelPart for data-field exchange later
+            self._SaveModelPart(mesh_name, model_part)
+            
             # extract interface mesh information
             numNodes = [];          numElems = []
             nodeCoors = [];         nodeIDs = []
@@ -80,7 +85,7 @@ class EmpireWrapper:
             c_elemTable = (ctp.c_int * len(elemTable))(*elemTable)
 
             # send mesh to Emperor
-            self.libempire_api.EMPIRE_API_sendMesh("defaultMesh", 
+            self.libempire_api.EMPIRE_API_sendMesh("mesh_name.encode()", 
                                                 c_numNodes[0], c_numElems[0], 
                                                 c_nodeCoors, c_nodeIDs, 
                                                 c_numNodesPerElem, c_elemTable)
@@ -88,7 +93,7 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
         
         # -------------------------------------------------------------------------------------------------
-        def ReceiveMesh(self, model_part):
+        def ReceiveMesh(self, mesh_name, model_part):
             ''' Recieve mesh from the server
             \param[in] name name of the mesh
             \param[in] numNodes number of nodes
@@ -100,6 +105,10 @@ class EmpireWrapper:
             
             void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs,
                     int **numNodesPerElem, int **elem); '''
+            # mesh_name: name of mesh in the emperor input
+
+            # Save the ModelPart for data-field exchange later
+            self._SaveModelPart(mesh_name, model_part)
 
             c_numNodes = ctp.pointer(ctp.c_int(0))
             c_numElems = ctp.pointer(ctp.c_int(0))
@@ -108,10 +117,10 @@ class EmpireWrapper:
             c_numNodesPerElem = ctp.pointer(ctp.pointer(ctp.c_int(0)))
             c_elemTable = ctp.pointer(ctp.pointer(ctp.c_int(0)))
             
-            self.libempire_api.EMPIRE_API_recvMesh("defaultMesh", 
-                                                    c_numNodes, c_numElems, 
-                                                    c_nodeCoors, c_nodeIDs, 
-                                                    c_numNodesPerElem, c_elemTable)
+            self.libempire_api.EMPIRE_API_recvMesh(mesh_name.encode(), 
+                                                   c_numNodes, c_numElems, 
+                                                   c_nodeCoors, c_nodeIDs, 
+                                                   c_numNodesPerElem, c_elemTable)
 
             numNodes = c_numNodes.contents.value
             numElems = c_numElems.contents.value
@@ -125,13 +134,18 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def SendDataField(self, model_part, kratos_variable):
+        def SendDataField(self, mesh_name, data_field_name, kratos_variable):
             ''' Send data field to the server
             \param[in] name name of the field
             \param[in] sizeOfArray size of the array (data field)
             \param[in] dataField the data field to be sent
             
             void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField); '''
+            # mesh_name: name of mesh in the emperor input
+            # data_field_name: name of dataField in the emperor input
+
+            # get ModelPart
+            model_part = self.model_parts[mesh_name]
 
             # extract data field from nodes
             data_field = []
@@ -142,17 +156,22 @@ class EmpireWrapper:
             c_size = len(c_data_field)
 
             # send data field to EMPIRE
-            self.libempire_api.EMPIRE_API_sendDataField("defaultField", c_size, c_data_field)
+            self.libempire_api.EMPIRE_API_sendDataField("data_field_name.encode()", c_size, c_data_field)
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def ReceiveDataField(self, model_part, kratos_variable):   
+        def ReceiveDataField(self, mesh_name, data_field_name, kratos_variable):   
             ''' Receive data field from the server
             \param[in] name name of the field
             \param[in] sizeOfArray size of the array (data field)
             \param[out] dataField the data field to be received
             
             void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField); '''
+            # mesh_name: name of mesh in the emperor input
+            # data_field_name: name of dataField in the emperor input
+
+            # get ModelPart
+            model_part = self.model_parts[mesh_name]
 
             # Determine Size of Variable
             size_of_variable = self._SizeOfVariable(model_part, kratos_variable)
@@ -163,7 +182,7 @@ class EmpireWrapper:
             c_data_field = (ctp.c_double * size_data_field)(0)
 
             # receive data field from empire
-            self.libempire_api.EMPIRE_API_recvDataField("defaultField", c_size_data_field, c_data_field)
+            self.libempire_api.EMPIRE_API_recvDataField(data_field_name.encode(), c_size_data_field, c_data_field)
 
             self._SetDataField(model_part, kratos_variable, c_data_field, size_of_variable)
         # -------------------------------------------------------------------------------------------------
@@ -176,6 +195,7 @@ class EmpireWrapper:
             \param[in] signal the signal
             
             void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal); '''
+            # array_name: name of signal in the emperor input
 
             # convert array to ctypes
             c_signal = (ctp.c_double * len(array_to_send))(*array_to_send)
@@ -192,6 +212,7 @@ class EmpireWrapper:
             \param[in] signal the signal
             
             void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal); '''
+            # array_name: name of signal in the emperor input
 
             # initialize vector storing the values
             c_signal = (ctp.c_double * array_size)(0)
@@ -326,6 +347,7 @@ class EmpireWrapper:
 
         # -------------------------------------------------------------------------------------------------
         def _SizeOfVariable(self, model_part, kratos_variable):
+            # this function is very general, even though EMPIRE works with Scalar and Vector quantities only!
             try:
                 first_node = next(iter(model_part.Nodes))
                 value = first_node.GetSolutionStepValue(kratos_variable)
@@ -337,6 +359,15 @@ class EmpireWrapper:
                 raise TypeError("size_of_variable could not be determined")
             
             return size_of_variable
+        # -------------------------------------------------------------------------------------------------
+
+        # -------------------------------------------------------------------------------------------------
+        def _SaveModelPart(self, mesh_name, model_part):
+            # Save the model_part for data-field exchange later
+            if mesh_name in self.model_parts:
+                raise ValueError("Mesh exsts already")
+            else:
+                self.model_parts.update({mesh_name : model_part})
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
