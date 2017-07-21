@@ -1168,7 +1168,7 @@ public:
      * given integration method
      */
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(
-        IntegrationMethod ThisMethod ) override
+        IntegrationMethod ThisMethod )
     {
         ShapeFunctionsGradientsType localGradients
         = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -1188,7 +1188,7 @@ public:
      * Calculates the local gradients for all integration points for the
      * default integration method
      */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients() override
+    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
@@ -1258,7 +1258,7 @@ public:
      * shape functions in given point
      * @param rPoint the given point the gradients are calculated in
      */
-    virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint ) override
+    virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint ) const 
     {
         rResult.resize( 6, 3, false );
         noalias( rResult ) = ZeroMatrix( 6, 3 );
