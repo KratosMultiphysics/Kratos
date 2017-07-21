@@ -9,12 +9,10 @@ import ctypes as ctp
 
 print("This is kratos_client_2")
 
-model_part = ModelPart("MyModelPart")
-
 print("Starting to initialize Empire")
 import empire_wrapper
 print("Import Successfull")
-empire = empire_wrapper.EmpireWrapper(model_part)
+empire = empire_wrapper.EmpireWrapper()
 print("Wrapper Created")
 empire.Connect("kratos_client_2.xml")
 
