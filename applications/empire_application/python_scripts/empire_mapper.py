@@ -13,9 +13,9 @@ CheckForPreviousImport()
 try: # OpenMPI
     libMapper = ctp.CDLL(os.environ['EMPIRE_MAPPER_LIBSO_ON_MACHINE'], ctp.RTLD_GLOBAL)
     print("::EMPIRE:: Using standard OpenMPI")
-except: # Intel MPI & OpenMPI with "–disable-dlopen"
+except: # Intel MPI & OpenMPI compiled with "–disable-dlopen" option
     libMapper = ctp.cdll.LoadLibrary(os.environ['EMPIRE_MAPPER_LIBSO_ON_MACHINE'])
-    print("::EMPIRE:: Using Intel MPI or OpenMPI with \"–disable-dlopen\"")
+    print("::EMPIRE:: Using Intel MPI or OpenMPI compiled with \"–disable-dlopen\" option")
 
 ## Wrapper class for the mapper
 # Consturctor will have two model parts as arguments, type of mapper and then options to the mapper. 
