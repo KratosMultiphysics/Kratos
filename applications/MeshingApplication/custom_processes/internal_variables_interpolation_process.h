@@ -327,7 +327,7 @@ public:
         }
      }
 
-    virtual ~InternalVariablesInterpolationProcess(){};
+    ~InternalVariablesInterpolationProcess() override{};
 
     ///@}
     ///@name Operators
@@ -346,7 +346,7 @@ public:
      * We execute the search relative to the old and new model part
      */
 
-    virtual void Execute()
+    void Execute() override
     {
         /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
          * CPT: Closest point transfer. It transfer the values from the closest GP
@@ -383,7 +383,7 @@ public:
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "InternalVariablesInterpolationProcess";
     }
@@ -391,7 +391,7 @@ public:
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }

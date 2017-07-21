@@ -177,7 +177,7 @@ public:
     MmgProcess(ModelPart& rThisModelPart, Parameters ThisParameters = Parameters(R"({})"));
 
     /// Destructor.
-    ~MmgProcess() {}
+    ~MmgProcess() override {}
     
     ///@}
     ///@name Access
@@ -209,7 +209,7 @@ public:
      * Instead of using an files already created we read an existing model part
      */
     
-    virtual void Execute() override;
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -226,19 +226,19 @@ public:
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "MmgProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MmgProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
     

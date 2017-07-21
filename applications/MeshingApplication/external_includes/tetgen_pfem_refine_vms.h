@@ -85,7 +85,7 @@ namespace Kratos
 		mRhs(ZeroVector(3)){} //dimension = number of nodes
 
 		/// Destructor.
-        virtual ~TetGenPfemModelerVms(){}
+        ~TetGenPfemModelerVms() override{}
 
 
 		///@}
@@ -919,13 +919,13 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const{return "";}
+		std::string Info() const override{return "";}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const{}
+		void PrintInfo(std::ostream& rOStream) const override{}
 
 		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const{}
+		void PrintData(std::ostream& rOStream) const override{}
 
 
 		///@}      
