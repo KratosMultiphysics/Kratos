@@ -724,15 +724,15 @@ protected:
             
     /**
      * It check the conditions if they are correctly detected
-     * @return condition_pointers1: A vector containing the pointers to the conditions 
+     * @return ConditionPointers1: A vector containing the pointers to the conditions 
      * @param pCond1: The pointer to the condition in the destination model part
      * @param pCond2: The pointer to the condition in the destination model part  
      */
     
     static inline CheckResult CheckCondition(
-        boost::shared_ptr<ConditionMap>& condition_pointers1,
-        const Condition::Pointer & pCond1,
-        const Condition::Pointer & pCond2
+        boost::shared_ptr<ConditionMap>& ConditionPointers1,
+        const Condition::Pointer& pCond1,
+        const Condition::Pointer& pCond2
         )
     {
         if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
@@ -758,7 +758,7 @@ protected:
         }
         
         // To avoid to repeat twice the same condition 
-        if (condition_pointers1->find(pCond2) != condition_pointers1->end())
+        if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
         {
             return AlreadyInTheMap;
         }
@@ -771,15 +771,14 @@ protected:
      * @return The radius of the geometry 
      */ 
     
-    double Radius(GeometryType& Geom) const 
+    static inline double Radius(ThisGeometryetryType& ThisGeometry) const 
     { 
         double radius = 0.0; 
-        const Point<3> center = Geom.Center(); 
+        const Point<3>& center = ThisGeometry.Center(); 
          
-        array_1d<double, 3> aux_vector; 
-        for(unsigned int i_node = 0; i_node < Geom.PointsNumber(); i_node++) 
+        for(unsigned int i_node = 0; i_node < ThisGeometry.PointsNumber(); i_node++) 
         { 
-            noalias(aux_vector) = center.Coordinates() - Geom[i_node].Coordinates();; 
+            const array_1d<double, 3> aux_vector = center.Coordinates() - ThisGeometry[i_node].Coordinates();
              
             const double aux_value = inner_prod(aux_vector, aux_vector); 
  
