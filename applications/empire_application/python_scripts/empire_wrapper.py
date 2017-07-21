@@ -2,46 +2,33 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # import libraries
 from KratosMultiphysics import *
 from KratosMultiphysics.EmpireApplication import *
-import empire_tools
-import numpy as np
 import ctypes as ctp
 import os
 
 CheckForPreviousImport()
 
-
 class EmpireWrapper:
     # Wrapper for the EMPIRE API (/EMPIRE-Core/EMPIRE_API/src/include/EMPIRE_API.h)
+    ##### Constructor #####
     # -------------------------------------------------------------------------------------------------
-    def __init__(self, model_part, libempire_api):
-        self.libempire_api = libempire_api
+    def __init__(self, model_part):
         self.model_part = model_part
-        self.tools = empire_tools.EmpireTools(self.model_part)
+        self._LoadEmpireLibrary()
     # -------------------------------------------------------------------------------------------------
 
+    ##### Public Functions #####
     # -------------------------------------------------------------------------------------------------
-    @staticmethod
-    def Connect(libempire_api, xml_input_file):
+    def Connect(self, xml_input_file):
         ''' Establishes the necessary connection with the Emperor '''
-        libempire_api.EMPIRE_API_Connect(xml_input_file.encode())
+        self.libempire_api.EMPIRE_API_Connect(xml_input_file.encode())
+        print("::EMPIRE:: Connected")
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    @staticmethod
-    def Disconnect(libempire_api):
+    def Disconnect(self):
         ''' Performs disconnection and finalization operations to the Emperor '''
-        libempire_api.EMPIRE_API_Disconnect()
-    # -------------------------------------------------------------------------------------------------
-
-    # -------------------------------------------------------------------------------------------------
-    def GetUserDefinedText(self):
-        ''' Get user defined text by the element name in the XML input file
-        \param[in] elementName name of the XML element
-        \return user defined text
-        
-        char *EMPIRE_API_getUserDefinedText(char *elementName); '''
-        
-        pass
+        self.libempire_api.EMPIRE_API_Disconnect()
+        print("::EMPIRE:: Disconnected")
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -56,14 +43,13 @@ class EmpireWrapper:
         \param[in] elems connectivity table of all elements
          
         void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs,
-                int *numNodesPerElem, int *elems);
-        '''
-
+                int *numNodesPerElem, int *elems); '''
+                
         # extract interface mesh information
         numNodes = [];          numElems = []
         nodeCoors = [];         nodeIDs = []
         numNodesPerElem = [];   elemTable = []
-        self.tools.ExtractInterface(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
+        self._GetMesh(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
         
 
         # convert python lists to ctypes, required for empire-function call
@@ -79,6 +65,7 @@ class EmpireWrapper:
                                                c_numNodes[0], c_numElems[0], 
                                                c_nodeCoors, c_nodeIDs, 
                                                c_numNodesPerElem, c_elemTable)
+        print("::EMPIRE:: Sent Mesh")
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
@@ -94,31 +81,6 @@ class EmpireWrapper:
         
         void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs,
                 int **numNodesPerElem, int **elem); '''
-
-        # numNodes = []
-        # numElems = []
-        # nodeCoors = []
-        # nodeIDs = []
-        # numNodesPerElem = []
-        # elemTable = []
-
-        # c_numNodes = (ctp.c_int * len(numNodes))(*numNodes)
-        # c_numElems = (ctp.c_int * len(numElems))(*numElems)
-        # c_nodeCoors = (ctp.c_double * len(nodeCoors))(*nodeCoors)
-        # c_nodeIDs = (ctp.c_int * len(nodeIDs))(*nodeIDs)
-        # c_numNodesPerElem = (ctp.c_int * len(numNodesPerElem))(*numNodesPerElem)
-        # c_elemTable = (ctp.c_int * len(elemTable))(*elemTable)
-
-        # c_numNodes = ctp.POINTER(ctp.c_int)
-        # c_numElems = ctp.POINTER(ctp.c_int)
-
-        # ***********
-        # numNodes = ctp.c_int(0)
-        # numElems = ctp.c_int(0)
-        # nodeCoors = ctp.c_double(0)
-        # nodeIDs = ctp.c_int(0)
-        # numNodesPerElem = ctp.c_int(0)
-        # elemTable = ctp.c_int(0)
 
         c_numNodes = ctp.pointer(ctp.c_int(0))
         c_numElems = ctp.pointer(ctp.c_int(0))
@@ -139,7 +101,8 @@ class EmpireWrapper:
         numNodesPerElem = c_numNodesPerElem.contents
         elemTable = c_elemTable.contents
         
-        self.tools.ConstructMesh(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
+        self._SetMesh(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
+        print("::EMPIRE:: Received Mesh")
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -153,13 +116,13 @@ class EmpireWrapper:
 
         # extract data field from nodes
         data_field = []
-        self.tools.GetDataField(kratos_variable, data_field)
+        self._GetDataField(kratos_variable, data_field)
 
-        # convert list containg the displacements to ctypes
+        # convert list containg the data field to ctypes
         c_data_field = (ctp.c_double * len(data_field))(*data_field)
         c_size = len(c_data_field)
 
-        # send displacements to empire
+        # send data field to EMPIRE
         self.libempire_api.EMPIRE_API_sendDataField("defaultField", c_size, c_data_field)
     # -------------------------------------------------------------------------------------------------
 
@@ -187,32 +150,26 @@ class EmpireWrapper:
         size_data_field = self.model_part.NumberOfNodes() * size_of_variable
         c_data_field = (ctp.c_double * size_data_field)(0)
         
-        # receive displacements from empire
+        # receive data field from empire
         self.libempire_api.EMPIRE_API_recvDataField("defaultField", size_data_field, c_data_field)
-        
-        # if( (type(self.var) != KratosMultiphysics.VectorVariable) and (type(self.var) != KratosMultiphysics.Array1DVariable3) ):
-        #     raise Exception("Variable type is incorrect. Must be a vector or a array_1d vector.")
 
-        # if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable and type(self.var) != KratosMultiphysics.VectorVariable):
-
-        self.tools.SetDataField(kratos_variable, c_data_field, size_of_variable)
+        self._SetDataField(kratos_variable, c_data_field, size_of_variable)
     # -------------------------------------------------------------------------------------------------
     
-    
     # -------------------------------------------------------------------------------------------------
-    def SendSignal(self):
+    def SendArray(self, array_to_send):
         ''' Send signal to the server
         \param[in] name name of the signal
         \param[in] sizeOfArray size of the array (signal)
         \param[in] signal the signal
         
         void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal); '''
-
-        pass
+        
+        raise NotImplementedError("This function is not implemented yet")
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def ReceiveSignal(self):
+    def ReceiveArray(self):
         ''' Receive signal from the server
         \param[in] name name of the signal
         \param[in] sizeOfArray size of the array (signal)
@@ -220,17 +177,18 @@ class EmpireWrapper:
         
         void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal); '''
         
-        pass
+        raise NotImplementedError("This function is not implemented yet")
+        return received_array
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def SendConvergenceSignal(self):
+    def SendConvergenceSignal(self, is_converged):
         ''' Send the convergence signal of an loop
         \param[in] signal 1 means convergence, 0 means non-convergence
         
         void EMPIRE_API_sendConvergenceSignal(int signal); '''
 
-        pass
+        raise NotImplementedError("This function is not implemented yet")
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -240,7 +198,109 @@ class EmpireWrapper:
         
         int EMPIRE_API_recvConvergenceSignal(); '''
 
-        pass
+        raise NotImplementedError("This function is not implemented yet")
+    # -------------------------------------------------------------------------------------------------
+
+    ##### Private Functions #####
+    # -------------------------------------------------------------------------------------------------
+    def _LoadEmpireLibrary(self):
+        if hasattr(self, 'libempire_api'): # the library has been loaded already
+            raise ImportError("The EMPIRE library must be loaded only once!")
+
+        if "EMPIRE_API_LIBSO_ON_MACHINE" not in os.environ:
+            raise ImportError("The EMPIRE environment is not set!")
+
+        try: # OpenMPI
+            self.libempire_api = ctp.CDLL(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'], ctp.RTLD_GLOBAL)
+            print("::EMPIRE:: Using standard OpenMPI")
+        except: # Intel MPI & OpenMPI compiled with "–disable-dlopen" option
+            self.libempire_api = ctp.cdll.LoadLibrary(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'])
+            print("::EMPIRE:: Using Intel MPI or OpenMPI compiled with \"–disable-dlopen\" option")
+    # -------------------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------------------
+    def _GetMesh(self, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
+        num_nodes.append(self.model_part.NumberOfNodes())
+        num_elements.append(self.model_part.NumberOfElements())
+        
+        for node in self.model_part.Nodes:
+            node_coords.append(node.X)
+            node_coords.append(node.Y)
+            node_coords.append(node.Z)
+            node_IDs.append(node.Id)
+            
+        for elem in self.model_part.Elements:
+            num_nodes_per_element.append(len(elem.GetNodes()))
+            for node in elem.GetNodes():
+                element_table.append(node.Id)
+    # -------------------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------------------
+    def _SetMesh(self, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
+        # This function requires an empty ModelPart
+        # It constructs Nodes and Elements from what was received from EMPIRE
+
+        # Some checks to validate input:
+        if self.model_part.NumberOfNodes() != 0:
+            raise Exception("ModelPart is not empty, it has some Nodes!")
+        if self.model_part.NumberOfElements() != 0:
+            raise Exception("ModelPart is not empty, it has some Elements!")
+        if self.model_part.NumberOfConditions() != 0:
+            raise Exception("ModelPart is not empty, it has some Conditions!")
+
+        # Create Nodes
+        for i in range(num_nodes):
+            self.model_part.CreateNewNode(node_IDs[i], node_coords[3*i+0], node_coords[3*i+1], node_coords[3*i+2]) # Id, X, Y, Z
+
+        # Create dummy Property for Element
+        self.model_part.AddProperties(Properties(1))
+        prop = self.model_part.GetProperties()[1]
+
+        element_table_counter = 0
+        # Create Elements
+        for i in range(num_elements):
+            num_nodes_element = num_nodes_per_element[i]
+            if num_nodes_element == 2:
+                name_element = "Element2D2N"
+            elif num_nodes_element == 3:
+                name_element = "Element2D3N"
+            elif num_nodes_element == 4: # TODO how to distinguish from Tetras?
+                name_element = "Element2D4N"
+            else:
+                raise Exception("Wrong number of nodes for creating the condition")
+
+            condition_nodes = []
+            for j in range(num_nodes_element):
+                condition_nodes.append(int(element_table[element_table_counter]))
+                element_table_counter += 1
+                
+            self.model_part.CreateNewElement(name_element, i+1, condition_nodes, prop)
+    # -------------------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------------------
+    def _GetDataField(self, data_field_name, data_field):
+        for node in self.model_part.Nodes:
+            data_value = node.GetSolutionStepValue(data_field_name)
+            for i in range(len(data_value)):
+                data_field.append(data_value[i])
+    # -------------------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------------------
+    def _SetDataField(self, data_field_name, data_field, size_of_variable):
+        # check if size of data field is correct
+        if len(data_field) != self.model_part.NumberOfNodes() * size_of_variable:
+            raise("ERROR: received data field has wrong size!")
+
+        value = Vector(size_of_variable)
+        i = 0
+        # assign values to nodes of interface for current time step
+        for node in self.model_part.Nodes:
+            for j in range(size_of_variable):
+                value[j] = data_field[size_of_variable * i + j]
+            
+            node.SetSolutionStepValue(data_field_name, 0, value)
+            
+            i = i + 1
     # -------------------------------------------------------------------------------------------------
 
 
@@ -249,53 +309,24 @@ class EmpireWrapper:
 
 
 
-        # # receive dataFields from Emperor
-        # self.client.recvDataField(dataFieldName_inEMPIRE)
-        # numpy_dataField_vec=  self.client.dataField(dataFieldName_inEMPIRE)
-        # # reduce to 2d
-        # if self.is_2d:
-        #     for i in range(int(self.number_of_interface_nodes * 3 / 2)):
-        #         numpy_dataField_vec.array[i] = (numpy_dataField_vec.array[i] + numpy_dataField_vec.array[int(self.number_of_interface_nodes * 3 / 2) + i]) / 2.0
-        
-        # # # for debug
-        # # abs_dataField = 0.0
-        # # max_abs_dataField = 0.0
-        # # for dataField in numpy_dataField_vec:
-        # #     abs_dataField = abs(dataField)
-        # #     if abs_dataField > max_abs_dataField:
-        # #         max_abs_dataField = abs_dataField
-        # # print("absolute maximum of received dataFields = ", max_abs_dataField)
-        
-        # # assign dataFields to interface nodes
-        # dataField = Vector(3)
-        # i = 0
-        # for interface_node in self.model_part.Nodes:
-        # #for interface_node in self.interface_nodes:
-        #     dataField[0] = numpy_dataField_vec.array[3*i + 0]
-        #     dataField[1] = numpy_dataField_vec.array[3*i + 1]
-        #     dataField[2] = numpy_dataField_vec.array[3*i + 2]
-        #     if(dataFieldName_inKRATOS == "FORCE"):
-        #         interface_node.SetSolutionStepValue(POINT_LOAD, 0, dataField)
-        #     if(dataFieldName_inKRATOS == "DISPLACEMENT"):
-        #         interface_node.SetSolutionStepValue(DISPLACEMENT, 0, dataField)
 
-        #     i = i + 1
-        
-        # # for debug
-        # abs_dataField = 0.0
-        # max_abs_dataField = 0.0
-        # for interface_node in self.interface_nodes:
-        #     abs_dataField = abs(interface_node.GetSolutionStepValue(dataField, 0)[0])
-        #     if abs_dataField > max_abs_dataField:
-        #         max_abs_disp = abs_dataField
-        #     abs_dataField = abs(interface_node.GetSolutionStepValue(dataField, 0)[1])
-        #     if abs_dataField > max_abs_dataField:
-        #         max_abs_disp = abs_dataField
-        #     abs_dataField = abs(interface_node.GetSolutionStepValue(DISPLACEMENT, 0)[2])
-        #     if abs_dataField > max_abs_dataField:
-        #         max_abs_dataField = abs_dataField
-        # print("absolute maximum of set dataFields = ", max_abs_dataField)
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def receiveControlInput(self, control_input_node_number_list, direction = 1):
@@ -353,16 +384,6 @@ class EmpireWrapper:
         is_converged = self.client.recvConvergence()
         return is_converged
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-       
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # convert char* to python-compatible string
-    def getUserDefinedText(self, string_text):
-        empire_func = self.libempire_api.EMPIRE_API_getUserDefinedText
-        empire_func.restype = c_char_p
-        text = empire_func(string_text)
-        print("got user defined text *", text, "* from input file")
-        return text
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 
@@ -390,32 +411,6 @@ class EmpireWrapper:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-    # -------------------------------------------------------------------------------------------------
-    # extract interface nodes and conditions from the fluid model part which have a flag "IS_INTERFACE"
-    def extractInterface(self):
-        for wrapper_process in self.tools_processes_list:
-            wrapper_process.ExtractInterface()
-    # -------------------------------------------------------------------------------------------------
-
-    # -------------------------------------------------------------------------------------------------
-    # convert char* to python-compatible string
-    def getUserDefinedText(self, stringText):
-        empireFunc = self.libempire_api.EMPIRE_API_getUserDefinedText
-        empireFunc.restype = c_char_p
-        text = empireFunc(stringText)
-        return text
-    # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
     def recvDisplacement(self):
