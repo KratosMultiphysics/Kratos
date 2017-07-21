@@ -66,9 +66,9 @@ class Solution(main_script.Solution):
         self.dt = self.output_time_step = self.number_of_coeffs_of_restitution = self.number_of_points_in_the_graphic = 0
         self.PreviousOperations()
          
-    def Initialize(self, iteration, coeff_of_restitution_iteration):
+    def Initialize(self):
         print("execute initialize") 
-        super().Initialize(iteration, coeff_of_restitution_iteration)
+        super().Initialize()
         
     def SetInitialData(self, iteration, coeff_of_restitution_iteration):
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
@@ -113,9 +113,9 @@ class Solution(main_script.Solution):
                 self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
                 self.tang_plotter.plot_tangential_force(time)
 
-    def Run(self, iteration, coeff_of_restitution_iteration):  
+    def Run(self, iteration):  
         print("execute run")      
-        self.Initialize(iteration, coeff_of_restitution_iteration)
+        self.Initialize()
         self.BeforeRunMainTemporalLoopOperations(iteration)
         self.RunMainTemporalLoop()
         self.BeforeFinalizeOperations()
@@ -133,7 +133,7 @@ class Solution(main_script.Solution):
             print("coeff_of_restitution_iteration")
             for iteration in range(1, self.number_of_points_in_the_graphic + 1):
                 print("iteration")
-                Solution().Run(iteration, coeff_of_restitution_iteration)
+                Solution().Run(iteration)
             benchmark.print_results(self.number_of_points_in_the_graphic, self.dt)
     
 Solution().RunBenchmarks()

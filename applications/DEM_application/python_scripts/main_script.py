@@ -137,7 +137,7 @@ class Solution(object):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
 
-    def Run(self, iteration=0, coeff_of_restitution_iteration=0):
+    def Run(self):
         print("execute run main script") 
         self.Initialize()
 
@@ -155,7 +155,7 @@ class Solution(object):
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
 
-    def Initialize(self, iteration=0, coeff_of_restitution_iteration=0):
+    def Initialize(self):
         print("execute  initialize main script") 
         self.AddVariables()
 
@@ -254,6 +254,8 @@ class Solution(object):
 
         os.chdir(self.main_path)
         [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+        print("---------------------")
+        print(self.spheres_model_part)
         
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
         print(self.spheres_model_part)
