@@ -135,7 +135,7 @@ public:
         GeometryType& GeomOrigin,
         const GeometryType::CoordinatesArrayType& PointDestiny,
         GeometryType::CoordinatesArrayType& ResultingPoint,
-        const array_1d<double, 3> Normal,
+        const array_1d<double, 3>& Normal,
         const double Tolerance = 1.0e-8,
         double DeltaXi = 0.5
         )
@@ -276,7 +276,7 @@ public:
      */
     
     static inline bool LengthCheck(
-        const GeometryPointType GeometryLine,
+        const GeometryPointType& GeometryLine,
         const double Tolerance = 1.0e-6
         )
     {
@@ -308,9 +308,9 @@ public:
      */
     
     static inline bool HeronCheck(        
-        const PointType PointOrig1,
-        const PointType PointOrig2,
-        const PointType PointOrig3
+        const PointType& PointOrig1,
+        const PointType& PointOrig2,
+        const PointType& PointOrig3
         )
     {
         const double a = MathUtils<double>::Norm3(PointOrig1.Coordinates()-PointOrig2.Coordinates());
@@ -344,7 +344,7 @@ public:
     static inline void ScaleNode(
         TPointType& PointToScale,
         const PointType& Center,
-        const double ScaleFactor
+        const double& ScaleFactor
         )
     {
         // We calculate the new distance
@@ -375,13 +375,14 @@ public:
     }
 
     /**
-     * This function calculates the normal of a condition
-     * @param Cond: The pointer to the condition of interest
+     * This function calculates the normal in a specific GP with a given shape function
+     * @param N: The shape function considered
+     * @param Geom: The geometry of condition of interest
      */
 
     static inline array_1d<double,3> GaussPointNormal(
-        const Vector N,
-        const GeometryType & Geom
+        const Vector& N,
+        const GeometryType& Geom
         )
     {
         array_1d<double,3> normal = ZeroVector(3);
@@ -404,10 +405,10 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) 
+    static inline void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart) 
     {
         // Tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
+        const double& tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize normal vectors
         const array_1d<double,3> zero_vect = ZeroVector(3);
@@ -477,10 +478,10 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    static inline void ComputeNodesMeanNormalAreaWeightedModelPart(ModelPart & rModelPart) 
+    static inline void ComputeNodesMeanNormalAreaWeightedModelPart(ModelPart& rModelPart) 
     {
         // Tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
+        const double& tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize normal vectors
         const array_1d<double,3> zero_vect = ZeroVector(3);
@@ -792,7 +793,6 @@ public:
         
         for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            
             array_1d<double, 3> coord;
             
             if (current == true)
@@ -830,7 +830,7 @@ public:
     static inline array_1d<double, TNumNodes> GetVariableVector(
         const GeometryType& nodes,
         const Variable<double>& rVarName,
-        const unsigned int step
+        const unsigned int step = 0
         )
     {
         /* DEFINITIONS */        
@@ -856,7 +856,7 @@ public:
     static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& nodes,
         const Variable<double>& rVarName,
-        unsigned int step
+        const unsigned int step = 0
         )
     {
         /* DEFINITIONS */        
@@ -930,7 +930,7 @@ public:
     static inline Matrix GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVarName,
-        unsigned int step
+        const unsigned int step
         )
     {
         /* DEFINITIONS */        
@@ -983,7 +983,7 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim>  GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim> InputMatrix)
+    static inline bounded_matrix<double, TNumNodes, TDim> GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim> InputMatrix)
     {
         /* DEFINITIONS */        
         bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
