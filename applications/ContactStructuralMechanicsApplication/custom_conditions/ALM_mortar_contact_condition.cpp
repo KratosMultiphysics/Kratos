@@ -492,11 +492,22 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     // We call the exact integration utility
     ExactMortarIntegrationUtility<TDim, TNumNodes>  integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes> (mIntegrationOrder);
     
+//     // DEBUG
+//     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << GetGeometry()[0].X() << "," << GetGeometry()[0].Y() << "," << GetGeometry()[0].Z()  << "},{" << GetGeometry()[1].X() << "," << GetGeometry()[1].Y() << "," << GetGeometry()[1].Z()  << "},{" << GetGeometry()[2].X() << "," << GetGeometry()[2].Y() << "," << GetGeometry()[2].Z()  << "}}],Text[Style["<< this->Id() <<", Tiny],{"<< GetGeometry().Center().X() << "," << GetGeometry().Center().Y() << ","<< GetGeometry().Center().Z() << "}]}],";// << std::endl;
+    
     // Iterate over the master segments
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
     {   
         if (mThisMasterElementsActive[pair_index] == true)
         {
+//             // DEBUG
+//             if (mThisMasterElements[pair_index]->Is(VISITED) == false || mThisMasterElements[pair_index]->IsDefined(VISITED) == false)
+//             {
+//                 std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << mThisMasterElements[pair_index]->GetGeometry()[0].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[0].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[0].Z()  << "},{" << mThisMasterElements[pair_index]->GetGeometry()[1].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[1].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[1].Z()  << "},{" << mThisMasterElements[pair_index]->GetGeometry()[2].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[2].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[2].Z()  << "}}],Text[Style["<< this->Id() <<", Tiny],{"<< mThisMasterElements[pair_index]->GetGeometry().Center().X() << "," << mThisMasterElements[pair_index]->GetGeometry().Center().Y() << ","<< mThisMasterElements[pair_index]->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+//                 
+//                 mThisMasterElements[pair_index]->Set(VISITED, true);
+//             }
+            
             // The normal of the master condition
             const array_1d<double, 3>& master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
             
@@ -538,7 +549,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     DecompositionType decomp_geom( points_array );
                     
 //                     // DEBUG
-//                     std::cout << "\nGraphics3D[{EdgeForm[Thick],Triangle[{{" << decomp_geom[0].X() << "," << decomp_geom[0].Y() << "," << decomp_geom[0].Z()  << "},{" << decomp_geom[1].X() << "," << decomp_geom[1].Y() << "," << decomp_geom[1].Z()  << "},{" << decomp_geom[2].X() << "," << decomp_geom[2].Y() << "," << decomp_geom[2].Z()  << "}}]}],";// << std::endl;
+//                     std::cout << "\nGraphics3D[{Triangle[{{" << decomp_geom[0].X() << "," << decomp_geom[0].Y() << "," << decomp_geom[0].Z()  << "},{" << decomp_geom[1].X() << "," << decomp_geom[1].Y() << "," << decomp_geom[1].Z()  << "},{" << decomp_geom[2].X() << "," << decomp_geom[2].Y() << "," << decomp_geom[2].Z()  << "}}]}],";// << std::endl;
                     
                     const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
                     
