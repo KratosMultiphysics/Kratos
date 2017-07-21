@@ -57,15 +57,18 @@ void  AddCustomUtilitiesToPython()
     ;
     
     // Exact integration (for testing)
-    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<const unsigned int>())
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<const unsigned int, const bool>())
+    .def(init<const unsigned int>())
     .def(init< >())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
     ;
-    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<const unsigned int>())
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<const unsigned int, const bool>())
+    .def(init<const unsigned int>())
     .def(init< >())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     ;
-    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<const unsigned int>())
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<const unsigned int, const bool>())
+    .def(init<const unsigned int>())
     .def(init< >())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     ;

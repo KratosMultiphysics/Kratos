@@ -102,9 +102,10 @@ public:
     
     ExactMortarIntegrationUtility(
         const unsigned int IntegrationOrder = 0,
-        const double DistanceThreshold = 1.3333
+        const bool DebugGeometries = false
         )
-    :mIntegrationOrder(IntegrationOrder)
+    :mIntegrationOrder(IntegrationOrder),
+     mDebugGeometries(DebugGeometries)
     {
         GetIntegrationMethod();
     }
@@ -213,11 +214,16 @@ public:
         
         CustomSolution.resize(integration_points_slave.size(), TDim, false);
         
-//         std::cout << "The Gauss Points obtained are: " << std::endl;
+        if (mDebugGeometries == true)
+        {
+            std::cout << "The Gauss Points obtained are: " << std::endl;
+        }
         for (unsigned int GP = 0; GP < integration_points_slave.size(); GP++)
         {
-//             // For debug
-//             KRATOS_WATCH(integration_points_slave[GP]);
+            if (mDebugGeometries == true)
+            {
+                KRATOS_WATCH(integration_points_slave[GP]);
+            }
             
             // Solution save:
             CustomSolution(GP, 0) = integration_points_slave[GP].Coordinate(1);
@@ -549,10 +555,10 @@ protected:
     /**
      * This function calculates the triangles intersections (this is a module, that can be used directly in the respective function)
      * @param ConditionsPointsSlave: The final solution vector, containing all the nodes
-     * @param point_list: The intersection points
-     * @param all_inside: The nodes that are already known as inside the other geometry
+     * @param PointList: The intersection points
+     * @param AllInside: The nodes that are already known as inside the other geometry
      * @param Geometry1/Geometry2: The geometries studied (projected)
-     * @param slave_tangent_xi/slave_tangent_eta: The vectors used as base to rotate
+     * @param SlaveTangentXi/SlaveTangentEta: The vectors used as base to rotate
      * @param RefCenter: The reference point to rotate
      * @param IsAllInside: To simplify and consider the point_list directly
      * @return If there is intersection or not (true/false)
@@ -560,16 +566,32 @@ protected:
     
     inline bool TriangleIntersections(
         ConditionArrayListType& ConditionsPointsSlave,
-        std::vector<PointType>& point_list,
-        const array_1d<bool, TNumNodes> all_inside,
+        std::vector<PointType>& PointList,
+        const array_1d<bool, TNumNodes> AllInside,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
-        const array_1d<double, 3>& slave_tangent_xi,
-        const array_1d<double, 3>& slave_tangent_eta,
+        const array_1d<double, 3>& SlaveTangentXi,
+        const array_1d<double, 3>& SlaveTangentEta,
         const PointType& RefCenter,
         const bool IsAllInside = false
         )
     {   
+        if (mDebugGeometries == true)
+        {
+            if (TNumNodes == 3)
+            {
+                // Debug
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "," << Geometry1[0].Z()  << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "," << Geometry1[1].Z()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "," << Geometry1[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "," << Geometry2[0].Z()  << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "," << Geometry2[1].Z()  << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "," << Geometry2[2].Z()  << "}}]}],";// << std::endl;
+            }
+            else if (TNumNodes == 4)
+            {
+                // Debug
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "," << Geometry1[0].Z()  << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "," << Geometry1[1].Z()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "," << Geometry1[2].Z()  << "},{" << Geometry1[3].X() << "," << Geometry1[3].Y() << "," << Geometry1[3].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "," << Geometry2[0].Z()  << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "," << Geometry2[1].Z()  << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "," << Geometry2[2].Z()  << "},{" << Geometry2[3].X() << "," << Geometry2[3].Y() << "," << Geometry2[3].Z()  << "}}]}],";// << std::endl;
+            }
+        }
+        
         if (IsAllInside == false)
         {
             // We consider the Z coordinate constant
@@ -580,7 +602,6 @@ protected:
             for (unsigned int i_edge = 0; i_edge < TNumNodes; i_edge++)
             {
                 map_edges.insert(std::make_pair(i_edge, 0));
-//                 map_edges [i_edge] = 0;
                 
                 const unsigned int ip_edge = (i_edge == (TNumNodes - 1)) ? 0 : i_edge + 1;
                 for (unsigned int j_edge = 0; j_edge < TNumNodes; j_edge++)
@@ -599,9 +620,9 @@ protected:
                     if (intersected == true)
                     {                        
                         bool add_point = true;
-                        for (unsigned int iter = 0; iter < point_list.size(); iter++)
+                        for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
-                            if (CheckPoints2D(intersected_point, point_list[iter]) == true)
+                            if (CheckPoints2D(intersected_point, PointList[iter]) == true)
                             {
                                 add_point = false;
                             }
@@ -610,7 +631,7 @@ protected:
                         if (add_point == true) 
                         {
                             intersected_point.Coordinate(3) = z_ref;
-                            point_list.push_back(intersected_point);
+                            PointList.push_back(intersected_point);
                             map_edges[i_edge] += 1;
                         }
                     }
@@ -625,9 +646,9 @@ protected:
                 if ((map_edges[i_node]  == 1) && (map_edges[il_node] == 1))
                 {
                     bool add_point = true;
-                    for (unsigned int iter = 0; iter < point_list.size(); iter++)
+                    for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
-                        if (CheckPoints2D(Geometry1[i_node], point_list[iter]) == true)
+                        if (CheckPoints2D(Geometry1[i_node], PointList[iter]) == true)
                         {
                             add_point = false;
                         }
@@ -635,28 +656,28 @@ protected:
                     
                     if (add_point == true) 
                     {
-                        point_list.push_back(Geometry1[i_node]);
+                        PointList.push_back(Geometry1[i_node]);
                     }
                 }
             }
         }
         
         // We compose the triangles 
-        const unsigned int list_size = point_list.size();
+        const unsigned int list_size = PointList.size();
         if (list_size > 2) // Technically the minimum is three, just in case I consider 2
         {
             // We reorder the nodes according with the angle they form with the first node
             std::vector<double> angles (list_size - 1);
-            array_1d<double, 3> v = point_list[1].Coordinates() - point_list[0].Coordinates();
+            array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
             v /= norm_2(v);
             array_1d<double, 3> n = GetNormalVector2D(v);
             
             for (unsigned int elem = 1; elem < list_size; elem++)
             {
-                angles[elem - 1] = AnglePoints(point_list[0], point_list[elem], v, n);
+                angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                 if (angles[elem - 1] < 0.0)
                 {
-                    v = point_list[elem].Coordinates() - point_list[0].Coordinates();
+                    v = PointList[elem].Coordinates() - PointList[0].Coordinates();
                     v /= norm_2(v);
                     n = GetNormalVector2D(v);
                     for (unsigned int aux_elem = 0; aux_elem <= (elem - 1); aux_elem++)
@@ -673,53 +694,56 @@ protected:
             // We recover this point to the triangle plane
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                RotatePoint(Geometry1[i_node], RefCenter, slave_tangent_xi, slave_tangent_eta, true);
-                RotatePoint(Geometry2[i_node], RefCenter, slave_tangent_xi, slave_tangent_eta, true);
+                RotatePoint(Geometry1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                RotatePoint(Geometry2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
-            for (unsigned int ipoint_list = 0; ipoint_list < point_list.size(); ipoint_list++)
+            for (unsigned int iPointList = 0; iPointList < PointList.size(); iPointList++)
             {
-                RotatePoint(point_list[ipoint_list], RefCenter, slave_tangent_xi, slave_tangent_eta, true);
+                RotatePoint(PointList[iPointList], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
             
             for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
-//                     // Debug
-//                     PointType aux1;
-//                     aux1.Coordinates() = point_list[0].Coordinates();
-//                     
-//                     PointType aux2;
-//                     aux2.Coordinates() = point_list[index_vector[elem + 0] + 1].Coordinates();
-//                     
-//                     PointType aux3;
-//                     aux3.Coordinates() = point_list[index_vector[elem + 1] + 1].Coordinates();
-//                     
-//                     std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                if (mDebugGeometries == true)
+                {
+                    // Debug
+                    PointType aux1;
+                    aux1.Coordinates() = PointList[0].Coordinates();
+                    
+                    PointType aux2;
+                    aux2.Coordinates() = PointList[index_vector[elem + 0] + 1].Coordinates();
+                    
+                    PointType aux3;
+                    aux3.Coordinates() = PointList[index_vector[elem + 1] + 1].Coordinates();
+                    
+                    std::cout << "Graphics3D[{Opacity[.3],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                }
                 
                 array_1d<PointType, 3> points_locals;
                     
                 // Now we project to the slave surface
                 PointType point_local;
                 
-                if (FastTriangleCheck(point_list[0], point_list[index_vector[elem] + 1], point_list[index_vector[elem + 1] + 1]) > 0.0)
+                if (FastTriangleCheck(PointList[0], PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) > 0.0)
                 {
-                    Geometry1.PointLocalCoordinates(point_local, point_list[0]);
+                    Geometry1.PointLocalCoordinates(point_local, PointList[0]);
                     points_locals[0] = point_local;
                     
-                    Geometry1.PointLocalCoordinates(point_local, point_list[index_vector[elem + 0] + 1]);
+                    Geometry1.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
                     points_locals[1] = point_local;
                     
-                    Geometry1.PointLocalCoordinates(point_local, point_list[index_vector[elem + 1] + 1]);
+                    Geometry1.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
                     points_locals[2] = point_local;
                 }
                 else
                 {
-                    Geometry1.PointLocalCoordinates(point_local, point_list[index_vector[elem + 1] + 1]);
+                    Geometry1.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
                     points_locals[0] = point_local;
 
-                    Geometry1.PointLocalCoordinates(point_local, point_list[index_vector[elem + 0] + 1]);
+                    Geometry1.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
                     points_locals[1] = point_local;
 
-                    Geometry1.PointLocalCoordinates(point_local, point_list[0]);
+                    Geometry1.PointLocalCoordinates(point_local, PointList[0]);
                     points_locals[2] = point_local;
                 }
                 
@@ -735,76 +759,76 @@ protected:
                 return false;
             }
         }
-//         else if(list_size == 1 || list_size == 2) // NOTE: Activate this in case you consider that your are missing something important
+//         else if(list_size == 1 || list_size == 2) // NOTE: Activate in case of unknown behaviour
 //         {
-//             unsigned int AuxSum = 0;
-//             for (unsigned int isum = 0; isum < all_inside.size(); isum++)
+//             unsigned int aux_sum = 0;
+//             for (unsigned int isum = 0; isum < AllInside.size(); isum++)
 //             {
-//                 AuxSum += all_inside[isum];
+//                 aux_sum += AllInside[isum];
 //             }
 //             
-//             if (AuxSum == list_size) // NOTE: One or two can be due to concident nodes on the edges
+//             if (aux_sum == list_size) // NOTE: One or two can be due to concident nodes on the edges
 //             {
 //                 ConditionsPointsSlave.clear();
-// //                 ConditionsPointsSlave.resize(0, false);
 //                 return false;
 //             }
 //             else
 //             {
-// //                 // Debug
-// //                 KRATOS_WATCH(Geometry1);
-// //                 KRATOS_WATCH(Geometry2);
-// //                 for (unsigned int ipoint = 0; ipoint < list_size; ipoint++)
-// //                 {
-// //                     KRATOS_WATCH(point_list[ipoint]);
-// //                 }
-//                 
-//                 // Debug (Mathematica plot!!!)
-// //                 for (unsigned int isum = 0; isum < all_inside.size(); isum++)
-// //                 {
-// //                     KRATOS_WATCH(all_inside[isum]);
-// //                 }
-// //                 
-// //                 PointType aux1;
-// //                 aux1.Coordinates() = Geometry1[0].Coordinates();
-// //                 
-// //                 PointType aux2;
-// //                 aux2.Coordinates() = Geometry1[1].Coordinates();
-// //                 
-// //                 PointType aux3;
-// //                 aux3.Coordinates() = Geometry1[2].Coordinates();
-// //                 
-// //                 PointType aux4;
-// //                 aux4.Coordinates() = Geometry2[0].Coordinates();
-// //                 
-// //                 PointType aux5;
-// //                 aux5.Coordinates() = Geometry2[1].Coordinates();
-// //                 
-// //                 PointType aux6;
-// //                 aux6.Coordinates() = Geometry2[2].Coordinates();
-// //                 
-// //                 std::cout << "Show[Graphics[{EdgeForm[Thick], Red ,Triangle[{{" << aux1.X() << "," << aux1.Y() << "},{" << aux2.X() << "," << aux2.Y() << "},{" << aux3.X() << "," << aux3.Y() << "}}]}],Graphics[{EdgeForm[Thick], Blue ,Triangle[{{" << aux4.X() << "," << aux4.Y() << "},{" << aux5.X() << "," << aux5.Y() << "},{" << aux6.X() << "," << aux6.Y() << "}}]}]";
-// //                 
-// //                 for (unsigned int ipoint = 0; ipoint < list_size; ipoint++)
-// //                 {
-// //                     std::cout << ",Graphics[{PointSize[Large],Point[{" << point_list[ipoint].X() << "," << point_list[ipoint].Y() << "}]}]";
-// //                 }
-// //                     
-// //                 std::cout << "]" << std::endl;
-//                 
-//                 std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN (check if it is the edge)" << std::endl; 
-// // //                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
+//                 if (mDebugGeometries == true)
+//                 {
+//                     // Debug
+//                     KRATOS_WATCH(Geometry1);
+//                     KRATOS_WATCH(Geometry2);
+//                     for (unsigned int ipoint = 0; ipoint < list_size; ipoint++)
+//                     {
+//                         KRATOS_WATCH(PointList[ipoint]);
+//                     }
+//                     
+//                     // Debug (Mathematica plot!!!)
+//                     for (unsigned int isum = 0; isum < AllInside.size(); isum++)
+//                     {
+//                         KRATOS_WATCH(AllInside[isum]);
+//                     }
+//                     
+//                     PointType aux1;
+//                     aux1.Coordinates() = Geometry1[0].Coordinates();
+//                     
+//                     PointType aux2;
+//                     aux2.Coordinates() = Geometry1[1].Coordinates();
+//                     
+//                     PointType aux3;
+//                     aux3.Coordinates() = Geometry1[2].Coordinates();
+//                     
+//                     PointType aux4;
+//                     aux4.Coordinates() = Geometry2[0].Coordinates();
+//                     
+//                     PointType aux5;
+//                     aux5.Coordinates() = Geometry2[1].Coordinates();
+//                     
+//                     PointType aux6;
+//                     aux6.Coordinates() = Geometry2[2].Coordinates();
+//                     
+//                     std::cout << "Show[Graphics[{EdgeForm[Thick], Red ,Triangle[{{" << aux1.X() << "," << aux1.Y() << "},{" << aux2.X() << "," << aux2.Y() << "},{" << aux3.X() << "," << aux3.Y() << "}}]}],Graphics[{EdgeForm[Thick], Blue ,Triangle[{{" << aux4.X() << "," << aux4.Y() << "},{" << aux5.X() << "," << aux5.Y() << "},{" << aux6.X() << "," << aux6.Y() << "}}]}]";
+//                     
+//                     for (unsigned int ipoint = 0; ipoint < list_size; ipoint++)
+//                     {
+//                         std::cout << ",Graphics[{PointSize[Large],Point[{" << PointList[ipoint].X() << "," << PointList[ipoint].Y() << "}]}]";
+//                     }
+//                         
+//                     std::cout << "]" << std::endl;
+//                     
+//                     std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN (check if it is the edge)" << std::endl; 
+//     //                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
+//                 }
 //             }
 //         }
         else // No intersection
         {
             ConditionsPointsSlave.clear();
-//                 ConditionsPointsSlave.resize(0, false);
             return false;
         }
         
         ConditionsPointsSlave.clear();
-//         ConditionsPointsSlave.resize(0, false);
         return false;
     }
     
@@ -847,7 +871,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    unsigned int mIntegrationOrder;          // The integration order to consider
+    const unsigned int mIntegrationOrder;    // The integration order to consider
+    const bool mDebugGeometries;             // If the geometry is debugged or not
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
     ///@}
@@ -984,10 +1009,13 @@ private:
             }
             else
             {
+                if (mDebugGeometries == true)
+                {
+                    KRATOS_WATCH(OriginalSlaveGeometry);
+                    KRATOS_WATCH(OriginalMasterGeometry);
+                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
+                }
                 return false; // NOTE: Giving problems
-//                 KRATOS_WATCH(OriginalSlaveGeometry);
-//                 KRATOS_WATCH(OriginalMasterGeometry);
-//                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
             }
             
             total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
