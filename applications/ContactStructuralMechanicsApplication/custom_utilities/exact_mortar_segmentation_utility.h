@@ -713,21 +713,6 @@ protected:
             
             for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
-                if (mDebugGeometries == true)
-                {
-                    // Debug
-                    PointType aux1;
-                    aux1.Coordinates() = PointList[0].Coordinates();
-                    
-                    PointType aux2;
-                    aux2.Coordinates() = PointList[index_vector[elem + 0] + 1].Coordinates();
-                    
-                    PointType aux3;
-                    aux3.Coordinates() = PointList[index_vector[elem + 1] + 1].Coordinates();
-                    
-                    std::cout << "Graphics3D[{Opacity[.3],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-                }
-                
                 array_1d<PointType, 3> points_locals;
                     
                 // Now we project to the slave surface
@@ -757,6 +742,16 @@ protected:
                 }
                 
                 ConditionsPointsSlave[elem] = points_locals;
+                
+                if (mDebugGeometries == true)
+                {                    
+                    PointType aux1, aux2, aux3;
+                    Geometry1.GlobalCoordinates(aux1, points_locals[0]);
+                    Geometry1.GlobalCoordinates(aux2, points_locals[1]);
+                    Geometry1.GlobalCoordinates(aux3, points_locals[2]); 
+                    
+                    std::cout << "Graphics3D[{Opacity[.3],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                }
             }
             
             if (ConditionsPointsSlave.size() > 0)

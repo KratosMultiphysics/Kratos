@@ -491,7 +491,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     
     // We call the exact integration utility
     ExactMortarIntegrationUtility<TDim, TNumNodes>  integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes> (mIntegrationOrder);
-    
+
 //     // DEBUG
 //     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << GetGeometry()[0].X() << "," << GetGeometry()[0].Y() << "," << GetGeometry()[0].Z()  << "},{" << GetGeometry()[1].X() << "," << GetGeometry()[1].Y() << "," << GetGeometry()[1].Z()  << "},{" << GetGeometry()[2].X() << "," << GetGeometry()[2].Y() << "," << GetGeometry()[2].Z()  << "}}],Text[Style["<< this->Id() <<", Tiny],{"<< GetGeometry().Center().X() << "," << GetGeometry().Center().Y() << ","<< GetGeometry().Center().Z() << "}]}],";// << std::endl;
     
@@ -503,7 +503,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 //             // DEBUG
 //             if (mThisMasterElements[pair_index]->Is(VISITED) == false || mThisMasterElements[pair_index]->IsDefined(VISITED) == false)
 //             {
-//                 std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << mThisMasterElements[pair_index]->GetGeometry()[0].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[0].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[0].Z()  << "},{" << mThisMasterElements[pair_index]->GetGeometry()[1].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[1].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[1].Z()  << "},{" << mThisMasterElements[pair_index]->GetGeometry()[2].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[2].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[2].Z()  << "}}],Text[Style["<< this->Id() <<", Tiny],{"<< mThisMasterElements[pair_index]->GetGeometry().Center().X() << "," << mThisMasterElements[pair_index]->GetGeometry().Center().Y() << ","<< mThisMasterElements[pair_index]->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+//                 std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << mThisMasterElements[pair_index]->GetGeometry()[0].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[0].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[0].Z()  << "},{" << mThisMasterElements[pair_index]->GetGeometry()[1].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[1].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[1].Z()  << "},{" << mThisMasterElements[pair_index]->GetGeometry()[2].X() << "," << mThisMasterElements[pair_index]->GetGeometry()[2].Y() << "," << mThisMasterElements[pair_index]->GetGeometry()[2].Z()  << "}}],Text[Style["<< mThisMasterElements[pair_index]->Id() <<", Tiny],{"<< mThisMasterElements[pair_index]->GetGeometry().Center().X() << "," << mThisMasterElements[pair_index]->GetGeometry().Center().Y() << ","<< mThisMasterElements[pair_index]->GetGeometry().Center().Z() << "}]}],";// << std::endl;
 //                 
 //                 mThisMasterElements[pair_index]->Set(VISITED, true);
 //             }
