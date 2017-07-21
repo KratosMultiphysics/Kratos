@@ -2,6 +2,7 @@
 <!-- EMPIRE input file -->
 <EMPIRE>
 	<code name="KratosClient1">
+		<type>field</type>
 	</code>
 	<general>
 		<portFile>server.port</portFile>

@@ -7,17 +7,29 @@ from ctypes import cdll
 import os
 import ctypes as ctp
 
+def SetNodalValues(counter): # Somehow Modify the Nodal Values
+    for node in model_part.Nodes:
+        value = sum(node.GetSolutionStepValue(VELOCITY)) + counter
+        node.SetSolutionStepValue(PRESSURE, value)
+
 print("This is kratos_client_2")
 
 model_part = ModelPart("MyModelPart")
+model_part.AddNodalSolutionStepVariable(VELOCITY)
+model_part.AddNodalSolutionStepVariable(PRESSURE)
 
 print("Starting to initialize Empire")
 import empire_wrapper
 print("Import Successfull")
-empire = empire_wrapper.EmpireWrapper(model_part)
+empire = empire_wrapper.EmpireWrapper()
 print("Wrapper Created")
 empire.Connect("kratos_client_2.xml")
 
-empire.SendMesh()
+empire.ReceiveMesh(model_part)
+
+for i in range(10):
+    empire.ReceiveDataField(model_part, VELOCITY)
+    SetNodalValues(i)
+    empire.SendDataField(model_part, PRESSURE)
 
 empire.Disconnect()
