@@ -771,7 +771,7 @@ protected:
      * @return The radius of the geometry 
      */ 
     
-    static inline double Radius(GeometryType& ThisGeometry) const 
+    static inline double Radius(GeometryType& ThisGeometry) 
     { 
         double radius = 0.0; 
         const Point<3>& center = ThisGeometry.Center(); 
