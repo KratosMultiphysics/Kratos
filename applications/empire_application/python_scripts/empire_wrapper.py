@@ -244,7 +244,7 @@ class EmpireWrapper:
             try: # OpenMPI
                 self.libempire_api = ctp.CDLL(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'], ctp.RTLD_GLOBAL)
                 print("::EMPIRE:: Using standard OpenMPI")
-            except: # Intel MPI & OpenMPI compiled with "–disable-dlopen" option
+            except: # Intel MPI or OpenMPI compiled with "–disable-dlopen" option
                 self.libempire_api = ctp.cdll.LoadLibrary(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'])
                 print("::EMPIRE:: Using Intel MPI or OpenMPI compiled with \"–disable-dlopen\" option")
         # -------------------------------------------------------------------------------------------------
