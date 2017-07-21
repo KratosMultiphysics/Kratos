@@ -1038,47 +1038,6 @@ public:
     }
 
     /**
-     * Calculates the local gradients for all integration points for
-     * given integration method
-     */
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod ) const override
-    {
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
-
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Result[pnt] = localGradients[pnt];
-        }
-
-        return Result;
-    }
-
-    /**
-     * Calculates the local gradients for all integration points for the
-     * default integration method
-     */
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const override
-    {
-        IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
-
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Result[pnt] = localGradients[pnt];
-        }
-
-        return Result;
-    }
-
-    /**
      * Calculates the gradients in terms of local coordinates
      * of all shape functions in a given point.
      *
@@ -1099,31 +1058,6 @@ public:
         rResult( 2, 1 ) = 0.25 * ( 1.0 + rPoint[0] );
         rResult( 3, 0 ) = -0.25 * ( 1.0 + rPoint[1] );
         rResult( 3, 1 ) = 0.25 * ( 1.0 - rPoint[0] );
-        return rResult;
-    }
-
-
-
-    /**
-     * returns the shape function gradients in an arbitrary point,
-     * given in local coordinates
-     *
-     * @param rResult the matrix of gradients,
-     * will be overwritten with the gradients for all
-     * shape functions in given point
-     * @param rPoint the given point the gradients are calculated in
-     */
-    virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
-    {
-        rResult.resize( 4, 2 ,false);
-        rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
-        rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
-        rResult( 1, 0 ) = 0.25 * ( 1.0 - rPoint.Y() );
-        rResult( 1, 1 ) = -0.25 * ( 1.0 + rPoint.X() );
-        rResult( 2, 0 ) = 0.25 * ( 1.0 + rPoint.Y() );
-        rResult( 2, 1 ) = 0.25 * ( 1.0 + rPoint.X() );
-        rResult( 3, 0 ) = -0.25 * ( 1.0 + rPoint.Y() );
-        rResult( 3, 1 ) = 0.25 * ( 1.0 - rPoint.X() );
         return rResult;
     }
 
