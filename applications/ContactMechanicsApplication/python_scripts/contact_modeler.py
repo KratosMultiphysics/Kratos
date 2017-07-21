@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
@@ -49,18 +49,18 @@ class ContactModeler(mesh_modeler.MeshModeler):
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT, True)
+        execution_options.Set(KratosPfem.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
+        execution_options.Set(KratosPfem.ModelerUtilities.FINALIZE_MESHER_INPUT, True)
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
+        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
+        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
+        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
 
-        if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
-            execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
+        if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
+            execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
                               
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, True)
+        execution_options.Set(KratosPfem.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
+        execution_options.Set(KratosPfem.ModelerUtilities.KEEP_ISOLATED_NODES, True)
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
@@ -72,7 +72,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
         modeler_info  = "Reconnect a cloud of points"
         if( self.domain_size == 2 ):
            
-            if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
+            if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pBYYQ"  
             else:
                 modeler_flags = "QNP"
@@ -80,7 +80,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
             
         elif( self.domain_size == 3 ):
 
-            if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
+            if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 #modeler_flags = "pMYYCJFu0"
                 modeler_flags = "pJFBMYYCCQu0"
             else:
@@ -104,11 +104,11 @@ class ContactModeler(mesh_modeler.MeshModeler):
         # The order set is the order of execution:
 
         #print GiD mesh output for checking purposes
-        print_output_mesh = KratosPfemBase.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, self.echo_level)
+        print_output_mesh = KratosPfem.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(print_output_mesh)        
         
         #select mesh elements
-        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
+        select_mesh_elements  = KratosPfem.SelectMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         # build contact conditions
