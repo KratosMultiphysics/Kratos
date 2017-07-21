@@ -8,7 +8,7 @@ xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repo
 	<!-- ================ define clientCode ======================================== -->
 	<clientCode name="KratosClient1">
 		<mesh name="myMesh1">
-			<dataField name="displacements" location="atNode" dimension="vector" typeOfQuantity="field" />
+			<dataField name="displacement" location="atNode" dimension="vector" typeOfQuantity="field" />
 			<dataField name="temperature" location="atNode" dimension="scalar" typeOfQuantity="field" />
 		</mesh>
 	</clientCode>
@@ -22,19 +22,19 @@ xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repo
 	<!-- ================ define clientCode end======================================== -->
 
 	<!-- ================ define couplingAlgorithm ======================================== -->
-    <!-- This is just a dummy, since the displacements are randomly set in KratosClient1
+    <!-- This is just a dummy, since the displacement are randomly set in KratosClient1
          i.e. always the maximum number of iterations is required in each time step -->
 	<couplingAlgorithm type="constantRelaxation" name="myConstantRelaxation">
          <residual index="1">
              <component coefficient="-1" timeToUpdate="iterationBeginning">
-                 <dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1"     dataFieldName="displacements" />
+                 <dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1"     dataFieldName="displacement" />
              </component>
              <component coefficient="1" timeToUpdate="iterationEnd">
-                 <dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1"     dataFieldName="displacements" />
+                 <dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1"     dataFieldName="displacement" />
              </component>
          </residual>
          <output index="1">
-             <dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1"         dataFieldName="displacements" />
+             <dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1"         dataFieldName="displacement" />
          </output>
          <constantRelaxation relaxationFactor="1.0" />
      </couplingAlgorithm>
@@ -45,7 +45,7 @@ xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repo
 		<sequence>
 			<filter type="scalingFilter">
 				<inputAndOutput>
-					<dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1" dataFieldName="displacements" />
+					<dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1" dataFieldName="displacement" />
 				</inputAndOutput>
 				<scalingFilter factor="0.0" />
 			</filter>
@@ -54,7 +54,7 @@ xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repo
 
 	<connection name="step 2: transfer from1to2">
 		<input>
-			<dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1" dataFieldName="displacements" />
+			<dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1" dataFieldName="displacement" />
 		</input>
 		<output>
 			<dataFieldRef clientCodeName="KratosClient2" meshName="myMesh2" dataFieldName="velocity" />
@@ -62,7 +62,7 @@ xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repo
 		<sequence>
 			<filter type="copyFilter">
 				<input>
-					<dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1" dataFieldName="displacements" />
+					<dataFieldRef clientCodeName="KratosClient1" meshName="myMesh1" dataFieldName="displacement" />
 				</input>
 				<output>
 					<dataFieldRef clientCodeName="KratosClient2" meshName="myMesh2" dataFieldName="velocity" />

@@ -48,11 +48,11 @@ empire = empire_wrapper.EmpireWrapper()
 print("Wrapper Created")
 empire.Connect("kratos_client_1.xml")
 
-empire.SendMesh(model_part)
+empire.SendMesh("myMesh1", model_part)
 
 for i in range(10):
-    empire.SendDataField(model_part, DISPLACEMENT)
-    empire.ReceiveDataField(model_part, TEMPERATURE)
+    empire.SendDataField("myMesh1", "displacement", DISPLACEMENT)
+    empire.ReceiveDataField("myMesh1", "temperature", TEMPERATURE)
 
     SetNodalValues(i)
 

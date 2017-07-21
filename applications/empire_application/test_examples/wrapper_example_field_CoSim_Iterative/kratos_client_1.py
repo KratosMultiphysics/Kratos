@@ -51,7 +51,7 @@ empire = empire_wrapper.EmpireWrapper()
 print("Wrapper Created")
 empire.Connect("kratos_client_1.xml")
 
-empire.SendMesh(model_part)
+empire.SendMesh("myMesh1", model_part)
 
 for i in range(10):
     print("STEP:", i)
@@ -59,8 +59,8 @@ for i in range(10):
     is_converged = False
     while not(is_converged):
         print("  Iteration:", j)
-        empire.SendDataField(model_part, DISPLACEMENT)
-        empire.ReceiveDataField(model_part, TEMPERATURE)
+        empire.SendDataField("myMesh1", "displacement", DISPLACEMENT)
+        empire.ReceiveDataField("myMesh1", "temperature", TEMPERATURE)
         SetNodalValues(i)
         is_converged = empire.ReceiveConvergenceSignal()
         j += 1

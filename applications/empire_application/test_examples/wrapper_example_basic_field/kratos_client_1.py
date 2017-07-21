@@ -18,6 +18,6 @@ empire = empire_wrapper.EmpireWrapper()
 print("Wrapper Created")
 empire.Connect("kratos_client_1.xml")
 
-empire.SendMesh(model_part)
+empire.SendMesh("myMesh1",model_part)
 
 empire.Disconnect()
