@@ -6,9 +6,5 @@
 	<general>
 		<portFile>server.port</portFile>
 		<verbosity>INFO</verbosity>
-		<runTimeModifiableUserDefinedText>YES</runTimeModifiableUserDefinedText>
 	</general>
-	<userDefined>
-		<myMessage>MessageFromTheOtherKratosClient</myMessage>
-	</userDefined>
 </EMPIRE>

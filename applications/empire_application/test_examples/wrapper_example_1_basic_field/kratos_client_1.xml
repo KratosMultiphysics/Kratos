@@ -7,7 +7,4 @@
 		<portFile>server.port</portFile>
 		<verbosity>INFO</verbosity>
 	</general>
-	<userDefined>
-		<someMessage>MessageFromKratosClient1</someMessage>
-	</userDefined>
 </EMPIRE>
