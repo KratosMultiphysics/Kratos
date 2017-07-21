@@ -1083,7 +1083,7 @@ public:
      * Calculates the local gradients for all integration points for
      * given integration method
      */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod ) override
+    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod )
     {
         ShapeFunctionsGradientsType localGradients
         = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -1103,7 +1103,7 @@ public:
      * Calculates the local gradients for all integration points for the
      * default integration method
      */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients() override
+    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
