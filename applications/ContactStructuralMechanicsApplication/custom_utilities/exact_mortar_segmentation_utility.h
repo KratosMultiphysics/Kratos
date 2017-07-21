@@ -578,17 +578,26 @@ protected:
     {   
         if (mDebugGeometries == true)
         {
+            GeometryPointType aux_geometry_1 = Geometry1;
+            GeometryPointType aux_geometry_2 = Geometry2;
+        
+            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+            {
+                RotatePoint(aux_geometry_1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                RotatePoint(aux_geometry_2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+            }
+            
             if (TNumNodes == 3)
             {
                 // Debug
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "," << Geometry1[0].Z()  << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "," << Geometry1[1].Z()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "," << Geometry1[2].Z()  << "}}]}],";// << std::endl;
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "," << Geometry2[0].Z()  << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "," << Geometry2[1].Z()  << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "," << Geometry2[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << aux_geometry_1[0].X() << "," << aux_geometry_1[0].Y() << "," << aux_geometry_1[0].Z()  << "},{" << aux_geometry_1[1].X() << "," << aux_geometry_1[1].Y() << "," << aux_geometry_1[1].Z()  << "},{" << aux_geometry_1[2].X() << "," << aux_geometry_1[2].Y() << "," << aux_geometry_1[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << aux_geometry_2[0].X() << "," << aux_geometry_2[0].Y() << "," << aux_geometry_2[0].Z()  << "},{" << aux_geometry_2[1].X() << "," << aux_geometry_2[1].Y() << "," << aux_geometry_2[1].Z()  << "},{" << aux_geometry_2[2].X() << "," << aux_geometry_2[2].Y() << "," << aux_geometry_2[2].Z()  << "}}]}],";// << std::endl;
             }
             else if (TNumNodes == 4)
             {
                 // Debug
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "," << Geometry1[0].Z()  << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "," << Geometry1[1].Z()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "," << Geometry1[2].Z()  << "},{" << Geometry1[3].X() << "," << Geometry1[3].Y() << "," << Geometry1[3].Z()  << "}}]}],";// << std::endl;
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "," << Geometry2[0].Z()  << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "," << Geometry2[1].Z()  << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "," << Geometry2[2].Z()  << "},{" << Geometry2[3].X() << "," << Geometry2[3].Y() << "," << Geometry2[3].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << aux_geometry_1[0].X() << "," << aux_geometry_1[0].Y() << "," << aux_geometry_1[0].Z()  << "},{" << aux_geometry_1[1].X() << "," << aux_geometry_1[1].Y() << "," << aux_geometry_1[1].Z()  << "},{" << aux_geometry_1[2].X() << "," << aux_geometry_1[2].Y() << "," << aux_geometry_1[2].Z()  << "},{" << aux_geometry_1[3].X() << "," << aux_geometry_1[3].Y() << "," << aux_geometry_1[3].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << aux_geometry_2[0].X() << "," << aux_geometry_2[0].Y() << "," << aux_geometry_2[0].Z()  << "},{" << aux_geometry_2[1].X() << "," << aux_geometry_2[1].Y() << "," << aux_geometry_2[1].Z()  << "},{" << aux_geometry_2[2].X() << "," << aux_geometry_2[2].Y() << "," << aux_geometry_2[2].Z()  << "},{" << aux_geometry_2[3].X() << "," << aux_geometry_2[3].Y() << "," << aux_geometry_2[3].Z()  << "}}]}],";// << std::endl;
             }
         }
         
@@ -697,9 +706,9 @@ protected:
                 RotatePoint(Geometry1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
                 RotatePoint(Geometry2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
-            for (unsigned int iPointList = 0; iPointList < PointList.size(); iPointList++)
+            for (unsigned int i_point_list = 0; i_point_list < PointList.size(); i_point_list++)
             {
-                RotatePoint(PointList[iPointList], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
             
             for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
