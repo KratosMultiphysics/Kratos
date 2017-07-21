@@ -328,7 +328,7 @@ protected:
      * @return PointRotated: The point rotated 
      */
     
-    void RotatePoint( 
+    static inline void RotatePoint( 
         PointType& PointToRotate,
         const PointType PointReferenceRotation,
         const array_1d<double, 3> SlaveTangentXi,
@@ -370,7 +370,7 @@ protected:
      * @return True if there is a intersection point, false otherwise
      */
     
-    bool Clipping2D(
+    static inline bool Clipping2D(
         PointType& PointIntersection, 
         const PointType PointOrig1,
         const PointType PointOrig2,
@@ -417,7 +417,7 @@ protected:
      * @return n: The normal vector
      */
     
-    array_1d<double, 3> GetNormalVector2D(const array_1d<double, 3> v)
+    static inline array_1d<double, 3> GetNormalVector2D(const array_1d<double, 3> v)
     {
         array_1d<double, 3> n;
 
@@ -437,7 +437,7 @@ protected:
      * @return angle: The angle formed
      */
     
-    double AnglePoints(
+    static inline double AnglePoints(
         const PointType PointOrig1,
         const PointType PointOrig2,
         const array_1d<double, 3> Axis1,
@@ -463,7 +463,7 @@ protected:
      * @return check: The check done
      */
     
-    bool CheckPoints2D(
+    static inline bool CheckPoints2D(
         const PointType PointOrig1,
         const PointType PointOrig2
         )
@@ -483,7 +483,7 @@ protected:
      * @return check: The check done
      */
     
-    bool CheckPoints3D(
+    static inline bool CheckPoints3D(
         const PointType PointOrig1,
         const PointType PointOrig2
         )
@@ -501,7 +501,7 @@ protected:
      * @return The DetJ
      */
     
-    double FasTriagleCheck2D(
+    static inline double FasTriagleCheck2D(
         const PointType PointOrig1,
         const PointType PointOrig2,
         const PointType PointOrig3
@@ -529,7 +529,7 @@ protected:
      * @return The DetJ
      */
     
-    double FastTriangleCheck(
+    static inline double FastTriangleCheck(
         const PointType PointOrig1,
         const PointType PointOrig2,
         const PointType PointOrig3
@@ -558,7 +558,7 @@ protected:
      * @return If there is intersection or not (true/false)
      */
     
-    bool TriangleIntersections(
+    inline bool TriangleIntersections(
         ConditionArrayListType& ConditionsPointsSlave,
         std::vector<PointType>& point_list,
         const array_1d<bool, TNumNodes> all_inside,
@@ -815,15 +815,15 @@ protected:
      */
     
     template <typename TType>
-    std::vector<size_t> SortIndexes(const std::vector<TType> &vect) 
+    static inline std::vector<std::size_t> SortIndexes(const std::vector<TType> &vect) 
     {
         // Initialize original index locations
-        std::vector<size_t> idx(vect.size());
+        std::vector<std::size_t> idx(vect.size());
         iota(idx.begin(), idx.end(), 0);
 
         // Sort indexes based on comparing values in vect
         std::sort(idx.begin(), idx.end(),
-            [&vect](size_t i1, size_t i2) {return vect[i1] < vect[i2];});
+            [&vect](std::size_t i1, std::size_t i2) {return vect[i1] < vect[i2];});
 
         return idx;
     }
