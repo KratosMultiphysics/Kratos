@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- EMPIRE input file -->
+<EMPIRE>
+	<code name="KratosClient2">
+	</code>
+	<general>
+		<portFile>server.port</portFile>
+		<verbosity>INFO</verbosity>
+		<runTimeModifiableUserDefinedText>YES</runTimeModifiableUserDefinedText>
+	</general>
+	<userDefined>
+		<myMessage>MessageFromTheOtherKratosClient</myMessage>
+	</userDefined>
+</EMPIRE>
