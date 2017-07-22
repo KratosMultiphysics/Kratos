@@ -284,21 +284,21 @@ public:
     /**
      * This utility computes the exact integration of the mortar condition and returns the area
      * @param SlaveCond: The slave condition
-     * @param CustomSolution: The matrix containing the integrations points that belong to the slave
-     * @return True if there is a common area (the geometries intersect), false otherwise
+     * @return The total area integrated
      */
     
-    void TestGetExactAreaIntegration(     
-        Condition::Pointer& SlaveCond,
-        double& rArea
-        )
+    double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond)
     {
+        // Initalize values
+        double area = 0.0;
         boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( CONTACT_MAPS );
         
         for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
         {
-            GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), rArea);
+            GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area);
         }
+        
+        return area;
     }
     
 protected:

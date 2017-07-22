@@ -62,6 +62,10 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
             interface_model_part.AddNode(node, 0)    
         del(node)
 
+        # We initialize the conditions    
+        alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(contact_model_part) 
+        alm_init_var.Execute()
+
         search_parameters = KratosMultiphysics.Parameters("""
         {
             "search_factor"               : 2.5,
@@ -71,10 +75,6 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         }
         """)
         contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(main_model_part, search_parameters)
-
-        # We initialize the conditions    
-        alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(contact_model_part) 
-        alm_init_var.Execute()
         
         # We initialize the search utility
         contact_search.CreatePointListMortar()
@@ -85,9 +85,9 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         
         for cond in contact_model_part.Conditions:
             if cond.Is(KratosMultiphysics.SLAVE):
-                area = 0
-                exact_integration.TestGetExactAreaIntegration(cond, area)
-                self.assertAlmostEqual(area, cond.GetArea)
+                area = exact_integration.TestGetExactAreaIntegration(cond)
+                condition_area = cond.GetArea()
+                self.assertAlmostEqual(area, condition_area)
                 
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
