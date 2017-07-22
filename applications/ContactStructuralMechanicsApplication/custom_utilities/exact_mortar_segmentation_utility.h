@@ -293,6 +293,11 @@ public:
         double area = 0.0;
         boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( CONTACT_MAPS );
         
+        if (mDebugGeometries == true)
+        {
+            std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
+        }
+        
         for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
         {
             GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area);
@@ -590,29 +595,43 @@ protected:
         const PointType& RefCenter,
         const bool IsAllInside = false
         )
-    {   
+    {    
         if (mDebugGeometries == true)
-        {
-            GeometryPointType aux_geometry_1 = Geometry1;
-            GeometryPointType aux_geometry_2 = Geometry2;
+        { 
+            // We define the auxiliar geometry
+            std::vector<PointType::Pointer> points_array_slave  (TNumNodes);
+            std::vector<PointType::Pointer> points_array_master (TNumNodes);
+            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+            {
+                PointType aux_point;
+                
+                aux_point.Coordinates() = Geometry1[i_node].Coordinates();
+                points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+                
+                aux_point.Coordinates() = Geometry2[i_node].Coordinates();
+                points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+            }
+            
+            typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type slave_geometry(  points_array_slave  );
+            typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type master_geometry(  points_array_master  );
         
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                ContactUtilities::RotatePoint(aux_geometry_1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-                ContactUtilities::RotatePoint(aux_geometry_2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(slave_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(master_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
             
             if (TNumNodes == 3)
             {
                 // Debug
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << aux_geometry_1[0].X() << "," << aux_geometry_1[0].Y() << "," << aux_geometry_1[0].Z()  << "},{" << aux_geometry_1[1].X() << "," << aux_geometry_1[1].Y() << "," << aux_geometry_1[1].Z()  << "},{" << aux_geometry_1[2].X() << "," << aux_geometry_1[2].Y() << "," << aux_geometry_1[2].Z()  << "}}]}],";// << std::endl;
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << aux_geometry_2[0].X() << "," << aux_geometry_2[0].Y() << "," << aux_geometry_2[0].Z()  << "},{" << aux_geometry_2[1].X() << "," << aux_geometry_2[1].Y() << "," << aux_geometry_2[1].Z()  << "},{" << aux_geometry_2[2].X() << "," << aux_geometry_2[2].Y() << "," << aux_geometry_2[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "}}]}],";// << std::endl;
             }
             else if (TNumNodes == 4)
             {
                 // Debug
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << aux_geometry_1[0].X() << "," << aux_geometry_1[0].Y() << "," << aux_geometry_1[0].Z()  << "},{" << aux_geometry_1[1].X() << "," << aux_geometry_1[1].Y() << "," << aux_geometry_1[1].Z()  << "},{" << aux_geometry_1[2].X() << "," << aux_geometry_1[2].Y() << "," << aux_geometry_1[2].Z()  << "},{" << aux_geometry_1[3].X() << "," << aux_geometry_1[3].Y() << "," << aux_geometry_1[3].Z()  << "}}]}],";// << std::endl;
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << aux_geometry_2[0].X() << "," << aux_geometry_2[0].Y() << "," << aux_geometry_2[0].Z()  << "},{" << aux_geometry_2[1].X() << "," << aux_geometry_2[1].Y() << "," << aux_geometry_2[1].Z()  << "},{" << aux_geometry_2[2].X() << "," << aux_geometry_2[2].Y() << "," << aux_geometry_2[2].Z()  << "},{" << aux_geometry_2[3].X() << "," << aux_geometry_2[3].Y() << "," << aux_geometry_2[3].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "},{" << slave_geometry[3].X() << "," << slave_geometry[3].Y() << "," << slave_geometry[3].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "},{" << master_geometry[3].X() << "," << master_geometry[3].Y() << "," << master_geometry[3].Z()  << "}}]}],";// << std::endl;
             }
         }
         
@@ -714,7 +733,7 @@ protected:
             const std::vector<std::size_t> index_vector = ContactUtilities::SortIndexes<double>(angles);
 
             ConditionsPointsSlave.resize((list_size - 2));
-        
+            
             // We recover this point to the triangle plane
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
