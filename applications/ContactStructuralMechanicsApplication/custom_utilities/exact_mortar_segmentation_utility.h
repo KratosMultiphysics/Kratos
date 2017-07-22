@@ -195,6 +195,46 @@ public:
     }
     
     /**
+     * This utility computes the exact integration of the mortar condition and returns the area
+     * @param OriginalSlaveGeometry: The geometry of the slave condition
+     * @param SlaveNormal: The normal of the slave condition
+     * @param OriginalMasterGeometry: The geometry of the master condition
+     * @param MasterNormal: The normal of the master condition
+     * @param Area: The total area integrated
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    inline bool GetExactAreaIntegration(    
+        GeometryNodeType& OriginalSlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
+        GeometryNodeType& OriginalMasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
+        double& rArea
+        )
+    {        
+        ConditionArrayListType conditions_points_slave;
+        
+        const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
+        
+        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
+        {
+            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            for (unsigned int i_node = 0; i_node < TDim; i_node++)
+            {
+                PointType global_point;
+                OriginalSlaveGeometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                points_array[i_node] = boost::make_shared<PointType>(global_point);
+            }
+            
+            DecompositionType decomp_geom( points_array );
+            
+            rArea += decomp_geom.Area();
+        }
+        
+        return is_inside;
+    }
+    
+    /**
      * This utility computes the exact integration of the mortar condition
      * @param SlaveCond: The slave condition
      * @param MasterCond: The master condition
@@ -239,6 +279,26 @@ public:
         }
         
         return solution;
+    }
+    
+    /**
+     * This utility computes the exact integration of the mortar condition and returns the area
+     * @param SlaveCond: The slave condition
+     * @param CustomSolution: The matrix containing the integrations points that belong to the slave
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    void TestGetExactAreaIntegration(     
+        Condition::Pointer& SlaveCond,
+        double& rArea
+        )
+    {
+        boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( CONTACT_MAPS );
+        
+        for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+        {
+            GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), rArea);
+        }
     }
     
 protected:
