@@ -468,7 +468,7 @@ public:
         noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mObjectiveGradient[ThreadId];
 
         // transposed gradient of element residual w.r.t. primal
-        pCurrentElement->Calculate(ADJOINT_MATRIX_2, rLHS_Contribution, rCurrentProcessInfo);
+        pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
         // d (objective) / d (primal)
         mpObjectiveFunction->CalculateAdjointVelocityContribution(

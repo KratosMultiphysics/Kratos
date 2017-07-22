@@ -152,7 +152,7 @@ class AdjointVMSMonolithicSolver:
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
             self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+            self.time_scheme = AdjointFluidApplication.AdjointSteadyVelocityPressureScheme(self.settings["scheme_settings"], self.objective_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 

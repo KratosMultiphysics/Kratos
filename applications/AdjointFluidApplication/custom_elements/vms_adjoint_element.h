@@ -278,6 +278,30 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Calculates the adjoint matrix for velocity and pressure.
+     *
+     * This function returns elemental contributions to:
+     *
+     * \f[
+     *    \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
+     *  - \partial_{\mathbf{w}^n}(\mathbf{M}^n \dot{\mathbf{w}}^n)^T
+     * \f]
+     *
+     * where \f$\mathbf{w}^n\f$ is the vector of nodal velocities and pressures
+     * stored at the current step. For steady problems, the ACCELERATION
+     * \f$\dot{\mathbf{w}}^n\f$ must be initialized to zero on the nodes. For
+     * the Bossak method, \f$\dot{\mathbf{w}}^{n-\alpha}\f$ must be stored in
+     * ACCELERATION.
+     */
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix,rCurrentProcessInfo);
+        this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix,ACCELERATION,-1.0,rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
+    }
+
     void CalculateMassMatrix(MatrixType& rMassMatrix,
             ProcessInfo& /*rCurrentProcessInfo*/) override
     {

@@ -6,8 +6,8 @@
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_ADJOINT_STEADY_SCHEME)
-#define KRATOS_ADJOINT_STEADY_SCHEME
+#if !defined(KRATOS_ADJOINT_STEADY_VELOCITY_PRESSURE_SCHEME)
+#define KRATOS_ADJOINT_STEADY_VELOCITY_PRESSURE_SCHEME
 
 // System includes
 #include <vector>
@@ -39,7 +39,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A scheme for steady adjoint equations.
+/// A scheme for steady adjoint equations involving velocities and pressures.
 /**
  * The residual vector of the forward problem is:
  * \f[
@@ -62,13 +62,13 @@ namespace Kratos
  *
  */
 template <class TSparseSpace, class TDenseSpace>
-class AdjointSteadyScheme : public Scheme<TSparseSpace, TDenseSpace>
+class AdjointSteadyVelocityPressureScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointSteadyScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointSteadyVelocityPressureScheme);
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
@@ -87,7 +87,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointSteadyScheme(Parameters& rParameters, ObjectiveFunction::Pointer pObjectiveFunction)
+    AdjointSteadyVelocityPressureScheme(Parameters& rParameters, ObjectiveFunction::Pointer pObjectiveFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY
@@ -112,7 +112,7 @@ public:
     }
 
     /// Destructor.
-    ~AdjointSteadyScheme() override
+    ~AdjointSteadyVelocityPressureScheme() override
     {
     }
 
@@ -172,6 +172,7 @@ public:
             it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
+            it->FastGetSolutionStepValue(ACCELERATION) = ACCELERATION.Zero();
         }
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
@@ -245,7 +246,7 @@ public:
         int ThreadId = OpenMPUtils::ThisThread();
 
         // adjoint system matrix
-        pCurrentElement->Calculate(ADJOINT_MATRIX_1, rLHS_Contribution, rCurrentProcessInfo);
+        pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
@@ -489,4 +490,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ADJOINT_STEADY_SCHEME defined */
+#endif /* KRATOS_ADJOINT_STEADY_VELOCITY_PRESSURE_SCHEME defined */
