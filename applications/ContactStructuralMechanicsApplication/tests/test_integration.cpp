@@ -23,12 +23,17 @@
 
 /* TRIANGLES */
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 /* QUADRILATERALS */
 #include "geometries/quadrilateral_2d_4.h"
 
 /* GAUSS-LEGENDRE */
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
+
+/* Utilities */
+#include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos 
 {
@@ -43,7 +48,7 @@ namespace Kratos
         ///Type definition for integration methods
         typedef GeometryData::IntegrationMethod              IntegrationMethod;
         typedef IntegrationPoint<2>                       IntegrationPointType;
-        typedef GeometryNodeType::IntegrationPointsArrayType IntegrationPointsType;
+        typedef GeometryNodeType::IntegrationPointsArrayType integration_pointsType;
 
         /** 
          * Checks if the criteria for computing the integral is the correct one
@@ -55,117 +60,117 @@ namespace Kratos
             ModelPart ModelPart("Main");
             
             // First we create the nodes 
-            NodeType::Pointer pNode1 = ModelPart.CreateNewNode(0,-0.2,0.1,0.0);
-            NodeType::Pointer pNode2 = ModelPart.CreateNewNode(1,1.0,0.1,0.0);
-            NodeType::Pointer pNode3 = ModelPart.CreateNewNode(2,0.2,1.2,0.0);
-            NodeType::Pointer pNode4 = ModelPart.CreateNewNode(3,0.6,0.4,0.0);
+            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(0,-0.2,0.1,0.0);
+            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(1,1.0,0.1,0.0);
+            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(2,0.2,1.2,0.0);
+            NodeType::Pointer p_node_4 = ModelPart.CreateNewNode(3,0.6,0.4,0.0);
             
             // Now we create the "conditions"
-            std::vector<NodeType::Pointer> ConditionNodes0 (3);
+            std::vector<NodeType::Pointer> condition_nodes_0 (3);
             
-            ConditionNodes0[0] = pNode1;
-            ConditionNodes0[1] = pNode2;
-            ConditionNodes0[2] = pNode3;
+            condition_nodes_0[0] = p_node_1;
+            condition_nodes_0[1] = p_node_2;
+            condition_nodes_0[2] = p_node_3;
             
-            Triangle2D3 <Node<3>> triangle0( ConditionNodes0 );
+            Triangle2D3 <Node<3>> triangle0( condition_nodes_0 );
             
-            std::vector<NodeType::Pointer> ConditionNodes1 (3);
+            std::vector<NodeType::Pointer> condition_nodes_1 (3);
             
-            ConditionNodes1[0] = pNode1;
-            ConditionNodes1[1] = pNode2;
-            ConditionNodes1[2] = pNode4;
+            condition_nodes_1[0] = p_node_1;
+            condition_nodes_1[1] = p_node_2;
+            condition_nodes_1[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle1( ConditionNodes1 );
+            Triangle2D3 <Node<3>> triangle_1( condition_nodes_1 );
             
-            std::vector<NodeType::Pointer> ConditionNodes2 (3);
+            std::vector<NodeType::Pointer> condition_nodes_2 (3);
             
-            ConditionNodes2[0] = pNode2;
-            ConditionNodes2[1] = pNode3;
-            ConditionNodes2[2] = pNode4;
+            condition_nodes_2[0] = p_node_2;
+            condition_nodes_2[1] = p_node_3;
+            condition_nodes_2[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle2( ConditionNodes2 );
+            Triangle2D3 <Node<3>> triangle_2( condition_nodes_2 );
             
-            std::vector<NodeType::Pointer> ConditionNodes3 (3);
+            std::vector<NodeType::Pointer> condition_nodes_3 (3);
             
-            ConditionNodes3[0] = pNode3;
-            ConditionNodes3[1] = pNode1;
-            ConditionNodes3[2] = pNode4;
+            condition_nodes_3[0] = p_node_3;
+            condition_nodes_3[1] = p_node_1;
+            condition_nodes_3[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle3( ConditionNodes3 );
+            Triangle2D3 <Node<3>> triangle_3( condition_nodes_3 );
             
             // We calculate the integral of the mass matrix (assuming constant density)
-            GeometryNodeType::IntegrationPointsArrayType IntegrationPoints = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_points = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            bounded_matrix<double, 3, 3> MassMatrix0 = ZeroMatrix(3, 3);
+            bounded_matrix<double, 3, 3> mass_matrix_0 = ZeroMatrix(3, 3);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
             {
                 Vector N;
-                const PointType& LocalPoint = IntegrationPoints[PointNumber].Coordinates();
-                triangle0.ShapeFunctionsValues( N, LocalPoint );
-                const double DetJ = triangle0.DeterminantOfJacobian( LocalPoint );
-                const double weight = IntegrationPoints[PointNumber].Weight();
+                const PointType& local_point = integration_points[point_number].Coordinates();
+                triangle0.ShapeFunctionsValues( N, local_point );
+                const double det_j = triangle0.DeterminantOfJacobian( local_point );
+                const double weight = integration_points[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 3; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 3; jnode++)
                     {
-                        MassMatrix0(inode, jnode) += DetJ * weight * N(inode) * N(jnode);
+                        mass_matrix_0(inode, jnode) += det_j * weight * N(inode) * N(jnode);
                     }
                 }
             }
      
-            bounded_matrix<double, 3, 3> MassMatrix1 = ZeroMatrix(3, 3);
+            bounded_matrix<double, 3, 3> mass_matrix_1 = ZeroMatrix(3, 3);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
             {
                 Vector N1;
                 Vector N2;
                 Vector N3;
                 
-                const PointType& LocalPoint0 = IntegrationPoints[PointNumber].Coordinates();
+                const PointType& local_point_0 = integration_points[point_number].Coordinates();
                 
                 PointType gp_global;
                 
-                triangle1.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint1;
-                triangle0.PointLocalCoordinates(LocalPoint1, gp_global);
+                triangle_1.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_1;
+                triangle0.PointLocalCoordinates(local_point_1, gp_global);
                 
-                triangle2.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint2; 
-                triangle0.PointLocalCoordinates(LocalPoint2, gp_global);
+                triangle_2.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_2; 
+                triangle0.PointLocalCoordinates(local_point_2, gp_global);
                 
-                triangle3.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint3; 
-                triangle0.PointLocalCoordinates(LocalPoint3, gp_global);
+                triangle_3.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_3; 
+                triangle0.PointLocalCoordinates(local_point_3, gp_global);
                 
-                triangle0.ShapeFunctionsValues( N1, LocalPoint1 );
-                triangle0.ShapeFunctionsValues( N2, LocalPoint2 );
-                triangle0.ShapeFunctionsValues( N3, LocalPoint3 );
+                triangle0.ShapeFunctionsValues( N1, local_point_1 );
+                triangle0.ShapeFunctionsValues( N2, local_point_2 );
+                triangle0.ShapeFunctionsValues( N3, local_point_3 );
                 
-                const double DetJ1 = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ2 = triangle2.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ3 = triangle3.DeterminantOfJacobian( LocalPoint0 );
+                const double det_j_1 = triangle_1.DeterminantOfJacobian( local_point_0 );
+                const double det_j_2 = triangle_2.DeterminantOfJacobian( local_point_0 );
+                const double det_j_3 = triangle_3.DeterminantOfJacobian( local_point_0 );
                 
-                const double weight = IntegrationPoints[PointNumber].Weight();
+                const double weight = integration_points[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 3; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 3; jnode++)
                     {
-                        MassMatrix1(inode, jnode) += DetJ1 * weight * N1[inode] * N1[jnode] \
-                                                   + DetJ2 * weight * N2[inode] * N2[jnode] \
-                                                   + DetJ3 * weight * N3[inode] * N3[jnode];
+                        mass_matrix_1(inode, jnode) += det_j_1 * weight * N1[inode] * N1[jnode] \
+                                                   + det_j_2 * weight * N2[inode] * N2[jnode] \
+                                                   + det_j_3 * weight * N3[inode] * N3[jnode];
                     }
                 }
             }
             
-            const double Tolerance = 1.0e-6;
+            const double tolerance = 1.0e-6;
             for (unsigned int inode = 0; inode < 3; inode++)
             {
                 for (unsigned int jnode = 0; jnode < 3; jnode++)
                 {
-                    KRATOS_CHECK_NEAR(MassMatrix0(inode,jnode), MassMatrix1(inode,jnode), Tolerance);
+                    KRATOS_CHECK_NEAR(mass_matrix_0(inode,jnode), mass_matrix_1(inode,jnode), tolerance);
                 }
             }
         }
@@ -180,108 +185,108 @@ namespace Kratos
             ModelPart ModelPart("Main");
             
             // First we create the nodes 
-            NodeType::Pointer pNode1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.0);
-            NodeType::Pointer pNode2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
-            NodeType::Pointer pNode3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.0);
-            NodeType::Pointer pNode4 = ModelPart.CreateNewNode(3, - 0.1,  1.3, 0.0);
+            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.0);
+            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
+            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.0);
+            NodeType::Pointer p_node_4 = ModelPart.CreateNewNode(3, - 0.1,  1.3, 0.0);
             
             // Now we create the "conditions"
-            std::vector<NodeType::Pointer> ConditionNodes0 (4);
+            std::vector<NodeType::Pointer> condition_nodes_0 (4);
             
-            ConditionNodes0[0] = pNode1;
-            ConditionNodes0[1] = pNode2;
-            ConditionNodes0[2] = pNode3;
-            ConditionNodes0[3] = pNode4;
+            condition_nodes_0[0] = p_node_1;
+            condition_nodes_0[1] = p_node_2;
+            condition_nodes_0[2] = p_node_3;
+            condition_nodes_0[3] = p_node_4;
             
-            Quadrilateral2D4 <Node<3>> quadrilateral0( ConditionNodes0 );
+            Quadrilateral2D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
             
-            std::vector<NodeType::Pointer> ConditionNodes1 (3);
+            std::vector<NodeType::Pointer> condition_nodes_1 (3);
             
-            ConditionNodes1[0] = pNode1;
-            ConditionNodes1[1] = pNode2;
-            ConditionNodes1[2] = pNode3;
+            condition_nodes_1[0] = p_node_1;
+            condition_nodes_1[1] = p_node_2;
+            condition_nodes_1[2] = p_node_3;
             
-            Triangle2D3 <Node<3>> triangle1( ConditionNodes1 );
+            Triangle2D3 <Node<3>> triangle_1( condition_nodes_1 );
             
-            std::vector<NodeType::Pointer> ConditionNodes2 (3);
+            std::vector<NodeType::Pointer> condition_nodes_2 (3);
             
-            ConditionNodes2[0] = pNode1;
-            ConditionNodes2[1] = pNode3;
-            ConditionNodes2[2] = pNode4;
+            condition_nodes_2[0] = p_node_1;
+            condition_nodes_2[1] = p_node_3;
+            condition_nodes_2[2] = p_node_4;
             
-            Triangle2D3 <Node<3>> triangle2( ConditionNodes2 );
+            Triangle2D3 <Node<3>> triangle_2( condition_nodes_2 );
             
             // We calculate the integral of the mass matrix (assuming constant density)
-            GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_pointsQuadrilateral.size(); point_number++)
             {
                 Vector N;
-                const PointType& LocalPoint = IntegrationPointsQuadrilateral[PointNumber].Coordinates();
-                quadrilateral0.ShapeFunctionsValues( N, LocalPoint );
-                const double DetJ = quadrilateral0.DeterminantOfJacobian( LocalPoint );
-                const double weight = IntegrationPointsQuadrilateral[PointNumber].Weight();
+                const PointType& local_point = integration_pointsQuadrilateral[point_number].Coordinates();
+                quadrilateral_0.ShapeFunctionsValues( N, local_point );
+                const double det_j = quadrilateral_0.DeterminantOfJacobian( local_point );
+                const double weight = integration_pointsQuadrilateral[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 4; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {
-                        MassMatrix0(inode, jnode) += DetJ * weight * N[inode] * N[jnode];
+                        mass_matrix_0(inode, jnode) += det_j * weight * N[inode] * N[jnode];
                     }
                 }
             }
      
-            bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> mass_matrix_1 = ZeroMatrix(4, 4);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsTriangle.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_pointsTriangle.size(); point_number++)
             {
                 Vector N1;
                 Vector N2;
                 
-                const PointType& LocalPoint0 = IntegrationPointsTriangle[PointNumber].Coordinates();
+                const PointType& local_point_0 = integration_pointsTriangle[point_number].Coordinates();
                 
                 PointType gp_global;
                 
-                triangle1.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint1;
-                quadrilateral0.PointLocalCoordinates(LocalPoint1, gp_global);
+                triangle_1.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_1;
+                quadrilateral_0.PointLocalCoordinates(local_point_1, gp_global);
                 
-                triangle2.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint2; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint2, gp_global);
+                triangle_2.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_2; 
+                quadrilateral_0.PointLocalCoordinates(local_point_2, gp_global);
                 
-                quadrilateral0.ShapeFunctionsValues( N1, LocalPoint1 );
-                quadrilateral0.ShapeFunctionsValues( N2, LocalPoint2 );
+                quadrilateral_0.ShapeFunctionsValues( N1, local_point_1 );
+                quadrilateral_0.ShapeFunctionsValues( N2, local_point_2 );
                 
-                const double DetJ1  = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ2  = triangle2.DeterminantOfJacobian( LocalPoint0 );
+                const double det_j_1  = triangle_1.DeterminantOfJacobian( local_point_0 );
+                const double det_j_2  = triangle_2.DeterminantOfJacobian( local_point_0 );
                 
-                const double weight = IntegrationPointsTriangle[PointNumber].Weight();
+                const double weight = integration_pointsTriangle[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 4; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {                        
-                        MassMatrix1(inode, jnode ) += DetJ1 * weight * N1[inode] * N1[jnode] 
-                                                    + DetJ2 * weight * N2[inode] * N2[jnode];
+                        mass_matrix_1(inode, jnode ) += det_j_1 * weight * N1[inode] * N1[jnode] 
+                                                    + det_j_2 * weight * N2[inode] * N2[jnode];
                     }
                 }
             }
 
             
             // Debug
-//             KRATOS_WATCH(MassMatrix0)
-//             KRATOS_WATCH(MassMatrix1)
+//             KRATOS_WATCH(mass_matrix_0)
+//             KRATOS_WATCH(mass_matrix_1)
             
-            const double Tolerance = 1.0e-6;
+            const double tolerance = 1.0e-6;
             for (unsigned int inode = 0; inode < 4; inode++)
             {
                 for (unsigned int jnode = 0; jnode < 4; jnode++)
                 {
-                    KRATOS_CHECK_NEAR(MassMatrix0(inode,jnode), MassMatrix1(inode,jnode), Tolerance);
+                    KRATOS_CHECK_NEAR(mass_matrix_0(inode,jnode), mass_matrix_1(inode,jnode), tolerance);
                 }
             }
         }
@@ -296,395 +301,297 @@ namespace Kratos
             ModelPart ModelPart("Main");
             
             // First we create the nodes 
-            NodeType::Pointer pNode0 = ModelPart.CreateNewNode(0,   0.5,  0.4, 0.0);
-            NodeType::Pointer pNode1 = ModelPart.CreateNewNode(1,   0.0,  0.0, 0.0);
-            NodeType::Pointer pNode2 = ModelPart.CreateNewNode(2,   1.0,- 0.1, 0.0);
-            NodeType::Pointer pNode3 = ModelPart.CreateNewNode(3,   1.2,  1.1, 0.0);
-            NodeType::Pointer pNode4 = ModelPart.CreateNewNode(4, - 0.1,  1.3, 0.0);
+            NodeType::Pointer p_node_0 = ModelPart.CreateNewNode(0,   0.5,  0.4, 0.0);
+            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(1,   0.0,  0.0, 0.0);
+            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(2,   1.0,- 0.1, 0.0);
+            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(3,   1.2,  1.1, 0.0);
+            NodeType::Pointer p_node_4 = ModelPart.CreateNewNode(4, - 0.1,  1.3, 0.0);
             
             // Now we create the "conditions"
-            std::vector<NodeType::Pointer> ConditionNodes0 (4);
+            std::vector<NodeType::Pointer> condition_nodes_0 (4);
             
-            ConditionNodes0[0] = pNode1;
-            ConditionNodes0[1] = pNode2;
-            ConditionNodes0[2] = pNode3;
-            ConditionNodes0[3] = pNode4;
+            condition_nodes_0[0] = p_node_1;
+            condition_nodes_0[1] = p_node_2;
+            condition_nodes_0[2] = p_node_3;
+            condition_nodes_0[3] = p_node_4;
             
-            Quadrilateral2D4 <Node<3>> quadrilateral0( ConditionNodes0 );
+            Quadrilateral2D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
             
-            std::vector<NodeType::Pointer> ConditionNodes1 (3);
+            std::vector<NodeType::Pointer> condition_nodes_1 (3);
             
-            ConditionNodes1[0] = pNode1;
-            ConditionNodes1[1] = pNode2;
-            ConditionNodes1[2] = pNode0;
+            condition_nodes_1[0] = p_node_1;
+            condition_nodes_1[1] = p_node_2;
+            condition_nodes_1[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle1( ConditionNodes1 );
+            Triangle2D3 <Node<3>> triangle_1( condition_nodes_1 );
             
-            std::vector<NodeType::Pointer> ConditionNodes2 (3);
+            std::vector<NodeType::Pointer> condition_nodes_2 (3);
             
-            ConditionNodes2[0] = pNode2;
-            ConditionNodes2[1] = pNode3;
-            ConditionNodes2[2] = pNode0;
+            condition_nodes_2[0] = p_node_2;
+            condition_nodes_2[1] = p_node_3;
+            condition_nodes_2[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle2( ConditionNodes2 );
+            Triangle2D3 <Node<3>> triangle_2( condition_nodes_2 );
             
-            std::vector<NodeType::Pointer> ConditionNodes3 (3);
+            std::vector<NodeType::Pointer> condition_nodes_3 (3);
             
-            ConditionNodes3[0] = pNode3;
-            ConditionNodes3[1] = pNode4;
-            ConditionNodes3[2] = pNode0;
+            condition_nodes_3[0] = p_node_3;
+            condition_nodes_3[1] = p_node_4;
+            condition_nodes_3[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle3( ConditionNodes3 );
+            Triangle2D3 <Node<3>> triangle_3( condition_nodes_3 );
             
-            std::vector<NodeType::Pointer> ConditionNodes4 (3);
+            std::vector<NodeType::Pointer> condition_nodes_4 (3);
             
-            ConditionNodes4[0] = pNode4;
-            ConditionNodes4[1] = pNode1;
-            ConditionNodes4[2] = pNode0;
+            condition_nodes_4[0] = p_node_4;
+            condition_nodes_4[1] = p_node_1;
+            condition_nodes_4[2] = p_node_0;
             
-            Triangle2D3 <Node<3>> triangle4( ConditionNodes4 );
+            Triangle2D3 <Node<3>> triangle_4( condition_nodes_4 );
             
             // We calculate the integral of the mass matrix (assuming constant density)
-            GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_pointsQuadrilateral.size(); point_number++)
             {
                 Vector N;
-                const PointType& LocalPoint = IntegrationPointsQuadrilateral[PointNumber].Coordinates();
-                quadrilateral0.ShapeFunctionsValues( N, LocalPoint );
-                const double DetJ = quadrilateral0.DeterminantOfJacobian( LocalPoint );
-                const double weight = IntegrationPointsQuadrilateral[PointNumber].Weight();
+                const PointType& local_point = integration_pointsQuadrilateral[point_number].Coordinates();
+                quadrilateral_0.ShapeFunctionsValues( N, local_point );
+                const double det_j = quadrilateral_0.DeterminantOfJacobian( local_point );
+                const double weight = integration_pointsQuadrilateral[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 4; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {
-                        MassMatrix0(inode, jnode) += DetJ * weight * N[inode] * N[jnode];
+                        mass_matrix_0(inode, jnode) += det_j * weight * N[inode] * N[jnode];
                     }
                 }
             }
      
-            bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> mass_matrix_1 = ZeroMatrix(4, 4);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsTriangle.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_pointsTriangle.size(); point_number++)
             {
                 Vector N1;
                 Vector N2;
                 Vector N3;
                 Vector N4;
                 
-                const PointType& LocalPoint0 = IntegrationPointsTriangle[PointNumber].Coordinates();
+                const PointType& local_point_0 = integration_pointsTriangle[point_number].Coordinates();
                 
                 PointType gp_global;
                 
-                triangle1.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint1;
-                quadrilateral0.PointLocalCoordinates(LocalPoint1, gp_global);
+                triangle_1.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_1;
+                quadrilateral_0.PointLocalCoordinates(local_point_1, gp_global);
                 
-                triangle2.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint2; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint2, gp_global);
+                triangle_2.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_2; 
+                quadrilateral_0.PointLocalCoordinates(local_point_2, gp_global);
                 
-                triangle3.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint3; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint3, gp_global);
+                triangle_3.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_3; 
+                quadrilateral_0.PointLocalCoordinates(local_point_3, gp_global);
                 
-                triangle4.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint4; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint4, gp_global);
+                triangle_4.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_4; 
+                quadrilateral_0.PointLocalCoordinates(local_point_4, gp_global);
                 
-                quadrilateral0.ShapeFunctionsValues( N1, LocalPoint1 );
-                quadrilateral0.ShapeFunctionsValues( N2, LocalPoint2 );
-                quadrilateral0.ShapeFunctionsValues( N3, LocalPoint3 );
-                quadrilateral0.ShapeFunctionsValues( N4, LocalPoint4 );
+                quadrilateral_0.ShapeFunctionsValues( N1, local_point_1 );
+                quadrilateral_0.ShapeFunctionsValues( N2, local_point_2 );
+                quadrilateral_0.ShapeFunctionsValues( N3, local_point_3 );
+                quadrilateral_0.ShapeFunctionsValues( N4, local_point_4 );
                 
-                const double DetJ1  = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ2  = triangle2.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ3  = triangle3.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ4  = triangle4.DeterminantOfJacobian( LocalPoint0 );
+                const double det_j_1  = triangle_1.DeterminantOfJacobian( local_point_0 );
+                const double det_j_2  = triangle_2.DeterminantOfJacobian( local_point_0 );
+                const double det_j_3  = triangle_3.DeterminantOfJacobian( local_point_0 );
+                const double det_j_4  = triangle_4.DeterminantOfJacobian( local_point_0 );
                 
-                const double weight = IntegrationPointsTriangle[PointNumber].Weight();
+                const double weight = integration_pointsTriangle[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 4; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {                        
-                        MassMatrix1(inode, jnode ) += DetJ1 * weight * N1[inode] * N1[jnode] 
-                                                   +  DetJ2 * weight * N2[inode] * N2[jnode]
-                                                   +  DetJ3 * weight * N3[inode] * N3[jnode]
-                                                   +  DetJ4 * weight * N4[inode] * N4[jnode];
+                        mass_matrix_1(inode, jnode ) += det_j_1 * weight * N1[inode] * N1[jnode] 
+                                                     +  det_j_2 * weight * N2[inode] * N2[jnode]
+                                                     +  det_j_3 * weight * N3[inode] * N3[jnode]
+                                                     +  det_j_4 * weight * N4[inode] * N4[jnode];
                     }
                 }
             }
                         
 //             // Debug
-//             KRATOS_WATCH(MassMatrix0)
-//             KRATOS_WATCH(MassMatrix1)
+//             KRATOS_WATCH(mass_matrix_0)
+//             KRATOS_WATCH(mass_matrix_1)
             
-            const double Tolerance = 1.0e-6;
+            const double tolerance = 1.0e-6;
             for (unsigned int inode = 0; inode < 4; inode++)
             {
                 for (unsigned int jnode = 0; jnode < 4; jnode++)
                 {
-                    KRATOS_CHECK_NEAR(MassMatrix0(inode,jnode), MassMatrix1(inode,jnode), Tolerance);
+                    KRATOS_CHECK_NEAR(mass_matrix_0(inode,jnode), mass_matrix_1(inode,jnode), tolerance);
                 }
             }
             
-            array_1d<double, 3> DispArray = ZeroVector(3);
-            DispArray[0] = 0.1;
-            DispArray[1] = 0.2;
+            array_1d<double, 3> disp_array = ZeroVector(3);
+            disp_array[0] = 0.1;
+            disp_array[1] = 0.2;
             
-            pNode0->Coordinates() += 0.5  * DispArray;
-            pNode1->Coordinates() += 1.0  * DispArray;
-            pNode2->Coordinates() += 1.5  * DispArray;
-            pNode3->Coordinates() += 0.75 * DispArray;
-            pNode4->Coordinates() += 1.0  * DispArray;
+            p_node_0->Coordinates() += 0.5  * disp_array;
+            p_node_1->Coordinates() += 1.0  * disp_array;
+            p_node_2->Coordinates() += 1.5  * disp_array;
+            p_node_3->Coordinates() += 0.75 * disp_array;
+            p_node_4->Coordinates() += 1.0  * disp_array;
             
-            MassMatrix0 = ZeroMatrix(4, 4);
+            mass_matrix_0 = ZeroMatrix(4, 4);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_pointsQuadrilateral.size(); point_number++)
             {
                 Vector N;
-                const PointType& LocalPoint = IntegrationPointsQuadrilateral[PointNumber].Coordinates();
-                quadrilateral0.ShapeFunctionsValues( N, LocalPoint );
-                const double DetJ = quadrilateral0.DeterminantOfJacobian( LocalPoint );
-                const double weight = IntegrationPointsQuadrilateral[PointNumber].Weight();
+                const PointType& local_point = integration_pointsQuadrilateral[point_number].Coordinates();
+                quadrilateral_0.ShapeFunctionsValues( N, local_point );
+                const double det_j = quadrilateral_0.DeterminantOfJacobian( local_point );
+                const double weight = integration_pointsQuadrilateral[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 4; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {
-                        MassMatrix0(inode, jnode) += DetJ * weight * N[inode] * N[jnode];
+                        mass_matrix_0(inode, jnode) += det_j * weight * N[inode] * N[jnode];
                     }
                 }
             }
             
-            MassMatrix1 = ZeroMatrix(4, 4);
+            mass_matrix_1 = ZeroMatrix(4, 4);
             
-            for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsTriangle.size(); PointNumber++)
+            for (unsigned int point_number = 0; point_number < integration_pointsTriangle.size(); point_number++)
             {
                 Vector N1;
                 Vector N2;
                 Vector N3;
                 Vector N4;
                 
-                const PointType& LocalPoint0 = IntegrationPointsTriangle[PointNumber].Coordinates();
+                const PointType& local_point_0 = integration_pointsTriangle[point_number].Coordinates();
                 
                 PointType gp_global;
                 
-                triangle1.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint1;
-                quadrilateral0.PointLocalCoordinates(LocalPoint1, gp_global);
+                triangle_1.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_1;
+                quadrilateral_0.PointLocalCoordinates(local_point_1, gp_global);
                 
-                triangle2.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint2; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint2, gp_global);
+                triangle_2.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_2; 
+                quadrilateral_0.PointLocalCoordinates(local_point_2, gp_global);
                 
-                triangle3.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint3; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint3, gp_global);
+                triangle_3.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_3; 
+                quadrilateral_0.PointLocalCoordinates(local_point_3, gp_global);
                 
-                triangle4.GlobalCoordinates(gp_global, LocalPoint0);
-                PointType LocalPoint4; 
-                quadrilateral0.PointLocalCoordinates(LocalPoint4, gp_global);
+                triangle_4.GlobalCoordinates(gp_global, local_point_0);
+                PointType local_point_4; 
+                quadrilateral_0.PointLocalCoordinates(local_point_4, gp_global);
                 
-                quadrilateral0.ShapeFunctionsValues( N1, LocalPoint1 );
-                quadrilateral0.ShapeFunctionsValues( N2, LocalPoint2 );
-                quadrilateral0.ShapeFunctionsValues( N3, LocalPoint3 );
-                quadrilateral0.ShapeFunctionsValues( N4, LocalPoint4 );
+                quadrilateral_0.ShapeFunctionsValues( N1, local_point_1 );
+                quadrilateral_0.ShapeFunctionsValues( N2, local_point_2 );
+                quadrilateral_0.ShapeFunctionsValues( N3, local_point_3 );
+                quadrilateral_0.ShapeFunctionsValues( N4, local_point_4 );
                 
-                const double DetJ1 = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ2 = triangle2.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ3 = triangle3.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ4 = triangle4.DeterminantOfJacobian( LocalPoint0 );
+                const double det_j_1 = triangle_1.DeterminantOfJacobian( local_point_0 );
+                const double det_j_2 = triangle_2.DeterminantOfJacobian( local_point_0 );
+                const double det_j_3 = triangle_3.DeterminantOfJacobian( local_point_0 );
+                const double det_j_4 = triangle_4.DeterminantOfJacobian( local_point_0 );
                 
-                const double weight = IntegrationPointsTriangle[PointNumber].Weight();
+                const double weight = integration_pointsTriangle[point_number].Weight();
                 
                 for (unsigned int inode = 0; inode < 4; inode++)
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {                        
-                        MassMatrix1(inode, jnode ) += DetJ1 * weight * N1[inode] * N1[jnode] 
-                                                   +  DetJ2 * weight * N2[inode] * N2[jnode]
-                                                   +  DetJ3 * weight * N3[inode] * N3[jnode]
-                                                   +  DetJ4 * weight * N4[inode] * N4[jnode];
+                        mass_matrix_1(inode, jnode ) += det_j_1 * weight * N1[inode] * N1[jnode] 
+                                                   +  det_j_2 * weight * N2[inode] * N2[jnode]
+                                                   +  det_j_3 * weight * N3[inode] * N3[jnode]
+                                                   +  det_j_4 * weight * N4[inode] * N4[jnode];
                     }
                 }
             }
                         
 //             // Debug
-//             KRATOS_WATCH(MassMatrix0)
-//             KRATOS_WATCH(MassMatrix1)
+//             KRATOS_WATCH(mass_matrix_0)
+//             KRATOS_WATCH(mass_matrix_1)
             
             for (unsigned int inode = 0; inode < 4; inode++)
             {
                 for (unsigned int jnode = 0; jnode < 4; jnode++)
                 {
-                    KRATOS_CHECK_NEAR(MassMatrix0(inode,jnode), MassMatrix1(inode,jnode), Tolerance);
+                    KRATOS_CHECK_NEAR(mass_matrix_0(inode,jnode), mass_matrix_1(inode,jnode), tolerance);
                 }
             }
             
         }
         
-//         /** NOTE: Doesn't work, which means that this method produces error.
-//          * Checks if the criteria for computing the integral is the correct one interpolating the local coordinates
-//          * Checks mass matrix computed
-//          */
-//         
-//         KRATOS_TEST_CASE_IN_SUITE(TestMassMatrixIntegrationQuadrilateralInterpolated, ContactStructuralApplicationFastSuite)
-//         {
-//             ModelPart ModelPart("Main");
-//             
-//             // First we create the nodes 
-//             NodeType::Pointer pNode1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.0);
-//             NodeType::Pointer pNode2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
-//             NodeType::Pointer pNode3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.0);
-//             NodeType::Pointer pNode4 = ModelPart.CreateNewNode(3, - 0.1,  1.3, 0.0);
-//             
-//             // Now we create the "conditions"
-//             std::vector<NodeType::Pointer> ConditionNodes0 (4);
-//             
-//             ConditionNodes0[0] = pNode1;
-//             ConditionNodes0[1] = pNode2;
-//             ConditionNodes0[2] = pNode3;
-//             ConditionNodes0[3] = pNode4;
-//             
-//             Quadrilateral2D4 <Node<3>> quadrilateral0( ConditionNodes0 );
-//             
-//             std::vector<NodeType::Pointer> ConditionNodes1 (3);
-//             
-//             ConditionNodes1[0] = pNode1;
-//             ConditionNodes1[1] = pNode2;
-//             ConditionNodes1[2] = pNode3;
-//             
-//             Triangle2D3 <Node<3>> triangle1( ConditionNodes1 );
-//             
-//             std::vector<NodeType::Pointer> ConditionNodes2 (3);
-//             
-//             ConditionNodes2[0] = pNode1;
-//             ConditionNodes2[1] = pNode3;
-//             ConditionNodes2[2] = pNode4;
-//             
-//             Triangle2D3 <Node<3>> triangle2( ConditionNodes2 );
-//             
-//             // We calculate the integral of the mass matrix (assuming constant density)
-//             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-//             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-//             
-//             bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
-//             
-//             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
-//             {
-//                 Vector N;
-//                 const PointType& LocalPoint = IntegrationPointsQuadrilateral[PointNumber].Coordinates();
-//                 quadrilateral0.ShapeFunctionsValues( N, LocalPoint );
-//                 const double DetJ = quadrilateral0.DeterminantOfJacobian( LocalPoint );
-//                 const double weight = IntegrationPointsQuadrilateral[PointNumber].Weight();
-//                 
-//                 for (unsigned int inode = 0; inode < 4; inode++)
-//                 {
-//                     for (unsigned int jnode = 0; jnode < 4; jnode++)
-//                     {
-//                         MassMatrix0(inode, jnode) += DetJ * weight * N[inode] * N[jnode];
-//                     }
-//                 }
-//             }
-//      
-//             bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
-//             
-//             array_1d<Point<3>, 3> LocalPointsList1;
-//             array_1d<Point<3>, 3> LocalPointsList2;
-//             
-//             for (unsigned int i_point = 0; i_point < 3; i_point++)
-//             {
-//                 PointType LocalPoint;
-//                 quadrilateral0.PointLocalCoordinates(LocalPoint, triangle1[i_point]);
-//                 LocalPointsList1[i_point] = LocalPoint;
-//                 quadrilateral0.PointLocalCoordinates(LocalPoint, triangle2[i_point]);
-//                 LocalPointsList2[i_point] = LocalPoint;
-//             }
-//             
-//             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsTriangle.size(); PointNumber++)
-//             {
-//                 Vector Naux1;
-//                 Vector Naux2;
-//                 
-//                 Vector N1;
-//                 Vector N2;
-//                 
-//                 const PointType& LocalPoint0 = IntegrationPointsTriangle[PointNumber].Coordinates();
-//             
-//                 triangle1.ShapeFunctionsValues( Naux1, LocalPoint0 );
-//                 triangle2.ShapeFunctionsValues( Naux2, LocalPoint0 );
-//                 
-//                 PointType LocalPoint1;
-//                 PointType LocalPoint2; 
-//                 
-//                 LocalPoint1.Coordinates() = ZeroVector(3);
-//                 LocalPoint2.Coordinates() = ZeroVector(3);
-//                 
-//                 for (unsigned iCoor = 1; iCoor <= 2; iCoor++)
-//                 {
-//                     for (unsigned int iN = 0; iN < 3; iN++)
-//                     {
-//                         LocalPoint1.Coordinate(iCoor) += Naux1[iN] * LocalPointsList1[iN].Coordinate(iCoor);
-//                         LocalPoint2.Coordinate(iCoor) += Naux2[iN] * LocalPointsList2[iN].Coordinate(iCoor);
-//                     }
-//                 }
-//                 
-//                 PointType gp_global;
-//                 
-//                 triangle1.GlobalCoordinates(gp_global, LocalPoint0);
-//                 PointType LocalPoint1aux;
-//                 LocalPoint1aux.Coordinates() = ZeroVector(3);
-//                 quadrilateral0.PointLocalCoordinates(LocalPoint1aux, gp_global);
-//                 
-//                 triangle2.GlobalCoordinates(gp_global, LocalPoint0);
-//                 PointType LocalPoint2aux; 
-//                 LocalPoint2aux.Coordinates() = ZeroVector(3);
-//                 quadrilateral0.PointLocalCoordinates(LocalPoint2aux, gp_global);
-//                 
-// //                 std::cout << std::endl;
-// //                 KRATOS_WATCH(LocalPoint1);
-// //                 KRATOS_WATCH(LocalPoint1aux);
-// //                 KRATOS_WATCH(LocalPoint2);
-// //                 KRATOS_WATCH(LocalPoint2aux);
-//                 
-//                 quadrilateral0.ShapeFunctionsValues( N1, LocalPoint1 );
-//                 quadrilateral0.ShapeFunctionsValues( N2, LocalPoint2 );
-//                 
-//                 const double DetJ1  = triangle1.DeterminantOfJacobian( LocalPoint0 );
-//                 const double DetJ2  = triangle2.DeterminantOfJacobian( LocalPoint0 );
-//                 
-//                 const double weight = IntegrationPointsTriangle[PointNumber].Weight();
-//                 
-//                 for (unsigned int inode = 0; inode < 4; inode++)
-//                 {
-//                     for (unsigned int jnode = 0; jnode < 4; jnode++)
-//                     {                        
-//                         MassMatrix1(inode, jnode ) += DetJ1 * weight * N1[inode] * N1[jnode] 
-//                                                    +  DetJ2 * weight * N2[inode] * N2[jnode];
-//                     }
-//                 }
-//             }
-// 
-//             
-//             // Debug
-// //             KRATOS_WATCH(MassMatrix0)
-// //             KRATOS_WATCH(MassMatrix1)
-//             
-//             const double Tolerance = 1.0e-6;
-//             for (unsigned int inode = 0; inode < 4; inode++)
-//             {
-//                 for (unsigned int jnode = 0; jnode < 4; jnode++)
-//                 {
-//                     KRATOS_CHECK_NEAR(MassMatrix0(inode,jnode), MassMatrix1(inode,jnode), Tolerance);
-//                 }
-//             }
-//         }
+        /** 
+         * Checks if the criteria for computing the integral is the correct one interpolating the local coordinates
+         * Checks mass matrix computed
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(TestCheckRotation, ContactStructuralApplicationFastSuite)
+        {
+            ModelPart ModelPart("Main");
+            
+            // First we create the nodes 
+            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.1);
+            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
+            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.2);
+            
+            // Now we create the "conditions"
+            std::vector<NodeType::Pointer> condition_nodes_0 (3);
+            
+            condition_nodes_0[0] = p_node_1;
+            condition_nodes_0[1] = p_node_2;
+            condition_nodes_0[2] = p_node_3;
+            
+            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            
+            // We define the condition tangents
+            const array_1d<double, 3> slave_tangent_xi  = (triangle_0[1].Coordinates() - triangle_0[0].Coordinates())/norm_2(triangle_0[1].Coordinates() - triangle_0[0].Coordinates());
+            array_1d<double, 3> aux_coords;
+            triangle_0.PointLocalCoordinates(aux_coords, triangle_0.Center());
+            const array_1d<double, 3> normal = triangle_0.Normal(aux_coords);
+            const array_1d<double, 3> slave_tangent_eta = MathUtils<double>::UnitCrossProduct(slave_tangent_xi, normal);
+            
+            // We define the auxiliar geometry
+            std::vector<PointType::Pointer> points_array  (3);
+            for (unsigned int i_node = 0; i_node < 3; i_node++)
+            {
+                PointType aux_point;
+                aux_point.Coordinates() = triangle_0[i_node].Coordinates();
+                points_array[i_node] = boost::make_shared<PointType>(aux_point);
+            }
+            
+            Triangle3D3 <PointType> aux_geometry(  points_array  );
+            const PointType center = aux_geometry.Center();
+            
+            // Before clipping we rotate to a XY plane
+            for (unsigned int i_node = 0; i_node < 3; i_node++)
+            {
+                ContactUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, false);
+                ContactUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, true);
+            }
+            
+            const double tolerance = 1.0e-6;
+            for (unsigned int inode = 0; inode < 3; inode++)
+            {
+                for (unsigned int jdim = 1; jdim < 4; jdim++)
+                {
+                    KRATOS_CHECK_NEAR(aux_geometry[inode].Coordinate(jdim), triangle_0[inode].Coordinate(jdim), tolerance);
+                }
+            }
+        }
         
     } // namespace Testing
 }  // namespace Kratos.

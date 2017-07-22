@@ -400,6 +400,71 @@ public:
     }
     
     /**
+     * This function rotates to align the projected points to a parallel plane to XY
+     * @param PointToRotate: The points from the origin geometry
+     * @param PointReferenceRotation: The center point used as reference to rotate
+     * @param SlaveNormal: The normal vector of the slave condition
+     * @param SlaveTangentXi: The first tangent vector of the slave condition
+     * @param SlaveTangentEta: The second tangent vector of the slave condition
+     * @param Inversed: If we rotate to the XY or we recover from XY
+     * @return PointRotated: The point rotated 
+     */
+    
+    static inline void RotatePoint( 
+        PointType& PointToRotate,
+        const PointType PointReferenceRotation,
+        const array_1d<double, 3> SlaveTangentXi,
+        const array_1d<double, 3> SlaveTangentEta,
+        const bool Inversed
+        )
+    {                
+        // We move to the (0,0,0)
+        PointType aux_point_to_rotate;
+        aux_point_to_rotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
+        
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        
+        if (Inversed == false)
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                rotation_matrix(0, i) = SlaveTangentXi[i];
+                rotation_matrix(1, i) = SlaveTangentEta[i];
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                rotation_matrix(i, 0) = SlaveTangentXi[i];
+                rotation_matrix(i, 1) = SlaveTangentEta[i];
+            }
+        }
+        
+        PointToRotate.Coordinates() = prod(rotation_matrix, aux_point_to_rotate) + PointReferenceRotation.Coordinates();
+    }
+    
+    /**
+     * This function gives you the indexes needed to order a vector 
+     * @param vect: The vector to order
+     * @return idx: The vector of indexes
+     */
+    
+    template <typename TType>
+    static inline std::vector<std::size_t> SortIndexes(const std::vector<TType> &vect) 
+    {
+        // Initialize original index locations
+        std::vector<std::size_t> idx(vect.size());
+        iota(idx.begin(), idx.end(), 0);
+
+        // Sort indexes based on comparing values in vect
+        std::sort(idx.begin(), idx.end(),
+            [&vect](std::size_t i1, std::size_t i2) {return vect[i1] < vect[i2];});
+
+        return idx;
+    }
+    
+    /**
      * It computes the mean of the normal in the condition in all the nodes
      * @param ModelPart: The model part to compute
      * @return The modelparts with the normal computed

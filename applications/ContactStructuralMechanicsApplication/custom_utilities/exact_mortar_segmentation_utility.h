@@ -173,7 +173,7 @@ public:
             
             DecompositionType decomp_geom( points_array );
             
-            const GeometryType::IntegrationPointsArrayType& local_integration_slave = decomp_geom.IntegrationPoints( mAuxIntegrationMethod );
+            const GeometryPointType::IntegrationPointsArrayType& local_integration_slave = decomp_geom.IntegrationPoints( mAuxIntegrationMethod );
             
             // Integrating the mortar operators
             for ( unsigned int point_number = 0; point_number < local_integration_slave.size(); point_number++ )
@@ -321,51 +321,6 @@ protected:
         {
             return Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
         }
-    }
-    
-    /**
-     * This function rotates to align the projected points to a parallel plane to XY
-     * @param PointToRotate: The points from the origin geometry
-     * @param PointReferenceRotation: The center point used as reference to rotate
-     * @param SlaveNormal: The normal vector of the slave condition
-     * @param slave_tangent_xi: The first tangent vector of the slave condition
-     * @param slave_tangent_eta: The second tangent vector of the slave condition
-     * @param Inversed: If we rotate to the XY or we recover from XY
-     * @return PointRotated: The point rotated 
-     */
-    
-    static inline void RotatePoint( 
-        PointType& PointToRotate,
-        const PointType PointReferenceRotation,
-        const array_1d<double, 3> SlaveTangentXi,
-        const array_1d<double, 3> SlaveTangentEta,
-        const bool Inversed
-        )
-    {                
-        // We move to the (0,0,0)
-        PointType aux_point_to_rotate;
-        aux_point_to_rotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
-        
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
-        
-        if (Inversed == false)
-        {
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                rotation_matrix(0, i) = SlaveTangentXi[i];
-                rotation_matrix(1, i) = SlaveTangentEta[i];
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                rotation_matrix(i, 0) = SlaveTangentXi[i];
-                rotation_matrix(i, 1) = SlaveTangentEta[i];
-            }
-        }
-        
-        PointToRotate.Coordinates() = prod(rotation_matrix, aux_point_to_rotate) + PointReferenceRotation.Coordinates();
     }
     
     /**
@@ -583,8 +538,8 @@ protected:
         
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                RotatePoint(aux_geometry_1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-                RotatePoint(aux_geometry_2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(aux_geometry_1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(aux_geometry_2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
             
             if (TNumNodes == 3)
@@ -696,19 +651,19 @@ protected:
                 }
             }
             
-            const std::vector<size_t> index_vector = SortIndexes<double>(angles);
+            const std::vector<std::size_t> index_vector = ContactUtilities::SortIndexes<double>(angles);
 
             ConditionsPointsSlave.resize((list_size - 2));
         
             // We recover this point to the triangle plane
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                RotatePoint(Geometry1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-                RotatePoint(Geometry2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(Geometry1[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(Geometry2[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
             for (unsigned int i_point_list = 0; i_point_list < PointList.size(); i_point_list++)
             {
-                RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                ContactUtilities::RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
             }
             
             for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
@@ -834,26 +789,6 @@ protected:
         
         ConditionsPointsSlave.clear();
         return false;
-    }
-    
-    /**
-     * This function gives you the indexes needed to order a vector 
-     * @param vect: The vector to order
-     * @return idx: The vector of indexes
-     */
-    
-    template <typename TType>
-    static inline std::vector<std::size_t> SortIndexes(const std::vector<TType> &vect) 
-    {
-        // Initialize original index locations
-        std::vector<std::size_t> idx(vect.size());
-        iota(idx.begin(), idx.end(), 0);
-
-        // Sort indexes based on comparing values in vect
-        std::sort(idx.begin(), idx.end(),
-            [&vect](std::size_t i1, std::size_t i2) {return vect[i1] < vect[i2];});
-
-        return idx;
     }
     
     ///@}
@@ -1106,8 +1041,8 @@ private:
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 3; i_node++)
         {
-            RotatePoint( slave_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
-            RotatePoint(master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            ContactUtilities::RotatePoint( slave_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            ContactUtilities::RotatePoint(master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
         }
         
         for (unsigned int i_node = 0; i_node < 3; i_node++)
@@ -1140,7 +1075,7 @@ private:
 
                 for (unsigned int i_node = 0; i_node < 3; i_node++)
                 {
-                    RotatePoint( slave_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, true);
+                    ContactUtilities::RotatePoint( slave_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, true);
 
                     PointType point;
                     slave_geometry.PointLocalCoordinates(point, slave_geometry[i_node]);
@@ -1172,7 +1107,7 @@ private:
             
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                RotatePoint( master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, true);
+                ContactUtilities::RotatePoint( master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, true);
 
                 PointType point;
                 slave_geometry.PointLocalCoordinates(point, master_geometry[i_node]);
@@ -1250,8 +1185,8 @@ private:
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            RotatePoint( slave_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
-            RotatePoint(master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            ContactUtilities::RotatePoint( slave_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            ContactUtilities::RotatePoint(master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
         }
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
