@@ -290,7 +290,7 @@ public:
      *
      * where \f$\mathbf{w}^n\f$ is the vector of nodal velocities and pressures
      * stored at the current step. For steady problems, the ACCELERATION
-     * \f$\dot{\mathbf{w}}^n\f$ must be initialized to zero on the nodes. For
+     * (\f$\dot{\mathbf{w}}^n\f$) must be set to zero on the nodes. For
      * the Bossak method, \f$\dot{\mathbf{w}}^{n-\alpha}\f$ must be stored in
      * ACCELERATION.
      */
@@ -302,6 +302,16 @@ public:
         rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
     }
 
+    /**
+     * @brief Calculates the adjoint matrix for acceleration.
+     *
+     * This function returns elemental contributions to:
+     *
+     * \f[
+     *    \partial_{\dot{\mathbf{w}}^n}\mathbf{f}(\mathbf{w}^n)^T
+     *  - \partial_{\dot{\mathbf{w}}^n}(\mathbf{M}^n \dot{\mathbf{w}}^n)^T
+     * \f]
+     */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 				       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -332,63 +342,13 @@ public:
     }
 
     /**
-     * @brief Calculates various elemental matrices used for adjoint solutions.
-     *
-     * Different matrices are needed depending on the type of adjoint problem.
-     * (e.g., steady or transient). Schemes are used to construct the adjoint
-     * equations for different adjoint problems from these matrices.
-     *
-     * The discrete VMS Navier-Stokes equations at step n are:
-     *
-     * \f[
-     *  \mathbf{M}^n\dot{\mathbf{w}}^{n-\alpha} = \mathbf{f}(\mathbf{w}^n)
-     * \f]
-     *
-     * Assuming \f$\dot{\mathbf{w}}^{n-\alpha}\f$ is stored in ACCELERATION and
-     * \f$\mathbf{w}^n\f$ is stored in VELOCITY and PRESSURE of time step n,
-     * this function returns elemental contributions to:
-     *
-     * MASS_MATRIX_0:
-     *
-     * \f[
-     *  (\mathbf{M}^n)
-     * \f]
-     *
-     * MASS_MATRIX_1:
-     *
-     * \f[
-     *  (\mathbf{M}^{n+1})
-     * \f]
-     *
-     * ADJOINT_MATRIX_1
-     *
-     * \f[
-     *  \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
-     * \f]
-     *
-     * ADJOINT_MATRIX_2:
-     *
-     * \f[
-     *    \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
-     *  - \partial_{\mathbf{w}^n}(\mathbf{M}^n \dot{\mathbf{w}}^{n-\alpha})^T
-     * \f]
-     *
-     * SHAPE_DERIVATIVE_MATRIX_1
-     *
-     * \f[
-     *  \partial_{\mathbf{s}}\mathbf{f}(\mathbf{w}^n)^T
-     * \f]
-     *
-     * SHAPE_DERIVATIVE_MATRIX_2
+     * @brief Calculates the sensitivity matrix.
+     * SHAPE_DERIVATIVE_MATRIX
      *
      * \f[
      *    \partial_{\mathbf{s}}\mathbf{f}(\mathbf{w}^n)^T
      *  - \partial_{\mathbf{s}}(\mathbf{M}^n \dot{\mathbf{w}}^{n-\alpha})^T
      * \f]
-     *
-     * where the current adjoint step is the \f$n^{th}\f$ time step and the old
-     * adjoint step is the \f$(n+1)^{th}\f$ time step.
-     *
      */
     void Calculate(const Variable<Matrix >& rVariable,
             Matrix& rOutput,
@@ -396,33 +356,14 @@ public:
     {
         KRATOS_TRY
 
-        if (rVariable == MASS_MATRIX_0)
-        {
-            this->CalculateVMSMassMatrix(rOutput,0,rCurrentProcessInfo);
-        }
-        else if (rVariable == MASS_MATRIX_1)
-        {
-            this->CalculateVMSMassMatrix(rOutput,1,rCurrentProcessInfo);
-        }
-        else if (rVariable == ADJOINT_MATRIX_1)
-        {
-            this->CalculatePrimalGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
-            rOutput = trans(rOutput); // transpose
-        }
-        else if (rVariable == ADJOINT_MATRIX_2)
-        {
-            this->CalculatePrimalGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
-            this->AddPrimalGradientOfVMSMassTerm(rOutput,ACCELERATION,-1.0,rCurrentProcessInfo);
-            rOutput = trans(rOutput); // transpose
-        }
-        else if (rVariable == SHAPE_DERIVATIVE_MATRIX_1)
-        {
-            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
-        }
-        else if (rVariable == SHAPE_DERIVATIVE_MATRIX_2)
+        if (rVariable == SHAPE_DERIVATIVE_MATRIX)
         {
             this->CalculateShapeGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
             this->AddShapeGradientOfVMSMassTerm(rOutput,ACCELERATION,-1.0,rCurrentProcessInfo);
+        }
+        else
+        {
+            KRATOS_ERROR << "Variable " << rVariable << " not supported." << std::endl;
         }
 
         KRATOS_CATCH("")

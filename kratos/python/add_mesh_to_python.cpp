@@ -381,6 +381,20 @@ void ElementCalculateLocalSystem1(Element& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
+void ElementCalculateFirstDerivativesLHS(Element& dummy,
+        Matrix& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateFirstDerivativesLHS(rLeftHandSideMatrix,rCurrentProcessInfo);
+}
+
+void ElementCalculateSecondDerivativesLHS(Element& dummy,
+        Matrix& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateSecondDerivativesLHS(rLeftHandSideMatrix,rCurrentProcessInfo);
+}
+
 void ElementGetFirstDerivativesVector1(Element& dummy,
         Vector& rOutput)
 {
@@ -501,6 +515,8 @@ void  AddMeshToPython()
     .def("CalculateMassMatrix", &Element::CalculateMassMatrix)
     .def("CalculateDampingMatrix", &Element::CalculateDampingMatrix)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
+    .def("CalculateFirstDerivativesLHS", &ElementCalculateFirstDerivativesLHS)
+    .def("CalculateSecondDerivativesLHS", &ElementCalculateSecondDerivativesLHS)
     .def("CalculateLocalVelocityContribution", &Element::CalculateLocalVelocityContribution)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
