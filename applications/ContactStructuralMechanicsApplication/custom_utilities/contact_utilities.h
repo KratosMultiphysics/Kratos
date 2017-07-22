@@ -488,10 +488,6 @@ public:
             it_node->SetValue(NORMAL, zero_vect);
         }
         
-        // Aux coordinates
-        CoordinatesArrayType aux_coords;
-        aux_coords.clear();
-        
         // Sum all the nodes normals
         ConditionsArrayType& conditions_array = rModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
@@ -503,6 +499,8 @@ public:
             
             if (it_cond->Is(SLAVE) || it_cond->Is(MASTER) || it_cond->Is(ACTIVE))
             {
+                // Aux coordinates
+                CoordinatesArrayType aux_coords;
                 aux_coords = it_cond->GetGeometry().PointLocalCoordinates(aux_coords, it_cond->GetGeometry().Center());
                 array_1d<double, 3>& rNormal = it_cond->GetValue(NORMAL);
                 rNormal = it_cond->GetGeometry().Normal(aux_coords);
