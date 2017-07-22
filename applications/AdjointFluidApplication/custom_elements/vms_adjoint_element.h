@@ -302,6 +302,13 @@ public:
         rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
     }
 
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+				       ProcessInfo& rCurrentProcessInfo) override
+    {
+      this->CalculateVMSMassMatrix(rLeftHandSideMatrix,0,rCurrentProcessInfo);
+      rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
+    }
+
     void CalculateMassMatrix(MatrixType& rMassMatrix,
             ProcessInfo& /*rCurrentProcessInfo*/) override
     {

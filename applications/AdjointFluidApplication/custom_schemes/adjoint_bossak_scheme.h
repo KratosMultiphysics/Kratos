@@ -205,6 +205,7 @@ public:
             it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
             it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) = ADJOINT_ACCELERATION.Zero();
+            it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION) = AUX_ADJOINT_ACCELERATION.Zero();
         }
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
@@ -266,7 +267,63 @@ public:
 
         CalculateSolutionStepSensitivityContribution(rModelPart);
 
-        mMass1Switch = 1.0;
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+            it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION) =
+                AUX_ADJOINT_ACCELERATION.Zero();
+
+        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        const unsigned int DomainSize =
+            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+
+        const int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector Partition;
+        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), NumThreads, Partition);
+#pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+
+            ModelPart::ElementIterator ElementsBegin =
+                rModelPart.ElementsBegin() + Partition[k];
+            ModelPart::ElementIterator ElementsEnd =
+                rModelPart.ElementsBegin() + Partition[k + 1];
+
+            for (auto it = ElementsBegin; it != ElementsEnd; ++it)
+            {
+                // transposed gradient of element residual w.r.t.
+                // acceleration
+                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
+                mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
+
+                // d (old objective) / d (primal acceleration)
+                mpObjectiveFunction->CalculateAdjointAccelerationContribution(
+                    *it, mAdjointMassMatrix[k], mObjectiveGradient[k], rCurrentProcessInfo);
+
+                // adjoint velocity
+                it->GetFirstDerivativesVector(mAdjointVelocity[k]);
+
+                // terms depending on the mass matrix
+                mAdjointAcceleration[k] =
+                    prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) +
+                    mObjectiveGradient[k];
+
+                // write to aux variable for use in next time step.
+                unsigned int LocalIndex = 0;
+                for (unsigned int iNode = 0;
+                     iNode < it->GetGeometry().PointsNumber(); ++iNode)
+                {
+                    array_1d<double, 3>& rAuxAdjointAcceleration =
+                        it->GetGeometry()[iNode].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION);
+                    it->GetGeometry()[iNode].SetLock();
+                    for (unsigned int d = 0; d < DomainSize; ++d)
+                        rAuxAdjointAcceleration[d] +=
+                            mAdjointAcceleration[k][LocalIndex++];
+                    it->GetGeometry()[iNode].UnSetLock();
+                    ++LocalIndex; // pressure dof
+                }
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
 
         mpObjectiveFunction->FinalizeSolutionStep(rModelPart);
 
@@ -275,10 +332,10 @@ public:
 
     /// Update adjoint and adjoint acceleration.
     void Update(ModelPart& rModelPart,
-                        DofsArrayType& rDofSet,
-                        SystemMatrixType& rA,
-                        SystemVectorType& rDx,
-                        SystemVectorType& rb) override
+                DofsArrayType& rDofSet,
+                SystemMatrixType& rA,
+                SystemVectorType& rDx,
+                SystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -300,9 +357,11 @@ public:
                     it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
                 const array_1d<double, 3>& rOldAdjointAcceleration =
                     it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                const array_1d<double, 3>& rAuxAdjointAcceleration =
+                    it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
                 for (unsigned int d = 0; d < DomainSize; ++d)
-                    rCurrentAdjointAcceleration[d] =
-                        (mGammaNewmark - 1.0) * mInvGamma * rOldAdjointAcceleration[d];
+                    rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                        (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
             }
         }
         else
@@ -328,9 +387,11 @@ public:
                 {
                     const array_1d<double, 3>& rOldAdjointAcceleration =
                         it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                    const array_1d<double, 3>& rAuxAdjointAcceleration =
+                        it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
                     for (unsigned int d = 0; d < DomainSize; ++d)
                         rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                                                         rOldAdjointAcceleration[d];
+                            (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
                 }
                 else
                 {
@@ -354,23 +415,6 @@ public:
 
             for (auto it = ElementsBegin; it != ElementsEnd; ++it)
             {
-                // transposed gradient of old element residual w.r.t.
-                // acceleration
-                it->Calculate(MASS_MATRIX_1, mAdjointMassMatrix[k], rCurrentProcessInfo);
-                mAdjointMassMatrix[k] = -mAlphaBossak * trans(mAdjointMassMatrix[k]);
-
-                // d (old objective) / d (primal acceleration)
-                mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-                    *it, mAdjointMassMatrix[k], mObjectiveGradient[k], rCurrentProcessInfo);
-
-                // old adjoint velocity
-                it->GetFirstDerivativesVector(mAdjointVelocity[k], 1);
-
-                // terms depending on the old mass matrix
-                mAdjointAcceleration[k] =
-                    prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) +
-                    mObjectiveGradient[k];
-
                 // transposed gradient of element residual w.r.t. acceleration
                 it->Calculate(MASS_MATRIX_0, mAdjointMassMatrix[k], rCurrentProcessInfo);
                 mAdjointMassMatrix[k] =
@@ -384,12 +428,8 @@ public:
                 it->GetFirstDerivativesVector(mAdjointVelocity[k]);
 
                 // terms depending on the mass matrix
-                noalias(mAdjointAcceleration[k]) +=
-                    prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) +
-                    mObjectiveGradient[k];
-
-                noalias(mAdjointAcceleration[k]) = (mGammaNewmark - 1.0) * mInvGamma *
-                                                   mInvDt * mAdjointAcceleration[k];
+                mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
+                    (prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) + mObjectiveGradient[k]);
 
                 unsigned int LocalIndex = 0;
                 for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
@@ -403,7 +443,7 @@ public:
                             mAdjointAcceleration[k][LocalIndex++];
                     }
                     it->GetGeometry()[iNode].UnSetLock();
-                    LocalIndex++; // pressure dof
+                    ++LocalIndex; // pressure dof
                 }
             }
         }
@@ -415,10 +455,10 @@ public:
 
     /// Calculate residual based element contributions to transient adjoint.
     void CalculateSystemContributions(Element::Pointer pCurrentElement,
-                                              LocalSystemMatrixType& rLHS_Contribution,
-                                              LocalSystemVectorType& rRHS_Contribution,
-                                              Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationId,
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -430,31 +470,17 @@ public:
         const int DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
         for (unsigned int iNode = 0; iNode < pCurrentElement->GetGeometry().PointsNumber(); ++iNode)
         {
-            double Weight = mInvGamma * mInvGammaMinusOne /
-                            pCurrentElement->GetGeometry()[iNode].GetValue(NODAL_AREA);
+            const array_1d<double, 3>& rAuxAdjointAcceleration =
+                        pCurrentElement->GetGeometry()[iNode].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
+            double InvNodalArea = 1.0 / pCurrentElement->GetGeometry()[iNode].GetValue(NODAL_AREA);
             for (int d = 0; d < DomainSize; ++d)
-                rRHS_Contribution[LocalIndex++] *= Weight;
-            LocalIndex++; // pressure dof
+            {
+                rRHS_Contribution[LocalIndex] = mInvGamma * InvNodalArea *
+                    (mInvGammaMinusOne * rRHS_Contribution[LocalIndex] - mInvDt * rAuxAdjointAcceleration[d]);
+                ++LocalIndex;
+            }
+            ++LocalIndex; // pressure dof
         }
-
-        // transposed gradient of old element residual w.r.t. acceleration
-        pCurrentElement->Calculate(
-            MASS_MATRIX_1, mAdjointMassMatrix[ThreadId], rCurrentProcessInfo);
-        mAdjointMassMatrix[ThreadId] =
-            -mAlphaBossak * trans(mAdjointMassMatrix[ThreadId]);
-
-        // d (old objective) / d (primal acceleration)
-        mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-            *pCurrentElement, mAdjointMassMatrix[ThreadId], mObjectiveGradient[ThreadId], rCurrentProcessInfo);
-
-        // old adjoint velocity
-        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId], 1);
-
-        // terms depending on the old mass matrix
-        noalias(rRHS_Contribution) -=
-            mMass1Switch * mInvGamma * mInvDt *
-            (prod(mAdjointMassMatrix[ThreadId], mAdjointVelocity[ThreadId]) +
-             mObjectiveGradient[ThreadId]);
 
         // transposed gradient of element residual w.r.t. acceleration
         pCurrentElement->Calculate(
