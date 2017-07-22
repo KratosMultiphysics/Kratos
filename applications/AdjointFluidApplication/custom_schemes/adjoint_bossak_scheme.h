@@ -212,10 +212,6 @@ public:
         for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
             it->Set(BOUNDARY, true);
 
-        // this switch is used to make the discrete sensitivities exact in the
-        // first time step. it is not important for most problems.
-        mMass1Switch = 0.0;
-
         mpObjectiveFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("")
@@ -622,7 +618,6 @@ private:
     double mInvDt;
     double mInvGamma;
     double mInvGammaMinusOne;
-    double mMass1Switch;
     double mAdjointStartTime;
     double mAdjointEndTime;
     ObjectiveFunction::Pointer mpObjectiveFunction;
