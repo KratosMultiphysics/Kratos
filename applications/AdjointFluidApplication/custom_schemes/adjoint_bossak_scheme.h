@@ -412,9 +412,8 @@ public:
             for (auto it = ElementsBegin; it != ElementsEnd; ++it)
             {
                 // transposed gradient of element residual w.r.t. acceleration
-                it->Calculate(MASS_MATRIX_0, mAdjointMassMatrix[k], rCurrentProcessInfo);
-                mAdjointMassMatrix[k] =
-                    -(1.0 - mAlphaBossak) * trans(mAdjointMassMatrix[k]);
+                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
+                mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
 
                 // d (objective) / d (primal acceleration)
                 mpObjectiveFunction->CalculateAdjointAccelerationContribution(
@@ -479,10 +478,8 @@ public:
         }
 
         // transposed gradient of element residual w.r.t. acceleration
-        pCurrentElement->Calculate(
-            MASS_MATRIX_0, mAdjointMassMatrix[ThreadId], rCurrentProcessInfo);
-        mAdjointMassMatrix[ThreadId] =
-            -(1.0 - mAlphaBossak) * trans(mAdjointMassMatrix[ThreadId]);
+        pCurrentElement->CalculateSecondDerivativesLHS(mAdjointMassMatrix[ThreadId], rCurrentProcessInfo);
+        mAdjointMassMatrix[ThreadId] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[ThreadId];
 
         // d (objective) / d (primal acceleration)
         mpObjectiveFunction->CalculateAdjointAccelerationContribution(
