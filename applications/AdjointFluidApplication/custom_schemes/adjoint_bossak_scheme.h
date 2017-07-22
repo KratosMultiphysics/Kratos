@@ -687,7 +687,7 @@ private:
 
                 // transposed gradient of local element's residual w.r.t. nodal
                 // coordinates
-                it->Calculate(SHAPE_DERIVATIVE_MATRIX_2, ShapeDerivativesMatrix[k], rProcessInfo);
+                it->Calculate(SHAPE_DERIVATIVE_MATRIX, ShapeDerivativesMatrix[k], rProcessInfo);
 
                 // d (objective) / d (coordinates)
                 mpObjectiveFunction->CalculateSensitivityContribution(
