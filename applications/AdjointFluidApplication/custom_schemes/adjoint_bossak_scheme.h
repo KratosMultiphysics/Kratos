@@ -29,7 +29,7 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
+#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
 
 namespace Kratos
 {
@@ -71,7 +71,7 @@ namespace Kratos
  * + \frac{1}{\gamma \Delta t}\partial_{\dot{\mathbf{w}}^n}J^{(n+1)T}
  * \f]
  *
- * with objective function
+ * with response function
  *\f$J^n=J(\mathbf{w}^n,\dot{\mathbf{w}}^n,\dot{\mathbf{w}}^{n-1};\mathbf{s})\f$.
  *
  * The sensitivity is computed on the boundary model part and is defined as:
@@ -115,7 +115,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointBossakScheme(Parameters& rParameters, ObjectiveFunction::Pointer pObjectiveFunction)
+    AdjointBossakScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY
@@ -145,13 +145,13 @@ public:
                 "invalid parameters: adjoint_start_time >= adjoint_end_time",
                 rParameters.PrettyPrintJsonString())
 
-        mpObjectiveFunction = pObjectiveFunction;
+        mpResponseFunction = pResponseFunction;
 
         // Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
         mAdjointVelocity.resize(NumThreads);
         mAdjointAcceleration.resize(NumThreads);
-        mObjectiveGradient.resize(NumThreads);
+        mResponseGradient.resize(NumThreads);
         mAdjointMassMatrix.resize(NumThreads);
 
         KRATOS_CATCH("")
@@ -212,7 +212,7 @@ public:
         for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
             it->Set(BOUNDARY, true);
 
-        mpObjectiveFunction->Initialize(rModelPart);
+        mpResponseFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -247,7 +247,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
 
-        mpObjectiveFunction->InitializeSolutionStep(rModelPart);
+        mpResponseFunction->InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -290,9 +290,9 @@ public:
                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
                 mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
 
-                // d (old objective) / d (primal acceleration)
-                mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-                    *it, mAdjointMassMatrix[k], mObjectiveGradient[k], rCurrentProcessInfo);
+                // d (old response) / d (primal acceleration)
+                mpResponseFunction->CalculateAdjointAccelerationContribution(
+                    *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
                 it->GetFirstDerivativesVector(mAdjointVelocity[k]);
@@ -300,7 +300,7 @@ public:
                 // terms depending on the mass matrix
                 mAdjointAcceleration[k] =
                     prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) +
-                    mObjectiveGradient[k];
+                    mResponseGradient[k];
 
                 // write to aux variable for use in next time step.
                 unsigned int LocalIndex = 0;
@@ -321,7 +321,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
 
-        mpObjectiveFunction->FinalizeSolutionStep(rModelPart);
+        mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -415,16 +415,16 @@ public:
                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
                 mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
 
-                // d (objective) / d (primal acceleration)
-                mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-                    *it, mAdjointMassMatrix[k], mObjectiveGradient[k], rCurrentProcessInfo);
+                // d (response) / d (primal acceleration)
+                mpResponseFunction->CalculateAdjointAccelerationContribution(
+                    *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
                 it->GetFirstDerivativesVector(mAdjointVelocity[k]);
 
                 // terms depending on the mass matrix
                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
-                    (prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) + mObjectiveGradient[k]);
+                    (prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) + mResponseGradient[k]);
 
                 unsigned int LocalIndex = 0;
                 for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
@@ -481,18 +481,18 @@ public:
         pCurrentElement->CalculateSecondDerivativesLHS(mAdjointMassMatrix[ThreadId], rCurrentProcessInfo);
         mAdjointMassMatrix[ThreadId] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[ThreadId];
 
-        // d (objective) / d (primal acceleration)
-        mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-            *pCurrentElement, mAdjointMassMatrix[ThreadId], mObjectiveGradient[ThreadId], rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mObjectiveGradient[ThreadId];
+        // d (response) / d (primal acceleration)
+        mpResponseFunction->CalculateAdjointAccelerationContribution(
+            *pCurrentElement, mAdjointMassMatrix[ThreadId], mResponseGradient[ThreadId], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mResponseGradient[ThreadId];
 
         // transposed gradient of element residual w.r.t. primal
         pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
-        // d (objective) / d (primal)
-        mpObjectiveFunction->CalculateAdjointVelocityContribution(
-            *pCurrentElement, rLHS_Contribution, mObjectiveGradient[ThreadId], rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -= mObjectiveGradient[ThreadId];
+        // d (response) / d (primal)
+        mpResponseFunction->CalculateAdjointVelocityContribution(
+            *pCurrentElement, rLHS_Contribution, mResponseGradient[ThreadId], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mResponseGradient[ThreadId];
 
         noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[ThreadId];
 
@@ -617,10 +617,10 @@ private:
     double mInvGammaMinusOne;
     double mAdjointStartTime;
     double mAdjointEndTime;
-    ObjectiveFunction::Pointer mpObjectiveFunction;
+    ResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointVelocity;
     std::vector<LocalSystemVectorType> mAdjointAcceleration;
-    std::vector<LocalSystemVectorType> mObjectiveGradient;
+    std::vector<LocalSystemVectorType> mResponseGradient;
     std::vector<LocalSystemMatrixType> mAdjointMassMatrix;
 
     ///@}
@@ -689,9 +689,9 @@ private:
                 // coordinates
                 it->Calculate(SHAPE_DERIVATIVE_MATRIX, ShapeDerivativesMatrix[k], rProcessInfo);
 
-                // d (objective) / d (coordinates)
-                mpObjectiveFunction->CalculateSensitivityContribution(
-                    *it, ShapeDerivativesMatrix[k], mObjectiveGradient[k], rProcessInfo);
+                // d (response) / d (coordinates)
+                mpResponseFunction->CalculateSensitivityContribution(
+                    *it, ShapeDerivativesMatrix[k], mResponseGradient[k], rProcessInfo);
 
                 // adjoint solution
                 it->GetFirstDerivativesVector(mAdjointVelocity[k]);
@@ -701,7 +701,7 @@ private:
 
                 noalias(CoordAuxVector[k]) =
                     prod(ShapeDerivativesMatrix[k], mAdjointVelocity[k]) +
-                    mObjectiveGradient[k];
+                    mResponseGradient[k];
 
                 // Carefully write results to nodal variables
                 unsigned int CoordIndex = 0;

@@ -6,8 +6,8 @@
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_OBJECTIVE_FUNCTION)
-#define KRATOS_OBJECTIVE_FUNCTION
+#if !defined(KRATOS_RESPONSE_FUNCTION)
+#define KRATOS_RESPONSE_FUNCTION
 
 // System includes
 
@@ -30,26 +30,26 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A base class for objective functions.
-class ObjectiveFunction
+/// A base class for response functions.
+class ResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ObjectiveFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(ResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ObjectiveFunction()
+    ResponseFunction()
     {
     }
 
     /// Destructor.
-    virtual ~ObjectiveFunction()
+    virtual ~ResponseFunction()
     {
     }
 
@@ -82,7 +82,7 @@ public:
      * @param[in]     rElem            the local adjoint element.
      * @param[in]     rAdjointMatrix   the transposed gradient of the local
      *                                 element's residual w.r.t. velocity.
-     * @param[out]    rRHSContribution the gradient of the objective function.
+     * @param[out]    rRHSContribution the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
     virtual void CalculateAdjointVelocityContribution(const Element& rElem,
@@ -106,7 +106,7 @@ public:
      * @param[in]     rElem            the local adjoint element.
      * @param[in]     rAdjointMatrix   the transposed gradient of the local
      *                                 element's residual w.r.t. acceleration.
-     * @param[out]    rRHSContribution the gradient of the objective function.
+     * @param[out]    rRHSContribution the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
     virtual void CalculateAdjointAccelerationContribution(const Element& rElem,
@@ -131,7 +131,7 @@ public:
      * @param[in]     rDerivativesMatrix the transposed gradient of the local
      *                                   element's residual w.r.t. nodal
      *                                   coordinates.
-     * @param[out]    rRHSContribution   the gradient of the objective function.
+     * @param[out]    rRHSContribution   the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
     virtual void CalculateSensitivityContribution(const Element& rElem,
@@ -150,7 +150,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    /// Calculate the scalar valued objective function
+    /// Calculate the scalar valued response function
     virtual double Calculate(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -197,4 +197,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_OBJECTIVE_FUNCTION defined */
+#endif /* KRATOS_RESPONSE_FUNCTION defined */

@@ -24,11 +24,11 @@ void AddCustomSchemesToPython()
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
     class_<AdjointBossakScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>())
+        "AdjointBossakScheme", init<Parameters&, ResponseFunction::Pointer>())
         ;
 
     class_<AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointSteadyVelocityPressureScheme", init<Parameters&, ObjectiveFunction::Pointer>())
+        "AdjointSteadyVelocityPressureScheme", init<Parameters&, ResponseFunction::Pointer>())
         ;
 }
 

@@ -6,8 +6,8 @@
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_DRAG_OBJECTIVE_FUNCTION)
-#define KRATOS_DRAG_OBJECTIVE_FUNCTION
+#if !defined(KRATOS_DRAG_RESPONSE_FUNCTION)
+#define KRATOS_DRAG_RESPONSE_FUNCTION
 
 // System includes
 #include <vector>
@@ -25,7 +25,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "custom_utilities/objective_function.h"
+#include "custom_utilities/response_function.h"
 
 namespace Kratos
 {
@@ -35,28 +35,28 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// An objective function for drag.
+/// A response function for drag.
 template <unsigned int TDim>
-class DragObjectiveFunction : public ObjectiveFunction
+class DragResponseFunction : public ResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(DragObjectiveFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(DragResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    DragObjectiveFunction(Parameters& rParameters)
+    DragResponseFunction(Parameters& rParameters)
     {
         KRATOS_TRY
 
         Parameters DefaultParams(R"(
         {
-            "objective_type": "drag",
+            "response_type": "drag",
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "drag_direction": [1.0, 0.0, 0.0]
         })");
@@ -98,7 +98,7 @@ public:
     }
 
     /// Destructor.
-    ~DragObjectiveFunction() override
+    ~DragResponseFunction() override
     {
     }
 
@@ -292,4 +292,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_DRAG_OBJECTIVE_FUNCTION defined */
+#endif /* KRATOS_DRAG_RESPONSE_FUNCTION defined */

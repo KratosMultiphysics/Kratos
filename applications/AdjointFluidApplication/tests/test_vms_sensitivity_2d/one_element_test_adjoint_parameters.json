@@ -39,8 +39,8 @@
             "adjoint_start_time"        : 0.0,
             "adjoint_end_time"          : 3.000000001
         },
-        "objective_settings" : {
-            "objective_type"            : "drag",
+        "response_function_settings" : {
+            "response_type"            : "drag",
             "structure_model_part_name" : "Structure",
             "drag_direction"            : [1.0, 0.0, 0.0]
         },

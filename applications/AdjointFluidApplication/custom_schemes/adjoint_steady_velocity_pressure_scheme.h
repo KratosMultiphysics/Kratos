@@ -29,7 +29,7 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
+#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
 
 namespace Kratos
 {
@@ -51,7 +51,7 @@ namespace Kratos
  *  \partial_{\mathbf{w}}\mathbf{f}^T \lambda = -\partial_{\mathbf{w}}J^{T}
  * \f]
  *
- * with objective function \f$J=J(\mathbf{w};\mathbf{s})\f$.
+ * with response function \f$J=J(\mathbf{w};\mathbf{s})\f$.
  *
  * The sensitivity is computed on the boundary model part and is defined as:
  *
@@ -87,7 +87,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointSteadyVelocityPressureScheme(Parameters& rParameters, ObjectiveFunction::Pointer pObjectiveFunction)
+    AdjointSteadyVelocityPressureScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY
@@ -102,7 +102,7 @@ public:
 
         mBoundaryModelPartName = rParameters["boundary_model_part_name"].GetString();
 
-        mpObjectiveFunction = pObjectiveFunction;
+        mpResponseFunction = pResponseFunction;
 
         // Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
@@ -151,7 +151,7 @@ public:
                 mBoundaryModelPartName)
         }
 
-        mpObjectiveFunction->Initialize(rModelPart);
+        mpResponseFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -179,7 +179,7 @@ public:
         for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
             it->Set(BOUNDARY, true);
 
-        mpObjectiveFunction->InitializeSolutionStep(rModelPart);
+        mpResponseFunction->InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -195,7 +195,7 @@ public:
 
         CalculateSolutionStepSensitivityContribution(rModelPart);
 
-        mpObjectiveFunction->FinalizeSolutionStep(rModelPart);
+        mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -251,8 +251,8 @@ public:
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
-        // d (objective) / d (primal)
-        mpObjectiveFunction->CalculateAdjointVelocityContribution(
+        // d (response) / d (primal)
+        mpResponseFunction->CalculateAdjointVelocityContribution(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
@@ -365,7 +365,7 @@ private:
     ///@{
 
     std::string mBoundaryModelPartName;
-    ObjectiveFunction::Pointer mpObjectiveFunction;
+    ResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointVelocity;
 
     ///@}
@@ -426,8 +426,8 @@ private:
                 // coordinates
                 it->Calculate(SHAPE_DERIVATIVE_MATRIX, ShapeDerivativesMatrix[k], rProcessInfo);
 
-                // d (objective) / d (coordinates)
-                mpObjectiveFunction->CalculateSensitivityContribution(
+                // d (response) / d (coordinates)
+                mpResponseFunction->CalculateSensitivityContribution(
                     *it, ShapeDerivativesMatrix[k], CoordAuxVector[k], rProcessInfo);
 
                 // adjoint solution
