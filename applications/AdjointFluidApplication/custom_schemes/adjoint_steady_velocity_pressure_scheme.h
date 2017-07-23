@@ -106,7 +106,7 @@ public:
 
         // Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
-        mAdjointVelocity.resize(NumThreads);
+        mAdjointValues.resize(NumThreads);
 
         KRATOS_CATCH("")
     }
@@ -258,8 +258,8 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // residual form
-        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointVelocity[ThreadId]);
+        pCurrentElement->GetValuesVector(mAdjointValues[ThreadId]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[ThreadId]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -366,7 +366,7 @@ private:
 
     std::string mBoundaryModelPartName;
     ResponseFunction::Pointer mpResponseFunction;
-    std::vector<LocalSystemVectorType> mAdjointVelocity;
+    std::vector<LocalSystemVectorType> mAdjointValues;
 
     ///@}
     ///@name Private Operators
@@ -431,10 +431,10 @@ private:
                     *it, ShapeDerivativesMatrix[k], CoordAuxVector[k], rProcessInfo);
 
                 // adjoint solution
-                it->GetFirstDerivativesVector(mAdjointVelocity[k], 0);
+                it->GetValuesVector(mAdjointValues[k], 0);
 
                 noalias(CoordAuxVector[k]) +=
-                    prod(ShapeDerivativesMatrix[k], mAdjointVelocity[k]);
+                    prod(ShapeDerivativesMatrix[k], mAdjointValues[k]);
 
                 // Carefully write results to nodal variables
                 unsigned int CoordIndex = 0;

@@ -149,7 +149,7 @@ public:
 
         // Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
-        mAdjointVelocity.resize(NumThreads);
+        mAdjointValues.resize(NumThreads);
         mAdjointAcceleration.resize(NumThreads);
         mResponseGradient.resize(NumThreads);
         mAdjointMassMatrix.resize(NumThreads);
@@ -295,11 +295,11 @@ public:
                     *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
-                it->GetFirstDerivativesVector(mAdjointVelocity[k]);
+                it->GetValuesVector(mAdjointValues[k]);
 
                 // terms depending on the mass matrix
                 mAdjointAcceleration[k] =
-                    prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) +
+                    prod(mAdjointMassMatrix[k], mAdjointValues[k]) +
                     mResponseGradient[k];
 
                 // write to aux variable for use in next time step.
@@ -420,11 +420,11 @@ public:
                     *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
-                it->GetFirstDerivativesVector(mAdjointVelocity[k]);
+                it->GetValuesVector(mAdjointValues[k]);
 
                 // terms depending on the mass matrix
                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
-                    (prod(mAdjointMassMatrix[k], mAdjointVelocity[k]) + mResponseGradient[k]);
+                    (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
 
                 unsigned int LocalIndex = 0;
                 for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
@@ -497,8 +497,8 @@ public:
         noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[ThreadId];
 
         // residual form
-        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointVelocity[ThreadId]);
+        pCurrentElement->GetValuesVector(mAdjointValues[ThreadId]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[ThreadId]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -618,7 +618,7 @@ private:
     double mAdjointStartTime;
     double mAdjointEndTime;
     ResponseFunction::Pointer mpResponseFunction;
-    std::vector<LocalSystemVectorType> mAdjointVelocity;
+    std::vector<LocalSystemVectorType> mAdjointValues;
     std::vector<LocalSystemVectorType> mAdjointAcceleration;
     std::vector<LocalSystemVectorType> mResponseGradient;
     std::vector<LocalSystemMatrixType> mAdjointMassMatrix;
@@ -694,13 +694,13 @@ private:
                     *it, ShapeDerivativesMatrix[k], mResponseGradient[k], rProcessInfo);
 
                 // adjoint solution
-                it->GetFirstDerivativesVector(mAdjointVelocity[k]);
+                it->GetValuesVector(mAdjointValues[k]);
 
                 if (CoordAuxVector[k].size() != ShapeDerivativesMatrix[k].size1())
                     CoordAuxVector[k].resize(ShapeDerivativesMatrix[k].size1(), false);
 
                 noalias(CoordAuxVector[k]) =
-                    prod(ShapeDerivativesMatrix[k], mAdjointVelocity[k]) +
+                    prod(ShapeDerivativesMatrix[k], mAdjointValues[k]) +
                     mResponseGradient[k];
 
                 // Carefully write results to nodal variables
