@@ -50,7 +50,8 @@ public:
     ///@{
 
     /// Constructor.
-    DragResponseFunction(Parameters& rParameters)
+    DragResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
+      : ResponseFunction(rModelPart, rParameters)
     {
         KRATOS_TRY
 

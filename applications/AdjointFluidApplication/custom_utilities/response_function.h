@@ -18,6 +18,7 @@
 #include "includes/element.h"
 #include "includes/process_info.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -44,7 +45,8 @@ public:
     ///@{
 
     /// Constructor.
-    ResponseFunction()
+    ResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
+      : mrModelPart(rModelPart)
     {
     }
 
@@ -165,6 +167,8 @@ public:
 protected:
     ///@name Protected member Variables
     ///@{
+
+    ModelPart& mrModelPart;
 
     ///@}
     ///@name Protected Operators

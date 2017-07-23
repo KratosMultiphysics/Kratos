@@ -16,7 +16,7 @@ using namespace boost::python;
 
 void AddCustomResponseFunctionsToPython()
 {
-    class_<ResponseFunction, boost::noncopyable>("ResponseFunction", init<>())
+  class_<ResponseFunction, boost::noncopyable>("ResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &ResponseFunction::Initialize)
         .def("InitializeSolutionStep", &ResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &ResponseFunction::FinalizeSolutionStep)
@@ -29,10 +29,10 @@ void AddCustomResponseFunctionsToPython()
         .def("Calculate", &ResponseFunction::Calculate);
 
     class_<DragResponseFunction<2>, bases<ResponseFunction>, boost::noncopyable>
-    ("DragResponseFunction2D", init<Parameters&>());
+      ("DragResponseFunction2D", init<ModelPart&, Parameters&>());
 
     class_<DragResponseFunction<3>, bases<ResponseFunction>, boost::noncopyable>
-    ("DragResponseFunction3D", init<Parameters&>());
+      ("DragResponseFunction3D", init<ModelPart&, Parameters&>());
 
 }
 

@@ -142,9 +142,9 @@ class AdjointVMSMonolithicSolver:
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.settings["response_function_settings"])
+                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.settings["response_function_settings"])
+                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
