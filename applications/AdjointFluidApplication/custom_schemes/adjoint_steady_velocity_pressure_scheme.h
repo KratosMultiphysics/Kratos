@@ -424,7 +424,7 @@ private:
 
                 // transposed gradient of local element's residual w.r.t. nodal
                 // coordinates
-                it->CalculateSensitivityMatrix(NODAL_COORDINATES, ShapeDerivativesMatrix[k], rProcessInfo);
+                it->CalculateSensitivityMatrix(SHAPE_SENSITIVITY, ShapeDerivativesMatrix[k], rProcessInfo);
 
                 // d (response) / d (coordinates)
                 mpResponseFunction->CalculateSensitivityContribution(

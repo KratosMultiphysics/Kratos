@@ -248,7 +248,8 @@ class TestCase(KratosUnittest.TestCase):
 
         # analytical implementation
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
-        ShapeDerivativeMatrix = self.adjoint_element.CalculateSensitivityMatrix(NODAL_COORDINATES,self.model_part.ProcessInfo)
+        ShapeDerivativeMatrix = Matrix(6,9)
+        self.adjoint_element.CalculateSensitivityMatrix(SHAPE_SENSITIVITY,ShapeDerivativeMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDShapeDerivativeMatrix, ShapeDerivativeMatrix)
 
 if __name__ == '__main__':

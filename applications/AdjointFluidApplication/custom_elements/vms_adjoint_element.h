@@ -357,14 +357,14 @@ public:
     {
         KRATOS_TRY
 
-        if (rDesignVariable == NODAL_COORDINATES)
+        if (rDesignVariable == SHAPE_SENSITIVITY)
         {
             this->CalculateShapeGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
             this->AddShapeGradientOfVMSMassTerm(rOutput,ACCELERATION,-1.0,rCurrentProcessInfo);
         }
         else
         {
-            KRATOS_ERROR << "Design variable " << rVariable << " not supported." << std::endl;
+            KRATOS_ERROR << "Design variable " << rDesignVariable << " not supported." << std::endl;
         }
 
         KRATOS_CATCH("")
