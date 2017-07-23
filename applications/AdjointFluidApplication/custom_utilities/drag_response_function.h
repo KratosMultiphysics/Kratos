@@ -111,9 +111,11 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(ModelPart& rModelPart) override
+    void Initialize() override
     {
         KRATOS_TRY
+
+        ModelPart& rModelPart = this->GetModelPart();
 
         if (rModelPart.HasSubModelPart(mStructureModelPartName) == false)
         {
@@ -144,9 +146,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeSolutionStep(ModelPart& rModelPart) override
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
+
+        ModelPart& rModelPart = this->GetModelPart();
 
         // allocate auxiliary memory. this is done here instead of Initialize()
         // in case of restart.

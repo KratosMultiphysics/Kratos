@@ -151,7 +151,7 @@ public:
                 mBoundaryModelPartName)
         }
 
-        mpResponseFunction->Initialize(rModelPart);
+        mpResponseFunction->Initialize();
 
         KRATOS_CATCH("")
     }
@@ -179,7 +179,7 @@ public:
         for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
             it->Set(BOUNDARY, true);
 
-        mpResponseFunction->InitializeSolutionStep(rModelPart);
+        mpResponseFunction->InitializeSolutionStep();
 
         KRATOS_CATCH("")
     }
@@ -195,7 +195,7 @@ public:
 
         CalculateSolutionStepSensitivityContribution(rModelPart);
 
-        mpResponseFunction->FinalizeSolutionStep(rModelPart);
+        mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("")
     }

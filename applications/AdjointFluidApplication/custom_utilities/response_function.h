@@ -63,15 +63,25 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Initialize(ModelPart& rModelPart)
+    ModelPart& GetModelPart()
+    {
+      return mrModelPart;
+    }
+
+    const ModelPart& GetModelPart() const
+    {
+      return mrModelPart;
+    }
+
+    virtual void Initialize()
     {
     }
 
-    virtual void InitializeSolutionStep(ModelPart& rModelPart)
+    virtual void InitializeSolutionStep()
     {
     }
 
-    virtual void FinalizeSolutionStep(ModelPart& rModelPart)
+    virtual void FinalizeSolutionStep()
     {
     }
 

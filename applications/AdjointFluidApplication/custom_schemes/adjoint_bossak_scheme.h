@@ -212,7 +212,7 @@ public:
         for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
             it->Set(BOUNDARY, true);
 
-        mpResponseFunction->Initialize(rModelPart);
+        mpResponseFunction->Initialize();
 
         KRATOS_CATCH("")
     }
@@ -247,7 +247,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
 
-        mpResponseFunction->InitializeSolutionStep(rModelPart);
+        mpResponseFunction->InitializeSolutionStep();
 
         KRATOS_CATCH("")
     }
@@ -321,7 +321,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
 
-        mpResponseFunction->FinalizeSolutionStep(rModelPart);
+        mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("")
     }
