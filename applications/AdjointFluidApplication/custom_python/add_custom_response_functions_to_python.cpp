@@ -21,12 +21,12 @@ void AddCustomResponseFunctionsToPython()
         .def("InitializeSolutionStep", &ResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &ResponseFunction::FinalizeSolutionStep)
         .def("Check", &ResponseFunction::Check)
-        .def("CalculateAdjointVelocityContribution",
-             &ResponseFunction::CalculateAdjointVelocityContribution)
-        .def("CalculateAdjointAccelerationContribution",
-             &ResponseFunction::CalculateAdjointAccelerationContribution)
+        .def("CalculateFirstDerivativesGradient",
+             &ResponseFunction::CalculateFirstDerivativesGradient)
+        .def("CalculateSecondDerivativesGradient",
+             &ResponseFunction::CalculateSecondDerivativesGradient)
         .def("CalculateSensitivityContribution", &ResponseFunction::CalculateSensitivityContribution)
-        .def("Calculate", &ResponseFunction::Calculate);
+        .def("CalculateValue", &ResponseFunction::CalculateValue);
 
     class_<DragResponseFunction<2>, bases<ResponseFunction>, boost::noncopyable>
       ("DragResponseFunction2D", init<ModelPart&, Parameters&>());

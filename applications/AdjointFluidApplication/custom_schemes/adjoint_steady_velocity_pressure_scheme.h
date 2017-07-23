@@ -252,7 +252,7 @@ public:
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         // d (response) / d (primal)
-        mpResponseFunction->CalculateAdjointVelocityContribution(
+        mpResponseFunction->CalculateFirstDerivativesGradient(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;

@@ -171,10 +171,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateAdjointVelocityContribution(const Element& rElem,
-                                                      const Matrix& rAdjointMatrix,
-                                                      Vector& rRHSContribution,
-                                                      ProcessInfo& rProcessInfo) override
+    void CalculateFirstDerivativesGradient(const Element& rElem,
+                                           const Matrix& rAdjointMatrix,
+                                           Vector& rRHSContribution,
+                                           ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY
 
@@ -187,10 +187,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateAdjointAccelerationContribution(const Element& rElem,
-                                                          const Matrix& rAdjointMatrix,
-                                                          Vector& rRHSContribution,
-                                                          ProcessInfo& rProcessInfo) override
+    void CalculateSecondDerivativesGradient(const Element& rElem,
+                                            const Matrix& rAdjointMatrix,
+                                            Vector& rRHSContribution,
+                                            ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY
 

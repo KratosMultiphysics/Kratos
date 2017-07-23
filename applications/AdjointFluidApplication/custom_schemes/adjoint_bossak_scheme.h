@@ -291,7 +291,7 @@ public:
                 mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
 
                 // d (old response) / d (primal acceleration)
-                mpResponseFunction->CalculateAdjointAccelerationContribution(
+                mpResponseFunction->CalculateSecondDerivativesGradient(
                     *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
@@ -416,7 +416,7 @@ public:
                 mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
 
                 // d (response) / d (primal acceleration)
-                mpResponseFunction->CalculateAdjointAccelerationContribution(
+                mpResponseFunction->CalculateSecondDerivativesGradient(
                     *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
@@ -482,7 +482,7 @@ public:
         mAdjointMassMatrix[ThreadId] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[ThreadId];
 
         // d (response) / d (primal acceleration)
-        mpResponseFunction->CalculateAdjointAccelerationContribution(
+        mpResponseFunction->CalculateSecondDerivativesGradient(
             *pCurrentElement, mAdjointMassMatrix[ThreadId], mResponseGradient[ThreadId], rCurrentProcessInfo);
         noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mResponseGradient[ThreadId];
 
@@ -490,7 +490,7 @@ public:
         pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
         // d (response) / d (primal)
-        mpResponseFunction->CalculateAdjointVelocityContribution(
+        mpResponseFunction->CalculateFirstDerivativesGradient(
             *pCurrentElement, rLHS_Contribution, mResponseGradient[ThreadId], rCurrentProcessInfo);
         noalias(rRHS_Contribution) -= mResponseGradient[ThreadId];
 

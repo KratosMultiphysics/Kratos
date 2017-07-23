@@ -97,10 +97,10 @@ public:
      * @param[out]    rRHSContribution the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
-    virtual void CalculateAdjointVelocityContribution(const Element& rElem,
-                                                      const Matrix& rAdjointMatrix,
-                                                      Vector& rRHSContribution,
-                                                      ProcessInfo& rProcessInfo)
+    virtual void CalculateFirstDerivativesGradient(const Element& rElem,
+                                                   const Matrix& rAdjointMatrix,
+                                                   Vector& rRHSContribution,
+                                                   ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
@@ -121,10 +121,10 @@ public:
      * @param[out]    rRHSContribution the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
-    virtual void CalculateAdjointAccelerationContribution(const Element& rElem,
-                                                          const Matrix& rAdjointMatrix,
-                                                          Vector& rRHSContribution,
-                                                          ProcessInfo& rProcessInfo)
+    virtual void CalculateSecondDerivativesGradient(const Element& rElem,
+                                                    const Matrix& rAdjointMatrix,
+                                                    Vector& rRHSContribution,
+                                                    ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
@@ -163,7 +163,7 @@ public:
     }
 
     /// Calculate the scalar valued response function
-    virtual double Calculate(ModelPart& rModelPart)
+    virtual double CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
