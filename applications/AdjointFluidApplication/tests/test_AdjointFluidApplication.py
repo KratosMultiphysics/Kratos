@@ -29,7 +29,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateSecondDerivativesLHS'))
     smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateFirstDerivativesLHS1'))
     smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateFirstDerivativesLHS2'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_SHAPE_DERIVATIVE_MATRIX'))
+    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateSensitivityMatrix'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_OneElement'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_Cylinder'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_SteadyCylinder'))

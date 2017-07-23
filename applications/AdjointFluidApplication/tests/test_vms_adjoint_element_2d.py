@@ -207,7 +207,7 @@ class TestCase(KratosUnittest.TestCase):
         self.adjoint_element.CalculateFirstDerivativesLHS(AdjointMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDAdjointMatrix, AdjointMatrix)
 
-    def test_SHAPE_DERIVATIVE_MATRIX(self):
+    def test_CalculateSensitivityMatrix(self):
         # unperturbed residual
         Mass = Matrix(9,9)
         LHS = Matrix(9,9)
@@ -248,7 +248,7 @@ class TestCase(KratosUnittest.TestCase):
 
         # analytical implementation
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
-        ShapeDerivativeMatrix = self.adjoint_element.Calculate(SHAPE_DERIVATIVE_MATRIX,self.model_part.ProcessInfo)
+        ShapeDerivativeMatrix = self.adjoint_element.CalculateSensitivityMatrix(NODAL_COORDINATES,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDShapeDerivativeMatrix, ShapeDerivativeMatrix)
 
 if __name__ == '__main__':

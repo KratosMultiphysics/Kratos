@@ -262,7 +262,7 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         CalculateSolutionStepSensitivityContribution(rModelPart);
-
+        
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
             it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION) =
                 AUX_ADJOINT_ACCELERATION.Zero();
@@ -687,7 +687,7 @@ private:
 
                 // transposed gradient of local element's residual w.r.t. nodal
                 // coordinates
-                it->Calculate(SHAPE_DERIVATIVE_MATRIX, ShapeDerivativesMatrix[k], rProcessInfo);
+                it->CalculateSensitivityMatrix(NODAL_COORDINATES, ShapeDerivativesMatrix[k], rProcessInfo);
 
                 // d (response) / d (coordinates)
                 mpResponseFunction->CalculateSensitivityContribution(
