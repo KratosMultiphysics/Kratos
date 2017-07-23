@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include <unordered_map>
 #include <math.h> 
 #include "contact_structural_mechanics_application_variables.h"
 
@@ -100,13 +99,13 @@ public:
      */
     
     ExactMortarIntegrationUtility(
-        const unsigned int IntegrationOrder = 0,
-        const bool DebugGeometries = false,
-        const bool RotatedGeometries = false
+        const unsigned int IntegrationOrder = 0
+//         const bool DebugGeometries = false,
+//         const bool RotatedGeometries = false
         )
-    :mIntegrationOrder(IntegrationOrder),
-     mDebugGeometries(DebugGeometries),
-     mDebugRotatedGeometries(RotatedGeometries)
+    :mIntegrationOrder(IntegrationOrder)
+//      mDebugGeometries(DebugGeometries),
+//      mDebugRotatedGeometries(RotatedGeometries)
     {
         GetIntegrationMethod();
     }
@@ -255,16 +254,16 @@ public:
         
         CustomSolution.resize(integration_points_slave.size(), TDim, false);
         
-        if (mDebugGeometries == true)
-        {
-            std::cout << "The Gauss Points obtained are: " << std::endl;
-        }
+//         if (mDebugGeometries == true)
+//         {
+//             std::cout << "The Gauss Points obtained are: " << std::endl;
+//         }
         for (unsigned int GP = 0; GP < integration_points_slave.size(); GP++)
         {
-            if (mDebugGeometries == true)
-            {
-                KRATOS_WATCH(integration_points_slave[GP]);
-            }
+//             if (mDebugGeometries == true)
+//             {
+//                 KRATOS_WATCH(integration_points_slave[GP]);
+//             }
             
             // Solution save:
             CustomSolution(GP, 0) = integration_points_slave[GP].Coordinate(1);
@@ -489,33 +488,13 @@ protected:
     }
 
     /**
-     * This function checks in 2D if two points are the same one
+     * This function checks if two points are the same one
      * @param PointOrig: The points from the origin geometry
      * @param PointDest: The points in the destination geometry
      * @return check: The check done
      */
     
-    static inline bool CheckPoints2D(
-        const PointType PointOrig1,
-        const PointType PointOrig2
-        )
-    {
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        
-        const bool x = (std::abs(PointOrig2.X() - PointOrig1.X()) < tolerance) ? true : false;
-        const bool y = (std::abs(PointOrig2.Y() - PointOrig1.Y()) < tolerance) ? true : false;
-        
-        return (x&&y);
-    }
-    
-    /**
-     * This function checks in 2D if two points are the same one
-     * @param PointOrig: The points from the origin geometry
-     * @param PointDest: The points in the destination geometry
-     * @return check: The check done
-     */
-    
-    static inline bool CheckPoints3D(
+    static inline bool CheckPoints(
         const PointType PointOrig1,
         const PointType PointOrig2
         )
@@ -575,7 +554,14 @@ protected:
         jacobian( 1, 1 ) = -( PointOrig1.Y() ) + ( PointOrig3.Y() );
         jacobian( 2, 1 ) = -( PointOrig1.Z() ) + ( PointOrig3.Z() );
         
-        return MathUtils<double>::GeneralizedDet(jacobian);
+        const double det_j = MathUtils<double>::GeneralizedDet(jacobian);
+        
+//         if (std::abs(det_j) < std::numeric_limits<double>::epsilon())
+//         {
+//             KRATOS_ERROR << "WARNING:: Your triangle has zero area!!!!!" << std::endl; 
+//         }
+        
+        return det_j;
     }
 
     /**
@@ -595,7 +581,20 @@ protected:
         {
             if (AllInside[i_node] == true)
             {
-                PointList.push_back(ThisGeometry[i_node]);
+                // We check if the node already exists
+                bool add_point = true;
+                for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                {
+                    if (CheckPoints(ThisGeometry[i_node], PointList[iter]) == true)
+                    {
+                        add_point = false;
+                    }
+                }
+                        
+                if (add_point == true) 
+                {
+                    PointList.push_back(ThisGeometry[i_node]);
+                }
             }
         }
     }
@@ -709,11 +708,8 @@ protected:
             const double z_ref = RefCenter.Coordinate(3);
             
             // We find the intersection in each side
-            std::unordered_map<unsigned int, unsigned int> map_edges;
             for (unsigned int i_edge = 0; i_edge < TNumNodes; i_edge++)
-            {
-                map_edges.insert(std::make_pair(i_edge, 0));
-                
+            {  
                 const unsigned int ip_edge = (i_edge == (TNumNodes - 1)) ? 0 : i_edge + 1;
                 for (unsigned int j_edge = 0; j_edge < TNumNodes; j_edge++)
                 {
@@ -729,45 +725,25 @@ protected:
                         );
                     
                     if (intersected == true)
-                    {                        
+                    {
+                        // Set the coordinate
+                        intersected_point.Coordinate(3) = z_ref;
+                        
+                        // Ititialize the check
                         bool add_point = true;
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
-                            if (CheckPoints2D(intersected_point, PointList[iter]) == true)
+                            if (CheckPoints(intersected_point, PointList[iter]) == true)
                             {
                                 add_point = false;
+                                break;
                             }
                         }
                         
                         if (add_point == true) 
                         {
-                            intersected_point.Coordinate(3) = z_ref;
                             PointList.push_back(intersected_point);
-                            map_edges[i_edge] += 1;
                         }
-                    }
-                }
-            }
-            
-            // No we check which edges are split just one time (which means that the corner belongs to the intersection) // NOTE: Check this!!!
-            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-            {
-                unsigned int il_node = (i_node == 0) ? (TNumNodes - 1) : i_node - 1; // The first node is in edge 1 and 3
-                
-                if ((map_edges[i_node] == 1) && (map_edges[il_node] == 1))
-                {
-                    bool add_point = true;
-                    for (unsigned int iter = 0; iter < PointList.size(); iter++)
-                    {
-                        if (CheckPoints2D(Geometry1[i_node], PointList[iter]) == true)
-                        {
-                            add_point = false;
-                        }
-                    }
-                    
-                    if (add_point == true) 
-                    {
-                        PointList.push_back(Geometry1[i_node]);
                     }
                 }
             }
@@ -964,9 +940,9 @@ private:
     const unsigned int mIntegrationOrder;    // The integration order to consider
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
-    // NOTE: Just for debug
-    const bool mDebugGeometries;             // If the geometry is debugged or not
-    const bool mDebugRotatedGeometries;      // If the geometry is rotated
+//     // NOTE: Just for debug
+//     const bool mDebugGeometries;             // If the geometry is debugged or not
+//     const bool mDebugRotatedGeometries;      // If the geometry is rotated
     
     ///@}
     ///@name Private Operators
@@ -1102,12 +1078,12 @@ private:
             }
             else
             {
-                if (mDebugGeometries == true)
-                {
-                    KRATOS_WATCH(OriginalSlaveGeometry);
-                    KRATOS_WATCH(OriginalMasterGeometry);
-                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
-                }
+//                 if (mDebugGeometries == true)
+//                 {
+//                     KRATOS_WATCH(OriginalSlaveGeometry);
+//                     KRATOS_WATCH(OriginalMasterGeometry);
+//                     KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
+//                 }
                 return false; // NOTE: Giving problems
             }
             
@@ -1193,42 +1169,10 @@ private:
         // We create the pointlist
         std::vector<PointType> point_list;
         
-        // No point from the master is inside the slave
-        if ((all_inside[0] == false) &&
-            (all_inside[1] == false) &&
-            (all_inside[2] == false))
-        {            
-            // We check if the nodes are inside
-            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
-        
-            // The whole slave is inside the master
-            if ((all_inside[0] == true) &&
-                (all_inside[1] == true) &&
-                (all_inside[2] == true))
-            {
-                ConditionsPointsSlave.resize(1);
-
-                for (unsigned int i_node = 0; i_node < 3; i_node++)
-                {
-                    PointType point;
-                    OriginalSlaveGeometry.PointLocalCoordinates(point, OriginalSlaveGeometry[i_node]);
-                    ConditionsPointsSlave[0][i_node] = point;
-                }
-                
-                return true;
-            }
-            else
-            {
-                // We add the internal nodes
-                PushBackPoints(point_list, all_inside, slave_geometry);
-                
-                return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
-            }
-        }
         // All the points inside
-        else if ((all_inside[0] == true) &&
-                 (all_inside[1] == true) &&
-                 (all_inside[2] == true))
+        if ((all_inside[0] == true) &&
+            (all_inside[1] == true) &&
+            (all_inside[2] == true))
         {
             ConditionsPointsSlave.resize(1);
             
@@ -1246,11 +1190,11 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry);
             
-//             // We check if the nodes are inside
-//             CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
-//             
-//             // We add the internal nodes
-//             PushBackPoints(point_list, all_inside, slave_geometry);
+            // We check if the nodes are inside
+            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+            
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, slave_geometry);
             
             return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
@@ -1309,48 +1253,14 @@ private:
         // We create the pointlist
         std::vector<PointType> point_list;
         
-        // No point from the master is inside the slave
-        if ((all_inside[0] == false) &&
-            (all_inside[1] == false) &&
-            (all_inside[2] == false) &&
-            (all_inside[3] == false))
-        {
-            // We check if the nodes are inside
-            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
-            
-            // The whole slave is inside the master
-            if ((all_inside[0] == true) &&
-                (all_inside[1] == true) &&
-                (all_inside[2] == true) &&
-                (all_inside[3] == true))
-            {
-                point_list.resize(4);
-                for (unsigned int i_node = 0; i_node < 4; i_node++)
-                {
-                    point_list[i_node] = slave_geometry[i_node];
-                }
-                
-                return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
-            }
-            else
-            {
-                // We add the internal nodes
-                PushBackPoints(point_list, all_inside, slave_geometry);
-                
-                return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
-            }
-        }
         // All the points inside
-        else if ((all_inside[0] == true) &&
+        if ((all_inside[0] == true) &&
                  (all_inside[1] == true) &&
                  (all_inside[2] == true) &&
                  (all_inside[3] == true))
         {
-            point_list.resize(4);
-            for (unsigned int i_node = 0; i_node < 4; i_node++)
-            {
-                point_list[i_node] = master_geometry[i_node];
-            }
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, master_geometry);
             
             return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
         }
@@ -1359,11 +1269,11 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry);
             
-//             // We check if the nodes are inside
-//             CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
-//             
-//             // We add the internal nodes
-//             PushBackPoints(point_list, all_inside, slave_geometry);
+            // We check if the nodes are inside
+            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+            
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, slave_geometry);
             
             return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
