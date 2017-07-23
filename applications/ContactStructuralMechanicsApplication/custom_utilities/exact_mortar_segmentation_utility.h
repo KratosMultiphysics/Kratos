@@ -18,8 +18,7 @@
 // External includes
 
 // Project includes
-#include <map>
-#include <set>
+#include <unordered_map>
 #include <math.h> 
 #include "contact_structural_mechanics_application_variables.h"
 
@@ -102,10 +101,12 @@ public:
     
     ExactMortarIntegrationUtility(
         const unsigned int IntegrationOrder = 0,
-        const bool DebugGeometries = false
+        const bool DebugGeometries = false,
+        const bool RotatedGeometries = false
         )
     :mIntegrationOrder(IntegrationOrder),
-     mDebugGeometries(DebugGeometries)
+     mDebugGeometries(DebugGeometries),
+     mDebugRotatedGeometries(RotatedGeometries)
     {
         GetIntegrationMethod();
     }
@@ -293,13 +294,18 @@ public:
         double area = 0.0;
         boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( CONTACT_MAPS );
         
-        if (mDebugGeometries == true)
-        {
-            std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
-        }
+//         if (mDebugGeometries == true)
+//         {
+//             std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
+//         }
         
         for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
         {
+//             if (mDebugGeometries == true)
+//             {
+//                 std::cout << "\n\nID MASTER: " << (it_pair->first)->Id() << std::endl;
+//             }
+            
             GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area);
         }
         
@@ -494,7 +500,7 @@ protected:
         const PointType PointOrig2
         )
     {
-        const double tolerance = 1.0e-6; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         const bool x = (std::abs(PointOrig2.X() - PointOrig1.X()) < tolerance) ? true : false;
         const bool y = (std::abs(PointOrig2.Y() - PointOrig1.Y()) < tolerance) ? true : false;
@@ -514,7 +520,7 @@ protected:
         const PointType PointOrig2
         )
     {
-        const double tolerance = 1.0e-6; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         return (norm_2(PointOrig2.Coordinates() - PointOrig1.Coordinates()) < tolerance) ? true : false;
     }
@@ -573,10 +579,53 @@ protected:
     }
 
     /**
+     * This function push backs the points that are inside
+     * @param PointList: The intersection points
+     * @param AllInside: The nodes that are already known as inside the other geometry
+     * @param ThisGeometry: The geometry considered
+     */
+    
+    inline void PushBackPoints(
+        std::vector<PointType>& PointList,
+        const array_1d<bool, TNumNodes>& AllInside,
+        GeometryPointType& ThisGeometry
+        )
+    {
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        {
+            if (AllInside[i_node] == true)
+            {
+                PointList.push_back(ThisGeometry[i_node]);
+            }
+        }
+    }
+    
+    /**
+     * This function checks if the points of Geometry2 are inside Geometry1
+     * @param AllInside: The nodes that are inside or not the geometry
+     * @param Geometry1: The geometry where the points are checked
+     * @param Geometry2: The geometry to check
+     */
+    
+    inline void CheckInside(
+        array_1d<bool, TNumNodes>& AllInside,
+        GeometryPointType& Geometry1,
+        GeometryPointType& Geometry2,
+        const double& Tolerance
+        )
+    {
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        {
+            GeometryNodeType::CoordinatesArrayType projected_gp_local;
+        
+            AllInside[i_node] = Geometry1.IsInside( Geometry2[i_node].Coordinates( ), projected_gp_local, Tolerance) ;
+        }
+    }
+    
+    /**
      * This function calculates the triangles intersections (this is a module, that can be used directly in the respective function)
      * @param ConditionsPointsSlave: The final solution vector, containing all the nodes
      * @param PointList: The intersection points
-     * @param AllInside: The nodes that are already known as inside the other geometry
      * @param Geometry1/Geometry2: The geometries studied (projected)
      * @param SlaveTangentXi/SlaveTangentEta: The vectors used as base to rotate
      * @param RefCenter: The reference point to rotate
@@ -587,7 +636,6 @@ protected:
     inline bool TriangleIntersections(
         ConditionArrayListType& ConditionsPointsSlave,
         std::vector<PointType>& PointList,
-        const array_1d<bool, TNumNodes> AllInside,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
         const array_1d<double, 3>& SlaveTangentXi,
@@ -595,45 +643,63 @@ protected:
         const PointType& RefCenter,
         const bool IsAllInside = false
         )
-    {    
-        if (mDebugGeometries == true)
-        { 
-            // We define the auxiliar geometry
-            std::vector<PointType::Pointer> points_array_slave  (TNumNodes);
-            std::vector<PointType::Pointer> points_array_master (TNumNodes);
-            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-            {
-                PointType aux_point;
-                
-                aux_point.Coordinates() = Geometry1[i_node].Coordinates();
-                points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
-                
-                aux_point.Coordinates() = Geometry2[i_node].Coordinates();
-                points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
-            }
-            
-            typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type slave_geometry(  points_array_slave  );
-            typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type master_geometry(  points_array_master  );
-        
-            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-            {
-                ContactUtilities::RotatePoint(slave_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-                ContactUtilities::RotatePoint(master_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-            }
-            
-            if (TNumNodes == 3)
-            {
-                // Debug
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "}}]}],";// << std::endl;
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "}}]}],";// << std::endl;
-            }
-            else if (TNumNodes == 4)
-            {
-                // Debug
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "},{" << slave_geometry[3].X() << "," << slave_geometry[3].Y() << "," << slave_geometry[3].Z()  << "}}]}],";// << std::endl;
-                std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "},{" << master_geometry[3].X() << "," << master_geometry[3].Y() << "," << master_geometry[3].Z()  << "}}]}],";// << std::endl;
-            }
-        }
+    {   
+//         if (mDebugGeometries == true)
+//         { 
+//             // We define the auxiliar geometry
+//             std::vector<PointType::Pointer> points_array_slave  (TNumNodes);
+//             std::vector<PointType::Pointer> points_array_master (TNumNodes);
+//             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+//             {
+//                 PointType aux_point;
+//                 
+//                 aux_point.Coordinates() = Geometry1[i_node].Coordinates();
+//                 points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+//                 
+//                 aux_point.Coordinates() = Geometry2[i_node].Coordinates();
+//                 points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+//             }
+//             
+//             typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type slave_geometry(  points_array_slave  );
+//             typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type master_geometry(  points_array_master  );
+//         
+//             if (mDebugRotatedGeometries == true)
+//             {
+//                 for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+//                 {
+//                     ContactUtilities::RotatePoint(slave_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     ContactUtilities::RotatePoint(master_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                 }
+// 
+//                 if (TNumNodes == 3)
+//                 {
+//                     // Debug
+//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "}}]}],";// << std::endl;
+//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "}}]}],";// << std::endl;
+//                 }
+//                 else if (TNumNodes == 4)
+//                 {
+//                     // Debug
+//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "},{" << slave_geometry[3].X() << "," << slave_geometry[3].Y() << "," << slave_geometry[3].Z()  << "}}]}],";// << std::endl;
+//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "},{" << master_geometry[3].X() << "," << master_geometry[3].Y() << "," << master_geometry[3].Z()  << "}}]}],";// << std::endl;
+//                 }
+//             }
+//             else
+//             {
+//                 if (TNumNodes == 3)
+//                 {
+//                     // Debug
+//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "}}]}],";// << std::endl;
+//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "}}]}],";// << std::endl;
+//                 }
+//                 else if (TNumNodes == 4)
+//                 {
+//                     // Debug
+//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "},{" << slave_geometry[3].X() << "," << slave_geometry[3].Y() << "}}]}],";// << std::endl;
+//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "},{" << master_geometry[3].X() << "," << master_geometry[3].Y() << "}}]}],";// << std::endl;
+//                 }
+//             }
+//         }
         
         if (IsAllInside == false)
         {
@@ -641,7 +707,7 @@ protected:
             const double z_ref = RefCenter.Coordinate(3);
             
             // We find the intersection in each side
-            std::map<unsigned int, unsigned int> map_edges;
+            std::unordered_map<unsigned int, unsigned int> map_edges;
             for (unsigned int i_edge = 0; i_edge < TNumNodes; i_edge++)
             {
                 map_edges.insert(std::make_pair(i_edge, 0));
@@ -681,12 +747,12 @@ protected:
                 }
             }
             
-            // No we check with edges are split just one time (which means that the corner belongs to the intersection)
+            // No we check which edges are split just one time (which means that the corner belongs to the intersection) // NOTE: Check this!!!
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
                 unsigned int il_node = (i_node == 0) ? (TNumNodes - 1) : i_node - 1; // The first node is in edge 1 and 3
                 
-                if ((map_edges[i_node]  == 1) && (map_edges[il_node] == 1))
+                if ((map_edges[i_node] == 1) && (map_edges[il_node] == 1))
                 {
                     bool add_point = true;
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
@@ -734,6 +800,14 @@ protected:
 
             ConditionsPointsSlave.resize((list_size - 2));
             
+//             if (mDebugGeometries == true && mDebugRotatedGeometries == false)
+//             {                    
+//                 for (unsigned int elem = 0; elem < list_size - 2; elem++)
+//                 { 
+//                     std::cout << "\nGraphics[{Opacity[.3],Triangle[{{" << PointList[0].X() << "," << PointList[0].Y() << "},{" << PointList[index_vector[elem + 0] + 1].X() << "," << PointList[index_vector[elem + 0] + 1].Y() << "},{" << PointList[index_vector[elem + 1] + 1].X() << "," << PointList[index_vector[elem + 1] + 1].Y() << "}}]}],Graphics[{PointSize[Large],Point[{{" << PointList[0].X() << "," << PointList[0].Y() << "},{" << PointList[index_vector[elem + 0] + 1].X() << "," << PointList[index_vector[elem + 0] + 1].Y() << "},{" << PointList[index_vector[elem + 1] + 1].X() << "," << PointList[index_vector[elem + 1] + 1].Y() << "}}]}],";// << std::endl;
+//                 }
+//             }
+            
             // We recover this point to the triangle plane
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
@@ -777,15 +851,16 @@ protected:
                 
                 ConditionsPointsSlave[elem] = points_locals;
                 
-                if (mDebugGeometries == true)
-                {                    
-                    PointType aux1, aux2, aux3;
-                    Geometry1.GlobalCoordinates(aux1, points_locals[0]);
-                    Geometry1.GlobalCoordinates(aux2, points_locals[1]);
-                    Geometry1.GlobalCoordinates(aux3, points_locals[2]); 
-                    
-                    std::cout << "Graphics3D[{Opacity[.3],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-                }
+//                 if (mDebugGeometries == true && mDebugRotatedGeometries == true)
+//                 {                    
+//                     PointType aux1, aux2, aux3;
+//                     Geometry1.GlobalCoordinates(aux1, points_locals[0]);
+//                     Geometry1.GlobalCoordinates(aux2, points_locals[1]);
+//                     Geometry1.GlobalCoordinates(aux3, points_locals[2]); 
+//                     
+//                     std::cout << "\nGraphics3D[{Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+// //                     std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+//                 }
             }
             
             if (ConditionsPointsSlave.size() > 0)
@@ -890,8 +965,11 @@ private:
     ///@{
 
     const unsigned int mIntegrationOrder;    // The integration order to consider
-    const bool mDebugGeometries;             // If the geometry is debugged or not
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
+    
+    // NOTE: Just for debug
+    const bool mDebugGeometries;             // If the geometry is debugged or not
+    const bool mDebugRotatedGeometries;      // If the geometry is rotated
     
     ///@}
     ///@name Private Operators
@@ -1124,12 +1202,8 @@ private:
             ContactUtilities::RotatePoint(master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
         }
         
-        for (unsigned int i_node = 0; i_node < 3; i_node++)
-        {
-            GeometryNodeType::CoordinatesArrayType projected_gp_local;
-        
-            all_inside[i_node] = slave_geometry.IsInside( master_geometry[i_node].Coordinates( ), projected_gp_local, tolerance) ;
-        }
+        // We check if the nodes are inside
+        CheckInside(all_inside, slave_geometry, master_geometry, tolerance);
         
         // We create the pointlist
         std::vector<PointType> point_list;
@@ -1139,12 +1213,9 @@ private:
             (all_inside[1] == false) &&
             (all_inside[2] == false))
         {            
-            for (unsigned int i_node = 0; i_node < 3; i_node++)
-            {
-                GeometryNodeType::CoordinatesArrayType result;
-                all_inside[i_node] = master_geometry.IsInside( slave_geometry[i_node].Coordinates( ), result, tolerance ) ;
-            }
-            
+            // We check if the nodes are inside
+            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+        
             // The whole slave is inside the master
             if ((all_inside[0] == true) &&
                 (all_inside[1] == true) &&
@@ -1165,16 +1236,10 @@ private:
             }
             else
             {
-                // Before clipping we rotate to a XY plane
-                for (unsigned int i_node = 0; i_node < 3; i_node++)
-                {
-                    if (all_inside[i_node] == true)
-                    {
-                        point_list.push_back(slave_geometry[i_node]);
-                    }
-                }
+                // We add the internal nodes
+                PushBackPoints(point_list, all_inside, slave_geometry);
                 
-                return TriangleIntersections(ConditionsPointsSlave, point_list, all_inside, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+                return TriangleIntersections(ConditionsPointsSlave, point_list, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
             }
         }
         // All the points inside
@@ -1197,16 +1262,16 @@ private:
         }
         else
         {            
-            // Before clipping we rotate to a XY plane
-            for (unsigned int i_node = 0; i_node < 3; i_node++)
-            {
-                if (all_inside[i_node] == true)
-                {
-                    point_list.push_back(master_geometry[i_node]);
-                }
-            }
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, master_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, all_inside, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+//             // We check if the nodes are inside
+//             CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+//             
+//             // We add the internal nodes
+//             PushBackPoints(point_list, all_inside, slave_geometry);
+            
+            return TriangleIntersections(ConditionsPointsSlave, point_list, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
@@ -1268,11 +1333,8 @@ private:
             ContactUtilities::RotatePoint(master_geometry[i_node], slave_center, slave_tangent_xi, slave_tangent_eta, false);
         }
         
-        for (unsigned int i_node = 0; i_node < 4; i_node++)
-        {
-            GeometryNodeType::CoordinatesArrayType rResult;
-            all_inside[i_node] = slave_geometry.IsInside( master_geometry[i_node].Coordinates( ), rResult, tolerance ) ;
-        }
+        // We check if the nodes are inside
+        CheckInside(all_inside, slave_geometry, master_geometry, tolerance);
         
         // We create the pointlist
         std::vector<PointType> point_list;
@@ -1283,11 +1345,8 @@ private:
             (all_inside[2] == false) &&
             (all_inside[3] == false))
         {
-            for (unsigned int i_node = 0; i_node < 4; i_node++)
-            {
-                GeometryNodeType::CoordinatesArrayType rResult;
-                all_inside[i_node] = master_geometry.IsInside( slave_geometry[i_node].Coordinates( ), rResult, tolerance ) ;
-            }
+            // We check if the nodes are inside
+            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
             
             // The whole slave is inside the master
             if ((all_inside[0] == true) &&
@@ -1301,20 +1360,14 @@ private:
                     point_list[i_node] = slave_geometry[i_node];
                 }
                 
-                return TriangleIntersections(ConditionsPointsSlave, point_list, all_inside, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+                return TriangleIntersections(ConditionsPointsSlave, point_list, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
             }
             else
             {
                 // We add the internal nodes
-                for (unsigned int i_node = 0; i_node < 4; i_node++)
-                {
-                    if (all_inside[i_node] == true)
-                    {
-                        point_list.push_back(slave_geometry[i_node]);
-                    }
-                }
+                PushBackPoints(point_list, all_inside, slave_geometry);
                 
-                return TriangleIntersections(ConditionsPointsSlave, point_list, all_inside, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+                return TriangleIntersections(ConditionsPointsSlave, point_list, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
             }
         }
         // All the points inside
@@ -1329,20 +1382,20 @@ private:
                 point_list[i_node] = master_geometry[i_node];
             }
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, all_inside, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            return TriangleIntersections(ConditionsPointsSlave, point_list, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
         }
         else
         {
             // We add the internal nodes
-            for (unsigned int i_node = 0; i_node < 4; i_node++)
-            {
-                if (all_inside[i_node] == true)
-                {
-                    point_list.push_back(master_geometry[i_node]);
-                }
-            }
+            PushBackPoints(point_list, all_inside, master_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, all_inside, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+//             // We check if the nodes are inside
+//             CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+//             
+//             // We add the internal nodes
+//             PushBackPoints(point_list, all_inside, slave_geometry);
+            
+            return TriangleIntersections(ConditionsPointsSlave, point_list, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
