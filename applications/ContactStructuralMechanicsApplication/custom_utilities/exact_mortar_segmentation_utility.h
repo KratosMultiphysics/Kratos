@@ -99,13 +99,11 @@ public:
      */
     
     ExactMortarIntegrationUtility(
-        const unsigned int IntegrationOrder = 0
-//         const bool DebugGeometries = false,
-//         const bool RotatedGeometries = false
+        const unsigned int IntegrationOrder = 0,
+        const bool DebugGeometries = false
         )
-    :mIntegrationOrder(IntegrationOrder)
-//      mDebugGeometries(DebugGeometries),
-//      mDebugRotatedGeometries(RotatedGeometries)
+    :mIntegrationOrder(IntegrationOrder),
+     mDebugGeometries(DebugGeometries)
     {
         GetIntegrationMethod();
     }
@@ -228,6 +226,11 @@ public:
             
             DecompositionType decomp_geom( points_array );
             
+            if (mDebugGeometries == true)
+            {
+                std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{" << decomp_geom[0].X() << "," << decomp_geom[0].Y() << "," << decomp_geom[0].Z()  << "},{" << decomp_geom[1].X() << "," << decomp_geom[1].Y() << "," << decomp_geom[1].Z()  << "},{" << decomp_geom[2].X() << "," << decomp_geom[2].Y() << "," << decomp_geom[2].Z()  << "}}]}],";// << std::endl;
+            }
+            
             rArea += decomp_geom.Area();
         }
         
@@ -254,16 +257,16 @@ public:
         
         CustomSolution.resize(integration_points_slave.size(), TDim, false);
         
-//         if (mDebugGeometries == true)
-//         {
-//             std::cout << "The Gauss Points obtained are: " << std::endl;
-//         }
+        if (mDebugGeometries == true)
+        {
+            std::cout << "The Gauss Points obtained are: " << std::endl;
+        }
         for (unsigned int GP = 0; GP < integration_points_slave.size(); GP++)
         {
-//             if (mDebugGeometries == true)
-//             {
-//                 KRATOS_WATCH(integration_points_slave[GP]);
-//             }
+            if (mDebugGeometries == true)
+            {
+                KRATOS_WATCH(integration_points_slave[GP]);
+            }
             
             // Solution save:
             CustomSolution(GP, 0) = integration_points_slave[GP].Coordinate(1);
@@ -293,17 +296,24 @@ public:
         double area = 0.0;
         boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( CONTACT_MAPS );
         
-//         if (mDebugGeometries == true)
-//         {
+        if (mDebugGeometries == true)
+        {
 //             std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
-//         }
+            std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << SlaveCond->GetGeometry()[0].X() << "," << SlaveCond->GetGeometry()[0].Y() << "," << SlaveCond->GetGeometry()[0].Z()  << "},{" << SlaveCond->GetGeometry()[1].X() << "," << SlaveCond->GetGeometry()[1].Y() << "," << SlaveCond->GetGeometry()[1].Z()  << "},{" << SlaveCond->GetGeometry()[2].X() << "," << SlaveCond->GetGeometry()[2].Y() << "," << SlaveCond->GetGeometry()[2].Z()  << "}}],Text[Style["<< SlaveCond->Id() <<", Tiny],{"<< SlaveCond->GetGeometry().Center().X() << "," << SlaveCond->GetGeometry().Center().Y() << ","<< SlaveCond->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+        }
         
         for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
         {
-//             if (mDebugGeometries == true)
-//             {
+            if (mDebugGeometries == true)
+            {
 //                 std::cout << "\n\nID MASTER: " << (it_pair->first)->Id() << std::endl;
-//             }
+                if ((it_pair->first)->Is(VISITED) == false || (it_pair->first)->IsDefined(VISITED) == false)
+                {
+                    std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << (it_pair->first)->GetGeometry()[0].X() << "," << (it_pair->first)->GetGeometry()[0].Y() << "," << (it_pair->first)->GetGeometry()[0].Z()  << "},{" << (it_pair->first)->GetGeometry()[1].X() << "," << (it_pair->first)->GetGeometry()[1].Y() << "," << (it_pair->first)->GetGeometry()[1].Z()  << "},{" << (it_pair->first)->GetGeometry()[2].X() << "," << (it_pair->first)->GetGeometry()[2].Y() << "," << (it_pair->first)->GetGeometry()[2].Z()  << "}}],Text[Style["<< (it_pair->first)->Id() <<", Tiny],{"<< (it_pair->first)->GetGeometry().Center().X() << "," << (it_pair->first)->GetGeometry().Center().Y() << ","<< (it_pair->first)->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+                    
+                    (it_pair->first)->Set(VISITED, true);
+                }
+            }
             
             GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area);
         }
@@ -647,58 +657,17 @@ protected:
     {   
 //         if (mDebugGeometries == true)
 //         { 
-//             if (mDebugRotatedGeometries == true)
+//             if (TNumNodes == 3)
 //             {
-//                 // We define the auxiliar geometry
-//                 std::vector<PointType::Pointer> points_array_slave  (TNumNodes);
-//                 std::vector<PointType::Pointer> points_array_master (TNumNodes);
-//                 for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-//                 {
-//                     PointType aux_point;
-//                     
-//                     aux_point.Coordinates() = OriginalSlaveGeometry[i_node].Coordinates();
-//                     points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
-//                     
-//                     aux_point.Coordinates() = OriginalMasterGeometry[i_node].Coordinates();
-//                     points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
-//                 }
-//                 
-//                 typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type slave_geometry(  points_array_slave  );
-//                 typename std::conditional<TNumNodes == 3, Triangle3D3<PointType>, Quadrilateral3D4<PointType> >::type master_geometry(  points_array_master  );
-//         
-//                 for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-//                 {
-//                     ContactUtilities::RotatePoint(slave_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     ContactUtilities::RotatePoint(master_geometry[i_node], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                 }
-// 
-//                 if (TNumNodes == 3)
-//                 {
-//                     // Debug
-//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "}}]}],";// << std::endl;
-//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "}}]}],";// << std::endl;
-//                 }
-//                 else if (TNumNodes == 4)
-//                 {
-//                     // Debug
-//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << slave_geometry[0].X() << "," << slave_geometry[0].Y() << "," << slave_geometry[0].Z()  << "},{" << slave_geometry[1].X() << "," << slave_geometry[1].Y() << "," << slave_geometry[1].Z()  << "},{" << slave_geometry[2].X() << "," << slave_geometry[2].Y() << "," << slave_geometry[2].Z()  << "},{" << slave_geometry[3].X() << "," << slave_geometry[3].Y() << "," << slave_geometry[3].Z()  << "}}]}],";// << std::endl;
-//                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << master_geometry[0].X() << "," << master_geometry[0].Y() << "," << master_geometry[0].Z()  << "},{" << master_geometry[1].X() << "," << master_geometry[1].Y() << "," << master_geometry[1].Z()  << "},{" << master_geometry[2].X() << "," << master_geometry[2].Y() << "," << master_geometry[2].Z()  << "},{" << master_geometry[3].X() << "," << master_geometry[3].Y() << "," << master_geometry[3].Z()  << "}}]}],";// << std::endl;
-//                 }
+//                 // Debug
+//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "}}]}],";// << std::endl;
+//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "}}]}],";// << std::endl;
 //             }
-//             else
+//             else if (TNumNodes == 4)
 //             {
-//                 if (TNumNodes == 3)
-//                 {
-//                     // Debug
-//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "}}]}],";// << std::endl;
-//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "}}]}],";// << std::endl;
-//                 }
-//                 else if (TNumNodes == 4)
-//                 {
-//                     // Debug
-//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "},{" << Geometry1[3].X() << "," << Geometry1[3].Y() << "}}]}],";// << std::endl;
-//                     std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "},{" << Geometry2[3].X() << "," << Geometry2[3].Y() << "}}]}],";// << std::endl;
-//                 }
+//                 // Debug
+//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "},{" << Geometry1[3].X() << "," << Geometry1[3].Y() << "}}]}],";// << std::endl;
+//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "},{" << Geometry2[3].X() << "," << Geometry2[3].Y() << "}}]}],";// << std::endl;
 //             }
 //         }
         
@@ -778,7 +747,7 @@ protected:
 
             ConditionsPointsSlave.resize((list_size - 2));
             
-//             if (mDebugGeometries == true && mDebugRotatedGeometries == false)
+//             if (mDebugGeometries == true)
 //             {                    
 //                 for (unsigned int elem = 0; elem < list_size - 2; elem++)
 //                 { 
@@ -823,17 +792,6 @@ protected:
                 }
                 
                 ConditionsPointsSlave[elem] = points_locals;
-                
-//                 if (mDebugGeometries == true && mDebugRotatedGeometries == true)
-//                 {                    
-//                     PointType aux1, aux2, aux3;
-//                     OriginalSlaveGeometry.GlobalCoordinates(aux1, points_locals[0]);
-//                     OriginalSlaveGeometry.GlobalCoordinates(aux2, points_locals[1]);
-//                     OriginalSlaveGeometry.GlobalCoordinates(aux3, points_locals[2]); 
-//                     
-//                     std::cout << "\nGraphics3D[{Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-// //                     std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-//                 }
             }
             
             if (ConditionsPointsSlave.size() > 0)
@@ -940,9 +898,8 @@ private:
     const unsigned int mIntegrationOrder;    // The integration order to consider
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
-//     // NOTE: Just for debug
-//     const bool mDebugGeometries;             // If the geometry is debugged or not
-//     const bool mDebugRotatedGeometries;      // If the geometry is rotated
+    // NOTE: Just for debug
+    const bool mDebugGeometries;             // If the geometry is debugged or not
     
     ///@}
     ///@name Private Operators
@@ -1078,12 +1035,12 @@ private:
             }
             else
             {
-//                 if (mDebugGeometries == true)
-//                 {
-//                     KRATOS_WATCH(OriginalSlaveGeometry);
-//                     KRATOS_WATCH(OriginalMasterGeometry);
-//                     KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
-//                 }
+                if (mDebugGeometries == true)
+                {
+                    KRATOS_WATCH(OriginalSlaveGeometry);
+                    KRATOS_WATCH(OriginalMasterGeometry);
+                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
+                }
                 return false; // NOTE: Giving problems
             }
             

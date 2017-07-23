@@ -83,7 +83,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
 
         ## DEBUG
         #self.__post_process(main_model_part)
-        #exact_integration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(3, True, True)
+        #exact_integration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(3, True)
         
         exact_integration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(3)
         
