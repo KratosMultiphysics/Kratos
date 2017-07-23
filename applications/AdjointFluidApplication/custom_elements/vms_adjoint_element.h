@@ -281,7 +281,8 @@ public:
     /**
      * @brief Calculates the adjoint matrix for velocity and pressure.
      *
-     * This function returns elemental contributions to:
+     * This function returns the gradient of the elemental residual w.r.t.
+     * velocity and pressure transposed:
      *
      * \f[
      *    \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
@@ -305,7 +306,8 @@ public:
     /**
      * @brief Calculates the adjoint matrix for acceleration.
      *
-     * This function returns elemental contributions to:
+     * This function returns the gradient of the elemental residual w.r.t.
+     * acceleration:
      *
      * \f[
      *    \partial_{\dot{\mathbf{w}}^n}\mathbf{f}(\mathbf{w}^n)^T
@@ -343,7 +345,6 @@ public:
 
     /**
      * @brief Calculates the sensitivity matrix.
-     * SHAPE_DERIVATIVE_MATRIX
      *
      * \f[
      *    \partial_{\mathbf{s}}\mathbf{f}(\mathbf{w}^n)^T
