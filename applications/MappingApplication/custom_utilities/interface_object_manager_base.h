@@ -158,7 +158,7 @@ public:
                           << interface_obj->X() << " | "
                           << interface_obj->Y() << " | "
                           << interface_obj->Z() << " ] "
-                          << "has not found a neighbor" << std::endl;
+                          << "has not found a neighbor!" << std::endl;
             }
             else if (pairing_status == InterfaceObject::PairingStatus::Approximation)     // TODO
             {

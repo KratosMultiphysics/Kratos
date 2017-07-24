@@ -148,11 +148,11 @@ public:
         {   
             if (mEchoLevel >= 2) {
             std::cout << "MAPPER WARNING, Unsupported geometry for InterfaceGeometryObject "
-                      << " with Center at: \t[ "
+                      << "with Center at: \t[ "
                       << this->X() << " | "
                       << this->Y() << " | "
                       << this->Z() << " ], "
-                      << "using an approximation" << std::endl;
+                      << "using an approximation (Nearest Node)" << std::endl;
             }
             return false;
         }
