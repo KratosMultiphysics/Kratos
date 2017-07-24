@@ -35,7 +35,7 @@ class Solution(object):
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
-        self.procedures = self.SetProcedures()
+        self.procedures = self.SetProcedures()       
         self.SetAnalyticParticleWatcher()
 
         self.procedures.CheckInputParameters(DEM_parameters)
@@ -73,6 +73,7 @@ class Solution(object):
         self.solver = self.SetSolver()
 
     def SetAnalyticParticleWatcher(self):
+
         self.main_path = os.getcwd()  #revisar
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
@@ -149,7 +150,8 @@ class Solution(object):
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
 
     def FillAnalyticSubModelParts(self):
-        self.spheres_model_part.CreateSubModelPart('AnalyticParticlesPart')
+        if not self.spheres_model_part.HasSubModelPart("AnalyticParticlesPart"):
+            self.spheres_model_part.CreateSubModelPart('AnalyticParticlesPart')
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
