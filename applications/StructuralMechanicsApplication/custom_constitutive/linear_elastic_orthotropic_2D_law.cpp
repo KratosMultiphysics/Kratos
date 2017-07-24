@@ -223,7 +223,7 @@ namespace Kratos
 
 		//-----------------------------//
 
-		if (Options.Is(ConstitutiveLaw::COMPUTE_STRAIN))
+		if (Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
 		{
 			//only needed
 			const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
