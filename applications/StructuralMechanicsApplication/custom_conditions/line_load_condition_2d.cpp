@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix
 //
 
 // System includes
@@ -159,7 +160,7 @@ namespace Kratos
         }
         
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
-        {            
+        {                   
             const double det_j = GetGeometry().DeterminantOfJacobian( integration_points[point_number] );
 
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
@@ -272,8 +273,8 @@ namespace Kratos
             const int index = dimension * i;
             const double coeff = Pressure * N[i] * IntegrationWeight;
             
-            rRightHandSideVector[index]   += coeff * Normal[0];
-            rRightHandSideVector[index+1] += coeff * Normal[1];
+            rRightHandSideVector[index   ]  -= coeff * Normal[0];
+            rRightHandSideVector[index + 1] -= coeff * Normal[1];
         }
     }
 
