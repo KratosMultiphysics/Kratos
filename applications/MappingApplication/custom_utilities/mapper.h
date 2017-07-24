@@ -65,7 +65,8 @@ namespace Kratos
 * - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
 *   other information related to the relations btw entities (node, elements,...) on the interfaces
 * It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
-* For information abt the available echo_levels look into the class description of the MapperCommunicator
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
 */
 
 class Mapper

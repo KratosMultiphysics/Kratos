@@ -54,7 +54,8 @@ namespace Kratos
 * on the other side of the interface.
 * In the mapping phase every node gets assigned the interpolated value of the condition/element.
 * The interpolation is done with the shape funcitons
-* For information abt the available echo_levels look into the class description of the MapperCommunicator
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
 */
 class NearestElementMapper : public Mapper
 {

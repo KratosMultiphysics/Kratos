@@ -54,7 +54,8 @@ namespace Kratos
 /// Interface btw the Mappers and the Core of the MappingApplication
 /** This class is the top instance of the Core of the MappingApplication
 * It handles the searching and the exchange of Data btw the Interfaces
-* It also checks and validates the JSON input.
+* It also checks and validates the JSON input (default-parameters: 
+* memeber variable "mDefaultParameters").
 *
 * Available Echo Levels:
 * 0 : Mute every output
@@ -62,8 +63,8 @@ namespace Kratos
 * >= 2 : Warnings are printed
 * >= 3 : Basic Information, recommended for standard debugging
 * >= 4 : Very detailed output, such as the coordinates of the InterfaceObjects, the Communication Graph,...
-        (Only recommended for debugging of small example, otherwise it gets very messy!
-        Should be only needed for developing)
+*       (Only recommended for debugging of small example, otherwise it gets very messy!
+*       Should be only needed for developing)
 *
 * Structure of the how the different classes work with each other:
 * (Illustrated in Thesis mentioned in the header)
@@ -364,20 +365,20 @@ protected:
             {
                 KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
             }
-        }
 
-        if (mEchoLevel >= 3 && MyPID() == 0)
-        {
-            std::cout << "Mapper JSON Parameters BEFORE validation:" << std::endl;
-            mrJsonParameters.PrettyPrintJsonString();
+            if (mrJsonParameters["echo_level"].GetInt() >= 3 && MyPID() == 0)
+            {
+                std::cout << "Mapper JSON Parameters BEFORE validation:\n "
+                          << mrJsonParameters.PrettyPrintJsonString() << std::endl;
+            }
         }
 
         mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
 
-        if (mEchoLevel >= 3 && MyPID() == 0)
+        if (mrJsonParameters["echo_level"].GetInt() >= 3 && MyPID() == 0)
         {
-            std::cout << "Mapper JSON Parameters AFTER validation:" << std::endl;
-            mrJsonParameters.PrettyPrintJsonString();
+            std::cout << "Mapper JSON Parameters AFTER validation:\n "
+                      << mrJsonParameters.PrettyPrintJsonString() << std::endl;
         }
 
         // Compute the search radius in case it was not specified
@@ -388,9 +389,9 @@ protected:
                                    mrJsonParameters["echo_level"].GetInt());
             mrJsonParameters["search_radius"].SetDouble(search_radius);
 
-            if (mEchoLevel >= 3 && MyPID() == 0)
+            if (mrJsonParameters["echo_level"].GetInt() >= 3 && MyPID() == 0)
             {
-                std::cout << "SearchRadius computed for MapperCommunicator = " << search_radius << std::endl;
+                std::cout << "SearchRadius computed by MapperCommunicator = " << search_radius << std::endl;
             }
         }
 

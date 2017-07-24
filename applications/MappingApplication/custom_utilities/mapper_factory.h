@@ -56,7 +56,8 @@ namespace Kratos
 /** This class constructs the mappers and exposes them to Python
 * Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
 * Also the additional timing information is implemented here (echo_level = 1)
-* For information abt the available echo_levels look into the class description of the MapperCommunicator
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
 */
 class MapperFactory
 {
@@ -289,7 +290,7 @@ private:
 
             if (echo_level >= 3 && comm_rank_origin == 0)
             {
-                std::cout << "SubModelPart used for Origin-ModelPart" << std::endl;
+                std::cout << "Mapper: SubModelPart used for Origin-ModelPart" << std::endl;
             }
         }
         else
@@ -298,7 +299,7 @@ private:
 
             if (echo_level >= 3 && comm_rank_origin == 0)
             {
-                std::cout << "Main ModelPart used for Origin-ModelPart" << std::endl;
+                std::cout << "Mapper: Main ModelPart used for Origin-ModelPart" << std::endl;
             }
         }
 
@@ -309,7 +310,7 @@ private:
 
             if (echo_level >= 3 && comm_rank_destination == 0)
             {
-                std::cout << "SubModelPart used for Destination-ModelPart" << std::endl;
+                std::cout << "Mapper: SubModelPart used for Destination-ModelPart" << std::endl;
             }
         }
         else
@@ -318,7 +319,7 @@ private:
 
             if (echo_level >= 3 && comm_rank_destination == 0)
             {
-                std::cout << "Main ModelPart used for Destination-ModelPart" << std::endl;
+                std::cout << "Mapper: Main ModelPart used for Destination-ModelPart" << std::endl;
             }
         }
 
