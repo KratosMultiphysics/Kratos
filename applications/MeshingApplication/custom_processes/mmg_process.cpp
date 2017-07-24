@@ -268,7 +268,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         it_dof->FreeDof();
     }
     
-//     #pragma omp parallel for 
+    #pragma omp parallel for firstprivate(nodes_colors)
     for(SizeType i = 0; i < num_nodes; i++) 
     {
         auto it_node = nodes_array.begin() + i;
@@ -324,7 +324,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         
     }
     
-//     #pragma omp parallel for 
+    #pragma omp parallel for firstprivate(cond_colors)
     for(int i = 0; i < num_conditions; i++) 
     {
         auto it_cond = conditions_array.begin() + i;
@@ -367,7 +367,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         
     }
 
-//     #pragma omp parallel for 
+    #pragma omp parallel for firstprivate(elem_colors)
     for(int i = 0; i < num_elements; i++) 
     {
         auto it_elem = elements_array.begin() + i;
@@ -2203,28 +2203,40 @@ void MmgProcess<TDim>::ComputeColors(
             ElementsArrayType& elements_array = r_sub_model_part.Elements();
             const SizeType num_elements = elements_array.end() - elements_array.begin();
             
-            /* Nodes */
-    //         #pragma omp parallel for 
-            for(SizeType i = 0; i < num_nodes; i++) 
+            #pragma omp parallel
             {
-                auto it_node = nodes_array.begin() + i;
-                aux_nodes_colors[it_node->Id()].insert(color);
-            }
+                std::unordered_map<int,std::set<int>> aux_nodes_colors_partial, aux_cond_colors_partial, aux_elem_colors_partial;
             
-            /* Conditions */
-    //         #pragma omp parallel for 
-            for(SizeType i = 0; i < num_conditions; i++) 
-            {
-                auto it_cond = conditions_array.begin() + i;
-                aux_cond_colors[it_cond->Id()].insert(color);
-            }
-            
-            /* Elements */
-    //         #pragma omp parallel for 
-            for(SizeType i = 0; i < num_elements; i++) 
-            {
-                auto it_elem = elements_array.begin() + i;
-                aux_elem_colors[it_elem->Id()].insert(color);
+                /* Nodes */
+                #pragma omp for 
+                for(SizeType i = 0; i < num_nodes; i++) 
+                {
+                    auto it_node = nodes_array.begin() + i;
+                    aux_nodes_colors_partial[it_node->Id()].insert(color);
+                }
+                
+                /* Conditions */
+                #pragma omp for 
+                for(SizeType i = 0; i < num_conditions; i++) 
+                {
+                    auto it_cond = conditions_array.begin() + i;
+                    aux_cond_colors_partial[it_cond->Id()].insert(color);
+                }
+                
+                /* Elements */
+                #pragma omp for 
+                for(SizeType i = 0; i < num_elements; i++) 
+                {
+                    auto it_elem = elements_array.begin() + i;
+                    aux_elem_colors_partial[it_elem->Id()].insert(color);
+                }
+                
+                #pragma omp critical
+                aux_nodes_colors.insert(aux_nodes_colors_partial.begin(), aux_nodes_colors_partial.end());
+                #pragma omp critical
+                aux_cond_colors.insert(aux_cond_colors_partial.begin(), aux_cond_colors_partial.end());
+                #pragma omp critical
+                aux_elem_colors.insert(aux_elem_colors_partial.begin(), aux_elem_colors_partial.end());
             }
         }
         
