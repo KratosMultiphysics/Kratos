@@ -67,7 +67,7 @@ MmgProcess<TDim>::MmgProcess(
     Parameters ThisParameters
     )
     :mrThisModelPart(rThisModelPart),
-        mThisParameters(ThisParameters)
+     mThisParameters(ThisParameters)
 {       
     Parameters DefaultParameters = Parameters(R"(
     {
@@ -119,7 +119,7 @@ void MmgProcess<TDim>::Execute()
 {       
     KRATOS_TRY;
     
-    const bool& safe_to_file = mThisParameters["save_external_files"].GetBool();
+    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
     
     /* We restart the MMG mesh and solution */       
     InitMesh();
@@ -424,11 +424,11 @@ template <unsigned int TDim>
 void MmgProcess<TDim>::ExecuteRemeshing()
 {
     // Getting the parameters
-    const bool& save_to_file = mThisParameters["save_external_files"].GetBool();
+    const bool save_to_file = mThisParameters["save_external_files"].GetBool();
     
     // We initialize some values
-    const SizeType& step_data_size = mrThisModelPart.GetNodalSolutionStepDataSize();
-    const SizeType& buffer_size   = mrThisModelPart.NodesBegin()->GetBufferSize();
+    const SizeType step_data_size = mrThisModelPart.GetNodalSolutionStepDataSize();
+    const SizeType buffer_size   = mrThisModelPart.NodesBegin()->GetBufferSize();
     
     mThisParameters["step_data_size"].SetInt(step_data_size);
     mThisParameters["buffer_size"].SetInt(buffer_size);
@@ -545,9 +545,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         if (ref != 0) // NOTE: ref == 0 is the MainModelPart
         {
             std::vector<std::string> color_list = mColors[ref];
-            for (unsigned int colors = 0; colors < color_list.size(); colors++)
+            for (auto sub_model_part_name : color_list)
             {
-                std::string sub_model_part_name = color_list[colors];
                 ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                 sub_model_part.AddNode(p_node);
             }
@@ -581,9 +580,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
                     std::vector<std::string> color_list = mColors[prop_id];
-                    for (unsigned int i_colors = 0; i_colors < color_list.size(); i_colors++)
+                    for (auto sub_model_part_name : color_list)
                     {
-                        std::string sub_model_part_name = color_list[i_colors];
                         ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                         sub_model_part.AddCondition(p_condition);
                     }
@@ -620,9 +618,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
                         std::vector<std::string> color_list = mColors[prop_id];
-                        for (unsigned int i_colors = 0; i_colors < color_list.size(); i_colors++)
+                        for (auto sub_model_part_name : color_list)
                         {
-                            std::string sub_model_part_name = color_list[i_colors];
                             ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                             sub_model_part.AddCondition(p_condition);
                         }
@@ -661,9 +658,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
                     std::vector<std::string> color_list = mColors[prop_id];
-                    for (unsigned int i_colors = 0; i_colors < color_list.size(); i_colors++)
+                    for (auto sub_model_part_name : color_list)
                     {
-                        std::string sub_model_part_name = color_list[i_colors];
                         ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                         sub_model_part.AddElement(p_element);
                     }
@@ -700,9 +696,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
                         std::vector<std::string> color_list = mColors[prop_id];
-                        for (unsigned int i_colors = 0; i_colors < color_list.size(); i_colors++)
+                        for (auto sub_model_part_name : color_list)
                         {
-                            std::string sub_model_part_name = color_list[i_colors];
                             ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                             sub_model_part.AddElement(p_element);
                         }
@@ -742,9 +737,9 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         // Clean duplicated nodes
         std::vector<IndexType> nodes_ids;
-        for( auto it = aux_set.begin(); it != aux_set.end(); ++it ) 
+        for(int it : aux_set) 
         {
-            nodes_ids.push_back(*it);
+            nodes_ids.push_back(it);
         }
         
         r_sub_model_part.AddNodes(nodes_ids);
@@ -1520,8 +1515,8 @@ void MmgProcess<TDim>::FreeMemory()
 template<>  
 void MmgProcess<2>::InitMesh()
 {  
-    mmgMesh = NULL;
-    mmgSol = NULL;
+    mmgMesh = nullptr;
+    mmgSol = nullptr;
     
     // We init the MMG mesh and sol
     MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
@@ -1535,8 +1530,8 @@ void MmgProcess<2>::InitMesh()
 template<>  
 void MmgProcess<3>::InitMesh()
 {   
-    mmgMesh = NULL;
-    mmgSol = NULL;
+    mmgMesh = nullptr;
+    mmgSol = nullptr;
     
     MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
     
@@ -1745,7 +1740,7 @@ void MmgProcess<2>::OutputMesh(
         mesh_name = mStdStringFilename+"_step="+std::to_string(Step)+".mesh";
     }
     
-    char* mesh_file = new char [mesh_name.length() + 1];
+    auto  mesh_file = new char [mesh_name.length() + 1];
     std::strcpy (mesh_file, mesh_name.c_str());
     
     // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file  
@@ -1777,7 +1772,7 @@ void MmgProcess<3>::OutputMesh(
         mesh_name = mStdStringFilename+"_step="+std::to_string(Step)+".mesh";
     }
     
-    char* mesh_file = new char [mesh_name.length() + 1];
+    auto  mesh_file = new char [mesh_name.length() + 1];
     std::strcpy (mesh_file, mesh_name.c_str());
     
     // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file 
@@ -1809,7 +1804,7 @@ void MmgProcess<2>::OutputSol(
         sol_name = mStdStringFilename+"_step="+std::to_string(step)+".sol";
     }
     
-    char* sol_file = new char [sol_name.length() + 1];
+    auto  sol_file = new char [sol_name.length() + 1];
     std::strcpy (sol_file, sol_name.c_str());
     
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
@@ -1841,7 +1836,7 @@ void MmgProcess<3>::OutputSol(
         sol_name = mStdStringFilename+"_step="+std::to_string(step)+".sol";
     }
     
-    char* sol_file = new char [sol_name.length() + 1];
+    auto  sol_file = new char [sol_name.length() + 1];
     std::strcpy (sol_file, sol_name.c_str());
     
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
@@ -2181,9 +2176,9 @@ void MmgProcess<TDim>::ComputeColors(
     
     std::vector<std::string> model_part_names;
     model_part_names.push_back(mrThisModelPart.Name());
-    for (unsigned int i_sub_model_part = 0; i_sub_model_part < sub_model_part_names.size(); i_sub_model_part++)
+    for (const auto & sub_model_part_name : sub_model_part_names)
     {
-        model_part_names.push_back(sub_model_part_names[i_sub_model_part]);
+        model_part_names.push_back(sub_model_part_name);
     }
     
     // Initialize Colors
@@ -2243,10 +2238,10 @@ void MmgProcess<TDim>::ComputeColors(
     boost::unordered_map<std::set<int>, int> combinations;
     
     /* Nodes */
-    for(itType iterator = aux_nodes_Colors.begin(); iterator != aux_nodes_Colors.end(); iterator++) 
+    for(auto & aux_nodes_Color : aux_nodes_Colors) 
     {
 //             const int key = iterator->first;
-        const std::set<int> value = iterator->second;
+        const std::set<int> value = aux_nodes_Color.second;
         
         if (value.size() > 1)
         {
@@ -2255,10 +2250,10 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Conditions */
-    for(itType iterator = aux_cond_Colors.begin(); iterator != aux_cond_Colors.end(); iterator++) 
+    for(auto & aux_cond_Color : aux_cond_Colors) 
     {
 //         const int key = iterator->first;
-        const std::set<int> value = iterator->second;
+        const std::set<int> value = aux_cond_Color.second;
         
         if (value.size() > 1)
         {
@@ -2267,10 +2262,10 @@ void MmgProcess<TDim>::ComputeColors(
     }
 
     /* Elements */
-    for(itType iterator = aux_elem_Colors.begin(); iterator != aux_elem_Colors.end(); iterator++) 
+    for(auto & aux_elem_Color : aux_elem_Colors) 
     {
 //         const int key = iterator->first;
-        const std::set<int> value = iterator->second;
+        const std::set<int> value = aux_elem_Color.second;
         
         if (value.size() > 1)
         {
@@ -2285,9 +2280,9 @@ void MmgProcess<TDim>::ComputeColors(
         const std::set<int> key = iterator->first;
 //         const int value = iterator->second;
         
-        for( auto it = key.begin(); it != key.end(); ++it ) 
+        for(int it : key) 
         {
-            mColors[color].push_back(mColors[*it][0]);
+            mColors[color].push_back(mColors[it][0]);
         }
         combinations[key] = color;
         color += 1;
@@ -2296,10 +2291,10 @@ void MmgProcess<TDim>::ComputeColors(
     
     // The final maps are created
     /* Nodes */
-    for(itType iterator = aux_nodes_Colors.begin(); iterator != aux_nodes_Colors.end(); iterator++) 
+    for(auto & aux_nodes_Color : aux_nodes_Colors) 
     {
-        const int key = iterator->first;
-        const std::set<int> value = iterator->second;
+        const int key = aux_nodes_Color.first;
+        const std::set<int> value = aux_nodes_Color.second;
         
         if (value.size() == 0)
         {
@@ -2316,10 +2311,10 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Conditions */
-    for(itType iterator = aux_cond_Colors.begin(); iterator != aux_cond_Colors.end(); iterator++) 
+    for(auto & aux_cond_Color : aux_cond_Colors) 
     {
-        const int key = iterator->first;
-        const std::set<int> value = iterator->second;
+        const int key = aux_cond_Color.first;
+        const std::set<int> value = aux_cond_Color.second;
         
         if (value.size() == 0)
         {
@@ -2336,10 +2331,10 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Elements */
-    for(itType iterator = aux_elem_Colors.begin(); iterator != aux_elem_Colors.end(); iterator++) 
+    for(auto & aux_elem_Color : aux_elem_Colors) 
     {
-        const int key = iterator->first;
-        const std::set<int> value = iterator->second;
+        const int key = aux_elem_Color.first;
+        const std::set<int> value = aux_elem_Color.second;
         
         if (value.size() == 0)
         {

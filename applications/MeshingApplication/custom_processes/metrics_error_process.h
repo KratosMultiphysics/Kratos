@@ -95,7 +95,7 @@ public:
     }
     
     /// Destructor.
-    ~ComputeErrorSolMetricProcess() override {}
+    ~ComputeErrorSolMetricProcess() override = default;
     
     ///@}
     ///@name Operators

@@ -131,7 +131,7 @@ public:
     }
     
     /// Destructor.
-    ~ComputeHessianSolMetricProcess() override {}
+    ~ComputeHessianSolMetricProcess() override = default;
     
     ///@}
     ///@name Operators

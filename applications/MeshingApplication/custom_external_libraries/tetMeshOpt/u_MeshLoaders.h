@@ -68,7 +68,7 @@ public :
 class TElementTetraLoader : public TMeshLoader
 {
 public :
-	TMesh* load(const char* aMeshName) override{ return NULL;};
+	TMesh* load(const char* aMeshName) override{ return nullptr;};
 	bool save(const char* aMeshName, TMesh* aMesh , int flags = 0) override;
 
 };

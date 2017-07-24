@@ -87,21 +87,16 @@ public:
         ConstitutiveLaw::Pointer pConstitutiveLaw,
         const double Weight
         ):Point<3>(Coords),
-          mpConstitutiveLaw(pConstitutiveLaw),
+          mpConstitutiveLaw(std::move(pConstitutiveLaw)),
           mWeight(Weight)
     {
     }
 
     ///Copy constructor  (not really required)
-    GaussPointItem(const GaussPointItem& GP):
-        Point<3>(GP),
-        mpConstitutiveLaw(GP.mpConstitutiveLaw),
-        mWeight(GP.mWeight)
-    {
-    }
+    GaussPointItem(const GaussPointItem& GP)= default;
 
     /// Destructor.
-    ~GaussPointItem(){}
+    ~GaussPointItem() override= default;
 
     ///@}
     ///@name Operators
@@ -315,9 +310,9 @@ public:
         {
             auto VariableArrayList = ThisParameters["internal_variable_interpolation_list"];
 
-            for (unsigned int iVar = 0; iVar < VariableArrayList.size(); iVar++)
+            for (auto && iVar : VariableArrayList)
             {
-                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(VariableArrayList[iVar].GetString()));
+                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(iVar.GetString()));
             }
         }
         else
@@ -327,7 +322,7 @@ public:
         }
      }
 
-    ~InternalVariablesInterpolationProcess() override{};
+    ~InternalVariablesInterpolationProcess() override= default;;
 
     ///@}
     ///@name Operators
@@ -596,10 +591,8 @@ private:
 
                     PointTypePointer pGPOrigin = TreePoints.SearchNearestPoint(GlobalCoordinates);
 
-                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                    for (auto ThisVar : mInternalVariableList)
                     {
-                        Variable<double> ThisVar = mInternalVariableList[iVar];
-
                         double OriginValue;
                         OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
 
@@ -690,10 +683,8 @@ private:
 
                     if (NumberPointsFound > 0)
                     {
-                        for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                        for (auto ThisVar : mInternalVariableList)
                         {
-                            Variable<double> ThisVar = mInternalVariableList[iVar];
-
                             double WeightingFunctionNumerator   = 0.0;
                             double WeightingFunctionDenominator = 0.0;
                             double OriginValue;
@@ -745,10 +736,8 @@ private:
         {
             auto itNode = pNode.begin() + i;
 
-            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+            for (auto ThisVar : mInternalVariableList)
             {
-                Variable<double> ThisVar = mInternalVariableList[iVar];
-
                 itNode->SetValue(ThisVar, 0.0);
             }
         }
@@ -800,10 +789,8 @@ private:
                 array_1d<double, 3> GlobalCoordinates;
                 GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
 
-                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                for (auto ThisVar : mInternalVariableList)
                 {
-                    Variable<double> ThisVar = mInternalVariableList[iVar];
-
                     double OriginValue;
                     OriginValue = ConstitutiveLawVector[iGaussPoint]->GetValue(ThisVar, OriginValue);
 
@@ -817,10 +804,8 @@ private:
             }
 
             // We divide by the total weight
-            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+            for (auto ThisVar : mInternalVariableList)
             {
-                Variable<double> ThisVar = mInternalVariableList[iVar];
-
                 for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
                 {
                     #pragma omp critical
@@ -858,10 +843,8 @@ private:
                 }
                 else
                 {
-                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                    for (auto ThisVar : mInternalVariableList)
                     {
-                        Variable<double> ThisVar = mInternalVariableList[iVar];
-
                         Vector Values(pElement->GetGeometry().size());
 
                         for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
@@ -902,10 +885,8 @@ private:
                 }
                 else
                 {
-                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                    for (auto ThisVar : mInternalVariableList)
                     {
-                        Variable<double> ThisVar = mInternalVariableList[iVar];
-
                         Vector Values(pElement->GetGeometry().size());
 
                         for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
@@ -957,10 +938,8 @@ private:
 
                 Vector Values(rThisGeometry.size() );
 
-                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                for (auto ThisVar : mInternalVariableList)
                 {
-                    Variable<double> ThisVar = mInternalVariableList[iVar];
-
                     for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
                     {
                         Values[iNode] = rThisGeometry[iNode].GetValue(ThisVar);

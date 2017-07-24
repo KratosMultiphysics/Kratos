@@ -177,7 +177,7 @@ public:
     MmgProcess(ModelPart& rThisModelPart, Parameters ThisParameters = Parameters(R"({})"));
 
     /// Destructor.
-    ~MmgProcess() override {}
+    ~MmgProcess() override = default;
     
     ///@}
     ///@name Access

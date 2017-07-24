@@ -119,7 +119,7 @@ public:
     }
     
     /// Destructor.
-    ~ComputeLevelSetSolMetricProcess() override {}
+    ~ComputeLevelSetSolMetricProcess() override = default;
     
     ///@}
     ///@name Operators

@@ -116,7 +116,7 @@ public:
          }
      }
     
-    ~NodalValuesInterpolationProcess() override{};
+    ~NodalValuesInterpolationProcess() override= default;;
 
     ///@}
     ///@name Operators
