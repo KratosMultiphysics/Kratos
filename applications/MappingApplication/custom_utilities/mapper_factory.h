@@ -283,26 +283,6 @@ private:
 
     void CheckAndValidateJson()
     {
-        // Check if the three basic parameters are present
-        if (!mrJsonParameters.Has("mapper_type"))
-        {
-            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
-        }
-
-        mMapperType = mrJsonParameters["mapper_type"].GetString();
-
-        if (!mrJsonParameters.Has("interface_submodel_part_origin"))
-        {
-            KRATOS_ERROR << "No \"interface_submodel_part_origin\" "
-                         << "defined in json" << std::endl;
-        }
-
-        if (!mrJsonParameters.Has("interface_submodel_part_destination"))
-        {
-            KRATOS_ERROR << "No \"interface_submodel_part_destination\" "
-                         << "defined in json" << std::endl;
-        }
-
         // Check if there is a valid input for the search parameters
         mComputeSearchRadius = true;
         if (mrJsonParameters.Has("search_radius"))
@@ -354,11 +334,57 @@ private:
 
     void ReadAndCheckInterfaceModelParts()
     {
-        std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_origin"].GetString();
-        mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
+        int echo_level = 0;
+        // read the echo_level temporarily, bcs the mrJsonParameters have not yet been validated and defaults assigned
+        if (mrJsonParameters.Has("echo_level"))
+        {
+            echo_level = std::max(echo_level, mrJsonParameters["echo_level"].GetInt());
+        }
 
-        name_interface_submodel_part = mrJsonParameters["interface_submodel_part_destination"].GetString();
-        mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
+        int comm_rank_origin = mrModelPartOrigin.GetCommunicator().MyPID();
+        int comm_rank_destination = mrModelPartDestination.GetCommunicator().MyPID();
+
+
+
+        if (mrJsonParameters.Has("interface_submodel_part_origin"))
+        {
+            std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_origin"].GetString();
+            mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
+
+            if (echo_level >= 2 && comm_rank_origin == 0)
+            {
+                std::cout << "SubModelPart used for Origin-ModelPart" << std::endl;
+            }
+        }
+        else
+        {
+            mpInterfaceModelPartOrigin = &mrModelPartOrigin;
+
+            if (echo_level >= 2 && comm_rank_origin == 0)
+            {
+                std::cout << "Main ModelPart used for Origin-ModelPart" << std::endl;
+            }
+        }
+
+        if (mrJsonParameters.Has("interface_submodel_part_destination"))
+        {
+            std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_destination"].GetString();
+            mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
+
+            if (echo_level >= 2 && comm_rank_destination == 0)
+            {
+                std::cout << "SubModelPart used for Destination-ModelPart" << std::endl;
+            }
+        }
+        else
+        {
+            mpInterfaceModelPartDestination = &mrModelPartDestination;
+
+            if (echo_level >= 2 && comm_rank_destination == 0)
+            {
+                std::cout << "Main ModelPart used for Destination-ModelPart" << std::endl;
+            }
+        }
 
         const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartOrigin);
         const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartOrigin);
@@ -407,6 +433,13 @@ private:
     {
         double start_time = MapperUtilities::GetCurrentTime();
 
+        if (!mrJsonParameters.Has("mapper_type"))
+        {
+            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
+        }
+
+        mMapperType = mrJsonParameters["mapper_type"].GetString();
+
         if (mMapperType == "NearestNeighbor")
         {
             mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
@@ -441,7 +474,7 @@ private:
 
           } */else
         {
-            KRATOS_ERROR << "Selected Mapper not implemented" << std::endl;
+            KRATOS_ERROR << "Selected Mapper \"" << mMapperType << "\" not implemented" << std::endl;
         }
 
         double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
