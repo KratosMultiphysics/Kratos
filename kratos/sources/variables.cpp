@@ -159,6 +159,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, FRICTION_COEFFICIENT )
   KRATOS_CREATE_VARIABLE( double, LAMBDA )
   KRATOS_CREATE_VARIABLE( double, MIU )
+  KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )
   KRATOS_CREATE_VARIABLE( double, NORMAL_CONTACT_STRESS )
   KRATOS_CREATE_VARIABLE( double, TANGENTIAL_CONTACT_STRESS )
 
@@ -590,6 +591,7 @@ namespace Kratos
       KratosApplication::RegisterC2CVariables(); //TODO: move to application
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
       KratosApplication::RegisterALEVariables(); //TODO: move to application
+      KratosApplication::RegisterMappingVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
       KratosApplication::RegisterMATVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
@@ -773,6 +775,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( FRICTION_COEFFICIENT )
       KRATOS_REGISTER_VARIABLE( LAMBDA )
       KRATOS_REGISTER_VARIABLE( MIU )
+      KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )
       KRATOS_REGISTER_VARIABLE( NORMAL_CONTACT_STRESS )
       KRATOS_REGISTER_VARIABLE( TANGENTIAL_CONTACT_STRESS )
 
