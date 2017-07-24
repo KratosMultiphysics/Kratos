@@ -303,7 +303,7 @@ private:
     boost::unordered_map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
-    std::vector<Element::Pointer>   mpRefElement;
+    std::vector<Element::Pointer>   mpRefElement; // TODO: Use the colors to be able of remesh more than one type of element or condition (not just the geometry -> Use an unordered_map)
     std::vector<Condition::Pointer> mpRefCondition;
     std::vector<bool> mInitRefElement;
     std::vector<bool> mInitRefCondition;
@@ -383,7 +383,7 @@ private:
     
     NodeType::Pointer CreateNode(
         unsigned int iNode,
-        int& ref, 
+        int& Ref, 
         int& isRequired
         );
     
