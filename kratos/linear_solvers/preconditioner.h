@@ -1,49 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
 //
 //
-
 
 #if !defined(KRATOS_PRECONDITIONER_H_INCLUDED )
 #define  KRATOS_PRECONDITIONER_H_INCLUDED
@@ -434,6 +400,63 @@ inline std::ostream& operator << (std::ostream& OStream,
     return OStream;
 }
 ///@}
+
+
+template< typename TSparseSpace, typename TlocalSpace>
+class PreconditionerFactoryBase
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PreconditionerFactoryBase );
+
+    virtual typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer CreatePreconditioner(const std::string preconditioner_type)
+    {
+        if(KratosComponents< PreconditionerFactoryBase<TSparseSpace,TlocalSpace> >::Has( preconditioner_type )== false)
+        {
+        KRATOS_ERROR << "trying to construct a preconditioner with type preconditioner_type= " << preconditioner_type << std::endl <<
+                         "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                         KratosComponents< PreconditionerFactoryBase<TSparseSpace,TlocalSpace> >() << std::endl;
+        }
+        const auto& aux = KratosComponents< PreconditionerFactoryBase<TSparseSpace,TlocalSpace> >::Get( preconditioner_type );
+        return aux.CreateHelper();
+    }
+protected:
+    virtual typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer CreateHelper()  const
+    {
+        KRATOS_ERROR << "calling the base class PreconditionerFactoryBase" << std::endl;
+    }
+};
+
+/// output stream function
+template< typename TSparseSpace, typename TlocalSpace>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const PreconditionerFactoryBase<TSparseSpace, TlocalSpace>& rThis)
+{
+    rOStream << "PreconditionerFactoryBase" << std::endl;
+
+    return rOStream;
+}
+
+
+template <typename TSparseSpace, typename TlocalSpace, typename TPreconditionerType>
+class PreconditionerFactory : public PreconditionerFactoryBase<TSparseSpace,TlocalSpace>
+{
+protected:
+
+    typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer CreateHelper() const override
+    {
+            return typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer(new TPreconditionerType());
+    }
+};
+
+/// output stream function
+template <typename TSparseSpace, typename TlocalSpace, typename TPreconditionerType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const PreconditionerFactory<TSparseSpace,TlocalSpace,TPreconditionerType>& rThis)
+{
+    rOStream << "PreconditionerFactory" << std::endl;
+
+    return rOStream;
+}
 
 
 }  // namespace Kratos.
