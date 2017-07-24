@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
+#include "utilities/openmp_utils.h"
 
 // Application includes
 
@@ -75,6 +76,11 @@ public:
 
     virtual void Initialize()
     {
+        ModelPart& r_model_part = this->GetModelPart();
+        for (auto it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); ++it)
+        {
+            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
+        }
     }
 
     virtual void InitializeSolutionStep()
@@ -83,6 +89,7 @@ public:
 
     virtual void FinalizeSolutionStep()
     {
+      this->UpdateSensitivities();
     }
 
     virtual void Check()
@@ -137,30 +144,16 @@ public:
         KRATOS_CATCH("")
     }
 
-    /// Calculate the local gradient w.r.t. nodal coordinates
-    /**
-     * @param[in]     rElem              the local adjoint element.
-     * @param[in]     rDerivativesMatrix the transposed gradient of the local
-     *                                   element's residual w.r.t. nodal
-     *                                   coordinates.
-     * @param[out]    rRHSContribution   the gradient of the response function.
-     * @param[in,out] rProcessInfo       the current process info.
-     */
-    virtual void CalculateSensitivityContribution(const Element& rElem,
-                                                  const Matrix& rDerivativesMatrix,
-                                                  Vector& rRHSContribution,
-                                                  ProcessInfo& rProcessInfo)
+
+    void UpdateSensitivities()
     {
-        KRATOS_TRY
+      KRATOS_TRY;
 
-        if (rRHSContribution.size() != rDerivativesMatrix.size1())
-            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
-
-        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
-
-        KRATOS_CATCH("")
+      this->UpdateNodalSensitivities(SHAPE_SENSITIVITY);
+      
+      KRATOS_CATCH("");
     }
+
 
     /// Calculate the scalar valued response function
     virtual double CalculateValue(ModelPart& rModelPart)
@@ -188,6 +181,137 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /// Calculate and add the sensitivity from the current adjoint and primal solutions.
+    /*
+     * This function updates the accumulated sensitivities for a single time step.
+     * The accumulated sensitivity is defined as:
+     *
+     * \f[
+     * d_{\mathbf{s}}\bar{J} = \Sigma_{n=1}^N
+     *   (\partial_{\mathbf{s}}J^n + \lambda^{nT}\partial_{\mathbf{s}}\mathbf{r}^n)
+     *    \Delta t
+     * \f]
+     *
+     * with \f$\mathbf{r}^n\f$ the residual of the governing partial differential
+     * equation for the current step. This function should be called once for
+     * each design variable per time step.
+     */
+    template <typename TDataType>
+    void UpdateNodalSensitivities(Variable<TDataType> const& rDesignVariable)
+    {
+	KRATOS_TRY
+
+	ModelPart& r_model_part = this->GetModelPart();
+	ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+	double delta_time = -r_process_info[DELTA_TIME];
+	const int num_threads = OpenMPUtils::GetNumThreads();
+	std::vector<Vector> sensitivity_vector(num_threads);
+	std::vector<Vector> response_gradient(num_threads);
+	std::vector<Vector> adjoint_vector(num_threads);
+	std::vector<Matrix> sensitivity_matrix(num_threads);
+
+	Communicator& r_comm = r_model_part.GetCommunicator();
+	if (r_comm.TotalProcesses() > 1)
+	  {
+	    // here we make sure we only add the old sensitivity once
+	    // when we assemble.
+	    for (auto it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); ++it)
+	      if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
+		it->FastGetSolutionStepValue(rDesignVariable) = rDesignVariable.Zero();
+	  }
+
+#pragma omp parallel
+	{
+	  ModelPart::ElementIterator elements_begin;
+	  ModelPart::ElementIterator elements_end;
+	  OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
+	  int k = OpenMPUtils::ThisThread();
+	  
+	  for (auto it = elements_begin; it != elements_end; ++it)
+	    {
+	      Element::GeometryType& r_geom = it->GetGeometry();
+	      bool is_boundary = false;
+	      for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
+		if (r_geom[i_node].Is(BOUNDARY) == true)
+		  {
+		    is_boundary = true;
+		    break;
+		  }
+
+	      if (is_boundary == false) // true for most elements
+		continue;
+	      
+	      it->CalculateSensitivityMatrix(rDesignVariable, sensitivity_matrix[k], r_process_info);
+	      
+	      this->CalculateSensitivityContribution(*it, rDesignVariable, sensitivity_matrix[k], response_gradient[k], r_process_info);
+
+	      it->GetValuesVector(adjoint_vector[k]);
+
+	      if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+		sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+
+	      noalias(sensitivity_vector[k]) = delta_time *
+		(prod(sensitivity_matrix[k], adjoint_vector[k]) + response_gradient[k]);
+
+	      this->AssembleNodalSensitivityContribution(rDesignVariable,
+							 sensitivity_vector[k],
+							 r_geom);
+	    }
+	}
+
+	r_model_part.GetCommunicator().AssembleCurrentData(rDesignVariable);
+	
+	KRATOS_CATCH("")
+    }
+
+    /// Calculate the local gradient w.r.t. design variable.
+    /**
+     * @param[in]     rElem              the local adjoint element.
+     * @param[in]     rVariable          the sensitivity variable.
+     * @param[in]     rDerivativesMatrix the transposed gradient of the local
+     *                                   element's residual.
+     * @param[out]    rRHSContribution   the gradient of the response function.
+     * @param[in,out] rProcessInfo       the current process info.
+     */
+    virtual void CalculateSensitivityContribution(const Element& rElem,
+                                                  const Variable<array_1d<double,3>>& rVariable,
+                                                  const Matrix& rDerivativesMatrix,
+                                                  Vector& rRHSContribution,
+                                                  ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY
+
+        if (rRHSContribution.size() != rDerivativesMatrix.size1())
+            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+
+        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
+            rRHSContribution[k] = 0.0;
+
+        KRATOS_CATCH("")
+    }
+
+
+    void AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rDesignVariable,
+                                              Vector const& rSensitivityVector,
+                                              Element::GeometryType& rGeom)
+    {
+      unsigned int index = 0;
+      for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+	{
+	  if (rGeom[i_node].Is(BOUNDARY) == true)
+	  {
+	    array_1d<double, 3>& rSensitivity =
+	      rGeom[i_node].FastGetSolutionStepValue(rDesignVariable);
+	    rGeom[i_node].SetLock();
+	    for (unsigned int d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
+	      rSensitivity[d] += rSensitivityVector[index++];
+	    rGeom[i_node].UnSetLock();
+	  }
+	  else
+	    index += rGeom.WorkingSpaceDimension();
+	}
+    }
+    
     ///@}
 
 private:

@@ -63,7 +63,7 @@ public:
         })");
 
         rParameters.ValidateAndAssignDefaults(DefaultParams);
-
+	
         mStructureModelPartName = rParameters["structure_model_part_name"].GetString();
 
         if (rParameters["drag_direction"].IsArray() == false ||
@@ -203,22 +203,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateSensitivityContribution(const Element& rElem,
-                                                  const Matrix& rDerivativesMatrix,
-                                                  Vector& rRHSContribution,
-                                                  ProcessInfo& rProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rRHSContribution.size() != rDerivativesMatrix.size1())
-            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
-
-        Vector& rDragFlagVector = this->GetDragFlagVector(rElem);
-        noalias(rRHSContribution) = prod(rDerivativesMatrix, rDragFlagVector);
-
-        KRATOS_CATCH("")
-    }
-
     ///@}
 
 protected:
@@ -233,6 +217,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void CalculateSensitivityContribution(const Element& rElem,
+                                          const Variable<array_1d<double,3>>& rVariable,
+                                          const Matrix& rDerivativesMatrix,
+                                          Vector& rRHSContribution,
+                                          ProcessInfo& rProcessInfo) override
+    {
+      KRATOS_TRY
+
+      if (rRHSContribution.size() != rDerivativesMatrix.size1())
+	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+      
+      Vector& rDragFlagVector = this->GetDragFlagVector(rElem);
+      noalias(rRHSContribution) = prod(rDerivativesMatrix, rDragFlagVector);
+
+      KRATOS_CATCH("")
+    }
+    
     ///@}
 
 private:

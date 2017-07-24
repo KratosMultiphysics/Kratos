@@ -55,10 +55,8 @@ class TestCase(KratosUnittest.TestCase):
         lines = lines[1:] # remove header
         if len(lines) > 1:
             Dt = float(lines[1].split()[0]) - float(lines[0].split()[0])
-            T  = float(lines[-1].split()[0]) - float(lines[0].split()[0]) + Dt
         else:
             Dt = 1.0
-            T = 1.0
         dx = 0.0
         dy = 0.0
         dz = 0.0
@@ -67,9 +65,9 @@ class TestCase(KratosUnittest.TestCase):
             dx = dx + float(components[1])
             dy = dy + float(components[2])
             dz = dz + float(components[3])
-        dx = dx * Dt / T
-        dy = dy * Dt / T
-        dz = dz * Dt / T
+        dx = dx * Dt
+        dy = dy * Dt
+        dz = dz * Dt
         drag = direction[0] * dx + direction[1] * dy + direction[2] * dz
         return drag
 
@@ -123,8 +121,8 @@ class TestCase(KratosUnittest.TestCase):
             # calculate sensitivity by finite difference
             step_size = 0.00000001
             FDSensitivity = self._compute_finite_difference_drag_sensitivity([1],step_size,'./test_vms_sensitivity_2d/one_element_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/one_element_test.dat')
-            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
-            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._remove_file("./test_vms_sensitivity_2d/one_element_test_0.h5")
             self._remove_file("./test_vms_sensitivity_2d/one_element_test.dat")
             self._remove_file("./test_vms_sensitivity_2d/one_element_test.time")

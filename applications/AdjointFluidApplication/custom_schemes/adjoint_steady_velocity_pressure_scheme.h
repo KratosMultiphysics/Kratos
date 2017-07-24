@@ -52,14 +52,6 @@ namespace Kratos
  * \f]
  *
  * with response function \f$J=J(\mathbf{w};\mathbf{s})\f$.
- *
- * The sensitivity is computed on the boundary model part and is defined as:
- *
- * \f[
- * d_{\mathbf{s}}J
- * = \partial_{\mathbf{s}}J + \lambda^T\partial_{\mathbf{s}}\mathbf{f}
- * \f]
- *
  */
 template <class TSparseSpace, class TDenseSpace>
 class AdjointSteadyVelocityPressureScheme : public Scheme<TSparseSpace, TDenseSpace>
@@ -157,11 +149,16 @@ public:
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart,
-                                        SystemMatrixType& rA,
-                                        SystemVectorType& rDx,
-                                        SystemVectorType& rb) override
+				SystemMatrixType& rA,
+				SystemVectorType& rDx,
+				SystemVectorType& rb) override
     {
         KRATOS_TRY
+
+	// Sensitivities are generally computed as a time integral. For steady
+	// problems, we set the time step to -1.0 (minus because adjoint is
+	// backward in time).
+	  rModelPart.GetProcessInfo()[DELTA_TIME] = -1.0;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -169,7 +166,6 @@ public:
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
             it->Set(BOUNDARY, false);
-            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
             it->FastGetSolutionStepValue(ACCELERATION) = ACCELERATION.Zero();
@@ -192,8 +188,6 @@ public:
         KRATOS_TRY
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-
-        CalculateSolutionStepSensitivityContribution(rModelPart);
 
         mpResponseFunction->FinalizeSolutionStep();
 
@@ -375,93 +369,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void CalculateSolutionStepSensitivityContribution(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-        const int NumThreads = OpenMPUtils::GetNumThreads();
-        std::vector<Vector> CoordAuxVector(NumThreads);
-        std::vector<Matrix> ShapeDerivativesMatrix(NumThreads);
-
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rProcessInfo[DOMAIN_SIZE]);
-
-        Communicator& rComm = rModelPart.GetCommunicator();
-        if (rComm.TotalProcesses() > 1)
-        {
-            // here we make sure we only add the old shape sensitivity once
-            // when we assemble. this should always be the case for steady
-            // adjoint since we initialize shape sensitivity to zero in
-            // InitializeSolutionStep()
-            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-                if (it->FastGetSolutionStepValue(PARTITION_INDEX) != rComm.MyPID())
-                    it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) =
-                        SHAPE_SENSITIVITY.Zero();
-        }
-
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElementsBegin;
-            ModelPart::ElementIterator ElementsEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElementsBegin, ElementsEnd);
-            int k = OpenMPUtils::ThisThread();
-
-            for (auto it = ElementsBegin; it != ElementsEnd; ++it)
-            {
-                Element::GeometryType& rGeom = it->GetGeometry();
-                bool IsBoundary = false;
-                for (unsigned int iNode = 0; iNode < rGeom.PointsNumber(); ++iNode)
-                    if (rGeom[iNode].Is(BOUNDARY) == true)
-                    {
-                        IsBoundary = true;
-                        break;
-                    }
-
-                if (IsBoundary == false) // true for most elements
-                    continue;
-
-                // transposed gradient of local element's residual w.r.t. nodal
-                // coordinates
-                it->CalculateSensitivityMatrix(SHAPE_SENSITIVITY, ShapeDerivativesMatrix[k], rProcessInfo);
-
-                // d (response) / d (coordinates)
-                mpResponseFunction->CalculateSensitivityContribution(
-                    *it, ShapeDerivativesMatrix[k], CoordAuxVector[k], rProcessInfo);
-
-                // adjoint solution
-                it->GetValuesVector(mAdjointValues[k], 0);
-
-                noalias(CoordAuxVector[k]) +=
-                    prod(ShapeDerivativesMatrix[k], mAdjointValues[k]);
-
-                // Carefully write results to nodal variables
-                unsigned int CoordIndex = 0;
-                for (unsigned int iNode = 0; iNode < rGeom.PointsNumber(); ++iNode)
-                {
-                    if (rGeom[iNode].Is(BOUNDARY) == true)
-                    {
-                        rGeom[iNode].SetLock();
-                        array_1d<double, 3>& rSensitivity =
-                            rGeom[iNode].FastGetSolutionStepValue(SHAPE_SENSITIVITY);
-                        for (unsigned int d = 0; d < DomainSize; ++d)
-                            rSensitivity[d] += CoordAuxVector[k][CoordIndex++];
-                        rGeom[iNode].UnSetLock();
-                    }
-                    else
-                    {
-                        // Skip this node block.
-                        CoordIndex += DomainSize;
-                    }
-                }
-            }
-        }
-
-        rModelPart.GetCommunicator().AssembleCurrentData(SHAPE_SENSITIVITY);
-
-        KRATOS_CATCH("")
-    }
 
     ///@}
     ///@name Private  Access

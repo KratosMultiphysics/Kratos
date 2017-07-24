@@ -25,8 +25,8 @@ void AddCustomResponseFunctionsToPython()
              &ResponseFunction::CalculateFirstDerivativesGradient)
         .def("CalculateSecondDerivativesGradient",
              &ResponseFunction::CalculateSecondDerivativesGradient)
-        .def("CalculateSensitivityContribution", &ResponseFunction::CalculateSensitivityContribution)
-        .def("CalculateValue", &ResponseFunction::CalculateValue);
+        .def("CalculateValue", &ResponseFunction::CalculateValue)
+        .def("UpdateSensitivities", &ResponseFunction::UpdateSensitivities);
 
     class_<DragResponseFunction<2>, bases<ResponseFunction>, boost::noncopyable>
       ("DragResponseFunction2D", init<ModelPart&, Parameters&>());
