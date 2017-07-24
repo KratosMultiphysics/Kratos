@@ -64,9 +64,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    NearestElementMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+    NearestElementMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
                          Parameters& rJsonParameters) : Mapper(
-                                 i_model_part_origin, i_model_part_destination, rJsonParameters)
+                                 rModelPartOrigin, rModelPartDestination, rJsonParameters)
     {
         mpMapperCommunicator->InitializeOrigin(MapperUtilities::Condition_Center);
         mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
