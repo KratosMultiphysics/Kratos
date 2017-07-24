@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics 
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
     
 class TestExactIntegration(KratosUnittest.TestCase):
@@ -43,7 +42,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         
         matrix_solution = KratosMultiphysics.Matrix()
         
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -85,7 +84,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         
         matrix_solution = KratosMultiphysics.Matrix()
         
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -129,7 +128,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         
         matrix_solution = KratosMultiphysics.Matrix()
         
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -178,7 +177,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         
         
         matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -230,7 +229,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         
         matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -291,7 +290,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         
         matrix_solution = KratosMultiphysics.Matrix()
         
-        solution = exact_integration.TestExactIntegration(cond1, cond3, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond3, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -308,7 +307,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2,1], 1.0/3.0)
         self.assertAlmostEqual(matrix_solution[2,2], 1.0/12.0)
         
-        solution = exact_integration.TestExactIntegration(cond1, cond4, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond4, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -325,7 +324,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2,1], 0.75)
         self.assertAlmostEqual(matrix_solution[2,2], 1.0/12.0)
         
-        solution = exact_integration.TestExactIntegration(cond2, cond3, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond2, cond3, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -342,7 +341,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2,1], 1.0/3.0)
         self.assertAlmostEqual(matrix_solution[2,2], 1.0/12.0)
         
-        solution = exact_integration.TestExactIntegration(cond2, cond4, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond2, cond4, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -399,7 +398,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
@@ -465,7 +464,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestExactIntegration(cond1, cond2, matrix_solution)
+        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
         
         ## Debug
         #if (solution == True):
