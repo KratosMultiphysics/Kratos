@@ -284,11 +284,6 @@ public:
     {
         if(!mpVariablesList->Has(rThisVariable))
             KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
-//             mpVariablesList->Add(rThisVariable);
-
-         if(rThisVariable.Key()==0)
-            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
-
 
         IndexType index = mpVariablesList->Index(rThisVariable);
 
@@ -296,7 +291,6 @@ public:
         if((index >= mSize)||(mSize == 0))
             Update();
 
-//  	  KRATOS_WATCH(*(TDataType*)(mpData + index))
         return *(TDataType*)(mpData + index);
     }
 
@@ -304,12 +298,8 @@ public:
     {
         if(!mpVariablesList->Has(rThisVariable))
             return rThisVariable.Zero();
-        //std:: cout << "oh oh" << std::endl;
-        // KRATOS_WATCH(rThisVariable)
-        IndexType index = mpVariablesList->Index(rThisVariable);
+         IndexType index = mpVariablesList->Index(rThisVariable);
 
-//  	  KRATOS_WATCH(index)
-//  	  KRATOS_WATCH(mSize)
         if(index >= mSize)
             return rThisVariable.Zero();
 
@@ -320,30 +310,46 @@ public:
     //by Riccardo: variables are not added
     template<class TDataType> TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
     {
-        IndexType index = mpVariablesList->Index(rThisVariable);
 #ifdef KRATOS_DEBUG
          if(rThisVariable.Key()==0)
             KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
         
-        //KRATOS_WATCH("attention printing FastGetValue");
         if(!mpVariablesList->Has(rThisVariable))
             KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
+#endif
+        
+        
+        IndexType index = mpVariablesList->Index(rThisVariable);
+        
+        
+        
+#ifdef KRATOS_DEBUG
         if(index >= mSize)
             KRATOS_ERROR << "variable " << rThisVariable << " an inconsistency of variable_list happend in the fixed_data_value_container";
 #endif
+
+
         return *(TDataType*)(mpData + index);
     }
     
     template<class TDataType> const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
     {
-        IndexType index = mpVariablesList->Index(rThisVariable);
 #ifdef KRATOS_DEBUG
          if(rThisVariable.Key()==0)
             KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
 
-        //KRATOS_WATCH("attention printing FastGetValue");
         if(!mpVariablesList->Has(rThisVariable))
             KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
+#endif
+        
+        
+        
+        IndexType index = mpVariablesList->Index(rThisVariable);
+
+        
+        
+        
+#ifdef KRATOS_DEBUG
         if(index >= mSize)
             KRATOS_ERROR << "variable " << rThisVariable << " an inconsistency of variable_list happend in the fixed_data_value_container";
 #endif
@@ -481,12 +487,20 @@ public:
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
+#ifdef KRATOS_DEBUG
+         if(rThisVariable.Key()==0)
+            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " which is not registered!! (key = 0) within the call to function Has " << std::endl;
+#endif
         return mpVariablesList->Has(rThisVariable);
     }
 
     template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
-        return mpVariablesList->Has(rThisVariable.GetSourceVariable());
+#ifdef KRATOS_DEBUG
+         if(rThisVariable.Key()==0)
+            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " which is not registered!! (key = 0) within the call to function Has " << std::endl;
+#endif
+         return mpVariablesList->Has(rThisVariable.GetSourceVariable());
     }
 
     bool IsEmpty()
