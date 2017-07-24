@@ -148,7 +148,36 @@ class VariableRedistributionTest(UnitTest.TestCase):
             else:
                 self.fail("Failing due to incorrect test definition: Wrong variable type")
 
+    def testNodalArea(self):
+        self.input_file = "square10"
+        
+        with WorkFolderScope(self.work_folder):
 
+            self.SetUpProblem()
+            
+            for node in self.model_part.Nodes:
+                node.Set(INTERFACE,True)
+                node.SetSolutionStepValue(PRESSURE,1.0)
+
+            self.GenerateInterface()
+
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+                self.interface_model_part,
+                PRESSURE,
+                TEMPERATURE)
+
+            for cond in self.model_part.Conditions:
+                area = cond.GetArea()
+                for node in cond.GetNodes():
+                    nodal_area = node.GetSolutionStepValue(NODAL_PAUX)
+                    node.SetSolutionStepValue(NODAL_PAUX,nodal_area+area/3.0)
+
+            if self.print_output:
+                self.InitializeOutput()
+                self.PrintOutput()
+                self.FinalizeOutput()
+
+            self.CheckDoubleResults(TEMPERATURE,NODAL_PAUX)
 
     def SetUpProblem(self):
 
@@ -193,7 +222,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
         gid_mode = GiDPostMode.GiD_PostBinary
         multifile = MultiFileFlag.SingleFile
         deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = WriteConditionsFlag.WriteElementsOnly
+        write_conditions = WriteConditionsFlag.WriteConditions
         self.gid_io = GidIO(self.input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
         mesh_name = 0.0
@@ -224,5 +253,6 @@ if __name__ == '__main__':
     #test.testLinearFunction()
     #test.testSharpCorners()
     #test.testVector()
-    test.testQuadratic()
+    #test.testQuadratic()
+    test.testNodalArea()
     test.tearDown()

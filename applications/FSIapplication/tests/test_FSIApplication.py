@@ -49,6 +49,7 @@ def AssembleTestSuites():
     smallSuite.addTest(VariableRedistributionTest('testSharpCorners'))
     smallSuite.addTest(VariableRedistributionTest('testVector'))
     smallSuite.addTest(VariableRedistributionTest('testQuadratic'))
+    smallSuite.addTest(VariableRedistributionTest('testNodalArea'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
