@@ -30,6 +30,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "reorderer.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
@@ -406,7 +407,51 @@ private:
 
     ///@}
 
-}; // Class LinearSolver
+}; 
+
+// Class LinearSolver///here we add the functions needed for the registration
+template< typename TSparseSpace, typename TlocalSpace>
+class LinearSolverFactoryBase
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(LinearSolverFactoryBase );
+    
+    virtual bool Has(const std::string solver_type)
+    {
+        return KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Has( solver_type );
+    }
+
+    virtual typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateSolver(Kratos::Parameters settings)
+    {
+        if(KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Has( settings["solver_type"].GetString())== false)
+        {
+        KRATOS_ERROR << "trying to construct a Linear solver with solver_type= " << settings["solver_type"].GetString() << std::endl <<
+                         "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                         KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >() << std::endl;
+        }
+        const auto& aux = KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Get( settings["solver_type"].GetString()  );
+        return aux.CreateHelper( settings );
+    }
+protected:
+    virtual typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateHelper(Kratos::Parameters settings)  const
+    {
+        KRATOS_ERROR << "calling the base class LinearSolverFactoryBase" << std::endl;
+    }
+};
+
+/// output stream function
+template< typename TSparseSpace, typename TlocalSpace>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const LinearSolverFactoryBase<TSparseSpace, TlocalSpace>& rThis)
+{
+    rOStream << "LinearSolverFactoryBase" << std::endl;
+
+    return rOStream;
+}
+
+
+
+
 
 ///@}
 

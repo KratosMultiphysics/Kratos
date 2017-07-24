@@ -34,6 +34,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/linear_solver_factory.cpp;
 	#${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
