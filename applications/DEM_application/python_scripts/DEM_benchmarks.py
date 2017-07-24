@@ -34,7 +34,6 @@ listCONT      = [] #list(range(20,27))
 listDISclZHAO = [] #[30,32]
 listDISclRK   = [] #[31,33]
 '''
-print("benchmark_number")
 if benchmark_number in listDISCONT:
     nodeplotter = 1
     import DEM_explicit_solver_var as DEM_parameters
@@ -83,7 +82,7 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def BeforeSolveOperations(self, time):
+    def BeforeSolveOperations(self, time):        
         benchmark.ApplyNodalRotation(self.spheres_model_part, time, self.dt)
 
     def BeforePrintingOperations(self, time):
@@ -120,6 +119,7 @@ class Solution(main_script.Solution):
         self.RunMainTemporalLoop()
         self.BeforeFinalizeOperations()
         self.Finalize()
+        self.CleanUpOperations()
 
     def AdditionalFinalizeOperations(self):
         if nodeplotter:
@@ -135,5 +135,9 @@ class Solution(main_script.Solution):
                 print("iteration")
                 Solution().Run(iteration)
             benchmark.print_results(self.number_of_points_in_the_graphic, self.dt)
+        
+    def CleanUpOperations(self):
+        print("execute CleanUpOperations") 
+        super().CleanUpOperations()
     
 Solution().RunBenchmarks()

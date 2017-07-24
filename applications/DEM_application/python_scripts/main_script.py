@@ -43,9 +43,7 @@ class Solution(object):
         # Creating necessary directories:
         self.main_path = os.getcwd()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
-
         self.SetGraphicalOutput()
-        
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
@@ -62,7 +60,6 @@ class Solution(object):
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
 
-       
         mp_list = []
         mp_list.append(self.spheres_model_part)
         mp_list.append(self.rigid_face_model_part)
@@ -145,6 +142,8 @@ class Solution(object):
 
         self.Finalize()
 
+        self.CleanUpOperations()
+
     def AddVariables(self):
         print("execute addvariables main script") 
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
@@ -166,10 +165,8 @@ class Solution(object):
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
         # Adding dofs
-
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
-
         self.solver.AddDofs(self.DEM_inlet_model_part)
 
         os.chdir(self.main_path)
@@ -177,9 +174,7 @@ class Solution(object):
         self.KRATOSprint("\nInitializing Problem...")
         
         self.GraphicalOutputInitialize()
-
-        
-
+       
         # Perform a partition to balance the problem
         self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
         self.solver.BeforeInitialize()
@@ -188,7 +183,7 @@ class Solution(object):
         #Setting up the BoundingBox
         self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
-        self.dt = DEM_parameters.MaxTimeStep
+        #self.dt = DEM_parameters.MaxTimeStep
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
         max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
@@ -258,6 +253,7 @@ class Solution(object):
         print(self.spheres_model_part)
         
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
+        print("---------------------")
         print(self.spheres_model_part)
         max_node_Id += self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
         max_elem_Id += self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
@@ -296,8 +292,7 @@ class Solution(object):
 
         self.step           = 0
         self.time           = 0.0
-        self.time_old_print = 0.0
-
+        self.time_old_print = 0.0     
         while (self.time < DEM_parameters.FinalTime):
 
             self.InitializeTimeStep()
@@ -339,6 +334,8 @@ class Solution(object):
 
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
 
+            self.BeforePrintingOperations(self.time)
+
             #### GiD IO ##########################################
             time_to_print = self.time - self.time_old_print
 
@@ -364,6 +361,9 @@ class Solution(object):
 
     def BeforeSolveOperations(self, time):
         pass
+
+    def BeforePrintingOperations(self, time):
+        pass    
 
     def AfterSolveOperations(self):
         if (hasattr(DEM_parameters, "AnalyticParticle")):
@@ -391,7 +391,8 @@ class Solution(object):
 
         os.chdir(self.main_path)
     
-        #def CleanUpOperations(self):
+    def CleanUpOperations(self):
+        print("end+++++++++++++++++++++++++")
 
         objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
                               self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
