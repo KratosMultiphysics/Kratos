@@ -134,7 +134,7 @@ public:
 
         for (auto& interface_obj : mInterfaceObjects)
         {
-            if (!interface_obj->NeighborOrApproximationFound())   // TODO this prevents from printing warnings in case only an approx is found
+            if (!interface_obj->NeighborOrApproximationFound())
             {
                 all_neighbors_found = 0;
             }
@@ -151,7 +151,7 @@ public:
         for (auto& interface_obj : mInterfaceObjects)
         {
             const int pairing_status = interface_obj->GetPairingStatus();
-            if (pairing_status == InterfaceObject::PairingStatus::NoNeighbor)   // TODO
+            if (pairing_status == InterfaceObject::PairingStatus::NoNeighbor)
             {
                 std::cout << "MAPPER WARNING, Rank " << mCommRank
                           << "\tPoint [ "
@@ -160,7 +160,7 @@ public:
                           << interface_obj->Z() << " ] "
                           << "has not found a neighbor!" << std::endl;
             }
-            else if (pairing_status == InterfaceObject::PairingStatus::Approximation)     // TODO
+            else if (pairing_status == InterfaceObject::PairingStatus::Approximation)
             {
                 std::cout << "MAPPER WARNING, Rank " << mCommRank
                           << "\tPoint [ "
