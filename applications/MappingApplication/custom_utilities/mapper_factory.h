@@ -287,7 +287,7 @@ private:
             std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_origin"].GetString();
             mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
 
-            if (echo_level >= 2 && comm_rank_origin == 0)
+            if (echo_level >= 3 && comm_rank_origin == 0)
             {
                 std::cout << "SubModelPart used for Origin-ModelPart" << std::endl;
             }
@@ -296,7 +296,7 @@ private:
         {
             mpInterfaceModelPartOrigin = &mrModelPartOrigin;
 
-            if (echo_level >= 2 && comm_rank_origin == 0)
+            if (echo_level >= 3 && comm_rank_origin == 0)
             {
                 std::cout << "Main ModelPart used for Origin-ModelPart" << std::endl;
             }
@@ -307,7 +307,7 @@ private:
             std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_destination"].GetString();
             mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
 
-            if (echo_level >= 2 && comm_rank_destination == 0)
+            if (echo_level >= 3 && comm_rank_destination == 0)
             {
                 std::cout << "SubModelPart used for Destination-ModelPart" << std::endl;
             }
@@ -316,7 +316,7 @@ private:
         {
             mpInterfaceModelPartDestination = &mrModelPartDestination;
 
-            if (echo_level >= 2 && comm_rank_destination == 0)
+            if (echo_level >= 3 && comm_rank_destination == 0)
             {
                 std::cout << "Main ModelPart used for Destination-ModelPart" << std::endl;
             }

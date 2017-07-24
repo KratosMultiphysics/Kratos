@@ -58,10 +58,10 @@ namespace Kratos
 *
 * Available Echo Levels:
 * 0 : Mute every output
-* 1 : Print Timing Information (Mapper Construction and the three basic functions)
-* 2 : Basic Information, recommended for standard debugging
-* 3 : More detailed output, needed for advanced debugging (Should be only needed for developing)
-* 4 : Very detailed output, such as the coordinates of the InterfaceObjects, the Communication Graph,...
+* == 1 : Print Timing Information (Mapper Construction and the three basic functions)
+* >= 2 : Warnings are printed
+* >= 3 : Basic Information, recommended for standard debugging
+* >= 4 : Very detailed output, such as the coordinates of the InterfaceObjects, the Communication Graph,...
         (Only recommended for debugging of small example, otherwise it gets very messy!
         Should be only needed for developing)
 *
@@ -366,7 +366,7 @@ protected:
             }
         }
 
-        if (mEchoLevel >= 2 && MyPID == 0)
+        if (mEchoLevel >= 3 && MyPID == 0)
         {
             std::cout << "Mapper JSON Parameters BEFORE validation:" << std::endl;
             mrJsonParameters.PrettyPrintJsonString();
@@ -374,7 +374,7 @@ protected:
 
         mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
 
-        if (mEchoLevel >= 2 && MyPID == 0)
+        if (mEchoLevel >= 3 && MyPID == 0)
         {
             std::cout << "Mapper JSON Parameters AFTER validation:" << std::endl;
             mrJsonParameters.PrettyPrintJsonString();
@@ -388,7 +388,7 @@ protected:
                                    mrJsonParameters["echo_level"].GetInt());
             mrJsonParameters["search_radius"].SetDouble(search_radius);
 
-            if (mEchoLevel >= 2 && MyPID == 0)
+            if (mEchoLevel >= 3 && MyPID == 0)
             {
                 std::cout << "SearchRadius computed for MapperCommunicator = " << search_radius << std::endl;
             }

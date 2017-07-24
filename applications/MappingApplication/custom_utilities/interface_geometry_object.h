@@ -147,7 +147,11 @@ public:
         else
         {   
             if (mEchoLevel >= 2) {
-            std::cout << "MAPPER WARNING, Unsupported geometry, "
+            std::cout << "MAPPER WARNING, Unsupported geometry for InterfaceGeometryObject "
+                      << " with Center at: \t[ "
+                      << this->X() << " | "
+                      << this->Y() << " | "
+                      << this->Z() << " ], "
                       << "using an approximation" << std::endl;
             }
             return false;
@@ -323,7 +327,7 @@ private:
     Geometry<Node<3>>* mpGeometry;
     Node<3>* mpPoint;
     GeometryData::KratosGeometryFamily mGeometryFamily;
-    int mNumPoints; //TODO check if still needed
+    int mNumPoints; 
     double mApproximationTolerance = 0.0f;
     int mConstructionIndex;
     GeometryData::IntegrationMethod mIntegrationMethod;
