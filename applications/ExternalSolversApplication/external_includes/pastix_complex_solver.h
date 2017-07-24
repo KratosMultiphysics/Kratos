@@ -63,7 +63,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PastixComplexSolver(Parameters& r_settings)
+    PastixComplexSolver(Parameters r_settings)
     {
 		mp_pastix_data = NULL;
 

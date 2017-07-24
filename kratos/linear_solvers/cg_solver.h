@@ -90,10 +90,16 @@ public:
     CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
         
-    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()):
+    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
         BaseType(settings, pNewPreconditioner) {}
 
-
+    CGSolver(Parameters settings):
+        BaseType(settings) 
+    {
+        if(settings.Has("preconditioner_type"))
+            BaseType::SetPreconditioner( PreconditionerFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
+    }
+        
     /// Copy constructor.
     CGSolver(const CGSolver& Other) : BaseType(Other) {}
 

@@ -89,33 +89,42 @@ public:
         mp_linear_solver = p_linear_solver;
     }
     
-    ScalingSolver(Parameters settings,
-                  typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer p_linear_solver
+//     ScalingSolver(Parameters settings,
+//                   typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer p_linear_solver
+//                    ): BaseType ()
+//     {
+//         KRATOS_TRY
+// 
+//         Parameters default_parameters( R"(
+//         {
+//         "tolerance" : 1.0e-6,
+//         "maximum_iterations" : 200,
+//         "symmetric_scaling" : true
+//         }  )" );
+// 
+//         //now validate agains defaults -- this also ensures no type mismatch
+//         settings.ValidateAndAssignDefaults(default_parameters);
+// 
+//         BaseType::mTolerance = settings["tolerance"].GetDouble();
+//         BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
+//         msymmetric_scaling = settings["symmetric_scaling"].GetBool();
+//         
+//         KRATOS_CATCH("")
+//     }
+
+    ScalingSolver(Parameters settings
                    ): BaseType ()
     {
         KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L
+        if(!settings.Has("solver_type"))
+            KRATOS_ERROR << "solver_type must be specified to construct the ScalingSolver" << std::endl;
 
-        Parameters default_parameters( R"(
-{
-"tolerance" : 1.0e-6,
-"maximum_iterations" : 200,
-"symmetric_scaling" : true
-}  )" );
-
-        //now validate agains defaults -- this also ensures no type mismatch
-        settings.ValidateAndAssignDefaults(default_parameters);
-#endif
-        BaseType::mTolerance = settings["tolerance"].GetDouble();
-        BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
-        msymmetric_scaling = settings["symmetric_scaling"].GetBool();
+        mp_linear_solver = LinearSolverFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreateSolver(settings );
+        msymmetric_scaling = true;
         
         KRATOS_CATCH("")
     }
-
-
 
     /// Copy constructor.
     ScalingSolver(const ScalingSolver& Other) : BaseType(Other) {}

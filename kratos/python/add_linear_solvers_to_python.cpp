@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
-//
+//,typename TPreconditionerType::Pointer pNewPreconditioner
 //  Main authors:    Riccardo Rossi
 //
 //
@@ -41,7 +41,7 @@
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
-
+#include "includes/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -62,10 +62,30 @@ void  AddLinearSolversToPython()
     typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
     typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
+    
+    using namespace boost::python;
+
+    
+    
+    //////////////////////////////////////////////////////////////7
+    //HERE THE TOOLS TO REGISTER LINEAR SOLVERS
+    class_<LinearSolverFactoryBase< SpaceType, LocalSpaceType >,
+            LinearSolverFactoryBase< SpaceType, LocalSpaceType >::Pointer,
+            boost::noncopyable >("LinearSolverFactoryBase")
+     .def( init< >() )
+     .def("CreateSolver",&LinearSolverFactoryBase< SpaceType, LocalSpaceType>::CreateSolver)
+     .def("Has",&LinearSolverFactoryBase< SpaceType, LocalSpaceType>::Has)
+    ;
+    
+    class_<PreconditionerFactoryBase< SpaceType, LocalSpaceType >,
+            PreconditionerFactoryBase< SpaceType, LocalSpaceType >::Pointer,
+            boost::noncopyable >("PreconditionerFactoryBase")
+     .def( init< >() )
+     .def("CreatePreconditioner",&PreconditionerFactoryBase< SpaceType, LocalSpaceType>::CreatePreconditioner)
+    ;   
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
 
-    using namespace boost::python;
 
     //****************************************************************************************************
     //preconditioners
@@ -97,8 +117,8 @@ void  AddLinearSolversToPython()
     class_<LinearSolverType, LinearSolverType::Pointer, boost::noncopyable>("LinearSolver")
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
-    .def("Clear",&LinearSolverType::Clear)
-    //.def("",&LinearSolverType::)
+    .def("Clear",&LinearSolverType::Clear)            
+    //.def("",&LinearSolverType::)BICGSTABSolver
     .def(self_ns::str(self))
     ;
 
@@ -134,6 +154,7 @@ void  AddLinearSolversToPython()
 
     class_<ScalingSolverType, ScalingSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("ScalingSolver")
     .def(init<LinearSolverType::Pointer, bool >())
+    .def(init<Parameters >())
     ;
 
     class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("PowerIterationEigenvalueSolver")
