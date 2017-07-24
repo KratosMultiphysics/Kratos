@@ -279,8 +279,6 @@ private:
         int comm_rank_origin = mrModelPartOrigin.GetCommunicator().MyPID();
         int comm_rank_destination = mrModelPartDestination.GetCommunicator().MyPID();
 
-
-
         if (mrJsonParameters.Has("interface_submodel_part_origin"))
         {
             std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_origin"].GetString();
@@ -373,7 +371,7 @@ private:
                 KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
                              << "specified for Nearest Neighbor Mapper" << std::endl;
             }
-            
+
             mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
                                        *mpInterfaceModelPartDestination,
                                        mrJsonParameters));
@@ -414,7 +412,6 @@ private:
         mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
                 "Mapper Construction",
                 elapsed_time);
-
     }
 
     ///@}
