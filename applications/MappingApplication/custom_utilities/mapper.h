@@ -159,7 +159,7 @@ protected:
     ModelPart& mModelPartOrigin;
     ModelPart& mModelPartDestination;
 
-    Parameters mJsonParameters;
+    Parameters mrJsonParameters;
 
     MapperCommunicator::Pointer mpMapperCommunicator;
 
@@ -182,15 +182,15 @@ protected:
 
     // Constructor, can only be called by derived classes (actual mappers)
     Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-           Parameters JsonParameters) :
+           Parameters& rJsonParameters) :
         mModelPartOrigin(rModelPartOrigin),
         mModelPartDestination(rModelPartDestination),
-        mJsonParameters(JsonParameters)
+        mrJsonParameters(rJsonParameters)
     {
 
         ComputeNumberOfNodesAndConditions();
 
-        mEchoLevel = JsonParameters["echo_level"].GetInt();
+        mEchoLevel = rJsonParameters["echo_level"].GetInt();
 
         // Create the mapper communicator
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -205,7 +205,7 @@ protected:
                 mpMapperCommunicator = MapperCommunicator::Pointer (
                                            new MapperMPICommunicator(mModelPartOrigin,
                                                    mModelPartDestination,
-                                                   mJsonParameters) );
+                                                   mrJsonParameters) );
             }
             else     // mpi importet in python, but execution with one process only
             {
@@ -284,7 +284,7 @@ private:
         mpMapperCommunicator = MapperCommunicator::Pointer (
                                    new MapperCommunicator(mModelPartOrigin,
                                            mModelPartDestination,
-                                           mJsonParameters) );
+                                           mrJsonParameters) );
     }
 
     ///@}

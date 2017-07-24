@@ -70,14 +70,15 @@ public:
     MapperCommunicator(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
                        Parameters& rJsonParameters) :
         mrModelPartOrigin(rModelPartOrigin),
-        mrModelPartDestination(rModelPartDestination)
+        mrModelPartDestination(rModelPartDestination),
+        mrJsonParameters(rJsonParameters)
     {
 
-        mInitialSearchRadius = rJsonParameters["search_radius"].GetDouble();
-        mMaxSearchIterations = rJsonParameters["search_iterations"].GetInt();
-        mApproximationTolerance = rJsonParameters["approximation_tolerance"].GetDouble();
+        mInitialSearchRadius = mrJsonParameters["search_radius"].GetDouble();
+        mMaxSearchIterations = mrJsonParameters["search_iterations"].GetInt();
+        mApproximationTolerance = mrJsonParameters["approximation_tolerance"].GetDouble();
 
-        mEchoLevel = rJsonParameters["echo_level"].GetInt();
+        mEchoLevel = mrJsonParameters["echo_level"].GetInt();
     }
 
     /// Destructor.
@@ -273,6 +274,20 @@ protected:
     double mApproximationTolerance;
 
     int mEchoLevel = 0;
+
+    Parameters& mrJsonParameters;
+    Parameters mDefaultParameters = Parameters( R"(
+      {
+             "mapper_type"                           : "",
+             "interface_submodel_part_origin"        : "",
+             "interface_submodel_part_destination"   : "",
+             "search_radius"                         : -1.0,
+             "search_iterations"                     : 3,
+             "approximation_tolerance"               : -1.0,
+             "echo_level"                            : 0
+       }  )" );
+
+    bool mComputeSearchRadius;
 
     ///@}
     ///@name Protected Operators

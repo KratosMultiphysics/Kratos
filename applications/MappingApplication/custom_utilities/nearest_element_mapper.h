@@ -183,7 +183,7 @@ public:
         {
             mpInverseMapper = Mapper::Pointer( new NearestElementMapper(mModelPartDestination,
                                                mModelPartOrigin,
-                                               mJsonParameters) );
+                                               mrJsonParameters) );
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
@@ -199,7 +199,7 @@ public:
         {
             mpInverseMapper = Mapper::Pointer( new NearestElementMapper(mModelPartDestination,
                                                mModelPartOrigin,
-                                               mJsonParameters) );
+                                               mrJsonParameters) );
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
