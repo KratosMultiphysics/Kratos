@@ -56,7 +56,6 @@ namespace Kratos
 * The interpolation is done with the shape funcitons
 * For information abt the available echo_levels look into the class description of the MapperCommunicator
 */
-*/
 class NearestElementMapper : public Mapper
 {
 public:

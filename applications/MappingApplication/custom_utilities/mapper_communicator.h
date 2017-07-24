@@ -366,7 +366,7 @@ protected:
             }
         }
 
-        if (mEchoLevel >= 3 && MyPID == 0)
+        if (mEchoLevel >= 3 && MyPID() == 0)
         {
             std::cout << "Mapper JSON Parameters BEFORE validation:" << std::endl;
             mrJsonParameters.PrettyPrintJsonString();
@@ -374,7 +374,7 @@ protected:
 
         mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
 
-        if (mEchoLevel >= 3 && MyPID == 0)
+        if (mEchoLevel >= 3 && MyPID() == 0)
         {
             std::cout << "Mapper JSON Parameters AFTER validation:" << std::endl;
             mrJsonParameters.PrettyPrintJsonString();
@@ -388,7 +388,7 @@ protected:
                                    mrJsonParameters["echo_level"].GetInt());
             mrJsonParameters["search_radius"].SetDouble(search_radius);
 
-            if (mEchoLevel >= 3 && MyPID == 0)
+            if (mEchoLevel >= 3 && MyPID() == 0)
             {
                 std::cout << "SearchRadius computed for MapperCommunicator = " << search_radius << std::endl;
             }
