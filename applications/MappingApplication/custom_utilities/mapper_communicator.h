@@ -96,6 +96,7 @@ public:
         mrJsonParameters(rJsonParameters)
     {
         CheckAndValidateJson();
+        CheckInterfaceModelParts();
 
         mInitialSearchRadius = mrJsonParameters["search_radius"].GetDouble();
         mMaxSearchIterations = mrJsonParameters["search_iterations"].GetInt();
@@ -398,6 +399,46 @@ protected:
         if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)   // nothing specified, set to max
         {
             mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
+        }
+    }
+
+    void CheckInterfaceModelParts()
+    {
+        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(mrModelPartOrigin);
+        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(mrModelPartOrigin);
+        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(mrModelPartOrigin);
+
+        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(mrModelPartDestination);
+        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(mrModelPartDestination);
+        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(mrModelPartDestination);
+
+        // Check if the ModelPart contains entities
+        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
+        {
+            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
+                         << "in the Origin ModelPart" << std::endl;
+        }
+
+        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
+        {
+            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
+                         << "in the Destination ModelPart" << std::endl;
+        }
+
+        // Check if the inpt ModelParts contain both Elements and Conditions
+        // This is NOT possible, bcs the InterfaceObjects are constructed
+        // with whatever exists in the Modelpart (see the InterfaceObjectManagerBase, 
+        // function "InitializeInterfaceGeometryObjectManager")
+        if (num_conditions_origin > 0 && num_elements_origin > 0)
+        {
+            KRATOS_ERROR << "Origin ModelPart contains both Conditions and Elements "
+                         << "which is not permitted" << std::endl;
+        }
+
+        if (num_conditions_destination > 0 && num_elements_destination > 0)
+        {
+            KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
+                         << "which is not permitted" << std::endl;
         }
     }
 

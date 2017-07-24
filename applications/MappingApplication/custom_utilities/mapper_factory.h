@@ -79,7 +79,7 @@ public:
         mrModelPartDestination(rModelPartDestination),
         mrJsonParameters(rJsonParameters)
     {
-        ReadAndCheckInterfaceModelParts();
+        ReadInterfaceModelParts();
         ConstructMapper();
     }
 
@@ -271,7 +271,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ReadAndCheckInterfaceModelParts()
+    void ReadInterfaceModelParts()
     {
         int echo_level = 0;
         // read the echo_level temporarily, bcs the mrJsonParameters have not yet been validated and defaults assigned
@@ -321,39 +321,6 @@ private:
             {
                 std::cout << "Mapper: Main ModelPart used for Destination-ModelPart" << std::endl;
             }
-        }
-
-        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartOrigin);
-        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartOrigin);
-        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartOrigin);
-
-        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartDestination);
-        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartDestination);
-        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartDestination);
-
-        // Check if the ModelPart contains entities
-        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
-        {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
-                         << "in the Origin ModelPart" << std::endl;
-        }
-
-        if (num_conditions_origin > 0 && num_elements_origin > 0)
-        {
-            KRATOS_ERROR << "Origin ModelPart contains both Conditions and Elements "
-                         << "which is not permitted" << std::endl;
-        }
-
-        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
-        {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
-                         << "in the Destination ModelPart" << std::endl;
-        }
-
-        if (num_conditions_destination > 0 && num_elements_destination > 0)
-        {
-            KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
-                         << "which is not permitted" << std::endl;
         }
     }
 
