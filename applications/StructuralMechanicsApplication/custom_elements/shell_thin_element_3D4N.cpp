@@ -2528,8 +2528,8 @@ namespace Kratos
 			data.localDisplacements);
 
 		// Placeholders for extension into stability analysis
-		bool extractKm = false;
-		bool extractKg = false;
+		//bool extractKm = false;
+		//bool extractKg = false;
 
 		// Let the CoordinateTransformation finalize the calculation.
 		// This will handle the transformation of the local matrices/vectors to

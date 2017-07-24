@@ -967,7 +967,7 @@ namespace Kratos
 		// share common data between section and materials
 
 		rMaterialValues.SetOptions(rValues.GetOptions());
-		rMaterialValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+		rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
 		rMaterialValues.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
 		rMaterialValues.SetShapeFunctionsDerivatives(rValues.GetShapeFunctionsDerivatives());
