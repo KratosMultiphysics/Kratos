@@ -286,7 +286,9 @@ public:
             KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
 //             mpVariablesList->Add(rThisVariable);
 
-//  	  KRATOS_WATCH(rThisVariable)
+         if(rThisVariable.Key()==0)
+            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
+
 
         IndexType index = mpVariablesList->Index(rThisVariable);
 
@@ -320,6 +322,9 @@ public:
     {
         IndexType index = mpVariablesList->Index(rThisVariable);
 #ifdef KRATOS_DEBUG
+         if(rThisVariable.Key()==0)
+            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
+        
         //KRATOS_WATCH("attention printing FastGetValue");
         if(!mpVariablesList->Has(rThisVariable))
             KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
@@ -333,6 +338,9 @@ public:
     {
         IndexType index = mpVariablesList->Index(rThisVariable);
 #ifdef KRATOS_DEBUG
+         if(rThisVariable.Key()==0)
+            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
+
         //KRATOS_WATCH("attention printing FastGetValue");
         if(!mpVariablesList->Has(rThisVariable))
             KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
