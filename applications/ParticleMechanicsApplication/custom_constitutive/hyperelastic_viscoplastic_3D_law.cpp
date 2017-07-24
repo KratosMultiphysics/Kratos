@@ -232,8 +232,8 @@ void  HyperElasticViscoplastic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
 
     Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
-    //2.-Green-Lagrange Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+  //2.-Green-Lagrange Strain:
+  if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_Almansi, StrainMeasure_GreenLagrange);
     }
@@ -355,7 +355,7 @@ void HyperElasticViscoplastic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
     ReturnMappingVariables.LameMu_bar = ElasticVariables.LameMu * ( ElasticVariables.traceCG / 3.0  );
 
     //4.-Almansi Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);

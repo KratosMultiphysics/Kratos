@@ -220,9 +220,9 @@ private:
     //free memory of the mesher
     void ClearTetgenIO ( tetgenio& tr );
   
-    void DeleteTetrahedraList ( tetgenio& tr );
+    // void DeleteTetrahedraList ( tetgenio& tr );
 
-    void DeletePointsList ( tetgenio& tr );
+    // void DeletePointsList ( tetgenio& tr );
 
     ///@}
     ///@name Private  Access

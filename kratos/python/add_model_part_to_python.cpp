@@ -565,6 +565,15 @@ TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValu
     return Value;
 }
 
+template<class TDataType>
+TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
+{
+    TDataType SendPartial = rSendPartial;
+    TDataType ReceiveAccumulated = rReceiveAccumulated;
+    rCommunicator.ScanSum(SendPartial, ReceiveAccumulated);
+    return ReceiveAccumulated;
+}
+
 
 void AddModelPartToPython()
 {
@@ -600,6 +609,8 @@ void AddModelPartToPython()
         .def("MinAll", CommunicatorMinAll<double> )
         .def("MaxAll", CommunicatorMaxAll<int> )
         .def("MaxAll", CommunicatorMaxAll<double> )
+        .def("ScanSum", CommunicatorScanSum<int> )
+        .def("ScanSum", CommunicatorScanSum<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )

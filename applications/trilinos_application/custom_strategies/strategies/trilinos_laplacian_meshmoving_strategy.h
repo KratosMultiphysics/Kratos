@@ -168,9 +168,12 @@ public:
     /** Destructor.
     */
 
+    void Initialize() override
+    {}
+
     //*********************************************************************************
     //*********************************************************************************
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY;
 
@@ -267,7 +270,7 @@ public:
 
         // Update FEM database
         CalculateMeshVelocities();
-        BaseType::MoveMesh();
+        MoveMesh();
 
         // clearing the system if needed
         if (mreform_dof_at_every_step == true)
@@ -333,12 +336,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         mstrategy->SetEchoLevel(Level);
     }
 
-    void MoveNodes()
+    void MoveMesh() override
     {
         const VariableComponentType& rMESH_DISPLACEMENT_X =
             KratosComponents<VariableComponentType>::Get("MESH_DISPLACEMENT_X");
