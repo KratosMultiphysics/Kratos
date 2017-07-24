@@ -299,18 +299,6 @@ protected:
 
     int mEchoLevel = 0;
 
-    Parameters mJsonParameters;
-    Parameters mDefaultParameters = Parameters( R"(
-      {
-             "mapper_type"                           : "",
-             "interface_submodel_part_origin"        : "",
-             "interface_submodel_part_destination"   : "",
-             "search_radius"                         : -1.0,
-             "search_iterations"                     : 3,
-             "approximation_tolerance"               : -1.0,
-             "echo_level"                            : 0
-       }  )" );
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -328,6 +316,82 @@ protected:
 
         mpInterfaceObjectManagerOrigin->FillBufferWithValues(FunctionPointerOrigin, values);
         mpInterfaceObjectManagerDestination->ProcessValues(FunctionPointerDestination, values);
+    }
+
+    // Function used for Debugging
+    void PrintPairs()
+    {
+        KRATOS_ERROR << "Needs to be re-implemented!" << std::endl;
+        // mpInterfaceObjectManagerOrigin->WriteNeighborRankAndCoordinates();
+        // Kratos::Flags options = Kratos::Flags();
+        // options.Set(MapperFlags::NON_HISTORICAL_DATA);
+        // TransferNodalData(NEIGHBOR_RANK, NEIGHBOR_RANK, options);
+        // TransferNodalData(NEIGHBOR_COORDINATES, NEIGHBOR_COORDINATES, options);
+        // mpInterfaceObjectManagerDestination->PrintNeighbors();
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    Parameters mJsonParameters;
+    Parameters mDefaultParameters = Parameters( R"(
+      {
+             "mapper_type"                           : "",
+             "interface_submodel_part_origin"        : "",
+             "interface_submodel_part_destination"   : "",
+             "search_radius"                         : -1.0,
+             "search_iterations"                     : 3,
+             "approximation_tolerance"               : -1.0,
+             "echo_level"                            : 0
+       }  )" );
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    virtual void InitializeSearchStructure()
+    {
+        mpSearchStructure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
+                                mpInterfaceObjectManagerDestination, mpInterfaceObjectManagerOrigin, mEchoLevel) );
+    }
+
+    virtual void InvokeSearch(const double InitialSearchRadius,
+                              const int MaxSearchIterations)
+    {
+        mpSearchStructure->Search(InitialSearchRadius,
+                                  MaxSearchIterations);
+        if (mEchoLevel >= 4)
+        {
+            // PrintPairs(); // TODO reimplement!
+        }
     }
 
     void CheckAndValidateJson()
@@ -439,71 +503,6 @@ protected:
         {
             KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
                          << "which is not permitted" << std::endl;
-        }
-    }
-
-    // Function used for Debugging
-    void PrintPairs()
-    {
-        KRATOS_ERROR << "Needs to be re-implemented!" << std::endl;
-        // mpInterfaceObjectManagerOrigin->WriteNeighborRankAndCoordinates();
-        // Kratos::Flags options = Kratos::Flags();
-        // options.Set(MapperFlags::NON_HISTORICAL_DATA);
-        // TransferNodalData(NEIGHBOR_RANK, NEIGHBOR_RANK, options);
-        // TransferNodalData(NEIGHBOR_COORDINATES, NEIGHBOR_COORDINATES, options);
-        // mpInterfaceObjectManagerDestination->PrintNeighbors();
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    virtual void InitializeSearchStructure()
-    {
-        mpSearchStructure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
-                                mpInterfaceObjectManagerDestination, mpInterfaceObjectManagerOrigin, mEchoLevel) );
-    }
-
-    virtual void InvokeSearch(const double InitialSearchRadius,
-                              const int MaxSearchIterations)
-    {
-        mpSearchStructure->Search(InitialSearchRadius,
-                                  MaxSearchIterations);
-        if (mEchoLevel >= 4)
-        {
-            // PrintPairs(); // TODO reimplement!
         }
     }
 
