@@ -166,7 +166,6 @@ public:
      */
     virtual void Initialize()
     {
-        KRATOS_ERROR << "You are calling to the base class method Initialize, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -191,7 +190,6 @@ public:
      */
     virtual void Clear()
     {
-        KRATOS_ERROR << "You are calling to the base class method Clear, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -353,7 +351,6 @@ public:
      */
     virtual double GetResidualNorm()
     {
-        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, please define in you derived class the method" << std::endl;
         return 0.0;
     }
 
