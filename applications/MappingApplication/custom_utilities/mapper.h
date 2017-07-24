@@ -171,7 +171,7 @@ protected:
     ModelPart& mModelPartOrigin;
     ModelPart& mModelPartDestination;
 
-    Parameters mrJsonParameters;
+    Parameters mJsonParameters;
 
     MapperCommunicator::Pointer mpMapperCommunicator;
 
@@ -194,10 +194,10 @@ protected:
 
     // Constructor, can only be called by derived classes (actual mappers)
     Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-           Parameters& rJsonParameters) :
+           Parameters JsonParameters) :
         mModelPartOrigin(rModelPartOrigin),
         mModelPartDestination(rModelPartDestination),
-        mrJsonParameters(rJsonParameters)
+        mJsonParameters(JsonParameters)
     {
 
         ComputeNumberOfNodesAndConditions();
@@ -215,7 +215,7 @@ protected:
                 mpMapperCommunicator = MapperCommunicator::Pointer (
                                            new MapperMPICommunicator(mModelPartOrigin,
                                                    mModelPartDestination,
-                                                   mrJsonParameters) );
+                                                   mJsonParameters) );
             }
             else     // mpi importet in python, but execution with one process only
             {
@@ -232,7 +232,7 @@ protected:
 #endif
         // Access the Parameters only after the communicator is constructed,
         // bcs they are checked and validated there!
-        mEchoLevel = rJsonParameters["echo_level"].GetInt();
+        mEchoLevel = JsonParameters["echo_level"].GetInt();
     }
 
     void ComputeNumberOfNodesAndConditions()
@@ -297,7 +297,7 @@ private:
         mpMapperCommunicator = MapperCommunicator::Pointer (
                                    new MapperCommunicator(mModelPartOrigin,
                                            mModelPartDestination,
-                                           mrJsonParameters) );
+                                           mJsonParameters) );
     }
 
     ///@}

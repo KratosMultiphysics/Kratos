@@ -72,8 +72,8 @@ public:
     ///@{
 
     MapperMPICommunicator(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                          Parameters& rJsonParameters) :
-        MapperCommunicator(rModelPartOrigin, rModelPartDestination, rJsonParameters) { }
+                          Parameters JsonParameters) :
+        MapperCommunicator(rModelPartOrigin, rModelPartDestination, JsonParameters) { }
 
     /// Destructor.
     virtual ~MapperMPICommunicator() { }

@@ -74,10 +74,10 @@ public:
 
     /// Default constructor.
     MapperFactory(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                  Parameters& rJsonParameters) :
+                  Parameters JsonParameters) :
         mrModelPartOrigin(rModelPartOrigin),
         mrModelPartDestination(rModelPartDestination),
-        mrJsonParameters(rJsonParameters)
+        mJsonParameters(JsonParameters)
     {
         ReadInterfaceModelParts();
         ConstructMapper();
@@ -260,7 +260,7 @@ private:
     ModelPart* mpInterfaceModelPartOrigin;
     ModelPart* mpInterfaceModelPartDestination;
 
-    Parameters& mrJsonParameters;
+    Parameters mJsonParameters;
 
     ///@}
     ///@name Private Operators
@@ -274,18 +274,18 @@ private:
     void ReadInterfaceModelParts()
     {
         int echo_level = 0;
-        // read the echo_level temporarily, bcs the mrJsonParameters have not yet been validated and defaults assigned
-        if (mrJsonParameters.Has("echo_level"))
+        // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
+        if (mJsonParameters.Has("echo_level"))
         {
-            echo_level = std::max(echo_level, mrJsonParameters["echo_level"].GetInt());
+            echo_level = std::max(echo_level, mJsonParameters["echo_level"].GetInt());
         }
 
         int comm_rank_origin = mrModelPartOrigin.GetCommunicator().MyPID();
         int comm_rank_destination = mrModelPartDestination.GetCommunicator().MyPID();
 
-        if (mrJsonParameters.Has("interface_submodel_part_origin"))
+        if (mJsonParameters.Has("interface_submodel_part_origin"))
         {
-            std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_origin"].GetString();
+            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_origin"].GetString();
             mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
 
             if (echo_level >= 3 && comm_rank_origin == 0)
@@ -303,9 +303,9 @@ private:
             }
         }
 
-        if (mrJsonParameters.Has("interface_submodel_part_destination"))
+        if (mJsonParameters.Has("interface_submodel_part_destination"))
         {
-            std::string name_interface_submodel_part = mrJsonParameters["interface_submodel_part_destination"].GetString();
+            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_destination"].GetString();
             mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
 
             if (echo_level >= 3 && comm_rank_destination == 0)
@@ -328,16 +328,16 @@ private:
     {
         double start_time = MapperUtilities::GetCurrentTime();
 
-        if (!mrJsonParameters.Has("mapper_type"))
+        if (!mJsonParameters.Has("mapper_type"))
         {
             KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
         }
 
-        mMapperType = mrJsonParameters["mapper_type"].GetString();
+        mMapperType = mJsonParameters["mapper_type"].GetString();
 
         if (mMapperType == "NearestNeighbor")
         {
-            if (mrJsonParameters.Has("approximation_tolerance"))
+            if (mJsonParameters.Has("approximation_tolerance"))
             {
                 KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
                              << "specified for Nearest Neighbor Mapper" << std::endl;
@@ -345,33 +345,33 @@ private:
 
             mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
                                        *mpInterfaceModelPartDestination,
-                                       mrJsonParameters));
+                                       mJsonParameters));
         }
         else if (mMapperType == "NearestElement")
         {
             mpMapper = Mapper::Pointer(new NearestElementMapper(*mpInterfaceModelPartOrigin,
                                        *mpInterfaceModelPartDestination,
-                                       mrJsonParameters));
+                                       mJsonParameters));
 
         } /*else if (mMapperType == "Barycentric") {
               mpMapper = Mapper::Pointer(new BarycentricMapper(*mpInterfaceModelPartOrigin,
                                                                  *mpInterfaceModelPartDestination,
-                                                                 mrJsonParameters));
+                                                                 mJsonParameters));
 
           } *//*else if (mMapperType == "RBF") {
               mpMapper = Mapper::Pointer(new RBFMapper(*mpInterfaceModelPartOrigin,
                                                          *mpInterfaceModelPartDestination,
-                                                         mrJsonParameters));
+                                                         mJsonParameters));
 
           } *//*else if (mMapperType == "Mortar") {
               mpMapper = Mapper::Pointer(new MortarMapper(*mpInterfaceModelPartOrigin,
                                                             *mpInterfaceModelPartDestination,
-                                                            mrJsonParameters));
+                                                            mJsonParameters));
 
           } *//*else if (mMapperType == "IGA") {
               mpMapper = Mapper::Pointer(new IGAMapper(*mpInterfaceModelPartOrigin,
                                                          *mpInterfaceModelPartDestination,
-                                                         mrJsonParameters));
+                                                         mJsonParameters));
 
           } */else
         {
