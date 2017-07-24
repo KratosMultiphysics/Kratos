@@ -234,8 +234,8 @@ public:
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB,
-        typename ModelPart::DofsArrayType& rdof_set,
-        ModelPart& r_model_part
+        typename ModelPart::DofsArrayType& rDoFSet,
+        ModelPart& rModelPart
     )
     {}
 
@@ -416,24 +416,23 @@ class LinearSolverFactoryBase
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolverFactoryBase );
     
-    virtual bool Has(const std::string solver_type)
+    virtual bool Has(const std::string SolverType)
     {
-        return KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Has( solver_type );
+        return KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Has( SolverType );
     }
 
-    virtual typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateSolver(Kratos::Parameters settings)
+    virtual typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateSolver(Kratos::Parameters Settings)
     {
-        if(KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Has( settings["solver_type"].GetString())== false)
+        if(KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Has( Settings["solver_type"].GetString())== false)
         {
-        KRATOS_ERROR << "trying to construct a Linear solver with solver_type= " << settings["solver_type"].GetString() << std::endl <<
-                         "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+            KRATOS_ERROR << "Trying to construct a Linear solver with solver_type= " << Settings["solver_type"].GetString() << std::endl << "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                          KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >() << std::endl;
         }
-        const auto& aux = KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Get( settings["solver_type"].GetString()  );
-        return aux.CreateHelper( settings );
+        const auto& aux = KratosComponents< LinearSolverFactoryBase<TSparseSpace,TlocalSpace> >::Get( Settings["solver_type"].GetString()  );
+        return aux.CreateHelper( Settings );
     }
 protected:
-    virtual typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateHelper(Kratos::Parameters settings)  const
+    virtual typename LinearSolver<TSparseSpace,TlocalSpace>::Pointer CreateHelper(Kratos::Parameters Settings)  const
     {
         KRATOS_ERROR << "calling the base class LinearSolverFactoryBase" << std::endl;
     }
