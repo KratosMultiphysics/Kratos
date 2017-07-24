@@ -57,9 +57,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Configuration file for InterfaceObjectConfigure.
+/** Configuration file for InterfaceObject.
  * This class provides a configuration file to calculate a 'Bins'
- * using InterfaceObjectConfigure.
+ * using InterfaceObject.
  * It is an adapted copy of "kratos/spatial_containers/configures/point_configure.h"
  */
 class InterfaceObjectConfigure
