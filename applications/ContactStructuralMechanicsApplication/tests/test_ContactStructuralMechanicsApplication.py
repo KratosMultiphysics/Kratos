@@ -18,6 +18,7 @@ from TestExactIntegration import TestTriangleExactIntegration2      as TTestTria
 from TestExactIntegration import TestTriangleExactIntegration3      as TTestTriangleExactIntegration3
 from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
 from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
+from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 
 # Mesh tying tests
 from SmallTests import SimplePatchTestTwoDMeshTying      as TSimplePatchTestTwoDMeshTying
@@ -82,6 +83,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration'))
     
     # Mesh tying tests 
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -136,6 +138,7 @@ def AssambleTestSuites():
             TTestTriangleExactIntegration3,
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
+            TTestDoubleCurvatureIntegration,
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,

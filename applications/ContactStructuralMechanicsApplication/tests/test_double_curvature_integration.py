@@ -7,6 +7,9 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStruct
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
+    def setUp(self):
+        pass
+    
     def test_double_curvature_integration(self):
         input_filename = "integration_tests/test_double_curvature_integration"
 
