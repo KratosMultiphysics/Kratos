@@ -52,8 +52,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Python Interface of the MappingApplication
+/** This class constructs the mappers and exposes them to Python
+* Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
+* Also the additional timing information is implemented here (echo_level = 1)
+* For information abt the available echo_levels look into the class description of the MapperCommunicator
 */
 class MapperFactory
 {

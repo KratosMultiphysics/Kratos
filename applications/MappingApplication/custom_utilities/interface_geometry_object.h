@@ -48,8 +48,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// GeometricalObject-based objects (Element or Condition) on the Interface for Searching
+/** This class Is the "wrapper" for Elements/Conditions on the interface. It uses the fact that both 
+* Elements and Conditions are deriving from "GeometricalObject". The search is caarried out using the 
+* center of the geometry. 
+* It saves a pointer to the original geometry, not to the Condition/Element itself. This is e.g. why the Id is not accessible.
+* It selects the best result by the closest projection distance of the successful projections.
+* In case no projection is successful, it uses an approximation (closest node of the geometry with the
+* smallest center distance to the point for which a neighbor is to be found)
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceGeometryObject : public InterfaceObject
 {

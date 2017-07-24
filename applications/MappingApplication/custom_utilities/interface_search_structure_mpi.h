@@ -51,8 +51,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// MPI-parallel searching
+/** This class provides features for remote searching. It first computes candidate partitions 
+* (partitions in the vicinity of a point), where possible neighbors can be.
+* It then send the objects for which neighbors are to be found to the corresponding candidate partitions
+* In the candidate partitions (can be either local or remote), a local search is conducted (see BaseClass)
+* The results are sent back to the partition where the object is local, and the best result is then chosen.
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceSearchStructureMPI : public InterfaceSearchStructure
 {

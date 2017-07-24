@@ -53,8 +53,10 @@ typedef matrix<int> GraphType; // GraphColoringProcess
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// MPI-parallel version of the MapperCommunicator
+/** This class inherits from MapperCommunicator and provides additional Functionalities that are needed
+* for MPI-parallel execution
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class MapperMPICommunicator : public MapperCommunicator
 {

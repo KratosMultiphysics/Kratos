@@ -51,8 +51,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Auxiliary functions for the MappingApplication in MPI
+/** This class provides a set of auxiliary functions for MPI that are used by several other functions / classes
 */
 class MapperUtilitiesMPI
 {
@@ -206,7 +206,7 @@ public:
 
     static void PrintGraph(GraphType& rGraph, int NumColors)
     {
-        std::cout << "\nCommunication Graph: " << std::endl;
+        std::cout << "\nMapper Communication Graph: " << std::endl;
         std::cout << std::setw(5);
         for(std::size_t i = 0; i < rGraph.size1(); ++i)
         {
@@ -259,7 +259,7 @@ public:
         pLocalBoundingBoxWithTolerance[4] = pLocalBoundingBox[4] + Tolerance;
         pLocalBoundingBoxWithTolerance[5] = pLocalBoundingBox[5] - Tolerance;
 
-        if (EchoLevel >= 4)
+        if (EchoLevel >= 3)
         {
             MapperUtilitiesMPI::PrintBoundingBox(pLocalBoundingBoxWithTolerance, CommRank);
         }

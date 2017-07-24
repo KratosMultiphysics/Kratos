@@ -50,8 +50,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Base Class for Searching Objects
+/** This class provides a set of functions that is used for identifying the nearest object.
+* It is needed such that the bin-search can be used with both nodes and elements/conditions
+* The bin search is implemented to work with this kind of object
+* It implements the function "EvaluateResult", which is used by the local search to determine which 
+* of the objects in teh vicinity of a point is the best search result. This function has to be 
+* implemented by all subclasses. It cannot be made pure virtual, because for remote searching,
+* objects of this type have to be created
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceObject : public Point<3>
 {

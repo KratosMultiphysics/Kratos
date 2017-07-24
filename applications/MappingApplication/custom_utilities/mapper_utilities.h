@@ -54,8 +54,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Auxiliary functions for the MappingApplication
+/** This class provides a set of auxiliary functions that are used by several other functions / classes
 */
 class MapperUtilities
 {
@@ -210,7 +210,7 @@ public:
             if (EchoLevel >= 2 && rModelPart.GetCommunicator().MyPID() == 0)
                 std::cout << "MAPPER WARNING, no conditions/elements for search radius "
                           << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
-                          << "using nodes (less efficient)" << std::endl;
+                          << "using nodes (less efficient, bcs search radius will be larger)" << std::endl;
             max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
         }
 

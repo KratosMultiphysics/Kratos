@@ -66,8 +66,10 @@ struct CandidateManager
     std::unordered_map<int, std::vector<int> > mMatchingInformation;
 };
 
-/// Short class definition.
-/** Detail class definition.
+/// BaseClass for managing the InterfaceObjects
+/** This class is the interface between the Searching objects and the InterfaceObjects. It is responsible
+* for filling buffers, reconstructing things from buffers and the construction of the InterfaceObjects
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceObjectManagerBase
 {

@@ -45,7 +45,13 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-/// Short class definition.
+    
+/// Nearest Neighbor Mapper
+/** This class implements the Nearest Neighbor Mapping technique.
+* Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
+* In the mapping phase every node gets assigned the value of it's neighbor
+* For information abt the available echo_levels look into the class description of the MapperCommunicator
+*/
 
 class NearestNeighborMapper : public Mapper
 {

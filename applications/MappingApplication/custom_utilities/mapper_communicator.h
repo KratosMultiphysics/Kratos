@@ -51,8 +51,29 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Interface btw the Mappers and the Core of the MappingApplication
+/** This class is the top instance of the Core of the MappingApplication
+* It handles the searching and the exchange of Data btw the Interfaces
+* It also checks and validates the JSON input.
+*
+* Available Echo Levels:
+* 0 : Mute every output
+* 1 : Print Timing Information (Mapper Construction and the three basic functions)
+* 2 : Basic Information, recommended for standard debugging
+* 3 : More detailed output, needed for advanced debugging (Should be only needed for developing)
+* 4 : Very detailed output, such as the coordinates of the InterfaceObjects, the Communication Graph,...
+        (Only recommended for debugging of small example, otherwise it gets very messy!
+        Should be only needed for developing)
+*
+* Structure of the how the different classes work with each other:
+* (Illustrated in Thesis mentioned in the header)
+* It is described in the serial case, if executed mpi-parallel, the MPI-versions
+* of the classes are used: 
+* MapperCommunicator
+*   Constructs the InterfaceObjectManagers both for the Destination and the Origin
+*       Which InterfaceObjects should be used is declared in the input of the "Initialize*" functions
+*   It then constructs the SearchStructure and initializes the Search
+*   For the exchange of values it implements the corresponding functions
 */
 class MapperCommunicator
 {
@@ -345,7 +366,19 @@ protected:
             }
         }
 
+        if (mEchoLevel >= 2 && MyPID == 0)
+        {
+            std::cout << "Mapper JSON Parameters BEFORE validation:" << std::endl;
+            mrJsonParameters.PrettyPrintJsonString();
+        }
+
         mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
+
+        if (mEchoLevel >= 2 && MyPID == 0)
+        {
+            std::cout << "Mapper JSON Parameters AFTER validation:" << std::endl;
+            mrJsonParameters.PrettyPrintJsonString();
+        }
 
         // Compute the search radius in case it was not specified
         if (compute_search_radius)
@@ -354,6 +387,11 @@ protected:
                                    mrModelPartDestination,
                                    mrJsonParameters["echo_level"].GetInt());
             mrJsonParameters["search_radius"].SetDouble(search_radius);
+
+            if (mEchoLevel >= 2 && MyPID == 0)
+            {
+                std::cout << "SearchRadius computed for MapperCommunicator = " << search_radius << std::endl;
+            }
         }
 
         if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)   // nothing specified, set to max

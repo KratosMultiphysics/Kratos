@@ -55,7 +55,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// Base Class for all Mappers
+/** This is the base class for every mapper.
+* It contains the three pure virtual functions that have to be implemented by every mapper:
+* - Map: Basic function that maps a field from one ModelPart to another Modelpart
+*        Mapping Direction: Origin => Destionation
+* - InverseMap: This function does the opposite of the "Map" function
+*               Mapping Direction: Destination => Origin
+* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
+*   other information related to the relations btw entities (node, elements,...) on the interfaces
+* It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
+* For information abt the available echo_levels look into the class description of the MapperCommunicator
+*/
 
 class Mapper
 {
