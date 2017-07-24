@@ -153,7 +153,7 @@ public:
      * @return mWeight: The pointer to the Constitutive Law associated to the point
      */
 
-    double GetWeight()
+    double GetWeight() const
     {
         return mWeight;
     }
@@ -163,7 +163,7 @@ public:
      * @param Weight: The integration weight
      */
 
-    void SetWeight(double Weight)
+    void SetWeight(const double Weight)
     {
         mWeight = Weight;
     }
@@ -308,11 +308,11 @@ public:
 
         if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true)
         {
-            auto VariableArrayList = ThisParameters["internal_variable_interpolation_list"];
+            auto variable_array_list = ThisParameters["internal_variable_interpolation_list"];
 
-            for (auto && iVar : VariableArrayList)
+            for (auto && i_var : variable_array_list)
             {
-                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(iVar.GetString()));
+                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(i_var.GetString()));
             }
         }
         else
@@ -469,73 +469,73 @@ private:
 
     PointVector CreateGaussPointList(ModelPart& ThisModelPart)
     {
-        PointVector ThisPointVector;
+        PointVector this_point_vector;
 
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
+        GeometryData::IntegrationMethod this_integration_method;
 
         // Iterate in the elements
-        ElementsArrayType& pElements = ThisModelPart.Elements();
-        int numElements = ThisModelPart.NumberOfElements();
+        ElementsArrayType& p_elements = ThisModelPart.Elements();
+        int num_elements = ThisModelPart.NumberOfElements();
 
-        const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+        const ProcessInfo& current_process_info = ThisModelPart.GetProcessInfo();
 
         // Creating a buffer for parallel vector fill
-        const unsigned int NumThreads = omp_get_max_threads();
-        std::vector<PointVector> PointsBuffers(NumThreads);
+        const unsigned int num_threads = omp_get_max_threads();
+        std::vector<PointVector> points_buffer(num_threads);
 
         #pragma omp parallel
         {
             const unsigned int Id = omp_get_thread_num();
 
             #pragma omp for
-            for(int i = 0; i < numElements; i++)
+            for(int i = 0; i < num_elements; i++)
             {
-                auto itElem = pElements.begin() + i;
+                auto it_elem = p_elements.begin() + i;
 
                 // Getting the geometry
-                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+                Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
 
                 // Getting the integration points
-                ThisIntegrationMethod = itElem->GetIntegrationMethod();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+                this_integration_method = it_elem->GetIntegrationMethod();
+                const Element::GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const unsigned int integration_points_number = integration_points.size();
 
                 // Computing the Jacobian
-                Vector VectorDetJ(IntegrationPointsNumber);
-                rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
+                Vector vector_det_j(integration_points_number);
+                r_this_geometry.DeterminantOfJacobian(vector_det_j,this_integration_method);
 
                 // Getting the CL
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
-                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+                for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; i_gauss_point++ )
                 {
-                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                    const array_1d<double, 3> local_coordinates = integration_points[i_gauss_point].Coordinates();
 
                     // We compute the corresponding weight
-                    const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
+                    const double weight = vector_det_j[i_gauss_point] * integration_points[i_gauss_point].Weight();
 
                     // We compute the global coordinates
-                    array_1d<double, 3> GlobalCoordinates;
-                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                    array_1d<double, 3> global_coordinates;
+                    global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
                     // We create the respective GP
-                    PointTypePointer pPoint = PointTypePointer(new PointType(GlobalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight));
-                    (PointsBuffers[Id]).push_back(pPoint);
+                    PointTypePointer p_point = PointTypePointer(new PointType(global_coordinates, constitutive_law_vector[i_gauss_point], weight));
+                    (points_buffer[Id]).push_back(p_point);
                 }
             }
 
             // Combine buffers together
             #pragma omp single
             {
-                for( auto& PointsBuffer : PointsBuffers)
+                for( auto& points_buffer : points_buffer)
                 {
-                    std::move(PointsBuffer.begin(),PointsBuffer.end(),back_inserter(ThisPointVector));
+                    std::move(points_buffer.begin(),points_buffer.end(),back_inserter(this_point_vector));
                 }
             }
         }
 
-        return ThisPointVector;
+        return this_point_vector;
     }
 
     /**
@@ -545,7 +545,7 @@ private:
     void InterpolateGaussPointsCPT()
     {
         // We Initialize the process info
-        const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+        const ProcessInfo& current_process_info = mrDestinationMainModelPart.GetProcessInfo();
 
         // We update the list of points
         mPointListOrigin.clear();
@@ -554,49 +554,49 @@ private:
         //#pragma omp parallel firstprivate(mPointListOrigin)
         //{
             // We initialize the intergration method
-            GeometryData::IntegrationMethod ThisIntegrationMethod;
+            GeometryData::IntegrationMethod this_integration_method;
 
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
-            KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
+            KDTree tree_points(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
 
             // Iterate over the destination elements
-            ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
-            auto numElements = pElements.end() - pElements.begin();
+            ElementsArrayType& p_elements = mrDestinationMainModelPart.Elements();
+            auto num_elements = p_elements.end() - p_elements.begin();
 
             //#pragma omp for
-            for(int i = 0; i < numElements; i++)
+            for(int i = 0; i < num_elements; i++)
             {
-                auto itElem = pElements.begin() + i;
+                auto it_elem = p_elements.begin() + i;
 
                 // Getting the geometry
-                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+                Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
 
                 // Getting the integration points
-                ThisIntegrationMethod = itElem->GetIntegrationMethod();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+                this_integration_method = it_elem->GetIntegrationMethod();
+                const Element::GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const unsigned int integration_points_number = integration_points.size();
 
                 // Getting the CL
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
-                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+                for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; i_gauss_point++ )
                 {
                     // We compute the global coordinates
-                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-                    array_1d<double, 3> GlobalCoordinates;
-                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                    const array_1d<double, 3> local_coordinates = integration_points[i_gauss_point].Coordinates();
+                    array_1d<double, 3> global_coordinates;
+                    global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
-                    PointTypePointer pGPOrigin = TreePoints.SearchNearestPoint(GlobalCoordinates);
+                    PointTypePointer p_gp_origin = tree_points.SearchNearestPoint(global_coordinates);
 
-                    for (auto ThisVar : mInternalVariableList)
+                    for (auto this_var : mInternalVariableList)
                     {
-                        double OriginValue;
-                        OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
+                        double origin_value;
+                        origin_value = (p_gp_origin->GetConstitutiveLaw())->GetValue(this_var, origin_value);
 
-                        (ConstitutiveLawVector[iGaussPoint])->SetValue(ThisVar, OriginValue, CurrentProcessInfo);
+                        (constitutive_law_vector[i_gauss_point])->SetValue(this_var, origin_value, current_process_info);
                     }
                 }
             }
@@ -610,7 +610,7 @@ private:
     void InterpolateGaussPointsLST()
     {
         // We Initialize the process info
-        const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+        const ProcessInfo& current_process_info = mrDestinationMainModelPart.GetProcessInfo();
 
         // We update the list of points
         mPointListOrigin.clear();
@@ -619,93 +619,93 @@ private:
         //#pragma omp parallel firstprivate(mPointListOrigin)
         //{
             // We initialize the intergration method
-            GeometryData::IntegrationMethod ThisIntegrationMethod;
+            GeometryData::IntegrationMethod this_integration_method;
 
             // Initialize values
-            PointVector PointsFound(mAllocationSize);
-            std::vector<double> PointsDistances(mAllocationSize);
-            unsigned int NumberPointsFound = 0;
+            PointVector points_found(mAllocationSize);
+            std::vector<double> point_distnaces(mAllocationSize);
+            unsigned int number_points_found = 0;
 
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
-            KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
+            KDTree tree_points(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
 
             // Iterate over the destination elements
-            ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
-            auto numElements = pElements.end() - pElements.begin();
+            ElementsArrayType& p_elements = mrDestinationMainModelPart.Elements();
+            auto num_elements = p_elements.end() - p_elements.begin();
 
             //#pragma omp for
-            for(int i = 0; i < numElements; i++)
+            for(int i = 0; i < num_elements; i++)
             {
-                auto itElem = pElements.begin() + i;
+                auto it_elem = p_elements.begin() + i;
 
                 // Getting the geometry
-                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+                Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
 
                 // Getting the integration points
-                ThisIntegrationMethod = itElem->GetIntegrationMethod();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+                this_integration_method = it_elem->GetIntegrationMethod();
+                const Element::GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const unsigned int integration_points_number = integration_points.size();
 
                 // Getting the CL
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 // Computing the radius
-                const double Radius = mSearchFactor *  (mDimension == 2 ? std::sqrt(rThisGeometry.Area()) : std::cbrt(rThisGeometry.Volume()));
+                const double radius = mSearchFactor *  (mDimension == 2 ? std::sqrt(r_this_geometry.Area()) : std::cbrt(r_this_geometry.Volume()));
 
                 // We get the NODAL_H vector
-                Vector NodalHVector(rThisGeometry.size());
-                for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                Vector nodal_h_vector(r_this_geometry.size());
+                for (unsigned int i_node = 0; i_node < r_this_geometry.size(); i_node++)
                 {
-                    if ( rThisGeometry[iNode].SolutionStepsDataHas( NODAL_H ) == false )
+                    if ( r_this_geometry[i_node].SolutionStepsDataHas( NODAL_H ) == false )
                     {
-                        KRATOS_ERROR << "NODAL_H is not defined in the node ID: " << rThisGeometry[iNode].Id() << std::endl;
+                        KRATOS_ERROR << "NODAL_H is not defined in the node ID: " << r_this_geometry[i_node].Id() << std::endl;
                     }
 
-                    NodalHVector[iNode] = rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H);
+                    nodal_h_vector[i_node] = r_this_geometry[i_node].FastGetSolutionStepValue(NODAL_H);
                 }
 
-                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+                for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; i_gauss_point++ )
                 {
                     // We compute the global coordinates
-                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-                    array_1d<double, 3> GlobalCoordinates;
-                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                    const array_1d<double, 3> local_coordinates = integration_points[i_gauss_point].Coordinates();
+                    array_1d<double, 3> global_coordinates;
+                    global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
                     // We compute the pondered characteristic length
-                    Vector N( rThisGeometry.size() );
-                    rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
-                    const double CharacteristicLength = inner_prod(N, NodalHVector);
+                    Vector N( r_this_geometry.size() );
+                    r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                    const double characteristic_length = inner_prod(N, nodal_h_vector);
 
-                    NumberPointsFound = TreePoints.SearchInRadius(GlobalCoordinates, Radius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
+                    number_points_found = tree_points.SearchInRadius(global_coordinates, radius, points_found.begin(), point_distnaces.begin(), mAllocationSize);
 
-                    if (NumberPointsFound > 0)
+                    if (number_points_found > 0)
                     {
-                        for (auto ThisVar : mInternalVariableList)
+                        for (auto this_var : mInternalVariableList)
                         {
-                            double WeightingFunctionNumerator   = 0.0;
-                            double WeightingFunctionDenominator = 0.0;
-                            double OriginValue;
+                            double weighting_function_numerator   = 0.0;
+                            double weighting_function_denominator = 0.0;
+                            double origin_value;
 
-                            for (unsigned int iPointFound = 0; iPointFound < NumberPointsFound; iPointFound++)
+                            for (unsigned int i_point_found = 0; i_point_found < number_points_found; i_point_found++)
                             {
-                                PointTypePointer pGPOrigin = PointsFound[iPointFound];
+                                PointTypePointer p_gp_origin = points_found[i_point_found];
 
-                                const double Distance = PointsDistances[iPointFound];
+                                const double distance = point_distnaces[i_point_found];
 
-                                OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
+                                origin_value = (p_gp_origin->GetConstitutiveLaw())->GetValue(this_var, origin_value);
 
-                                const double PonderatedWeight = pGPOrigin->GetWeight() * std::exp( -4.0 * Distance * Distance /(CharacteristicLength * CharacteristicLength));
+                                const double ponderated_weight = p_gp_origin->GetWeight() * std::exp( -4.0 * distance * distance /(characteristic_length * characteristic_length));
 
-                                WeightingFunctionNumerator   += PonderatedWeight * OriginValue;
-                                WeightingFunctionDenominator += PonderatedWeight;
+                                weighting_function_numerator   += ponderated_weight * origin_value;
+                                weighting_function_denominator += ponderated_weight;
                             }
 
-                            const double DestinationValue = WeightingFunctionNumerator/WeightingFunctionDenominator;
+                            const double destination_value = weighting_function_numerator/weighting_function_denominator;
 
-                            (ConstitutiveLawVector[iGaussPoint])->SetValue(ThisVar, DestinationValue, CurrentProcessInfo);
+                            (constitutive_law_vector[i_gauss_point])->SetValue(this_var, destination_value, current_process_info);
                         }
                     }
                     else
@@ -724,92 +724,92 @@ private:
     void InterpolateGaussPointsSFT()
     {
         // Initialize some values
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
+        GeometryData::IntegrationMethod this_integration_method;
 
         // Iterate in the nodes to initialize the values
-        NodesArrayType& pNode = mrOriginMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& nodes_array = mrOriginMainModelPart.Nodes();
+        auto num_nodes = nodes_array.end() - nodes_array.begin();
 
         /* Nodes */
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)
+        for(int i = 0; i < num_nodes; i++)
         {
-            auto itNode = pNode.begin() + i;
+            auto it_node = nodes_array.begin() + i;
 
-            for (auto ThisVar : mInternalVariableList)
+            for (auto this_var : mInternalVariableList)
             {
-                itNode->SetValue(ThisVar, 0.0);
+                it_node->SetValue(this_var, 0.0);
             }
         }
 
         // Iterate in the elements to ponderate the values
-        ElementsArrayType& pElementsOrigin = mrOriginMainModelPart.Elements();
-        auto numElements = pElementsOrigin.end() - pElementsOrigin.begin();
+        ElementsArrayType& elements_array = mrOriginMainModelPart.Elements();
+        auto num_elements = elements_array.end() - elements_array.begin();
 
-        const ProcessInfo& OriginProcessInfo = mrOriginMainModelPart.GetProcessInfo();
+        const ProcessInfo& origin_process_info = mrOriginMainModelPart.GetProcessInfo();
 
         /* Elements */
         #pragma omp parallel for
-        for(int i = 0; i < numElements; i++)
+        for(int i = 0; i < num_elements; i++)
         {
-            auto itElem = pElementsOrigin.begin() + i;
+            auto it_elem = elements_array.begin() + i;
 
             // Getting the geometry
-            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+            Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
 
             // Getting the integration points
-            ThisIntegrationMethod = itElem->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+            this_integration_method = it_elem->GetIntegrationMethod();
+            const Element::GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+            const unsigned int integration_points_number = integration_points.size();
 
             // Computing the Jacobian
-            Vector VectorDetJ(IntegrationPointsNumber);
-            rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
+            Vector vector_det_j(integration_points_number);
+            r_this_geometry.DeterminantOfJacobian(vector_det_j,this_integration_method);
 
             // Getting the CL
-            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,OriginProcessInfo);
+            std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+            it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,origin_process_info);
 
             // We initialize the total weigth
-            double TotalWeight = 0.0;
+            double total_weight = 0.0;
 
-            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+            for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; i_gauss_point++ )
             {
-                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                const array_1d<double, 3> local_coordinates = integration_points[i_gauss_point].Coordinates();
 
                 // We compute the corresponding weight
-                const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
-                TotalWeight += Weight;
+                const double weight = vector_det_j[i_gauss_point] * integration_points[i_gauss_point].Weight();
+                total_weight += weight;
 
                 // We compute the pondered characteristic length
-                Vector N( rThisGeometry.size() );
-                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
+                Vector N( r_this_geometry.size() );
+                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
 
                 // We compute the global coordinates
-                array_1d<double, 3> GlobalCoordinates;
-                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                array_1d<double, 3> global_coordinates;
+                global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
-                for (auto ThisVar : mInternalVariableList)
+                for (auto this_var : mInternalVariableList)
                 {
-                    double OriginValue;
-                    OriginValue = ConstitutiveLawVector[iGaussPoint]->GetValue(ThisVar, OriginValue);
+                    double origin_value;
+                    origin_value = constitutive_law_vector[i_gauss_point]->GetValue(this_var, origin_value);
 
                     // We sum all the contributions
-                    for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                    for (unsigned int i_node = 0; i_node < r_this_geometry.size(); i_node++)
                     {
                         #pragma omp atomic
-                        rThisGeometry[iNode].GetValue(ThisVar) += N[iNode] * OriginValue * Weight;
+                        r_this_geometry[i_node].GetValue(this_var) += N[i_node] * origin_value * weight;
                     }
                 }
             }
 
             // We divide by the total weight
-            for (auto ThisVar : mInternalVariableList)
+            for (auto this_var : mInternalVariableList)
             {
-                for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                for (unsigned int i_node = 0; i_node < r_this_geometry.size(); i_node++)
                 {
                     #pragma omp critical
-                    rThisGeometry[iNode].GetValue(ThisVar) /= TotalWeight;
+                    r_this_geometry[i_node].GetValue(this_var) /= total_weight;
                 }
             }
         }
@@ -818,41 +818,41 @@ private:
         if (mDimension == 2)
         {
             // We create the locator
-            BinBasedFastPointLocator<2> PointLocator = BinBasedFastPointLocator<2>(mrOriginMainModelPart);
-            PointLocator.UpdateSearchDatabase();
+            BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrOriginMainModelPart);
+            point_locator.UpdateSearchDatabase();
 
             // Iterate in the nodes
-            NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-            auto numNodes = pNode.end() - pNode.begin();
+            NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
+            auto num_nodes = nodes_array.end() - nodes_array.begin();
 
             /* Nodes */
             #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
+            for(int i = 0; i < num_nodes; i++)
             {
-                auto itNode = pNode.begin() + i;
+                auto it_node = nodes_array.begin() + i;
 
                 Vector N;
-                Element::Pointer pElement;
+                Element::Pointer p_element;
 
-                const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement, mAllocationSize);
+                const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
                 if (found == false)
                 {
                     std::cout << "WARNING: GP not found (interpolation not posible)" << std::endl;
-                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << std::endl;
+                    std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << std::endl;
                 }
                 else
                 {
-                    for (auto ThisVar : mInternalVariableList)
+                    for (auto this_var : mInternalVariableList)
                     {
-                        Vector Values(pElement->GetGeometry().size());
+                        Vector values(p_element->GetGeometry().size());
 
-                        for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
+                        for (unsigned int i_node = 0; i_node < p_element->GetGeometry().size(); i_node++)
                         {
-                            Values[iNode] = pElement->GetGeometry()[iNode].GetValue(ThisVar);
+                            values[i_node] = p_element->GetGeometry()[i_node].GetValue(this_var);
                         }
 
-                        itNode->GetValue(ThisVar) = inner_prod(Values, N);
+                        it_node->GetValue(this_var) = inner_prod(values, N);
                     }
                 }
             }
@@ -860,94 +860,94 @@ private:
         else
         {
             // We create the locator
-            BinBasedFastPointLocator<3> PointLocator = BinBasedFastPointLocator<3>(mrOriginMainModelPart);
-            PointLocator.UpdateSearchDatabase();
+            BinBasedFastPointLocator<3> point_locator = BinBasedFastPointLocator<3>(mrOriginMainModelPart);
+            point_locator.UpdateSearchDatabase();
 
             // Iterate in the nodes
-            NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-            auto numNodes = pNode.end() - pNode.begin();
+            NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
+            auto num_nodes = nodes_array.end() - nodes_array.begin();
 
             /* Nodes */
             #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
+            for(int i = 0; i < num_nodes; i++)
             {
-                auto itNode = pNode.begin() + i;
+                auto it_node = nodes_array.begin() + i;
 
                 Vector N;
-                Element::Pointer pElement;
+                Element::Pointer p_element;
 
-                const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement, mAllocationSize);
+                const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
                 if (found == false)
                 {
-                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                    std::cout << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << std::endl;
+                    std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
                 }
                 else
                 {
-                    for (auto ThisVar : mInternalVariableList)
+                    for (auto this_var : mInternalVariableList)
                     {
-                        Vector Values(pElement->GetGeometry().size());
+                        Vector values(p_element->GetGeometry().size());
 
-                        for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
+                        for (unsigned int i_node = 0; i_node < p_element->GetGeometry().size(); i_node++)
                         {
-                            Values[iNode] = pElement->GetGeometry()[iNode].GetValue(ThisVar);
+                            values[i_node] = p_element->GetGeometry()[i_node].GetValue(this_var);
                         }
 
-                        itNode->GetValue(ThisVar) = inner_prod(Values, N);
+                        it_node->GetValue(this_var) = inner_prod(values, N);
                     }
                 }
             }
         }
 
         // Finally we interpolate to the new GP
-        ElementsArrayType& pElementsDestination = mrDestinationMainModelPart.Elements();
-        numElements = pElementsDestination.end() - pElementsDestination.begin();
+        ElementsArrayType& p_elementsDestination = mrDestinationMainModelPart.Elements();
+        num_elements = p_elementsDestination.end() - p_elementsDestination.begin();
 
-        const ProcessInfo& DestinationProcessInfo = mrOriginMainModelPart.GetProcessInfo();
+        const ProcessInfo& destination_process_info = mrOriginMainModelPart.GetProcessInfo();
 
         /* Elements */
         #pragma omp parallel for
-        for(int i = 0; i < numElements; i++)
+        for(int i = 0; i < num_elements; i++)
         {
-            auto itElem = pElementsDestination.begin() + i;
+            auto it_elem = p_elementsDestination.begin() + i;
 
             // Getting the geometry
-            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+            Element::GeometryType& r_this_geometry = it_elem->GetGeometry();
 
             // Getting the integration points
-            ThisIntegrationMethod = itElem->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+            this_integration_method = it_elem->GetIntegrationMethod();
+            const Element::GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+            const unsigned int integration_points_number = integration_points.size();
 
             // Getting the CL
-            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,DestinationProcessInfo);
+            std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+            it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,destination_process_info);
 
-            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+            for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; i_gauss_point++ )
             {
-                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                array_1d<double, 3> local_coordinates = integration_points[i_gauss_point].Coordinates();
 
                 // We compute the pondered characteristic length
-                Vector N( rThisGeometry.size() );
-                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
+                Vector N( r_this_geometry.size() );
+                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
 
                 // We compute the global coordinates
-                array_1d<double, 3> GlobalCoordinates;
-                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                array_1d<double, 3> global_coordinates;
+                global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
-                Vector Values(rThisGeometry.size() );
+                Vector values(r_this_geometry.size() );
 
-                for (auto ThisVar : mInternalVariableList)
+                for (auto this_var : mInternalVariableList)
                 {
-                    for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                    for (unsigned int i_node = 0; i_node < r_this_geometry.size(); i_node++)
                     {
-                        Values[iNode] = rThisGeometry[iNode].GetValue(ThisVar);
+                        values[i_node] = r_this_geometry[i_node].GetValue(this_var);
                     }
 
-                    const double DestinationValue = inner_prod(Values, N);
+                    const double destination_value = inner_prod(values, N);
 
-                    ConstitutiveLawVector[iGaussPoint]->SetValue(ThisVar, DestinationValue, DestinationProcessInfo);
+                    constitutive_law_vector[i_gauss_point]->SetValue(this_var, destination_value, destination_process_info);
                 }
             }
         }
