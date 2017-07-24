@@ -14,7 +14,7 @@
 #define KRATOS_MMG_PROCESS
 
 // System includes
-// #include <unordered_map> // TODO: Change boost unordered map by std
+#include <unordered_map>
 
 // External includes
 // The includes related with the MMG library
@@ -82,23 +82,58 @@ namespace Kratos
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
     
-    #if !defined(KEY_COMPAROR_VECTOR)
-    #define KEY_COMPAROR_VECTOR
-    template<class TClassType>
-    struct KeyComparorVector
+    #if !defined(HASH_COMBINE)
+    #define HASH_COMBINE
+    template <class TClassType>
+    inline void HashCombine(std::size_t& Seed, const TClassType& Value)
     {
-        bool operator()(const vector<TClassType>& lhs, const vector<TClassType>& rhs) const
+        std::hash<TClassType> hasher;
+        Seed ^= hasher(Value) + 0x9e3779b9 + (Seed<<6) + (Seed>>2);
+    }
+    #endif
+    
+    #if !defined(HASH_RANGE)
+    #define HASH_RANGE
+    template <class TClassType>
+    inline std::size_t HashRange(TClassType First, TClassType Last)
+    {
+        std::size_t seed = 0;
+
+        while (First!=Last)
+        {
+            HashCombine(seed, *First);
+            ++First;
+        }
+        
+        return seed;
+    }
+    #endif
+    
+    #if !defined(KEY_COMPAROR_RANGE)
+    #define KEY_COMPAROR_RANGE
+    template<class TClassType>
+    struct KeyComparorRange
+    {
+        bool operator()(const TClassType& lhs, const TClassType& rhs) const
         {
             if(lhs.size() != rhs.size())
             {
                 return false;
             }
 
-            for(std::size_t i=0; i<lhs.size(); i++)
+            auto it_lhs = lhs.begin();
+            auto it_rhs = rhs.begin();
+
+            while(it_lhs != lhs.end()) // NOTE: We already checked that are same size
             {
-                if(lhs[i] != rhs[i]) 
+                if(*it_lhs != *it_rhs) 
                 {
                     return false;
+                }
+                if(it_lhs != lhs.end())
+                {
+                    ++it_lhs;
+                    ++it_rhs;
                 }
             }
 
@@ -107,18 +142,18 @@ namespace Kratos
     };
     #endif
     
-    #if !defined(KEY_HASHER_VECTOR)
-    #define KEY_HASHER_VECTOR
+    #if !defined(KEY_HASHER_RANGE)
+    #define KEY_HASHER_RANGE
     template<class TClassType>
-    struct KeyHasherVector
+    struct KeyHasherRange
     {
-        std::size_t operator()(const vector<TClassType>& k) const
+        std::size_t operator()(const TClassType& rRange) const
         {
-            return boost::hash_range(k.begin(), k.end());
+            return HashRange(rRange.begin(), rRange.end());
         }
     };
     #endif
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -300,7 +335,7 @@ private:
     FrameworkEulerLagrange mFramework;
     
     // Where the sub model parts IDs are stored
-    boost::unordered_map<int,std::vector<std::string>> mColors;
+    std::unordered_map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
     std::vector<Element::Pointer>   mpRefElement; // TODO: Use the colors to be able of remesh more than one type of element or condition (not just the geometry -> Use an unordered_map)
@@ -593,9 +628,9 @@ private:
      */
     
     void ComputeColors(
-        boost::unordered_map<int,int>& NodeColors,
-        boost::unordered_map<int,int>& CondColors,
-        boost::unordered_map<int,int>& ElemColors
+        std::unordered_map<int,int>& NodeColors,
+        std::unordered_map<int,int>& CondColors,
+        std::unordered_map<int,int>& ElemColors
         );
 
     /**

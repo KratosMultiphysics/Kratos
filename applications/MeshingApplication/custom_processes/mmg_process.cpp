@@ -183,7 +183,7 @@ template<unsigned int TDim>
 void MmgProcess<TDim>::InitializeMeshData()
 {                
     // First we compute the colors
-    boost::unordered_map<int,int> nodes_colors, cond_colors, elem_colors;
+    std::unordered_map<int,int> nodes_colors, cond_colors, elem_colors;
     ComputeColors(nodes_colors, cond_colors, elem_colors);
     
     /////////* MESH FILE */////////
@@ -579,7 +579,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                                     
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
-                    std::vector<std::string> color_list = mColors[prop_id];
+                    std::vector<std::string>& color_list = mColors[prop_id];
                     for (auto sub_model_part_name : color_list)
                     {
                         ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
@@ -617,7 +617,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                                         
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
-                        std::vector<std::string> color_list = mColors[prop_id];
+                        std::vector<std::string>& color_list = mColors[prop_id];
                         for (auto sub_model_part_name : color_list)
                         {
                             ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
@@ -657,7 +657,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
-                    std::vector<std::string> color_list = mColors[prop_id];
+                    std::vector<std::string>& color_list = mColors[prop_id];
                     for (auto sub_model_part_name : color_list)
                     {
                         ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
@@ -695,7 +695,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
-                        std::vector<std::string> color_list = mColors[prop_id];
+                        std::vector<std::string>& color_list = mColors[prop_id];
                         for (auto sub_model_part_name : color_list)
                         {
                             ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
@@ -843,12 +843,12 @@ void MmgProcess<TDim>::InitializeElementsAndConditions()
 template<unsigned int TDim>
 std::vector<unsigned int> MmgProcess<TDim>::CheckNodes()
 {
-    typedef boost::unordered_map<vector<double>, unsigned int, KeyHasherVector<double>, KeyComparorVector<double> > HashMap;
+    typedef std::unordered_map<std::vector<double>, unsigned int, KeyHasherRange<std::vector<double>>, KeyComparorRange<std::vector<double>> > HashMap;
     HashMap node_map;
     
     std::vector<unsigned int> nodes_to_remove_ids;
     
-    vector<double> coords(TDim);
+    std::vector<double> coords(TDim);
     
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
@@ -882,10 +882,10 @@ std::vector<unsigned int> MmgProcess<TDim>::CheckNodes()
 template<>  
 std::vector<unsigned int> MmgProcess<2>::CheckConditions0()
 {
-    typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > HashMap;
+    typedef std::unordered_map<std::vector<unsigned int>, unsigned int, KeyHasherRange<std::vector<unsigned int>>, KeyComparorRange<std::vector<unsigned int>> > HashMap;
     HashMap edge_map;
 
-    vector<unsigned int> ids(2);
+    std::vector<unsigned int> ids(2);
 
     std::vector<unsigned int> conditions_to_remove;
     
@@ -922,10 +922,10 @@ std::vector<unsigned int> MmgProcess<2>::CheckConditions0()
 template<>  
 std::vector<unsigned int> MmgProcess<3>::CheckConditions0()
 {
-    typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > HashMap;
+    typedef std::unordered_map<std::vector<unsigned int>, unsigned int, KeyHasherRange<std::vector<unsigned int>>, KeyComparorRange<std::vector<unsigned int>> > HashMap;
     HashMap triangle_map;
 
-    vector<unsigned int> ids_triangles(3);
+    std::vector<unsigned int> ids_triangles(3);
 
     std::vector<unsigned int> conditions_to_remove;
             
@@ -962,10 +962,10 @@ std::vector<unsigned int> MmgProcess<3>::CheckConditions0()
 template<>  
 std::vector<unsigned int> MmgProcess<3>::CheckConditions1()
 {
-    typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > HashMap;
+    typedef std::unordered_map<std::vector<unsigned int>, unsigned int, KeyHasherRange<std::vector<unsigned int>>, KeyComparorRange<std::vector<unsigned int>> > HashMap;
     HashMap quadrilateral_map;
 
-    vector<unsigned int> ids_quadrialteral(4);
+    std::vector<unsigned int> ids_quadrialteral(4);
 
     std::vector<unsigned int> conditions_to_remove;
             
@@ -1003,10 +1003,10 @@ std::vector<unsigned int> MmgProcess<3>::CheckConditions1()
 template<>  
 std::vector<unsigned int> MmgProcess<2>::CheckElements0()
 {
-    typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > HashMap;
+    typedef std::unordered_map<std::vector<unsigned int>, unsigned int, KeyHasherRange<std::vector<unsigned int>>, KeyComparorRange<std::vector<unsigned int>> > HashMap;
     HashMap triangle_map;
 
-    vector<unsigned int> ids_triangles(3);
+    std::vector<unsigned int> ids_triangles(3);
 
     std::vector<unsigned int> elements_to_remove;
     
@@ -1044,10 +1044,10 @@ std::vector<unsigned int> MmgProcess<2>::CheckElements0()
 template<>  
 std::vector<unsigned int> MmgProcess<3>::CheckElements0()
 {
-    typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > HashMap;
+    typedef std::unordered_map<std::vector<unsigned int>, unsigned int, KeyHasherRange<std::vector<unsigned int>>, KeyComparorRange<std::vector<unsigned int>> > HashMap;
     HashMap triangle_map;
 
-    vector<unsigned int> ids_tetrahedron(4);
+    std::vector<unsigned int> ids_tetrahedron(4);
 
     std::vector<unsigned int> elements_to_remove;
             
@@ -1085,10 +1085,10 @@ std::vector<unsigned int> MmgProcess<3>::CheckElements0()
 template<>  
 std::vector<unsigned int> MmgProcess<3>::CheckElements1()
 {
-    typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > HashMap;
+    typedef std::unordered_map<std::vector<unsigned int>, unsigned int, KeyHasherRange<std::vector<unsigned int>>, KeyComparorRange<std::vector<unsigned int>> > HashMap;
     HashMap prism_map;
 
-    vector<unsigned int> ids_prisms(6);
+    std::vector<unsigned int> ids_prisms(6);
 
     std::vector<unsigned int> elements_to_remove;
             
@@ -1985,8 +1985,8 @@ void MmgProcess<2>::SetConditions(
     }
     else
     {
-        const unsigned int SizeGeometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << SizeGeometry << " Type: " << Geom.GetGeometryType() << std::endl;
+        const unsigned int size_geometry = Geom.size();
+        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -2085,8 +2085,8 @@ void MmgProcess<3>::SetConditions(
     }
     else
     {
-        const unsigned int SizeGeometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << SizeGeometry << " Type: " << Geom.GetGeometryType() << std::endl;
+        const unsigned int size_geometry = Geom.size();
+        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -2150,13 +2150,13 @@ void MmgProcess<3>::SetElements(
 //         const int id_6 = Geom[7].Id(); // 7th node Id
 //         const int id_6 = Geom[8].Id(); // 8th node Id
         
-        const unsigned int SizeGeometry = Geom.size();
-        KRATOS_ERROR << "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << SizeGeometry << std::endl;
+        const unsigned int size_geometry = Geom.size();
+        KRATOS_ERROR << "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
     }
     else
     {
-        const unsigned int SizeGeometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << SizeGeometry << std::endl;
+        const unsigned int size_geometry = Geom.size();
+        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
     }
 }
 
@@ -2165,14 +2165,14 @@ void MmgProcess<3>::SetElements(
     
 template<unsigned int TDim>
 void MmgProcess<TDim>::ComputeColors(
-    boost::unordered_map<int,int>& NodesColors,
-    boost::unordered_map<int,int>& CondColors,
-    boost::unordered_map<int,int>& ElemColors
+    std::unordered_map<int,int>& NodesColors,
+    std::unordered_map<int,int>& CondColors,
+    std::unordered_map<int,int>& ElemColors
     )
 {        
     // Initialize and create the auxiliar maps
     const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
-    boost::unordered_map<int,std::set<int>> aux_nodes_Colors, aux_cond_Colors, aux_elem_Colors;
+    std::unordered_map<int,std::set<int>> aux_nodes_colors, aux_cond_colors, aux_elem_colors;
     
     std::vector<std::string> model_part_names;
     model_part_names.push_back(mrThisModelPart.Name());
@@ -2189,18 +2189,18 @@ void MmgProcess<TDim>::ComputeColors(
         
         if (color > 0)
         {
-            ModelPart& rSubModelPart = mrThisModelPart.GetSubModelPart(model_part_names[i_sub_model_part]);
+            ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(model_part_names[i_sub_model_part]);
             
             // Iterate in the nodes
-            NodesArrayType& nodes_array = rSubModelPart.Nodes();
+            NodesArrayType& nodes_array = r_sub_model_part.Nodes();
             const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
             
             // Iterate in the conditions
-            ConditionsArrayType& conditions_array = rSubModelPart.Conditions();
+            ConditionsArrayType& conditions_array = r_sub_model_part.Conditions();
             const SizeType num_conditions = conditions_array.end() - conditions_array.begin();
             
             // Iterate in the elements
-            ElementsArrayType& elements_array = rSubModelPart.Elements();
+            ElementsArrayType& elements_array = r_sub_model_part.Elements();
             const SizeType num_elements = elements_array.end() - elements_array.begin();
             
             /* Nodes */
@@ -2208,7 +2208,7 @@ void MmgProcess<TDim>::ComputeColors(
             for(SizeType i = 0; i < num_nodes; i++) 
             {
                 auto it_node = nodes_array.begin() + i;
-                aux_nodes_Colors[it_node->Id()].insert(color);
+                aux_nodes_colors[it_node->Id()].insert(color);
             }
             
             /* Conditions */
@@ -2216,7 +2216,7 @@ void MmgProcess<TDim>::ComputeColors(
             for(SizeType i = 0; i < num_conditions; i++) 
             {
                 auto it_cond = conditions_array.begin() + i;
-                aux_cond_Colors[it_cond->Id()].insert(color);
+                aux_cond_colors[it_cond->Id()].insert(color);
             }
             
             /* Elements */
@@ -2224,24 +2224,20 @@ void MmgProcess<TDim>::ComputeColors(
             for(SizeType i = 0; i < num_elements; i++) 
             {
                 auto it_elem = elements_array.begin() + i;
-                aux_elem_Colors[it_elem->Id()].insert(color);
+                aux_elem_colors[it_elem->Id()].insert(color);
             }
         }
         
         color += 1;
     }
     
-    // The iterator for the auxiliar maps is created
-    typedef boost::unordered_map<int,std::set<int>>::iterator itType;
-    
     // Now detect all the cases in which a node or a cond belongs to more than one part simultaneously 
-    boost::unordered_map<std::set<int>, int> combinations;
+    std::unordered_map<std::set<int>, int, KeyHasherRange<std::set<int>>, KeyComparorRange<std::set<int>> > combinations;
     
     /* Nodes */
-    for(auto & aux_nodes_Color : aux_nodes_Colors) 
+    for(auto & aux_nodes_color : aux_nodes_colors) 
     {
-//             const int key = iterator->first;
-        const std::set<int> value = aux_nodes_Color.second;
+        const std::set<int> value = aux_nodes_color.second;
         
         if (value.size() > 1)
         {
@@ -2250,10 +2246,9 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Conditions */
-    for(auto & aux_cond_Color : aux_cond_Colors) 
+    for(auto & aux_cond_color : aux_cond_colors) 
     {
-//         const int key = iterator->first;
-        const std::set<int> value = aux_cond_Color.second;
+        const std::set<int> value = aux_cond_color.second;
         
         if (value.size() > 1)
         {
@@ -2262,10 +2257,9 @@ void MmgProcess<TDim>::ComputeColors(
     }
 
     /* Elements */
-    for(auto & aux_elem_Color : aux_elem_Colors) 
+    for(auto & aux_elem_color : aux_elem_colors) 
     {
-//         const int key = iterator->first;
-        const std::set<int> value = aux_elem_Color.second;
+        const std::set<int> value = aux_elem_color.second;
         
         if (value.size() > 1)
         {
@@ -2274,11 +2268,9 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Combinations */
-    typedef boost::unordered_map<std::set<int>,int>::iterator CombType;
-    for(CombType iterator = combinations.begin(); iterator != combinations.end(); iterator++) 
+    for(auto & combination : combinations) 
     {
-        const std::set<int> key = iterator->first;
-//         const int value = iterator->second;
+        const std::set<int> key = combination.first;
         
         for(int it : key) 
         {
@@ -2286,15 +2278,14 @@ void MmgProcess<TDim>::ComputeColors(
         }
         combinations[key] = color;
         color += 1;
-        
     }
     
     // The final maps are created
     /* Nodes */
-    for(auto & aux_nodes_Color : aux_nodes_Colors) 
+    for(auto & aux_nodes_color : aux_nodes_colors) 
     {
-        const int key = aux_nodes_Color.first;
-        const std::set<int> value = aux_nodes_Color.second;
+        const int key = aux_nodes_color.first;
+        const std::set<int> value = aux_nodes_color.second;
         
         if (value.size() == 0)
         {
@@ -2311,10 +2302,10 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Conditions */
-    for(auto & aux_cond_Color : aux_cond_Colors) 
+    for(auto & aux_cond_color : aux_cond_colors) 
     {
-        const int key = aux_cond_Color.first;
-        const std::set<int> value = aux_cond_Color.second;
+        const int key = aux_cond_color.first;
+        const std::set<int> value = aux_cond_color.second;
         
         if (value.size() == 0)
         {
@@ -2331,10 +2322,10 @@ void MmgProcess<TDim>::ComputeColors(
     }
     
     /* Elements */
-    for(auto & aux_elem_Color : aux_elem_Colors) 
+    for(auto & aux_elem_color : aux_elem_colors) 
     {
-        const int key = aux_elem_Color.first;
-        const std::set<int> value = aux_elem_Color.second;
+        const int key = aux_elem_color.first;
+        const std::set<int> value = aux_elem_color.second;
         
         if (value.size() == 0)
         {
