@@ -77,12 +77,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // TODO hide constructors that are only called from the derived classes
-    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)    // Default Constructor /TODO maybe delete zeros
-    {
-        SetInitialValuesToMembers();
-    }
-
     InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z)   // constuct from coordinates
     {
         SetInitialValuesToMembers();
@@ -253,6 +247,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    int mEchoLevel = 0;
 
     ///@}
     ///@name Protected Operators
@@ -262,6 +257,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    // This constructor is called by its derived classes
+    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)
+    {
+        SetInitialValuesToMembers();
+    }
 
     void SetInitialValuesToMembers()
     {

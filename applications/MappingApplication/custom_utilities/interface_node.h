@@ -65,9 +65,10 @@ public:
     ///@{
 
     /// Default constructor.
-    InterfaceNode(Node<3>& rNode) : mpNode(&rNode)
+    InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
+        mEchoLevel = EchoLevel;
     }
 
     /// Destructor.

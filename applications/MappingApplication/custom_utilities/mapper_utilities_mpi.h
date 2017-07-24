@@ -259,7 +259,7 @@ public:
         pLocalBoundingBoxWithTolerance[4] = pLocalBoundingBox[4] + Tolerance;
         pLocalBoundingBoxWithTolerance[5] = pLocalBoundingBox[5] - Tolerance;
 
-        if (EchoLevel > 3)
+        if (EchoLevel >= 4)
         {
             MapperUtilitiesMPI::PrintBoundingBox(pLocalBoundingBoxWithTolerance, CommRank);
         }

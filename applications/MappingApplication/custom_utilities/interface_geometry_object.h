@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Default constructor.
-    InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int ConstructionIndex,
+    InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int EchoLevel, const int ConstructionIndex,
                             GeometryData::IntegrationMethod IntegrationMethod = GeometryData::NumberOfIntegrationMethods) :
         mpGeometry(&rGeometry),
         mApproximationTolerance(ApproximationTolerance),
@@ -76,7 +76,8 @@ public:
         mGeometryFamily = mpGeometry->GetGeometryFamily();
         mNumPoints = mpGeometry->PointsNumber();
         KRATOS_ERROR_IF(mNumPoints == 0) << "Number of Points cannot be zero" << std::endl;
-        mpPoint = &(mpGeometry->GetPoint(0));
+        mpPoint = &(mpGeometry->GetPoint(0)); // used for debugging
+        mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
@@ -104,7 +105,7 @@ public:
         // Distance is the distance to the center and not the projection distance, therefore it is unused
         bool is_closer = false;
         bool is_inside = false;
-        double projection_distance;
+        double projection_distance = std::numeric_limits<double>::max();
         array_1d<double, 3> projection_local_coords;
 
         if (mGeometryFamily == GeometryData::Kratos_Linear
@@ -137,16 +138,18 @@ public:
                         projection_distance);
         }
         else
-        {
+        {   
+            if (mEchoLevel >= 2) {
             std::cout << "MAPPER WARNING, Unsupported geometry, "
                       << "using an approximation" << std::endl;
+            }
             return false;
         }
 
-        projection_distance = fabs(projection_distance);
-
         if (is_inside)
         {
+            projection_distance = fabs(projection_distance);
+
             if (projection_distance < rMinDistance)
             {
                 rMinDistance = projection_distance;

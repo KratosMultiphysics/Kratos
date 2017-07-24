@@ -549,7 +549,7 @@ private:
         int i = 0;
         for (auto &local_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
         {
-            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node) );
+            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node, mEchoLevel) );
             ++i;
         }
     }
@@ -586,23 +586,27 @@ private:
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                             ApproximationTolerance,
+                                            mEchoLevel, 
                                             0) ));
             }
             for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
                                             ApproximationTolerance,
+                                            mEchoLevel,
                                             0) ));
             }
         }
         else     // construct with condition gauss points
         {
+            KRATOS_ERROR << "This is not implemented at the moment" << std::endl;
             for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
             {
                 for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
                 {
                     mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                                 ApproximationTolerance,
+                                                mEchoLevel,
                                                 g, IntegrationMethod) ));
                 }
             }
@@ -612,6 +616,7 @@ private:
                 {
                     mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
                                                 ApproximationTolerance,
+                                                mEchoLevel,
                                                 g, IntegrationMethod) ));
                 }
             }

@@ -105,7 +105,7 @@ public:
                                                      mEchoLevel,
                                                      mApproximationTolerance) );
 
-        if (mEchoLevel > 3)
+        if (mEchoLevel >= 4)
         {
             mpInterfaceObjectManagerOrigin->PrintInterfaceObjects("Origin");
         }
@@ -127,7 +127,7 @@ public:
                         mEchoLevel,
                         mApproximationTolerance) );
 
-        if (mEchoLevel > 3)
+        if (mEchoLevel >= 4)
         {
             mpInterfaceObjectManagerDestination->PrintInterfaceObjects("Destination");
         }
@@ -352,9 +352,9 @@ private:
     {
         mpSearchStructure->Search(InitialSearchRadius,
                                   MaxSearchIterations);
-        if (mEchoLevel > 3)
+        if (mEchoLevel >= 4)
         {
-            PrintPairs();
+            // PrintPairs(); // TODO reimplement!
         }
     }
 

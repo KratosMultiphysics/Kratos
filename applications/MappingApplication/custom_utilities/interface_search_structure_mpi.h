@@ -243,7 +243,7 @@ private:
         MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, mCommSize,
                 rDomainsColoredGraph, rMaxColors);
         // Output the colored Graph
-        if (mCommRank == 0 && mEchoLevel > 2)
+        if (mCommRank == 0 && mEchoLevel >= 3)
         {
             MapperUtilitiesMPI::PrintGraph(rDomainsColoredGraph, rMaxColors);
         }
@@ -376,7 +376,7 @@ private:
         mDomainsColoredGraph = rDomainsColoredGraph; // save it for the mapping
         mMaxColors = rMaxColors;
         // Output the colored Graph
-        if (mCommRank == 0 && mEchoLevel > 2)
+        if (mCommRank == 0 && mEchoLevel >= 3)
         {
             MapperUtilitiesMPI::PrintGraph(rDomainsColoredGraph, rMaxColors);
         }

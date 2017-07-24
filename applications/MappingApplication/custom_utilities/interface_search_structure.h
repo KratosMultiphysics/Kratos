@@ -124,7 +124,7 @@ public:
                 last_iteration = true;
             }
 
-            if (mEchoLevel > 1 && mCommRank == 0)
+            if (mEchoLevel >= 2 && mCommRank == 0)
             {
                 std::cout << "MAPPER WARNING, search radius was increased, "
                           << "another search iteration is conducted, "
@@ -135,7 +135,7 @@ public:
 
             ConductSearchIteration(last_iteration);
         }
-        if (mEchoLevel > 1)
+        if (mEchoLevel >= 2)
         {
             mpInterfaceObjectManager->CheckResults();
         }

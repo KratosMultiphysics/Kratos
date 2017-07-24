@@ -207,7 +207,7 @@ public:
         }
         else
         {
-            if (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+            if (EchoLevel >= 2 && rModelPart.GetCommunicator().MyPID() == 0)
                 std::cout << "MAPPER WARNING, no conditions/elements for search radius "
                           << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
                           << "using nodes (less efficient)" << std::endl;
