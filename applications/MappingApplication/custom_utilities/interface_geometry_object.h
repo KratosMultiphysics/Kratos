@@ -80,10 +80,17 @@ public:
         mIntegrationMethod(IntegrationMethod)
     {
         SetCoordinates();
+    
         mGeometryFamily = mpGeometry->GetGeometryFamily();
+        KRATOS_ERROR_IF(mGeometryFamily == GeometryData::Kratos_Point) 
+            << "Elements/Conditions with point-based geometries cannot be used with interpolative "
+            << "Mapping, use the Nearest Neighbor Mapper instead!" << std::endl;
+    
         mNumPoints = mpGeometry->PointsNumber();
         KRATOS_ERROR_IF(mNumPoints == 0) << "Number of Points cannot be zero" << std::endl;
+    
         mpPoint = &(mpGeometry->GetPoint(0)); // used for debugging
+    
         mEchoLevel = EchoLevel;
     }
 
@@ -147,12 +154,14 @@ public:
         else
         {   
             if (mEchoLevel >= 2) {
-            std::cout << "MAPPER WARNING, Unsupported geometry for InterfaceGeometryObject "
-                      << "with Center at: \t[ "
-                      << this->X() << " | "
-                      << this->Y() << " | "
-                      << this->Z() << " ], "
-                      << "using an approximation (Nearest Node)" << std::endl;
+                std::cout << "MAPPER WARNING, Unsupported geometry, "
+                          << "using an approximation (Nearest Node)"
+                          << " | InterfaceGeometryObject, Center: [ "
+                          << this->X() << " | "
+                          << this->Y() << " | "
+                          << this->Z() << " ], "
+                          << "(KratosGeometryFamily \"" << mGeometryFamily 
+                          << "\", num points: " << mNumPoints << std::endl;              
             }
             return false;
         }
