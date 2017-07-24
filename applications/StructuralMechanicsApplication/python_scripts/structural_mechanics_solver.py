@@ -30,7 +30,7 @@ class MechanicalSolver(object):
     The mechanical_solver, builder_and_solver, etc. should alway be retrieved
     using the getter functions get_mechanical_solver, get_builder_and_solver,
     etc. from this base class.
-    
+
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
@@ -58,7 +58,6 @@ class MechanicalSolver(object):
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
-            "stabilization_factor": null,
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
@@ -177,8 +176,6 @@ class MechanicalSolver(object):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         print("::[MechanicalSolver]:: Initializing ...")
-        if not self.settings["stabilization_factor"].IsNull():
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -211,7 +208,7 @@ class MechanicalSolver(object):
             self.Clear()
         mechanical_solver = self.get_mechanical_solver()
         mechanical_solver.Solve()
-        
+
     def InitializeSolutionStep(self):
         self.get_mechanical_solver().InitializeSolutionStep()
 
@@ -255,12 +252,12 @@ class MechanicalSolver(object):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
-    
+
     def get_mechanical_solver(self):
         if not hasattr(self, '_mechanical_solver'):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
-    
+
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
@@ -279,7 +276,7 @@ class MechanicalSolver(object):
         else:
             materials_imported = False
         return materials_imported
-    
+
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.
 
@@ -403,7 +400,7 @@ class MechanicalSolver(object):
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         return convergence_criterion.mechanical_convergence_criterion
-    
+
     def _create_linear_solver(self):
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -419,7 +416,7 @@ class MechanicalSolver(object):
 
     def _create_mechanical_solver(self):
         """Create the mechanical solver for the structural problem.
-        
+
         The mechanical solver must provide the functions defined in SolutionStrategy.
         """
         raise Exception("Mechanical solver must be implemented in the derived class.")

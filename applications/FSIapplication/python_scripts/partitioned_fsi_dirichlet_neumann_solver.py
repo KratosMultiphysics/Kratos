@@ -135,7 +135,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         print("     Mesh residual norm: ", mesh_res_norm)
 
         ## Finalize solution step
-        self.fluid_solver.SolverFinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()
         self.structure_solver.FinalizeSolutionStep()
         self.coupling_utility.FinalizeSolutionStep()
 
@@ -196,7 +196,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self._ComputeCorrectedInterfaceDisplacementDerivatives()
 
         # Solve fluid problem
-        self.fluid_solver.SolverSolveSolutionStep()
+        self.fluid_solver.SolveSolutionStep()
 
 
     def _SolveStructureSingleFaced(self):

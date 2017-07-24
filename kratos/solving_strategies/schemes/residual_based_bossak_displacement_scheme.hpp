@@ -126,15 +126,15 @@ public:
     /**
      * Clone
      */
-    virtual BaseTypePointer Clone() override
+    BaseTypePointer Clone() override
     {
         return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
-    virtual ~ResidualBasedBossakDisplacementScheme
-    () {}
+    ~ResidualBasedBossakDisplacementScheme
+    () override {}
 
     ///@}
     ///@name Operators
@@ -788,7 +788,7 @@ public:
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 

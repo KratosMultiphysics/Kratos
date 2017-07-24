@@ -155,8 +155,7 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                                self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                                self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                               self.settings["absolute_pressure_tolerance"].GetDouble(),
-                                                               self.EpetraCommunicator)
+                                                               self.settings["absolute_pressure_tolerance"].GetDouble())
 
         ## Creating the Trilinos time scheme
         if (self.settings["turbulence_model"].GetString() == "None"):
@@ -201,8 +200,8 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        # self.solver.Initialize()
-        self.solver.Check()
+        (self.solver).Initialize()
+        (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())

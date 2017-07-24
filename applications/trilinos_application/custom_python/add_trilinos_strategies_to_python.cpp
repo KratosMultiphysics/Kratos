@@ -244,18 +244,16 @@ void AddStrategies()
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
-    class_< TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
+    using TrilinosLaplacianMeshMovingStrategyType = TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
+    class_< TrilinosLaplacianMeshMovingStrategyType, bases<TrilinosBaseSolvingStrategyType>, boost::noncopyable >
     ("TrilinosLaplacianMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, int, bool >() )
-    .def("MoveNodes",&TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::MoveNodes)
-    .def("Solve", &TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
-    .def("SetEchoLevel", &TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
+    .def("CalculateMeshVelocities", &TrilinosLaplacianMeshMovingStrategyType::CalculateMeshVelocities)
     ;
 
-    class_< TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
+    using TrilinosStructuralMeshMovingStrategyType = TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
+    class_< TrilinosStructuralMeshMovingStrategyType, bases< TrilinosBaseSolvingStrategyType >, boost::noncopyable >
     ("TrilinosStructuralMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool >() )
-    .def("MoveNodes",&TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::MoveNodes)
-    .def("Solve", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
-    .def("SetEchoLevel", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
+    .def("CalculateMeshVelocities", &TrilinosStructuralMeshMovingStrategyType::CalculateMeshVelocities)
     ;
 
 }

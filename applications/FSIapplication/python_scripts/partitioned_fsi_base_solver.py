@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Import utilities
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
+import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -184,9 +185,8 @@ class PartitionedFSIBaseSolver:
         coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
 
         # Construct the structure solver
-        structure_solver_module = __import__(self.settings["structure_solver_settings"]["solver_type"].GetString())
-        self.structure_solver = structure_solver_module.CreateSolver(self.structure_main_model_part,
-                                                                     self.settings["structure_solver_settings"])
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part,
+                                                                               project_parameters["structure_solver_settings"])
         print("* Structure solver constructed.")
 
         # Construct the fluid solver
@@ -261,23 +261,22 @@ class PartitionedFSIBaseSolver:
 
     def Initialize(self):
         # Initialize fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitialize()
-        self.structure_solver.InitializeStrategy()
+        self.fluid_solver.Initialize()
+        self.structure_solver.Initialize()
         self.coupling_utility.Initialize()
 
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitializeSolutionStep()
+        self.fluid_solver.InitializeSolutionStep()
         self.structure_solver.InitializeSolutionStep()
         self.coupling_utility.InitializeSolutionStep()
 
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
-        self.fluid_solver.SolverPredict()
+        self.fluid_solver.Predict()
         self.structure_solver.Predict()
-
 
     def GetComputingModelPart(self):
         pass

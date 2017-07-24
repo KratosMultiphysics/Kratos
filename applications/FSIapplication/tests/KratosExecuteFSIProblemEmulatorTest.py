@@ -67,7 +67,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
 
     def Solve(self):
 
-        self.structure_solver.InitializeStrategy()
+        self.structure_solver.Initialize()
 
         # Stepping and time settings
         Dt = self.ProjectParameters["structure_solver_settings"]["problem_data"]["time_step"].GetDouble()
@@ -110,8 +110,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             self.coupling_utility.InitializeSolutionStep()
 
             for nl_it in range(1,max_nl_it+1):
-                self.structure_solver.main_model_part.ProcessInfo[KratosFSI.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it  ###### USELESS?¿?¿
-
+                
                 self.coupling_utility.InitializeNonLinearIteration()
 
                 # Residual computation

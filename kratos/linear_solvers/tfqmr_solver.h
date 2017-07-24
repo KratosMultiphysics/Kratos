@@ -111,7 +111,7 @@ public:
 
 
     /// Destructor.
-    virtual ~TFQMRSolver() {}
+    ~TFQMRSolver() override {}
 
 
     /** Normal solve method.
