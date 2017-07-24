@@ -390,7 +390,7 @@ void MmgProcess<TDim>::InitializeSolData()
     
     SetSolSizeTensor(num_nodes);
 
-//     #pragma omp parallel for 
+    #pragma omp parallel for 
     for(SizeType i = 0; i < num_nodes; i++) 
     {
         auto it_node = nodes_array.begin() + i;
@@ -490,24 +490,43 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     ModelPart r_old_model_part;
     
     // First we empty the model part
-    for (NodeConstantIterator it_node = mrThisModelPart.NodesBegin(); it_node != mrThisModelPart.NodesEnd(); it_node++)
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
+    
+    #pragma omp parallel for 
+    for(SizeType i = 0; i < num_nodes; i++) 
     {
+        auto it_node = nodes_array.begin() + i;
+        
         it_node->Set(TO_ERASE, true);
-        r_old_model_part.AddNode(*(it_node.base()));
     }
+    r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
     
-    for (ConditionConstantIterator it_cond = mrThisModelPart.ConditionsBegin(); it_cond != mrThisModelPart.ConditionsEnd(); it_cond++)
+    ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+    const SizeType num_conditions = conditions_array.end() - conditions_array.begin();
+    
+    #pragma omp parallel for 
+    for(SizeType i = 0; i < num_conditions; i++) 
     {
+        auto it_cond = conditions_array.begin() + i;
+        
         it_cond->Set(TO_ERASE, true);
     }
+    r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); 
     
-    for (ElementConstantIterator it_elem = mrThisModelPart.ElementsBegin(); it_elem != mrThisModelPart.ElementsEnd(); it_elem++)
+    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    const SizeType num_elements = elements_array.end() - elements_array.begin();
+    
+    #pragma omp parallel for 
+    for(SizeType i = 0; i < num_elements; i++) 
     {
+        auto it_elem = elements_array.begin() + i;
+        
         it_elem->Set(TO_ERASE, true);
-        r_old_model_part.AddElement(*(it_elem.base()));
     }
+    r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
     // Create a new model part
@@ -515,12 +534,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     for (int unsigned i_node = 1; i_node <= n_nodes; i_node++)
     {
         int ref, is_required;
-        NodeType::Pointer nodes_array = CreateNode(i_node, ref, is_required);
+        NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
         
         // Set the DOFs in the nodes 
         for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); it_dof++)
         {
-            nodes_array->pAddDof(*it_dof);
+            p_node->pAddDof(*it_dof);
         }
         
         if (ref != 0) // NOTE: ref == 0 is the MainModelPart
@@ -530,7 +549,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             {
                 std::string sub_model_part_name = color_list[colors];
                 ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-                sub_model_part.AddNode(nodes_array);
+                sub_model_part.AddNode(p_node);
             }
         }
     }
