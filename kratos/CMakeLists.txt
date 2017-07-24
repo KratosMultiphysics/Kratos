@@ -112,7 +112,7 @@ set( KRATOS_PYTHON_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;
 
 	# ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;

@@ -45,7 +45,7 @@ namespace Kratos
 
 /**
  * A four node quadrilateral interface geometry. The shape functions are the same as for the
- * quadrilateral_2d_4 element, but the jacobian is computed as in the line_2d_2 element to 
+ * quadrilateral_2d_4 element, but the jacobian is computed as in the line_2d_2 element to
  * to avoid having detJ = 0. Default integration method is Lobatto.
  */
 
@@ -197,10 +197,10 @@ public:
 //         double p2_p1_Y = (ThirdPoint->Y() + FourthPoint->Y() - FirstPoint->Y() - SecondPoint->Y())*0.5;
 //         double p4_p3_X = (ThirdPoint->X() + SecondPoint->X() - FirstPoint->X() - FourthPoint->X())*0.5;
 //         double p4_p3_Y = (ThirdPoint->Y() + SecondPoint->Y() - FirstPoint->Y() - FourthPoint->Y())*0.5;
-// 
+//
 //         double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
 //         double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
-// 		if(lx > ly) 
+// 		if(lx > ly)
 // 		{
 // 			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
 // 			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
@@ -229,8 +229,8 @@ public:
 
         double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
         double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
-		
-        if(ly < lx) 
+
+        if(ly < lx)
 		{
 			this->Points().push_back( pFirstPoint );
 			this->Points().push_back( pSecondPoint );
@@ -289,12 +289,12 @@ public:
      */
     virtual ~QuadrilateralInterface2D4() {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
         return GeometryData::Kratos_Quadrilateral;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() override
     {
         return GeometryData::Kratos_Quadrilateral2D4;
     }
@@ -342,12 +342,12 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new QuadrilateralInterface2D4( ThisPoints ) );
     }
-    
-        virtual Geometry< Point<3> >::Pointer Clone() const
+
+        virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -369,7 +369,7 @@ public:
      * @param rResult a Matrix object that will be overwritten by the result
      * @return the local coordinates of all nodes
      */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
+    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -1.0;
@@ -384,7 +384,7 @@ public:
     }
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
 	if(rResult.size() != 4)
            rResult.resize( 4, false );
@@ -415,11 +415,11 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Length() const
+    virtual double Length() const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
-		
+
 		array_1d<double, 3> v( p1 - p0 );
 		return std::sqrt( v[0]*v[0] + v[1]*v[1] );
     }
@@ -439,7 +439,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Area() const
+    virtual double Area() const override
     {
         return Length();
     }
@@ -459,32 +459,49 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double DomainSize() const
+    virtual double DomainSize() const override
     {
         return Length();
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs(rResult[0]) <= (1.0+Tolerance) )
-            if ( fabs(rResult[1]) <= (1.0+Tolerance) )
+        if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
+        {
+            if ( std::abs(rResult[1]) <= (1.0+Tolerance) )
+            {
                 return true;
+            }
+        }
 
         return false;
     }
 
     /**
-    * Returns the local coordinates of a given arbitrary point
-    */
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
     // TODO: Check if correct
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint )
+            const CoordinatesArrayType& rPoint
+            ) override
     {
         rResult.clear();
 
@@ -492,42 +509,42 @@ public:
         noalias(FirstPoint) = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> SecondPoint;
         noalias(SecondPoint) = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
-        
+
         // Project point
         double tol = 1e-14; // Tolerance
-        
+
         // Normal
         array_1d<double,2> Normal = ZeroVector(2);
         Normal[0] = SecondPoint[1] -  FirstPoint[1];
         Normal[1] =  FirstPoint[0] - SecondPoint[0];
         double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
         Normal /= norm;
-        
+
         // Vector point and distance
         array_1d<double,2> VectorPoint = ZeroVector(2);
         VectorPoint[0] = rPoint[0] - FirstPoint[0];
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
         double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
-        
+
         if (dist_proy < tol)
         {
             double L  = Length();
-            
+
             double l1 = (rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
                       + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]);
             l1 = std::sqrt(l1);
-            
+
             double l2 = (rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
                       + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]);
             l2 = std::sqrt(l2);
-            
+
 //            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
 
             if (l1 <= (L + tol)  && l2 <= (L + tol))
             {
                 rResult[0] = 2.0 * l1/(L + tol) - 1.0;
             }
-            else 
+            else
             {
                 rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
             }
@@ -563,7 +580,7 @@ public:
      */
     virtual Matrix& Jacobian( Matrix& rResult,
                               IndexType IntegrationPointIndex,
-                              IntegrationMethod ThisMethod ) const
+                              IntegrationMethod ThisMethod ) const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
@@ -594,21 +611,21 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& Jacobian( Matrix& rResult, 
-                              IndexType IntegrationPointIndex, 
-                              IntegrationMethod ThisMethod, 
-                              Matrix& DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult,
+                              IndexType IntegrationPointIndex,
+                              IntegrationMethod ThisMethod,
+                              Matrix& DeltaPosition ) const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
-		
+
 		array_1d<double, 2> dp0;
 		array_1d<double, 2> dp1;
 		dp0[0] = (DeltaPosition(0,0) + DeltaPosition(3,0))*0.5;
 		dp0[1] = (DeltaPosition(0,1) + DeltaPosition(3,1))*0.5;
 		dp1[0] = (DeltaPosition(1,0) + DeltaPosition(2,0))*0.5;
 		dp1[1] = (DeltaPosition(1,1) + DeltaPosition(2,1))*0.5;
-		
+
 		if(rResult.size1() != 2 || rResult.size2() != 1)
 			rResult.resize(2, 1, false);
         rResult( 0, 0 ) = ( (p1[0]-dp1[0]) - (p0[0]-dp0[0]) ) * 0.5;
@@ -632,7 +649,7 @@ public:
     * @see DeterminantOfJacobian
     * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
@@ -659,7 +676,7 @@ public:
      * @see InverseOfJacobian
      */
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const
+                                           IntegrationMethod ThisMethod ) const override
     {
         //workaround by riccardo
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
@@ -696,7 +713,7 @@ public:
      * @see InverseOfJacobian
      */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const
+                                          IntegrationMethod ThisMethod ) const override
     {
         return Length()*0.5;
     }
@@ -726,7 +743,7 @@ public:
      * point in space this needs to be reviewed
      * (comment by janosch)
      */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
         return Length()*0.5;
     }
@@ -753,7 +770,7 @@ public:
      * KLUDGE: works only with explicitly generated Matrix object
      */
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const
+                                              IntegrationMethod ThisMethod ) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
         return rResult;
@@ -784,7 +801,7 @@ public:
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const
+                                       IntegrationMethod ThisMethod ) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
         return rResult;
@@ -807,7 +824,7 @@ public:
      * KLUDGE: works only with explicitly generated Matrix object
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
         return rResult;
@@ -823,7 +840,7 @@ public:
     @see Edges()
     @see Edge()
     */
-    virtual SizeType EdgesNumber() const
+    virtual SizeType EdgesNumber() const override
     {
         return 4;
     }
@@ -839,7 +856,7 @@ public:
     @see EdgesNumber()
     @see Edge()
     */
-    virtual GeometriesArrayType Edges( void )
+    virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
@@ -866,7 +883,7 @@ public:
      * @return the value of the shape function at the given point
      */
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -896,14 +913,14 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 4) rResult.resize(4,false);
       rResult[0] =  0.25*( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] );
       rResult[1] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] );
       rResult[2] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] );
       rResult[3] =  0.25*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] );
-        
+
         return rResult;
     }
 
@@ -925,7 +942,7 @@ public:
     */
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod ) const
+        IntegrationMethod ThisMethod ) const override
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
@@ -981,7 +998,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "2 dimensional quadrilateral with four nodes in 2D space";
     }
@@ -992,7 +1009,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    virtual void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "2 dimensional quadrilateral with four nodes in 2D space";
     }
@@ -1011,7 +1028,7 @@ public:
      * :TODO: needs to be reviewed because it is not properly implemented yet
      * (comment by janosch)
      */
-    virtual void PrintData( std::ostream& rOStream ) const
+    virtual void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -1024,8 +1041,7 @@ public:
      * Calculates the local gradients for all integration points for
      * given integration method
      */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(
-        IntegrationMethod ThisMethod )
+    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod ) override
     {
         ShapeFunctionsGradientsType localGradients
         = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -1045,7 +1061,7 @@ public:
      * Calculates the local gradients for all integration points for the
      * default integration method
      */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
+    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients() override
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
@@ -1072,7 +1088,7 @@ public:
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
-            const CoordinatesArrayType& rPoint ) const
+            const CoordinatesArrayType& rPoint ) const override
     {
         rResult.resize( 4, 2 ,false);
         noalias( rResult ) = ZeroMatrix( 4, 2 );
@@ -1118,7 +1134,8 @@ public:
      * @param rResult a third order tensor which contains the second derivatives
      * @param rPoint the given point the second order derivatives are calculated in
      */
-    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult,
+                                                                                  const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -1158,7 +1175,8 @@ public:
      * @param rResult a fourth order tensor which contains the third derivatives
      * @param rPoint the given point the third order derivatives are calculated in
      */
-    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult,
+                                                                                const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -1235,12 +1253,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
@@ -1268,7 +1286,7 @@ private:
      * :KLUDGE: number of points is hard-coded -> be careful if you want to copy and paste!
      */
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(
-        typename BaseType::IntegrationMethod ThisMethod )
+        typename BaseType::IntegrationMethod ThisMethod ) override
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
@@ -1312,8 +1330,7 @@ private:
      * @return the vector of the gradients of all shape functions
      * in each integration point
      */
-    static ShapeFunctionsGradientsType
-    CalculateShapeFunctionsIntegrationPointsLocalGradients(
+    static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points =
@@ -1353,7 +1370,7 @@ private:
             {
                 Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,  
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
@@ -1462,5 +1479,4 @@ GeometryData QuadrilateralInterface2D4<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_INTERFACE_2D_4_H_INCLUDED  defined 
-
+#endif // KRATOS_QUADRILATERAL_INTERFACE_2D_4_H_INCLUDED  defined
