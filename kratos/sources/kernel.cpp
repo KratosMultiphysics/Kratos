@@ -23,6 +23,8 @@
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
 #include "input_output/logger.h"
+#include "includes/linear_solver_factory.h"
+
 
 
 namespace Kratos
@@ -36,6 +38,9 @@ namespace Kratos
     std::cout << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
 
         mKratosApplication.RegisterVariables();
+        
+        RegisterLinearSolvers();
+        RegisterPreconditioners();
     }
 
     std::string Kernel::Info() const
