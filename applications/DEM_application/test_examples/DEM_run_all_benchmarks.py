@@ -12,7 +12,6 @@ sys.path.append(path)
 path = os.getcwd()
 path += '/basic_benchmarks'
 os.chdir(path)
-print("checkpoint 1")
                   
 Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two identical spheres\n",
                   "Running DEM Benchmark 2.... Elastic normal impact of a sphere against a rigid plane\n",

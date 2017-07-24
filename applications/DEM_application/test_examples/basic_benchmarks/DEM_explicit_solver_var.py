@@ -47,9 +47,9 @@ HorizontalFixVel                 = "ON"
 IntegrationScheme                = "Forward_Euler"
 AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
-MaxTimeStep                      = 3.7e-12
-FinalTime                        = 0.0000035
-ControlTime                      = 4.0
+MaxTimeStep                      = 6.4e-8
+FinalTime                        = 0.0005
+ControlTime                      = 100
 NeighbourSearchFrequency         = 1
 PeriodicDomainOption             = 0
 
@@ -86,7 +86,7 @@ ElementType                      = "SphericPartDEMElement3D"
 
 GraphExportFreq                  = 1e-5
 VelTrapGraphExportFreq           = 1e-3
-OutputTimeStep                   = 1e-3
+OutputTimeStep                   = 0.05
 PostDisplacement                 = "1"
 PostVelocity                     = "1"
 PostElasticForces                = "1"
