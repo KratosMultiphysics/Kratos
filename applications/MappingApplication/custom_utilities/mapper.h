@@ -190,8 +190,6 @@ protected:
 
         ComputeNumberOfNodesAndConditions();
 
-        mEchoLevel = rJsonParameters["echo_level"].GetInt();
-
         // Create the mapper communicator
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         int mpi_initialized;
@@ -220,6 +218,9 @@ protected:
 #else // serial compilation
         InitializeSerialCommunicator();
 #endif
+        // Access the Parameters only after the communicator is constructed,
+        // bcs they are checked and validated there!
+        mEchoLevel = rJsonParameters["echo_level"].GetInt();
     }
 
     void ComputeNumberOfNodesAndConditions()

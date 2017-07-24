@@ -73,6 +73,7 @@ public:
         mrModelPartDestination(rModelPartDestination),
         mrJsonParameters(rJsonParameters)
     {
+        CheckAndValidateJson();
 
         mInitialSearchRadius = mrJsonParameters["search_radius"].GetDouble();
         mMaxSearchIterations = mrJsonParameters["search_iterations"].GetInt();
@@ -287,8 +288,6 @@ protected:
              "echo_level"                            : 0
        }  )" );
 
-    bool mComputeSearchRadius;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -306,6 +305,61 @@ protected:
 
         mpInterfaceObjectManagerOrigin->FillBufferWithValues(FunctionPointerOrigin, values);
         mpInterfaceObjectManagerDestination->ProcessValues(FunctionPointerDestination, values);
+    }
+
+    void CheckAndValidateJson()
+    {
+        // Check if there is a valid input for the search parameters
+        bool compute_search_radius = true;
+        if (mrJsonParameters.Has("search_radius"))
+        {
+            compute_search_radius = false;
+
+            if (mrJsonParameters["search_radius"].GetDouble() < 0.0f)
+            {
+                KRATOS_ERROR << "Invalid Search Radius specified" << std::endl;
+            }
+        }
+
+        if (mrJsonParameters.Has("search_iterations"))
+        {
+            if (mrJsonParameters["search_iterations"].GetInt() < 1)
+            {
+                KRATOS_ERROR << "Number of specified Search Iterations too small" << std::endl;
+            }
+        }
+
+        if (mrJsonParameters.Has("approximation_tolerance"))
+        {
+            if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)
+            {
+                KRATOS_ERROR << "Invalid Tolerance for Approximations specified" << std::endl;
+            }
+        }
+
+        if (mrJsonParameters.Has("echo_level"))
+        {
+            if (mrJsonParameters["echo_level"].GetInt() < 0)
+            {
+                KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
+            }
+        }
+
+        mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
+
+        // Compute the search radius in case it was not specified
+        if (compute_search_radius)
+        {
+            double search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+                                   mrModelPartDestination,
+                                   mrJsonParameters["echo_level"].GetInt());
+            mrJsonParameters["search_radius"].SetDouble(search_radius);
+        }
+
+        if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)   // nothing specified, set to max
+        {
+            mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
+        }
     }
 
     // Function used for Debugging

@@ -75,8 +75,6 @@ public:
         mrModelPartDestination(rModelPartDestination),
         mrJsonParameters(rJsonParameters)
     {
-
-        CheckAndValidateJson();
         ReadAndCheckInterfaceModelParts();
         ConstructMapper();
     }
@@ -259,18 +257,6 @@ private:
     ModelPart* mpInterfaceModelPartDestination;
 
     Parameters& mrJsonParameters;
-    Parameters mDefaultParameters = Parameters( R"(
-      {
-             "mapper_type"                           : "",
-             "interface_submodel_part_origin"        : "",
-             "interface_submodel_part_destination"   : "",
-             "search_radius"                         : -1.0,
-             "search_iterations"                     : 3,
-             "approximation_tolerance"               : -1.0,
-             "echo_level"                            : 0
-       }  )" );
-
-    bool mComputeSearchRadius;
 
     ///@}
     ///@name Private Operators
@@ -280,57 +266,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void CheckAndValidateJson()
-    {
-        // Check if there is a valid input for the search parameters
-        mComputeSearchRadius = true;
-        if (mrJsonParameters.Has("search_radius"))
-        {
-            mComputeSearchRadius = false;
-
-            if (mrJsonParameters["search_radius"].GetDouble() < 0.0f)
-            {
-                KRATOS_ERROR << "Invalid Search Radius specified" << std::endl;
-            }
-        }
-
-        if (mrJsonParameters.Has("search_iterations"))
-        {
-            if (mrJsonParameters["search_iterations"].GetInt() < 1)
-            {
-                KRATOS_ERROR << "Number of specified Search Iterations too small" << std::endl;
-            }
-        }
-
-        if (mrJsonParameters.Has("approximation_tolerance"))
-        {
-            if (mrJsonParameters["mapper_type"].GetString() == "NearestNeighbor")
-            {
-                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
-                             << "specified for Nearest Neighbor Mapper" << std::endl;
-            }
-            if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)
-            {
-                KRATOS_ERROR << "Invalid Tolerance for Approximations specified" << std::endl;
-            }
-        }
-
-        if (mrJsonParameters.Has("echo_level"))
-        {
-            if (mrJsonParameters["echo_level"].GetInt() < 0)
-            {
-                KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
-            }
-        }
-
-        mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
-
-        if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)   // nothing specified, set to max
-        {
-            mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
-        }
-    }
 
     void ReadAndCheckInterfaceModelParts()
     {
@@ -418,15 +353,6 @@ private:
             KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
                          << "which is not permitted" << std::endl;
         }
-
-        // Compute the search radius in case it was not specified, can only be done after the modelparts are read
-        if (mComputeSearchRadius)
-        {
-            double search_radius = MapperUtilities::ComputeSearchRadius(*mpInterfaceModelPartOrigin,
-                                   *mpInterfaceModelPartDestination,
-                                   mrJsonParameters["echo_level"].GetInt());
-            mrJsonParameters["search_radius"].SetDouble(search_radius);
-        }
     }
 
     void ConstructMapper()
@@ -442,6 +368,12 @@ private:
 
         if (mMapperType == "NearestNeighbor")
         {
+            if (mrJsonParameters.Has("approximation_tolerance"))
+            {
+                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
+                             << "specified for Nearest Neighbor Mapper" << std::endl;
+            }
+            
             mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
                                        *mpInterfaceModelPartDestination,
                                        mrJsonParameters));
