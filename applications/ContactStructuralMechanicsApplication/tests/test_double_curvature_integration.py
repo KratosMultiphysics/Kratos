@@ -95,10 +95,11 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         
         for cond in contact_model_part.Conditions:
             if cond.Is(KratosMultiphysics.SLAVE):
-                if (cond.Id in list_of_border_cond == False):
+                to_test = (cond.Id in list_of_border_cond)
+                if (to_test == False):
                     area = exact_integration.TestGetExactAreaIntegration(cond)
                     condition_area = cond.GetArea()
-                    self.assertAlmostEqual(area, condition_area)
+                    self.assertAlmostEqual(area, condition_area,3)
                 
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
