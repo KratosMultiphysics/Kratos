@@ -76,8 +76,8 @@ class Solution(main_script.Solution):
             self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids)
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
-        
-    def SetInitialData(self, coeff_of_restitution_iteration):
+    def ReadModelParts(self):
+        super().ReadModelParts()
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
     def GetMpFilename(self):
@@ -90,11 +90,13 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def BeforeSolveOperations(self, time):        
+    def BeforeSolveOperations(self, time): 
+        super().BeforeSolveOperations(time)     
         benchmark.ApplyNodalRotation(self.spheres_model_part, time, self.dt)
 
     def BeforePrintingOperations(self, time):
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, DEM_parameters.OutputTimeStep, self.dt)
+        super().BeforePrintingOperations(time)
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.output_time_step, self.dt)
 
     def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
@@ -104,23 +106,18 @@ class Solution(main_script.Solution):
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
-    def InitializeTimeStep(self):
-        return self.dt
-
     def FinalizeTimeStep(self, time):
-            if nodeplotter:
-                os.chdir(self.main_path)
-                self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
-                self.tang_plotter.plot_tangential_force(time)
-
-    
+        super().FinalizeTimeStep(time)
+        if nodeplotter:
+            os.chdir(self.main_path)
+            self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
+            self.tang_plotter.plot_tangential_force(time)   
         
     def CleanUpOperations(self):
         print("execute CleanUpOperations") 
+        DBC.delete_archives() #.......Removing some unuseful files 
         super().CleanUpOperations()
     
-
-
 
 final_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
@@ -129,10 +126,8 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         sol.iteration = iteration
         sol.dt = dt
         DEM_parameters.FinalTime = final_time
-        DEM_parameters.OutputTimeStep = output_time_step
-        print(DEM_parameters.FinalTime)
-        lee
-        
+        sol.output_time_step = output_time_step
+        print(DEM_parameters.FinalTime)        
         sol.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         sol.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
         sol.Run()

@@ -161,7 +161,7 @@ class Solution(object):
         self.AddVariables()
 
         self.ReadModelParts()
-
+    
         self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
@@ -231,9 +231,6 @@ class Solution(object):
     
     def GetProblemTypeFilename(self):
         return DEM_parameters.problem_name
-    
-    def SetInitialData(self, iteration, coeff_of_restitution_iteration):
-        pass
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
 
