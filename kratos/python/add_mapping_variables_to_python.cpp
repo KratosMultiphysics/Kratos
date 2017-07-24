@@ -40,12 +40,12 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+    using namespace boost::python;
 
-void  AddMappingVariablesToPython()
-{
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONTACT_MAPS)
-}
+    void  AddMappingVariablesToPython()
+    {
+
+    }
 }  // namespace Python.
 } // Namespace Kratos
 
