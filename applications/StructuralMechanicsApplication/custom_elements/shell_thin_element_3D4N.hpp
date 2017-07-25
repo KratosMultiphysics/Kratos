@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
+//       Contact:    A.Winterstein@tum.de
 //
 
 #if !defined(SHELL_THIN_ELEMENT_3D4N_H_INCLUDED )
