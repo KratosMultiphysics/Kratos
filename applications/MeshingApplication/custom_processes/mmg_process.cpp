@@ -531,7 +531,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     // Create a new model part
     /* NODES */
-    for (int unsigned i_node = 1; i_node <= n_nodes; i_node++)
+//     std::unordered_map<int, std::vector<std::size_t>> color_nodes;
+    for (unsigned int i_node = 1; i_node <= n_nodes; i_node++)
     {
         int ref, is_required;
         NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
@@ -544,6 +545,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         if (ref != 0) // NOTE: ref == 0 is the MainModelPart
         {
+//             color_nodes[ref].push_back(i_node);
             std::vector<std::string> color_list = mColors[ref];
             for (auto sub_model_part_name : color_list)
             {
@@ -555,12 +557,14 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     /* CONDITIONS */
     unsigned int cond_id = 1;
+//     std::unordered_map<int, std::vector<std::size_t>> color_cond_0;
+//     std::unordered_map<int, std::vector<std::size_t>> color_cond_1;
     if (mpRefCondition[0] != nullptr)
     {
         unsigned int counter_cond_0 = 0;
         const std::vector<unsigned int> condition_to_remove_0 = CheckConditions0();
         int prop_id, is_required;
-        for (int unsigned i_cond = 1; i_cond <= n_conditions[0]; i_cond++)
+        for (unsigned int i_cond = 1; i_cond <= n_conditions[0]; i_cond++)
         {
             bool skip_creation = false;
             if (counter_cond_0 < condition_to_remove_0.size())
@@ -579,6 +583,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                                     
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
+//                     color_cond_0[prop_id].push_back(cond_id);
                     std::vector<std::string>& color_list = mColors[prop_id];
                     for (auto sub_model_part_name : color_list)
                     {
@@ -598,7 +603,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             unsigned int counter_cond_1 = 0;
             const std::vector<unsigned int> condition_to_remove_1 = CheckConditions1();
             int prop_id, is_required;
-            for (int unsigned i_cond = 1; i_cond <= n_conditions[1]; i_cond++)
+            for (unsigned int i_cond = 1; i_cond <= n_conditions[1]; i_cond++)
             {                    
                 bool skip_creation = false;
                 if (counter_cond_1 < condition_to_remove_1.size())
@@ -617,6 +622,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                                         
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
+//                         color_cond_1[prop_id].push_back(cond_id);
                         std::vector<std::string>& color_list = mColors[prop_id];
                         for (auto sub_model_part_name : color_list)
                         {
@@ -633,12 +639,14 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     /* ELEMENTS */
     unsigned int elem_id = 1;
+//     std::unordered_map<int, std::vector<std::size_t>> color_elem_0;
+//     std::unordered_map<int, std::vector<std::size_t>> color_elem_1;
     if (mpRefElement[0] != nullptr)
     {
         unsigned int counter_elem_0 = 0;
         const std::vector<unsigned int> elements_to_remove_0 = CheckElements0();
         int prop_id, is_required;
-        for (int unsigned i_elem = 1; i_elem <= n_elements[0]; i_elem++)
+        for (unsigned int i_elem = 1; i_elem <= n_elements[0]; i_elem++)
         {  
             bool skip_creation = false;
             if (counter_elem_0 < elements_to_remove_0.size())
@@ -657,6 +665,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
+//                     color_elem_0[prop_id].push_back(elem_id);
                     std::vector<std::string>& color_list = mColors[prop_id];
                     for (auto sub_model_part_name : color_list)
                     {
@@ -676,7 +685,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             unsigned int counter_elem_1 = 0;
             const std::vector<unsigned int> elements_to_remove_1 = CheckElements1();
             int prop_id, is_required;
-            for (int unsigned i_elem = 1; i_elem <= n_elements[1]; i_elem++)
+            for (unsigned int i_elem = 1; i_elem <= n_elements[1]; i_elem++)
             {
                 bool skip_creation = false;  
                 if (counter_elem_1 < elements_to_remove_1.size())
@@ -695,6 +704,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
+//                         color_elem_1[prop_id].push_back(elem_id);
                         std::vector<std::string>& color_list = mColors[prop_id];
                         for (auto sub_model_part_name : color_list)
                         {
@@ -708,6 +718,21 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             }
         }
     }
+    
+//     // We add nodes, conditions and elements to the sub model parts
+//     for (auto & color_list : mColors)
+//     {
+//         int key = color_list.first;
+//         for (auto sub_model_part_name : color_list.second)
+//         {
+//             ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+//             r_sub_model_part.AddNodes(color_nodes[key]); // FIXME: Check existing keys, I thinl is the origin of the problem
+//             r_sub_model_part.AddConditions(color_cond_0[key]);
+//             r_sub_model_part.AddConditions(color_cond_1[key]);
+//             r_sub_model_part.AddElements(color_elem_0[key]);
+//             r_sub_model_part.AddElements(color_elem_1[key]);
+//         }
+//     }
     
     // Get the list of submodelparts names
     const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
@@ -1545,38 +1570,38 @@ template<unsigned int TDim>
 void MmgProcess<TDim>::InitVerbosity()
 {
     /* We set the MMG verbosity */
-    int verbosityMMG;
+    int verbosity_mmg;
     if (mEchoLevel == 0)
     {
-        verbosityMMG = 0;
+        verbosity_mmg = 0;
     }
     else if (mEchoLevel == 1)
     {
-        verbosityMMG = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
+        verbosity_mmg = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
     }
     else if (mEchoLevel == 2)
     {
-        verbosityMMG = 3;
+        verbosity_mmg = 3;
     }
     else if (mEchoLevel == 3)
     {
-        verbosityMMG = 5;
+        verbosity_mmg = 5;
     }
     else
     {
-        verbosityMMG = 10;
+        verbosity_mmg = 10;
     }
     
-    InitVerbosityParameter(verbosityMMG);
+    InitVerbosityParameter(verbosity_mmg);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::InitVerbosityParameter(int verbosityMMG)
+void MmgProcess<2>::InitVerbosityParameter(const int& VerbosityMMG)
 {  
-    if ( !MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_verbose, verbosityMMG) )
+    if ( !MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_verbose, VerbosityMMG) )
     {
         exit(EXIT_FAILURE);
     }
@@ -1586,9 +1611,9 @@ void MmgProcess<2>::InitVerbosityParameter(int verbosityMMG)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::InitVerbosityParameter(int verbosityMMG)
+void MmgProcess<3>::InitVerbosityParameter(const int& VerbosityMMG)
 {       
-    if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, verbosityMMG) )
+    if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, VerbosityMMG) )
     {
         exit(EXIT_FAILURE);
     }
@@ -1632,9 +1657,9 @@ void MmgProcess<3>::SetMeshSize(
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::SetSolSizeScalar(const int num_nodes)
+void MmgProcess<2>::SetSolSizeScalar(const int NumNodes)
 {
-    if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,num_nodes,MMG5_Scalar) != 1 )
+    if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
     {
         exit(EXIT_FAILURE);
     }
@@ -1644,9 +1669,9 @@ void MmgProcess<2>::SetSolSizeScalar(const int num_nodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::SetSolSizeScalar(const int num_nodes)
+void MmgProcess<3>::SetSolSizeScalar(const int NumNodes)
 {
-    if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,num_nodes,MMG5_Scalar) != 1 )
+    if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
     {
         exit(EXIT_FAILURE);
     }
@@ -1656,7 +1681,7 @@ void MmgProcess<3>::SetSolSizeScalar(const int num_nodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::SetSolSizeVector(const int num_nodes)
+void MmgProcess<2>::SetSolSizeVector(const int NumNodes)
 {
     KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
 }
@@ -1665,9 +1690,9 @@ void MmgProcess<2>::SetSolSizeVector(const int num_nodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::SetSolSizeVector(const int num_nodes)
+void MmgProcess<3>::SetSolSizeVector(const int NumNodes)
 {
-    if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,num_nodes,MMG5_Vector) != 1 )
+    if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
     {
         exit(EXIT_FAILURE);
     }
@@ -1677,9 +1702,9 @@ void MmgProcess<3>::SetSolSizeVector(const int num_nodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::SetSolSizeTensor(const int num_nodes)
+void MmgProcess<2>::SetSolSizeTensor(const int NumNodes)
 {
-    if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,num_nodes,MMG5_Tensor) != 1 )
+    if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
     {
         exit(EXIT_FAILURE);
     }
@@ -1689,9 +1714,9 @@ void MmgProcess<2>::SetSolSizeTensor(const int num_nodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::SetSolSizeTensor(const int num_nodes)
+void MmgProcess<3>::SetSolSizeTensor(const int NumNodes)
 {
-    if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,num_nodes,MMG5_Tensor) != 1 )
+    if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
     {
         exit(EXIT_FAILURE);
     }
@@ -1791,17 +1816,17 @@ void MmgProcess<3>::OutputMesh(
 template<>  
 void MmgProcess<2>::OutputSol(
     const bool PostOutput,
-    const unsigned int step
+    const unsigned int Step
     )
 {
     std::string sol_name;
     if (PostOutput == true)
     {
-        sol_name = mStdStringFilename+"_step="+std::to_string(step)+".o.sol";
+        sol_name = mStdStringFilename+"_step="+std::to_string(Step)+".o.sol";
     }
     else
     {
-        sol_name = mStdStringFilename+"_step="+std::to_string(step)+".sol";
+        sol_name = mStdStringFilename+"_step="+std::to_string(Step)+".sol";
     }
     
     auto  sol_file = new char [sol_name.length() + 1];
@@ -1823,17 +1848,17 @@ void MmgProcess<2>::OutputSol(
 template<>  
 void MmgProcess<3>::OutputSol(
     const bool PostOutput,
-    const unsigned int step
+    const unsigned int Step
     )
 {
     std::string sol_name;
     if (PostOutput == true)
     {
-        sol_name = mStdStringFilename+"_step="+std::to_string(step)+".o.sol";
+        sol_name = mStdStringFilename+"_step="+std::to_string(Step)+".o.sol";
     }
     else
     {
-        sol_name = mStdStringFilename+"_step="+std::to_string(step)+".sol";
+        sol_name = mStdStringFilename+"_step="+std::to_string(Step)+".sol";
     }
     
     auto  sol_file = new char [sol_name.length() + 1];

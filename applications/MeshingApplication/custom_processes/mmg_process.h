@@ -411,36 +411,36 @@ private:
     /**
      * It creates the new node
      * @param iNode: The index of the new noode
-     * @param ref: The submodelpart id
-     * @param isRequired: MMG value (I don't know that it does)
+     * @param Ref: The submodelpart id
+     * @param IsRequired: MMG value (I don't know that it does)
      * @return pNode: The pointer to the new node created
      */
     
     NodeType::Pointer CreateNode(
         unsigned int iNode,
         int& Ref, 
-        int& isRequired
+        int& IsRequired
         );
     
     /**
      * It creates the new condition
      * @param CondId: The id of the condition
      * @param PropId: The submodelpart id
-     * @param isRequired: MMG value (I don't know that it does)
+     * @param IsRequired: MMG value (I don't know that it does)
      * @return pCondition: The pointer to the new condition created
      */
     
     ConditionType::Pointer CreateCondition0(
         const unsigned int CondId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
     ConditionType::Pointer CreateCondition1(
         const unsigned int CondId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
@@ -448,21 +448,21 @@ private:
      * It creates the new element
      * @param CondId: The id of the element
      * @param PropId: The submodelpart id
-     * @param isRequired: MMG value (I don't know that it does)
+     * @param IsRequired: MMG value (I don't know that it does)
      * @return pElement: The pointer to the new condition created
      */
     
     ElementType::Pointer CreateElement0(
         const unsigned int ElemId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
     ElementType::Pointer CreateElement1(
         const unsigned int ElemId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
@@ -501,41 +501,41 @@ private:
      * @param verbosityMMG: The equivalent verbosity level in the MMG API
      */
         
-    void InitVerbosityParameter(int verbosityMMG);
+    void InitVerbosityParameter(const int& VerbosityMMG);
     
     /**
      * This sets the size of the mesh
-     * @param numNodes: Number of nodes
-     * @param numElements: Number of Elements
-     * @param numConditions: Number of Conditions
+     * @param NumNodes: Number of nodes
+     * @param NumElements: Number of Elements
+     * @param NumConditions: Number of Conditions
      */
     
     void SetMeshSize(
-        const SizeType numNodes,
-        const array_1d<int, TDim - 1> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-        const array_1d<int, TDim - 1> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+        const SizeType NumNodes,
+        const array_1d<int, TDim - 1> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+        const array_1d<int, TDim - 1> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
         );
     
     /**
      * This sets the size of the solution for the scalar case
-     * @param numNodes: Number of nodes
+     * @param NumNodes: Number of nodes
      */
     
-    void SetSolSizeScalar(const int numNodes);
+    void SetSolSizeScalar(const int NumNodes);
     
     /**
      * This sets the size of the solution for the vector case
-     * @param numNodes: Number of nodes
+     * @param NumNodes: Number of nodes
      */
     
-    void SetSolSizeVector(const int numNodes);
+    void SetSolSizeVector(const int NumNodes);
     
     /**
      * This sets the size of the solution for the tensor case
-     * @param numNodes: Number of nodes
+     * @param NumNodes: Number of nodes
      */
     
-    void SetSolSizeTensor(const int numNodes);
+    void SetSolSizeTensor(const int NumNodes);
     
     /**
      * This checks the mesh data and prints if it is OK
@@ -551,7 +551,7 @@ private:
     
     void OutputMesh(
         const bool PostOutput, 
-        const unsigned int step
+        const unsigned int Step
         );
     
     /**
@@ -562,7 +562,7 @@ private:
     
     void OutputSol(
         const bool PostOutput, 
-        const unsigned int step
+        const unsigned int Step
         );
     
     /**
@@ -582,42 +582,42 @@ private:
      * @param X: Coordinate X
      * @param Y: Coordinate Y
      * @param Z: Coordinate Z
-     * @param color: Reference of the node(submodelpart)
-     * @param index: The index number of the node 
+     * @param Color: Reference of the node(submodelpart)
+     * @param Index: The index number of the node 
      */
     
     void SetNodes(
         const double X,
         const double Y,
         const double Z,
-        const int color,
-        const int index
+        const int Color,
+        const int Index
         );
     
     /**
      * This sets the conditions of the mesh
      * @param Geom: The geometry of the condition
-     * @param color: Reference of the node(submodelpart)
-     * @param index: The index number of the node 
+     * @param Color: Reference of the node(submodelpart)
+     * @param Index: The index number of the node 
      */
     
     void SetConditions(
         Geometry<Node<3> > & Geom,
-        const int color,
-        const int index
+        const int Color,
+        const int Index
         );
     
     /**
      * This sets elements of the mesh
      * @param Geom: The geometry of the element
-     * @param color: Reference of the node(submodelpart)
-     * @param index: The index number of the node 
+     * @param Color: Reference of the node(submodelpart)
+     * @param Index: The index number of the node 
      */
     
     void SetElements(
         Geometry<Node<3> > & Geom,
-        const int color,
-        const int index
+        const int Color,
+        const int Index
         );
     
     /**
@@ -665,11 +665,11 @@ private:
     
     /**
      * This converts the framework string to an enum
-     * @param str: The string
+     * @param Str: The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
         
-    FrameworkEulerLagrange ConvertFramework(const std::string& str);
+    FrameworkEulerLagrange ConvertFramework(const std::string& Str);
 
     ///@}
     ///@name Private  Access
