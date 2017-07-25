@@ -49,7 +49,6 @@ void ComputeLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rEleme
 template <unsigned int TDim, unsigned int TNumNodes>
 int ComputeLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
 
     // Perform basic element checks
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
@@ -70,7 +69,6 @@ int ComputeLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     }
     return 0;
 
-    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
