@@ -55,6 +55,9 @@ LinearPlaneStress::~LinearPlaneStress()
 {
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
     //b.- Get Values to compute the constitutive law:
@@ -94,9 +97,22 @@ void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
         {
             CalculatePK2Stress( StrainVector, StressVector, E, NU );
         }
+    }
+    
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+    {
+        if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) )
+        {
+            CalculateCauchyGreenStrain(rValues, StrainVector);
+            CalculatePK2Stress( StrainVector, StressVector, E, NU );
+        }
 
+        mStrainEnergy = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
     }
 }
+
+//************************************************************************************
+//************************************************************************************
 
 //NOTE: Note that since we are in the hypothesis of small strains we can use the same function for everything
 
@@ -105,34 +121,65 @@ void LinearPlaneStress::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     CalculateMaterialResponsePK2(rValues);
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStress::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearPlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStress::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearPlaneStress::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStress::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStress::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& LinearPlaneStress::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+        rValue = mStrainEnergy; 
+    }
+
+    return( rValue );
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
@@ -154,7 +201,6 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = 2;
-
 }
 
 int LinearPlaneStress::Check(

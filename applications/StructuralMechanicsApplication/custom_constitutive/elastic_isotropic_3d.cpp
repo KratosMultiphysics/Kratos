@@ -96,46 +96,89 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         {
             CalculatePK2Stress( StrainVector, StressVector, E, NU );
         }
+    }
+    
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+    {
+        if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) )
+        {
+            CalculateCauchyGreenStrain(rValues, StrainVector);
+            CalculatePK2Stress( StrainVector, StressVector, E, NU );
+        }
 
+        mStrainEnergy = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
     }
 }
 
+//************************************************************************************
+//************************************************************************************
+
 // NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+
 void ElasticIsotropic3D::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
-// NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
-// NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void ElasticIsotropic3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& ElasticIsotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+        rValue = mStrainEnergy; 
+    }
+
+    return( rValue );
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************

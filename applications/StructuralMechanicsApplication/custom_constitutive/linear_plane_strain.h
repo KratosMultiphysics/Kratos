@@ -80,7 +80,6 @@ public:
     SizeType GetStrainSize() override
     {
         return 3;
-
     }
 
     /**
@@ -148,6 +147,14 @@ public:
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
     /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+    
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -167,27 +174,30 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+    
     ///@}
     ///@name Protected member Variables
     ///@{
+    
+    double mStrainEnergy;
+    
     ///@}
     ///@name Protected Operators
     ///@{
+    
     ///@}
     ///@name Protected Operations
     ///@{
     ///@}
 
-
 private:
-
 
     ///@name Static Member Variables
     ///@{
+    
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
