@@ -267,6 +267,17 @@ public:
         KRATOS_CATCH("")
     }
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& /*rCurrentProcessInfo*/) override
+    {
+        if (rLeftHandSideMatrix.size1() != TFluidLocalSize || rLeftHandSideMatrix.size2() != TFluidLocalSize)
+            rLeftHandSideMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
+
+        for (IndexType i=0; i < TFluidLocalSize; i++)
+            for (IndexType j=0; j < TFluidLocalSize; j++)
+                rLeftHandSideMatrix(i,j) = 0.0;
+    }
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
             ProcessInfo& /*rCurrentProcessInfo*/) override
     {
@@ -317,7 +328,7 @@ public:
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 				       ProcessInfo& rCurrentProcessInfo) override
     {
-      this->CalculateVMSMassMatrix(rLeftHandSideMatrix,0,rCurrentProcessInfo);
+      this->CalculateVMSMassMatrix(rLeftHandSideMatrix,rCurrentProcessInfo);
       rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
     }
 
@@ -412,13 +423,8 @@ protected:
     ///@{
 
     /// Calculate VMS-stabilized (lumped) mass matrix.
-    /**
-     * The VMS-stabilized mass matrix is computed at the given step.
-     * We assume that the mesh does not move between steps.
-     */
     void CalculateVMSMassMatrix(
             MatrixType& rMassMatrix,
-            IndexType Step,
             const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -439,16 +445,16 @@ protected:
 
         // Density
         double Density;
-        this->EvaluateInPoint(Density,DENSITY,N,Step);
+        this->EvaluateInPoint(Density,DENSITY,N);
 
         // Dynamic viscosity
         double Viscosity;
-        this->EvaluateInPoint(Viscosity,VISCOSITY,N,Step);
+        this->EvaluateInPoint(Viscosity,VISCOSITY,N);
         Viscosity *= Density;
 
         // u
         array_1d< double, TDim > Velocity;
-        this->EvaluateInPoint(Velocity,VELOCITY,N,Step);
+        this->EvaluateInPoint(Velocity,VELOCITY,N);
 
         // u * Grad(N)
         array_1d< double, TNumNodes > DensityVelGradN;
