@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
+//       Contact:    A.Winterstein@tum.de
 //
 
 #if !defined (KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_2D_LAW_H_INCLUDED)

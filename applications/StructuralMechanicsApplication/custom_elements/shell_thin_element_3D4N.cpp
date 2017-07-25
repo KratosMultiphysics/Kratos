@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
+//       Contact:    A.Winterstein@tum.de
 //
 
 #include "shell_thin_element_3D4N.hpp"
