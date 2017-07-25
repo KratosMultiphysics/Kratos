@@ -1109,15 +1109,15 @@ NodeType::Pointer MmgProcess<2>::CreateNode(
     int& IsRequired
     )
 {
-    double Coord0, Coord1;
-    int isCorner;
+    double coord_0, coord_1;
+    int is_corner;
     
-    if (MMG2D_Get_vertex(mmgMesh, &Coord0, &Coord1, &Ref, &isCorner, &IsRequired) != 1 )
+    if (MMG2D_Get_vertex(mmgMesh, &coord_0, &coord_1, &Ref, &is_corner, &IsRequired) != 1 )
     {
         exit(EXIT_FAILURE);
     }
     
-    NodeType::Pointer p_node = mrThisModelPart.CreateNewNode(iNode, Coord0, Coord1, 0.0);
+    NodeType::Pointer p_node = mrThisModelPart.CreateNewNode(iNode, coord_0, coord_1, 0.0);
     
     return p_node;
 }
