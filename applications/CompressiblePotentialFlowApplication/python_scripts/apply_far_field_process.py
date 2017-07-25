@@ -36,11 +36,12 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         for cond in self.model_part.Conditions:
             cond.SetValue(KratosMultiphysics.VELOCITY, self.velocity_infinity)
 
-        #find the node with the minimal x
+        #select the first node
         for node in self.model_part.Nodes:
             node1 = node
             break
         
+        #find the node with the minimal x
         x0 = node1.X
         y0 = node1.X
         z0 = node1.X
