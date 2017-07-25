@@ -674,42 +674,6 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
     }
     
-    // Get the list of submodelparts names
-    const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
-    
-    // Add the nodes to the differents submodelparts
-    for (SizeType i_model_part = 0; i_model_part < mrThisModelPart.NumberOfSubModelParts(); i_model_part++)
-    {
-        ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_names[i_model_part]);
-        
-        std::set<int> aux_set;
-        
-        for (ElementConstantIterator it_elem = r_sub_model_part.ElementsBegin(); it_elem != r_sub_model_part.ElementsEnd(); it_elem++)
-        {
-            for (SizeType i_node = 0; i_node < it_elem->GetGeometry().size(); i_node++)
-            {
-                aux_set.insert(it_elem->GetGeometry()[i_node].Id());
-            }
-        }
-        
-        for (ConditionConstantIterator it_cond = r_sub_model_part.ConditionsBegin(); it_cond != r_sub_model_part.ConditionsEnd(); it_cond++)
-        {
-            for (SizeType i_node = 0; i_node < it_cond->GetGeometry().size(); i_node++)
-            {
-                aux_set.insert(it_cond->GetGeometry()[i_node].Id());
-            }
-        }
-        
-        // Clean duplicated nodes
-        std::vector<IndexType> nodes_ids;
-        for(int it : aux_set) 
-        {
-            nodes_ids.push_back(it);
-        }
-        
-        r_sub_model_part.AddNodes(nodes_ids);
-    }
-    
     /* Save to file */
     if (save_to_file == true)
     {
