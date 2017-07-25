@@ -338,10 +338,8 @@ private:
     std::unordered_map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
-    std::vector<Element::Pointer>   mpRefElement; // TODO: Use the colors to be able of remesh more than one type of element or condition (not just the geometry -> Use an unordered_map)
-    std::vector<Condition::Pointer> mpRefCondition;
-    std::vector<bool> mInitRefElement;
-    std::vector<bool> mInitRefCondition;
+    std::unordered_map<int,Element::Pointer>   mpRefElement; 
+    std::unordered_map<int,Condition::Pointer> mpRefCondition;
 
     ///@}
     ///@name Private Operators
