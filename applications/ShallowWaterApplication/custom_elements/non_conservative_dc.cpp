@@ -292,7 +292,7 @@ namespace Kratos
 
 		// RHS
 		// TODO: SOURCE TERM
-		noalias(rRightHandSideVector) = prod(msC, ms_depth);
+		noalias(rRightHandSideVector) = -prod(msC, ms_depth);
 
 		// Inertia terms
 		// RHS += M*vhistory

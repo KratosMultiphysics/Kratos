@@ -7,6 +7,7 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):  #this way er only need one command to add all the variables to our problem 
     model_part.AddNodalSolutionStepVariable(BATHYMETRY);
+    model_part.AddNodalSolutionStepVariable(RAIN);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY);
     model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY);
