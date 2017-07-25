@@ -158,7 +158,7 @@ public:
     }
 
     /// Destructor
-    virtual ~ErrorMeshCriteria() {}
+    ~ErrorMeshCriteria() override = default;
 
     ///@}
     ///@name Operators

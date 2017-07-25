@@ -74,8 +74,7 @@ public:
 
     /// Destructor.
     ~MetricFastInit() override
-    {
-    }
+    = default;
 
     ///@}
     ///@name Access

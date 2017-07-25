@@ -14,7 +14,7 @@
 #define KRATOS_MMG_PROCESS
 
 // System includes
-// #include <unordered_map> // TODO: Change boost unordered map by std
+#include <unordered_map>
 
 // External includes
 // The includes related with the MMG library
@@ -82,23 +82,58 @@ namespace Kratos
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
     
-    #if !defined(KEY_COMPAROR_VECTOR)
-    #define KEY_COMPAROR_VECTOR
-    template<class TClassType>
-    struct KeyComparorVector
+    #if !defined(HASH_COMBINE)
+    #define HASH_COMBINE
+    template <class TClassType>
+    inline void HashCombine(std::size_t& Seed, const TClassType& Value)
     {
-        bool operator()(const vector<TClassType>& lhs, const vector<TClassType>& rhs) const
+        std::hash<TClassType> hasher;
+        Seed ^= hasher(Value) + 0x9e3779b9 + (Seed<<6) + (Seed>>2);
+    }
+    #endif
+    
+    #if !defined(HASH_RANGE)
+    #define HASH_RANGE
+    template <class TClassType>
+    inline std::size_t HashRange(TClassType First, TClassType Last)
+    {
+        std::size_t seed = 0;
+
+        while (First!=Last)
+        {
+            HashCombine(seed, *First);
+            ++First;
+        }
+        
+        return seed;
+    }
+    #endif
+    
+    #if !defined(KEY_COMPAROR_RANGE)
+    #define KEY_COMPAROR_RANGE
+    template<class TClassType>
+    struct KeyComparorRange
+    {
+        bool operator()(const TClassType& lhs, const TClassType& rhs) const
         {
             if(lhs.size() != rhs.size())
             {
                 return false;
             }
 
-            for(std::size_t i=0; i<lhs.size(); i++)
+            auto it_lhs = lhs.begin();
+            auto it_rhs = rhs.begin();
+
+            while(it_lhs != lhs.end()) // NOTE: We already checked that are same size
             {
-                if(lhs[i] != rhs[i]) 
+                if(*it_lhs != *it_rhs) 
                 {
                     return false;
+                }
+                if(it_lhs != lhs.end())
+                {
+                    ++it_lhs;
+                    ++it_rhs;
                 }
             }
 
@@ -107,18 +142,18 @@ namespace Kratos
     };
     #endif
     
-    #if !defined(KEY_HASHER_VECTOR)
-    #define KEY_HASHER_VECTOR
+    #if !defined(KEY_HASHER_RANGE)
+    #define KEY_HASHER_RANGE
     template<class TClassType>
-    struct KeyHasherVector
+    struct KeyHasherRange
     {
-        std::size_t operator()(const vector<TClassType>& k) const
+        std::size_t operator()(const TClassType& rRange) const
         {
-            return boost::hash_range(k.begin(), k.end());
+            return HashRange(rRange.begin(), rRange.end());
         }
     };
     #endif
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -177,7 +212,7 @@ public:
     MmgProcess(ModelPart& rThisModelPart, Parameters ThisParameters = Parameters(R"({})"));
 
     /// Destructor.
-    ~MmgProcess() override {}
+    ~MmgProcess() override = default;
     
     ///@}
     ///@name Access
@@ -300,13 +335,11 @@ private:
     FrameworkEulerLagrange mFramework;
     
     // Where the sub model parts IDs are stored
-    boost::unordered_map<int,std::vector<std::string>> mColors;
+    std::unordered_map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
-    std::vector<Element::Pointer>   mpRefElement;
-    std::vector<Condition::Pointer> mpRefCondition;
-    std::vector<bool> mInitRefElement;
-    std::vector<bool> mInitRefCondition;
+    std::unordered_map<int,Element::Pointer>   mpRefElement; 
+    std::unordered_map<int,Condition::Pointer> mpRefCondition;
 
     ///@}
     ///@name Private Operators
@@ -376,36 +409,36 @@ private:
     /**
      * It creates the new node
      * @param iNode: The index of the new noode
-     * @param ref: The submodelpart id
-     * @param isRequired: MMG value (I don't know that it does)
+     * @param Ref: The submodelpart id
+     * @param IsRequired: MMG value (I don't know that it does)
      * @return pNode: The pointer to the new node created
      */
     
     NodeType::Pointer CreateNode(
         unsigned int iNode,
-        int& ref, 
-        int& isRequired
+        int& Ref, 
+        int& IsRequired
         );
     
     /**
      * It creates the new condition
      * @param CondId: The id of the condition
      * @param PropId: The submodelpart id
-     * @param isRequired: MMG value (I don't know that it does)
+     * @param IsRequired: MMG value (I don't know that it does)
      * @return pCondition: The pointer to the new condition created
      */
     
     ConditionType::Pointer CreateCondition0(
         const unsigned int CondId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
     ConditionType::Pointer CreateCondition1(
         const unsigned int CondId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
@@ -413,21 +446,21 @@ private:
      * It creates the new element
      * @param CondId: The id of the element
      * @param PropId: The submodelpart id
-     * @param isRequired: MMG value (I don't know that it does)
+     * @param IsRequired: MMG value (I don't know that it does)
      * @return pElement: The pointer to the new condition created
      */
     
     ElementType::Pointer CreateElement0(
         const unsigned int ElemId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
     ElementType::Pointer CreateElement1(
         const unsigned int ElemId,
         int& PropId, 
-        int& isRequired,
+        int& IsRequired,
         bool SkipCreation
         );
     
@@ -466,41 +499,41 @@ private:
      * @param verbosityMMG: The equivalent verbosity level in the MMG API
      */
         
-    void InitVerbosityParameter(int verbosityMMG);
+    void InitVerbosityParameter(const int& VerbosityMMG);
     
     /**
      * This sets the size of the mesh
-     * @param numNodes: Number of nodes
-     * @param numElements: Number of Elements
-     * @param numConditions: Number of Conditions
+     * @param NumNodes: Number of nodes
+     * @param NumElements: Number of Elements
+     * @param NumConditions: Number of Conditions
      */
     
     void SetMeshSize(
-        const SizeType numNodes,
-        const array_1d<int, TDim - 1> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-        const array_1d<int, TDim - 1> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+        const SizeType NumNodes,
+        const array_1d<int, TDim - 1> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+        const array_1d<int, TDim - 1> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
         );
     
     /**
      * This sets the size of the solution for the scalar case
-     * @param numNodes: Number of nodes
+     * @param NumNodes: Number of nodes
      */
     
-    void SetSolSizeScalar(const int numNodes);
+    void SetSolSizeScalar(const int NumNodes);
     
     /**
      * This sets the size of the solution for the vector case
-     * @param numNodes: Number of nodes
+     * @param NumNodes: Number of nodes
      */
     
-    void SetSolSizeVector(const int numNodes);
+    void SetSolSizeVector(const int NumNodes);
     
     /**
      * This sets the size of the solution for the tensor case
-     * @param numNodes: Number of nodes
+     * @param NumNodes: Number of nodes
      */
     
-    void SetSolSizeTensor(const int numNodes);
+    void SetSolSizeTensor(const int NumNodes);
     
     /**
      * This checks the mesh data and prints if it is OK
@@ -516,7 +549,7 @@ private:
     
     void OutputMesh(
         const bool PostOutput, 
-        const unsigned int step
+        const unsigned int Step
         );
     
     /**
@@ -527,7 +560,7 @@ private:
     
     void OutputSol(
         const bool PostOutput, 
-        const unsigned int step
+        const unsigned int Step
         );
     
     /**
@@ -547,42 +580,42 @@ private:
      * @param X: Coordinate X
      * @param Y: Coordinate Y
      * @param Z: Coordinate Z
-     * @param color: Reference of the node(submodelpart)
-     * @param index: The index number of the node 
+     * @param Color: Reference of the node(submodelpart)
+     * @param Index: The index number of the node 
      */
     
     void SetNodes(
         const double X,
         const double Y,
         const double Z,
-        const int color,
-        const int index
+        const int Color,
+        const int Index
         );
     
     /**
      * This sets the conditions of the mesh
      * @param Geom: The geometry of the condition
-     * @param color: Reference of the node(submodelpart)
-     * @param index: The index number of the node 
+     * @param Color: Reference of the node(submodelpart)
+     * @param Index: The index number of the node 
      */
     
     void SetConditions(
         Geometry<Node<3> > & Geom,
-        const int color,
-        const int index
+        const int Color,
+        const int Index
         );
     
     /**
      * This sets elements of the mesh
      * @param Geom: The geometry of the element
-     * @param color: Reference of the node(submodelpart)
-     * @param index: The index number of the node 
+     * @param Color: Reference of the node(submodelpart)
+     * @param Index: The index number of the node 
      */
     
     void SetElements(
         Geometry<Node<3> > & Geom,
-        const int color,
-        const int index
+        const int Color,
+        const int Index
         );
     
     /**
@@ -593,9 +626,9 @@ private:
      */
     
     void ComputeColors(
-        boost::unordered_map<int,int>& NodeColors,
-        boost::unordered_map<int,int>& CondColors,
-        boost::unordered_map<int,int>& ElemColors
+        std::unordered_map<int,int>& NodeColors,
+        std::unordered_map<int,int>& CondColors,
+        std::unordered_map<int,int>& ElemColors
         );
 
     /**
@@ -630,11 +663,11 @@ private:
     
     /**
      * This converts the framework string to an enum
-     * @param str: The string
+     * @param Str: The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
         
-    FrameworkEulerLagrange ConvertFramework(const std::string& str);
+    FrameworkEulerLagrange ConvertFramework(const std::string& Str);
 
     ///@}
     ///@name Private  Access

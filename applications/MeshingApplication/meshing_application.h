@@ -90,7 +90,7 @@ public:
     KratosMeshingApplication();
 
     /// Destructor.
-    ~KratosMeshingApplication() override {}
+    ~KratosMeshingApplication() override = default;
 
 
     ///@}

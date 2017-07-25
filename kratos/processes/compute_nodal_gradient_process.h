@@ -46,9 +46,9 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    #if !defined(HISTORIAL_VALUES)
-    #define HISTORIAL_VALUES
-        enum HistorialValues {Historical = 0, NonHistorical = 1};
+    #if !defined(HISTORICAL_VALUES)
+    #define HISTORICAL_VALUES
+        enum HistoricalValues {Historical = 0, NonHistorical = 1};
     #endif
     
 ///@}
@@ -63,7 +63,7 @@ namespace Kratos
 /** This process computes the gradient of a certain variable stored in the nodes
 */
 
-template< int TDim, class TVarType, HistorialValues THist> 
+template< int TDim, class TVarType, HistoricalValues THist> 
 class ComputeNodalGradientProcess
     : public Process
 {

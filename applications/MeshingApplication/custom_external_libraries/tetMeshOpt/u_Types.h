@@ -75,9 +75,9 @@ public:
 	~TVertex() override;
 	void calcNormal();
 	float4 pos();
-	TList<TVertex*> *getVertexNeighboursByElem(TList<TVertex*> *toL = NULL , int depth = 1, int avoidLowerIds = false);			 
+	TList<TVertex*> *getVertexNeighboursByElem(TList<TVertex*> *toL = nullptr , int depth = 1, int avoidLowerIds = false);			 
 
-	TList<TVertex*>* getVertexNeighboursByTriangle(TList<TVertex*>* toL = NULL , int depth = 1);
+	TList<TVertex*>* getVertexNeighboursByTriangle(TList<TVertex*>* toL = nullptr , int depth = 1);
 };
 
 class TVertex3D : public TVertex
@@ -180,7 +180,7 @@ public :
 
 	bool isInvalid() ;
 
-	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= NULL , bool ommitLowerIds = false) ;
+	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= nullptr , bool ommitLowerIds = false) ;
 	TTetra* getNeighByFace(TVertex*v0, TVertex*v1,TVertex*v2);
 
 	TList<TObject>* getNeighbours(int depth) ;
@@ -247,7 +247,7 @@ public:
 
 	TMesh(void) 
 	{
-		patchList = NULL;
+		patchList = nullptr;
 		selectedElements = new TList<TObject*>();
 		vertexes = new TList<TVertex*>();
 		fFaces = new TList<TPolygon*>();
@@ -307,18 +307,18 @@ public:
 		// test if array is empty
 		if (imax < imin)
 			// set is empty, so return value showing not found
-			return NULL;
+			return nullptr;
 		else
 		{
 			// calculate midpoint to cut set in half
 
 			int imid = (imin + imax) / 2;
 			if (imid>= vertexes->Count() )
-				return NULL;
+				return nullptr;
 			TVertex * v = vertexes->elementAt(imid);
 
-			if (v == NULL )
-				return NULL;		 
+			if (v == nullptr )
+				return nullptr;		 
 
 			// three-way comparison
 			if (v->getID() > key)

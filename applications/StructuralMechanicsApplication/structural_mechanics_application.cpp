@@ -29,7 +29,6 @@
 #include "geometries/triangle_3d_6.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
@@ -48,7 +47,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
 namespace Kratos
