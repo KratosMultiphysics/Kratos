@@ -52,7 +52,7 @@ KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);    // An auxiliar gradient n
 KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);     // An auxiliar hessian needed to compute the metric
 KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric used to remesh with MMG utility
 KRATOS_DEFINE_VARIABLE(double, ERROR_ESTIMATE);        // The nodal error estimate calculated by superconvergent patch recovery
-
+KRATOS_DEFINE_VARIABLE(Vector, RECOVERED_STRESS);      // The nnodal recovered stress vector
 ///@}
 ///@name Type Definitions
 ///@{

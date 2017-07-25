@@ -404,6 +404,10 @@ private:
 
     void CalculateSuperconvergentPatchRecovery()
     {
+        /************************************************************************
+        --1-- calculate superconvergent stresses (at the nodes) --1--
+        ************************************************************************/
+        
         std::vector<std::string> submodels;
         submodels= mThisModelPart.GetSubModelPartNames();
         for (std::vector<std::string>::const_iterator i = submodels.begin();i!=submodels.end();i++) 
@@ -421,8 +425,8 @@ private:
         int neighbour_size = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).size();
         std::cout << "Node: " << i_nodes->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
           
-        bounded_matrix<double,3,3> A;
-        bounded_matrix<double,3,3> b; 
+        Matrix A(3,3);
+        Matrix b(3,3); 
         for( WeakPointerVector< Element >::iterator i_elements = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_elements != i_nodes->GetValue(NEIGHBOUR_ELEMENTS).end(); i_elements++) {
             std::cout << "\tElement: " << i_elements->Id() << std::endl;
             i_elements->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
@@ -430,8 +434,8 @@ private:
 
             std::cout << "\tstress_yy: " << stress_vector[0][1] << std::endl;
             std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
-            bounded_matrix<double,1,3> p_k;
-            bounded_matrix<double,1,3> sigma;
+            Matrix p_k(1,3);
+            Matrix sigma(1,3);
             for(int j=0;j<3;j++)
                 sigma(0,j)=stress_vector[0][j];
             
@@ -443,18 +447,21 @@ private:
             A+=prod(trans(p_k),p_k);
             b+=prod(trans(p_k),sigma);
             }
-           bounded_matrix<double,3,3> invA;
+           Matrix invA(3,3);
            double det;
-           invA=MathUtils<double>::InvertMatrix<3>(A,det);
+           MathUtils<double>::InvertMatrix(A,invA,det);
            //std::cout <<A<<std::endl;
            //std::cout <<invA<<std::endl;
            //std::cout << det<< std::endl;
 
-           bounded_matrix<double,3,3> coeff;
+           Matrix coeff(3,3);
            coeff = prod(invA,b);
-           //compute recovered stress at center node
-           //compute recovered stress at the exterior nodes.
+           //compute recovered stress at the node
+           //i_nodes->
        }
+        /************************************************************************
+        --2--  --2--
+        ************************************************************************/
 
     }
     
