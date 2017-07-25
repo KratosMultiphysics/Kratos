@@ -404,25 +404,56 @@ private:
 
     void CalculateSuperconvergentPatchRecovery()
     {
+        std::vector<std::string> submodels;
+        submodels= mThisModelPart.GetSubModelPartNames();
+        for (std::vector<std::string>::const_iterator i = submodels.begin();i!=submodels.end();i++) 
+            std::cout << *i<<std::endl; 
        FindNodalNeighboursProcess findNeighbours(mThisModelPart);
        findNeighbours.Execute();
-       //iteration over all nodes  
-       ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
-       //std::vector<array_1d<double, 3ul>> stress_vector(1);
-       //const Variable<array_1d<double, 3ul>> var("CAUCHY_STRESS_VECTOR");
        std::vector<Vector> stress_vector(1);
-       const Variable<Vector> var("CAUCHY_STRESS_VECTOR");
-
-       for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+       std::vector<array_1d<double,3>> coordinates_vector(1);
+       //Variable<array_1d<double,3>> variable_coordinates("INTEGRATION_COORDINATES");
+       Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
+       //iteration over all nodes -- construction of patches
+       ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
+       for(ModelPart::NodesContainerType::iterator i_nodes = rNodes.begin(); i_nodes!=rNodes.end(); i_nodes++)
        {
-           int neighbour_size = in->GetValue(NEIGHBOUR_ELEMENTS).size();
-           std::cout << "Node: " << in->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
-           for( WeakPointerVector< Element >::iterator i = in->GetValue(NEIGHBOUR_ELEMENTS).begin(); i != in->GetValue(NEIGHBOUR_ELEMENTS).end(); i++) {
-            std::cout << "\tElement: " << i->Id() << std::endl;
-            i->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
-            std::cout << "\tstress_xx: " << stress_vector[0][0] << std::endl;
-            std::cout << "\tstress_xx: " << mVariable << std::endl;
+        int neighbour_size = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).size();
+        std::cout << "Node: " << i_nodes->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
+          
+        bounded_matrix<double,3,3> A;
+        bounded_matrix<double,3,3> b; 
+        for( WeakPointerVector< Element >::iterator i_elements = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_elements != i_nodes->GetValue(NEIGHBOUR_ELEMENTS).end(); i_elements++) {
+            std::cout << "\tElement: " << i_elements->Id() << std::endl;
+            i_elements->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
+            i_elements->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
+
+            std::cout << "\tstress_yy: " << stress_vector[0][1] << std::endl;
+            std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
+            bounded_matrix<double,1,3> p_k;
+            bounded_matrix<double,1,3> sigma;
+            for(int j=0;j<3;j++)
+                sigma(0,j)=stress_vector[0][j];
+            
+            p_k(0,0)=1;
+            p_k(0,1)=coordinates_vector[0][0]-i_nodes->X(); 
+            p_k(0,2)=coordinates_vector[0][1]-i_nodes->Y();   
+            
+
+            A+=prod(trans(p_k),p_k);
+            b+=prod(trans(p_k),sigma);
             }
+           bounded_matrix<double,3,3> invA;
+           double det;
+           invA=MathUtils<double>::InvertMatrix<3>(A,det);
+           //std::cout <<A<<std::endl;
+           //std::cout <<invA<<std::endl;
+           //std::cout << det<< std::endl;
+
+           bounded_matrix<double,3,3> coeff;
+           coeff = prod(invA,b);
+           //compute recovered stress at center node
+           //compute recovered stress at the exterior nodes.
        }
 
     }
