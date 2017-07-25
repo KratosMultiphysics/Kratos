@@ -297,16 +297,18 @@ public:
             // Remeshing
             if (mRemeshingUtilities == MMG)
             {
-                if (mDimension == 2)
-                {
-                    MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-                    MmgRemesh.Execute();
-                }
-                else
-                {
-                    MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-                    MmgRemesh.Execute();
-                }
+                #ifdef INCLUDE_MMG
+                    if (mDimension == 2)
+                    {
+                        MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
+                        MmgRemesh.Execute();
+                    }
+                    else
+                    {
+                        MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
+                        MmgRemesh.Execute();
+                    }
+                #endif
             }
             else
             {
