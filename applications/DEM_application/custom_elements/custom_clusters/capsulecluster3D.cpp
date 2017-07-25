@@ -98,7 +98,7 @@ namespace Kratos {
       
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
-
+//TODO: all these functions should not be here, they are overriding some methods that might be doing something common. We should fix this problem for all the clusters.
     void CapsuleCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
   
     //**************************************************************************************************************************************************
@@ -126,8 +126,6 @@ namespace Kratos {
 
     void CapsuleCluster3D::InitializeSolutionStep(ProcessInfo& r_process_info) {
         
-        KRATOS_TRY
-        KRATOS_CATCH("")
     }
 
     //**************************************************************************************************************************************************
@@ -139,9 +137,7 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     
     void CapsuleCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
-          
-        KRATOS_TRY
-        KRATOS_CATCH("")
+
     }// Calculate
 
     //**************************************************************************************************************************************************

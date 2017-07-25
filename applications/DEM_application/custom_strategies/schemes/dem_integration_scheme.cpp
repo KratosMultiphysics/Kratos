@@ -216,7 +216,6 @@ namespace Kratos {
     
     void DEMIntegrationScheme::CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
 
-        KRATOS_TRY
 
         ProcessInfo& r_process_info = model_part.GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
@@ -239,7 +238,6 @@ namespace Kratos {
             CalculateRotationalMotionOfNode(i, delta_t, moment_reduction_factor, StepFlag);            
         }//for Node                  
 
-        KRATOS_CATCH(" ")
 
     }//rotational_motion
     
@@ -265,7 +263,6 @@ namespace Kratos {
    
     void DEMIntegrationScheme::CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag) { //must be done AFTER the translational motion!
 
-        KRATOS_TRY
 
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ElementsArrayType::iterator ElementIterator;
@@ -299,11 +296,9 @@ namespace Kratos {
                 cluster_element.UpdatePositionOfSpheres();
             } //for Elements
         } //for number of threads
-        KRATOS_CATCH(" ")
     }
     
     void DEMIntegrationScheme::RotateClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
-        KRATOS_TRY
         array_1d<double, 3 > & moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         array_1d<double, 3 > & angular_momentum = i.FastGetSolutionStepValue(ANGULAR_MOMENTUM);
         array_1d<double, 3 > & angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -387,6 +382,5 @@ namespace Kratos {
             }//if StepFlag == 2
         }//if (StepFlag == 1 || StepFlag == 2)
 
-        KRATOS_CATCH(" ")
     }
 }

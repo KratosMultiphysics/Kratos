@@ -157,10 +157,7 @@ namespace Kratos {
     //**************************************************************************************************************************************************
 
     void EllipsoidCluster3D::InitializeSolutionStep(ProcessInfo& r_process_info) {
-        
-        KRATOS_TRY
 
-        KRATOS_CATCH("")
         
     }
 
@@ -173,10 +170,6 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     
     void EllipsoidCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
-          
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
 
     }// Calculate
 

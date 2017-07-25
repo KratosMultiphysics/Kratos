@@ -165,7 +165,6 @@ namespace Kratos {
     }
 
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy){        
-        KRATOS_TRY 
         
         int cluster_id = (int)this->Id();
         
@@ -231,7 +230,6 @@ namespace Kratos {
             mListOfSphericParticles[i] = new_sphere;                 
         }
 
-        KRATOS_CATCH("")
     }
     
     void Cluster3D::CreateContinuumConstitutiveLaws(){        
@@ -243,7 +241,6 @@ namespace Kratos {
     
     void Cluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info)
     {
-        KRATOS_TRY
         
         if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
             
@@ -305,7 +302,6 @@ namespace Kratos {
             return;
         }
 
-        KRATOS_CATCH("")
 
     } //Calculate
 

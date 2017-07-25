@@ -17,11 +17,9 @@ namespace Kratos {
 
     void DEM_KDEMFabric2D::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
         
-        KRATOS_TRY
         double radius_sum = radius + other_radius;
         double equiv_radius = radius * other_radius / radius_sum;
         calculation_area = 2.0 * equiv_radius;
-        KRATOS_CATCH("")
     }
 
     void DEM_KDEMFabric2D::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -34,7 +32,6 @@ namespace Kratos {
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
                                                     double indentation) {
-        KRATOS_TRY
         
         double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
         
@@ -45,7 +42,5 @@ namespace Kratos {
         DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
 
         //mContactMoment *= 1.0; // TODO: Hardcoded the reduction of a 90% of the flection in relation to KDEM
-        
-        KRATOS_CATCH("")
     }
 } // namespace Kratos

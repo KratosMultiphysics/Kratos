@@ -60,7 +60,6 @@ namespace Kratos
                 
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info) {                                                                                                                             
-        KRATOS_TRY                           
         mConductiveHeatFlux = 0.0 ;
 
 //        if (GetGeometry()[0].Coordinates()[1] < 0.02){   //0.15
@@ -88,7 +87,6 @@ namespace Kratos
             mConductiveHeatFlux += -mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
         }       //for each neighbor
 
-        KRATOS_CATCH("")                
       }         //ComputeHeatFluxes  
     
     
@@ -96,7 +94,6 @@ namespace Kratos
    void ThermalSphericParticle<TBaseElement>::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info)
                                                        
         {                                                                                                                             
-//        KRATOS_TRY
 //                    
 //        /* Initializations */
 //        
@@ -123,7 +120,6 @@ namespace Kratos
 //                                  
 //        }       //for each neighbor
 //        }
-//        KRATOS_CATCH("")         
        
       }         //ComputeHeatFluxes      
     

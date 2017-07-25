@@ -59,7 +59,6 @@ namespace Kratos
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
      /*void Calculate(ModelPart& model_part, bool TRotationOption, int StepFlag = -1)  override
      {
-        KRATOS_TRY
         
 	ProcessInfo& r_process_info  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
@@ -180,7 +179,6 @@ namespace Kratos
              }
 	   }
 	}
-	KRATOS_CATCH(" ")
      }  */
     
     

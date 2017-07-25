@@ -78,10 +78,7 @@ void MAPcond::CalculateRightHandSide(
                          Variable<array_1d<double,3> >& rDestinationVariable,
                          const ProcessInfo& r_process_info)
 {
-    KRATOS_TRY
 
-
-    KRATOS_CATCH( "" )
 }
 
  

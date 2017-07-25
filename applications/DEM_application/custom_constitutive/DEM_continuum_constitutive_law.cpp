@@ -42,7 +42,6 @@ namespace Kratos {
                                                             bool& sliding,
                                                             int failure_id) {
 
-        KRATOS_TRY  
 
          if ((indentation > 0) || (failure_id == 0)) {
              ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
@@ -52,7 +51,6 @@ namespace Kratos {
              ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
          }
 
-        KRATOS_CATCH("")
     }
     
     void DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments(SphericContinuumParticle* element,

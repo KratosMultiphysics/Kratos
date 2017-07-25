@@ -56,8 +56,6 @@ namespace Kratos {
             SphericContinuumParticle* element2,
             int i_neighbour_count,
             int time_steps) {
-
-        KRATOS_TRY    
               
         //Firstly, we check that the bond is not broken (it can break in any state of forces or indentations, because breakage depends on the stress tensor)
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];                            
@@ -74,7 +72,6 @@ namespace Kratos {
             }
         }        
         
-        KRATOS_CATCH("")      
     }
 
     void DEM_KDEM_Rankine::CalculateTangentialForces(double OldLocalElasticContactForce[3],
@@ -97,7 +94,6 @@ namespace Kratos {
             vector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
-        KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];                
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
@@ -127,7 +123,6 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")      
     }
     
     bool DEM_KDEM_Rankine::CheckRequirementsOfStressTensor() {

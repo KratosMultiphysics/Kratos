@@ -15,8 +15,6 @@ namespace Kratos {
 
     array_1d<double, 3> IceContinuumParticle::ComputeWeight(const array_1d<double, 3>& gravity, const ProcessInfo& r_process_info) {
     
-        KRATOS_TRY
-
         array_1d<double, 3> total_weight = ZeroVector(3);
         double radius = this->GetRadius();
         array_1d<double, 3> velocity = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -40,6 +38,5 @@ namespace Kratos {
         
         return total_weight += this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * gravity * (GetDensity() - density_of_fluid);
 
-        KRATOS_CATCH("")
     }
 } // namespace Kratos

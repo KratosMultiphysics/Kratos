@@ -44,11 +44,9 @@ namespace Kratos {
 
     void DEMDiscontinuumConstitutiveLaw::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
         
-        KRATOS_TRY
         double rmin = radius;
         if (other_radius < radius) rmin = other_radius;
         calculation_area = KRATOS_M_PI * rmin*rmin;
-        KRATOS_CATCH("")  
     }
 
     void DEMDiscontinuumConstitutiveLaw::CalculateElasticConstants(double &kn_el,
@@ -60,11 +58,9 @@ namespace Kratos {
             SphericParticle* element1,
             SphericParticle* element2) {
         
-        KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1.0 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
-        KRATOS_CATCH("")  
     }    
     
 
@@ -207,8 +203,6 @@ namespace Kratos {
         // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
         // But in opposite direction the visco damping can't overpass the force...
 
-        KRATOS_TRY  
-
         ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
 
         if (sliding == false) { //only applied when no sliding to help to the regularized friction law or the spring convergence
@@ -216,7 +210,6 @@ namespace Kratos {
             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
 
-        KRATOS_CATCH("")      
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -226,7 +219,6 @@ namespace Kratos {
             double kn_el,
             double kt_el) {
         
-        KRATOS_TRY 
         double aux_norm_to_tang = 0.0;
         const double my_mass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
@@ -235,7 +227,6 @@ namespace Kratos {
 
         equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (my_mass + other_real_mass)) * (sqrt(my_mass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
-        KRATOS_CATCH("")  
     }   
     
 } // KRATOS

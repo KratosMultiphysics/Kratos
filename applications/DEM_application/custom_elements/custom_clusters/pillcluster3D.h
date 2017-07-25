@@ -95,9 +95,7 @@ namespace Kratos
       /*
       virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
-        KRATOS_TRY
            return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
       }
       */
       

@@ -24,26 +24,21 @@
 namespace Kratos
 {
 	void SinteringSphericContinuumParticle::Initialize(const ProcessInfo& r_process_info) {
-            KRATOS_TRY
             ThermalSphericParticle<SphericContinuumParticle>::Initialize(r_process_info);
             mSinteringDisplacement = 0;
             mSinteringDrivingForce = 0;
-            KRATOS_CATCH("")
 	}                
 
         void SinteringSphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
-            KRATOS_TRY            
-			ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
+            ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
             const double temperature = GetTemperature();
             const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
 
             if (temperature > sintering_start_temp) { this->Set(DEMFlags::IS_SINTERING, true);  }
             else                                    { this->Set(DEMFlags::IS_SINTERING, false); }            
-            KRATOS_CATCH("")
         }
 
 	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {
-            KRATOS_TRY
             if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
             
             const unsigned int initial_number_of_cont_neighbours = mContinuumInitialNeighborsSize;
@@ -160,7 +155,6 @@ namespace Kratos
 		}
             }
 
-            KRATOS_CATCH("")
 	};
         
                
