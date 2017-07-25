@@ -95,7 +95,7 @@ public:
     }
     
     /// Destructor.
-    virtual ~ComputeErrorSolMetricProcess() {}
+    ~ComputeErrorSolMetricProcess() override {}
     
     ///@}
     ///@name Operators
@@ -114,7 +114,7 @@ public:
      * We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
      */
     
-    virtual void Execute()
+    void Execute() override
     {
         // Iterate in the nodes
         NodesArrayType& pNode = mThisModelPart.Nodes();
@@ -185,19 +185,19 @@ public:
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "ComputeErrorSolMetricProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeErrorSolMetricProcess";
     }
 
     /// Print object"s data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
     

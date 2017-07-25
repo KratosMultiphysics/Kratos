@@ -72,7 +72,7 @@ public:
 
 	TVertex(float x,float y, float z);
 	TVertex(float4 v);
-	~TVertex();
+	~TVertex() override;
 	void calcNormal();
 	float4 pos();
 	TList<TVertex*> *getVertexNeighboursByElem(TList<TVertex*> *toL = NULL , int depth = 1, int avoidLowerIds = false);			 
@@ -120,7 +120,7 @@ public:
 	TElement();
 	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3);
 	virtual BoundBox CalcBound() ;	
-	virtual ~TElement();
+	~TElement() override;
 };
 
 
@@ -153,7 +153,7 @@ public :
 
 	TTetra(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true) ;
 
-	~TTetra() ;
+	~TTetra() override ;
 	// Obtener el vecino que comparte estos 3 vertices  
 	TTetra* getTetraNeighbour(int faceI, TVertex* v0,TVertex* v1,TVertex* v2, TList<TObject*>*  tl);
 
