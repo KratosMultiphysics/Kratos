@@ -529,9 +529,14 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
-    // Create a new model part
-    /* NODES */
-//     std::unordered_map<int, std::vector<std::size_t>> color_nodes;
+    // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
+    std::unordered_map<int, std::vector<IndexType>> color_nodes;
+    std::unordered_map<int, std::vector<IndexType>> color_cond_0;
+    std::unordered_map<int, std::vector<IndexType>> color_cond_1;
+    std::unordered_map<int, std::vector<IndexType>> color_elem_0;
+    std::unordered_map<int, std::vector<IndexType>> color_elem_1;
+    
+    /* NODES */ // TODO: ADD OMP
     for (unsigned int i_node = 1; i_node <= n_nodes; i_node++)
     {
         int ref, is_required;
@@ -543,22 +548,11 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             p_node->pAddDof(*it_dof);
         }
         
-        if (ref != 0) // NOTE: ref == 0 is the MainModelPart
-        {
-//             color_nodes[ref].push_back(i_node);
-            std::vector<std::string> color_list = mColors[ref];
-            for (auto sub_model_part_name : color_list)
-            {
-                ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-                sub_model_part.AddNode(p_node);
-            }
-        }
+        if (ref != 0) color_nodes[ref].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
     
-    /* CONDITIONS */
+    /* CONDITIONS */ // TODO: ADD OMP
     unsigned int cond_id = 1;
-//     std::unordered_map<int, std::vector<std::size_t>> color_cond_0;
-//     std::unordered_map<int, std::vector<std::size_t>> color_cond_1;
     if (mpRefCondition[0] != nullptr)
     {
         unsigned int counter_cond_0 = 0;
@@ -581,16 +575,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             {
                 mrThisModelPart.AddCondition(p_condition);
                                     
-                if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
-                {
-//                     color_cond_0[prop_id].push_back(cond_id);
-                    std::vector<std::string>& color_list = mColors[prop_id];
-                    for (auto sub_model_part_name : color_list)
-                    {
-                        ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-                        sub_model_part.AddCondition(p_condition);
-                    }
-                }
+                if (prop_id != 0) color_cond_0[prop_id].push_back(cond_id);// NOTE: prop_id == 0 is the MainModelPart
                 
                 cond_id += 1;
             }
@@ -620,16 +605,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 {
                     mrThisModelPart.AddCondition(p_condition);
                                         
-                    if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
-                    {
-//                         color_cond_1[prop_id].push_back(cond_id);
-                        std::vector<std::string>& color_list = mColors[prop_id];
-                        for (auto sub_model_part_name : color_list)
-                        {
-                            ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-                            sub_model_part.AddCondition(p_condition);
-                        }
-                    }
+                    if (prop_id != 0) color_cond_1[prop_id].push_back(cond_id);// NOTE: prop_id == 0 is the MainModelPart
                     
                     cond_id += 1;
                 }
@@ -637,10 +613,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
     }
     
-    /* ELEMENTS */
+    /* ELEMENTS */ // TODO: ADD OMP
     unsigned int elem_id = 1;
-//     std::unordered_map<int, std::vector<std::size_t>> color_elem_0;
-//     std::unordered_map<int, std::vector<std::size_t>> color_elem_1;
     if (mpRefElement[0] != nullptr)
     {
         unsigned int counter_elem_0 = 0;
@@ -663,16 +637,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             {
                 mrThisModelPart.AddElement(p_element);
                 
-                if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
-                {
-//                     color_elem_0[prop_id].push_back(elem_id);
-                    std::vector<std::string>& color_list = mColors[prop_id];
-                    for (auto sub_model_part_name : color_list)
-                    {
-                        ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-                        sub_model_part.AddElement(p_element);
-                    }
-                }
+                if (prop_id != 0) color_elem_0[prop_id].push_back(elem_id);// NOTE: prop_id == 0 is the MainModelPart
                 
                 elem_id += 1;
             }
@@ -702,16 +667,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 {
                     mrThisModelPart.AddElement(p_element);
                     
-                    if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
-                    {
-//                         color_elem_1[prop_id].push_back(elem_id);
-                        std::vector<std::string>& color_list = mColors[prop_id];
-                        for (auto sub_model_part_name : color_list)
-                        {
-                            ModelPart& sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-                            sub_model_part.AddElement(p_element);
-                        }
-                    }
+                    if (prop_id != 0) color_elem_1[prop_id].push_back(elem_id);// NOTE: prop_id == 0 is the MainModelPart
                     
                     elem_id += 1;
                 }
@@ -719,20 +675,24 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
     }
     
-//     // We add nodes, conditions and elements to the sub model parts
-//     for (auto & color_list : mColors)
-//     {
-//         int key = color_list.first;
-//         for (auto sub_model_part_name : color_list.second)
-//         {
-//             ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
-//             r_sub_model_part.AddNodes(color_nodes[key]); // FIXME: Check existing keys, I thinl is the origin of the problem
-//             r_sub_model_part.AddConditions(color_cond_0[key]);
-//             r_sub_model_part.AddConditions(color_cond_1[key]);
-//             r_sub_model_part.AddElements(color_elem_0[key]);
-//             r_sub_model_part.AddElements(color_elem_1[key]);
-//         }
-//     }
+    // We add nodes, conditions and elements to the sub model parts
+    for (auto & color_list : mColors)
+    {
+        int key = color_list.first;
+        if (key != 0) // NOTE: key == 0 is the MainModelPart
+        {
+            for (auto sub_model_part_name : color_list.second)
+            {      
+                ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+                
+                if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
+                if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
+                if (color_cond_1.find(key) != color_cond_1.end()) r_sub_model_part.AddConditions(color_cond_1[key]);
+                if (color_elem_0.find(key) != color_elem_0.end()) r_sub_model_part.AddElements(color_elem_0[key]);
+                if (color_elem_1.find(key) != color_elem_1.end()) r_sub_model_part.AddElements(color_elem_1[key]);
+            }
+        }
+    }
     
     // Get the list of submodelparts names
     const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
