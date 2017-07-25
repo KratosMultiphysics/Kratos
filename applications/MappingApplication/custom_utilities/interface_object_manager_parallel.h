@@ -119,7 +119,7 @@ public:
                 }
             }
 
-            if (mEchoLevel >= 3)
+            if (mEchoLevel >= 4)
             {
                 PrintCandidatePartitions(interface_obj, partition_list); // For debugging
             }

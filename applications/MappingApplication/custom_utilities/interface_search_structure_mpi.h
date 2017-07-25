@@ -23,6 +23,7 @@
 // Project includes
 #include "interface_search_structure.h"
 #include "interface_object_manager_parallel.h"
+#include "mapper_utilities.h"
 #include "mapper_utilities_mpi.h"
 
 
@@ -82,7 +83,7 @@ public:
         mCommRank = CommRank;
         mCommSize = CommSize;
 
-        MapperUtilitiesMPI::ComputeLocalBoundingBox(rModelPartBins,
+        MapperUtilities::ComputeLocalBoundingBox(rModelPartBins,
                 mLocalBoundingBox);
     }
 

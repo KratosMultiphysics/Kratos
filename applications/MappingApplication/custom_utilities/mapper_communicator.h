@@ -62,7 +62,7 @@ namespace Kratos
 * == 1 : Print Timing Information (Mapper Construction and the three basic functions)
 * >= 2 : Warnings are printed
 * >= 3 : Basic Information, recommended for standard debugging
-* >= 4 : Very detailed output, such as the coordinates of the InterfaceObjects, the Communication Graph,...
+* >= 4 : Very detailed output for every object on the interface!
 *       (Only recommended for debugging of small example, otherwise it gets very messy!
 *       Should be only needed for developing)
 *
@@ -90,19 +90,20 @@ public:
     ///@{
 
     MapperCommunicator(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                       Parameters JsonParameters) :
+                       Parameters JsonParameters, const int CommRank = 0) :
         mrModelPartOrigin(rModelPartOrigin),
         mrModelPartDestination(rModelPartDestination),
         mJsonParameters(JsonParameters)
     {
-        CheckAndValidateJson();
-        CheckInterfaceModelParts();
+        CheckAndValidateJson(CommRank);
 
         mInitialSearchRadius = mJsonParameters["search_radius"].GetDouble();
         mMaxSearchIterations = mJsonParameters["search_iterations"].GetInt();
         mApproximationTolerance = mJsonParameters["approximation_tolerance"].GetDouble();
 
         mEchoLevel = mJsonParameters["echo_level"].GetInt();
+        
+        CheckInterfaceModelParts(CommRank);
     }
 
     /// Destructor.
@@ -394,7 +395,9 @@ private:
         }
     }
 
-    void CheckAndValidateJson()
+    // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
+    // since this function is called before the MapperMPICommunicato is initialized
+    void CheckAndValidateJson(const int CommRank)
     {
         // Check if there is a valid input for the search parameters
         bool compute_search_radius = true;
@@ -431,7 +434,7 @@ private:
                 KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
             }
 
-            if (mJsonParameters["echo_level"].GetInt() >= 3 && MyPID() == 0)
+            if (mJsonParameters["echo_level"].GetInt() >= 3 && CommRank == 0)
             {
                 std::cout << "Mapper JSON Parameters BEFORE validation:\n "
                           << mJsonParameters.PrettyPrintJsonString() << std::endl;
@@ -440,7 +443,7 @@ private:
 
         mJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
 
-        if (mJsonParameters["echo_level"].GetInt() >= 3 && MyPID() == 0)
+        if (mJsonParameters["echo_level"].GetInt() >= 3 && CommRank == 0)
         {
             std::cout << "Mapper JSON Parameters AFTER validation:\n "
                       << mJsonParameters.PrettyPrintJsonString() << std::endl;
@@ -454,7 +457,7 @@ private:
                                    mJsonParameters["echo_level"].GetInt());
             mJsonParameters["search_radius"].SetDouble(search_radius);
 
-            if (mJsonParameters["echo_level"].GetInt() >= 3 && MyPID() == 0)
+            if (mJsonParameters["echo_level"].GetInt() >= 3 && CommRank == 0)
             {
                 std::cout << "SearchRadius computed by MapperCommunicator = " << search_radius << std::endl;
             }
@@ -466,7 +469,9 @@ private:
         }
     }
 
-    void CheckInterfaceModelParts()
+    // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
+    // since this function is called before the MapperMPICommunicato is initialized
+    void CheckInterfaceModelParts(const int CommRank)
     {
         const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(mrModelPartOrigin);
         const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(mrModelPartOrigin);
@@ -503,6 +508,30 @@ private:
         {
             KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
                          << "which is not permitted" << std::endl;
+        }
+
+        if (mEchoLevel >= 2) {
+            std::vector<double> model_part_origin_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartOrigin);
+            std::vector<double> model_part_destination_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartDestination);
+
+            bool bbox_overlapping = MapperUtilities::ComputeBoundingBoxIntersection(
+                                                        model_part_origin_bbox,
+                                                        model_part_destination_bbox);
+            if(CommRank == 0)
+            {
+                if (!bbox_overlapping) {
+                    std::cout << "MAPPER WARNING, the bounding boxes of the "
+                              << "Modelparts do not overlap! "
+                              << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                } else if (mEchoLevel >= 3)
+                {
+                    std::cout << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                }
+            }
         }
     }
 

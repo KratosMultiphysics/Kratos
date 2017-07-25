@@ -110,20 +110,9 @@ public:
 
     bool IsInBoundingBox(double* pBoundingBox[])
     {
-        // xmax, xmin,  ymax, ymin,  zmax, zmin
-        bool is_inside = false;
+        std::vector<double> point_to_check {this->X(), this->Y(), this->Z()};
 
-        if (this->X() < *pBoundingBox[0] && this->X() > *pBoundingBox[1])   // check x-direction
-        {
-            if (this->Y() < *pBoundingBox[2] && this->Y() > *pBoundingBox[3])   // check y-direction
-            {
-                if (this->Z() < *pBoundingBox[4] && this->Z() > *pBoundingBox[5])   // check z-direction
-                {
-                    is_inside = true;
-                }
-            }
-        }
-        return is_inside;
+        return MapperUtilities::PointIsInsideBoundingBox(*pBoundingBox, point_to_check);;
     }
 
     void ProcessSearchResult(const double Distance, const int PairingStatus, const int Rank)
