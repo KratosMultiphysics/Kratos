@@ -534,6 +534,57 @@ namespace Kratos
                 rOutput[point_number] = integration_weight;
             }
         }
+        else if ( rVariable == STRAIN_ENERGY )
+        {
+            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
+            // Create constitutive law parameters:
+            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+            // Reading integration points
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+
+            // Set constitutive law flags:
+            Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
+   
+            // Displacements vector
+            Vector displacements;
+            GetValuesVector(displacements);
+            
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+            {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+                
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
+                
+                double integration_weight = GetIntegrationWeight(integration_points,
+                                                                 point_number,
+                                                                 this_kinematic_variables.detJ0);
+                
+                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+                {
+                    integration_weight *= this->GetProperties()[THICKNESS];
+                }
+                
+                double StrainEnergy = 0.0;
+                    
+                // Compute stresses and constitutive parameters
+                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
+                mConstitutiveLawVector[point_number]->GetValue(STRAIN_ENERGY, StrainEnergy);
+
+                rOutput[point_number] = integration_weight * StrainEnergy;  // 1/2 * sigma * epsilon
+            } 
+        }
         else if (rVariable == VON_MISES_STRESS)
         {
             const unsigned int number_of_nodes = GetGeometry().size();
