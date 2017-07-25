@@ -203,7 +203,7 @@ namespace Kratos
 
 		// RHS
 		// Body force
-		noalias(rRightHandSideVector) = prod(msC, ms_depth);
+		noalias(rRightHandSideVector) = -prod(msC, ms_depth);
 
 		// Inertia terms
 		// RHS += M*vhistory

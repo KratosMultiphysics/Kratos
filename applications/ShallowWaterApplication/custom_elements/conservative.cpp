@@ -91,6 +91,7 @@ namespace Kratos
 		//
 		array_1d<double,3> msNGauss;                                    // Dimension = number of nodes . Position of the gauss point
 		array_1d<double,9> ms_depth;
+		array_1d<double,9> ms_rain;
 		array_1d<double,9> ms_unknown;
 		array_1d<double,9> ms_proj_unknown;
 		array_1d<double,9> ms_inv_unknown;
@@ -128,24 +129,26 @@ namespace Kratos
 		// Get current step and projected values
 		int counter = 0;
 		for(unsigned int iii = 0; iii<number_of_points; iii++){
-			ms_depth[counter] = 0;
-			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_X);
+			ms_depth[counter]        = 0;
+			ms_rain[counter]         = 0;
+			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_X);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_X);
 			counter++;
 
-			ms_depth[counter] = 0;
-			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_Y);
+			ms_depth[counter]        = 0;
+			ms_rain[counter]         = 0;
+			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_Y);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y);
 			counter++;
 
-			ms_depth[counter]   = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
-			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
+			ms_depth[counter]        = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
+			ms_rain[counter]         = GetGeometry()[iii].FastGetSolutionStepValue(RAIN);
+			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_HEIGHT);
 			counter++;
 		}
 
-		// Compute parameters and derivatives matrices
-		// Loop on Gauss points: ONE GAUSS POINT
+		// Compute parameters and derivatives matrices on Gauss points
 
 		// Height gradient
 		msDN_DX_height(0,2) = msDN_DX(0,0);
@@ -196,7 +199,6 @@ namespace Kratos
 		// Previous height iteration at current time step
 		height = norm_1(prod(msN_height,ms_unknown));
 		//~ height = inner_prod(msN_height,ms_unknown);
-		// inv_height = 1/height;
 		// Previous momentum iteration at current time step
 		momentum = prod(msN_mom,ms_unknown);
 		// Previous inv height gradient at current time step
@@ -210,73 +212,27 @@ namespace Kratos
 		divU += msDN_DX(2,0)*ms_unknown[6]/ms_unknown[8];
 		divU += msDN_DX(2,1)*ms_unknown[7]/ms_unknown[8];
 
-
-
-		//~ KRATOS_WATCH(ms_unknown);
-		//~ KRATOS_WATCH(ms_inv_unknown);
-		//~ KRATOS_WATCH(inv_h_grad)
-
-
-
 		// U matrix
 		ms_hU(0,0) = momentum[0];
 		ms_hU(1,0) = momentum[1];
 		ms_hU(2,0) = 0;
-
-		// End loop on Gauss point
 
 
 		// Main loop
 		// LHS
 		// Cross terms
 		noalias(rLeftHandSideMatrix)  = ZeroMatrix(9,9);
-		//~ noalias(rLeftHandSideMatrix)  = prod(trans(msN_height),msDN_DX_mom);                 // Add <q,div(hu)> to Mass Eq.
 		noalias(msC)                  = gravity*height*prod(trans(msN_mom),msDN_DX_height);  // Add <w,g*h*grad(h)> to Momentum Eq.
 		noalias(rLeftHandSideMatrix) += msC;
 
-		// Non linear terms
-		array_1d<double,9> v_aux1x9 = ZeroVector(9);
-		boost::numeric::ublas::bounded_matrix<double,1,9> m_aux1x9 = ZeroMatrix(1,9);
-		boost::numeric::ublas::bounded_matrix<double,2,9> m_aux2x9 = ZeroMatrix(2,9);
-		boost::numeric::ublas::bounded_matrix<double,9,9> m_aux9x9 = ZeroMatrix(9,9);
-		noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
-		for (unsigned int i = 0; i < 9; i++)
-			m_aux1x9(0,i) = v_aux1x9[i];
-		noalias(m_aux9x9) = prod(trans(msN_height),m_aux1x9);
-		//~ noalias(rLeftHandSideMatrix) += height * m_aux9x9;              // Add <q,h*grad(1/h)*(hu)> to Mass Eq.
-
-		noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
-		noalias(m_aux2x9) = outer_prod(momentum,v_aux1x9);
-		noalias(m_aux9x9) = prod(trans(msN_mom),m_aux2x9);
-		//~ noalias(rLeftHandSideMatrix) += m_aux9x9;                       // Add <w,(hu)*grad(1/h)*(hu)> to Momentum Eq.
-
-		noalias(m_aux2x9) = prod(ms_hU,msGrad_mom);
-		noalias(m_aux9x9) = prod(msN_mom,m_aux2x9);
-		//~ noalias(rLeftHandSideMatrix) += inv_height * m_aux9x9;          // Add <w,(1/h)*(hu)*grad(hu)> to Momentum Eq.
-
-		//~ noalias(rLeftHandSideMatrix) += divU * prod(msN_height,msN_height);  // Add <q,div(u)*h> to Mass Eq. UNSTABLE
-		//~ noalias(rLeftHandSideMatrix) += divU * prod(msN_mom,msN_mom);        // Add <w,div(u)*hu> to Momentum Eq. UNSTABLE
-
-
-		//~ KRATOS_WATCH(rLeftHandSideMatrix)
-
-
 
 		// Inertia terms
-		// Compute the mass matrix
 		//~ CalculateConsistentMassMatrix(msMass);
 		CalculateLumpedMassMatrix(msMass);
-		// LHS += bdf*M
-		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMass;
+		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMass;          // LHS += bdf*M
 
 
-		//~ noalias(rLeftHandSideMatrix) += prod(trans(msN_height),msDN_DX_mom);   // Add <q,div(hu)> to Mass Eq.
-		noalias(rLeftHandSideMatrix) += divU * msMass;        // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
-
-
-
-		//~ KRATOS_WATCH(rLeftHandSideMatrix)
-
+		noalias(rLeftHandSideMatrix) += divU * msMass;                  // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
 
 
 		// Stabilization parameters
@@ -307,20 +263,16 @@ namespace Kratos
 		noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_height), msDN_DX_height);
 
 
-
-		//~ KRATOS_WATCH(rLeftHandSideMatrix)
-
-
-
 		// RHS
-		// TODO: SOURCE TERM
-		noalias(rRightHandSideVector) = prod(msC, ms_depth);            // Add <w,g*h*grad(H)> to RHS (Momentum Eq.)
+		// Source terms
+		noalias(rRightHandSideVector)  = -prod(msC, ms_depth);          // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+		noalias(rRightHandSideVector) +=  prod(msMass, ms_rain);        // Add <q,rain>         to RHS (Mass Eq.)
 
 		// Inertia terms
 		// RHS += M*vhistory
 		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msMass, ms_proj_unknown);
 
-		// Substracting the dirichlet term
+		// Subtracting the dirichlet term
 		// RHS -= LHS*UNKNOWNs
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, ms_unknown);
 

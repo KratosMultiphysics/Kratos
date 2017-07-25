@@ -41,6 +41,7 @@ namespace Kratos
 		std::cout << "Initializing KratosShallowWaterApplication... " << std::endl;
 
 		KRATOS_REGISTER_VARIABLE(BATHYMETRY)
+		KRATOS_REGISTER_VARIABLE(RAIN)
 		
 		KRATOS_REGISTER_VARIABLE(HEIGHT)
 		KRATOS_REGISTER_VARIABLE(PROJECTED_HEIGHT)

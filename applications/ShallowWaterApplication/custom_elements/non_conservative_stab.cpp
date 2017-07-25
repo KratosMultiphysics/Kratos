@@ -77,7 +77,7 @@ namespace Kratos
 		//~ array_1d<double,2> BDFcoeffs = {1.0, 1.0};  
 		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
 
-		boost::numeric::ublas::bounded_matrix<double,9,9> msM      = ZeroMatrix(9,9);     // Mass matrix
+		boost::numeric::ublas::bounded_matrix<double,9,9> msMass   = ZeroMatrix(9,9);     // Mass matrix
 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX  = ZeroMatrix(3,2);     // Shape functions gradients
 		boost::numeric::ublas::bounded_matrix<double,2,2> msG      = ZeroMatrix(2,2);     // Gravity matrix
 		boost::numeric::ublas::bounded_matrix<double,3,1> msU      = ZeroMatrix(3,1);     // Iteration matrix: velocity unknown
@@ -91,8 +91,7 @@ namespace Kratos
 		//
 		array_1d<double,3> msNGauss;                                    // Dimension = number of nodes . Position of the gauss point
 		array_1d<double,9> ms_depth;
-		array_1d<double,9> ms_step_height;
-		array_1d<double,9> ms_step_velocity;
+		array_1d<double,9> ms_rain;
 		array_1d<double,9> ms_unknown;
 		array_1d<double,9> ms_proj_unknown;
 		array_1d<double,2> ms_velocity;
@@ -121,24 +120,21 @@ namespace Kratos
 		// Get current step and projected values
 		int counter = 0;
 		for(unsigned int iii = 0; iii<number_of_points; iii++){
-			ms_depth[counter] = 0;
-			ms_step_height[counter] = 0;
-			ms_step_velocity[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_X);
-			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_X);
+			ms_depth[counter]        = 0;
+			ms_rain[counter]         = 0;
+			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_X);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_VELOCITY_X);
 			counter++;
 
-			ms_depth[counter] = 0;
-			ms_step_height[counter] = 0;
-			ms_step_velocity[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_Y);
-			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_Y);
+			ms_depth[counter]        = 0;
+			ms_rain[counter]         = 0;
+			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_Y);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y);
 			counter++;
 
-			ms_depth[counter]   = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
-			ms_step_height[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
-			ms_step_velocity[counter] = 0;
-			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
+			ms_depth[counter]        = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
+			ms_rain[counter]         = GetGeometry()[iii].FastGetSolutionStepValue(RAIN);
+			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_HEIGHT);
 			counter++;
 		}
@@ -197,16 +193,16 @@ namespace Kratos
 		// Main loop
 		// LHS
 		// Cross terms
-		noalias(rLeftHandSideMatrix)  = ms_height*prod(trans(msN_height),msDN_DX_vel);      // Mass: q*h*div(u)
-		noalias(msC)                  = gravity*prod(trans(msN_vel),msDN_DX_height);        // Momentum: w*g*grad(h)
+		noalias(rLeftHandSideMatrix)  = ms_height*prod(trans(msN_height),msDN_DX_vel);      // Add <q*h*div(u)> to Mass Eq.
+		noalias(msC)                  = gravity*prod(trans(msN_vel),msDN_DX_height);        // Add <w*g*grad(h)> to Momentum Eq.
 		noalias(rLeftHandSideMatrix) += msC;
 
 		// Inertia terms
 		// Compute the mass matrix
-		CalculateConsistentMassMatrix(msM);
-		//~ CalculateLumpedMassMatrix(msM);
+		CalculateConsistentMassMatrix(msMass);
+		//~ CalculateLumpedMassMatrix(msMass);
 		// LHS += bdf*M
-		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msM;
+		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMass;
 
 		// Stabilization parameters
 		depth = norm_1(prod(msN_height,ms_depth));
@@ -218,16 +214,18 @@ namespace Kratos
 		noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // Artifficial diffusion to Momentum eq.
 
 		// RHS
-		// TODO: SOURCE TERM
-		noalias(rRightHandSideVector) = prod(msC, ms_depth);
+		// Source terms
+		noalias(rRightHandSideVector)  = -prod(msC, ms_depth);          // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+		noalias(rRightHandSideVector) +=  prod(msMass, ms_rain);        // Add <q,rain>         to RHS (Mass Eq.)
 
 		// Inertia terms
 		// RHS += M*vhistory
-		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msM, ms_proj_unknown);
+		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msMass, ms_proj_unknown);
 
 		// Substracting the dirichlet term
 		// RHS -= LHS*UNKNOWNs
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, ms_unknown);
+		
 
 		rRightHandSideVector *= Area;
 		rLeftHandSideMatrix *= Area;
