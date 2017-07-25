@@ -297,7 +297,7 @@ public:
     {
         // Initalize values
         double area = 0.0;
-        boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( CONTACT_MAPS );
+        boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( MAPPING_PAIRS );
         
         if (mDebugGeometries == true)
         {

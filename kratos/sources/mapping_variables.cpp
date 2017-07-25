@@ -21,11 +21,11 @@
 
 namespace Kratos
 {
-    KRATOS_CREATE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_MAPS)
+    KRATOS_CREATE_VARIABLE( boost::shared_ptr<ConditionMap>, MAPPING_PAIRS)
 
-void KratosApplication::RegisterMappingVariables()
-{
-    KRATOS_REGISTER_VARIABLE(CONTACT_MAPS)
-}
+    void KratosApplication::RegisterMappingVariables()
+    {
+        KRATOS_REGISTER_VARIABLE(MAPPING_PAIRS)
+    }
 
 }  // namespace Kratos.

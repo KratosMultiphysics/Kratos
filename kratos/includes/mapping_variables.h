@@ -30,7 +30,7 @@
 
 namespace Kratos
 {
-   KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_MAPS ) // An unordened map of which contains the structure
+   KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, MAPPING_PAIRS ) // An unordened map of which contains the structure
 
 } // namespace Kratos
 
