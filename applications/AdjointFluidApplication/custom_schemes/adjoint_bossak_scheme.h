@@ -227,9 +227,9 @@ public:
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart,
-			      SystemMatrixType& rA,
-			      SystemVectorType& rDx,
-			      SystemVectorType& rb) override
+                              SystemMatrixType& rA,
+                              SystemVectorType& rDx,
+                              SystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -243,6 +243,7 @@ public:
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
 
+        // Calculate and store old contributions for solution of next time step.
         const int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector Partition;
         OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), NumThreads, Partition);
@@ -262,7 +263,7 @@ public:
                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
                 mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
 
-                // d (old response) / d (primal acceleration)
+                // d (response) / d (primal acceleration)
                 mpResponseFunction->CalculateSecondDerivativesGradient(
                     *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
 
