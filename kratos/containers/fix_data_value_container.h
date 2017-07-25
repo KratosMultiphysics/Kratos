@@ -282,8 +282,7 @@ public:
 
     template<class TDataType> TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
+        KRATOS_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "variable " << rThisVariable << " not found in the fixed_data_value_container";
 
         IndexType index = mpVariablesList->Index(rThisVariable);
 
@@ -311,11 +310,8 @@ public:
     template<class TDataType> TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
     {
 #ifdef KRATOS_DEBUG
-         if(rThisVariable.Key()==0)
-            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
-        
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
+        KRATOS_ERROR_IF(rThisVariable.Key()==0) << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
+        KRATOS_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "variable " << rThisVariable << " not found in the fixed_data_value_container";
 #endif
         
         
@@ -324,8 +320,7 @@ public:
         
         
 #ifdef KRATOS_DEBUG
-        if(index >= mSize)
-            KRATOS_ERROR << "variable " << rThisVariable << " an inconsistency of variable_list happend in the fixed_data_value_container";
+        KRATOS_ERROR_IF(index >= mSize) << "variable " << rThisVariable << " an inconsistency of variable_list happend in the fixed_data_value_container";
 #endif
 
 
@@ -335,23 +330,14 @@ public:
     template<class TDataType> const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
     {
 #ifdef KRATOS_DEBUG
-         if(rThisVariable.Key()==0)
-            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
-
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR << "variable " << rThisVariable << " not found in the fixed_data_value_container";
+        KRATOS_ERROR_IF(rThisVariable.Key()==0) << "Trying to access to the variable " << rThisVariable.Name() << " is not registered!! (key = 0) within the call FastGetValue " << std::endl;
+        KRATOS_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "variable " << rThisVariable << " not found in the fixed_data_value_container";
 #endif
-        
-        
         
         IndexType index = mpVariablesList->Index(rThisVariable);
 
-        
-        
-        
 #ifdef KRATOS_DEBUG
-        if(index >= mSize)
-            KRATOS_ERROR << "variable " << rThisVariable << " an inconsistency of variable_list happend in the fixed_data_value_container";
+        KRATOS_ERROR_IF(index >= mSize) << "variable " << rThisVariable << " an inconsistency of variable_list happend in the fixed_data_value_container";
 #endif
         return *(const TDataType*)(mpData + index);
     }
@@ -488,8 +474,7 @@ public:
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
 #ifdef KRATOS_DEBUG
-         if(rThisVariable.Key()==0)
-            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " which is not registered!! (key = 0) within the call to function Has " << std::endl;
+         KRATOS_ERROR_IF(rThisVariable.Key()==0) << "Trying to access to the variable " << rThisVariable.Name() << " which is not registered!! (key = 0) within the call to function Has " << std::endl;
 #endif
         return mpVariablesList->Has(rThisVariable);
     }
@@ -497,8 +482,7 @@ public:
     template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
 #ifdef KRATOS_DEBUG
-         if(rThisVariable.Key()==0)
-            KRATOS_ERROR << "Trying to access to the variable " << rThisVariable.Name() << " which is not registered!! (key = 0) within the call to function Has " << std::endl;
+         KRATOS_ERROR_IF(rThisVariable.Key()==0) << "Trying to access to the variable " << rThisVariable.Name() << " which is not registered!! (key = 0) within the call to function Has " << std::endl;
 #endif
          return mpVariablesList->Has(rThisVariable.GetSourceVariable());
     }
