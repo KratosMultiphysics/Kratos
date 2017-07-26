@@ -45,10 +45,12 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_total_lagrangian.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_kinematic_linear.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian.cpp
   
   # Adding the SPRISM element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp

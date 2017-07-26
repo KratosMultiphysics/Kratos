@@ -49,7 +49,7 @@ int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
         if (just_changed_side){
             const bool is_a_crosser = CheckProjectionFallsInside(p_particle);
 
-            if (is_a_crosser or true){
+            if (is_a_crosser || true){
                 mNumberThroughput += side_sign;
                 mCrossers.push_back(signed_id);
                 mMasses.push_back(p_particle->GetMass());
