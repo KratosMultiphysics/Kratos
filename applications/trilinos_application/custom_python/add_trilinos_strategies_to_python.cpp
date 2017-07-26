@@ -75,10 +75,6 @@
 // #include "external_includes/ml_solver.h"
 
 //configuration files
-#include "incompressible_fluid_application/custom_strategies/strategies/solver_configuration.h"
-//~ #include "custom_strategies/strategies/trilinos_fractionalstep_configuration.h"
-#include "incompressible_fluid_application/custom_strategies/strategies/fractional_step_strategy.h"
-#include "incompressible_fluid_application/incompressible_fluid_application.h"
 #include "linear_solvers/linear_solver.h"
 
 #include "FluidDynamicsApplication/custom_strategies/strategies/fs_strategy.h"
@@ -154,44 +150,6 @@ void AddStrategies()
     ;
 
     //********************************************************************************************
-    class_ < SolverConfiguration<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
-    ( "SolverConfiguration", init< ModelPart&, unsigned int>() )
-    .def( "GetActualizeRHSflag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::GetActualizeRHSflag )
-    .def( "GetActualizeRHSflag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::GetActualizeRHSflag )
-    ;
-
-    //********************************************************************************************
-    class_< FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
-    ( "TrilinosFractionalStepStrategy",
-      init < ModelPart&,
-      SolverConfiguration<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >&,
-      bool,
-      double, double,
-      int, int,
-      unsigned int, unsigned int,
-      bool
-      > () )
-    .def( "Solve", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
-    .def( "SolveStep1", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SolveStep1 )
-    .def( "SolveStep2", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SolveStep2 )
-    .def( "SolveStep3", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SolveStep3 )
-    .def( "SolveStep4", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SolveStep4 )
-    .def( "ActOnLonelyNodes", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ActOnLonelyNodes )
-    .def( "Clear", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Clear )
-    .def( "FractionalVelocityIteration", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::FractionalVelocityIteration )
-    .def( "ComputeReactions",&FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ComputeReactions)
-    .def( "ConvergenceCheck", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ConvergenceCheck )
-    .def( "InitializeFractionalStep", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::InitializeFractionalStep )
-    .def( "PredictVelocity", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::PredictVelocity )
-    .def( "InitializeProjections", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::InitializeProjections )
-    .def( "AssignInitialStepValues", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::AssignInitialStepValues )
-    .def( "IterativeSolve", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::IterativeSolve )
-    .def( "SavePressureIteration", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SavePressureIteration )
-    .def( "ApplyFractionalVelocityFixity", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ApplyFractionalVelocityFixity )
-    .def( "SetEchoLevel", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
-    ;
-
-    //********************************************************************************************
     class_< TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
     ( "TrilinosConvectionDiffusionStrategy", init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, bool, int, int > () )
     .def( "Solve", &TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
@@ -220,11 +178,9 @@ void AddStrategies()
     ;
 
     typedef FSStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosFSStrategy;
-    class_< TrilinosFSStrategy, boost::noncopyable >
+    class_< TrilinosFSStrategy, bases<TrilinosBaseSolvingStrategyType>, boost::noncopyable >
     ("TrilinosFSStrategy",init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
     .def(init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool, const Kratos::Variable<int>& >())
-    .def("Solve",&TrilinosFSStrategy::Solve)
-    .def("Clear",&TrilinosFSStrategy::Clear)
     .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
     .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
     .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
