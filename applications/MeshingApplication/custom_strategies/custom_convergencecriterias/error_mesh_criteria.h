@@ -308,6 +308,8 @@ public:
                         MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
                         MmgRemesh.Execute();
                     }
+                #else 
+                    KRATOS_ERROR << "Please compile with MMG to use this utility << std::endl;
                 #endif
             }
             else
