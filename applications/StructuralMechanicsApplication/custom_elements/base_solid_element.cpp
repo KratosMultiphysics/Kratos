@@ -606,6 +606,21 @@ namespace Kratos
             }
         }
     }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateOnIntegrationPoints( 
+        const Variable<array_1d<double, 3>>& rVariable, 
+        std::vector<array_1d<double, 3>>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
+        {
+            rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+        }
+    }
 
     //************************************************************************************
     //************************************************************************************
@@ -960,6 +975,18 @@ namespace Kratos
                                                             );
         }
 
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::GetValueOnIntegrationPoints( 
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
 
     //************************************************************************************

@@ -286,7 +286,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         ge[2] = J[PointNumber]( 2, 0 );
         gn[2] = J[PointNumber]( 2, 1 );
 
-        CrossProduct( v3, ge, gn );
+        CrossProduct( v3, ge, gn );                                                                            
         CalculateJ( j, ge, gn, v3 );
 
         // Calculation of matrix g = jtrans*j;

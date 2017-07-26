@@ -17,14 +17,14 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/kinematic_linear.h"
+#include "custom_elements/small_displacement.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
-    KinematicLinear::KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry )
+    SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGeometry )
             : BaseSolidElement( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
@@ -33,24 +33,24 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    KinematicLinear::KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
             : BaseSolidElement( NewId, pGeometry, pProperties )
     {
     }
 
-    Element::Pointer KinematicLinear::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+    Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
     {
-        return Element::Pointer( new KinematicLinear( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return Element::Pointer( new SmallDisplacement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
 
-    KinematicLinear::~KinematicLinear()
+    SmallDisplacement::~SmallDisplacement()
     {
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void KinematicLinear::CalculateAll( 
+    void SmallDisplacement::CalculateAll( 
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -146,7 +146,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void KinematicLinear::CalculateKinematicVariables(
+    void SmallDisplacement::CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
@@ -169,7 +169,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void KinematicLinear::CalculateConstitutiveVariables(
+    void SmallDisplacement::CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
@@ -201,7 +201,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void KinematicLinear::CalculateB(
+    void SmallDisplacement::CalculateB(
         Matrix& rB,
         const Matrix& DN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
@@ -247,7 +247,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    Matrix KinematicLinear::ComputeEquivalentF(const Vector& rStrainTensor)
+    Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor)
     {
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         Matrix F(dim,dim);
@@ -278,7 +278,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    int  KinematicLinear::Check( const ProcessInfo& rCurrentProcessInfo )
+    int  SmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -373,16 +373,16 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void KinematicLinear::save( Serializer& rSerializer ) const
+    void SmallDisplacement::save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Name", "KinematicLinear" );
+        rSerializer.save( "Name", "SmallDisplacement" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
     }
     
     //************************************************************************************
     //************************************************************************************
     
-    void KinematicLinear::load( Serializer& rSerializer )
+    void SmallDisplacement::load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
     }

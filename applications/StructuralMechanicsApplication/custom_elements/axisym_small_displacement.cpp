@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/axisym_kinematic_linear.h"
+#include "custom_elements/axisym_small_displacement.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos
@@ -23,11 +23,11 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
     
-    AxisymKinematicLinear::AxisymKinematicLinear( 
+    AxisymSmallDisplacement::AxisymSmallDisplacement( 
         IndexType NewId,
         GeometryType::Pointer pGeometry 
         )
-            : KinematicLinear( NewId, pGeometry )
+            : SmallDisplacement( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -35,31 +35,31 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    AxisymKinematicLinear::AxisymKinematicLinear( 
+    AxisymSmallDisplacement::AxisymSmallDisplacement( 
         IndexType NewId, 
         GeometryType::Pointer pGeometry, 
         PropertiesType::Pointer pProperties 
         )
-            : KinematicLinear( NewId, pGeometry, pProperties )
+            : SmallDisplacement( NewId, pGeometry, pProperties )
     {
     }
 
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Element::Pointer AxisymKinematicLinear::Create( 
+    Element::Pointer AxisymSmallDisplacement::Create( 
         IndexType NewId, 
         NodesArrayType const& ThisNodes, 
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return Element::Pointer( new AxisymKinematicLinear( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return Element::Pointer( new AxisymSmallDisplacement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
     
-    AxisymKinematicLinear::~AxisymKinematicLinear()
+    AxisymSmallDisplacement::~AxisymSmallDisplacement()
     {
     }
 
@@ -67,7 +67,7 @@ namespace Kratos
     //********************************* PROTECTED ****************************************
     //************************************************************************************
 
-    void AxisymKinematicLinear::CalculateB(
+    void AxisymSmallDisplacement::CalculateB(
         Matrix& rB,
         const Matrix& DN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
@@ -102,7 +102,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    Matrix AxisymKinematicLinear::ComputeEquivalentF(const Vector& rStrainVector)
+    Matrix AxisymSmallDisplacement::ComputeEquivalentF(const Vector& rStrainVector)
     {
         Matrix F(3, 3);
         
@@ -122,7 +122,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    double AxisymKinematicLinear::GetIntegrationWeight(
+    double AxisymSmallDisplacement::GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber,
         const double detJ
@@ -142,18 +142,18 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void AxisymKinematicLinear::save( Serializer& rSerializer ) const
+    void AxisymSmallDisplacement::save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Name", "AxisymKinematicLinear" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, KinematicLinear );
+        rSerializer.save( "Name", "AxisymSmallDisplacement" );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacement );
     }
     
     //************************************************************************************
     //************************************************************************************
     
-    void AxisymKinematicLinear::load( Serializer& rSerializer )
+    void AxisymSmallDisplacement::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, KinematicLinear );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacement );
     }
 
 } // Namespace Kratos
