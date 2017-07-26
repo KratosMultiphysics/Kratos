@@ -100,74 +100,75 @@ public:
     /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rParameterValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK1 (Parameters & rParameterValues) override;
 
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rParameterValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK2 (Parameters & rParameterValues) override;
 
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rParameterValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rParameterValues) override;
 
     /**
      * Computes the material response:
      * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rParameterValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+    void CalculateMaterialResponseCauchy (Parameters & rParameterValues) override;
 
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rParameterValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK1 (Parameters & rParameterValues) override;
 
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rParameterValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2 (Parameters & rParameterValues) override;
 
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rParameterValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues)  override;
+    void FinalizeMaterialResponseKirchhoff (Parameters & rParameterValues)  override;
 
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rParameterValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+    void FinalizeMaterialResponseCauchy (Parameters & rParameterValues) override;
 
     /**
-     * returns the value of a specified variable
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
-     */
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+     */ 
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
     
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -192,8 +193,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    double mStrainEnergy;
     
     ///@}
     ///@name Protected Operators
@@ -246,11 +245,11 @@ private:
 
     /**
      * It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
+     * @param rParameterValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
     virtual void CalculateCauchyGreenStrain(
-        Parameters& rValues,
+        Parameters& rParameterValues,
         Vector& rStrainVector
     );
 
