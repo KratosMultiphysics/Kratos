@@ -81,8 +81,6 @@ def Run():
             else:
                 os.system("export OMP_NUM_THREADS=1")
                 if sys.version_info >= (3, 0):
-                    print("checkpoint 2")
-                    print(path)
                     subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
                     
                 else:

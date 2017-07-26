@@ -16,70 +16,70 @@ def initialize_time_parameters(benchmark_number):
 
         final_time                      = 0.0005
         dt                              = 6.4e-8 # Complies Rayleigh's condition
-        output_time_step                = 0.000005
+        graph_print_interval                = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==2:
 
         final_time                      = 0.007
         dt                              = 3e-7 # Complies Rayleigh's condition????????????????
-        output_time_step                = 0.0001
+        graph_print_interval                = 0.0001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==3:
 
         final_time                      = 0.00031
         dt                              = 8.1e-9 #1.1e-9 # Complies Rayleigh's condition
-        output_time_step                = 0.000001
+        graph_print_interval                = 0.000001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==4:
 
         final_time                      = 0.0002  #0.00003
         dt                              = 2e-8 #1.9e-9 # Complies Rayleigh's condition
-        output_time_step                = 0.000001
+        graph_print_interval                = 0.000001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==5:
 
         final_time                      = 0.0000005
         dt                              = 3.6e-11  #3.6e-12 # Complies Rayleigh's condition
-        output_time_step                = 0.00000005
+        graph_print_interval                = 0.00000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==6:
 
         final_time                      = 0.01
         dt                              = 1.0e-6  #1.0e-7 # Complies Rayleigh's condition ????????????????
-        output_time_step                = 0.00025
+        graph_print_interval                = 0.00025
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==7:
 
         final_time                      = 0.0005
         dt                              = 4.4614e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
-        output_time_step                = 0.000005
+        graph_print_interval                = 0.000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==8:
 
         final_time                      = 0.02
         dt                              = 2.0e-6 #5.0e-7 # Complies Rayleigh's condition
-        output_time_step                = 0.0001
+        graph_print_interval                = 0.0001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==9:
 
         final_time                      = 0.001 #0.0005
         dt                              = 5.0e-8 # 3.4e-8 # Complies Rayleigh's condition
-        output_time_step                = 0.000005
+        graph_print_interval                = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==10:
 
         final_time                      = 0.00015 #0.0005
         dt                              = 2.0e-8  #3.6e-12 # Complies Rayleigh's condition
-        output_time_step                = 0.00001
+        graph_print_interval                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
 
@@ -87,7 +87,7 @@ def initialize_time_parameters(benchmark_number):
 
         final_time                      = 0.00015 #0.0005
         dt                              = 1.0e-7 #3.6e-12 # Complies Rayleigh's condition
-        output_time_step                = 0.00001
+        graph_print_interval                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
 
@@ -95,143 +95,143 @@ def initialize_time_parameters(benchmark_number):
 
         final_time                      = 0.1
         dt                              = 5.0e-7
-        output_time_step                = 1e-4
+        graph_print_interval                = 1e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==13:
 
         final_time                      = 2.0
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==14:
 
         final_time                      = 2.0
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==15:
 
         final_time                      = 2.0
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==16:
 
         final_time                      = 2.5
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==17:
 
         final_time                      = 1.0
         dt                              = 1.0e-6
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==20:          # Normal compression
 
         final_time                      = 0.01
         dt                              = 1e-5
-        output_time_step                = 1e-5   # utilitzo com a output freq del grafic de punts
+        graph_print_interval                = 1e-5   # utilitzo com a output freq del grafic de punts
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==21:          # Normal compression with indentation
 
         final_time                      = 0.01
         dt                              = 1e-5
-        output_time_step                = 1e-5
+        graph_print_interval                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==22:          # Tensile
 
         final_time                      = 0.05
         dt                              = 1e-5
-        output_time_step                = 1e-5
+        graph_print_interval                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==23:          # Tensile with indentation
 
         final_time                      = 0.05
         dt                              = 1e-5
-        output_time_step                = 1e-5
+        graph_print_interval                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==24:          # Shear
 
         final_time                      = 8e-5
         dt                              = 1e-7
-        output_time_step                = 1e-7
+        graph_print_interval                = 1e-7
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==25:          # Shear + radius expansion
 
         final_time                      = 8e-5
         dt                              = 1e-7
-        output_time_step                = 1e-7
+        graph_print_interval                = 1e-7
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==26:          #
 
         final_time                      = 0.1
         dt                              = 1e-5
-        output_time_step                = 1e-4
+        graph_print_interval                = 1e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==27:          #UCS TEST
 
         final_time                      = 0.05
         dt                              = 5e-7
-        output_time_step                = 5e-4
+        graph_print_interval                = 5e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==28:          #PENDULO3D . not ready
 
         final_time                      = 100
         dt                              = 1e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==30:
 
         final_time                      = 0.5
         dt                              = 1.0e-3
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==31:
 
         final_time                      = 0.5
         dt                              = 1.0e-3
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==32:
 
         final_time                      = 1.0
         dt                              = 1.0e-6
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==33:
 
         final_time                      = 1.0
         dt                              = 1.0e-6
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     else: #benchmark_number==68:        #
 
         final_time                      = 1e-3
         dt                              = 1e-6
-        output_time_step                = 1e-7
+        graph_print_interval                = 1e-7
         number_of_points_in_the_graphic = 1
 
-    return final_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
+    return final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
 
 
 class Benchmark1:
@@ -247,7 +247,7 @@ class Benchmark1:
             else:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -315,7 +315,7 @@ class Benchmark2:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
 
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -392,7 +392,7 @@ class Benchmark3:
             self.initial_normal_vel = node.GetSolutionStepValue(VELOCITY_Z)
             modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -510,7 +510,7 @@ class Benchmark4:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -705,7 +705,7 @@ class Benchmark5:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -864,7 +864,7 @@ class Benchmark6:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -1028,7 +1028,7 @@ class Benchmark7:
                 node.SetSolutionStepValue(VELOCITY_X, -initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, -self.initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -1182,7 +1182,7 @@ class Benchmark8:
                 node.SetSolutionStepValue(VELOCITY_X, self.initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -1348,7 +1348,7 @@ class Benchmark9:
                 node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                 modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -1695,7 +1695,7 @@ class Benchmark10: ########## LINEAR THORNTON
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
 
@@ -1952,7 +1952,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
 
@@ -1974,9 +1974,9 @@ class Benchmark12: ########## ROLLING FRICTION
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2065,9 +2065,9 @@ class Benchmark13: ########## DEM-FEM Facet
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2151,9 +2151,9 @@ class Benchmark14: ########## DEM-FEM Edge
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2235,9 +2235,9 @@ class Benchmark15: ########## DEM-FEM Vertex
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2320,9 +2320,9 @@ class Benchmark16: ########## DEM-FEM Grid
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2438,9 +2438,9 @@ class Benchmark17: ########## DEM-FEM Rolling
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2513,7 +2513,7 @@ class Benchmark20:
 
     def __init__(self):
         self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
@@ -2527,9 +2527,9 @@ class Benchmark20:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2573,7 +2573,7 @@ class Benchmark20:
         error_file.close()
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
+        
 
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
@@ -2628,7 +2628,7 @@ class Benchmark21:
 
     def __init__(self):
         self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
@@ -2642,9 +2642,9 @@ class Benchmark21:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2688,7 +2688,7 @@ class Benchmark21:
 
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
+        
 
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
@@ -2745,7 +2745,7 @@ class Benchmark22:
 
     def __init__(self):
         self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
@@ -2759,9 +2759,9 @@ class Benchmark22:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2804,7 +2804,7 @@ class Benchmark22:
         error_file.close()
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
+        
 
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
@@ -2859,23 +2859,28 @@ class Benchmark23:
 
     def __init__(self):
         self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
-
+        
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        print("entering set_initial_data")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("restitution_numbers_vector_list_outfile_name", self.restitution_numbers_vector_list_outfile_name)
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-
+        
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):        #FINALIZATION STEP
+        print("entering get_final_data")
         self.simulation_graph.close()
+        
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
-
-        self.graph_frequency        = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP        
+        print("generate_graph_points bench23,  time, graph_print_interval, dt - ", time, graph_print_interval, dt )
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2884,15 +2889,16 @@ class Benchmark23:
             self.total_force_x = 0.0
             self.total_force_y = 0.0
 
-            for node in modelpart.Nodes:
-                if node.Id == 141:
+            for node in modelpart.Nodes:                
+                if node.Id == 141:  # node 141
                    force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                    force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
-
+            
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-        self.balls_graph_counter += 1
+        self.balls_graph_counter += 1                
+        
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
 
@@ -2918,18 +2924,20 @@ class Benchmark23:
         error_file.close()
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
-
+        
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
-        i = 0
+        i = 0        
         with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
+            
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
+        print(restitution_numbers_vector_list_outfile_name,"restitution_numbers_vector_list_outfile_name") 
+
         with open(restitution_numbers_vector_list_outfile_name) as inf:
             for line in inf:
                 if i in lines_DEM:
@@ -2940,9 +2948,11 @@ class Benchmark23:
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
+            
 
         for i, j in zip(DEM_data, analytics_data):
             final_restitution_numbers_error+=fabs(i-j)
+        print(final_restitution_numbers_error)    
         final_restitution_numbers_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*final_restitution_numbers_error,"%")
@@ -3048,9 +3058,9 @@ class Benchmark24:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
-
-        self.graph_frequency = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
+        print("generate_graph_points bench24,  time, graph_print_interval, dt - ", time, graph_print_interval, dt )
+        self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
            self.graph_frequency = 1
@@ -3141,7 +3151,6 @@ class Benchmark25:
         return c
 
     def ApplyNodalRotation(self, time, dt, modelpart):
-
         ang_vel = 20 * pi
         angular_velocity = [0, 0, ang_vel]
         rotation_matrix = [[cos(ang_vel * time), -1.0 * sin(ang_vel * time), 0], [sin(ang_vel * time), cos(ang_vel * time), 0], [0,0,1]]
@@ -3205,9 +3214,9 @@ class Benchmark25:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        self.graph_frequency = int(output_time_step/dt)
+        self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
            self.graph_frequency = 1
@@ -3297,9 +3306,9 @@ class Benchmark26:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        self.graph_frequency = int(output_time_step/dt)
+        self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
            self.graph_frequency = 1
@@ -3416,10 +3425,10 @@ class Benchmark27:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        #self.graph_frequency = int(5e-7/dt)   #output_time_step/dt
-        self.graph_frequency = int(output_time_step/1/dt)   #1 veces mas grf que bin
+        #self.graph_frequency = int(5e-7/dt)   #graph_print_interval/dt
+        self.graph_frequency = int(graph_print_interval/1/dt)   #1 veces mas grf que bin
         #print (self.graph_frequency)
         #print (self.balls_graph_counter)
         if self.graph_frequency < 1:
@@ -3723,10 +3732,10 @@ class Benchmark28:   #pendulo3D
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        #self.graph_frequency = int(5e-7/dt)   #output_time_step/dt
-        self.graph_frequency = int(output_time_step/1/dt)   #1 veces mas grf que bin
+        #self.graph_frequency = int(5e-7/dt)   #graph_print_interval/dt
+        self.graph_frequency = int(graph_print_interval/1/dt)   #1 veces mas grf que bin
         if self.graph_frequency < 1:
            self.graph_frequency = 1
 
@@ -3903,9 +3912,9 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Vel
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4019,9 +4028,9 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4133,9 +4142,9 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4231,9 +4240,9 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4317,7 +4326,9 @@ def delete_archives():
     files_to_delete_list = glob('*.time')
     files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
-
+    files_to_delete_list.extend(glob('*.txt'))
+    files_to_delete_list.extend(glob('*.lst'))
+    
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
 

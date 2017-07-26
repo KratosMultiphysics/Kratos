@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-print("import main_script")
 import main_script
 
 # Kratos
@@ -61,13 +60,47 @@ class Solution(main_script.Solution):
         super().__init__()
         os.chdir('..')
         self.main_path = os.getcwd()
-        print("-----execute init")
+
+    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):        
+        return ModelPartIO(modelpart)
+
+    def SetSolverStrategy(self):
+        # Strategy object
+        if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+            import sphere_strategy as SolverStrategy
+        elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+            import continuum_sphere_strategy as SolverStrategy
+        elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+            import thermal_continuum_sphere_strategy as SolverStrategy
+        elif (DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
+            import thermal_sphere_strategy as SolverStrategy
+        elif (DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
+            import thermal_continuum_sphere_strategy as SolverStrategy
+        elif (DEM_parameters.ElementType == "IceContPartDEMElement3D"):
+            import ice_continuum_sphere_strategy as SolverStrategy
+        else:
+            self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
+
+        return SolverStrategy    
          
+    def SetSolver(self):
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
+
+    def SetFinalTime(self):        
+        self.final_time = slt.final_time  
+        #return self.final_time
+
+    def Setdt(self):       
+        self.dt = slt.dt
+        print("setdt", self.dt )
+        #return self.dt
+
     def Initialize(self):
-        print("execute initialize") 
         DEM_parameters.problem_name = 'benchmark' + str(benchmark_number)
-        super().Initialize()
-        
+        #self.final_time = slt.final_time  
+        #self.dt = slt.dt
+        #self.graph_print_interval = slt.graph_print_interval
+        super().Initialize()           
 
         print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
@@ -78,10 +111,9 @@ class Solution(main_script.Solution):
 
     def ReadModelParts(self):
         super().ReadModelParts()
-        benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
+        benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)       
 
     def GetMpFilename(self):
-        print("getmpfilename-benchmark")
         return 'benchmark' + str(benchmark_number) + "DEM"
     
     def GetInletFilename(self):
@@ -92,13 +124,16 @@ class Solution(main_script.Solution):
 
     def BeforeSolveOperations(self, time): 
         super().BeforeSolveOperations(time)     
-        benchmark.ApplyNodalRotation(self.spheres_model_part, time, self.dt)
+        benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super().BeforePrintingOperations(time)
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.output_time_step, self.dt)
-
-    def Finalize(self):
+        self.Setdt()
+        print(self.dt)
+        print("self.graph_print_interval", self.graph_print_interval)
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)        
+    
+    def Finalize(self):      
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
         super().Finalize()
         if nodeplotter:
@@ -114,21 +149,23 @@ class Solution(main_script.Solution):
             self.tang_plotter.plot_tangential_force(time)   
         
     def CleanUpOperations(self):
-        print("execute CleanUpOperations") 
-        DBC.delete_archives() #.......Removing some unuseful files 
-        super().CleanUpOperations()
-    
+        print("running CleanUpOperations") 
+        #DBC.delete_archives() #.......Removing some unuseful files 
+        super().CleanUpOperations() 
+                  
 
-final_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
+final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
     for iteration in range(1, number_of_points_in_the_graphic + 1):
-        sol = Solution()
-        sol.iteration = iteration
-        sol.dt = dt
-        DEM_parameters.FinalTime = final_time
-        sol.output_time_step = output_time_step
-        print(DEM_parameters.FinalTime)        
-        sol.number_of_points_in_the_graphic = number_of_points_in_the_graphic
-        sol.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
-        sol.Run()
+        slt = Solution()
+        slt.iteration = iteration
+        slt.dt = dt
+        print("print dt,", slt.dt)
+        slt.final_time = final_time    
+        slt.graph_print_interval = graph_print_interval  
+        print("slt.graph_print_interval,slt.dt, slt.final_time,", slt.graph_print_interval,slt.dt, slt.final_time)    
+        slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
+        slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution        
+        slt.Run()
     benchmark.print_results(number_of_points_in_the_graphic, dt)
+#DBC.delete_archives() #.......Removing some unuseful files     
