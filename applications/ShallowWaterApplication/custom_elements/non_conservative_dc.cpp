@@ -160,7 +160,7 @@ namespace Kratos
 		msN_vel(0,3) = msNGauss[1];
 		msN_vel(0,6) = msNGauss[2];
 		msN_vel(1,1) = msNGauss[0];
-		msN_vel(1,5) = msNGauss[1];
+		msN_vel(1,4) = msNGauss[1];
 		msN_vel(1,7) = msNGauss[2];
 
 		height = msNGauss[0]*ms_unknown[2] + msNGauss[1]*ms_unknown[5] + msNGauss[2]*ms_unknown[8];

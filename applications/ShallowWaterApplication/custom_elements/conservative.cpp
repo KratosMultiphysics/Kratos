@@ -192,7 +192,7 @@ namespace Kratos
 		msN_mom(0,3) = msNGauss[1];
 		msN_mom(0,6) = msNGauss[2];
 		msN_mom(1,1) = msNGauss[0];
-		msN_mom(1,5) = msNGauss[1];
+		msN_mom(1,4) = msNGauss[1];
 		msN_mom(1,7) = msNGauss[2];
 
 

@@ -94,10 +94,10 @@ namespace Kratos
 		array_1d<double,9> ms_rain;
 		array_1d<double,9> ms_unknown;
 		array_1d<double,9> ms_proj_unknown;
-		array_1d<double,2> ms_velocity;
+		array_1d<double,2> velocity;
 		double ms_height;
 		//
-		double Ctau = 0.02;      // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
+		double Ctau = 0.0005;      // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) En caso de multiplicar: 0.02
 		double depth;
 		double tau_h;
 		boost::numeric::ublas::bounded_matrix<double,2,2> tau_u = ZeroMatrix(2,2);
@@ -139,8 +139,8 @@ namespace Kratos
 			counter++;
 		}
 
+
 		// Compute parameters and derivatives matrices
-		// Loop on Gauss points: ONE GAUSS POINT
 
 		// Height gradient
 		msDN_DX_height(0,2) = msDN_DX(0,0);
@@ -162,16 +162,16 @@ namespace Kratos
 			for (unsigned int iii = 0; iii < number_of_points; iii++)
 				msN(iii,iii+3*jjj) = msNGauss[jjj];
 		}
-		//noalias(msNmass) = row(msN, 2);
+
 		msN_height(0,2) = msNGauss[0];
 		msN_height(0,5) = msNGauss[1];
 		msN_height(0,8) = msNGauss[2];
-		//noalias(msNmoment) = row(msN, 0,1);
+
 		msN_vel(0,0) = msNGauss[0];
 		msN_vel(0,3) = msNGauss[1];
 		msN_vel(0,6) = msNGauss[2];
 		msN_vel(1,1) = msNGauss[0];
-		msN_vel(1,5) = msNGauss[1];
+		msN_vel(1,4) = msNGauss[1];
 		msN_vel(1,7) = msNGauss[2];
 
 		// G matrix: gravity
@@ -182,12 +182,10 @@ namespace Kratos
 		ms_height = norm_1(prod(msN_height,ms_unknown));
 
 		// U matrix: previous iteration velocity at current step
-		ms_velocity = prod(msN_vel,ms_unknown);
-		msU(0,0) = ms_velocity[0];
-		msU(1,0) = ms_velocity[1];
+		velocity = prod(msN_vel,ms_unknown);
+		msU(0,0) = velocity[0];
+		msU(1,0) = velocity[1];
 		msU(2,0) = 0;
-
-		// End loop on Gauss point
 
 
 		// Main loop
@@ -206,9 +204,9 @@ namespace Kratos
 
 		// Stabilization parameters
 		depth = norm_1(prod(msN_height,ms_depth));
-		tau_h = Ctau*elem_size*pow(depth/gravity,0.5);
-		tau_u(0,0) = Ctau*elem_size*pow(gravity/depth,0.5);
-		tau_u(1,1) = Ctau*elem_size*pow(gravity/depth,0.5);
+		tau_h = Ctau/elem_size*pow(depth/gravity,0.5);
+		tau_u(0,0) = Ctau/elem_size*pow(gravity/depth,0.5);
+		tau_u(1,1) = Ctau/elem_size*pow(gravity/depth,0.5);
 		// Stabilization term
 		noalias(rLeftHandSideMatrix) += tau_h * prod(trans(msDN_DX_vel), msDN_DX_vel);                    // Artifficial diffusion to Mass eq.
 		noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // Artifficial diffusion to Momentum eq.
@@ -216,20 +214,28 @@ namespace Kratos
 		// RHS
 		// Source terms
 		noalias(rRightHandSideVector)  = -prod(msC, ms_depth);          // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+		//~ KRATOS_WATCH("g*h*grad(H)")
+		//~ KRATOS_WATCH(rRightHandSideVector)
 		noalias(rRightHandSideVector) +=  prod(msMass, ms_rain);        // Add <q,rain>         to RHS (Mass Eq.)
+		//~ KRATOS_WATCH(ms_rain)
+		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		// Inertia terms
 		// RHS += M*vhistory
 		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msMass, ms_proj_unknown);
+		//~ KRATOS_WATCH(BDFcoeffs[1])
+		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		// Substracting the dirichlet term
 		// RHS -= LHS*UNKNOWNs
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, ms_unknown);
-		
+		//~ KRATOS_WATCH("Dirichlet")
+		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		rRightHandSideVector *= Area;
 		rLeftHandSideMatrix *= Area;
-
+		//~ KRATOS_WATCH(Area)
+		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		KRATOS_CATCH("");
 	}
