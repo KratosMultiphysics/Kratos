@@ -202,12 +202,12 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
-    # nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution')) # Not working
+    nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution')) # Not working
     nightSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
 
     nightSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
-    # nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution')) # Not working
+    nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution')) # Not working
     nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     # CL tests
@@ -258,18 +258,18 @@ def AssambleTestSuites():
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
             TFofi4PointTentnoCableTests,
-            # TMembraneQ4PointLoadTests,
-            # TShellQ4ThickBendingRollUpTests,
-            # #TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
-            # TShellT3ThinBendingRollUpTests,
-            # TShellT3ThinDrillingRollUpTests,
-            # TShellT3IsotropicScordelisTests,
+            TMembraneQ4PointLoadTests,
+            TShellQ4ThickBendingRollUpTests,
+            #TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
+            TShellT3ThinBendingRollUpTests,
+            TShellT3ThinDrillingRollUpTests,
+            TShellT3IsotropicScordelisTests,
             TShellT3ThickLinearStaticTests,
-            # TShellT3ThickNonLinearStaticTests, # Not working
+            TShellT3ThickNonLinearStaticTests, # Not working
             TShellT3ThickLinearDynamicTests,
             TShellT3ThickNonLinearDynamicTests,
             TShellQ4ThinLinearStaticTests,
-            # TShellQ4ThinNonLinearStaticTests, # Not working
+            TShellQ4ThinNonLinearStaticTests, # Not working
             TShellQ4ThinLinearDynamicTests,
             TShellQ4ThinNonLinearDynamicTests,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
