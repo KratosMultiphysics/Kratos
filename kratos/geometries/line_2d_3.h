@@ -352,31 +352,6 @@ public:
 
         return sqrt( length );
     }
-
-    /**
-     * It computes the normal of the geometry, if possible
-     * @return The normal of the geometry
-     */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
-    {
-        // We define the normal and tangents
-        array_1d<double,3> TangentXi, TangentEta;
-        
-        Matrix JNode = ZeroMatrix( 2,1 ); 
-        this->Jacobian( JNode, rPointLocalCoordinates);
-    
-        for (unsigned int iDim = 0; iDim < 2; iDim++)
-        {
-            // Using the Jacobian tangent directions 
-            TangentXi[iDim]  = JNode(iDim, 0);
-            TangentEta[iDim] = 0.0;
-        }
-        
-        TangentXi[2] = 0.0;
-        TangentEta[2] = 1.0;
-        
-        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
-    }
     
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
@@ -961,7 +936,9 @@ private:
         IntegrationPointsContainerType integration_points = {{
                 Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -972,7 +949,9 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values = {{
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 )
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -983,7 +962,9 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 )
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;

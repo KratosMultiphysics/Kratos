@@ -223,7 +223,7 @@ void UpdatedLagrangianUP::InitializeGeneralVariables (GeneralVariables& rVariabl
     //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     ////std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-    //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+    //ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -516,7 +516,7 @@ void UpdatedLagrangianUP::InitializeSystemMatrices(MatrixType& rLeftHandSideMatr
 //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
 ////std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+//ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
 //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -2283,7 +2283,7 @@ double& UpdatedLagrangianUP::CalculateVolumeChange( double& rVolumeChange, Gener
 ////set constitutive law flags:
 //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+//ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 ////ConstitutiveLawOptions.Set(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY);
 ////compute element kinematics B, F, DN_DX ...
@@ -3245,7 +3245,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessI
 ////set constitutive law flags:
 //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+//ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 

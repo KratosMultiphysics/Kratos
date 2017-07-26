@@ -76,10 +76,10 @@ public:
     ///@{
 
     /// Default constructor.
-    TetGenPfemContact() {}
+    TetGenPfemContact() = default;
 
     /// Destructor.
-    virtual ~TetGenPfemContact() {}
+    virtual ~TetGenPfemContact() = default;
 
 
     ///@}
@@ -168,7 +168,7 @@ public:
                 f->numberofpolygons = 1;
                 f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
                 f->numberofholes = 0;
-                f->holelist = NULL;
+                f->holelist = nullptr;
 
 
                 p = &f->polygonlist[0];
@@ -184,7 +184,7 @@ public:
 
             //holes
             in_shell.numberofholes = 0;
-            in_shell.holelist = NULL;
+            in_shell.holelist = nullptr;
 
         }
 //KRATOS_WATCH("@@@@@@@@@@@@@ before meshing @@@@@@@@@@@@@@@@");

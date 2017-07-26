@@ -170,7 +170,7 @@ protected:
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
         const Vector& N,
-        array_1d<double, 2>& Normal,
+        const array_1d<double, 3>& Normal,
         const double Pressure,
         const double IntegrationWeight 
         );

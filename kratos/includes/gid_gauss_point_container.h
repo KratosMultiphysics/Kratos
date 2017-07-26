@@ -436,6 +436,20 @@ public:
                 GiD_fWriteGaussPoint2D( MeshFile, - 1.00/std::sqrt(3.0),   1.00/std::sqrt(3.0) );
                 GiD_fEndGaussPoint(MeshFile);
             }
+            else if( mGidElementFamily == GiD_Quadrilateral && mSize == 9 )
+            {
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Quadrilateral, NULL, 9, 0, 0 );
+                GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00));
+                GiD_fWriteGaussPoint2D( MeshFile,  0.00 , -std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00), 0.00 );
+                GiD_fWriteGaussPoint2D( MeshFile,   0.00 , 0.00 );
+                GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00), 0.00);
+                GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00), std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile,  0.00, std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00), std::sqrt(3.00/5.00) );
+                GiD_fEndGaussPoint(MeshFile);
+            }
             else if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );

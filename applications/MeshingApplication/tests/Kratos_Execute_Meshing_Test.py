@@ -1,10 +1,17 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.MeshingApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.MeshingApplication as MeshingApplication
+try:
+  import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
+  missing_external_fluid_dependencies = False
+except ImportError as e:
+    missing_external_fluid_dependencies = True
+try:
+  import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+  missing_external_solid_dependencies = False
+except ImportError as e:
+    missing_external_solid_dependencies = True
 
 import os
 import process_factory
@@ -15,8 +22,8 @@ class Kratos_Execute_Test:
 
         self.ProjectParameters = ProjectParameters
 
-        self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+        self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
@@ -24,25 +31,23 @@ class Kratos_Execute_Test:
     
         self.solve_problem = self.ProjectParameters["problem_data"]["solve_problem"].GetBool()
     
-        if self.problem_type  == "fluid":
+        if (self.problem_type  == "fluid" and missing_external_fluid_dependencies == False):
             ## Solver construction
-            import python_solvers_wrapper_fluid
-            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
-        elif self.problem_type  == "solid":
+            import python_solvers_wrapper_fluid as fluid_wrapper
+            self.solver = fluid_wrapper.CreateSolver(self.main_model_part, self.ProjectParameters)
+        elif (self.problem_type  == "solid" and missing_external_solid_dependencies == False):
             # Construct the solver (main setting methods are located in the solver_module)
             solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
             self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+        else:
+            raise NameError('Problem type not defined or failing in the import')
 
         # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddVariables()
         
-        self.main_model_part.AddNodalSolutionStepVariable(NODAL_H) 
-        self.main_model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
-        self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_GRADIENT) 
-        self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_HESSIAN) 
-        self.main_model_part.AddNodalSolutionStepVariable(ANISOTROPIC_RATIO) 
-        self.main_model_part.AddNodalSolutionStepVariable(MMG_METRIC) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         
         # Read model_part (note: the buffer_size is set here) (restart can be read here)
         self.solver.ImportModelPart()
@@ -148,7 +153,7 @@ class Kratos_Execute_Test:
             # Delta time
             delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
             # Start step
-            self.main_model_part.ProcessInfo[TIME_STEPS] = 0
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = 0
             # Start time
             time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
             # End time
@@ -163,7 +168,7 @@ class Kratos_Execute_Test:
             # Solving the problem (time integration)
             while(time <= end_time):
                 time = time + delta_time
-                self.main_model_part.ProcessInfo[TIME_STEPS] += 1
+                self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] += 1
                 self.main_model_part.CloneTimeStep(time)
                 step = step + 1
                 
@@ -171,7 +176,7 @@ class Kratos_Execute_Test:
                     for process in self.list_of_processes:
                         process.ExecuteInitializeSolutionStep()
                         
-                    if (self.main_model_part.Is(MODIFIED) == True):
+                    if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) == True):
                         # WE INITIALIZE THE SOLVER
                         self.solver.Initialize()
                         # WE RECOMPUTE THE PROCESSES AGAIN

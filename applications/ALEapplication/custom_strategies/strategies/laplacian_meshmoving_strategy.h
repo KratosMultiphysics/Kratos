@@ -179,7 +179,10 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
   }
 
-  double Solve()
+  void Initialize() override
+  {}
+
+  double Solve() override
   {
     KRATOS_TRY;
 
@@ -205,7 +208,7 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
     mstrategy_z->Solve();
 
-    MoveNodes();
+    MoveMesh();
 
     //clearing the system if needed
     if(mreform_dof_at_every_step == true) {
@@ -267,14 +270,14 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("");
   }
 
-  virtual void SetEchoLevel(int Level)
+  virtual void SetEchoLevel(int Level) override
   {
     mstrategy_x->SetEchoLevel(Level);
     mstrategy_y->SetEchoLevel(Level);
     mstrategy_z->SetEchoLevel(Level);
   }
 
-  void MoveNodes()
+  void MoveMesh() override
   {
     for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
             i != BaseType::GetModelPart().NodesEnd(); ++i)
