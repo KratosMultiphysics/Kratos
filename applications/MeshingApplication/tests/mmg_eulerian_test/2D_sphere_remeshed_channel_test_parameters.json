@@ -27,7 +27,8 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_flags_results" : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","ANISOTROPIC_RATIO"],
+            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE"],
+            "nodal_nonhistorical_results" : ["ANISOTROPIC_RATIO"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
