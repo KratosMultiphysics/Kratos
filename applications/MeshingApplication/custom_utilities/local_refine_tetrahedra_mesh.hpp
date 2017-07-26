@@ -64,9 +64,7 @@ public:
 
     /// Destructor
     ~LocalRefineTetrahedraMesh()
-    {
-      
-    }
+    = default;
     
     ///@}
     ///@name Operators
@@ -165,7 +163,7 @@ public:
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& NewElements,
             bool interpolate_internal_variables
-    )
+    ) override
     {
 	ElementsArrayType& rElements = this_model_part.Elements();
 	ElementsArrayType::iterator it_begin = rElements.ptr_begin();
@@ -186,9 +184,9 @@ public:
         std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
-	for (unsigned int i = 0; i < 56; i++)
+	for (int & i : t)
 	{
-	    t[i] = -1;
+	    i = -1;
 	}
 
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
@@ -318,7 +316,7 @@ public:
                       to_be_deleted++;
                       WeakPointerVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
 
-                      for ( WeakPointerVector< Element >::ptr_iterator iChild = rChildElements.ptr_begin();
+                      for ( auto iChild = rChildElements.ptr_begin();
                               iChild != rChildElements.ptr_end(); iChild++ )
                       {
                           NewElements.push_back( (*iChild).lock() );
@@ -358,7 +356,7 @@ public:
     void EraseOldConditionsAndCreateNew(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord
-            )
+            ) override
     {
         KRATOS_TRY;
 
@@ -447,7 +445,7 @@ public:
             this_model_part.Conditions().reserve(total_size);
 
             /// Add the new Conditions to the ModelPart
-            for (PointerVector< Condition >::ptr_iterator iCond = NewConditions.ptr_begin();
+            for (auto iCond = NewConditions.ptr_begin();
                     iCond != NewConditions.ptr_end(); iCond++)
             {
                 this_model_part.Conditions().push_back( *iCond );
@@ -480,7 +478,7 @@ public:
                             to_be_deleted++;
                             WeakPointerVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
 
-                            for ( WeakPointerVector< Condition >::ptr_iterator iChild = rChildConditions.ptr_begin();
+                            for ( auto iChild = rChildConditions.ptr_begin();
                                     iChild != rChildConditions.ptr_end(); iChild++ )
                             {
                                 NewConditions.push_back( (*iChild).lock() );
@@ -527,7 +525,7 @@ public:
             const compressed_matrix<int>& Coord,
             int* edge_ids,
             std::vector<int> & aux
-            )
+            ) override
     {
       aux.resize(11, false);
       
