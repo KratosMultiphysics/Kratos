@@ -396,10 +396,11 @@ public:
      */
     double Area() const override
     {
+
         Vector temp;
         DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.0;
+        double Area = 0.00;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ )
         {
@@ -430,32 +431,19 @@ public:
      */
     double DomainSize() const override
     {
-        return std::abs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
-     * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
+     * Returns whether given arbitrary point is inside the Geometry
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
-        {
-            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) )
-            {
+        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
+            if ( fabs( rResult[1] ) <= (1.0 + Tolerance) )
                 return true;
-            }
-        }
 
         return false;
     }
@@ -616,7 +604,8 @@ public:
                      ThisMethod ), IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        // Loop over all nodes
+        //loop over all nodes
+
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) +=
@@ -685,12 +674,10 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    Vector& DeterminantOfJacobian( 
-        Vector& rResult,
-        IntegrationMethod ThisMethod 
-        ) const override
+    Vector& DeterminantOfJacobian( Vector& rResult,
+                                           IntegrationMethod ThisMethod ) const override
     {
-        // Workaround by riccardo
+        //workaround by riccardo
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
             // KLUDGE: While there is a bug in ublas
@@ -828,23 +815,20 @@ public:
      */
     Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        // Current jacobian
+        //current jacobian
         Matrix tempMatrix = ZeroMatrix( 2, 2 );
         tempMatrix = Jacobian( tempMatrix, IntegrationPointIndex, ThisMethod );
-        
-        // Determinant of jacobian
-        const double det_j = DeterminantOfJacobian( IntegrationPointIndex, ThisMethod );
-        
-        // Checking for singularity
-        if ( det_j == 0.00 )
-        {
-            KRATOS_ERROR << "Zero determinant of jacobian." << *this << std::endl;
-        }
+        //determinant of jacobian
+        double det_j = DeterminantOfJacobian( IntegrationPointIndex, ThisMethod );
+        //checking for singularity
 
-        // Setting up result matrix
+        if ( det_j == 0.00 )
+            KRATOS_ERROR << "Zero determinant of jacobian." << *this << std::endl;
+
+        //setting up result matrix
         rResult.resize( 2, 2 );
 
-        // Filling matrix
+        //filling matrix
         rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
 
         rResult( 1, 0 ) = -( tempMatrix( 1, 0 ) ) / ( det_j );
@@ -881,10 +865,8 @@ public:
         double det_j = DeterminantOfJacobian( rPoint );
         //checking for singularity
 
-        if ( det_j == 0.0 )
-        {
+        if ( det_j == 0.00 )
             KRATOS_ERROR << "Zero determinant of jacobian." << *this << std::endl;
-        }
 
         //setting up result matrix
         rResult.resize( 2, 2 );
@@ -958,76 +940,76 @@ public:
     {
         switch ( ShapeFunctionIndex )
         {
-            // Primary nodes
-            case 0:
-                return -(( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] )
-                        *( 1.0 + rPoint[0] + rPoint[1] ) ) / 4.0;
-            case 1:
-                return -(( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] )
-                        *( 1.0 - rPoint[0] + rPoint[1] ) ) / 4.0;
-            case 2:
-                return -(( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] )
-                        *( 1.0 - rPoint[0] - rPoint[1] ) ) / 4.0;
-            case 3:
-                return -(( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] )
-                        *( 1.0 + rPoint[0] - rPoint[1] ) ) / 4.0;
-            // Secondary nodes
-            case 4:
-                return  (( 1.0 -rPoint[0]*rPoint[0] )
-                        *( 1.0 - rPoint[1] ) ) / 2.0;
-            case 5:
-                return  (( 1.0 + rPoint[0] )
-                        *( 1.0 - rPoint[1]*rPoint[1] ) ) / 2.0 ;
-            case 6:
-                return  (( 1.0 -rPoint[0]*rPoint[0] )
-                        *( 1.0 + rPoint[1] ) ) / 2.0 ;
-            case 7:
-                return  (( 1.0 -rPoint[0] )
-                        *( 1.0 - rPoint[1]*rPoint[1] ) ) / 2.0 ;
-            default:
-                KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
+        case 0:
+            return -(( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] )
+                     *( 1.0 + rPoint[0]
+                        + rPoint[1] ) ) / 4.0;
+        case 1:
+            return -(( 1.0 + rPoint[0] )
+                     *( 1.0 - rPoint[1] )*( 1.0
+                                            - rPoint[0] + rPoint[1] ) ) / 4.0;
+        case 2 :
+            return -(( 1.0 + rPoint[0] )
+                     *( 1.0 + rPoint[1] )*( 1.0
+                                            - rPoint[0] - rPoint[1] ) ) / 4.0;
+        case 3 :
+            return -(( 1.0 - rPoint[0] )*( 1.0
+                                           + rPoint[1] )*( 1.0 )*( 1.0
+                                                   + rPoint[0] - rPoint[1] ) ) / 4.0;
+        case 4 :
+            return (( 1.0 -rPoint[0]*rPoint[0] )
+                    *( 1.0 - rPoint[1] ) ) / 2.0;
+        case 5 :
+            return (( 1.0 + rPoint[0] )
+                    *( 1.0 - rPoint[1]*rPoint[1] ) ) / 2.0 ;
+        case 6 :
+            return (( 1.0 -rPoint[0]
+                      *rPoint[0] )*( 1.0 + rPoint[1] ) ) / 2.0 ;
+        case 7 :
+            return (( 1.0 -rPoint[0] )
+                    *( 1.0 - rPoint[1]*rPoint[1] ) ) / 2.0 ;
+        default:
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
     }
 
-    /** This method gives all non-zero shape functions values evaluated at the rCoordinates provided
-     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index 
-     * (for NURBS it is the index
-     * of the local enumeration in the element).
-     * @see ShapeFunctionValue
-     * @see ShapeFunctionsLocalGradients
-     * @see ShapeFunctionLocalGradient
-     */
-    Vector& ShapeFunctionsValues (
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates
-        ) const override
-    {
-        if(rResult.size() != 8) 
-        {
-            rResult.resize(8,false);
-        }
+            /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
 
-        // Primary nodes
-        rResult[0] = -(( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )
-                     *( 1.0 + rCoordinates[0] + rCoordinates[1] ) ) / 4.0;
-        rResult[1] = -(( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )
-                     *( 1.0 - rCoordinates[0] + rCoordinates[1] ) ) / 4.0;
-        rResult[2] = -(( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] )
-                     *( 1.0 - rCoordinates[0] - rCoordinates[1] ) ) / 4.0;
-        rResult[3] = -(( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )
-                     *( 1.0 + rCoordinates[0] - rCoordinates[1] ) ) / 4.0;
-                  
-        // Secondary nodes
-        rResult[4] =  (( 1.0 -rCoordinates[0]*rCoordinates[0] )
-                     *( 1.0 - rCoordinates[1] ) ) / 2.0;
-        rResult[5] =  (( 1.0 + rCoordinates[0] )
-                     *( 1.0 - rCoordinates[1]*rCoordinates[1] ) ) / 2.0 ;
-        rResult[6] =  (( 1.0 -rCoordinates[0]*rCoordinates[0] )
-                     *( 1.0 + rCoordinates[1] ) ) / 2.0 ;
-        rResult[7] =  (( 1.0 -rCoordinates[0] )
-                     *( 1.0 - rCoordinates[1]*rCoordinates[1] ) ) / 2.0 ;
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        if(rResult.size() != 8) rResult.resize(8,false);
+
+        rResult[0] =   -(( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )
+                     *( 1.0 + rCoordinates[0]
+                        + rCoordinates[1] ) ) / 4.0;
+        rResult[1] =    -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 - rCoordinates[1] )*( 1.0
+                                            - rCoordinates[0] + rCoordinates[1] ) ) / 4.0;
+        rResult[2] =    -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 + rCoordinates[1] )*( 1.0
+                                            - rCoordinates[0] - rCoordinates[1] ) ) / 4.0;
+        rResult[3] =    -(( 1.0 - rCoordinates[0] )*( 1.0
+                                           + rCoordinates[1] )*( 1.0 )*( 1.0
+                                                   + rCoordinates[0] - rCoordinates[1] ) ) / 4.0;
+        rResult[4] =    (( 1.0 -rCoordinates[0]*rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1] ) ) / 2.0;
+        rResult[5] =    (( 1.0 + rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] ) ) / 2.0 ;
+        rResult[6] =    (( 1.0 -rCoordinates[0]
+                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] ) ) / 2.0 ;
+        rResult[7] =    (( 1.0 -rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] ) ) / 2.0 ;
 
         return rResult;
     }
@@ -1057,9 +1039,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-        {
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
-        }
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
@@ -1187,44 +1167,49 @@ public:
     /**
     * Calculates the gradients in terms of local coordinates
     * of all shape functions in a given point.
+    *
     * @param rPoint the current point at which the gradients are calculated
     * @return the gradients of all shape functions
     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    Matrix& ShapeFunctionsLocalGradients( 
-        Matrix& rResult,
-        const CoordinatesArrayType& rPoint 
-        ) const override
+    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
+            const CoordinatesArrayType& rPoint ) const override
     {
-        // Setting up result matrix
+        //setting up result matrix
         rResult.resize( 8, 2 );
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
-        // Primary nodes
-        rResult( 0, 0 ) = - ((-1.0 + rPoint[1])*( 2.0 * rPoint[0] + rPoint[1])) / 4.0;               
-        rResult( 0, 1 ) = - ((-1.0 + rPoint[0])*( 2.0 * rPoint[1] + rPoint[0])) / 4.0;
+        rResult( 0, 0 ) = (( -1.0 + rPoint[1] ) * ( -2.0 ) * ( 1.0 + 2.0
+                           * rPoint[0] + rPoint[1] - 1.0 ) ) / 8.0;
+        rResult( 0, 1 ) = (( -1.0 + rPoint[0] ) * ( -2.0 ) * ( 1.0 + rPoint[0] + 2.0
+                           * rPoint[1] - 1.0 ) ) / 8.0;
 
-        rResult( 1, 0 ) =   ((-1.0 + rPoint[1])*(-2.0 * rPoint[0] + rPoint[1])) / 4.0;          
-        rResult( 1, 1 ) =   (( 1.0 + rPoint[0])*( 2.0 * rPoint[1] - rPoint[0])) / 4.0;
+        rResult( 1, 0 ) = -(( -1.0 + rPoint[1] ) * ( -2.0 ) * ( 1.0 - 2.0
+                            * rPoint[0] + rPoint[1] - 1.0 ) ) / 8.0;
+        rResult( 1, 1 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[0] - 2.0
+                           * rPoint[1] + 1.0 ) * ( -2.0 ) ) / 8.0;
 
-        rResult( 2, 0 ) =   (( 1.0 + rPoint[1])*( 2.0 * rPoint[0] + rPoint[1])) / 4.0;             
-        rResult( 2, 1 ) =   (( 1.0 + rPoint[0])*( 2.0 * rPoint[1] + rPoint[0])) / 4.0;
+        rResult( 2, 0 ) = -(( 1.0 + rPoint[1] ) * ( -1.0 + 2.0
+                            * rPoint[0] + rPoint[1] + 1.0 ) * ( -2.0 ) ) / 8.0;
+        rResult( 2, 1 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[0] + 2.0
+                            * rPoint[1] + 1.0 ) * ( -2.0 ) ) / 8.0;
 
-        rResult( 3, 0 ) = - (( 1.0 + rPoint[1])*(-2.0 * rPoint[0] + rPoint[1])) / 4.0;             
-        rResult( 3, 1 ) = - ((-1.0 + rPoint[0])*( 2.0 * rPoint[1] - rPoint[0])) / 4.0;
+        rResult( 3, 0 ) = (( 1.0 + rPoint[1] ) * ( -1.0 - 2.0
+                           * rPoint[0] + rPoint[1] + 1.0 ) * ( -2.0 ) ) / 8.0;
+        rResult( 3, 1 ) = -(( -1.0 + rPoint[0] ) * ( -2.0 ) * ( 1.0 + rPoint[0] - 2.0
+                            * rPoint[1] - 1.0 ) ) / 8.0;
 
-        // Secondary nodes
-        rResult( 4, 0 ) =   rPoint[0] * (-1.0 + rPoint[1]);
-        rResult( 4, 1 ) =   ((1.0 + rPoint[0]) * (-1.0 + rPoint[0])) / 2.0;
+        rResult( 4, 0 ) = -( rPoint[0] * ( -1.0 + rPoint[1] ) * ( -2.0 ) ) / 2.0;
+        rResult( 4, 1 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( -2.0 ) ) / 4.0;
 
-        rResult( 5, 0 ) = - ((1.0 + rPoint[1]) * (-1.0 + rPoint[1])) / 2.0;
-        rResult( 5, 1 ) = - rPoint[1] * ( 1.0 + rPoint[0]);
+        rResult( 5, 0 ) = (( -1.0 + rPoint[1] * rPoint[1] ) * ( -2.0 ) ) / 4.0;
+        rResult( 5, 1 ) = (( 1.0 + rPoint[0] ) * rPoint[1] * ( -2.0 ) ) / 2.0;
 
-        rResult( 6, 0 ) = - rPoint[0] * ( 1.0 + rPoint[1]);
-        rResult( 6, 1 ) = - ((1.0 + rPoint[0]) * (-1.0 + rPoint[0])) / 2.0;
+        rResult( 6, 0 ) = ( rPoint[0] * ( 1.0 + rPoint[1] ) * ( -2.0 ) ) / 2.0;
+        rResult( 6, 1 ) = (( -1.0 + rPoint[0] * rPoint[0] ) * ( -2.0 ) ) / 4.0;
 
-        rResult( 7, 0 ) =   ((1.0 + rPoint[1]) * (-1.0 + rPoint[1])) / 2.0;
-        rResult( 7, 1 ) =   rPoint[1] * (-1.0 + rPoint[0]);
+        rResult( 7, 0 ) = -(( -1.0 + rPoint[1] * rPoint[1] ) * ( -2.0 ) ) / 4.0;
+        rResult( 7, 1 ) = -(( -1.0 + rPoint[0] ) * rPoint[1] * ( -2.0 ) ) / 2.0;
 
         return( rResult );
     }
@@ -1258,7 +1243,7 @@ public:
     }
 
     /**
-     * Returns the shape function gradients in an arbitrary point,
+     * returns the shape function gradients in an arbitrary point,
      * given in local coordinates
      * @param rResult the matrix of gradients, will be overwritten
      * with the gradients for all
@@ -1270,16 +1255,45 @@ public:
         rResult.resize( 8, 2 );
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
-        const CoordinatesArrayType& Coords = rPoint.Coordinates();
-        
-        rResult = ShapeFunctionsLocalGradients(rResult, Coords);
+        rResult( 0, 0 ) = (( -1.0 + rPoint.Y() ) * ( -2.0 ) * ( 1.0 + 2.0
+                           * rPoint.X() + rPoint.Y() - 1.0 ) ) / 8.0;
+        rResult( 0, 1 ) = (( -1.0 + rPoint.X() ) * ( -2.0 ) * ( 1.0 + rPoint.X() + 2.0
+                           * rPoint.Y() - 1.0 ) ) / 8.0;
+
+        rResult( 1, 0 ) = -(( -1.0 + rPoint.Y() ) * ( -2.0 ) * ( 1.0 - 2.0
+                            * rPoint.X() + rPoint.Y() - 1.0 ) ) / 8.0;
+        rResult( 1, 1 ) = (( 1.0 + rPoint.X() ) * ( -1.0 + rPoint.X() - 2.0
+                           * rPoint.Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
+
+        rResult( 2, 0 ) = -(( 1.0 + rPoint.Y() ) * ( -1.0 + 2.0
+                            * rPoint.X() + rPoint.Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
+        rResult( 2, 1 ) = -(( 1.0 + rPoint.X() ) * ( -1.0 + rPoint.X() + 2.0
+                            * rPoint.Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
+
+        rResult( 3, 0 ) = (( 1.0 + rPoint.Y() ) * ( -1.0 - 2.0
+                           * rPoint.X() + rPoint.Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
+        rResult( 3, 1 ) = -(( -1.0 + rPoint.X() ) * ( -2.0 ) * ( 1.0 + rPoint.X() - 2.0
+                            * rPoint.Y() - 1.0 ) ) / 8.0;
+
+        rResult( 4, 0 ) = -( rPoint.X() * ( -1.0 + rPoint.Y() ) * ( -2.0 ) ) / 2.0;
+        rResult( 4, 1 ) = -(( -1.0 + rPoint.X() * rPoint.X() ) * ( -2.0 ) ) / 4.0;
+
+        rResult( 5, 0 ) = (( -1.0 + rPoint.Y() * rPoint.Y() ) * ( -2.0 ) ) / 4.0;
+        rResult( 5, 1 ) = (( 1.0 + rPoint.X() ) * rPoint.Y() * ( -2.0 ) ) / 2.0;
+
+        rResult( 6, 0 ) = ( rPoint.X() * ( 1.0 + rPoint.Y() ) * ( -2.0 ) ) / 2.0;
+        rResult( 6, 1 ) = (( -1.0 + rPoint.X() * rPoint.X() ) * ( -2.0 ) ) / 4.0;
+
+        rResult( 7, 0 ) = -(( -1.0 + rPoint.Y() * rPoint.Y() ) * ( -2.0 ) ) / 4.0;
+        rResult( 7, 1 ) = -(( -1.0 + rPoint.X() ) * rPoint.Y() * ( -2.0 ) ) / 2.0;
 
         return rResult;
     }
 
     /**
-     * Returns the second order derivatives of all shape functions
+     * returns the second order derivatives of all shape functions
      * in given arbitrary points
+     *
      * @param rResult a third order tensor which contains the second derivatives
      * @param rPoint the given point the second order derivatives are calculated in
      */
@@ -1352,16 +1366,13 @@ public:
     }
 
     /**
-     * Returns the third order derivatives of all shape functions
-     * in given arbitrary points
-     *
-     * @param rResult a fourth order tensor which contains the third derivatives
-     * @param rPoint the given point the third order derivatives are calculated in
+    * returns the third order derivatives of all shape functions
+    * in given arbitrary points
+    *
+    * @param rResult a fourth order tensor which contains the third derivatives
+    * @param rPoint the given point the third order derivatives are calculated in
      */
-    ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( 
-        ShapeFunctionsThirdDerivativesType& rResult, 
-        const CoordinatesArrayType& rPoint 
-        ) const override
+    ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
 
         if ( rResult.size() != this->PointsNumber() )
@@ -1457,6 +1468,10 @@ public:
         return rResult;
     }
 
+
+
+
+
 protected:
 
     /**
@@ -1494,6 +1509,8 @@ private:
      * Private Operations
      */
 
+
+
     /**
      * :TODO: implemented but not yet tested
      */
@@ -1509,20 +1526,16 @@ private:
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
-        
-        // Number of integration points
-        const unsigned int integration_points_number = integration_points.size();
-        
-        // Number of nodes in current geometry
-        const unsigned int points_number = 8;
-        
-        // Setting up return matrix
+        //number of integration points
+        const int integration_points_number = integration_points.size();
+        //number of nodes in current geometry
+        const int points_number = 8;
+        //setting up return matrix
         Matrix shape_function_values( integration_points_number, points_number );
-        
-        // Loop over all integration points
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        //loop over all integration points
+
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            // Primary nodes
             row( shape_function_values, pnt )( 0 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() )
@@ -1541,10 +1554,8 @@ private:
             row( shape_function_values, pnt )( 3 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 ) * ( 1.0
-                        + integration_points[pnt].X()
-                        - integration_points[pnt].Y() ) ) / 4.0;
-            
-            // Secondary nodes
+                                + integration_points[pnt].X()
+                                - integration_points[pnt].Y() ) ) / 4.0;
             row( shape_function_values, pnt )( 4 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
@@ -1578,47 +1589,80 @@ private:
      * point
      */
     static ShapeFunctionsGradientsType
-    CalculateShapeFunctionsIntegrationPointsLocalGradients(typename BaseType::IntegrationMethod ThisMethod )
+    CalculateShapeFunctionsIntegrationPointsLocalGradients(
+        typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
-        // Number of integration points
-        const unsigned int integration_points_number = integration_points.size();
+        //number of integration points
+        const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
-        // Initialising container
+        //initialising container
         //std::fill(d_shape_f_values.begin(), d_shape_f_values.end(), Matrix(4,2));
-        
-        // Loop over all integration points
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        //loop over all integration points
+
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             Matrix result = ZeroMatrix( 8, 2 );
-                
-            // Primary nodes
-            result( 0, 0 ) = - ((-1.0 + integration_points[pnt].Y())*( 2.0 * integration_points[pnt].X() + integration_points[pnt].Y())) / 4.0;               
-            result( 0, 1 ) = - ((-1.0 + integration_points[pnt].X())*( 2.0 * integration_points[pnt].Y() + integration_points[pnt].X())) / 4.0;
 
-            result( 1, 0 ) =   ((-1.0 + integration_points[pnt].Y())*(-2.0 * integration_points[pnt].X() + integration_points[pnt].Y())) / 4.0;          
-            result( 1, 1 ) =   (( 1.0 + integration_points[pnt].X())*( 2.0 * integration_points[pnt].Y() - integration_points[pnt].X())) / 4.0;
+            result( 0, 0 ) = (( -1.0 + integration_points[pnt].Y() )
+                              * ( -2.0 ) * ( 1.0 + 2.0
+                                             * integration_points[pnt].X()
+                                             + integration_points[pnt].Y() - 1.0 ) ) / 8.0;
+            result( 0, 1 ) = (( -1.0 + integration_points[pnt].X() ) * ( -2.0 ) * ( 1.0
+                              + integration_points[pnt].X() + 2.0
+                              * integration_points[pnt].Y() - 1.0 ) ) / 8.0;
 
-            result( 2, 0 ) =   (( 1.0 + integration_points[pnt].Y())*( 2.0 * integration_points[pnt].X() + integration_points[pnt].Y())) / 4.0;             
-            result( 2, 1 ) =   (( 1.0 + integration_points[pnt].X())*( 2.0 * integration_points[pnt].Y() + integration_points[pnt].X())) / 4.0;
+            result( 1, 0 ) = -(( -1.0 + integration_points[pnt].Y() )
+                               * ( -2.0 ) * ( 1.0 - 2.0 * integration_points[pnt].X()
+                                              + integration_points[pnt].Y() - 1.0 ) ) / 8.0;
+            result( 1, 1 ) = (( 1.0 + integration_points[pnt].X() ) * ( -1.0
+                              + integration_points[pnt].X() - 2.0
+                              * integration_points[pnt].Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
 
-            result( 3, 0 ) = - (( 1.0 + integration_points[pnt].Y())*(-2.0 * integration_points[pnt].X() + integration_points[pnt].Y())) / 4.0;             
-            result( 3, 1 ) = - ((-1.0 + integration_points[pnt].X())*( 2.0 * integration_points[pnt].Y() - integration_points[pnt].X())) / 4.0;
+            result( 2, 0 ) = -(( 1.0 + integration_points[pnt].Y() )
+                               * ( -1.0 + 2.0 * integration_points[pnt].X()
+                                   + integration_points[pnt].Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
+            result( 2, 1 ) = -(( 1.0 + integration_points[pnt].X() ) * ( -1.0
+                               + integration_points[pnt].X() + 2.0
+                               * integration_points[pnt].Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
 
-            // Secondary nodes
-            result( 4, 0 ) =   integration_points[pnt].X() * (-1.0 + integration_points[pnt].Y());
-            result( 4, 1 ) =   ((1.0 + integration_points[pnt].X()) * (-1.0 + integration_points[pnt].X())) / 2.0;
+            result( 3, 0 ) = (( 1.0 + integration_points[pnt].Y() ) * ( -1.0 - 2.0
+                              * integration_points[pnt].X()
+                              + integration_points[pnt].Y() + 1.0 ) * ( -2.0 ) ) / 8.0;
+            result( 3, 1 ) = -(( -1.0 + integration_points[pnt].X() ) * ( -2.0 ) * ( 1.0
+                               + integration_points[pnt].X() - 2.0
+                               * integration_points[pnt].Y() - 1.0 ) ) / 8.0;
 
-            result( 5, 0 ) = - ((1.0 + integration_points[pnt].Y()) * (-1.0 + integration_points[pnt].Y())) / 2.0;
-            result( 5, 1 ) = - integration_points[pnt].Y() * ( 1.0 + integration_points[pnt].X());
+            result( 4, 0 ) = -( integration_points[pnt].X() * ( -1.0
+                                + integration_points[pnt].Y() ) * ( -2.0 ) ) / 2.0;
 
-            result( 6, 0 ) = - integration_points[pnt].X() * ( 1.0 + integration_points[pnt].Y());
-            result( 6, 1 ) = - ((1.0 + integration_points[pnt].X()) * (-1.0 + integration_points[pnt].X())) / 2.0;
+            result( 4, 1 ) = -(( -1.0
+                                 + integration_points[pnt].X()
+                                 * integration_points[pnt].X() ) * ( -2.0 ) ) / 4.0;
 
-            result( 7, 0 ) =   ((1.0 + integration_points[pnt].Y()) * (-1.0 + integration_points[pnt].Y())) / 2.0;
-            result( 7, 1 ) =   integration_points[pnt].Y() * (-1.0 + integration_points[pnt].X());
-            
+            result( 5, 0 ) = (( -1.0
+                                + integration_points[pnt].Y()
+                                * integration_points[pnt].Y() ) * ( -2.0 ) ) / 4.0;
+
+            result( 5, 1 ) = (( 1.0
+                                + integration_points[pnt].X() )
+                              * integration_points[pnt].Y() * ( -2.0 ) ) / 2.0;
+
+            result( 6, 0 ) = ( integration_points[pnt].X() * ( 1.0
+                               + integration_points[pnt].Y() ) * ( -2.0 ) ) / 2.0;
+            result( 6, 1 ) = (( -1.0
+                                + integration_points[pnt].X()
+                                * integration_points[pnt].X() ) * ( -2.0 ) ) / 4.0;
+
+            result( 7, 0 ) = -(( -1.0
+                                 + integration_points[pnt].Y()
+                                 * integration_points[pnt].Y() ) * ( -2.0 ) ) / 4.0;
+
+            result( 7, 1 ) = -(( -1.0
+                                 + integration_points[pnt].X() )
+                               * integration_points[pnt].Y() * ( -2.0 ) ) / 2.0;
+
             d_shape_f_values[pnt] = result;
         }
 
@@ -1639,10 +1683,6 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints2,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1662,11 +1702,7 @@ private:
                 Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
-                Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
-                Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::GI_GAUSS_3 )
             }
         };
         return shape_functions_values;
@@ -1686,11 +1722,7 @@ private:
                 Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_2 ),
                 Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
-                Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
-                Quadrilateral2D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::GI_GAUSS_3 )
             }
         };
         return shape_functions_local_gradients;

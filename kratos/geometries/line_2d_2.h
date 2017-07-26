@@ -792,31 +792,6 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry, if possible
-     * @return The normal of the geometry
-     */
-    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
-    {
-        // We define the normal
-        array_1d<double,3> normal;
-        
-        // We get the local points
-        const TPointType& first_point  = BaseType::GetPoint(0);
-        const TPointType& second_point = BaseType::GetPoint(1);
-        
-        // We compute the normal
-        normal[0] = second_point[1] -  first_point[1];
-        normal[1] =  first_point[0] - second_point[0];
-        normal[2] = 0.0;
-        
-        // We normalize
-        const double norm = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-        normal /= norm;
-        
-        return normal;
-    }
-
-    /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
      * @return the local coordinates of all nodes
@@ -855,39 +830,30 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
+        if ( (rResult[0] >= (-1.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) )
         {
             return true;
         }
-        
-        return false;
+        else
+        {
+            return false;
+        }
     }
-    
+
+
     /**
-     * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
-     * @return The vector containing the local coordinates of the point
-     */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
+      * Returns the local coordinates of a given arbitrary point
+      */
+    CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint 
-            ) override
+            const CoordinatesArrayType& rPoint ) override
     {
         rResult.clear();
 
@@ -895,27 +861,54 @@ public:
         const TPointType& SecondPoint = BaseType::GetPoint(1);
 
         // Project point
-        const double Tolerance = 1e-14; // Tolerance
+        const double tol = 1e-14; // Tolerance
 
-        const double Length = this->Length();
+        // Normal
+        array_1d<double,2> Normal = ZeroVector(2);
+        Normal[0] = SecondPoint[1] -  FirstPoint[1];
+        Normal[1] =  FirstPoint[0] - SecondPoint[0];
+        const double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
+        Normal /= norm;
 
-        const double Length1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
-                    + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
+        // Vector point and distance
+        array_1d<double,2> VectorPoint = ZeroVector(2);
+        VectorPoint[0] = rPoint[0] - FirstPoint[0];
+        VectorPoint[1] = rPoint[1] - FirstPoint[1];
+        const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
 
-        const double Length2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
-                    + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
+//        KRATOS_WATCH(rPoint);
+//        KRATOS_WATCH(Point_projected);
+//        KRATOS_WATCH(dist_proy);
 
-        if (Length1 <= (Length + Tolerance) && Length2 <= (Length + Tolerance))
+        if (dist_proy < tol)
         {
-            rResult[0] = 2.0 * Length1/(Length + Tolerance) - 1.0;
-        }
-        else if (Length1 > (Length + Tolerance))
-        {
-            rResult[0] = 2.0 * Length1/(Length + Tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
-        }
-        else if (Length2 > (Length + Tolerance))
-        {
-            rResult[0] = 1.0 - 2.0 * Length2/(Length + Tolerance);
+            const double L  = Length();
+
+            const double l1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
+                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
+
+            const double l2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
+                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
+
+//            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
+
+            if (l1 <= (L + tol) && l2 <= (L + tol))
+            {
+                rResult[0] = 2.0 * l1/(L + tol) - 1.0;
+            }
+            else if (l1 > (L + tol))
+            {
+                rResult[0] = 2.0 * l1/(L + tol) - 1.0; // NOTE: The same value as before, but it will be > than 1
+            }
+            else if (l2 > (L + tol))
+            {
+                rResult[0] = 1.0 - 2.0 * l2/(L + tol);
+            }
+            else
+            {
+                rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
+            }
+
         }
         else
         {
@@ -924,7 +917,7 @@ public:
 
         return( rResult );
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
