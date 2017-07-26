@@ -11,13 +11,13 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
    
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
-    def AddAdditionalVariables(self, model_part, Param):
+    def AddAdditionalVariables(self, model_part, DEM_parameters):
         
-        BaseExplicitStrategy.AddAdditionalVariables(self, model_part, Param)
+        BaseExplicitStrategy.AddAdditionalVariables(self, model_part, DEM_parameters)
 
     def CreateCPlusPlusStrategy(self):
         

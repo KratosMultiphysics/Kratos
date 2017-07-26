@@ -9,57 +9,57 @@ import math
 
 class ExplicitStrategy(BaseExplicitStrategy):
 
-    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
 
-        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures)
+        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
-        self.print_skin_sphere = self.Var_Translator(Param.PostSkinSphere)
+        self.print_skin_sphere = self.Var_Translator(DEM_parameters.PostSkinSphere)
 
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-        if not hasattr(Param, "LoadingVelocityTop"):
+        if not hasattr(DEM_parameters, "LoadingVelocityTop"):
             self.fixed_vel_top = 0
         else:
-            self.fixed_vel_top = Param.LoadingVelocityTop
+            self.fixed_vel_top = DEM_parameters.LoadingVelocityTop
 
-        if not hasattr(Param, "LoadingVelocityBot"):
+        if not hasattr(DEM_parameters, "LoadingVelocityBot"):
             self.fixed_vel_bot = 0
         else:
-            self.fixed_vel_bot = Param.LoadingVelocityBot
+            self.fixed_vel_bot = DEM_parameters.LoadingVelocityBot
 
-        if (self.Var_Translator(Param.DontSearchUntilFailure)):
+        if (self.Var_Translator(DEM_parameters.DontSearchUntilFailure)):
             print ("Search is not active until a bond is broken.")
             self.search_control = 0
-            if (len(fem_model_part.Nodes) > 0 or Param.TestType== "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+            if (len(fem_model_part.Nodes) > 0 or DEM_parameters.TestType== "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
                 print ("WARNING: Search should be activated since there might contact with FEM.")
 
-        if not hasattr(Param, "TestType"):
+        if not hasattr(DEM_parameters, "TestType"):
             self.test_type = "None"
         else:
-            self.test_type = Param.TestType
+            self.test_type = DEM_parameters.TestType
 
-        self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
+        self.amplified_continuum_search_radius_extension = DEM_parameters.AmplifiedSearchRadiusExtension
         
-        if hasattr(Param, "MaxAmplificationRatioOfSearchRadius"):
-            self.max_amplification_ratio_of_search_radius = Param.MaxAmplificationRatioOfSearchRadius
+        if hasattr(DEM_parameters, "MaxAmplificationRatioOfSearchRadius"):
+            self.max_amplification_ratio_of_search_radius = DEM_parameters.MaxAmplificationRatioOfSearchRadius
         else:
             self.max_amplification_ratio_of_search_radius = 0.0
             
-        if not hasattr(Param, "PostPoissonRatio"):
+        if not hasattr(DEM_parameters, "PostPoissonRatio"):
             self.poisson_ratio_option = 0
         else:
-            self.poisson_ratio_option = self.Var_Translator(Param.PostPoissonRatio)
+            self.poisson_ratio_option = self.Var_Translator(DEM_parameters.PostPoissonRatio)
             
-        if not hasattr(Param, "PoissonEffectOption"):
+        if not hasattr(DEM_parameters, "PoissonEffectOption"):
             self.poisson_effect_option = 0
         else:
-            self.poisson_effect_option = self.Var_Translator(Param.PoissonEffectOption)
+            self.poisson_effect_option = self.Var_Translator(DEM_parameters.PoissonEffectOption)
 
-        if not hasattr(Param, "ShearStrainParallelToBondOption"):
+        if not hasattr(DEM_parameters, "ShearStrainParallelToBondOption"):
             self.shear_strain_parallel_to_bond_option = 0
         else:
-            self.shear_strain_parallel_to_bond_option = self.Var_Translator(Param.ShearStrainParallelToBondOption)
+            self.shear_strain_parallel_to_bond_option = self.Var_Translator(DEM_parameters.ShearStrainParallelToBondOption)
 
         if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
             self.compute_stress_tensor_option = 1
@@ -92,7 +92,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
                 self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
                 break
 
-        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+        if (self.DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
             self.cplusplus_strategy = ContinuumVerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                                             self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
         else:
@@ -111,7 +111,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def PrepareContactElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareContactElementsForPrinting()
 
-    def AddAdditionalVariables(self, spheres_model_part, Param):
+    def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 

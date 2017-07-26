@@ -8,7 +8,7 @@ import cluster_file_reader
 
 class ExplicitStrategy:
 
-    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
 
         # Initialization of member variables        
 
@@ -18,121 +18,121 @@ class ExplicitStrategy:
         self.cluster_model_part = all_model_parts.Get("ClusterPart")
         self.contact_model_part = all_model_parts.Get("ContactPart")
         
-        self.Parameters = Param
+        self.DEM_parameters = DEM_parameters
 
-        if not (hasattr(Param, "ComputeStressTensorOption")):
+        if not (hasattr(DEM_parameters, "ComputeStressTensorOption")):
             self.compute_stress_tensor_option = 0
         else:
-            self.compute_stress_tensor_option = self.Var_Translator(Param.ComputeStressTensorOption)
+            self.compute_stress_tensor_option = self.Var_Translator(DEM_parameters.ComputeStressTensorOption)
 
-        if (hasattr(Param, "PostStressStrainOption") and self.Var_Translator(Param.PostStressStrainOption)):
+        if (hasattr(DEM_parameters, "PostStressStrainOption") and self.Var_Translator(DEM_parameters.PostStressStrainOption)):
             self.compute_stress_tensor_option = 1
             self.print_stress_tensor_option = 1
         else:
             self.print_stress_tensor_option = 0
 
-        if not hasattr(Param, "AutomaticTimestep"):
+        if not hasattr(DEM_parameters, "AutomaticTimestep"):
             self.critical_time_option = 0
         else:
-            self.critical_time_option = self.Var_Translator(Param.AutomaticTimestep)
+            self.critical_time_option = self.Var_Translator(DEM_parameters.AutomaticTimestep)
                    
-        self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
-        self.rotation_option         = self.Var_Translator(Param.RotationOption)
-        self.bounding_box_option     = self.Var_Translator(Param.BoundingBoxOption)
+        self.trihedron_option        = self.Var_Translator(DEM_parameters.PostEulerAngles)
+        self.rotation_option         = self.Var_Translator(DEM_parameters.RotationOption)
+        self.bounding_box_option     = self.Var_Translator(DEM_parameters.BoundingBoxOption)
         self.fix_velocities_flag     = 0
         self.Procedures              = procedures
         self.time_integration_scheme = scheme
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
-        self.clean_init_indentation_option = self.Var_Translator(Param.CleanIndentationsOption)
+        self.clean_init_indentation_option = self.Var_Translator(DEM_parameters.CleanIndentationsOption)
         self.contact_mesh_option           = 0
-        if (hasattr(Param, "ContactMeshOption")):
-            self.contact_mesh_option      = self.Var_Translator(Param.ContactMeshOption)
-        self.automatic_bounding_box_option = self.Var_Translator(Param.AutomaticBoundingBoxOption)
+        if (hasattr(DEM_parameters, "ContactMeshOption")):
+            self.contact_mesh_option      = self.Var_Translator(DEM_parameters.ContactMeshOption)
+        self.automatic_bounding_box_option = self.Var_Translator(DEM_parameters.AutomaticBoundingBoxOption)
 
-        self.delta_option = self.Var_Translator(Param.DeltaOption)
+        self.delta_option = self.Var_Translator(DEM_parameters.DeltaOption)
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
         self.search_control = 1
 
-        if (hasattr(Param, "LocalResolutionMethod")):
-            if (Param.LocalResolutionMethod == "hierarchical"):
+        if (hasattr(DEM_parameters, "LocalResolutionMethod")):
+            if (DEM_parameters.LocalResolutionMethod == "hierarchical"):
                 self.local_resolution_method = 1
-            elif (Param.LocalResolutionMethod == "area_distribution"):
+            elif (DEM_parameters.LocalResolutionMethod == "area_distribution"):
                 self.local_resolution_method = 2
             else:
                 self.local_resolution_method = 1
         else:
             self.local_resolution_method = 1
 
-        if (Param.DeltaOption == "None"):
+        if (DEM_parameters.DeltaOption == "None"):
             self.delta_option = 0
 
-        elif (Param.DeltaOption == "Absolute"):
+        elif (DEM_parameters.DeltaOption == "Absolute"):
             self.delta_option = 1
-            self.search_tolerance = Param.SearchTolerance
+            self.search_tolerance = DEM_parameters.SearchTolerance
 
-        elif (Param.DeltaOption == "Coordination_Number"):
+        elif (DEM_parameters.DeltaOption == "Coordination_Number"):
             self.delta_option = 2
-            self.coordination_number = Param.CoordinationNumber
-            self.search_tolerance = 0.01 * 0.0001 #Param.MeanRadius
+            self.coordination_number = DEM_parameters.CoordinationNumber
+            self.search_tolerance = 0.01 * 0.0001 #DEM_parameters.MeanRadius
 
         # TIME RELATED PARAMETERS
-        self.delta_time = Param.MaxTimeStep
-        self.max_delta_time = Param.MaxTimeStep
-        self.final_time = Param.FinalTime
+        self.delta_time = DEM_parameters.MaxTimeStep
+        self.max_delta_time = DEM_parameters.MaxTimeStep
+        self.final_time = DEM_parameters.FinalTime
 
         # BOUNDING_BOX
-        self.enlargement_factor = Param.BoundingBoxEnlargementFactor
+        self.enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
         self.top_corner = Array3()
         self.bottom_corner = Array3()
-        self.top_corner[0] = Param.BoundingBoxMaxX
-        self.top_corner[1] = Param.BoundingBoxMaxY
-        self.top_corner[2] = Param.BoundingBoxMaxZ
-        self.bottom_corner[0] = Param.BoundingBoxMinX
-        self.bottom_corner[1] = Param.BoundingBoxMinY
-        self.bottom_corner[2] = Param.BoundingBoxMinZ
+        self.top_corner[0] = DEM_parameters.BoundingBoxMaxX
+        self.top_corner[1] = DEM_parameters.BoundingBoxMaxY
+        self.top_corner[2] = DEM_parameters.BoundingBoxMaxZ
+        self.bottom_corner[0] = DEM_parameters.BoundingBoxMinX
+        self.bottom_corner[1] = DEM_parameters.BoundingBoxMinY
+        self.bottom_corner[2] = DEM_parameters.BoundingBoxMinZ
 
-        if not (hasattr(Param, "BoundingBoxStartTime")):
+        if not (hasattr(DEM_parameters, "BoundingBoxStartTime")):
             self.bounding_box_start_time  = 0.0
         else:
-            self.bounding_box_start_time  = Param.BoundingBoxStartTime
+            self.bounding_box_start_time  = DEM_parameters.BoundingBoxStartTime
 
-        if not (hasattr(Param, "BoundingBoxStopTime")):
+        if not (hasattr(DEM_parameters, "BoundingBoxStopTime")):
             self.bounding_box_stop_time  = self.final_time
         else:
-            self.bounding_box_stop_time  = Param.BoundingBoxStopTime
+            self.bounding_box_stop_time  = DEM_parameters.BoundingBoxStopTime
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
-        self.gravity[0] = Param.GravityX
-        self.gravity[1] = Param.GravityY
-        self.gravity[2] = Param.GravityZ
+        self.gravity[0] = DEM_parameters.GravityX
+        self.gravity[1] = DEM_parameters.GravityY
+        self.gravity[2] = DEM_parameters.GravityZ
 
         self.virtual_mass_option = 0
-        self.nodal_mass_coeff = Param.VirtualMassCoefficient
+        self.nodal_mass_coeff = DEM_parameters.VirtualMassCoefficient
 
         if (self.nodal_mass_coeff != 1.0):
             self.virtual_mass_option = 1
 
-        self.rolling_friction_option = self.Var_Translator(Param.RollingFrictionOption)
+        self.rolling_friction_option = self.Var_Translator(DEM_parameters.RollingFrictionOption)
 
-        if not (hasattr(Param, "GlobalDamping")):
+        if not (hasattr(DEM_parameters, "GlobalDamping")):
             self.global_damping = 0.0
             print("\nGlobal Damping parameter not found! No damping will be applied...\n")
         else:
-            self.global_damping = Param.GlobalDamping
+            self.global_damping = DEM_parameters.GlobalDamping
 
         # PRINTING VARIABLES
-        self.print_export_id = self.Var_Translator(Param.PostExportId)
+        self.print_export_id = self.Var_Translator(DEM_parameters.PostExportId)
         self.print_export_skin_sphere = 0
         self.poisson_ratio_option = 0
 
         # RESOLUTION METHODS AND PARAMETERS
-        self.n_step_search = int(Param.NeighbourSearchFrequency)
-        self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step @53214
+        self.n_step_search = int(DEM_parameters.NeighbourSearchFrequency)
+        self.safety_factor = DEM_parameters.DeltaTimeSafetyFactor  # For critical time step @53214
 
         # CREATOR-DESTRUCTOR
         self.creator_destructor = creator_destructor
@@ -140,12 +140,12 @@ class ExplicitStrategy:
 
         # STRATEGIES
         self.search_strategy = OMP_DEMSearch()
-        if hasattr(Param, "PeriodicDomainOption"):
-            if self.Var_Translator(Param.PeriodicDomainOption):
-                self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMinX, Param.BoundingBoxMinY, Param.BoundingBoxMinZ,
-                                                     Param.BoundingBoxMaxX, Param.BoundingBoxMaxY, Param.BoundingBoxMaxZ)
+        if hasattr(DEM_parameters, "PeriodicDomainOption"):
+            if self.Var_Translator(DEM_parameters.PeriodicDomainOption):
+                self.search_strategy = OMP_DEMSearch(DEM_parameters.BoundingBoxMinX, DEM_parameters.BoundingBoxMinY, DEM_parameters.BoundingBoxMinZ,
+                                                     DEM_parameters.BoundingBoxMaxX, DEM_parameters.BoundingBoxMaxY, DEM_parameters.BoundingBoxMaxZ)
         else:
-            Param.PeriodicDomainOption = False
+            DEM_parameters.PeriodicDomainOption = False
 
         self.SetContinuumType()
 
@@ -183,7 +183,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
         # GLOBAL PHYSICAL ASPECTS
-        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, self.Var_Translator(self.Parameters.PeriodicDomainOption))
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, self.Var_Translator(self.DEM_parameters.PeriodicDomainOption))
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -254,7 +254,7 @@ class ExplicitStrategy:
 
         self.SetVariablesAndOptions()
 
-        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+        if (self.DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.do_search_neighbours) 
@@ -308,7 +308,7 @@ class ExplicitStrategy:
     def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
         pass
 
-    def AddClusterVariables(self, spheres_model_part, Param):
+    def AddClusterVariables(self, spheres_model_part, DEM_parameters):
         pass
 
     def AddDofs(self, spheres_model_part):
@@ -462,7 +462,7 @@ class ExplicitStrategy:
         if properties.Has(DEM_INTEGRATION_SCHEME_NAME):  
             scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
         else:
-            scheme_name = self.Parameters.IntegrationScheme
+            scheme_name = self.DEM_parameters.IntegrationScheme
             
         scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
         scheme.SetIntegrationSchemeInProperties(properties)
