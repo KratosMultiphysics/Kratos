@@ -35,64 +35,42 @@ namespace Kratos
   /// Auxiliary class to hold data for elements based on FluidElement
   /** TODO: see how this can work for a generic number of stored arguments.
    */
-  template< unsigned int TNumNodes >
-  class FluidElementData
+  template< unsigned int TDim, unsigned int TNumNodes >
+  struct FluidElementData
     {
     public:
-    
-      ///@name Public enum
+      ///@name Type Definitions
       ///@{
 
-        enum ScalarValue {
-          Pressure,
-          Density,
-          Viscosity,
-          NumberOfScalarValues          
-        };
+      typedef array_1d<double,TDim> ScalarDataType;
 
-        enum VectorValue {
-          Velocity,
-          MeshVelocity,
-          NumberOfVectorValues
-        };
+      typedef boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim> VectorDataType;
 
       ///@}
       ///@name Life Cycle
       ///@{
 
-      /// Default constructor.
+      /// Constructor, accepting the geometry of the element.
       FluidElementData(Geometry< Node<3> > &rGeom);
 
-      /// Destructor.
-      ~FluidElementData();
-
       ///@}
-      ///@name Access
+      ///@name Public members
       ///@{
 
-      const array_1d<double,TNumNodes>& GetNodalValues(ScalarValue Value);
+      ScalarDataType Pressure;
 
-      const boost::numeric::ublas::bounded_matrix<double, 3, TNumNodes >& GetNodalValues(VectorValue Value);
+      ScalarDataType Density;
 
-      void Evaluate(const Kratos::Vector& rShapeFunctions, ScalarValue Value, double &rOutput);
+      ScalarDataType Viscosity;
 
-      void Evaluate(const Kratos::Vector& rShapeFunctions, VectorValue Value, array_1d<double,3>& rOutput);
+      VectorDataType Velocity;
 
-      void EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, ScalarValue Value, array_1d<double,3> &rGradient);
-
-      void EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, VectorValue Value, boost::numeric::ublas::bounded_matrix<double, 3,3> &rGradient);
+      VectorDataType MeshVelocity;
 
       ///@}
 
     private:
-      ///@name Member Variables
-      ///@{
 
-      array_1d< double, TNumNodes > mScalarData[NumberOfScalarValues];
-
-      boost::numeric::ublas::bounded_matrix< double, 3, TNumNodes > mVectorData[NumberOfVectorValues];
-
-      ///@}
       ///@name Un accessible methods
       ///@{
 
