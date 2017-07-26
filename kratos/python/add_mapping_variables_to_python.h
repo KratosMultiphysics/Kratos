@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicenet Mataix Ferrándiz
+//  Main authors:    Vicenet Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_ADD_MAPPING_VARIABLES_TO_PYTHON_H_INCLUDED)

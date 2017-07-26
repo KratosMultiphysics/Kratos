@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//  Colaborator:     Vicente Mataix Ferrándiz
+//  Colaborator:     Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED )
