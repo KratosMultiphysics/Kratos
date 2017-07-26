@@ -92,14 +92,17 @@ namespace Kratos
 
     //add initial strain
     if(this->mOptions.Is(ConstitutiveModel::ADD_HISTORY_VECTOR) && this->mOptions.Is(ConstitutiveModel::HISTORY_STRAIN_MEASURE) ){
-      VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
-      for(unsigned int i=0; i<StrainVector.size(); i++)
-	{
-	  StrainVector[i] += this->mHistoryVector[i];	
-	}
-      rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
+       VectorType StrainVector;
+       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+       for(unsigned int i=0; i<StrainVector.size(); i++)
+       {
+          StrainVector[i] += this->mHistoryVector[i];	
+       }
+       rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
     }
+
+    rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+    rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu; 
         
     KRATOS_CATCH(" ")
   }
@@ -164,8 +167,14 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;    
     
+    this->CalculateStressTensor( rValues, rStressMatrix);
+    double MeanPressure = 0;
+    for (unsigned int i = 0; i < 3; i++)
+       MeanPressure += rStressMatrix(i,i)/3.0;
+    for (unsigned int i = 0; i < 3; i++)
+       rStressMatrix(i,i) -= MeanPressure;
+
     KRATOS_CATCH(" ")
   }
   
@@ -189,7 +198,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
+    this->CalculateStressTensor( rValues, rStressMatrix);
+    double MeanPressure = 0;
+    for (unsigned int i = 0; i < 3; i++)
+       MeanPressure += rStressMatrix(i,i)/3.0;
+    rStressMatrix = identity_matrix<double>(3);
+    rStressMatrix *= MeanPressure; 
+
       
     KRATOS_CATCH(" ")
   }
