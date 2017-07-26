@@ -1,14 +1,15 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
-
+//
 #if !defined(KRATOS_EXACT_MORTAR_INTEGRATION_UTILITY_H_INCLUDED )
 #define  KRATOS_EXACT_MORTAR_INTEGRATION_UTILITY_H_INCLUDED
 
@@ -1096,7 +1097,8 @@ private:
         
         // We define the condition tangents
         const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
-        const array_1d<double, 3> slave_tangent_eta = MathUtils<double>::UnitCrossProduct(slave_tangent_xi, SlaveNormal);
+        array_1d<double, 3> slave_tangent_eta;
+        MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
         
         // We define the tolerance
         const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
@@ -1183,7 +1185,8 @@ private:
         
         // We define the condition tangents
         const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
-        const array_1d<double, 3> slave_tangent_eta = MathUtils<double>::UnitCrossProduct(slave_tangent_xi, SlaveNormal);
+        array_1d<double, 3> slave_tangent_eta;
+        MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (4);
