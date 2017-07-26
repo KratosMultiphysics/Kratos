@@ -174,10 +174,6 @@ Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: surface
         98          0          1          2          4 
 End Elements
 
-Begin Conditions PointLoadCondition3D1N// GUI group identifier: point_load
-1 0 1
-End Conditions
-
 Begin SubModelPart Parts_surface // Group surface // Subtree Parts
     Begin SubModelPartNodes
          1
@@ -396,6 +392,15 @@ Begin SubModelPart DISPLACEMENT_YZ_sym // Group YZ sym // Subtree DISPLACEMENT
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+Begin SubModelPart DISPLACEMENT_point_load // Group point_load // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
 Begin SubModelPart ROTATION_hinged_edges // Group hinged_edges // Subtree ROTATION
     Begin SubModelPartNodes
         44
@@ -442,15 +447,5 @@ Begin SubModelPart ROTATION_YZ_sym // Group YZ sym // Subtree ROTATION
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart PointLoad3D_point_load // Group point_load // Subtree PointLoad3D
-    Begin SubModelPartNodes
-         1
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-         1
     End SubModelPartConditions
 End SubModelPart

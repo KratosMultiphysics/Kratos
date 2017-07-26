@@ -3,7 +3,7 @@
         "problem_name"    : "Shell_T3_Thick_nonlinear_static_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
-        "time_step"       : 0.125,
+        "time_step"       : 0.05,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -22,9 +22,9 @@
             },
         "line_search"                        : true,
         "convergence_criterion"              : "Residual_criterion",
-        "displacement_relative_tolerance"    : 1e-9,
+        "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
@@ -33,7 +33,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_surface"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_hinged_edges","DISPLACEMENT_XY_sym","DISPLACEMENT_YZ_sym","ROTATION_hinged_edges","ROTATION_XY_sym","ROTATION_YZ_sym","PointLoad3D_point_load"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_hinged_edges","DISPLACEMENT_XY_sym","DISPLACEMENT_YZ_sym","DISPLACEMENT_point_load","ROTATION_hinged_edges","ROTATION_XY_sym","ROTATION_YZ_sym"],
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
@@ -85,6 +85,20 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_point_load",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0,0.0]
+        }
+    },{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
             "model_part_name" : "ROTATION_hinged_edges",
             "variable_name"   : "ROTATION",
             "is_fixed_x"      : true,
@@ -128,9 +142,9 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
                 "mesh_id"              : 0,
-                "model_part_name"      : "PointLoad3D_point_load",
-                "variable_name"        : "POINT_LOAD",
-                "value"            : [0.0,"-600*t",0.0]
+                "model_part_name"      : "DISPLACEMENT_point_load",
+                "variable_name"        : "DISPLACEMENT",
+                "value"            : [0.0,"-0.03*t",0.0]
         }
     }],
     "restart_options"          : {
@@ -150,9 +164,9 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Y"],
+            "check_variables"  : ["REACTION_Y"],
             "input_file_name"  : "shell_test/Shell_T3_Thick_nonlinear_static_test_results.json",
-            "model_part_name"  : "PointLoad3D_point_load",
+            "model_part_name"  : "DISPLACEMENT_point_load",
             "time_frequency"   : 0.01
         }
     }
@@ -164,9 +178,9 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_Y"],
+            "output_variables" : ["REACTION_Y"],
             "output_file_name" : "shell_test/Shell_T3_Thick_nonlinear_static_test_results.json",
-            "model_part_name"  : "PointLoad3D_point_load",
+            "model_part_name"  : "DISPLACEMENT_point_load",
             "time_frequency"   : 0.01
         }
     }
