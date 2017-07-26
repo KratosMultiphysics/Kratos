@@ -309,7 +309,7 @@ public:
                         MmgRemesh.Execute();
                     }
                 #else 
-                    KRATOS_ERROR << "Please compile with MMG to use this utility << std::endl;
+                    KRATOS_ERROR << "Please compile with MMG to use this utility" << std::endl;
                 #endif
             }
             else
