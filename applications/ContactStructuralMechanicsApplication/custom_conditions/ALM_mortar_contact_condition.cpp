@@ -578,6 +578,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                                     rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                             {
                                 /* Update the derivatives */
+                                // Update the derivative of the integration vertex (just in 3D)
+                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData);
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
@@ -705,6 +707,9 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 // Calculate the kinematic variables
                 this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, PairIndex, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                 
+                // Update the derivative of the integration vertex (just in 3D)
+                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData);
+                                
                 // Update the derivative of DetJ
                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
                 
@@ -1100,10 +1105,22 @@ array_1d<double,36> AugmentedLagrangianMethodMortarContactCondition<3, 4, true>:
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaCellVertex(
+   GeneralVariables& rVariables,
+   DerivativeDataType& rDerivativeData
+   ) 
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaDetjSlave(
    GeneralVariables& rVariables,
    DerivativeDataType& rDerivativeData
-   ) // TODO: Do an explicit specialization!!!!
+   )
 {
     if (TDim == 2)
     {
@@ -1122,7 +1139,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         const array_1d<double,TDim>& Jxi  = column( rVariables.jSlave, 0 );
         const array_1d<double,TDim>& Jeta = column( rVariables.jSlave, 1 );
         
-        const array_1d<double,TDim>& Normal = prod(trans(rDerivativeData.NormalMaster), rVariables.NSlave); // FIXME: Check this!!!!
+        const array_1d<double,TDim>& Normal = prod(trans(rDerivativeData.NormalMaster), rVariables.NSlave);
         
         bounded_matrix<double, TDim, TDim> DeltaJxixJeta;
         
@@ -1151,7 +1168,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
 bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::LocalDeltaNormal( // NOTE: Not the mean, look in the contact utilities 
     const GeometryType& CondGeometry,
-    const unsigned int node_index
+    const unsigned int NodeIndex
     )
 {
     // Tolerance
@@ -1162,14 +1179,17 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
     
     const bounded_matrix<double, TDim, TDim> I = IdentityMatrix(TDim, TDim);
     
-    bounded_matrix<double, TDim, TDim> DeltaNormal = ZeroMatrix(TDim,TDim);
+    bounded_matrix<double, TDim, TDim> delta_normal = ZeroMatrix(TDim,TDim);
     
     const array_1d<double, 3>& Ne = this->GetValue(NORMAL); // Normalized condition normal
     bounded_matrix<double, TDim, TDim> NeoNe = subrange( outer_prod( Ne, Ne ), 0, TDim, 0, TDim );
     
+    // Auxiliar value
+    double NeNorm;
+    
     if (TDim == 2)
     {
-        const double NeNorm = this->GetGeometry( ).Length( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
+        NeNorm = CondGeometry.Length( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
                         
         DeltaNeAdj( 0, 0 ) =  0.0;
         DeltaNeAdj( 0, 1 ) = -1.0;
@@ -1177,23 +1197,23 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
         DeltaNeAdj( 1, 1 ) =  0.0;
         
         double DNDej = 0.0;
-        if( node_index == 0 )
+        if( NodeIndex == 0 )
         {
             DNDej = - 0.5;
         }
-        else if( node_index == 1 )
+        else if( NodeIndex == 1 )
         {
             DNDej =   0.5;
         }
         
         Ce = prod( I - NeoNe, DeltaNeAdj ) / NeNorm; // In 2D, DeltaNeAdj is node-independent => evaluated outside the nodes loop
         
-        DeltaNormal = - 2.0 * Ce * DNDej; // NOTE: Check why - 2???!!!, it was the only wayto ensure the same value as the symbolic. You will need to repeat this in 3D            
-//         DeltaNormal = Ce * DNDej;             
+        delta_normal = - 2.0 * Ce * DNDej; // NOTE: Check why - 2???!!!, it was the only wayto ensure the same value as the symbolic. You will need to repeat this in 3D            
+    //         delta_normal = Ce * DNDej;     
     }
     else
     {
-        const double NeNorm = this->GetGeometry( ).Area( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
+        NeNorm = CondGeometry.Area( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
         
         MatrixType J = ZeroMatrix( 3, 2 ); // Jacobian [ 3D global x 2D local ]
         array_1d<double, 2> DNDej;
@@ -1201,21 +1221,21 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
         
         if( TNumNodes == 3 )    // linear triangle element
         {
-            if( node_index == 0 )
+            if( NodeIndex == 0 )
             {
                 LocalCoordsj[0] = 0.0;
                 LocalCoordsj[1] = 0.0;
                 DNDej[0] = - 1.0;
                 DNDej[1] = - 1.0;
             }
-            else if( node_index == 1 )
+            else if( NodeIndex == 1 )
             {
                 LocalCoordsj[0] = 1.0;
                 LocalCoordsj[1] = 0.0;
                 DNDej[0] = 1.0;
                 DNDej[1] = 0.0;
             }
-            else // node_index == 2
+            else // NodeIndex == 2
             {
                 LocalCoordsj[0] = 0.0;
                 LocalCoordsj[1] = 1.0;
@@ -1225,28 +1245,28 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
         }
         else if( TNumNodes == 4 )    // linear quad element 
         {
-            if( node_index == 0 )
+            if( NodeIndex == 0 )
             {
                 LocalCoordsj[0] = - 1.0;
                 LocalCoordsj[1] = - 1.0;
                 DNDej[0] = - 0.5;
                 DNDej[1] = - 0.5;
             }
-            else if( node_index == 1 )
+            else if( NodeIndex == 1 )
             {
                 LocalCoordsj[0] =   1.0;
                 LocalCoordsj[1] = - 1.0;
                 DNDej[0] =   0.5;
                 DNDej[1] = - 0.5;
             }
-            else if( node_index == 2 )
+            else if( NodeIndex == 2 )
             {
                 LocalCoordsj[0] =  1.0;
                 LocalCoordsj[1] =  1.0;
                 DNDej[0] =  0.5;
                 DNDej[1] =  0.5;
             }
-            else // node_index == 3
+            else // NodeIndex == 3
             {
                 LocalCoordsj[0] = - 1.0;
                 LocalCoordsj[1] =   1.0;
@@ -1255,7 +1275,7 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
             }
         }
         
-        this->GetGeometry( ).Jacobian( J, LocalCoordsj );
+        CondGeometry.Jacobian( J, LocalCoordsj );
         
         DeltaNeAdj(0,0) = 0.0;
         DeltaNeAdj(0,1) = +J(2,1) * DNDej[0] - J(2,0) * DNDej[1]; 
@@ -1268,19 +1288,19 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
         DeltaNeAdj(2,2) = 0.0;
         
         Ce = prod( I - NeoNe, DeltaNeAdj ) / NeNorm;
-        DeltaNormal = Ce;
+        delta_normal = Ce;
     }
     
-    const double NeNorm = norm_2( Ne );
+    NeNorm = norm_2( Ne );
     const double NeNorm3 = NeNorm * NeNorm * NeNorm;
     
     if ( NeNorm3 > Tolerance )
     {
         const bounded_matrix<double, TDim, TDim> Cj = I / NeNorm - NeoNe / NeNorm3;
-        DeltaNormal = prod( Cj, DeltaNormal );
+        delta_normal = prod( Cj, delta_normal );
     }
         
-    return DeltaNormal; 
+    return delta_normal; 
 }
 
 /***********************************************************************************/

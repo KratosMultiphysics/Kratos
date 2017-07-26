@@ -643,14 +643,28 @@ protected:
     /*************** METHODS TO CALCULATE MORTAR CONDITION DERIVATIVES **************/
     /********************************************************************************/
     
+    /**
+     * This method is used to compute the directional derivatives of the cell vertex
+     */
+    void CalculateDeltaCellVertex(
+        GeneralVariables& rVariables,
+        DerivativeDataType& rDerivativeData
+        );
+    
+    /**
+     * This method is used to compute the directional derivatives of the jacobian determinant
+     */
     void CalculateDeltaDetjSlave(
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData
         );
     
+    /**
+     * This method is used to compute the local increment of the normal
+     */
     bounded_matrix<double, TDim, TDim> LocalDeltaNormal(
         const GeometryType& CondGeometry,
-        const unsigned int node_index
+        const unsigned int NodeIndex
         );
 
     /**
@@ -669,7 +683,7 @@ protected:
         );
     
     /**
-     * Calculates the increment of the shape functions and the gap
+     * Calculates the increment of the shape functions
      */
     
     void CalculateDeltaN(
@@ -678,7 +692,7 @@ protected:
         );
     
     /**
-     * Calculates the increment of Phi
+     * Calculates the increment of Phi (the dual shape function)
      */
     
     void CalculateDeltaPhi(
