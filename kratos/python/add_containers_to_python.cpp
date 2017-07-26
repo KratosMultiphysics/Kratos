@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
@@ -573,6 +573,10 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTITION_MASK )
 
+    // For MeshingApplication
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_ERROR )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
+    
     //for PFEM application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_AREA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_H )

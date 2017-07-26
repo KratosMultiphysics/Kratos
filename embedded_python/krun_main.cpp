@@ -1,10 +1,17 @@
 #ifdef KRATOS_DEBUG
-#include <Python.h>
+  #include <Python.h>
 #else
-#undef _DEBUG
-#include <Python.h>
-#define _DEBUG
+  #ifdef _DEBUG
+    #define _DEBUG_DEFINED
+    #undef _DEBUG
+  #endif
+  #include <Python.h>
+  #ifdef _DEBUG_DEFINED
+    #undef _DEBUG_DEFINED
+    #define _DEBUG
+  #endif
 #endif
+
 #include <iostream>
 
 #if PY_MAJOR_VERSION >= 3
