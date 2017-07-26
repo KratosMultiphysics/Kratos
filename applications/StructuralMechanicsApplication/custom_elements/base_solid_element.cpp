@@ -580,7 +580,7 @@ namespace Kratos
                     
                 // Compute stresses and constitutive parameters
                 mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
-                mConstitutiveLawVector[point_number]->GetValue(STRAIN_ENERGY, StrainEnergy);
+                mConstitutiveLawVector[point_number]->CalculateValue(Values, STRAIN_ENERGY, StrainEnergy);
 
                 rOutput[point_number] = integration_weight * StrainEnergy;  // 1/2 * sigma * epsilon
             } 
