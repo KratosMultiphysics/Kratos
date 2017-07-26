@@ -585,6 +585,77 @@ namespace Kratos
                 rOutput[point_number] = integration_weight * StrainEnergy;  // 1/2 * sigma * epsilon
             } 
         }
+
+        else if ( rVariable == ERROR_INTEGRATION_POINT )
+        {
+            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
+            // Create constitutive law parameters:
+            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+            // Reading integration points
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+
+            // Displacements vector
+            Vector displacements;
+            GetValuesVector(displacements);
+
+            // Set constitutive law flags:
+            Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+            //Calculate Cauchy Stresses from the FE solution
+            std::vector<Vector> sigma_FE_solution(number_of_nodes);
+            Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
+            CalculateOnIntegrationPoints(variable_stress, sigma_FE_solution, rCurrentProcessInfo);
+            
+            // calculate the determinatn of the Jacobian in the current configuration
+            Vector detJ(integration_points.size());
+            detJ = GetGeometry().DeterminantOfJacobian(detJ);
+
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+            {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+                
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
+                
+                double integration_weight = GetIntegrationWeight(integration_points,
+                                                                 point_number,
+                                                                 detJ[point_number]);
+                
+                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+                {
+                    integration_weight *= this->GetProperties()[THICKNESS];
+                }
+
+                //calculate recovered stresses at integration points 
+                Vector sigma_recovered(strain_size,0);
+                
+                for (int stress_component=0; stress_component<strain_size; stress_component++)
+                {
+                    // sigma_recovered = sum(N_i * sigma_recovered_i)
+                    for (int node_number=0; node_number<number_of_nodes; node_number++)
+                    {
+                        sigma_recovered[stress_component]+= this_kinematic_variables.N[node_number]*GetGeometry()[node_number].GetValue(RECOVERED_STRESS)[stress_component];
+                    }
+                }
+                //calculate error_sigma
+                Vector error_sigma(strain_size);
+                error_sigma = sigma_recovered - sigma_FE_solution[point_number];
+
+                //calculate error_energy 
+                rOutput[point_number]= 0.5*integration_weight*inner_prod(error_sigma,prod(this_constitutive_variables.D,error_sigma));
+            } 
+        }
+
         else if (rVariable == VON_MISES_STRESS)
         {
             const unsigned int number_of_nodes = GetGeometry().size();
