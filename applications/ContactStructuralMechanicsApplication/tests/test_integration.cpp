@@ -562,7 +562,8 @@ namespace Kratos
             array_1d<double, 3> aux_coords;
             triangle_0.PointLocalCoordinates(aux_coords, triangle_0.Center());
             const array_1d<double, 3> normal = triangle_0.Normal(aux_coords);
-            const array_1d<double, 3> slave_tangent_eta = MathUtils<double>::UnitCrossProduct(slave_tangent_xi, normal);
+            array_1d<double, 3> slave_tangent_eta;
+            MathUtils<double>::CrossProduct(slave_tangent_eta, normal, slave_tangent_xi);
             
             // We define the auxiliar geometry
             std::vector<PointType::Pointer> points_array  (3);
