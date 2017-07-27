@@ -61,6 +61,9 @@ namespace Kratos
 #if !defined(POINT_BELONGS)
 #define POINT_BELONGS
     enum PointBelongs {Master = 0, Slave = 1, Intersection = 2};
+    enum PointBelongsLine2D2N {MasterLine2D2N0 = 0, MasterLine2D2N1 = 1, SlaveLine2D2N0 = 2, SlaveLine2D2N1 = 3, IntersectionLine2D2N = 4};
+    enum PointBelongsTriangle3D3N {MasterTriangle3D3N0 = 0, MasterTriangle3D3N1 = 1, MasterTriangle3D3N2 = 2, SlaveTriangle3D3N0 = 3, SlaveTriangle3D3N1 = 4, SlaveTriangle3D3N2 = 5, IntersectionTriangle3D3N = 6};
+    enum PointBelongsQuadrilateral3D4N {MasterQuadrilateral3D4N0 = 0, MasterQuadrilateral3D4N1 = 1, MasterQuadrilateral3D4N2 = 2, MasterQuadrilateral3D4N3 = 3, SlaveQuadrilateral3D4N0 = 4, SlaveQuadrilateral3D4N1 = 5, SlaveQuadrilateral3D4N2 = 6, SlaveQuadrilateral3D4N3 = 7, IntersectionQuadrilateral3D4N = 8};
 #endif
     
 ///@}
@@ -71,11 +74,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<unsigned int TNumNodes>
 class ExtendedPoint : public PointType
 {
 public:
     ///@name Type Definitions
     ///@{
+    
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    
     /// Counted pointer of ExtendedPoint
     KRATOS_CLASS_POINTER_DEFINITION( ExtendedPoint );
 
@@ -92,7 +99,7 @@ public:
         PointType(Coords)
     {}
     
-    ExtendedPoint(const array_1d<double, 3> Coords, const PointBelongs& ThisBelongs):
+    ExtendedPoint(const array_1d<double, 3> Coords, const BelongType& ThisBelongs):
         PointType(Coords),
         mBelongs(ThisBelongs)
     {}
@@ -111,7 +118,7 @@ public:
     /**
      * This method allows to set where the point belongs
      */
-    void SetBelong(PointBelongs ThisBelongs)
+    void SetBelong(BelongType ThisBelongs)
     {
         mBelongs = ThisBelongs;
     }
@@ -119,7 +126,7 @@ public:
     /**
      * This method recovers where the point belongs
      */
-    PointBelongs GetBelong() const
+    BelongType GetBelong() const
     {
         return mBelongs;
     }
@@ -161,7 +168,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    PointBelongs mBelongs; // To know if the point belongs to the master/slave/intersection (just 3D) side          
+    BelongType mBelongs; // To know if the point belongs to the master/slave/intersection (just 3D) side          
 
     ///@}
     ///@name Private Operators
@@ -199,19 +206,21 @@ public:
     ///@name Type Definitions
     ///@{
     
-    typedef std::vector<array_1d<ExtendedPoint,TDim>>                                    AuxType1;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    
+    typedef std::vector<array_1d<ExtendedPoint<TNumNodes>,TDim>>                         AuxType1;
     
     typedef std::vector<array_1d<PointType,TDim>>                                        AuxType2;
     
     typedef typename std::conditional<TBelong, AuxType1, AuxType2>::type   ConditionArrayListType;
     
-    typedef std::vector<ExtendedPoint>                                                   AuxType3;
+    typedef std::vector<ExtendedPoint<TNumNodes>>                                        AuxType3;
     
     typedef std::vector<PointType>                                                       AuxType4;
     
     typedef typename std::conditional<TBelong, AuxType3, AuxType4>::type            PointListType;
     
-    typedef array_1d<ExtendedPoint, 3>                                                   AuxType5;
+    typedef array_1d<ExtendedPoint<TNumNodes>, 3>                                        AuxType5;
     
     typedef array_1d<PointType, 3>                                                       AuxType6;
     
@@ -746,7 +755,9 @@ protected:
                         
                 if (add_point == true) 
                 {
-                    PointList.push_back(ExtendedPoint(ThisGeometry[i_node].Coordinates(), ThisBelongs));
+                    unsigned int initial_index = 0;
+                    if (ThisBelongs == Master) initial_index = TNumNodes;
+                    PointList.push_back(ExtendedPoint<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node )));
                 }
             }
         }
@@ -859,7 +870,7 @@ protected:
                     
                     if (add_point == true) 
                     {
-                        if (TBelong == true) PointList.push_back(ExtendedPoint(intersected_point.Coordinates(), Intersection));
+                        if (TBelong == true) PointList.push_back(ExtendedPoint<TNumNodes>(intersected_point.Coordinates(), static_cast<BelongType>(2 * TNumNodes)));
                         else PointList.push_back(intersected_point);
                     }
                 }
@@ -1326,7 +1337,7 @@ private:
         
         double total_weight = 0.0;
         array_1d<double,2> auxiliar_coordinates = ZeroVector(2);
-        array_1d<PointBelongs,2> auxiliar_belong;
+        array_1d<PointBelongsLine2D2N,2> auxiliar_belong;
         
         // Declaring auxiliar values
         PointType projected_gp_global;
@@ -1346,12 +1357,12 @@ private:
                 if (i_slave == 0)
                 {
                     auxiliar_coordinates[0] = - 1.0;
-                    auxiliar_belong[0] = Slave;
+                    auxiliar_belong[0] = SlaveLine2D2N0;
                 }
                 else if (i_slave == 1)
                 {
                     auxiliar_coordinates[1] =   1.0;
-                    auxiliar_belong[1] = Slave;
+                    auxiliar_belong[1] = SlaveLine2D2N1;
                 }
             }
         }
@@ -1363,6 +1374,7 @@ private:
         else
         {
             std::vector<double> auxiliar_xi;
+            std::vector<PointBelongsLine2D2N> auxiliar_master_belong;
             for (unsigned int i_master = 0; i_master < 2; i_master++)
             {
                 projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
@@ -1372,6 +1384,7 @@ private:
                 if (is_inside == true)
                 {
                     auxiliar_xi.push_back(projected_gp_local[0]);
+                    auxiliar_master_belong.push_back(static_cast<PointBelongsLine2D2N>(2 + i_master));
                 }
             }
             
@@ -1380,12 +1393,12 @@ private:
                 if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
                 {
                     auxiliar_coordinates[1] = auxiliar_xi[0];
-                    auxiliar_belong[1] = Master;
+                    auxiliar_belong[1] = auxiliar_master_belong[0];
                 }
                 else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0
                 {
                     auxiliar_coordinates[0] = auxiliar_xi[0];
-                    auxiliar_belong[0] = Master;
+                    auxiliar_belong[0] = auxiliar_master_belong[0];
                 }
                 else
                 {
@@ -1400,12 +1413,12 @@ private:
                 if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
                 {
                     auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0];
-                    auxiliar_belong[1] = Master;
+                    auxiliar_belong[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_master_belong[1] : auxiliar_master_belong[0];
                 }
                 else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0
                 {
                     auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1];
-                    auxiliar_belong[0] = Master;
+                    auxiliar_belong[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_master_belong[0] : auxiliar_master_belong[1];
                 }
                 else
                 {
@@ -1413,15 +1426,16 @@ private:
                     {
                         auxiliar_coordinates[0] = auxiliar_xi[0];
                         auxiliar_coordinates[1] = auxiliar_xi[1];
+                        auxiliar_belong[0] = auxiliar_master_belong[0];
+                        auxiliar_belong[1] = auxiliar_master_belong[1];
                     }
                     else
                     {
                         auxiliar_coordinates[1] = auxiliar_xi[0];
                         auxiliar_coordinates[0] = auxiliar_xi[1];
+                        auxiliar_belong[1] = auxiliar_master_belong[0];
+                        auxiliar_belong[0] = auxiliar_master_belong[1];
                     }
-                    
-                    auxiliar_belong[0] = Master;
-                    auxiliar_belong[1] = Master;
                 }
             }
             else
@@ -1450,7 +1464,7 @@ private:
         if (total_weight > std::numeric_limits<double>::epsilon())
         {
             ConditionsPointsSlave.resize(1);
-            array_1d<ExtendedPoint, 2> list_points;
+            array_1d<ExtendedPoint<2>, 2> list_points;
             list_points[0].Coordinate(1) = auxiliar_coordinates[0];
             list_points[0].SetBelong(auxiliar_belong[0]);
             list_points[1].Coordinate(1) = auxiliar_coordinates[1];
@@ -1531,7 +1545,7 @@ private:
             {
                 PointType point;
                 OriginalSlaveGeometry.PointLocalCoordinates(point, OriginalMasterGeometry[i_node]);
-                ConditionsPointsSlave[0][i_node] = ExtendedPoint(point.Coordinates(), Slave);
+                ConditionsPointsSlave[0][i_node] = ExtendedPoint<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node));
             }
             
             return true;
