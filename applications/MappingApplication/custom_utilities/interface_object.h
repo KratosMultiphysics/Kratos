@@ -110,9 +110,7 @@ public:
 
     bool IsInBoundingBox(double* pBoundingBox[])
     {
-        std::vector<double> point_to_check {this->X(), this->Y(), this->Z()};
-
-        return MapperUtilities::PointIsInsideBoundingBox(*pBoundingBox, point_to_check);;
+        return MapperUtilities::PointIsInsideBoundingBox(*pBoundingBox, this->Coordinates());;
     }
 
     void ProcessSearchResult(const double Distance, const int PairingStatus, const int Rank)

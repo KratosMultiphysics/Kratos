@@ -235,18 +235,8 @@ public:
                                         double* pLocalBoundingBox)
     {
         // xmax, xmin,  ymax, ymin,  zmax, zmin
-        // loop over local nodes
-        for (auto &r_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
-        {
-            pLocalBoundingBox[0] = std::max(r_node.X(), pLocalBoundingBox[0]);
-            pLocalBoundingBox[1] = std::min(r_node.X(), pLocalBoundingBox[1]);
-            pLocalBoundingBox[2] = std::max(r_node.Y(), pLocalBoundingBox[2]);
-            pLocalBoundingBox[3] = std::min(r_node.Y(), pLocalBoundingBox[3]);
-            pLocalBoundingBox[4] = std::max(r_node.Z(), pLocalBoundingBox[4]);
-            pLocalBoundingBox[5] = std::min(r_node.Z(), pLocalBoundingBox[5]);
-        }
-        // loop over ghost nodes (necessary if conditions have only ghost nodes)
-        for (auto &r_node : rModelPart.GetCommunicator().GhostMesh().Nodes())
+        // loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
+        for (auto &r_node : rModelPart.Nodes())
         {
             pLocalBoundingBox[0] = std::max(r_node.X(), pLocalBoundingBox[0]);
             pLocalBoundingBox[1] = std::min(r_node.X(), pLocalBoundingBox[1]);
@@ -305,21 +295,21 @@ public:
 
         // check destination bbox corner points in origin bbox
         // check lower point
-        std::vector<double> point_to_check_1 {bbox_destination[1], bbox_destination[3], bbox_destination[5]};
+        Point<3> point_to_check_1(bbox_destination[1], bbox_destination[3], bbox_destination[5]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_origin_tol[0], point_to_check_1))
             return true;
         // check higher point
-        std::vector<double> point_to_check_2 {bbox_destination[0], bbox_destination[2], bbox_destination[4]};
+        Point<3> point_to_check_2(bbox_destination[0], bbox_destination[2], bbox_destination[4]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_origin_tol[0], point_to_check_2))
             return true;
 
         // check origin bbox corner points in destination bbox
         // check lower point
-        std::vector<double> point_to_check_3 {bbox_origin[1], bbox_origin[3], bbox_origin[5]};
+        Point<3> point_to_check_3(bbox_origin[1], bbox_origin[3], bbox_origin[5]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_destination_tol[0], point_to_check_3))
             return true;
         // check higher point
-        std::vector<double> point_to_check_4 {bbox_origin[0], bbox_origin[2], bbox_origin[4]};
+        Point<3> point_to_check_4(bbox_origin[0], bbox_origin[2], bbox_origin[4]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_destination_tol[0], point_to_check_4))
             return true;
 
@@ -327,14 +317,14 @@ public:
     }
 
     static bool PointIsInsideBoundingBox(double* BoundingBox,
-                                         const std::vector<double>& rPoint)
+                                         const Point<3>& rPoint)
     {   // The Bounding Box should have some tolerance already!
         bool is_inside = false;
-        if (rPoint[0] < BoundingBox[0] && rPoint[0] > BoundingBox[1])   // check x-direction
+        if (rPoint.X() < BoundingBox[0] && rPoint.X() > BoundingBox[1])   // check x-direction
         {
-            if (rPoint[1] < BoundingBox[2] && rPoint[1] > BoundingBox[3])   // check y-direction
+            if (rPoint.Y() < BoundingBox[2] && rPoint.Y() > BoundingBox[3])   // check y-direction
             {
-                if (rPoint[2] < BoundingBox[4] && rPoint[2] > BoundingBox[5])   // check z-direction
+                if (rPoint.Z() < BoundingBox[4] && rPoint.Z() > BoundingBox[5])   // check z-direction
                 {
                     is_inside = true;
                 }
