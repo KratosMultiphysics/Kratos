@@ -55,39 +55,39 @@ LinearPlaneStrain::~LinearPlaneStrain()
 {
 }
 
-void  LinearPlaneStrain::CalculateMaterialResponsePK2 (Parameters& rParameterValues)
+void  LinearPlaneStrain::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
     //b.- Get Values to compute the constitutive law:
-    Flags &Options=rParameterValues.GetOptions();
+    Flags &Options=rValues.GetOptions();
 
-    const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
-    Vector& StrainVector                  = rParameterValues.GetStrainVector();
-    Vector& StressVector                  = rParameterValues.GetStressVector();
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+    Vector& StrainVector                  = rValues.GetStrainVector();
+    Vector& StressVector                  = rValues.GetStressVector();
     const double& E          = MaterialProperties[YOUNG_MODULUS];
     const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
-        CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+        CalculateCauchyGreenStrain(rValues, StrainVector);
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        Matrix& ConstitutiveMatrix = rParameterValues.GetConstitutiveMatrix();
+        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        if (rParameterValues.IsSetDeformationGradientF() == true)
+        if (rValues.IsSetDeformationGradientF() == true)
         {
-            CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+            CalculateCauchyGreenStrain(rValues, StrainVector);
         }
 
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
-            Matrix& ConstitutiveMatrix = rParameterValues.GetConstitutiveMatrix();
+            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
             noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
         }
         else
@@ -102,39 +102,31 @@ void  LinearPlaneStrain::CalculateMaterialResponsePK2 (Parameters& rParameterVal
 
 //NOTE: Note that since we are in the hypothesis of small strains we can use the same function for everything
 
-void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rParameterValues)
+void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
-    CalculateMaterialResponsePK2(rParameterValues);
+    CalculateMaterialResponsePK2(rValues);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rParameterValues)
+void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
-    CalculateMaterialResponsePK2(rParameterValues);
+    CalculateMaterialResponsePK2(rValues);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rParameterValues)
+void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
-    CalculateMaterialResponsePK2(rParameterValues);
+    CalculateMaterialResponsePK2(rValues);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rParameterValues)
-{
-    // TODO: Add if necessary
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -142,7 +134,7 @@ void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rParamete
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -150,7 +142,15 @@ void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rParameterValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
