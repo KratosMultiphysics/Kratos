@@ -94,9 +94,11 @@ void  LinearPlaneStrain::CalculateMaterialResponsePK2 (Parameters& rValues)
         {
             CalculatePK2Stress( StrainVector, StressVector, E, NU );
         }
-
     }
 }
+
+//************************************************************************************
+//************************************************************************************
 
 //NOTE: Note that since we are in the hypothesis of small strains we can use the same function for everything
 
@@ -105,34 +107,74 @@ void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     CalculateMaterialResponsePK2(rValues);
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& LinearPlaneStrain::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+{
+    const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
+    Vector& StrainVector                  = rParameterValues.GetStrainVector();
+    Vector& StressVector                  = rParameterValues.GetStressVector();
+    const double& E          = MaterialProperties[YOUNG_MODULUS];
+    const double& NU    = MaterialProperties[POISSON_RATIO];
+    
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+        CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+        CalculatePK2Stress( StrainVector, StressVector, E, NU );
+
+        rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
+    }
+
+    return( rValue );
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
@@ -156,6 +198,9 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = 2;
 
 }
+
+//************************************************************************************
+//************************************************************************************
 
 int LinearPlaneStrain::Check(const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
@@ -183,8 +228,6 @@ int LinearPlaneStrain::Check(const Properties& rMaterialProperties,
 
 
     return 0;
-
 }
-
 
 } // Namespace Kratos
