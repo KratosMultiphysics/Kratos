@@ -548,12 +548,6 @@ namespace Kratos
 
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-            // Set constitutive law flags:
-            Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
    
             // Displacements vector
             Vector displacements;

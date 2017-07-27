@@ -160,8 +160,6 @@ void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rParameterVa
 
 double& LinearPlaneStrain::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
-    Flags &Options=rParameterValues.GetOptions();
-
     const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
     Vector& StrainVector                  = rParameterValues.GetStrainVector();
     Vector& StressVector                  = rParameterValues.GetStressVector();
@@ -170,13 +168,10 @@ double& LinearPlaneStrain::CalculateValue(Parameters& rParameterValues, const Va
     
     if (rThisVariable == STRAIN_ENERGY)
     {
-        if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
-        {
-            CalculateCauchyGreenStrain(rParameterValues, StrainVector);
-            CalculatePK2Stress( StrainVector, StressVector, E, NU );
+        CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+        CalculatePK2Stress( StrainVector, StressVector, E, NU );
 
-            rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
-        }
+        rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
     }
 
     return( rValue );
