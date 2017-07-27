@@ -4,7 +4,6 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-print("entering main script")
 sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
@@ -24,6 +23,7 @@ else:
 class Solution(object):
 
     def __init__(self):
+        print("entering _init_ main_script")
         if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
                 return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
@@ -72,6 +72,8 @@ class Solution(object):
         self.solver = self.SetSolver()
         #self.final_time = DEM_parameters.FinalTime
         #self.dt = DEM_parameters.MaxTimeStep
+        self.Setdt()
+        self.SetFinalTime()
 
     def SetAnalyticParticleWatcher(self):
         self.main_path = os.getcwd()  #revisar
@@ -224,10 +226,10 @@ class Solution(object):
 
         self.post_utils = DEM_procedures.PostUtils(DEM_parameters, self.spheres_model_part)
        
-        self.SetFinalTime()
-        self.Setdt()
+        #self.SetFinalTime()
+        #self.Setdt()
         self.report.total_steps_expected = int(self.final_time / self.dt)
-        print("main script - self.dt, self.final_time,", self.dt, self.final_time)  
+        print("main script1 - self.dt, self.final_time,", self.dt, self.final_time)  
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def GetMpFilename(self):               
@@ -293,13 +295,14 @@ class Solution(object):
         self.step           = 0
         self.time           = 0.0
         self.time_old_print = 0.0        
-        self.SetFinalTime()
-                        
+        #self.SetFinalTime()
+        print("main script2 - self.dt, self.final_time,", self.dt, self.final_time)                  
         while (self.time < self.final_time):
 
             self.InitializeTimeStep()
 
-            self.dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
+            #self.dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+            #print("main script3 - self.dt", self.dt)   
             self.time  = self.time + self.dt
             self.step += 1
 
@@ -369,7 +372,7 @@ class Solution(object):
 
     def AfterSolveOperations(self):
         if (hasattr(DEM_parameters, "AnalyticParticle")):
-            self.Setdt()
+            #self.Setdt()
             if (DEM_parameters.AnalyticParticle):
                 self.particle_watcher.MakeMeasurements(self.analytic_model_part)
                 time_to_print = self.time - self.time_old_print

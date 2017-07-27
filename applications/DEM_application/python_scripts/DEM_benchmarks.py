@@ -87,12 +87,12 @@ class Solution(main_script.Solution):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
     def SetFinalTime(self):        
-        self.final_time = slt.final_time  
+        self.final_time = final_time  
         #return self.final_time
 
     def Setdt(self):       
-        self.dt = slt.dt
-        print("setdt", self.dt )
+        self.dt = dt
+        #print("setdt", self.dt )
         #return self.dt
 
     def Initialize(self):
@@ -129,8 +129,8 @@ class Solution(main_script.Solution):
     def BeforePrintingOperations(self, time):
         super().BeforePrintingOperations(time)
         self.Setdt()
-        print(self.dt)
-        print("self.graph_print_interval", self.graph_print_interval)
+        #print("BeforePrintingOperations dt",self.dt)
+        #print("BeforePrintingOperations graph_print_interval", self.graph_print_interval)
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)        
     
     def Finalize(self):      
@@ -160,12 +160,11 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt = Solution()
         slt.iteration = iteration
         slt.dt = dt
-        print("print dt,", slt.dt)
         slt.final_time = final_time    
         slt.graph_print_interval = graph_print_interval  
-        print("slt.graph_print_interval,slt.dt, slt.final_time,", slt.graph_print_interval,slt.dt, slt.final_time)    
+        #print("slt.graph_print_interval, slt.dt, slt.final_time,", slt.graph_print_interval,slt.dt, slt.final_time)    
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution        
         slt.Run()
     benchmark.print_results(number_of_points_in_the_graphic, dt)
-#DBC.delete_archives() #.......Removing some unuseful files     
+DBC.delete_archives() #.......Removing some unuseful files     
