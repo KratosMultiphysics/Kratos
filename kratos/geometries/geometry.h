@@ -727,7 +727,7 @@ public:
 
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
-        return normal;
+        return normal/norm_2(normal);
     }
     
     /** Calculates the quality of the geometry according to a given criteria.
