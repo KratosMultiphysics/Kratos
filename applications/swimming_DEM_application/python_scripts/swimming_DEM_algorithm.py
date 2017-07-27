@@ -198,6 +198,7 @@ class Algorithm(object):
         self.pp.do_solve_dem = not self.pp.CFD_DEM.flow_in_porous_DEM_medium_option
 
     def SetCustomBetaParameters(self, dictionary): # this method is ugly. The way to go is to have all input parameters as a dictionary
+
         if len(dictionary) == 0:
             return
         else: # assign the specified values to the specified variables
@@ -233,6 +234,8 @@ class Algorithm(object):
         # Moving to the recently created folder
         os.chdir(self.main_path)
         [self.post_path, data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name), self.run_code)
+        print('\n' * 5)
+        print(self.post_path)
         SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
 
         #self.mixed_model_part = self.all_model_parts.Get('MixedPart')
@@ -429,7 +432,6 @@ class Algorithm(object):
 
 
     def FluidInitialize(self):
-
         self.fluid_model_part = self.fluid_algorithm.fluid_model_part
         self.fluid_algorithm.vars_man=self.vars_man
 
@@ -747,7 +749,8 @@ class Algorithm(object):
         self.projection_module.ApplyForwardCouplingOfVelocityOnly()
 
     def PerformFinalOperations(self, time = None):
-        pass
+        os.chdir(self.main_path)
+        del self.post_utils
 
     def Finalize(self):
 
@@ -795,8 +798,6 @@ class Algorithm(object):
             #fluid_model_part,
             #variables_dictionary,
             #domain_size)
-
-
 
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
