@@ -75,9 +75,11 @@ class ShallowWaterConservativeSolver:
         (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
         (self.moveparticles).TransferLagrangianToEulerian();
         (self.VariableUtils).CopyScalarVar(PROJECTED_HEIGHT,HEIGHT,self.model_part.Nodes)
+        (self.VariableUtils).CopyVectorVar(PROJECTED_MOMENTUM,MOMENTUM,self.model_part.Nodes)
         (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
         (self.moveparticles).ResetBoundaryConditions()
         #(self.moveparticles).CopyScalarVarToPreviousTimeStep(PROJECTED_HEIGHT,self.model_part.Nodes)
+        #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_MOMENTUM,self.model_part.Nodes)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_VELOCITY,self.model_part.Nodes)
         
         # Solve equations on mesh
