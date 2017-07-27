@@ -99,7 +99,13 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer                       PropertiesPointerType;
     
-    typedef array_1d<PointType,TDim>                                            ConditionArrayType;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    
+    typedef PointBelong<TNumNodes>                                                 PointBelongType;
+    
+    typedef Geometry<PointBelongType>                                      GeometryPointBelongType;
+    
+    typedef array_1d<PointBelongType,TDim>                                      ConditionArrayType;
     
     typedef typename std::vector<ConditionArrayType>                        ConditionArrayListType;
     
@@ -109,7 +115,7 @@ public:
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
     
-    typedef DerivativeData<TDim, TNumNodes, TFrictional>                        DerivativeDataType;
+    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes>, DerivativeData<TDim, TNumNodes> >::type DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
     
@@ -649,7 +655,8 @@ protected:
      */
     void CalculateDeltaCellVertex(
         GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData
+        DerivativeDataType& rDerivativeData,
+        const array_1d<BelongType, TDim>& TheseBelongs
         );
     
     /**

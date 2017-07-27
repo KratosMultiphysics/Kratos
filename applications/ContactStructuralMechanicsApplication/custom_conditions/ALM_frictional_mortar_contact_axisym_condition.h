@@ -93,7 +93,7 @@ public:
     
     typedef Line2D2<Point<3>>                                                                  DecompositionType;
     
-    typedef DerivativeData<2, TNumNodes, true>                                                DerivativeDataType;
+    typedef DerivativeDataFrictional<2, TNumNodes>                                            DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
          

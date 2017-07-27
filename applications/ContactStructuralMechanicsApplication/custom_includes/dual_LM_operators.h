@@ -269,7 +269,7 @@ public:
     
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> KinematicVariables;
     
-    typedef DerivativeData<TDim, TNumNodes, TFrictional> DerivativeDataType;
+    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes>, DerivativeData<TDim, TNumNodes> >::type DerivativeDataType;
     
     /// Counted pointer of DualLagrangeMultiplierOperatorsWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDerivatives );

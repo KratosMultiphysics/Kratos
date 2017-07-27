@@ -490,7 +490,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     MortarConditionMatrices rThisMortarConditionMatrices;
     
     // We call the exact integration utility
-    ExactMortarIntegrationUtility<TDim, TNumNodes>  integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes> (mIntegrationOrder);
+    ExactMortarIntegrationUtility<TDim, TNumNodes, true>  integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes, true> (mIntegrationOrder);
 
 //     // DEBUG
 //     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << GetGeometry()[0].X() << "," << GetGeometry()[0].Y() << "," << GetGeometry()[0].Z()  << "},{" << GetGeometry()[1].X() << "," << GetGeometry()[1].Y() << "," << GetGeometry()[1].Z()  << "},{" << GetGeometry()[2].X() << "," << GetGeometry()[2].Y() << "," << GetGeometry()[2].Z()  << "}}],Text[Style["<< this->Id() <<", Tiny],{"<< GetGeometry().Center().X() << "," << GetGeometry().Center().Y() << ","<< GetGeometry().Center().Z() << "}]}],";// << std::endl;
@@ -528,7 +528,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 // Initialize the mortar operators
                 rThisMortarConditionMatrices.Initialize();
                 
-//                 if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true) // TODO: Can be needed for the shape function derivatives
+//                 if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true && TDim == 2) // TODO: Can be needed for the shape function derivatives
 //                 {
 //                     // Compute the normal derivatives of the master
 //                     this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
@@ -539,11 +539,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
                     std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                    array_1d<BelongType, TDim> belong_array;
                     for (unsigned int i_node = 0; i_node < TDim; i_node++)
                     {
                         PointType global_point;
                         GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                         points_array[i_node] = boost::make_shared<PointType>(global_point);
+                        belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                     }
                     
                     DecompositionType decomp_geom( points_array );
@@ -579,7 +581,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             {
                                 /* Update the derivatives */
                                 // Update the derivative of the integration vertex (just in 3D)
-                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData);
+                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array);
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
@@ -677,6 +679,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
     {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+        array_1d<BelongType, TDim> belong_array;
         for (unsigned int i_node = 0; i_node < TDim; i_node++)
         {
             PointType global_point;
@@ -708,7 +711,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, PairIndex, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                 
                 // Update the derivative of the integration vertex (just in 3D)
-                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData);
+                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array);
                                 
                 // Update the derivative of DetJ
                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
@@ -1107,7 +1110,8 @@ array_1d<double,36> AugmentedLagrangianMethodMortarContactCondition<3, 4, true>:
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaCellVertex(
    GeneralVariables& rVariables,
-   DerivativeDataType& rDerivativeData
+   DerivativeDataType& rDerivativeData,
+   const array_1d<BelongType, TDim>& TheseBelongs
    ) 
 {
 

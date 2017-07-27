@@ -239,7 +239,7 @@ public:
     
     typedef MortarKinematicVariables<TNumNodes>          KinematicVariables;
     
-    typedef DerivativeData<TDim, TNumNodes, TFrictional> DerivativeDataType;
+    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes>, DerivativeData<TDim, TNumNodes> >::type DerivativeDataType;
     
     /// Counted pointer of MortarOperatorWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperatorWithDerivatives );

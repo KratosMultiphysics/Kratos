@@ -337,7 +337,7 @@ private:
 /** \brief DerivativeData
  * This data will be used to compute the derivatives
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+template< unsigned int TDim, unsigned int TNumNodes>
 class DerivativeData
 {
 public:
@@ -345,10 +345,10 @@ public:
     ///@{
     
     // Auxiliar types
-//     typedef int zero[0]; // NOTE: Problems in Windows
-    typedef array_1d<double, TNumNodes> type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim> type_2;
+    typedef array_1d<double, TNumNodes>                  type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
     typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef bounded_matrix<double, 3, 3>                 type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -366,21 +366,18 @@ public:
     array_1d<double, TNumNodes> PenaltyParameter;
     double ScaleFactor;
     
-    typename std::conditional< TFrictional,double,int >::type TangentFactor;
-    
     // The normals of the nodes
     type_2 NormalMaster, NormalSlave;
     
     // Displacements and velocities
     type_2 X1, X2, u1, u2;
     
-    typename std::conditional< TFrictional,type_2,int >::type u1old, u2old;
-    
     // Derivatives    
     array_1d<double, size_1> DeltaDetjSlave;
     array_1d<type_1, size_1> DeltaPhi;
     array_1d<type_1, size_2> DeltaN1, DeltaN2;
     array_1d<type_2, size_1> DeltaNormalSlave, DeltaNormalMaster;
+    array_1d<type_4, size_2> DeltaCellVertex;
     
     // Ae
     type_3 Ae;
@@ -403,7 +400,7 @@ public:
      * @param rCurrentProcessInfo: The process info from the system
      */
     
-    void Initialize(
+    virtual void Initialize(
         const GeometryType& SlaveGeometry,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -417,10 +414,8 @@ public:
         X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
         
         // We get the ALM variables
-//         const double penalty_parameter = rCurrentProcessInfo[PENALTY_PARAMETER];
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-//             PenaltyParameter[i] = penalty_parameter;
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(PENALTY_PARAMETER);
         }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
@@ -433,14 +428,16 @@ public:
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
+            DeltaNormalSlave[i] = ZeroMatrix(TNumNodes, TDim);
         }
         
-        #if (TFrictional == true)
-            TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
-            u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
-                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
-        #endif
+        if (TDim == 3)
+        {
+            for (unsigned int i = 0; i < 2 * TNumNodes * TDim; i++)
+            {
+                DeltaCellVertex[i] = ZeroMatrix(3, 3);
+            }
+        }
     }
     
     /**
@@ -476,15 +473,13 @@ public:
         X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
 
         // Derivative of master's normal
-        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+        if (TDim == 2)
         {
-            DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
+            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+            {
+                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
+            }
         }
-        
-        #if (TFrictional == true)
-            u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
-                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
-        #endif
     }
     
     ///@}
@@ -565,6 +560,162 @@ private:
     ///@}
     
 };  // Class DerivativeData
+
+/** \brief DerivativeData
+ * This data will be used to compute the derivatives
+ */
+template< unsigned int TDim, unsigned int TNumNodes>
+class DerivativeDataFrictional : public DerivativeData<TDim, TNumNodes>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+    
+    // Auxiliar types
+    typedef DerivativeData<TDim, TNumNodes>           BaseClass;
+    typedef array_1d<double, TNumNodes>                  type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef bounded_matrix<double, 3, 3>                 type_4;
+    
+    // Auxiliar sizes
+    static const unsigned int size_1 =     (TNumNodes * TDim);
+    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    DerivativeDataFrictional(){}
+    
+    virtual ~DerivativeDataFrictional(){}
+    
+    // The ALM parameters
+    double TangentFactor;
+    
+    // Displacements and velocities
+    type_2 u1old, u2old;
+    
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+     * Initializer method 
+     * @param SlaveGeometry: The geometry of the slave 
+     * @param rCurrentProcessInfo: The process info from the system
+     */
+    
+    void Initialize(
+        const GeometryType& SlaveGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {        
+        BaseClass::Initialize(SlaveGeometry, rCurrentProcessInfo);
+        
+        TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
+        u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
+                - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
+    }
+    
+    /**
+     * Updating the Master pair
+     * @param  pCond: The pointer of the current master
+     */
+    
+    void UpdateMasterPair(const Condition::Pointer& pCond) override
+    {
+        BaseClass::UpdateMasterPair(pCond);
+        
+        GeometryType MasterGeometry =  pCond->GetGeometry();
+        
+        u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
+                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
+    }
+    
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+    
+};  // Class DerivativeDataFrictional
 
 ///@}
 
