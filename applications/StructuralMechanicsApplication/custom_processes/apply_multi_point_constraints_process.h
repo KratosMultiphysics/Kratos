@@ -392,18 +392,6 @@ class ApplyMultipointConstraintsProcess : public Process
         KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
 
         double constant = 0.0;
-        if (rVariable == VELOCITY_X)
-        {
-            constant = p_base_node->GetSolutionStepValue(MESH_VELOCITY_X, 0);
-        }
-        if (rVariable == VELOCITY_Y)
-        {
-            constant = p_base_node->GetSolutionStepValue(MESH_VELOCITY_Y, 0);
-        }
-        if (rVariable == VELOCITY_Z)
-        {
-            constant = p_base_node->GetSolutionStepValue(MESH_VELOCITY_Z, 0);
-        }
 
         unsigned int dofId = p_base_node->GetDof(rVariable).EquationId();
         pMasterSlaveRelation->MastersDOFIds.push_back(dofId);
@@ -422,24 +410,9 @@ class ApplyMultipointConstraintsProcess : public Process
         MasterSlaveRelation *pMasterSlaveRelation = new MasterSlaveRelation();
         Geometry<Node<3>> *p_base_geometry = static_cast<InterfaceGeometryObject *>(pInterfaceObject)->pGetBase();
         KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
-        //std::cout<<" Points  :: "<< p_base_geometry->PointsNumber() <<std::endl;
-
+        double constant = 0.0;
         for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
         {
-            double constant = 0.0;
-            if (rVariable == VELOCITY_X)
-            {
-                constant = p_base_geometry->GetPoint(i).GetSolutionStepValue(MESH_VELOCITY_X, 0);
-            }
-            if (rVariable == VELOCITY_Y)
-            {
-                constant = p_base_geometry->GetPoint(i).GetSolutionStepValue(MESH_VELOCITY_Y, 0);
-            }
-            if (rVariable == VELOCITY_Z)
-            {
-                constant = p_base_geometry->GetPoint(i).GetSolutionStepValue(MESH_VELOCITY_Z, 0);
-            }
-
             unsigned int dofId = p_base_geometry->GetPoint(i).GetDof(rVariable).EquationId();
             pMasterSlaveRelation->MastersDOFIds.push_back(dofId);
             pMasterSlaveRelation->MastersDOFWeights.push_back(rShapeFunctionValues[i]);
@@ -461,35 +434,9 @@ class ApplyMultipointConstraintsProcess : public Process
         KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
         // Marking the node as a slave
         p_base_node->Set(SLAVE);
-        double constant = 0.0;
-
-        for (int i = 0; i < mMasterSlaveRelation->MastersDOFIds.size(); i++)
-        {
-            constant += mMasterSlaveRelation->MastersDOFWeights[i] * mMasterSlaveRelation->MasterConstants[i];
-        }
-
-        /*if (rVariable == VELOCITY_X)
-        {
-            constant = p_base_node->FastGetSolutionStepValue(MESH_VELOCITY_X) ;
-        }
-        if (rVariable == VELOCITY_Y)
-        {
-            constant = p_base_node->FastGetSolutionStepValue(MESH_VELOCITY_Y);
-        }
-        if (rVariable == VELOCITY_Z)
-        {
-            constant = p_base_node->FastGetSolutionStepValue(MESH_VELOCITY_Z);
-        }*/
-
         unsigned int slaveDofId = p_base_node->GetDof(rVariable).EquationId();
         for (int i = 0; i < mMasterSlaveRelation->MastersDOFIds.size(); i++)
         {
-            if (p_base_node->Id() == 3415)
-            {
-                std::cout << "Adding constraint relatation for node with Id :: " << p_base_node->Id() << std::endl;
-                std::cout << "Slave DofId :: " << slaveDofId << " master DofID :: " << mMasterSlaveRelation->MastersDOFIds[i] << " Weight :: " << mMasterSlaveRelation->MastersDOFWeights[i] << std::endl;
-                std::cout << "Master constant :: " << constant << std::endl;
-            }
             pMpc->AddConstraint(slaveDofId, mMasterSlaveRelation->MastersDOFIds[i], mMasterSlaveRelation->MastersDOFWeights[i], -1 * constant);
         }
 
@@ -556,28 +503,9 @@ class ApplyMultipointConstraintsProcess : public Process
             constant += mMasterSlaveRelation->MastersDOFWeights[i] * mMasterSlaveRelation->MasterConstants[i];
         }
 
-        /*if (rVariable == VELOCITY_X)
-        {
-            constant = p_base_node->FastGetSolutionStepValue(MESH_VELOCITY_X) ;
-        }
-        if (rVariable == VELOCITY_Y)
-        {
-            constant = p_base_node->FastGetSolutionStepValue(MESH_VELOCITY_Y);
-        }
-        if (rVariable == VELOCITY_Z)
-        {
-            constant = p_base_node->FastGetSolutionStepValue(MESH_VELOCITY_Z);
-        }*/
-
         int slaveDofId = p_base_node->GetDof(rVariable).EquationId();
         for (int i = 0; i < mMasterSlaveRelation->MastersDOFIds.size(); i++)
         {
-            if (p_base_node->Id() == 3415)
-            {
-                std::cout << "Adding constraint relatation for node with Id :: " << p_base_node->Id() << std::endl;
-                std::cout << "Slave DofId :: " << slaveDofId << " master DofID :: " << mMasterSlaveRelation->MastersDOFIds[i] << " Weight :: " << mMasterSlaveRelation->MastersDOFWeights[i] << std::endl;
-                std::cout << "Master constant :: " << constant << std::endl;
-            }
             pMpc->AddConstraint(slaveDofId, mMasterSlaveRelation->MastersDOFIds[i], mMasterSlaveRelation->MastersDOFWeights[i], 1 * constant);
         }
 
