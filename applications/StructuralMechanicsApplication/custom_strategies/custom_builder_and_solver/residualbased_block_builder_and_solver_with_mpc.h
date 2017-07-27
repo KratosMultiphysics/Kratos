@@ -142,7 +142,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     typedef Node<3> NodeType;
     typedef MpcData::Pointer MpcDataPointerType;
     typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
-    typedef Kratos::MpcData::MasterWeightSlaveConstantType MasterWeightSlaveConstantType;
 
     typedef ProcessInfo ProcessInfoType;
 
@@ -648,10 +647,15 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             for (auto masterI : masterWeightsMap)
                             { // Loop over all the masters the slave has
 
-                                double weight = masterI.second.first;
-                                double constant = masterI.second.second;
                                 int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                                 ++currentNumberOfMastersProcessed;
+                                double weight  = masterI.second;
+                                double constant = mpcData->mSlaveEquationIdConstantsMap[slaveEquationIds[slaveIndex]];
+                                for (auto localInternEqId : localInternEquationIds)
+                                { 
+                                    RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
+                                }
+
                                 // For K(m,u) and K(u,m)
                                 for (auto localInternEqId : localInternEquationIds)
                                 { // Loop over all the local equation ids
@@ -664,7 +668,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + weight * RHS_Contribution(localSlaveEqId);
 
                                 localMasterEquationIds.push_back(localMasterEqId);
-                                WeightsCorrespondingToMasters.push_back(masterI.second);
+                                WeightsCorrespondingToMasters.push_back(weight);
                                 SlavesCorrespondingToMasters.push_back(localSlaveEqId);
 
                             } // Loop over all the masters the slave has
@@ -705,7 +709,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                               ProcessInfo &CurrentProcessInfo)
     {
 
-        KRATOS_TRY
+         KRATOS_TRY
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement->GetGeometry();
         const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
@@ -809,10 +813,15 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             for (auto masterI : masterWeightsMap)
                             { // Loop over all the masters the slave has
 
-                                double weight = masterI.second.first;
-                                double constant = masterI.second.second;
                                 int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                                 ++currentNumberOfMastersProcessed;
+                                double weight = masterI.second;
+                                double constant = mpcData->mSlaveEquationIdConstantsMap[slaveEquationIds[slaveIndex]];
+                                for (auto localInternEqId : localInternEquationIds)
+                                { 
+                                    RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
+                                }
+
                                 // For K(m,u) and K(u,m)
                                 for (auto localInternEqId : localInternEquationIds)
                                 { // Loop over all the local equation ids
@@ -825,7 +834,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + weight * RHS_Contribution(localSlaveEqId);
 
                                 localMasterEquationIds.push_back(localMasterEqId);
-                                WeightsCorrespondingToMasters.push_back(masterI.second);
+                                WeightsCorrespondingToMasters.push_back(weight);
                                 SlavesCorrespondingToMasters.push_back(localSlaveEqId);
 
                             } // Loop over all the masters the slave has

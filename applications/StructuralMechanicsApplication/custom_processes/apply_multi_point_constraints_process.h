@@ -432,6 +432,7 @@ class ApplyMultipointConstraintsProcess : public Process
         Node<3> *p_base_node = static_cast<InterfaceNode *>(pInterfaceObject)->pGetBase();
         MasterSlaveRelation *mMasterSlaveRelation = static_cast<MasterSlaveRelation *>(rValue);
         KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        double constant = 0.0;
         // Marking the node as a slave
         p_base_node->Set(SLAVE);
         unsigned int slaveDofId = p_base_node->GetDof(rVariable).EquationId();
