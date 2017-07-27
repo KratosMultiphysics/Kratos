@@ -36,7 +36,7 @@ class Solution(object):
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
-        self.SetAnalyticParticleWatcher()
+        #self.SetAnalyticParticleWatcher()
 
         self.procedures.CheckInputParameters(DEM_parameters)
 
