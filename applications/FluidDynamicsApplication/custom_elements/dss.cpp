@@ -183,7 +183,6 @@ void DSS<TElementData>::ASGSMomentumResidual(double GaussIndex,
                                      array_1d<double,3> &rMomentumRes)
 {
     const GeometryType rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
     double Density;
     this->EvaluateInPoint(Density,DENSITY,rN);
 
@@ -193,7 +192,7 @@ void DSS<TElementData>::ASGSMomentumResidual(double GaussIndex,
     Vector AGradN;
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         const array_1d<double,3>& rBodyForce = rGeom[i].FastGetSolutionStepValue(BODY_FORCE);
         const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
@@ -227,9 +226,8 @@ void DSS<TElementData>::OSSMomentumResidual(double GaussIndex,
     this->MomentumProjTerm(GaussIndex,rN,rDN_DX,rMomentumRes);
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         const array_1d<double,3>& rProj = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
 
@@ -248,9 +246,8 @@ void DSS<TElementData>::OSSMassResidual(double GaussIndex,
     this->MassProjTerm(GaussIndex,rN,rDN_DX,rMassRes);
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         const double Proj = rGeom[i].FastGetSolutionStepValue(DIVPROJ);
         rMassRes -= rN[i]*Proj;
@@ -265,7 +262,6 @@ void DSS<TElementData>::MomentumProjTerm(double GaussIndex,
                                  array_1d<double,3> &rMomentumRHS)
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
 
     double Density;
     this->EvaluateInPoint(Density,DENSITY,rN);
@@ -276,7 +272,7 @@ void DSS<TElementData>::MomentumProjTerm(double GaussIndex,
     Vector AGradN;
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         const array_1d<double,3>& rBodyForce = rGeom[i].FastGetSolutionStepValue(BODY_FORCE);
         //const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
@@ -300,9 +296,8 @@ void DSS<TElementData>::MassProjTerm(double GaussIndex,
                              double &rMassRHS)
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
@@ -319,13 +314,12 @@ template< class TElementData >
 void DSS<TElementData>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
 {
     GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
 
     array_1d<double,3> NodeVel = rGeom[0].FastGetSolutionStepValue(VELOCITY);
     NodeVel -= rGeom[0].FastGetSolutionStepValue(MESH_VELOCITY);
     rConvVel = rN[0] * NodeVel;
 
-    for (unsigned int i = 1; i < NumNodes; i++)
+    for (unsigned int i = 1; i < TElementData::NumNodes; i++)
     {
         NodeVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
         NodeVel -= rGeom[i].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -340,11 +334,10 @@ void DSS<TElementData>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
                                        const array_1d<double,3> &rSubscaleVel)
 {
     GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
 
     rConvVel = rSubscaleVel;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
         rConvVel += rN[i]*(rGeom[i].FastGetSolutionStepValue(VELOCITY)-rGeom[i].FastGetSolutionStepValue(MESH_VELOCITY));
 }
 
@@ -396,7 +389,6 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
     AGradN *= Density; // Convective term is always multiplied by density
 
     // Auxiliary variables for matrix looping
-    const unsigned int NumNodes = rN.size();
     const unsigned int BlockSize = TElementData::Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
@@ -406,12 +398,12 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
 
 
     // Note: Dof order is (u,v,[w,]p) for each node
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         Row = i*BlockSize;
 
         // LHS terms
-        for (unsigned int j = 0; j < NumNodes; j++)
+        for (unsigned int j = 0; j < TElementData::NumNodes; j++)
         {
             Col = j*BlockSize;
 
@@ -478,7 +470,6 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
 template< class TElementData >
 void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, MatrixType &rMassMatrix)
 {
-    const unsigned int NumNodes = rN.size();
     const unsigned int BlockSize = TElementData::Dim+1;
 
     double Density;
@@ -488,10 +479,10 @@ void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsTyp
     unsigned int Col = 0;
 
     // Note: Dof order is (u,v,[w,]p) for each node
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         Row = i*BlockSize;
-        for (unsigned int j = 0; j < NumNodes; j++)
+        for (unsigned int j = 0; j < TElementData::NumNodes; j++)
         {
             Col = j*BlockSize;
             const double Mij = GaussWeight * Density * rN[i] * rN[j];
@@ -534,7 +525,6 @@ void DSS<TElementData>::AddMassStabilization(unsigned int GaussIndex,
     AGradN *= Density; // Convective term is always multiplied by density
 
     // Auxiliary variables for matrix looping
-    const unsigned int NumNodes = rN.size();
     const unsigned int BlockSize = TElementData::Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
@@ -544,11 +534,11 @@ void DSS<TElementData>::AddMassStabilization(unsigned int GaussIndex,
     double W = GaussWeight * TauOne * Density; // This density is for the dynamic term in the residual (rho*Du/Dt)
 
     // Note: Dof order is (u,v,[w,]p) for each node
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
         Row = i*BlockSize;
 
-        for (unsigned int j = 0; j < NumNodes; j++)
+        for (unsigned int j = 0; j < TElementData::NumNodes; j++)
         {
             Col = j*BlockSize;
 
@@ -574,7 +564,6 @@ void DSS< FluidElementData<2,3> >::AddViscousTerm(double DynamicViscosity,
                             const ShapeFunctionDerivativesType &rDN_DX,
                             MatrixType &rLHS)
 {
-    const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     const unsigned int BlockSize = 3;
     double Weight = GaussWeight * DynamicViscosity;
 
@@ -583,10 +572,10 @@ void DSS< FluidElementData<2,3> >::AddViscousTerm(double DynamicViscosity,
 
     unsigned int Row(0),Col(0);
 
-    for (unsigned int a = 0; a < NumNodes; ++a)
+    for (unsigned int a = 0; a < FluidElementData<2,3>::NumNodes; ++a)
     {
         Row = a*BlockSize;
-        for (unsigned int b = 0; b < NumNodes; ++b)
+        for (unsigned int b = 0; b < FluidElementData<2,3>::NumNodes; ++b)
         {
             Col = b*BlockSize;
 
@@ -612,7 +601,6 @@ void DSS< FluidElementData<3,4> >::AddViscousTerm(double DynamicViscosity,
                             const ShapeFunctionDerivativesType &rDN_DX,
                             MatrixType &rLHS)
 {
-    const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     const unsigned int BlockSize = 4;
     double Weight = GaussWeight * DynamicViscosity;
 
@@ -621,10 +609,10 @@ void DSS< FluidElementData<3,4> >::AddViscousTerm(double DynamicViscosity,
 
     unsigned int Row(0),Col(0);
 
-    for (unsigned int i = 0; i < NumNodes; ++i)
+    for (unsigned int i = 0; i < FluidElementData<3,4>::NumNodes; ++i)
     {
         Row = i*BlockSize;
-        for (unsigned int j = 0; j < NumNodes; ++j)
+        for (unsigned int j = 0; j < FluidElementData<3,4>::NumNodes; ++j)
         {
             Col = j*BlockSize;
             // (dN_i/dx_k dN_j/dx_k)
