@@ -59,11 +59,12 @@ public:
         {
             "response_type": "drag",
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
+            "nodal_sensitivity_variables" : [],
             "drag_direction": [1.0, 0.0, 0.0]
         })");
 
         rParameters.ValidateAndAssignDefaults(DefaultParams);
-	
+
         mStructureModelPartName = rParameters["structure_model_part_name"].GetString();
 
         if (rParameters["drag_direction"].IsArray() == false ||
@@ -226,8 +227,8 @@ protected:
       KRATOS_TRY
 
       if (rRHSContribution.size() != rDerivativesMatrix.size1())
-	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
-      
+          rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+
       Vector& rDragFlagVector = this->GetDragFlagVector(rElem);
       noalias(rRHSContribution) = prod(rDerivativesMatrix, rDragFlagVector);
 

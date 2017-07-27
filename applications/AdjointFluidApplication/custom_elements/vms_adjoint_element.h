@@ -362,20 +362,20 @@ public:
      *  - \partial_{\mathbf{s}}(\mathbf{M}^n \dot{\mathbf{w}}^{n-\alpha})^T
      * \f]
      */
-    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rSensitivityVariable,
                                     Matrix& rOutput,
                                     const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        if (rDesignVariable == SHAPE_SENSITIVITY)
+        if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
             this->CalculateShapeGradientOfVMSSteadyTerm(rOutput,rCurrentProcessInfo);
             this->AddShapeGradientOfVMSMassTerm(rOutput,ACCELERATION,-1.0,rCurrentProcessInfo);
         }
         else
         {
-            KRATOS_ERROR << "Design variable " << rDesignVariable << " not supported." << std::endl;
+            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable << " not supported." << std::endl;
         }
 
         KRATOS_CATCH("")
