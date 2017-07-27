@@ -213,7 +213,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             std::cout << "unknowns vector = " << Dx << std::endl;
             std::cout << "RHS vector = " << b << std::endl;
         }
-
+        
         ReconstructSlaveDofForIterationStep(r_model_part, A, Dx, b); // Reconstructing the slave dofs from master solutions
 
         KRATOS_CATCH("")
@@ -942,12 +942,15 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             slaveEquationId = dof.EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
+                                Dx[slaveEquationId] = 0.0;
                                 MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
                                 for (auto master : masterWeightsMap)
                                 {
                                     Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, master.first) * master.second;
                                 }
+                                //std::cout<<"::::::: Update :: "<< mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId]<<std::endl;
                                 Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + mpcData->mSlaveEquationIdConstantsMap[slaveEquationId];
+                                mpcData->mSlaveEquationIdConstantsMap[slaveEquationId] = 0.0;                                
                             }
                         }
                     }
@@ -955,6 +958,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             }
         }
     }
+
 };
 }
 

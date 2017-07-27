@@ -438,7 +438,7 @@ class ApplyMultipointConstraintsProcess : public Process
         unsigned int slaveDofId = p_base_node->GetDof(rVariable).EquationId();
         for (int i = 0; i < mMasterSlaveRelation->MastersDOFIds.size(); i++)
         {
-            pMpc->AddConstraint(slaveDofId, mMasterSlaveRelation->MastersDOFIds[i], mMasterSlaveRelation->MastersDOFWeights[i], -1 * constant);
+            pMpc->AddConstraint(slaveDofId, mMasterSlaveRelation->MastersDOFIds[i], mMasterSlaveRelation->MastersDOFWeights[i], constant);
         }
 
         delete mMasterSlaveRelation;
@@ -507,7 +507,7 @@ class ApplyMultipointConstraintsProcess : public Process
         int slaveDofId = p_base_node->GetDof(rVariable).EquationId();
         for (int i = 0; i < mMasterSlaveRelation->MastersDOFIds.size(); i++)
         {
-            pMpc->AddConstraint(slaveDofId, mMasterSlaveRelation->MastersDOFIds[i], mMasterSlaveRelation->MastersDOFWeights[i], 1 * constant);
+            pMpc->AddConstraint(slaveDofId, mMasterSlaveRelation->MastersDOFIds[i], mMasterSlaveRelation->MastersDOFWeights[i], constant);
         }
 
         delete mMasterSlaveRelation;

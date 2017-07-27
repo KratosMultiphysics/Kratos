@@ -181,6 +181,7 @@ class MpcData
     {
         mEquationIdToWeightsMap[SlaveDofEquationId].insert(  std::pair<unsigned int, double>(MasterDofEquationId, weight)  );
         mSlaveEquationIdConstantsMap.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
+        mSlaveEquationIdConstantsUpdate.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
     }
 
 
@@ -306,8 +307,8 @@ class MpcData
                        std::unordered_map<unsigned int, double>>
         mEquationIdToWeightsMap;
 
-    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsMap;        
-
+    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsMap;   
+    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsUpdate;
 
     bool mActive;
     std::string mName;
