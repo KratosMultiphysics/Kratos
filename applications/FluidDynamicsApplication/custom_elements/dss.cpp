@@ -11,6 +11,7 @@
 //
 
 #include "dss.h"
+#include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
@@ -19,38 +20,38 @@ namespace Kratos
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
-template< unsigned int TDim >
-DSS<TDim>::DSS(IndexType NewId):
-    FluidElement<TDim>(NewId)
+template< class TElementData >
+DSS<TElementData>::DSS(IndexType NewId):
+    FluidElement<TElementData>(NewId)
 {}
 
-template< unsigned int TDim >
-DSS<TDim>::DSS(IndexType NewId, const NodesArrayType& ThisNodes):
-    FluidElement<TDim>(NewId,ThisNodes)
-{}
-
-
-template< unsigned int TDim >
-DSS<TDim>::DSS(IndexType NewId, GeometryType::Pointer pGeometry):
-    FluidElement<TDim>(NewId,pGeometry)
+template< class TElementData >
+DSS<TElementData>::DSS(IndexType NewId, const NodesArrayType& ThisNodes):
+    FluidElement<TElementData>(NewId,ThisNodes)
 {}
 
 
-template< unsigned int TDim >
-DSS<TDim>::DSS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
-    FluidElement<TDim>(NewId,pGeometry,pProperties)
+template< class TElementData >
+DSS<TElementData>::DSS(IndexType NewId, GeometryType::Pointer pGeometry):
+    FluidElement<TElementData>(NewId,pGeometry)
 {}
 
 
-template< unsigned int TDim >
-DSS<TDim>::~DSS()
+template< class TElementData >
+DSS<TElementData>::DSS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
+    FluidElement<TElementData>(NewId,pGeometry,pProperties)
+{}
+
+
+template< class TElementData >
+DSS<TElementData>::~DSS()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
-template< unsigned int TDim >
-Element::Pointer DSS<TDim>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
+template< class TElementData >
+Element::Pointer DSS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
     return Element::Pointer(new DSS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
@@ -59,11 +60,11 @@ Element::Pointer DSS<TDim>::Create(IndexType NewId,NodesArrayType const& ThisNod
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
-template< unsigned int TDim >
-int DSS<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+template< class TElementData >
+int DSS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     // Generic geometry check
-    int out = FluidElement<TDim>::Check(rCurrentProcessInfo);
+    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
 
     // Check that required variables are registered
 
@@ -156,8 +157,8 @@ int DSS<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 // Input and output
 
 
-template< unsigned int TDim >
-std::string DSS<TDim>::Info() const
+template< class TElementData >
+std::string DSS<TElementData>::Info() const
 {
     std::stringstream buffer;
     buffer << "DSS #" << this->Id();
@@ -165,18 +166,18 @@ std::string DSS<TDim>::Info() const
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::PrintInfo(std::ostream& rOStream) const
+template< class TElementData >
+void DSS<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "DSS" << TDim << "D";
+    rOStream << "DSS" << TElementData::Dim << "D";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void DSS<TDim>::ASGSMomentumResidual(double GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::ASGSMomentumResidual(double GaussIndex,
                                      const ShapeFunctionsType &rN,
                                      const ShapeFunctionDerivativesType &rDN_DX,
                                      array_1d<double,3> &rMomentumRes)
@@ -199,7 +200,7 @@ void DSS<TDim>::ASGSMomentumResidual(double GaussIndex,
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
         const double Press = rGeom[i].FastGetSolutionStepValue(PRESSURE);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
         {
             rMomentumRes[d] += Density * ( rN[i]*(rBodyForce[d] - rAcc[d]) - AGradN[i]*rVel[d]) - rDN_DX(i,d)*Press;
         }
@@ -207,8 +208,8 @@ void DSS<TDim>::ASGSMomentumResidual(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::ASGSMassResidual(double GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::ASGSMassResidual(double GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  double &rMomentumRes)
@@ -217,8 +218,8 @@ void DSS<TDim>::ASGSMassResidual(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::OSSMomentumResidual(double GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::OSSMomentumResidual(double GaussIndex,
                                     const ShapeFunctionsType &rN,
                                     const ShapeFunctionDerivativesType &rDN_DX,
                                     array_1d<double,3> &rMomentumRes)
@@ -232,14 +233,14 @@ void DSS<TDim>::OSSMomentumResidual(double GaussIndex,
     {
         const array_1d<double,3>& rProj = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
             rMomentumRes[d] -= rN[i]*rProj[d];
     }
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::OSSMassResidual(double GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::OSSMassResidual(double GaussIndex,
                                 const ShapeFunctionsType &rN,
                                 const ShapeFunctionDerivativesType &rDN_DX,
                                 double &rMassRes)
@@ -257,8 +258,8 @@ void DSS<TDim>::OSSMassResidual(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::MomentumProjTerm(double GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::MomentumProjTerm(double GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  array_1d<double,3> &rMomentumRHS)
@@ -284,7 +285,7 @@ void DSS<TDim>::MomentumProjTerm(double GaussIndex,
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
         const double Press = rGeom[i].FastGetSolutionStepValue(PRESSURE);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
         {
             rMomentumRHS[d] += Density * ( rN[i]*(rBodyForce[d] /*- BossakAcc[d]*/ /*- rAcc[d]*/) - AGradN[i]*rVel[d]) - rDN_DX(i,d)*Press;
         }
@@ -292,8 +293,8 @@ void DSS<TDim>::MomentumProjTerm(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::MassProjTerm(double GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::MassProjTerm(double GaussIndex,
                              const ShapeFunctionsType &rN,
                              const ShapeFunctionDerivativesType &rDN_DX,
                              double &rMassRHS)
@@ -305,7 +306,7 @@ void DSS<TDim>::MassProjTerm(double GaussIndex,
     {
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
             rMassRHS -= rDN_DX(i,d)*rVel[d];
     }
 
@@ -314,8 +315,8 @@ void DSS<TDim>::MassProjTerm(double GaussIndex,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-template< unsigned int TDim >
-void DSS<TDim>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
+template< class TElementData >
+void DSS<TElementData>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -333,8 +334,8 @@ void DSS<TDim>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const S
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
+template< class TElementData >
+void DSS<TElementData>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
                                        const ShapeFunctionsType &rN,
                                        const array_1d<double,3> &rSubscaleVel)
 {
@@ -352,8 +353,8 @@ void DSS<TDim>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
 // Evaluation of system terms on Gauss Points
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void DSS<TDim>::AddSystemTerms(unsigned int GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
                                double GaussWeight,
                                const ShapeFunctionsType &rN,
                                const ShapeFunctionDerivativesType &rDN_DX,
@@ -396,7 +397,7 @@ void DSS<TDim>::AddSystemTerms(unsigned int GaussIndex,
 
     // Auxiliary variables for matrix looping
     const unsigned int NumNodes = rN.size();
-    const unsigned int BlockSize = TDim+1;
+    const unsigned int BlockSize = TElementData::Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
 
@@ -424,10 +425,10 @@ void DSS<TDim>::AddSystemTerms(unsigned int GaussIndex,
             L = 0;
 
             // The following lines implement the viscous term as a Laplacian
-            //for (unsigned int d = 0; d < TDim; d++)
+            //for (unsigned int d = 0; d < TElementData::Dim; d++)
             //    K += GaussWeight * Density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
 
-            for (unsigned int d = 0; d < TDim; d++)
+            for (unsigned int d = 0; d < TElementData::Dim; d++)
             {
                 //K += GaussWeight * Density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
                 rLHS(Row+d,Col+d) += K;
@@ -437,31 +438,31 @@ void DSS<TDim>::AddSystemTerms(unsigned int GaussIndex,
                 PDivV = rDN_DX(i,d) * rN[j]; // Div(v) * p
 
                 // Write v * Grad(p) component
-                rLHS(Row+d,Col+TDim) += GaussWeight * (G - PDivV);
+                rLHS(Row+d,Col+TElementData::Dim) += GaussWeight * (G - PDivV);
                 // Use symmetry to write the q * Div(u) component
-                rLHS(Col+TDim,Row+d) += GaussWeight * (G + PDivV);
+                rLHS(Col+TElementData::Dim,Row+d) += GaussWeight * (G + PDivV);
 
                 // q-p stabilization block
                 L += rDN_DX(i,d) * rDN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
 
-                for (unsigned int e = 0; e < TDim; e++) // Stabilization: Div(v) * TauTwo * Div(u)
+                for (unsigned int e = 0; e < TElementData::Dim; e++) // Stabilization: Div(v) * TauTwo * Div(u)
                     rLHS(Row+d,Col+e) += GaussWeight*TauTwo*rDN_DX(i,d)*rDN_DX(j,e);
             }
 
             // Write q-p term
-            rLHS(Row+TDim,Col+TDim) += GaussWeight*TauOne*L;
+            rLHS(Row+TElementData::Dim,Col+TElementData::Dim) += GaussWeight*TauOne*L;
         }
 
         // RHS terms
         qF = 0.0;
-        for (unsigned int d = 0; d < TDim; ++d)
+        for (unsigned int d = 0; d < TElementData::Dim; ++d)
         {
             rRHS[Row+d] += GaussWeight * rN[i] * BodyForce[d]; // v*BodyForce
             rRHS[Row+d] += GaussWeight * TauOne * AGradN[i] * ( BodyForce[d] - MomentumProj[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
             rRHS[Row+d] -= GaussWeight * TauTwo * rDN_DX(i,d) * MassProj;
             qF += rDN_DX(i, d) * (BodyForce[d] - MomentumProj[d]);
         }
-        rRHS[Row + TDim] += GaussWeight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+        rRHS[Row + TElementData::Dim] += GaussWeight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
@@ -474,11 +475,11 @@ void DSS<TDim>::AddSystemTerms(unsigned int GaussIndex,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void DSS<TDim>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, MatrixType &rMassMatrix)
+template< class TElementData >
+void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, MatrixType &rMassMatrix)
 {
     const unsigned int NumNodes = rN.size();
-    const unsigned int BlockSize = TDim+1;
+    const unsigned int BlockSize = TElementData::Dim+1;
 
     double Density;
     this->EvaluateInPoint(Density,DENSITY,rN);
@@ -494,7 +495,7 @@ void DSS<TDim>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, M
         {
             Col = j*BlockSize;
             const double Mij = GaussWeight * Density * rN[i] * rN[j];
-            for (unsigned int d = 0; d < TDim; d++)
+            for (unsigned int d = 0; d < TElementData::Dim; d++)
                 rMassMatrix(Row+d,Col+d) += Mij;
         }
     }
@@ -502,8 +503,8 @@ void DSS<TDim>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, M
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void DSS<TDim>::AddMassStabilization(unsigned int GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::AddMassStabilization(unsigned int GaussIndex,
                                      double GaussWeight,
                                      const ShapeFunctionsType &rN,
                                      const ShapeFunctionDerivativesType &rDN_DX,
@@ -534,7 +535,7 @@ void DSS<TDim>::AddMassStabilization(unsigned int GaussIndex,
 
     // Auxiliary variables for matrix looping
     const unsigned int NumNodes = rN.size();
-    const unsigned int BlockSize = TDim+1;
+    const unsigned int BlockSize = TElementData::Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
 
@@ -553,10 +554,10 @@ void DSS<TDim>::AddMassStabilization(unsigned int GaussIndex,
 
             K = W * AGradN[i] * rN[j];
 
-            for (unsigned int d = 0; d < TDim; d++)
+            for (unsigned int d = 0; d < TElementData::Dim; d++)
             {
                 rMassMatrix(Row+d,Col+d) += K;
-                rMassMatrix(Row+TDim,Col+d) += W*rDN_DX(i,d)*rN[j];
+                rMassMatrix(Row+TElementData::Dim,Col+d) += W*rDN_DX(i,d)*rN[j];
             }
         }
     }
@@ -564,11 +565,11 @@ void DSS<TDim>::AddMassStabilization(unsigned int GaussIndex,
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// For TDim == 2
+// For TElementData::Dim == 2
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<>
-void DSS<2>::AddViscousTerm(double DynamicViscosity,
+void DSS< FluidElementData<2,3> >::AddViscousTerm(double DynamicViscosity,
                             double GaussWeight,
                             const ShapeFunctionDerivativesType &rDN_DX,
                             MatrixType &rLHS)
@@ -579,31 +580,6 @@ void DSS<2>::AddViscousTerm(double DynamicViscosity,
 
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
-
-    // The implementation is equivalent to the following matrix product, made traceless
-    /*
-    MatrixType B = ZeroMatrix(3,NumNodes*BlockSize);
-
-    for (int a = 0; a < NumNodes; a++)
-    {
-        int col = BlockSize*a;
-
-        B(0,col)     = rDN_DX(a,0);
-        B(0,col+1)   = 0.0;
-        B(1,col)     = 0.0;
-        B(1,col+1)   = rDN_DX(a,1);
-        B(2,col)     = rDN_DX(a,1);
-        B(2,col+1)   = rDN_DX(a,0);
-    }
-
-    MatrixType C = ZeroMatrix(3,3);
-    C(0,0) = 2.0*DynamicViscosity;
-    C(1,1) = 2.0*DynamicViscosity;
-    C(2,2) = 1.0*DynamicViscosity;
-
-    MatrixType Temp = prod(C,B);
-    rLHS += GaussWeight * prod(trans(B),Temp);
-    */
 
     unsigned int Row(0),Col(0);
 
@@ -627,11 +603,11 @@ void DSS<2>::AddViscousTerm(double DynamicViscosity,
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// For TDim == 3
+// For TElementData::Dim == 3
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<>
-void DSS<3>::AddViscousTerm(double DynamicViscosity,
+void DSS< FluidElementData<3,4> >::AddViscousTerm(double DynamicViscosity,
                             double GaussWeight,
                             const ShapeFunctionDerivativesType &rDN_DX,
                             MatrixType &rLHS)
@@ -673,8 +649,8 @@ void DSS<3>::AddViscousTerm(double DynamicViscosity,
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::SubscaleVelocity(unsigned int GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::SubscaleVelocity(unsigned int GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  const ProcessInfo &rProcessInfo,
@@ -705,8 +681,8 @@ void DSS<TDim>::SubscaleVelocity(unsigned int GaussIndex,
     rVelocitySubscale = TauOne*Residual;
 }
 
-template< unsigned int TDim >
-void DSS<TDim>::SubscalePressure(unsigned int GaussIndex,
+template< class TElementData >
+void DSS<TElementData>::SubscalePressure(unsigned int GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  const ProcessInfo &rProcessInfo,
@@ -744,25 +720,25 @@ void DSS<TDim>::SubscalePressure(unsigned int GaussIndex,
 
 // serializer
 
-template< unsigned int TDim >
-void DSS<TDim>::save(Serializer& rSerializer) const
+template< class TElementData >
+void DSS<TElementData>::save(Serializer& rSerializer) const
 {
-    typedef FluidElement<TDim> BaseElement;
+    typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
 }
 
 
-template< unsigned int TDim >
-void DSS<TDim>::load(Serializer& rSerializer)
+template< class TElementData >
+void DSS<TElementData>::load(Serializer& rSerializer)
 {
-    typedef FluidElement<TDim> BaseElement;
+    typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-template class DSS<2>;
-template class DSS<3>;
+template class DSS< FluidElementData<2,3> >;
+template class DSS< FluidElementData<3,4> >;
 
 }

@@ -11,6 +11,7 @@
 //
 
 #include "fluid_element.h"
+#include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
@@ -19,50 +20,50 @@ namespace Kratos
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
-template< unsigned int TDim >
-FluidElement<TDim>::FluidElement(IndexType NewId):
+template< class TElementData >
+FluidElement<TElementData>::FluidElement(IndexType NewId):
     Element(NewId)
 
 {}
 
-template< unsigned int TDim >
-FluidElement<TDim>::FluidElement(IndexType NewId, const NodesArrayType& ThisNodes):
+template< class TElementData >
+FluidElement<TElementData>::FluidElement(IndexType NewId, const NodesArrayType& ThisNodes):
     Element(NewId,ThisNodes)
 {}
 
 
-template< unsigned int TDim >
-FluidElement<TDim>::FluidElement(IndexType NewId, GeometryType::Pointer pGeometry):
+template< class TElementData >
+FluidElement<TElementData>::FluidElement(IndexType NewId, GeometryType::Pointer pGeometry):
     Element(NewId,pGeometry)
 {}
 
 
-template< unsigned int TDim >
-FluidElement<TDim>::FluidElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
+template< class TElementData >
+FluidElement<TElementData>::FluidElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
     Element(NewId,pGeometry,pProperties)
 {}
 
 
-template< unsigned int TDim >
-FluidElement<TDim>::~FluidElement()
+template< class TElementData >
+FluidElement<TElementData>::~FluidElement()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
-template< unsigned int TDim >
-Element::Pointer FluidElement<TDim>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+template< class TElementData >
+Element::Pointer FluidElement<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR << "Attempting to Create base FluidElement<" << TDim << "> instances, but this is an abstract element." << std::endl;
+    KRATOS_ERROR << "Attempting to Create base FluidElement<" << TElementData::Dim << "> instances, but this is an abstract element." << std::endl;
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+template< class TElementData >
+void FluidElement<TElementData>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                                  VectorType &rRightHandSideVector,
                                                  ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TDim+1);
+    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TElementData::Dim+1);
 
     // Resize and intialize output
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -76,10 +77,10 @@ void FluidElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo)
+template< class TElementData >
+void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TDim+1);
+    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TElementData::Dim+1);
 
     // Resize and intialize output
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -89,10 +90,10 @@ void FluidElement<TDim>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix, 
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+template< class TElementData >
+void FluidElement<TElementData>::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TDim+1);
+    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TElementData::Dim+1);
 
     if( rRightHandSideVector.size() != LocalSize )
         rRightHandSideVector.resize(LocalSize,false);
@@ -101,12 +102,12 @@ void FluidElement<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+template< class TElementData >
+void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = NumNodes*(TDim+1);
+    const unsigned int LocalSize = NumNodes*(TElementData::Dim+1);
 
     // Resize and intialize output
     if( rDampMatrix.size1() != LocalSize )
@@ -142,7 +143,7 @@ void FluidElement<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampMat
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         const array_1d<double,3> &rVel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
+        for (unsigned int d = 0; d < TElementData::Dim; ++d) // Velocity Dofs
             U[LocalIndex++] = rVel[d];
         U[LocalIndex++] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
     }
@@ -151,12 +152,12 @@ void FluidElement<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampMat
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
+template< class TElementData >
+void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = NumNodes*(TDim+1);
+    const unsigned int LocalSize = NumNodes*(TElementData::Dim+1);
 
     // Resize and intialize output
     if( rMassMatrix.size1() != LocalSize )
@@ -193,8 +194,8 @@ void FluidElement<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInf
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::Calculate(const Variable<double> &rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::Calculate(const Variable<double> &rVariable,
                           double &rOutput,
                           const ProcessInfo &rCurrentProcessInfo)
 {
@@ -202,8 +203,8 @@ void FluidElement<TDim>::Calculate(const Variable<double> &rVariable,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::Calculate(const Variable<array_1d<double,3> > &rVariable,
                           array_1d<double,3> &rOutput,
                           const ProcessInfo &rCurrentProcessInfo)
 {
@@ -219,7 +220,7 @@ void FluidElement<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariabl
 
         GeometryType& rGeom = this->GetGeometry();
         const unsigned int NumNodes = rGeom.PointsNumber();
-        VectorType MomentumRHS = ZeroVector(NumNodes*TDim);
+        VectorType MomentumRHS = ZeroVector(NumNodes*TElementData::Dim);
         VectorType MassRHS = ZeroVector(NumNodes);
         VectorType NodalArea = ZeroVector(NumNodes);
 
@@ -238,8 +239,8 @@ void FluidElement<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariabl
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 double W = GaussWeight*rN[i];
-                unsigned int Row = i*TDim;
-                for (unsigned int d = 0; d < TDim; d++)
+                unsigned int Row = i*TElementData::Dim;
+                for (unsigned int d = 0; d < TElementData::Dim; d++)
                     MomentumRHS[Row+d] += W*MomentumRes[d];
                 NodalArea[i] += W;
                 MassRHS[i] += W*MassRes;
@@ -252,7 +253,7 @@ void FluidElement<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariabl
         {
             rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
             array_1d<double,3>& rMomValue = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-            for (unsigned int d = 0; d < TDim; ++d)
+            for (unsigned int d = 0; d < TElementData::Dim; ++d)
                 rMomValue[d] += MomentumRHS[Row++];
             rGeom[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
             rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
@@ -263,11 +264,11 @@ void FluidElement<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariabl
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// For TDim == 2
+// For TElementData::Dim == 2
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<>
-void FluidElement<2>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< FluidElementData<2,3> >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -291,7 +292,7 @@ void FluidElement<2>::EquationIdVector(EquationIdVectorType &rResult, ProcessInf
 
 
 template<>
-void FluidElement<2>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< FluidElementData<2,3> >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
      const unsigned int NumNodes = rGeom.PointsNumber();
@@ -311,11 +312,11 @@ void FluidElement<2>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// For TDim == 3
+// For TElementData::Dim == 3
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<>
-void FluidElement<3>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< FluidElementData<3,4> >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -340,7 +341,7 @@ void FluidElement<3>::EquationIdVector(EquationIdVectorType &rResult, ProcessInf
 
 
 template<>
-void FluidElement<3>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< FluidElementData<3,4> >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
      const unsigned int NumNodes = rGeom.PointsNumber();
@@ -362,12 +363,12 @@ void FluidElement<3>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
+template< class TElementData >
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step)
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = NumNodes * (TDim+1);
+    const unsigned int LocalSize = NumNodes * (TElementData::Dim+1);
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -379,19 +380,19 @@ void FluidElement<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY,Step);
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
             rValues[Index++] = rVel[d];
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
     }
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetSecondDerivativesVector(Vector &rValues, int Step)
+template< class TElementData >
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step)
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = NumNodes * (TDim+1);
+    const unsigned int LocalSize = NumNodes * (TElementData::Dim+1);
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -403,23 +404,22 @@ void FluidElement<TDim>::GetSecondDerivativesVector(Vector &rValues, int Step)
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION,Step);
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
             rValues[Index++] = rAcc[d];
         rValues[Index++] = 0.0; // skip pressure Dof
     }
 }
 
 
-template< unsigned int TDim >
-GeometryData::IntegrationMethod FluidElement<TDim>::GetIntegrationMethod() const
+template< class TElementData >
+GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
-//    return GeometryData::IntegrationMethod(this->pGetGeometry()->GetDefaultIntegrationMethod()+1);
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                             std::vector<array_1d<double, 3 > >& rValues,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -460,8 +460,8 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<dou
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                             std::vector<double>& rValues,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -500,12 +500,12 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVa
 		// Loop on integration points
 		for (unsigned int g = 0; g < NumGauss; g++)
 		{
-			GradVel = ZeroMatrix(TDim,TDim);
+			GradVel = ZeroMatrix(TElementData::Dim,TElementData::Dim);
 			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
 
 			// Compute velocity gradient
-			for (unsigned int i=0; i < TDim; ++i)
-				for (unsigned int j=0; j < TDim; ++j)
+			for (unsigned int i=0; i < TElementData::Dim; ++i)
+				for (unsigned int j=0; j < TElementData::Dim; ++j)
 					for (unsigned int iNode=0; iNode < NumNodes; ++iNode)
 					{
 						array_1d<double,3>& Vel =
@@ -515,8 +515,8 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVa
 
 			// Compute Q-value
 			double qval = 0.0;
-			for (unsigned int i=0; i < TDim; ++i)
-				for (unsigned int j=0; j < TDim; ++j)
+			for (unsigned int i=0; i < TElementData::Dim; ++i)
+				for (unsigned int j=0; j < TElementData::Dim; ++j)
 					qval += GradVel(i,j) * GradVel(j,i);
 
 			qval *= -0.5;
@@ -540,7 +540,7 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVa
 			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
 			array_1d<double,3> Vorticity(3,0.0);
 
-			if(TDim == 2)
+			if(TElementData::Dim == 2)
 			{
 				for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
 				{
@@ -568,8 +568,8 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVa
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                             std::vector<array_1d<double, 6 > >& rValues,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -577,8 +577,8 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<dou
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                             std::vector<Vector>& rValues,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -586,8 +586,8 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<Vector>& rVa
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                             std::vector<Matrix>& rValues,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -596,8 +596,8 @@ void FluidElement<TDim>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVa
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
-template< unsigned int TDim >
-int FluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+template< class TElementData >
+int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
@@ -693,8 +693,8 @@ int FluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 // Input and output
 
 
-template< unsigned int TDim >
-std::string FluidElement<TDim>::Info() const
+template< class TElementData >
+std::string FluidElement<TElementData>::Info() const
 {
     std::stringstream buffer;
     buffer << "FluidElement #" << Id();
@@ -702,18 +702,18 @@ std::string FluidElement<TDim>::Info() const
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::PrintInfo(std::ostream& rOStream) const
+template< class TElementData >
+void FluidElement<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "FluidElement" << TDim << "D";
+    rOStream << "FluidElement" << TElementData::Dim << "D";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateGeometryData(Vector &rGaussWeights,
+template< class TElementData >
+void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
                                       ShapeFunctionDerivativesArrayType &rDN_DX)
 {
@@ -736,52 +736,11 @@ void FluidElement<TDim>::CalculateGeometryData(Vector &rGaussWeights,
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
-/*
-template< unsigned int TDim >
-double FluidElement<TDim>::ElementSize() const
-{
-//    double Area = this->GetGeometry().Area();
-//    return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-
-//    // calculate minimum element length (used in stabilization Tau)
-//    array_1d<double,3> Edge(3,0.0);
-//    Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-//    double ElemSize = Edge[0]*Edge[0];
-//    for (SizeType d = 1; d < TDim; d++)
-//        ElemSize += Edge[d]*Edge[d];
-
-//    for (SizeType i = 2; i < NumNodes; i++)
-//        for(SizeType j = 0; j < i; j++)
-//        {
-//            Edge = rGeom[i].Coordinates() - rGeom[j].Coordinates();
-//            double Length = Edge[0]*Edge[0];
-//            for (SizeType d = 1; d < TDim; d++)
-//                Length += Edge[d]*Edge[d];
-//            if (Length < ElemSize) ElemSize = Length;
-//        }
-//    return sqrt(ElemSize);
-
-    double zmax = rGeom[0].Y();
-    double zmin = zmax;
-//    double h = sqrt(ElemSize);
-    for (unsigned int i = 1; i < NumNodes; i++)
-    {
-        double z = rGeom[i].Y();
-        if (z < zmin) zmin = z;
-        else if (z > zmax) zmax = z;
-    }
-
-    return zmax-zmin;
-}*/
-
 /** Calculate characteristic element length.
  * @return Minimum element height
  */
-template< unsigned int TDim >
-double FluidElement<TDim>::ElementSize()
+template< class TElementData >
+double FluidElement<TElementData>::ElementSize()
 {
     KRATOS_TRY;
     GeometryType& rGeom = this->GetGeometry();
@@ -951,8 +910,8 @@ double FluidElement<TDim>::ElementSize()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void FluidElement<TDim>::CalculateStaticTau(double Density,
+template< class TElementData >
+void FluidElement<TElementData>::CalculateStaticTau(double Density,
                                    double KinematicVisc,
                                    const array_1d<double,3> &Velocity,
                                    double ElemSize,
@@ -964,7 +923,7 @@ void FluidElement<TDim>::CalculateStaticTau(double Density,
     const double c2 = 2.0;
 
     double VelNorm = Velocity[0]*Velocity[0];
-    for (unsigned int d = 1; d < TDim; d++)
+    for (unsigned int d = 1; d < TElementData::Dim; d++)
         VelNorm += Velocity[d]*Velocity[d];
     VelNorm = std::sqrt(VelNorm);
 
@@ -975,8 +934,8 @@ void FluidElement<TDim>::CalculateStaticTau(double Density,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void FluidElement<TDim>::ASGSMomentumResidual(double GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::ASGSMomentumResidual(double GaussIndex,
                                      const ShapeFunctionsType &rN,
                                      const ShapeFunctionDerivativesType &rDN_DX,
                                      array_1d<double,3> &rMomentumRes)
@@ -999,7 +958,7 @@ void FluidElement<TDim>::ASGSMomentumResidual(double GaussIndex,
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
         const double Press = rGeom[i].FastGetSolutionStepValue(PRESSURE);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
         {
             rMomentumRes[d] += Density * ( rN[i]*(rBodyForce[d] - rAcc[d]) - AGradN[i]*rVel[d]) - rDN_DX(i,d)*Press;
         }
@@ -1007,8 +966,8 @@ void FluidElement<TDim>::ASGSMomentumResidual(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::ASGSMassResidual(double GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::ASGSMassResidual(double GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  double &rMomentumRes)
@@ -1017,8 +976,8 @@ void FluidElement<TDim>::ASGSMassResidual(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::OSSMomentumResidual(double GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::OSSMomentumResidual(double GaussIndex,
                                     const ShapeFunctionsType &rN,
                                     const ShapeFunctionDerivativesType &rDN_DX,
                                     array_1d<double,3> &rMomentumRes)
@@ -1032,14 +991,14 @@ void FluidElement<TDim>::OSSMomentumResidual(double GaussIndex,
     {
         const array_1d<double,3>& rProj = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
             rMomentumRes[d] -= rN[i]*rProj[d];
     }
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::OSSMassResidual(double GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::OSSMassResidual(double GaussIndex,
                                 const ShapeFunctionsType &rN,
                                 const ShapeFunctionDerivativesType &rDN_DX,
                                 double &rMassRes)
@@ -1057,8 +1016,8 @@ void FluidElement<TDim>::OSSMassResidual(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::MomentumProjTerm(double GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::MomentumProjTerm(double GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  array_1d<double,3> &rMomentumRHS)
@@ -1084,7 +1043,7 @@ void FluidElement<TDim>::MomentumProjTerm(double GaussIndex,
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
         const double Press = rGeom[i].FastGetSolutionStepValue(PRESSURE);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
         {
             rMomentumRHS[d] += Density * ( rN[i]*(rBodyForce[d] /*- BossakAcc[d]*/ /*- rAcc[d]*/) - AGradN[i]*rVel[d]) - rDN_DX(i,d)*Press;
         }
@@ -1092,8 +1051,8 @@ void FluidElement<TDim>::MomentumProjTerm(double GaussIndex,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::MassProjTerm(double GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::MassProjTerm(double GaussIndex,
                              const ShapeFunctionsType &rN,
                              const ShapeFunctionDerivativesType &rDN_DX,
                              double &rMassRHS)
@@ -1105,7 +1064,7 @@ void FluidElement<TDim>::MassProjTerm(double GaussIndex,
     {
         const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-        for (unsigned int d = 0; d < TDim; d++)
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
             rMassRHS -= rDN_DX(i,d)*rVel[d];
     }
 
@@ -1114,8 +1073,8 @@ void FluidElement<TDim>::MassProjTerm(double GaussIndex,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-template< unsigned int TDim >
-double FluidElement<TDim>::EffectiveViscosity(const ShapeFunctionsType &rN,
+template< class TElementData >
+double FluidElement<TElementData>::EffectiveViscosity(const ShapeFunctionsType &rN,
                                      const ShapeFunctionDerivativesType &rDN_DX,
                                      double ElemSize,
                                      const ProcessInfo &rCurrentProcessInfo)
@@ -1131,19 +1090,19 @@ double FluidElement<TDim>::EffectiveViscosity(const ShapeFunctionsType &rN,
         const unsigned int NumNodes = this->GetGeometry().PointsNumber();
 
         // Calculate Symetric gradient
-        MatrixType S = ZeroMatrix(TDim,TDim);
+        MatrixType S = ZeroMatrix(TElementData::Dim,TElementData::Dim);
         for (unsigned int n = 0; n < NumNodes; ++n)
         {
             const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int i = 0; i < TDim; ++i)
-                for (unsigned int j = 0; j < TDim; ++j)
+            for (unsigned int i = 0; i < TElementData::Dim; ++i)
+                for (unsigned int j = 0; j < TElementData::Dim; ++j)
                     S(i,j) += 0.5 * ( rDN_DX(n,j) * rVel[i] + rDN_DX(n,i) * rVel[j] );
         }
 
         // Norm of symetric gradient
         double NormS = 0.0;
-        for (unsigned int i = 0; i < TDim; ++i)
-            for (unsigned int j = 0; j < TDim; ++j)
+        for (unsigned int i = 0; i < TElementData::Dim; ++i)
+            for (unsigned int j = 0; j < TElementData::Dim; ++j)
                 NormS += S(i,j) * S(i,j);
         NormS = sqrt(2.0*NormS);
 
@@ -1155,8 +1114,8 @@ double FluidElement<TDim>::EffectiveViscosity(const ShapeFunctionsType &rN,
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
+template< class TElementData >
+void FluidElement<TElementData>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -1174,8 +1133,8 @@ void FluidElement<TDim>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
+template< class TElementData >
+void FluidElement<TElementData>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
                                        const ShapeFunctionsType &rN,
                                        const array_1d<double,3> &rSubscaleVel)
 {
@@ -1190,8 +1149,8 @@ void FluidElement<TDim>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< unsigned int TDim >
-void FluidElement<TDim>::ConvectionOperator(Vector &rResult,
+template< class TElementData >
+void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
                                    const array_1d<double,3> &rConvVel,
                                    const ShapeFunctionDerivativesType &DN_DX)
 {
@@ -1202,13 +1161,13 @@ void FluidElement<TDim>::ConvectionOperator(Vector &rResult,
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         rResult[i] = rConvVel[0]*DN_DX(i,0);
-        for(unsigned int k = 1; k < TDim; k++)
+        for(unsigned int k = 1; k < TElementData::Dim; k++)
             rResult[i] += rConvVel[k]*DN_DX(i,k);
     }
 }
 
-template< unsigned int TDim >
-void FluidElement<TDim>::SubscaleVelocity(unsigned int GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::SubscaleVelocity(unsigned int GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  const ProcessInfo &rProcessInfo,
@@ -1239,8 +1198,8 @@ void FluidElement<TDim>::SubscaleVelocity(unsigned int GaussIndex,
     rVelocitySubscale = TauOne*Residual;
 }
 
-template< unsigned int TDim >
-void FluidElement<TDim>::SubscalePressure(unsigned int GaussIndex,
+template< class TElementData >
+void FluidElement<TElementData>::SubscalePressure(unsigned int GaussIndex,
                                  const ShapeFunctionsType &rN,
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  const ProcessInfo &rProcessInfo,
@@ -1273,7 +1232,7 @@ void FluidElement<TDim>::SubscalePressure(unsigned int GaussIndex,
 
 
 template<>
-void FluidElement<2>::IntegrationPointVorticity(const ShapeFunctionDerivativesType &rDN_DX,array_1d<double,3>& rVorticity) const
+void FluidElement< FluidElementData<2,3> >::IntegrationPointVorticity(const ShapeFunctionDerivativesType &rDN_DX,array_1d<double,3>& rVorticity) const
 {
     rVorticity = array_1d<double,3>(3,0.0);
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
@@ -1287,7 +1246,7 @@ void FluidElement<2>::IntegrationPointVorticity(const ShapeFunctionDerivativesTy
 
 
 template<>
-void FluidElement<3>::IntegrationPointVorticity(const ShapeFunctionDerivativesType &rDN_DX,array_1d<double,3>& rVorticity) const
+void FluidElement< FluidElementData<3,4> >::IntegrationPointVorticity(const ShapeFunctionDerivativesType &rDN_DX,array_1d<double,3>& rVorticity) const
 {
     rVorticity = array_1d<double,3>(3,0.0);
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
@@ -1307,15 +1266,15 @@ void FluidElement<3>::IntegrationPointVorticity(const ShapeFunctionDerivativesTy
 
 // serializer
 
-template< unsigned int TDim >
-void FluidElement<TDim>::save(Serializer& rSerializer) const
+template< class TElementData >
+void FluidElement<TElementData>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
 }
 
 
-template< unsigned int TDim >
-void FluidElement<TDim>::load(Serializer& rSerializer)
+template< class TElementData >
+void FluidElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
@@ -1323,7 +1282,7 @@ void FluidElement<TDim>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-template class FluidElement<2>;
-template class FluidElement<3>;
+template class FluidElement< FluidElementData<2,3> >;
+template class FluidElement< FluidElementData<3,4> >;
 
 }

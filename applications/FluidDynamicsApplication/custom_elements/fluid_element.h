@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template< unsigned int TDim >
+template< class TElementData >
 class FluidElement : public Element
 {
 public:
@@ -590,17 +590,17 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim >
+template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 FluidElement<TDim>& rThis)
+                                 FluidElement<TElementData>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim >
+template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const FluidElement<TDim>& rThis)
+                                 const FluidElement<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
