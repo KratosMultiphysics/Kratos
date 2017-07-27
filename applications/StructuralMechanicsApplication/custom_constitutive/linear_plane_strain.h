@@ -85,66 +85,66 @@ public:
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rParameterValues) override;
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rParameterValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
     /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rParameterValues) override;
+    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
      * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rParameterValues) override;
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
     
     /**
      * Finalizes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponsePK2 (Parameters & rParameterValues) override;
+    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rParameterValues) override;
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponsePK1 (Parameters & rParameterValues) override;
+    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
      * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rParameterValues: The Internalvalues of the law
+     * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponseCauchy (Parameters & rParameterValues) override;
+    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
     /**
      * calculates the value of a specified variable
@@ -235,12 +235,12 @@ private:
     }
 
     void CalculateCauchyGreenStrain(
-        Parameters& rParameterValues,
+        Parameters& rValues,
         Vector& StrainVector
     )
     {
         //1.-Compute total deformation gradient
-        const Matrix& F = rParameterValues.GetDeformationGradientF();
+        const Matrix& F = rValues.GetDeformationGradientF();
 
         Matrix Etensor = prod(trans(F),F);
         Etensor -= IdentityMatrix(2,2);
