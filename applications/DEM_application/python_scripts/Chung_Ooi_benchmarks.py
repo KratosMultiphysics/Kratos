@@ -19,11 +19,11 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # Strategy object
-if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+if   (DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D"     or DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+elif (DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
     import continuum_sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+elif (DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
@@ -108,7 +108,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
     problem_name                = 'benchmark' + str(benchmark_number)
     spheres_mp_filename         = problem_name + "DEM"
-    DEM_parameters.problem_name = problem_name
+    DEM_parameters["problem_name"] = problem_name
     
     model_part_io_spheres = ModelPartIO(spheres_mp_filename)
     
@@ -127,7 +127,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         
     ###################################################### CHUNG, OOI BENCHMARKS
             
-    rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+    rigidFace_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
     model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
     model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
@@ -152,7 +152,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
     # Creating necessary directories
     main_path = os.getcwd()
-    [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
+    [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters["problem_name"].GetString()))
 
     os.chdir(main_path)
 
@@ -167,22 +167,22 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     #
     demio.AddMpiVariables()
 
-    demio.Configure(DEM_parameters.problem_name,
+    demio.Configure(DEM_parameters["problem_name"].GetString(),
                     DEM_parameters.OutputFileType,
                     DEM_parameters.Multifile,
                     DEM_parameters.ContactMeshOption)
 
-    demio.SetOutputName(DEM_parameters.problem_name)
+    demio.SetOutputName(DEM_parameters["problem_name"].GetString())
 
     os.chdir(post_path)
 
     multifiles = (
-        DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-        DEM_procedures.MultifileList(DEM_parameters.problem_name,2 ),
-        DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
-        DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
-        DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
-        DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
+        DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),1 ),
+        DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),2 ),
+        DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),5 ),
+        DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),10),
+        DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),20),
+        DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),50),
         )
 
     demio.SetMultifileLists(multifiles)

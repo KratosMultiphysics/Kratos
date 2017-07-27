@@ -37,7 +37,7 @@ class MdpaCreator(object):
 
         # Creating necessary directories
 
-        self.post_mdpas = os.path.join(str(self.current_path), str(self.DEM_parameters.problem_name) + '_post_mdpas')
+        self.post_mdpas = os.path.join(str(self.current_path), str(self.DEM_parameters["problem_name"].GetString()) + '_post_mdpas')
         os.chdir(self.current_path)
         if not os.path.isdir(self.post_mdpas):
             os.makedirs(str(self.post_mdpas))
@@ -45,7 +45,7 @@ class MdpaCreator(object):
     def WriteMdpa(self, model_part):
         os.chdir(self.post_mdpas)
         time = model_part.ProcessInfo.GetValue(TIME)
-        mdpa = open(str(self.DEM_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w'+'\n')
+        mdpa = open(str(self.DEM_parameters["problem_name"].GetString()) + '_post_' + str(time) + '.mdpa', 'w'+'\n')
         mdpa.write('Begin ModelPartData'+'\n')
         mdpa.write('//  VARIABLE_NAME value')
         mdpa.write('End ModelPartData'+'\n'+'\n'+'\n'+'\n')
@@ -441,7 +441,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
         # Nano Particle
-        if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
+        if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
             model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION)
             model_part.AddNodalSolutionStepVariable(DRAG_COEFFICIENT)
         # ONLY VISUALIZATION
@@ -878,7 +878,7 @@ class DEMFEMProcedures(object):
         if self.graph_frequency < 1:
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
         os.chdir(self.graphs_path)
-        #self.graph_forces = open(self.DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        #self.graph_forces = open(self.DEM_parameters["problem_name"].GetString() +"_force_graph.grf", 'w')
         self.mesh_motion = DEMFEMUtilities()
         
         def Flush(self,a):
@@ -889,7 +889,7 @@ class DEMFEMProcedures(object):
             for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
                 if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                     identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
-                    self.graph_forces[identifier] = open(str(self.DEM_parameters.problem_name) + "_" + str(identifier) + "_force_graph.grf", 'w')
+                    self.graph_forces[identifier] = open(str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_force_graph.grf", 'w')
                     self.graph_forces[identifier].write(str("#time").rjust(12)+" "+str("total_force[0]").rjust(13)+" "+str("total_force[1]").rjust(13)+" "+str("total_force[2]").rjust(13)+" "+str("total_moment[0]").rjust(13)+" "+str("total_moment[1]").rjust(13)+" "+str("total_moment[2]").rjust(13)+"\n")
 
         self.graph_forces = {}
@@ -899,7 +899,7 @@ class DEMFEMProcedures(object):
             for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
                 if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                     identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
-                    self.particle_graph_forces[identifier] = open(str(self.DEM_parameters.problem_name) + "_" + str(identifier) + "_particle_force_graph.grf", 'w');
+                    self.particle_graph_forces[identifier] = open(str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_particle_force_graph.grf", 'w');
                     self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) +
                     " " + str("total_force_z").rjust(13) + "\n")
 
@@ -1383,13 +1383,13 @@ class DEMIo(object):
         
         one_level_up_path = os.path.join(self.post_path,"..")
         self.multifiles = (            
-            MultifileList(one_level_up_path, DEM_parameters.problem_name, 1, "outer"),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 1, "inner"),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 2, "inner"),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 5, "inner"),
-            MultifileList(self.post_path, DEM_parameters.problem_name,10, "inner"),
-            MultifileList(self.post_path, DEM_parameters.problem_name,20, "inner"),
-            MultifileList(self.post_path, DEM_parameters.problem_name,50, "inner"),
+            MultifileList(one_level_up_path, DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(), 1, "inner"),
+            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(), 2, "inner"),
+            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(), 5, "inner"),
+            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(),10, "inner"),
+            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(),20, "inner"),
+            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(),50, "inner"),
             )
             
         self.SetMultifileLists(self.multifiles)
@@ -1435,8 +1435,8 @@ class DEMIo(object):
         self.AddClusterVariables()
         self.AddContactVariables()
         self.AddMpiVariables()
-        self.Configure(DEM_parameters.problem_name, DEM_parameters.OutputFileType, DEM_parameters.Multifile, DEM_parameters.ContactMeshOption)
-        self.SetOutputName(DEM_parameters.problem_name)
+        self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters.OutputFileType, DEM_parameters.Multifile, DEM_parameters.ContactMeshOption)
+        self.SetOutputName(DEM_parameters["problem_name"].GetString())
 
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
@@ -1492,7 +1492,7 @@ class DEMIo(object):
                 self.PushPrintVar(self.PostBrokenRatio,       NEIGHBOUR_RATIO,              self.spheres_variables)
 
         # NANO (TODO: must be removed from here.)
-        if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
+        if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
@@ -1526,7 +1526,7 @@ class DEMIo(object):
 
     def AddContactVariables(self):
         # Contact Elements Variables
-        if (self.DEM_parameters.ElementType in self.continuum_element_types):
+        if (self.DEM_parameters["ElementType"].GetString() in self.continuum_element_types):
             if (Var_Translator(self.DEM_parameters.ContactMeshOption)):
                 self.PushPrintVar(self.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
                 self.PushPrintVar(self.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
@@ -1626,7 +1626,7 @@ class DEMIo(object):
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
-            if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+            if (self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
@@ -1660,7 +1660,7 @@ class DEMIo(object):
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(time)
-            if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+            if (self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())

@@ -42,7 +42,7 @@ class Solution(object):
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
+        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters["problem_name"].GetString()))
 
         self.SetGraphicalOutput()
         
@@ -115,17 +115,17 @@ class Solution(object):
     def SetSolverStrategy(self):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
-        if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+        if (DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):
             import sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+        elif (DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
             import continuum_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+        elif (DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
+        elif (DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D"):
             import thermal_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
+        elif (DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "IceContPartDEMElement3D"):
+        elif (DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D"):
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
@@ -229,7 +229,7 @@ class Solution(object):
 
         os.chdir(self.main_path)
         # Reading the model_part
-        spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
+        spheres_mp_filename   = DEM_parameters["problem_name"].GetString() + "DEM"
         model_part_io_spheres = model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
         if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
@@ -245,14 +245,14 @@ class Solution(object):
         max_elem_Id += self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         old_max_elem_Id_spheres = max_elem_Id
         max_cond_Id += self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
-        rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+        rigidFace_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
         model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
 
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
-        clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
+        clusters_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_Clusters"
         model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
@@ -262,7 +262,7 @@ class Solution(object):
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
-        DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+        DEM_Inlet_filename = DEM_parameters["problem_name"].GetString() + "DEM_Inlet"
 
 
         model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)

@@ -58,7 +58,7 @@ class Procedures(DEM_procedures.Procedures):
     def PreProcessModel(self, DEM_parameters):
         if (mpi.rank == 0):
             print("Creating MPIer...")
-            #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
+            #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters["problem_name"].GetString()) + "DEM.mdpa")
             print("done.")
         mpi.world.barrier() #TODO: maybe not necessary (debugging)
             

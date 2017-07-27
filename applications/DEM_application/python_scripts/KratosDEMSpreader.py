@@ -36,11 +36,11 @@ else:
 
 # TO_DO: Ungly fix. Change it. I don't like this to be in the main...
 # Strategy object
-if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+if   (DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D"     or DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+elif (DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
     import continuum_sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+elif (DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy    
 
 ##############################################################################
@@ -100,7 +100,7 @@ procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
 
 # Reading the model_part
-spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
+spheres_mp_filename   = DEM_parameters["problem_name"].GetString() + "DEM"
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 
 if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
@@ -112,15 +112,15 @@ else:
 
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
-rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+rigidFace_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
 model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
-clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
+clusters_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_Clusters"
 model_part_io_clusters = ModelPartIO(clusters_mp_filename)
 model_part_io_clusters.ReadModelPart(cluster_model_part)
 
-DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
+DEM_Inlet_filename = DEM_parameters["problem_name"].GetString() + "DEM_Inlet"  
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
@@ -142,7 +142,7 @@ solver.AddDofs(DEM_inlet_model_part)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+[post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters["problem_name"].GetString()))
 
 os.chdir(main_path)
 
@@ -157,22 +157,22 @@ demio.AddContactVariables()
 #
 demio.AddMpiVariables()
 
-demio.Configure(DEM_parameters.problem_name,
+demio.Configure(DEM_parameters["problem_name"].GetString(),
                 DEM_parameters.OutputFileType,
                 DEM_parameters.Multifile,
                 DEM_parameters.ContactMeshOption)
 
-demio.SetOutputName(DEM_parameters.problem_name)
+demio.SetOutputName(DEM_parameters["problem_name"].GetString())
 
 os.chdir(post_path)
 
 multifiles = (
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name, 2),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),1 ),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(), 2),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),5 ),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),10),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),20),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),50),
     )
 
 demio.SetMultifileLists(multifiles)
