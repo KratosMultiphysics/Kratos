@@ -10,12 +10,10 @@
 //  Main authors:    Jordi Cotela
 //
 
-
-#if !defined(KRATOS_FLUID_ELEMENT_DATA_H_INCLUDED )
-#define  KRATOS_FLUID_ELEMENT_DATA_H_INCLUDED
+#if !defined(KRATOS_FLUID_ELEMENT_DATA_H_INCLUDED)
+#define KRATOS_FLUID_ELEMENT_DATA_H_INCLUDED
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -23,72 +21,72 @@
 #include "geometries/geometry.h"
 
 #include "fluid_dynamics_application_variables.h"
-
+#include "fluid_element_data.h"
 
 namespace Kratos
 {
-  ///@addtogroup FluidDynamicsApplication
-  ///@{
+///@addtogroup FluidDynamicsApplication
+///@{
 
-  
+/// Auxiliary class to hold data for elements based on FluidElement
+/** TODO: see how this can work for a generic number of stored arguments.
+ */
+template <unsigned int TDim, unsigned int TNumNodes>
+struct FluidElementData
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-  /// Auxiliary class to hold data for elements based on FluidElement
-  /** TODO: see how this can work for a generic number of stored arguments.
-   */
-  template< unsigned int TDim, unsigned int TNumNodes >
-  struct FluidElementData
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
+    typedef array_1d<double, TDim> ScalarDataType;
 
-      typedef array_1d<double,TDim> ScalarDataType;
+    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VectorDataType;
 
-      typedef boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim> VectorDataType;
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    /// Constructor, accepting the geometry of the element.
+    FluidElementData(Geometry<Node<3>>& rGeom);
 
-      /// Constructor, accepting the geometry of the element.
-      FluidElementData(Geometry< Node<3> > &rGeom);
+    ///@}
+    ///@name Public members
+    ///@{
 
-      ///@}
-      ///@name Public members
-      ///@{
+    constexpr static unsigned int Dim = TDim;
 
-      ScalarDataType Pressure;
+    constexpr static unsigned int NumNodes = TNumNodes;
 
-      ScalarDataType Density;
+    ScalarDataType Pressure;
 
-      ScalarDataType Viscosity;
+    ScalarDataType Density;
 
-      VectorDataType Velocity;
+    ScalarDataType Viscosity;
 
-      VectorDataType MeshVelocity;
+    VectorDataType Velocity;
 
-      ///@}
+    VectorDataType MeshVelocity;
 
-    private:
+    ///@}
 
-      ///@name Un accessible methods
-      ///@{
+private:
+    ///@name Un accessible methods
+    ///@{
 
-      /// Assignment operator.
-      FluidElementData& operator=(FluidElementData const& rOther);
+    /// Assignment operator.
+    FluidElementData& operator=(FluidElementData const& rOther);
 
-      /// Copy constructor.
-      FluidElementData(FluidElementData const& rOther);
+    /// Copy constructor.
+    FluidElementData(FluidElementData const& rOther);
 
+    ///@}
 
-      ///@}
+}; // Class FluidElementData
 
-    }; // Class FluidElementData
+///@}
 
-  ///@}
+///@} addtogroup block
 
-  ///@} addtogroup block
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_FLUID_ELEMENT_DATA_H_INCLUDED  defined
