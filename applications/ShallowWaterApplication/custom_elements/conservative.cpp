@@ -141,6 +141,9 @@ namespace Kratos
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y);
 			counter++;
 
+			if(GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT)<1e-3){
+				GetGeometry()[iii].GetSolutionStepValue(HEIGHT) = 1e-3;
+				}
 			ms_depth[counter]        = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
 			ms_rain[counter]         = GetGeometry()[iii].FastGetSolutionStepValue(RAIN);
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);

@@ -111,6 +111,8 @@ namespace Kratos
 		// Getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msNGauss, Area); // Asking for gradients and other info
+		//~ Area = std::abs(Area);
+		//~ KRATOS_WATCH(Area)
 		double elem_size = pow(Area,0.5);
 
 		// Reading properties and conditions
