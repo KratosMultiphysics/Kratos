@@ -661,7 +661,7 @@ protected:
      * @return The DetJ
      */
     
-    static inline double FasTriagleCheck2D(
+    static inline double FastTriagleCheck2D(
         const PointType PointOrig1,
         const PointType PointOrig2,
         const PointType PointOrig3
@@ -675,44 +675,12 @@ protected:
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
-        //J=|	        |=	|	      |
+        //J=|	            |=	|	          |
         //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
         
         return x10 * y20 - y10 * x20;
     }
     
-    /**
-     * This functions calculates the determinant of a 3D triangle (using points) to check if invert the order
-     * @param PointOrig1: First point
-     * @param PointOrig2: Second point
-     * @param PointOrig3: Third point
-     * @return The DetJ
-     */
-    
-    static inline double FastTriangleCheck(
-        const PointType PointOrig1,
-        const PointType PointOrig2,
-        const PointType PointOrig3
-        )
-    {
-        Matrix jacobian( 3, 2 );
-        jacobian( 0, 0 ) = -( PointOrig1.X() ) + ( PointOrig2.X() ); //on the Gauss points (J is constant at each element)
-        jacobian( 1, 0 ) = -( PointOrig1.Y() ) + ( PointOrig2.Y() );
-        jacobian( 2, 0 ) = -( PointOrig1.Z() ) + ( PointOrig2.Z() );
-        jacobian( 0, 1 ) = -( PointOrig1.X() ) + ( PointOrig3.X() );
-        jacobian( 1, 1 ) = -( PointOrig1.Y() ) + ( PointOrig3.Y() );
-        jacobian( 2, 1 ) = -( PointOrig1.Z() ) + ( PointOrig3.Z() );
-        
-        const double det_j = MathUtils<double>::GeneralizedDet(jacobian);
-        
-//         if (std::abs(det_j) < std::numeric_limits<double>::epsilon())
-//         {
-//             KRATOS_ERROR << "WARNING:: Your triangle has zero area!!!!!" << std::endl; 
-//         }
-        
-        return det_j;
-    }
-
     /**
      * This function push backs the points that are inside
      * @param PointList: The intersection points
@@ -911,8 +879,8 @@ protected:
      */
     
     inline bool TriangleIntersections(
-        AuxType2& ConditionsPointsSlave,
-        AuxType4& PointList,
+        ConditionArrayListType& ConditionsPointsSlave,
+        PointListType& PointList,
         GeometryNodeType& OriginalSlaveGeometry,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
@@ -933,133 +901,24 @@ protected:
 
             ConditionsPointsSlave.resize((list_size - 2));
             
-            // We recover this point to the triangle plane
+            // We recover this point to the triangle plane and compute the local coordinates
             for (unsigned int i_point_list = 0; i_point_list < PointList.size(); i_point_list++)
             {
                 ContactUtilities::RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                PointType local_point;
+                OriginalSlaveGeometry.PointLocalCoordinates(local_point, PointList[i_point_list].Coordinates());
+                PointList[i_point_list].Coordinates() = local_point.Coordinates();
             }
             
             for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
                 ArrayTriangleType points_locals;
-                    
-                // Now we project to the slave surface
-                PointType point_local;
                 
-                if (FastTriangleCheck(PointList[0], PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) > 0.0)
-                {
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[0]);
-                    points_locals[0] = point_local;
-                    
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
-                    points_locals[1] = point_local;
-                    
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
-                    points_locals[2] = point_local;
-                }
-                else
-                {
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
-                    points_locals[0] = point_local;
-
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
-                    points_locals[1] = point_local;
-
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[0]);
-                    points_locals[2] = point_local;
-                }
+                const bool inverted_triangle = (FastTriagleCheck2D(PointList[0], PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) < 0.0);
                 
-                ConditionsPointsSlave[elem] = points_locals;
-            }
-            
-            if (ConditionsPointsSlave.size() > 0)
-            {                    
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else // No intersection
-        {
-            ConditionsPointsSlave.clear();
-            return false;
-        }
-        
-        ConditionsPointsSlave.clear();
-        return false;
-    }
-    
-    /**
-     * This function calculates the triangles intersections (this is a module, that can be used directly in the respective function)
-     * @param ConditionsPointsSlave: The final solution vector, containing all the nodes
-     * @param PointList: The intersection points
-     * @param Geometry1/Geometry2: The geometries studied (projected)
-     * @param SlaveTangentXi/SlaveTangentEta: The vectors used as base to rotate
-     * @param RefCenter: The reference point to rotate
-     * @param IsAllInside: To simplify and consider the point_list directly
-     * @return If there is intersection or not (true/false)
-     */
-    
-    inline bool TriangleIntersections(
-        AuxType1& ConditionsPointsSlave,
-        AuxType3& PointList,
-        GeometryNodeType& OriginalSlaveGeometry,
-        GeometryPointType& Geometry1,
-        GeometryPointType& Geometry2,
-        const array_1d<double, 3>& SlaveTangentXi,
-        const array_1d<double, 3>& SlaveTangentEta,
-        const PointType& RefCenter,
-        const bool IsAllInside = false
-        )
-    {   
-        // We do the clipping
-        if (IsAllInside == false) ComputeClippingIntersections(PointList, Geometry1, Geometry2, RefCenter);
-
-        // We compose the triangles 
-        const unsigned int list_size = PointList.size();
-        if (list_size > 2) // Technically the minimum is three, just in case I consider 2
-        {
-            const std::vector<std::size_t> index_vector = ComputeAnglesIndexes(PointList);
-
-            ConditionsPointsSlave.resize((list_size - 2));
-            
-            // We recover this point to the triangle plane
-            for (unsigned int i_point_list = 0; i_point_list < PointList.size(); i_point_list++)
-            {
-                ContactUtilities::RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-            }
-            
-            for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
-            {
-                ArrayTriangleType points_locals;
-                    
-                // Now we project to the slave surface
-                PointType point_local;
-                
-                if (FastTriangleCheck(PointList[0], PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) > 0.0)
-                {
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[0]);
-                    points_locals[0] = ExtendedPoint(point_local.Coordinates(), PointList[0].GetBelong());
-                    
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
-                    points_locals[1] = ExtendedPoint(point_local.Coordinates(), PointList[index_vector[elem + 0] + 1].GetBelong());
-                    
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
-                    points_locals[2] = ExtendedPoint(point_local.Coordinates(), PointList[index_vector[elem + 1] + 1].GetBelong());
-                }
-                else
-                {
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
-                    points_locals[0] = ExtendedPoint(point_local.Coordinates(), PointList[index_vector[elem + 1] + 1].GetBelong());
-
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
-                    points_locals[1] = ExtendedPoint(point_local.Coordinates(), PointList[index_vector[elem + 0] + 1].GetBelong());
-
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[0]);
-                    points_locals[0] = ExtendedPoint(point_local.Coordinates(), PointList[0].GetBelong());
-                }
+                points_locals[(inverted_triangle == false) ? 0 : 2] = PointList[0];
+                points_locals[1] = PointList[index_vector[elem + 0] + 1];
+                points_locals[(inverted_triangle == true) ? 0 : 2] = PointList[index_vector[elem + 1] + 1];
                 
                 ConditionsPointsSlave[elem] = points_locals;
             }
