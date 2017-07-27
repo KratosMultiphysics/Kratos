@@ -78,7 +78,7 @@ class MpcData
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef std::unordered_map<unsigned int, double> MasterIdWeightMapType;
     typedef std::pair<unsigned int, unsigned int> SlavePairType;
-    typedef std::tuple<unsigned int, unsigned int, int> key_tupple;
+    typedef std::tuple<unsigned int, unsigned int, double> key_tupple;
     typedef Kratos::Variable<double> VariableType;
 
     struct key_hash_tuple : public std::unary_function<key_tupple, std::size_t>
@@ -169,15 +169,15 @@ class MpcData
 		*/
 
     // Takes in a slave dof equationId and a master dof equationId
-    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, int PartitionId = 0)
+    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, double constant = 0.0)
     {
         mEquationIdToWeightsMap[SlaveDofEquationId].insert(  std::pair<unsigned int, double>(MasterDofEquationId, weight)  );
-        //mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, PartitionId)] += weight;
+        mSlaveEquationIdConstantsMap.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
     }
 
 
     // Takes in a slave dof and a master dof
-    void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, int PartitionId = 0)
+    void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, double constant = 0.0)
     {
         //here we can get the dof since we are sure that such dof exist
         //auto &slave_dof = mp_model_part.Nodes(SlaveNodeId).GetDof(SlaveVariable);
@@ -186,11 +186,11 @@ class MpcData
 
         unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
 
-        mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, PartitionId)] += weight;
+        mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, constant)] += weight;
     }
 
     // Takes in a slave dof and a list of all the masters associated with it and corresponding weights, partitionIds
-    void AddConstraint(DofType &SlaveDof, DofsVectorType MasterDofsVector, std::vector<double> weightsVector, std::vector<int> PartitionIdVector = std::vector<int>())
+    void AddConstraint(DofType &SlaveDof, DofsVectorType MasterDofsVector, std::vector<double> weightsVector, std::vector<double> ConstantVector = std::vector<double>())
     {
         //here we can get the dof since we are sure that such dof exist
         //auto &slave_dof = mp_model_part.Nodes(SlaveNodeId).GetDof(SlaveVariable);
@@ -204,14 +204,14 @@ class MpcData
         {
             IndexType MasterNodeId = (*MasterDof).Id();
             unsigned int MasterVariableKey = (*MasterDof).GetVariable().Key(); // TODO :: Check why do we need a mastervariable ... is a master key not enough ?
-            int PartitionId=0;
-            if (PartitionIdVector.size() == 0)
-                PartitionId = 0;
+            double constant=0.0;
+            if (ConstantVector.size() == 0)
+                constant = 0;
             else
-                PartitionId = PartitionIdVector[index];
+                constant = ConstantVector[index];
 
             mDofConstraints[std::make_pair(slaveNodeId, slaveVariableKey)]
-                           [std::make_tuple(MasterNodeId, MasterVariableKey, PartitionId)] += weightsVector[index];
+                           [std::make_tuple(MasterNodeId, MasterVariableKey, constant)] += weightsVector[index];
             ++index;
         }
     }
@@ -297,6 +297,8 @@ class MpcData
     std::unordered_map<unsigned int,
                        std::unordered_map<unsigned int, double>>
         mEquationIdToWeightsMap;
+
+    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsMap;        
 
 
     bool mActive;

@@ -187,41 +187,41 @@ class ApplyMultipointConstraintsProcess : public Process
         @arg SlaveVariable
         @arg weight
 		*/
-    void AddMasterSlaveRelationWithNodesAndVariableComponents(Node<3> &MasterNode, VariableComponentType &MasterVariable, Node<3> &SlaveNode, VariableComponentType &SlaveVariable, double weight)
+    void AddMasterSlaveRelationWithNodesAndVariableComponents(Node<3> &MasterNode, VariableComponentType &MasterVariable, Node<3> &SlaveNode, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
     {
         SlaveNode.Set(SLAVE);
         DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
         DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, 0);
+        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, constant);
     }
 
-    void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight)
+    void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
     {
         Node<3> &SlaveNode = mr_model_part.Nodes()[SlaveNodeId];
         Node<3> &MasterNode = mr_model_part.Nodes()[MasterNodeId];
         SlaveNode.Set(SLAVE);
         DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
         DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, 0);
+        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, constant);
     }
 
     // Functions with use two variables
-    void AddMasterSlaveRelationWithNodesAndVariable(Node<3> &MasterNode, VariableType &MasterVariable, Node<3> &SlaveNode, VariableType &SlaveVariable, double weight)
+    void AddMasterSlaveRelationWithNodesAndVariable(Node<3> &MasterNode, VariableType &MasterVariable, Node<3> &SlaveNode, VariableType &SlaveVariable, double weight, double constant = 0.0)
     {
         SlaveNode.Set(SLAVE);
         DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
         DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, 0);
+        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, constant);
     }
 
-    void AddMasterSlaveRelationWithNodeIdsAndVariable(IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight)
+    void AddMasterSlaveRelationWithNodeIdsAndVariable(IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight, double constant = 0.0)
     {
         Node<3> &SlaveNode = mr_model_part.Nodes()[SlaveNodeId];
         Node<3> &MasterNode = mr_model_part.Nodes()[MasterNodeId];
         SlaveNode.Set(SLAVE);
         DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
         DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, 0);
+        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, constant);
     }
 
     // Default functions
@@ -231,9 +231,9 @@ class ApplyMultipointConstraintsProcess : public Process
         @arg masterDOF 
         @arg weight
 		*/
-    void AddMasterSlaveRelationWithDofs(DofType slaveDOF, DofType masterDOF, double masterWeight, int PartitionId = 0)
+    void AddMasterSlaveRelationWithDofs(DofType slaveDOF, DofType masterDOF, double masterWeight, double constant = 0.0)
     {
-        pMpc->AddConstraint(slaveDOF, masterDOF, masterWeight, PartitionId);
+        pMpc->AddConstraint(slaveDOF, masterDOF, masterWeight, constant);
     }
 
     /**
