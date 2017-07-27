@@ -20,6 +20,7 @@
 // Project includes
 #include <math.h> 
 #include "contact_structural_mechanics_application_variables.h"
+#include "custom_includes/point_belong.h"
 
 // The geometry of the triangle for the "tessellation"
 /* TRIANGLES */
@@ -58,14 +59,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-#if !defined(POINT_BELONGS)
-#define POINT_BELONGS
-    enum PointBelongs {Master = 0, Slave = 1, Intersection = 2};
-    enum PointBelongsLine2D2N {MasterLine2D2N0 = 0, MasterLine2D2N1 = 1, SlaveLine2D2N0 = 2, SlaveLine2D2N1 = 3, IntersectionLine2D2N = 4};
-    enum PointBelongsTriangle3D3N {MasterTriangle3D3N0 = 0, MasterTriangle3D3N1 = 1, MasterTriangle3D3N2 = 2, SlaveTriangle3D3N0 = 3, SlaveTriangle3D3N1 = 4, SlaveTriangle3D3N2 = 5, IntersectionTriangle3D3N = 6};
-    enum PointBelongsQuadrilateral3D4N {MasterQuadrilateral3D4N0 = 0, MasterQuadrilateral3D4N1 = 1, MasterQuadrilateral3D4N2 = 2, MasterQuadrilateral3D4N3 = 3, SlaveQuadrilateral3D4N0 = 4, SlaveQuadrilateral3D4N1 = 5, SlaveQuadrilateral3D4N2 = 6, SlaveQuadrilateral3D4N3 = 7, IntersectionQuadrilateral3D4N = 8};
-#endif
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -73,128 +66,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-template<unsigned int TNumNodes>
-class ExtendedPoint : public PointType
-{
-public:
-    ///@name Type Definitions
-    ///@{
-    
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
-    
-    /// Counted pointer of ExtendedPoint
-    KRATOS_CLASS_POINTER_DEFINITION( ExtendedPoint );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-    
-    /// Default constructors
-    ExtendedPoint():
-        PointType()
-    {}
-
-    ExtendedPoint(const array_1d<double, 3> Coords):
-        PointType(Coords)
-    {}
-    
-    ExtendedPoint(const array_1d<double, 3> Coords, const BelongType& ThisBelongs):
-        PointType(Coords),
-        mBelongs(ThisBelongs)
-    {}
-    
-    /// Destructor.
-    ~ExtendedPoint() override{}
-    
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * This method allows to set where the point belongs
-     */
-    void SetBelong(BelongType ThisBelongs)
-    {
-        mBelongs = ThisBelongs;
-    }
-    
-    /**
-     * This method recovers where the point belongs
-     */
-    BelongType GetBelong() const
-    {
-        return mBelongs;
-    }
-    
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    BelongType mBelongs; // To know if the point belongs to the master/slave/intersection (just 3D) side          
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-}; // Class ExtendedPoint 
     
 /** \brief ExactMortarIntegrationUtility 
  * This utility calculates the exact integration necessary for the Mortar Conditions
@@ -208,19 +79,19 @@ public:
     
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
     
-    typedef std::vector<array_1d<ExtendedPoint<TNumNodes>,TDim>>                         AuxType1;
+    typedef std::vector<array_1d<PointBelong<TNumNodes>,TDim>>                           AuxType1;
     
     typedef std::vector<array_1d<PointType,TDim>>                                        AuxType2;
     
     typedef typename std::conditional<TBelong, AuxType1, AuxType2>::type   ConditionArrayListType;
     
-    typedef std::vector<ExtendedPoint<TNumNodes>>                                        AuxType3;
+    typedef std::vector<PointBelong<TNumNodes>>                                          AuxType3;
     
     typedef std::vector<PointType>                                                       AuxType4;
     
     typedef typename std::conditional<TBelong, AuxType3, AuxType4>::type            PointListType;
     
-    typedef array_1d<ExtendedPoint<TNumNodes>, 3>                                        AuxType5;
+    typedef array_1d<PointBelong<TNumNodes>, 3>                                          AuxType5;
     
     typedef array_1d<PointType, 3>                                                       AuxType6;
     
@@ -757,7 +628,7 @@ protected:
                 {
                     unsigned int initial_index = 0;
                     if (ThisBelongs == Master) initial_index = TNumNodes;
-                    PointList.push_back(ExtendedPoint<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node )));
+                    PointList.push_back(PointBelong<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node )));
                 }
             }
         }
@@ -870,7 +741,7 @@ protected:
                     
                     if (add_point == true) 
                     {
-                        if (TBelong == true) PointList.push_back(ExtendedPoint<TNumNodes>(intersected_point.Coordinates(), static_cast<BelongType>(2 * TNumNodes)));
+                        if (TBelong == true) PointList.push_back(PointBelong<TNumNodes>(intersected_point.Coordinates(), static_cast<BelongType>(2 * TNumNodes)));
                         else PointList.push_back(intersected_point);
                     }
                 }
@@ -1464,7 +1335,7 @@ private:
         if (total_weight > std::numeric_limits<double>::epsilon())
         {
             ConditionsPointsSlave.resize(1);
-            array_1d<ExtendedPoint<2>, 2> list_points;
+            array_1d<PointBelong<2>, 2> list_points;
             list_points[0].Coordinate(1) = auxiliar_coordinates[0];
             list_points[0].SetBelong(auxiliar_belong[0]);
             list_points[1].Coordinate(1) = auxiliar_coordinates[1];
@@ -1545,7 +1416,7 @@ private:
             {
                 PointType point;
                 OriginalSlaveGeometry.PointLocalCoordinates(point, OriginalMasterGeometry[i_node]);
-                ConditionsPointsSlave[0][i_node] = ExtendedPoint<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node));
+                ConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node));
             }
             
             return true;
