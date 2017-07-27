@@ -13,15 +13,11 @@
 #define  POINT_BELONG_DEFINED
 
 // System includes
-#include <iostream>
-#include <vector>
-#include "boost/smart_ptr.hpp"
 
 // External includes
 
 // Project includes
-#include "contact_structural_mechanics_application_variables.h"
-#include "contact_structural_mechanics_application.h"
+#include "geometries/point.h"
 
 namespace Kratos
 {
@@ -56,7 +52,7 @@ namespace Kratos
  */
 
 template<unsigned int TNumNodes>
-class PointBelong : public PointType
+class PointBelong : public Point<3>
 {
 public:
     ///@name Type Definitions
@@ -73,15 +69,15 @@ public:
     
     /// Default constructors
     PointBelong():
-        PointType()
+        Point<3>()
     {}
 
     PointBelong(const array_1d<double, 3> Coords):
-        PointType(Coords)
+        Point<3>(Coords)
     {}
     
     PointBelong(const array_1d<double, 3> Coords, const BelongType& ThisBelongs):
-        PointType(Coords),
+        Point<3>(Coords),
         mBelongs(ThisBelongs)
     {}
     

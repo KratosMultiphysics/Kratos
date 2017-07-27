@@ -31,6 +31,7 @@
 #include "custom_includes/mortar_operator.h"
 #include "custom_includes/dual_LM_operators.h"
 #include "custom_includes/mortar_kinematic_variables.h"
+#include "custom_includes/point_belong.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"

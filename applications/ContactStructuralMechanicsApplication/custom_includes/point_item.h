@@ -13,15 +13,12 @@
 #define  POINT_ITEM_DEFINED
 
 // System includes
-#include <iostream>
-#include <vector>
-#include "boost/smart_ptr.hpp"
 
 // External includes
 
 // Project includes
-#include "contact_structural_mechanics_application_variables.h"
-#include "contact_structural_mechanics_application.h"
+#include "includes/condition.h"
+#include "geometries/point.h"
 
 namespace Kratos
 {

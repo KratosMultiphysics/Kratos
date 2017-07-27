@@ -23,6 +23,8 @@
 #include "custom_includes/point_belong.h"
 
 // The geometry of the triangle for the "tessellation"
+/* LINES */
+#include "geometries/line_2d_2.h"
 /* TRIANGLES */
 #include "geometries/triangle_3d_3.h"
 /* QUADRILATERALS */
