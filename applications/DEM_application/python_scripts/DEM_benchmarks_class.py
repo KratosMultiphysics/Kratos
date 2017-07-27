@@ -2802,7 +2802,6 @@ class Benchmark23:
         self.simulation_graph = open(self.output_filename, 'w')
         
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):        #FINALIZATION STEP
-        print("entering get_final_data")
         self.simulation_graph.close()
         
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -2866,16 +2865,12 @@ class Benchmark23:
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
             
-
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
-        print(generated_data_error)    
+            generated_data_error+=fabs(i-j) 
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
-
         error1 = 100*generated_data_error
-
         error2 = error3 = 0
 
         return error1, error2, error3

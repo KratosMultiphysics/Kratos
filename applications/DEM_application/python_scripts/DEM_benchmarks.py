@@ -35,7 +35,7 @@ listDISclRK   = [] #[31,33]
 '''
 if benchmark_number in listDISCONT:
     nodeplotter = 1
-    import DEM_explicit_solver_var as DEM_parameters
+    import DEM_explicit_solver_var_DISCONT as DEM_parameters
 elif benchmark_number in listROLLFR:
     import DEM_explicit_solver_var_ROLLFR as DEM_parameters
 elif benchmark_number in listDEMFEM:
@@ -118,6 +118,13 @@ class Solution(main_script.Solution):
     
     def GetInletFilename(self):
         return 'benchmarkDEM_Inlet'
+        #return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+
+    def GetFemFilename(self):
+        return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"   
+
+    def GetClusterFilename(self):
+        return 'benchmark' + str(benchmark_number) + "DEM_Clusters"   
       
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)

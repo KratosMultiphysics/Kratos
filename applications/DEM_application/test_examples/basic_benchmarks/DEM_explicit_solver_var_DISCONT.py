@@ -32,7 +32,7 @@ RemoveBallsInEmbeddedOption      = 1
 DeltaOption                      = "Absolute"
 SearchTolerance                  = 0.0
 CoordinationNumber               = 10
-AmplifiedSearchRadiusExtension   = 1
+AmplifiedSearchRadiusExtension   = 1.10000e+00
 ModelDataInfo                    = "OFF"
 VirtualMassCoefficient           = 1.0
 RollingFrictionOption            = "OFF"
@@ -47,8 +47,8 @@ HorizontalFixVel                 = "ON"
 IntegrationScheme                = "Forward_Euler"
 AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
-MaxTimeStep                      = 1
-FinalTime                        = 1
+MaxTimeStep                      = 6.4e-8
+FinalTime                        = 0.0005
 ControlTime                      = 100
 NeighbourSearchFrequency         = 1
 PeriodicDomainOption             = 0
@@ -76,17 +76,17 @@ FemPlates                        = "OFF"
 StressStrainOption               = "OFF"
 MeshType                         = "Current"
 MeshPath                         = "0"
-SpecimenLength                   = 1
-SpecimenDiameter                 = 1
-MeasuringSurface                 = 1
+SpecimenLength                   = 0.30
+SpecimenDiameter                 = 0.15
+MeasuringSurface                 = 0.01767145867644375
 
 ElementType                      = "SphericPartDEMElement3D"
 
 # PostProcess Results
 
-GraphExportFreq                  = 1
-VelTrapGraphExportFreq           = 1
-OutputTimeStep                   = 1
+GraphExportFreq                  = 1e-5
+VelTrapGraphExportFreq           = 1e-3
+OutputTimeStep                   = 0.05
 PostDisplacement                 = "1"
 PostVelocity                     = "1"
 PostElasticForces                = "1"
@@ -123,5 +123,5 @@ MeanRadius                       = 0.0001
 
 # Declare Python Variables
 
-problem_name="DEFAULT"
+problem_name="benchmark5"
 kratos_path="D:\Kratos"
