@@ -102,10 +102,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 
     if (this->Is(DEMFlags::HAS_ROTATION)) {
         node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
-        node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-        node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.0;
-        node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.0;
-        
+        node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = CalculateMomentOfInertia();
+
         array_1d<double, 3> base_principal_moments_of_inertia = node.GetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
     
         Quaternion<double> Orientation;
@@ -154,7 +152,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_viscodamping_energy = 0.0;
     
     mBoundDeltaDispSq = 0.0;
-
+    
     CreateDiscontinuumConstitutiveLaws(r_process_info);
     
     DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
@@ -227,7 +225,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
         if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
             array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
             rolling_resistance_moment.clear();
-            ComputeRollingFriction(rolling_resistance_moment, RollingResistance, dt);       
+            ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt);
         }
     }
 
@@ -324,11 +322,21 @@ void SphericParticle::CalculateMomentum(array_1d<double, 3>& r_momentum)
     noalias(r_momentum) = GetMass() * vel;
 }
 
+// void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angular_momentum)
+// {
+//     const array_1d<double, 3> ang_vel  = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+//     const double moment_of_inertia     = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+//     noalias(r_angular_momentum) = moment_of_inertia * ang_vel;
+// }
+
 void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angular_momentum)
 {
-    const array_1d<double, 3> ang_vel  = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    const double moment_of_inertia     = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-    noalias(r_angular_momentum) = moment_of_inertia * ang_vel;
+    const array_1d<double, 3> ang_vel           = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    const array_1d<double, 3> moment_of_inertia = this->GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+    
+    r_angular_momentum[0] = moment_of_inertia[0] * ang_vel[0];
+    r_angular_momentum[1] = moment_of_inertia[1] * ang_vel[1];
+    r_angular_momentum[2] = moment_of_inertia[2] * ang_vel[2];
 }
 
 void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds,
@@ -500,7 +508,6 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     GeometryFunctions::CrossProduct(my_delta_rotation,    my_arm_vector,    my_delta_disp_at_contact_point_due_to_rotation);
     GeometryFunctions::CrossProduct(other_delta_rotation, other_arm_vector, other_delta_disp_at_contact_point_due_to_rotation);
 
-
     // Contribution of the rotation
     RelDeltDisp[0] += my_delta_disp_at_contact_point_due_to_rotation[0] - other_delta_disp_at_contact_point_due_to_rotation[0];
     RelDeltDisp[1] += my_delta_disp_at_contact_point_due_to_rotation[1] - other_delta_disp_at_contact_point_due_to_rotation[1];
@@ -517,19 +524,20 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
                                                 SphericParticle* p_neighbour)
 {
         const array_1d<double, 3>& neigh_angular_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const array_1d<double, 3>& my_delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+        const array_1d<double, 3>& other_delta_rotation = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
         const double other_young = p_neighbour->GetYoung();
         const double my_young = GetYoung();
 
+//         array_1d<double, 3> temp_angular_vel;
+//         noalias(temp_angular_vel) = angular_vel;
+//         array_1d<double, 3> temp_neigh_angular_vel;
+//         noalias(temp_neigh_angular_vel) = neigh_angular_vel;
+//         DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt); //THIS MACRO CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
+//         DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt); //THIS MACRO CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
 
-        array_1d<double, 3> temp_angular_vel;
-        noalias(temp_angular_vel) = angular_vel;
-        array_1d<double, 3> temp_neigh_angular_vel;
-        noalias(temp_neigh_angular_vel) = neigh_angular_vel;
-        DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt); //THIS MACRO CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
-        DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt); //THIS MACRO CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
-
-        const double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
-        const double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
+        const double my_rotated_angle = DEM_MODULUS_3(my_delta_rotation);
+        const double other_rotated_angle = DEM_MODULUS_3(other_delta_rotation);
 
         const array_1d<double, 3>& coors = this->GetGeometry()[0].Coordinates();
         array_1d<double, 3> neigh_coors = p_neighbour->GetGeometry()[0].Coordinates();
@@ -553,9 +561,9 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 
         if (my_rotated_angle) {
             array_1d<double, 3> axis_1;
-            axis_1[0] = temp_angular_vel[0] / my_rotated_angle;
-            axis_1[1] = temp_angular_vel[1] / my_rotated_angle;
-            axis_1[2] = temp_angular_vel[2] / my_rotated_angle;
+            axis_1[0] = my_delta_rotation[0] / my_rotated_angle;
+            axis_1[1] = my_delta_rotation[1] / my_rotated_angle;
+            axis_1[2] = my_delta_rotation[2] / my_rotated_angle;
 
             GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(e1, axis_1, my_rotated_angle, new_axes1);
 
@@ -563,9 +571,9 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 
         if (other_rotated_angle) {
             array_1d<double, 3> axis_2;
-            axis_2[0] = temp_neigh_angular_vel[0] / other_rotated_angle;
-            axis_2[1] = temp_neigh_angular_vel[1] / other_rotated_angle;
-            axis_2[2] = temp_neigh_angular_vel[2] / other_rotated_angle;
+            axis_2[0] = other_delta_rotation[0] / other_rotated_angle;
+            axis_2[1] = other_delta_rotation[1] / other_rotated_angle;
+            axis_2[2] = other_delta_rotation[2] / other_rotated_angle;
 
             GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(e2, axis_2, other_rotated_angle, new_axes2);
 
@@ -589,9 +597,8 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         RelVel[0] += vel[0] - other_vel[0];
         RelVel[1] += vel[1] - other_vel[1];
         RelVel[2] += vel[2] - other_vel[2];
-
+        
         // Contribution of the rotation velocity
-
 
         DeltDisp[0] += (new_axes1[0] - new_axes2[0]) + (e2[0] - e1[0]);
         DeltDisp[1] += (new_axes1[1] - new_axes2[1]) + (e2[1] - e1[1]);
@@ -646,9 +653,17 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
 
 void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt)
 {
-    const double coeff_acc                            = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
+    array_1d<double, 3> coeff_acc;
+    coeff_acc[0] = this->GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] / dt;
+    coeff_acc[1] = this->GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] / dt;
+    coeff_acc[2] = this->GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] / dt;
+    
     const array_1d<double, 3>& ang_velocity           = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    const array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
+    
+    array_1d<double, 3> initial_rotation_moment;
+    initial_rotation_moment[0] = coeff_acc[0] * ang_velocity[0]; // the moment needed to stop the spin in one time step
+    initial_rotation_moment[1] = coeff_acc[0] * ang_velocity[1]; // the moment needed to stop the spin in one time step
+    initial_rotation_moment[2] = coeff_acc[0] * ang_velocity[2]; // the moment needed to stop the spin in one time step
 
     const double MaxRotaMoment[3] = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
     double MR_max                 = DEM_MODULUS_3(MaxRotaMoment);
