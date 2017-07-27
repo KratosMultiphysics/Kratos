@@ -270,7 +270,8 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 	}
       }
 
-    //KRATOS_WATCH( rVectorForce )
+
+    //std::cout<<" rVectorForce "<<rVectorForce<<std::endl;
 
     return rVectorForce;
 

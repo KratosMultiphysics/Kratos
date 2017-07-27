@@ -29,7 +29,6 @@
 #include "geometries/triangle_3d_6.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
@@ -48,7 +47,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
 namespace Kratos
@@ -193,7 +191,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Z)
     KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Y)
     KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Z)
+	KRATOS_REGISTER_VARIABLE(LUMPED_MASS_MATRIX)
     KRATOS_REGISTER_VARIABLE(LOCAL_AXES_VECTOR)
+	KRATOS_REGISTER_VARIABLE(LOCAL_INERTIA_VECTOR)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
