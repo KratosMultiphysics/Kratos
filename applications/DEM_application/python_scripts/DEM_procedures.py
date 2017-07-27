@@ -60,7 +60,7 @@ class MdpaCreator(object):
             mdpa.write(str(element.Id) + ' ' +'1'+' ' + str(element.GetNode(0).Id )+'\n')
         mdpa.write('End Elements'+'\n'+'\n')
 
-        fixed = 0; #how to read fixed? it can be either a flag or a nodal variable property
+        fixed = 0 #how to read fixed? it can be either a flag or a nodal variable property
         self.WriteVariableData(RADIUS, mdpa, model_part)
         #self.WriteVariableData(VELOCITY_X, mdpa, model_part)
         #self.WriteVariableData(VELOCITY_Y, mdpa, model_part)
@@ -171,7 +171,7 @@ class PostUtils(object):
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
         self.previous_vector_of_inner_nodes = []
-        self.previous_time = 0.0;
+        self.previous_time = 0.0
         
     def Flush(self,a):
         a.flush()
@@ -188,13 +188,13 @@ class PostUtils(object):
                 average_velocity = Array3()
                 low_point = Array3()
 
-                low_point[0] = self.DEM_parameters.VelocityTrapMinX
-                low_point[1] = self.DEM_parameters.VelocityTrapMinY
-                low_point[2] = self.DEM_parameters.VelocityTrapMinZ
+                low_point[0] = self.DEM_parameters["VelocityTrapMinX"].GetDouble()
+                low_point[1] = self.DEM_parameters["VelocityTrapMinY"].GetDouble()
+                low_point[2] = self.DEM_parameters["VelocityTrapMinZ"].GetDouble()
                 high_point = Array3()
-                high_point[0] = self.DEM_parameters.VelocityTrapMaxX
-                high_point[1] = self.DEM_parameters.VelocityTrapMaxY
-                high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
+                high_point[0] = self.DEM_parameters["VelocityTrapMaxX"].GetDouble()
+                high_point[1] = self.DEM_parameters["VelocityTrapMaxY"].GetDouble()
+                high_point[2] = self.DEM_parameters["VelocityTrapMaxZ"].GetDouble()
 
                 average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
 
@@ -249,26 +249,26 @@ class DEMEnergyCalculator(object):
             if (DEM_parameters.EnergyCalculationOption): #TODO: add Var_translator here
                 self.calculate_option = True
                 self.DEM_parameters = DEM_parameters
-                self.SpheresModelPart = spheres_model_part;
-                self.ClusterModelPart = cluster_model_part;                
-                self.energy_plot = open(energy_plot, 'w');
-                self.SpheresEnergyUtil = SphericElementGlobalPhysicsCalculator(spheres_model_part);
-                self.ClusterEnergyUtil = SphericElementGlobalPhysicsCalculator(cluster_model_part);
-                self.PotentialEnergyReferencePoint          = Array3();
-                self.PotentialEnergyReferencePoint[0]       = self.DEM_parameters.PotentialEnergyReferencePointX;
-                self.PotentialEnergyReferencePoint[1]       = self.DEM_parameters.PotentialEnergyReferencePointY;
-                self.PotentialEnergyReferencePoint[2]       = self.DEM_parameters.PotentialEnergyReferencePointZ;
-                self.translational_kinematic_energy         = 0.0;
-                self.rotational_kinematic_energy            = 0.0;
-                self.kinematic_energy                       = 0.0;
-                self.gravitational_energy                   = 0.0;
-                self.elastic_energy                         = 0.0;
-                self.inelastic_frictonal_energy             = 0.0;
-                self.inelastic_viscodamping_energy          = 0.0;
-                self.external_energy                        = 0.0;
-                self.total_energy                           = 0.0;
-                self.graph_frequency                        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME));
-                self.energy_graph_counter                   = 0;
+                self.SpheresModelPart = spheres_model_part
+                self.ClusterModelPart = cluster_model_part                
+                self.energy_plot = open(energy_plot, 'w')
+                self.SpheresEnergyUtil = SphericElementGlobalPhysicsCalculator(spheres_model_part)
+                self.ClusterEnergyUtil = SphericElementGlobalPhysicsCalculator(cluster_model_part)
+                self.PotentialEnergyReferencePoint          = Array3()
+                self.PotentialEnergyReferencePoint[0]       = self.DEM_parameters["PotentialEnergyReferencePointX"].GetDouble()
+                self.PotentialEnergyReferencePoint[1]       = self.DEM_parameters["PotentialEnergyReferencePointY"].GetDouble()
+                self.PotentialEnergyReferencePoint[2]       = self.DEM_parameters["PotentialEnergyReferencePointZ"].GetDouble()
+                self.translational_kinematic_energy         = 0.0
+                self.rotational_kinematic_energy            = 0.0
+                self.kinematic_energy                       = 0.0
+                self.gravitational_energy                   = 0.0
+                self.elastic_energy                         = 0.0
+                self.inelastic_frictonal_energy             = 0.0
+                self.inelastic_viscodamping_energy          = 0.0
+                self.external_energy                        = 0.0
+                self.total_energy                           = 0.0
+                self.graph_frequency                        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+                self.energy_graph_counter                   = 0
                 self.energy_plot.write(str("Time").rjust(9)+"   "+str("Trans kinematic energy").rjust(22)+"   "+str("Rot kinematic energy").rjust(20)+"   "+str("Kinematic energy").rjust(16)+"   "+str("Gravitational energy").rjust(20)+"   "+str("Elastic energy").rjust(14)+"   "+str("Frictonal energy").rjust(16)+"   "+str("Viscodamping energy").rjust(19)+"   "+str("Total energy").rjust(12)+"\n")
 
     def CalculateEnergyAndPlot(self, time):
@@ -277,21 +277,21 @@ class DEMEnergyCalculator(object):
                 if (self.energy_graph_counter == self.graph_frequency):
                     self.energy_graph_counter = 0
 
-                    self.CalculateEnergy();
-                    self.PlotEnergyGraph(time);
+                    self.CalculateEnergy()
+                    self.PlotEnergyGraph(time)
 
                 self.energy_graph_counter += 1
 
     def CalculateEnergy(self):
 
-        self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart);
-        self.rotational_kinematic_energy    = self.SpheresEnergyUtil.CalculateRotationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateRotationalKinematicEnergy(self.ClusterModelPart);
-        self.kinematic_energy               = self.translational_kinematic_energy + self.rotational_kinematic_energy;
-        self.gravitational_energy           = self.SpheresEnergyUtil.CalculateGravitationalPotentialEnergy(self.SpheresModelPart,self.PotentialEnergyReferencePoint) + self.ClusterEnergyUtil.CalculateGravitationalPotentialEnergy(self.ClusterModelPart,self.PotentialEnergyReferencePoint);
-        self.elastic_energy                 = self.SpheresEnergyUtil.CalculateElasticEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateElasticEnergy(self.ClusterModelPart);
-        self.inelastic_frictional_energy    = self.SpheresEnergyUtil.CalculateInelasticFrictionalEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticFrictionalEnergy(self.ClusterModelPart);
-        self.inelastic_viscodamping_energy  = self.SpheresEnergyUtil.CalculateInelasticViscodampingEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticViscodampingEnergy(self.ClusterModelPart);
-        self.total_energy                   = self.kinematic_energy + self.gravitational_energy + self.elastic_energy + self.inelastic_frictional_energy + self.inelastic_viscodamping_energy;
+        self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart)
+        self.rotational_kinematic_energy    = self.SpheresEnergyUtil.CalculateRotationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateRotationalKinematicEnergy(self.ClusterModelPart)
+        self.kinematic_energy               = self.translational_kinematic_energy + self.rotational_kinematic_energy
+        self.gravitational_energy           = self.SpheresEnergyUtil.CalculateGravitationalPotentialEnergy(self.SpheresModelPart,self.PotentialEnergyReferencePoint) + self.ClusterEnergyUtil.CalculateGravitationalPotentialEnergy(self.ClusterModelPart,self.PotentialEnergyReferencePoint)
+        self.elastic_energy                 = self.SpheresEnergyUtil.CalculateElasticEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateElasticEnergy(self.ClusterModelPart)
+        self.inelastic_frictional_energy    = self.SpheresEnergyUtil.CalculateInelasticFrictionalEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticFrictionalEnergy(self.ClusterModelPart)
+        self.inelastic_viscodamping_energy  = self.SpheresEnergyUtil.CalculateInelasticViscodampingEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticViscodampingEnergy(self.ClusterModelPart)
+        self.total_energy                   = self.kinematic_energy + self.gravitational_energy + self.elastic_energy + self.inelastic_frictional_energy + self.inelastic_viscodamping_energy
         
     def PlotEnergyGraph(self,time):
 
@@ -325,15 +325,18 @@ class Procedures(object):
         self.rotation_OPTION               = Var_Translator(self.DEM_parameters.RotationOption)
         self.bounding_box_OPTION           = Var_Translator(self.DEM_parameters.BoundingBoxOption)
         self.automatic_bounding_box_OPTION = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
-        self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
+        
+        self.contact_mesh_OPTION           = False
+        if "ContactMeshOption" in self.DEM_parameters:
+            self.contact_mesh_OPTION = self.DEM_parameters["ContactMeshOption"].GetBool()
 
         # SIMULATION SETTINGS
-        self.b_box_minX = self.DEM_parameters.BoundingBoxMinX
-        self.b_box_minY = self.DEM_parameters.BoundingBoxMinY
-        self.b_box_minZ = self.DEM_parameters.BoundingBoxMinZ
-        self.b_box_maxX = self.DEM_parameters.BoundingBoxMaxX
-        self.b_box_maxY = self.DEM_parameters.BoundingBoxMaxY
-        self.b_box_maxZ = self.DEM_parameters.BoundingBoxMaxZ
+        self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
+        self.b_box_minY = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
+        self.b_box_minZ = self.DEM_parameters["BoundingBoxMinZ"].GetDouble()
+        self.b_box_maxX = self.DEM_parameters["BoundingBoxMaxX"].GetDouble()
+        self.b_box_maxY = self.DEM_parameters["BoundingBoxMaxY"].GetDouble()
+        self.b_box_maxZ = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
 
         # MODEL
@@ -341,15 +344,15 @@ class Procedures(object):
         self.aux = AuxiliaryUtilities()
         
     def SetScheme(self):
-        if (self.DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler'):
             scheme = ForwardEulerScheme()
-        elif (self.DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler'):
             scheme = SymplecticEulerScheme()
-        elif (self.DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
             scheme = TaylorScheme()
-        elif (self.DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
             scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif (self.DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+        elif (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
             scheme = VerletVelocityScheme()
         else:
             self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
@@ -807,33 +810,7 @@ class Procedures(object):
             b = str(var)
             self.KRATOSprint("The type expected was "+ a + " but " + b +" was read.")                        
             self.KRATOSprint("**************************************************************************")                        
-            sys.exit()
-    
-    def CheckInputParameters(self, DEM_parameters):        
-        self.CheckVariableType(DEM_parameters.Dimension, int, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxEnlargementFactor, float, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxMaxX, float, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxMaxY, float, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxMaxZ, float, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxMinX, float, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxMinY, float, "")
-        self.CheckVariableType(DEM_parameters.BoundingBoxMinZ, float, "")        
-        self.CheckVariableType(DEM_parameters.GravityX, float, "")
-        self.CheckVariableType(DEM_parameters.GravityY, float, "")
-        self.CheckVariableType(DEM_parameters.GravityZ, float, "")    
-        if hasattr(self.DEM_parameters, "AmplifiedSearchRadiusExtension"):
-            self.CheckVariableType(DEM_parameters.AmplifiedSearchRadiusExtension, float, "")
-        if hasattr(self.DEM_parameters, "MaxAmplificationRatioOfSearchRadius"):
-            self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, float, "")
-        self.CheckVariableType(DEM_parameters.VirtualMassCoefficient, float, "")
-        self.CheckVariableType(DEM_parameters.DeltaTimeSafetyFactor, float, "")   #@53214
-        self.CheckVariableType(DEM_parameters.MaxTimeStep, float, "")
-        self.CheckVariableType(DEM_parameters.FinalTime, float, "")
-        self.CheckVariableType(DEM_parameters.ControlTime, float, "")
-        self.CheckVariableType(DEM_parameters.NeighbourSearchFrequency, int, "")
-        self.CheckVariableType(DEM_parameters.GraphExportFreq, float, "")
-        self.CheckVariableType(DEM_parameters.VelTrapGraphExportFreq, float, "")
-        self.CheckVariableType(DEM_parameters.OutputTimeStep, float, "")
+            sys.exit()        
 
     def Flush(self,a):
         a.flush()
@@ -857,11 +834,12 @@ class DEMFEMProcedures(object):
 
         # Initialization of member variables
         # SIMULATION FLAGS
-        self.rotation_OPTION     = Var_Translator(self.DEM_parameters.RotationOption)
-        self.bounding_box_OPTION = Var_Translator(self.DEM_parameters.BoundingBoxOption)
-        self.contact_mesh_OPTION           = 0
-        if (hasattr(DEM_parameters, "contact_mesh_OPTION")):
-            self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
+        self.rotation_OPTION     = self.DEM_parameters["RotationOption"].GetBool()
+        self.bounding_box_OPTION = self.DEM_parameters["BoundingBoxOption"].GetBool()
+        
+        self.contact_mesh_OPTION           = False #TODO: This is already in the Procedures object. why to repeat it?
+        if "ContactMeshOption" in self.DEM_parameters:
+            self.contact_mesh_OPTION = self.DEM_parameters["ContactMeshOption"].GetBool()
 
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
@@ -899,7 +877,7 @@ class DEMFEMProcedures(object):
             for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
                 if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                     identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
-                    self.particle_graph_forces[identifier] = open(str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_particle_force_graph.grf", 'w');
+                    self.particle_graph_forces[identifier] = open(str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_particle_force_graph.grf", 'w')
                     self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) +
                     " " + str("total_force_z").rjust(13) + "\n")
 
@@ -1372,12 +1350,12 @@ class DEMIo(object):
             self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
             
         self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
-        self.b_box_minX = self.DEM_parameters.BoundingBoxMinX
-        self.b_box_minY = self.DEM_parameters.BoundingBoxMinY
-        self.b_box_minZ = self.DEM_parameters.BoundingBoxMinZ
-        self.b_box_maxX = self.DEM_parameters.BoundingBoxMaxX
-        self.b_box_maxY = self.DEM_parameters.BoundingBoxMaxY
-        self.b_box_maxZ = self.DEM_parameters.BoundingBoxMaxZ
+        self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
+        self.b_box_minY = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
+        self.b_box_minZ = self.DEM_parameters["BoundingBoxMinZ"].GetDouble()
+        self.b_box_maxX = self.DEM_parameters["BoundingBoxMaxX"].GetDouble()
+        self.b_box_maxY = self.DEM_parameters["BoundingBoxMaxY"].GetDouble()
+        self.b_box_maxZ = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
         
@@ -1435,7 +1413,7 @@ class DEMIo(object):
         self.AddClusterVariables()
         self.AddContactVariables()
         self.AddMpiVariables()
-        self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters.OutputFileType, DEM_parameters.Multifile, DEM_parameters.ContactMeshOption)
+        self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters.Multifile, DEM_parameters.ContactMeshOption)
         self.SetOutputName(DEM_parameters["problem_name"].GetString())
 
     def PushPrintVar(self, variable, name, print_list):

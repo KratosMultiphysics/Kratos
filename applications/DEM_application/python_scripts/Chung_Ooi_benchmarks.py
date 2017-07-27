@@ -168,7 +168,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     demio.AddMpiVariables()
 
     demio.Configure(DEM_parameters["problem_name"].GetString(),
-                    DEM_parameters.OutputFileType,
+                    DEM_parameters["OutputFileType"].GetString(),
                     DEM_parameters.Multifile,
                     DEM_parameters.ContactMeshOption)
 

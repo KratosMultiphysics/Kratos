@@ -38,7 +38,7 @@ class Solution(object):
         self.procedures = self.SetProcedures()
         self.SetAnalyticParticleWatcher()
 
-        self.procedures.CheckInputParameters(DEM_parameters)
+        #self.procedures.CheckInputParameters(DEM_parameters)
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
@@ -91,15 +91,15 @@ class Solution(object):
         return ParticleCreatorDestructor()
 
     def SelectScheme(self):
-        if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+        if (DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler'):
             return ForwardEulerScheme()
-        elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+        elif (DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler'):
             return SymplecticEulerScheme()
-        elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+        elif (DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
             return TaylorScheme()
-        elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+        elif (DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
             return NewmarkBetaScheme(0.5, 0.25)
-        elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+        elif (DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
             return VerletVelocityScheme()
         else:
             return None

@@ -158,7 +158,7 @@ demio.AddContactVariables()
 demio.AddMpiVariables()
 
 demio.Configure(DEM_parameters["problem_name"].GetString(),
-                DEM_parameters.OutputFileType,
+                DEM_parameters["OutputFileType"].GetString(),
                 DEM_parameters.Multifile,
                 DEM_parameters.ContactMeshOption)
 

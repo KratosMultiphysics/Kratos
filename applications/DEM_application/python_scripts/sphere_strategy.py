@@ -87,13 +87,13 @@ class ExplicitStrategy:
         # BOUNDING_BOX
         self.enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
         self.top_corner = Array3()
-        self.bottom_corner = Array3()
-        self.top_corner[0] = DEM_parameters.BoundingBoxMaxX
-        self.top_corner[1] = DEM_parameters.BoundingBoxMaxY
-        self.top_corner[2] = DEM_parameters.BoundingBoxMaxZ
-        self.bottom_corner[0] = DEM_parameters.BoundingBoxMinX
-        self.bottom_corner[1] = DEM_parameters.BoundingBoxMinY
-        self.bottom_corner[2] = DEM_parameters.BoundingBoxMinZ
+        self.bottom_corner = Array3()        
+        self.bottom_corner[0] = DEM_parameters["BoundingBoxMinX"].GetDouble()
+        self.bottom_corner[1] = DEM_parameters["BoundingBoxMinY"].GetDouble()
+        self.bottom_corner[2] = DEM_parameters["BoundingBoxMinZ"].GetDouble()
+        self.top_corner[0] = DEM_parameters["BoundingBoxMaxX"].GetDouble()
+        self.top_corner[1] = DEM_parameters["BoundingBoxMaxY"].GetDouble()
+        self.top_corner[2] = DEM_parameters["BoundingBoxMaxZ"].GetDouble()
 
         if not (hasattr(DEM_parameters, "BoundingBoxStartTime")):
             self.bounding_box_start_time  = 0.0
@@ -142,8 +142,12 @@ class ExplicitStrategy:
         self.search_strategy = OMP_DEMSearch()
         if hasattr(DEM_parameters, "PeriodicDomainOption"):
             if self.Var_Translator(DEM_parameters.PeriodicDomainOption):
-                self.search_strategy = OMP_DEMSearch(DEM_parameters.BoundingBoxMinX, DEM_parameters.BoundingBoxMinY, DEM_parameters.BoundingBoxMinZ,
-                                                     DEM_parameters.BoundingBoxMaxX, DEM_parameters.BoundingBoxMaxY, DEM_parameters.BoundingBoxMaxZ)
+                self.search_strategy = OMP_DEMSearch(DEM_parameters["BoundingBoxMinX"].GetDouble(), 
+                                                     DEM_parameters["BoundingBoxMinY"].GetDouble(), 
+                                                     DEM_parameters["BoundingBoxMinZ"].GetDouble(),
+                                                     DEM_parameters["BoundingBoxMaxX"].GetDouble(), 
+                                                     DEM_parameters["BoundingBoxMaxY"].GetDouble(), 
+                                                     DEM_parameters["BoundingBoxMaxZ"].GetDouble())
         else:
             DEM_parameters.PeriodicDomainOption = False
 
@@ -254,7 +258,7 @@ class ExplicitStrategy:
 
         self.SetVariablesAndOptions()
 
-        if (self.DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.do_search_neighbours) 
@@ -462,7 +466,7 @@ class ExplicitStrategy:
         if properties.Has(DEM_INTEGRATION_SCHEME_NAME):  
             scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
         else:
-            scheme_name = self.DEM_parameters.IntegrationScheme
+            scheme_name = self.DEM_parameters["IntegrationScheme"].GetString()
             
         scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
         scheme.SetIntegrationSchemeInProperties(properties)
