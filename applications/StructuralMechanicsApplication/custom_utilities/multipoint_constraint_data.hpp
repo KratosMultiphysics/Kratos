@@ -156,6 +156,14 @@ class MpcData
     ///@{
 
     /**
+		Clears the maps contents
+		*/
+        void Clear(){
+            mSlaveEquationIdConstantsMap.clear();
+            mEquationIdToWeightsMap.clear();
+        }
+
+    /**
 		Get the MasterDOFs vector for this slave
 		@return MasterDOFs vector for this slave
 		*/
