@@ -62,10 +62,6 @@
 
         Py_NoSiteFlag = 1;
         Py_SetProgramName(wchar_argv[0]);
-     
-	std::wstring pythonpath = std::wstring(L"pythonlib.zip:") + std::wstring(Py_GetPath());
-
-	Py_SetPath(pythonpath.c_str());
         Py_Initialize();
 
         PySys_SetArgv(argc-1, &wchar_argv[1] );
