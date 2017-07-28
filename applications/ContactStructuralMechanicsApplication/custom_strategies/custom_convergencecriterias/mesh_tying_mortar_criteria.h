@@ -94,7 +94,7 @@ public:
     }
 
     /// Destructor
-    ~MeshTyingMortarConvergenceCriteria() override {}
+    ~MeshTyingMortarConvergenceCriteria() override = default;
 
     ///@}
     ///@name Operators

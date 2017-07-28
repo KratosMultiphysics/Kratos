@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include <math.h> 
+#include <cmath> 
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_includes/point_belong.h"
 
@@ -130,7 +130,7 @@ public:
     }
     
     /// Destructor.
-    virtual ~ExactMortarIntegrationUtility() {}
+    virtual ~ExactMortarIntegrationUtility() = default;
     
     ///@}
     ///@name Operators

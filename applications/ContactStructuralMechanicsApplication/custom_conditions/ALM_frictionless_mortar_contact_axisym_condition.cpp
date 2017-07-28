@@ -10,7 +10,7 @@
 //
 
 // System includes
-#include <math.h>
+#include <cmath>
 
 // External includes
 
@@ -51,8 +51,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondi
 
 template< unsigned int TNumNodes, bool TNormalVariation >
 AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition( )
-{
-}
+= default;
 
 /***********************************************************************************/
 /***********************************************************************************/

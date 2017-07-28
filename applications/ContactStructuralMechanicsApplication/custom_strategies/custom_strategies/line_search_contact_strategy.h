@@ -185,8 +185,7 @@ public:
      */
     
     ~LineSearchContactStrategy() override
-    {
-    }
+    = default;
         
     ///@}
     ///@name Access

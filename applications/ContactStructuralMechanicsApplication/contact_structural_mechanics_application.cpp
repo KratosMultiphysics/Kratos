@@ -71,7 +71,7 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mALMNVFrictionalMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mALMFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mALMNVFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) )
-{}
+    {}
 
 void KratosContactStructuralMechanicsApplication::Register()
 {

@@ -82,7 +82,7 @@ public:
     {}
     
     /// Destructor.
-    ~PointBelong() override{}
+    ~PointBelong() override= default;
     
     ///@}
     ///@name Operators

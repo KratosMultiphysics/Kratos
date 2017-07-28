@@ -72,8 +72,7 @@ public:
 
     /// Destructor.
     ~ALMFastInit() override
-    {
-    }
+    = default;
 
     ///@}
     ///@name Access
@@ -290,7 +289,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ALMFastInit& operator=(ALMFastInit const& rOther);
+    ALMFastInit& operator=(ALMFastInit const& rOther) = delete;
 
     /// Copy constructor.
     //ALMFastInit(ALMFastInit const& rOther);

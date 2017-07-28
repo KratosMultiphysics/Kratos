@@ -206,8 +206,7 @@ public:
      */
     
     ~ResidualBasedNewtonRaphsonContactStrategy() override
-    {
-    }
+    = default;
     
     //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
     //***********************************************************************************//

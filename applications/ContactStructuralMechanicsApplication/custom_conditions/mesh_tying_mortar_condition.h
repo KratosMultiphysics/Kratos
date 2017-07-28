@@ -423,7 +423,7 @@ protected:
         Type2 Ae;
         
         // Default destructor
-        ~DofData(){}
+        ~DofData()= default;
         
         // Initializer method 
         void Initialize(      

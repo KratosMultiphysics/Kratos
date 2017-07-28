@@ -69,8 +69,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Create(
 
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::~MeshTyingMortarCondition( )
-{
-}
+= default;
 
 //************************** STARTING - ENDING  METHODS ***************************//
 /***********************************************************************************/

@@ -70,9 +70,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarKinematicVariables(){}
+    MortarKinematicVariables()= default;
     
-    virtual ~MortarKinematicVariables(){}
+    virtual ~MortarKinematicVariables()= default;
     
     // Shape functions for contact pair
     Vector NMaster, NSlave, PhiLagrangeMultipliers;
@@ -209,9 +209,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarKinematicVariablesWithDerivatives(){}
+    MortarKinematicVariablesWithDerivatives()= default;
     
-    ~MortarKinematicVariablesWithDerivatives() override{}
+    ~MortarKinematicVariablesWithDerivatives() override= default;
   
     // Shape functions local derivatives for contact pair
     Matrix DNDeMaster, DNDeSlave;
@@ -358,9 +358,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DerivativeData(){}
+    DerivativeData()= default;
     
-    virtual ~DerivativeData(){}
+    virtual ~DerivativeData()= default;
     
     // The ALM parameters
     array_1d<double, TNumNodes> PenaltyParameter;
@@ -586,9 +586,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DerivativeDataFrictional(){}
+    DerivativeDataFrictional()= default;
     
-    virtual ~DerivativeDataFrictional(){}
+    virtual ~DerivativeDataFrictional()= default;
     
     // The ALM parameters
     double TangentFactor;

@@ -15,7 +15,7 @@ namespace bprinter
         flush_left_ = false;
     }
 
-    TablePrinter::~TablePrinter(){}
+    TablePrinter::~TablePrinter()= default;
 
     unsigned int TablePrinter::get_num_columns() const 
     {

@@ -72,9 +72,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DualLagrangeMultiplierOperators(){}
+    DualLagrangeMultiplierOperators()= default;
     
-    virtual ~DualLagrangeMultiplierOperators(){}
+    virtual ~DualLagrangeMultiplierOperators()= default;
     
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
         
@@ -278,9 +278,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DualLagrangeMultiplierOperatorsWithDerivatives(){}
+    DualLagrangeMultiplierOperatorsWithDerivatives()= default;
     
-    ~DualLagrangeMultiplierOperatorsWithDerivatives() override{}
+    ~DualLagrangeMultiplierOperatorsWithDerivatives() override= default;
     
     // Auxiliar sizes
     static const unsigned int size_1 = (TNumNodes * TDim);

@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Default constructors
-    ProcessFactoryUtility(){}
+    ProcessFactoryUtility()= default;
     
     ProcessFactoryUtility(ListType& ProcessesList)
     {
@@ -75,7 +75,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~ProcessFactoryUtility(){}
+    virtual ~ProcessFactoryUtility()= default;
 
     ///@}
     ///@name Operators
@@ -84,11 +84,7 @@ public:
     /// Assignment operator.
     
     ProcessFactoryUtility& operator=(ProcessFactoryUtility const& rOther)
-    {
-        mProcesses = rOther.mProcesses;
-
-        return *this;
-    }
+    = default;
     
     ///@}
     ///@name Operations
@@ -121,9 +117,9 @@ public:
 
     void ExecuteInitialize()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteInitialize")();
+            mProcesse.attr("ExecuteInitialize")();
         }
     }
     
@@ -133,9 +129,9 @@ public:
         
     void ExecuteBeforeSolutionLoop()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteBeforeSolutionLoop")();
+            mProcesse.attr("ExecuteBeforeSolutionLoop")();
         }
     }
     
@@ -145,9 +141,9 @@ public:
         
     void ExecuteInitializeSolutionStep()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteInitializeSolutionStep")();
+            mProcesse.attr("ExecuteInitializeSolutionStep")();
         }
     }
     
@@ -157,9 +153,9 @@ public:
         
     void ExecuteFinalizeSolutionStep()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteFinalizeSolutionStep")();
+            mProcesse.attr("ExecuteFinalizeSolutionStep")();
         }
     }
     
@@ -169,9 +165,9 @@ public:
         
     void ExecuteBeforeOutputStep()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteBeforeOutputStep")();
+            mProcesse.attr("ExecuteBeforeOutputStep")();
         }
     }
     
@@ -181,9 +177,9 @@ public:
         
     void ExecuteAfterOutputStep()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteAfterOutputStep")();
+            mProcesse.attr("ExecuteAfterOutputStep")();
         }
     }
     
@@ -193,9 +189,9 @@ public:
         
     void ExecuteFinalize()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("ExecuteFinalize")();
+            mProcesse.attr("ExecuteFinalize")();
         }
     }
     
@@ -205,9 +201,9 @@ public:
     
     void Clear()
     {
-        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        for (auto & mProcesse : mProcesses)
         {
-            mProcesses[iProcess].attr("Clear")();
+            mProcesse.attr("Clear")();
         }
     }
 

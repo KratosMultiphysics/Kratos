@@ -73,8 +73,7 @@ public:
 
     /// Destructor.
     ~AALMAdaptPenaltyValueProcess() override
-    {
-    }
+    = default;
 
     ///@}
     ///@name Access
@@ -279,7 +278,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    AALMAdaptPenaltyValueProcess& operator=(AALMAdaptPenaltyValueProcess const& rOther);
+    AALMAdaptPenaltyValueProcess& operator=(AALMAdaptPenaltyValueProcess const& rOther) = delete;
 
     /// Copy constructor.
     //AALMAdaptPenaltyValueProcess(AALMAdaptPenaltyValueProcess const& rOther);

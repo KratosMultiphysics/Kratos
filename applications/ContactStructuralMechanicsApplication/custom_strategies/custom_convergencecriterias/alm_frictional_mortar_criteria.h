@@ -101,7 +101,7 @@ public:
     }
 
     /// Destructor
-    ~ALMFrictionalMortarConvergenceCriteria() override {}
+    ~ALMFrictionalMortarConvergenceCriteria() override = default;
 
     ///@}
     ///@name Operators

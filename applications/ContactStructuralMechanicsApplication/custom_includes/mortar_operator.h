@@ -71,9 +71,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarOperator(){}
+    MortarOperator()= default;
     
-    virtual ~MortarOperator(){}
+    virtual ~MortarOperator()= default;
     
     // Mortar condition matrices - DOperator and MOperator
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
@@ -248,9 +248,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarOperatorWithDerivatives(){}
+    MortarOperatorWithDerivatives()= default;
     
-    ~MortarOperatorWithDerivatives() override{}
+    ~MortarOperatorWithDerivatives() override= default;
     
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     

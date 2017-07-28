@@ -95,7 +95,7 @@ public:
     }
     
     /// Destructor.
-    virtual ~InterfacePreprocessCondition() {}
+    virtual ~InterfacePreprocessCondition() = default;
     
     ///@}
     ///@name Operators

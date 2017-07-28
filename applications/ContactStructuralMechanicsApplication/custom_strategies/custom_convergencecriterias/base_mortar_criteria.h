@@ -90,7 +90,7 @@ public:
     }
 
     /// Destructor
-    ~BaseMortarConvergenceCriteria() override {}
+    ~BaseMortarConvergenceCriteria() override = default;
 
     ///@}
     ///@name Operators

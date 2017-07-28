@@ -54,10 +54,9 @@ public:
      */
     
     BprinterUtility()
-    {        
-    }
+    = default;
     
-    virtual ~BprinterUtility(){};
+    virtual ~BprinterUtility()= default;;
     
     ///@}
     ///@name Access

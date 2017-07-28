@@ -82,10 +82,10 @@ public:
     ///@{
 
     /// Default constructors
-    ConditionMap(){}
+    ConditionMap()= default;
 
     /// Destructor
-    virtual ~ConditionMap(){}
+    virtual ~ConditionMap()= default;
 
     ///@}
     ///@name Operators

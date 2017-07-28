@@ -99,8 +99,7 @@ public:
 
     /// Destructor.
     ~ALMVariablesCalculationProcess() override
-    {
-    }
+    = default;
 
     ///@}
     ///@name Access
@@ -335,7 +334,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ALMVariablesCalculationProcess& operator=(ALMVariablesCalculationProcess const& rOther);
+    ALMVariablesCalculationProcess& operator=(ALMVariablesCalculationProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ALMVariablesCalculationProcess(ALMVariablesCalculationProcess const& rOther);

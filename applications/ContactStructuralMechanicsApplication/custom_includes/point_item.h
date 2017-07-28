@@ -59,8 +59,7 @@ public:
     /// Default constructors
     PointItem():
         Point<3>()
-    {
-    }
+    {}
 
     PointItem(const array_1d<double, 3> Coords):
         Point<3>(Coords)
@@ -88,7 +87,7 @@ public:
     }
 
     /// Destructor.
-    ~PointItem() override{}
+    ~PointItem() override= default;
 
     ///@}
     ///@name Operators

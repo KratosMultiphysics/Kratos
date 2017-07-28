@@ -157,7 +157,7 @@ public:
         }
     }
     
-    virtual ~TreeContactSearch(){};
+    virtual ~TreeContactSearch()= default;;
 
     ///@}
     ///@name Operators

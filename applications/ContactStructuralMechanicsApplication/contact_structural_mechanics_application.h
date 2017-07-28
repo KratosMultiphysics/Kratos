@@ -82,7 +82,7 @@ public:
     KratosContactStructuralMechanicsApplication();
 
     /// Destructor.
-    ~KratosContactStructuralMechanicsApplication() override {}
+    ~KratosContactStructuralMechanicsApplication() override = default;
 
 
     ///@}

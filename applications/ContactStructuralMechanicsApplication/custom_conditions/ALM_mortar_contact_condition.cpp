@@ -73,8 +73,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::~AugmentedLagrangianMethodMortarContactCondition( )
-{
-}
+= default;
 
 //************************** STARTING - ENDING  METHODS ***************************//
 /***********************************************************************************/
