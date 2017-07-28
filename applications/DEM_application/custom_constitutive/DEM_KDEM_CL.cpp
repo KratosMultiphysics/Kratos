@@ -387,8 +387,6 @@ namespace Kratos {
         ///- debugging_rotational_factor * equiv_shear * (calculation_area / distance) * (OtherWeightedRadius * MyLocalDeltaDisplacement[1] - MyWeightedRadius * OtherLocalDeltaDisplacement[1]);
         ElasticLocalRotationalMoment[2] = -/*debugging_rotational_factor * */equiv_shear * Inertia_J * LocalDeltaRotatedAngle[2] / distance;
         
-
-        
         ViscoLocalRotationalMoment[0] = -visc_param * LocalDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param * LocalDeltaAngularVelocity[1];
         ViscoLocalRotationalMoment[2] = -visc_param * LocalDeltaAngularVelocity[2];
