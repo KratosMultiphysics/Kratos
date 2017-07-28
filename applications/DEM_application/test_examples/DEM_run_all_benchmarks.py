@@ -103,7 +103,6 @@ def Run():
                 g.write("\n======== BASIC CONTINUUM TESTS  ==========\n\n")
             if benchmark == 30:
                 g.write("\n======= DISCONTINUUM CLUSTERS TESTS  =========\n\n")
-            g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
             
     print('\n')
