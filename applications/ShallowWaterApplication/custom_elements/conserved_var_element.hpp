@@ -1,13 +1,13 @@
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author:  Miguel Masó Sotomayor $
-//   Date:                $Date:             june 14 2017 $
-//   Revision:            $Revision:                  1.1 $
+//   Last modified by:    Miguel Masó Sotomayor
+//   Date:                July 3rd 2017
+//   Revision:            1.2
 //
 //
 
-#if !defined(KRATOS_NON_CONSERVATIVE_DC_ELEM_H_INCLUDED)
-#define  KRATOS_NON_CONSERVATIVE_DC_ELEM_H_INCLUDED 
+#if !defined(KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED)
+#define  KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED 
 
 // System includes 
 
@@ -25,20 +25,21 @@
 namespace Kratos
 {
 
-  class NonConservativeDC : public Element
+  template< unsigned int TNumNodes >
+  class ConservedVarElement : public Element
   {
     public:
      
-    /// Counted pointer of NonConservativeDC
-    KRATOS_CLASS_POINTER_DEFINITION(NonConservativeDC);
+    /// Counted pointer of ConservedVarElement
+    KRATOS_CLASS_POINTER_DEFINITION( ConservedVarElement );
 
 
     /// Default constructor.
-    NonConservativeDC(IndexType NewId, GeometryType::Pointer pGeometry);
-    NonConservativeDC(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~ NonConservativeDC();
+    virtual ~ ConservedVarElement();
 
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
@@ -68,12 +69,12 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    NonConservativeDC() : Element()
+    ConservedVarElement() : Element()
     {
     }
        
        
-  }; // Class NonConservativeDC
+  }; // Class ConservedVarElement
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_CONSERVATIVE_DC_ELEM_H_INCLUDED  defined
+#endif // KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED  defined

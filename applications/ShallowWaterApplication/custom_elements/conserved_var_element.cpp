@@ -1,14 +1,14 @@
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author:  Miguel Masó Sotomayor $
-//   Date:                $Date:              july 3 2017 $
-//   Revision:            $Revision:                  1.1 $
+//   Last modified by:    Miguel Masó Sotomayor
+//   Date:                July 3rd 2017
+//   Revision:            1.2
 //
 //
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/conservative.h"
+#include "custom_elements/conserved_var_element.hpp"
 #include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -19,31 +19,35 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	Conservative::Conservative(IndexType NewId, GeometryType::Pointer pGeometry)
+	template< unsigned int TNumNodes >
+	ConservedVarElement<TNumNodes>::ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
 	{
-		// DO NOT ADD DOFS HERE
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	Conservative::Conservative(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+	template< unsigned int TNumNodes >
+	ConservedVarElement<TNumNodes>::ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
 	{
 	}
 
-	Element::Pointer Conservative::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+	template< unsigned int TNumNodes >
+	Element::Pointer ConservedVarElement<TNumNodes>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 	{
-		return Element::Pointer(new Conservative(NewId, GetGeometry().Create(ThisNodes), pProperties));
+		return Element::Pointer(new ConservedVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-	Conservative::~Conservative()
+	template< unsigned int TNumNodes >
+	ConservedVarElement<TNumNodes>::~ConservedVarElement()
 	{
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void Conservative::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
 	{
 		const unsigned int number_of_nodes = 3;
 		//~ const unsigned int number_of_dof = 3;
@@ -57,7 +61,8 @@ namespace Kratos
 		rMassMatrix *= 1.0/(12.0);
 	}
 
-	void Conservative::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
 	{
 		const unsigned int number_of_nodes = 3;
 		rMassMatrix = IdentityMatrix(number_of_nodes*3, number_of_nodes*3);
@@ -66,7 +71,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void Conservative::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -141,8 +147,8 @@ namespace Kratos
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y);
 			counter++;
 
-			if(GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT)<1e-3){
-				GetGeometry()[iii].GetSolutionStepValue(HEIGHT) = 1e-3;
+			if(GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT)<1e-6){
+				GetGeometry()[iii].GetSolutionStepValue(HEIGHT) = 1e-10;
 				}
 			ms_depth[counter]        = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
 			ms_rain[counter]         = GetGeometry()[iii].FastGetSolutionStepValue(RAIN);
@@ -295,7 +301,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void Conservative::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	}
@@ -304,7 +311,8 @@ namespace Kratos
 	//************************************************************************************
 	// This subroutine calculates the nodal contributions for the explicit steps of the
 	// Fractional step procedure
-	void Conservative::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -313,7 +321,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void Conservative::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes*3)
@@ -329,7 +338,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void Conservative::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rElementalDofList.size() != number_of_nodes*3)
@@ -344,7 +354,10 @@ namespace Kratos
 		}
 	}
 
-	void Conservative::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	//************************************************************************************
+	//************************************************************************************
+	template< unsigned int TNumNodes >
+	void ConservedVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
 		if (rVariable == VEL_ART_VISC){
 			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
@@ -364,6 +377,6 @@ namespace Kratos
 		}
     }
 
-
+template class ConservedVarElement<3>;
 
 } // namespace Kratos
