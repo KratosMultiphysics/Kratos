@@ -1,13 +1,13 @@
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author:  Miguel Masó Sotomayor $
-//   Date:                $Date:              june 2 2017 $
-//   Revision:            $Revision:                  1.1 $
+//   Last modified by:    Miguel Masó Sotomayor
+//   Date:                June 28th 2017
+//   Revision:            1.3
 //
 //
 
-#if !defined(KRATOS_PROJECTED_SWE_ELEM_H_INCLUDED)
-#define  KRATOS_PROJECTED_SWE_ELEM_H_INCLUDED 
+#if !defined(KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED)
+#define  KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED 
 
 // System includes 
 
@@ -25,20 +25,21 @@
 namespace Kratos
 {
 
-  class ProjectedSWE : public Element
+  template< unsigned int TNumNodes >
+  class PrimitiveVarElement : public Element
   {
     public:
      
-    /// Counted pointer of ProjectedSWE
-    KRATOS_CLASS_POINTER_DEFINITION(ProjectedSWE);
+    /// Counted pointer of PrimitiveVarElement
+    KRATOS_CLASS_POINTER_DEFINITION( PrimitiveVarElement );
 
 
     /// Default constructor.
-    ProjectedSWE(IndexType NewId, GeometryType::Pointer pGeometry);
-    ProjectedSWE(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~ ProjectedSWE();
+    virtual ~ PrimitiveVarElement();
 
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
@@ -53,6 +54,8 @@ namespace Kratos
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
 
 
     protected:
@@ -66,12 +69,12 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    ProjectedSWE() : Element()
+    PrimitiveVarElement() : Element()
     {
     }
        
        
-  }; // Class ProjectedSWE
+  }; // Class PrimitiveVarElement
 }  // namespace Kratos.
 
-#endif // KRATOS_PROJECTED_SWE_ELEM_H_INCLUDED  defined
+#endif // KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED  defined

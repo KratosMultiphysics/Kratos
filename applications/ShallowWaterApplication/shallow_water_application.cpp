@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  Miguel Masó Sotomayor$
-//   Date:                $Date:            april 26 2017$
-//   Revision:            $Revision:                 1.4 $
+//   Last Modified by:    Miguel Masó Sotomayor
+//   Date:                April 26th 2017
+//   Revision:            1.4
 //
 // 
 
@@ -27,11 +27,13 @@ namespace Kratos
 {
 
 	KratosShallowWaterApplication::KratosShallowWaterApplication():
-	mProjectedSWE ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mNonConservativeDC ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mNonConservativeStab ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mConservative ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mEulerianNonConservative ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
+	mPrimitiveVarElement2D3N (0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	mConservedVarElement2D3N (0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
+	//~ mProjectedSWE ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	//~ mNonConservativeDC ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	//~ mNonConservativeStab ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	//~ mConservative ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	//~ mEulerianNonConservative ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
 	{}
 	
 	void KratosShallowWaterApplication::Register()
@@ -60,11 +62,13 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(SCALAR_PROJECTED_VELOCITY_Y)
 
 		// Registering elements and conditions here
-		KRATOS_REGISTER_ELEMENT("ProjectedSWE", mProjectedSWE)                       // mesh stage element
-		KRATOS_REGISTER_ELEMENT("NonConservativeDC", mNonConservativeDC)             // mesh stage element with discontinuity capturing
-		KRATOS_REGISTER_ELEMENT("NonConservativeStab", mNonConservativeStab)         // mesh stage element with stabilization
-		KRATOS_REGISTER_ELEMENT("Conservative", mConservative)                       // mesh stage conservative element
-		KRATOS_REGISTER_ELEMENT("EulerianNonConservative", mEulerianNonConservative) // eulerian element
+		KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
+		KRATOS_REGISTER_ELEMENT("ConservedVarElement2D3N", mConservedVarElement2D3N)   // mesh stage element
+		//~ KRATOS_REGISTER_ELEMENT("ProjectedSWE", mProjectedSWE)                       // mesh stage element
+		//~ KRATOS_REGISTER_ELEMENT("NonConservativeDC", mNonConservativeDC)             // mesh stage element with discontinuity capturing
+		//~ KRATOS_REGISTER_ELEMENT("NonConservativeStab", mNonConservativeStab)         // mesh stage element with stabilization
+		//~ KRATOS_REGISTER_ELEMENT("Conservative", mConservative)                       // mesh stage conservative element
+		//~ KRATOS_REGISTER_ELEMENT("EulerianNonConservative", mEulerianNonConservative) // eulerian element
 
 	}
 

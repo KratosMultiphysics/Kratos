@@ -1,14 +1,14 @@
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author:  Miguel Masó Sotomayor $
-//   Date:                $Date:             june 28 2017 $
-//   Revision:            $Revision:                  1.1 $
+//   Last modified by:    Miguel Masó Sotomayor
+//   Date:                June 28th 2017
+//   Revision:            1.1
 //
 //
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/non_conservative_stab.h"
+#include "custom_elements/primitive_var_element.hpp"
 #include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -19,31 +19,35 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	NonConservativeStab::NonConservativeStab(IndexType NewId, GeometryType::Pointer pGeometry)
+	template< unsigned int TNumNodes >
+	PrimitiveVarElement<TNumNodes>::PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
 	{
-		// DO NOT ADD DOFS HERE
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	NonConservativeStab::NonConservativeStab(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+	template< unsigned int TNumNodes >
+	PrimitiveVarElement<TNumNodes>::PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
 	{
 	}
 
-	Element::Pointer NonConservativeStab::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+	template< unsigned int TNumNodes >
+	Element::Pointer PrimitiveVarElement<TNumNodes>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 	{
-		return Element::Pointer(new NonConservativeStab(NewId, GetGeometry().Create(ThisNodes), pProperties));
+		return Element::Pointer(new PrimitiveVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-	NonConservativeStab::~NonConservativeStab()
+	template< unsigned int TNumNodes >
+	PrimitiveVarElement<TNumNodes>::~PrimitiveVarElement()
 	{
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeStab::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
 	{
 		const unsigned int number_of_nodes = 3;
 		//~ const unsigned int number_of_dof = 3;
@@ -57,7 +61,8 @@ namespace Kratos
 		rMassMatrix *= 1.0/(12.0);
 	}
 
-	void NonConservativeStab::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
 	{
 		const unsigned int number_of_nodes = 3;
 		rMassMatrix = IdentityMatrix(number_of_nodes*3, number_of_nodes*3);
@@ -66,7 +71,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeStab::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -74,7 +80,6 @@ namespace Kratos
 		// The coefficients INCLUDE the time step
 		const double delta_t = rCurrentProcessInfo[DELTA_TIME];
 		//~ const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-		//~ array_1d<double,2> BDFcoeffs = {1.0, 1.0};  
 		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
 
 		boost::numeric::ublas::bounded_matrix<double,9,9> msMass   = ZeroMatrix(9,9);     // Mass matrix
@@ -111,8 +116,6 @@ namespace Kratos
 		// Getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msNGauss, Area); // Asking for gradients and other info
-		//~ Area = std::abs(Area);
-		//~ KRATOS_WATCH(Area)
 		double elem_size = pow(Area,0.5);
 
 		// Reading properties and conditions
@@ -216,35 +219,26 @@ namespace Kratos
 		// RHS
 		// Source terms
 		noalias(rRightHandSideVector)  = -prod(msC, ms_depth);          // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
-		//~ KRATOS_WATCH("g*h*grad(H)")
-		//~ KRATOS_WATCH(rRightHandSideVector)
 		noalias(rRightHandSideVector) +=  prod(msMass, ms_rain);        // Add <q,rain>         to RHS (Mass Eq.)
-		//~ KRATOS_WATCH(ms_rain)
-		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		// Inertia terms
 		// RHS += M*vhistory
 		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msMass, ms_proj_unknown);
-		//~ KRATOS_WATCH(BDFcoeffs[1])
-		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		// Substracting the dirichlet term
 		// RHS -= LHS*UNKNOWNs
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, ms_unknown);
-		//~ KRATOS_WATCH("Dirichlet")
-		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		rRightHandSideVector *= Area;
 		rLeftHandSideMatrix *= Area;
-		//~ KRATOS_WATCH(Area)
-		//~ KRATOS_WATCH(rRightHandSideVector)
 
 		KRATOS_CATCH("");
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeStab::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	}
@@ -253,7 +247,8 @@ namespace Kratos
 	//************************************************************************************
 	// This subroutine calculates the nodal contributions for the explicit steps of the
 	// Fractional step procedure
-	void NonConservativeStab::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -262,7 +257,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeStab::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes*3)
@@ -278,7 +274,8 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeStab::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rElementalDofList.size() != number_of_nodes*3)
@@ -293,7 +290,10 @@ namespace Kratos
 		}
 	}
 
-	void NonConservativeStab::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	//************************************************************************************
+	//************************************************************************************
+	template< unsigned int TNumNodes >
+	void PrimitiveVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
 		if (rVariable == VEL_ART_VISC){
 			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
@@ -313,6 +313,6 @@ namespace Kratos
 		}
     }
 
-
+template class PrimitiveVarElement<3>;
 
 } // namespace Kratos
