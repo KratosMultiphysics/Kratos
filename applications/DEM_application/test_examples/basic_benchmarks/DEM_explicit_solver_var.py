@@ -19,7 +19,7 @@ BoundingBoxMinZ                  = -1e3
 dem_inlet_option                 = 0
 GravityX                         = 0.0
 GravityY                         = 0.0
-GravityZ                         = 0.0 #-9.81
+GravityZ                         = 0.0
 
 VelocityTrapOption               = 0
 RotationOption                   = "ON"
@@ -52,19 +52,6 @@ FinalTime                        = 1
 ControlTime                      = 100
 NeighbourSearchFrequency         = 1
 PeriodicDomainOption             = 0
-
-# Constitutive Parameters
-
-MaterialModel                    = "Hertz"
-G1                               = 0.0
-G2                               = 0.0
-G3                               = 0.0
-MaxDef                           = 0.0
-FailureCriterionType             = "Uncoupled"
-AreaFactor                       = 1.00000e+00
-LocalContactDamping              = "Normal"
-LocalDampingFactor               = 1.0 #0.9
-GlobalForceReduction             = 0.0 #0.2
 
 # Material Test
 

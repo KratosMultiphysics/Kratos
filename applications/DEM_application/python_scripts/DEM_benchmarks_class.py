@@ -1960,12 +1960,12 @@ class Benchmark12: ########## ROLLING FRICTION
 
     def __init__(self):
         
-        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+        self.balls_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
-        self.angular_velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.angular_velocity_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):                 #FINALIZATION STEP
         
@@ -1980,7 +1980,7 @@ class Benchmark12: ########## ROLLING FRICTION
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             total_angular_velocity_z = 0.0
 
@@ -1994,7 +1994,7 @@ class Benchmark12: ########## ROLLING FRICTION
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
 
-        error1, error2, error3 = self.compute_errors(self.angular_velocity_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
         error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
@@ -2008,12 +2008,12 @@ class Benchmark12: ########## ROLLING FRICTION
             error_file.write(" KO!........ Test 12 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, output_filename):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):
 
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:  #with open('paper_data/reference_graph_benchmark12.dat') as inf:
+        with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -2024,7 +2024,7 @@ class Benchmark12: ########## ROLLING FRICTION
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
-                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                    DEM_data.append(float(parts[1])) 
                 i+=1
         generated_data_error = 0
 
