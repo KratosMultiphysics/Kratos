@@ -259,12 +259,12 @@ public:
     ///@name Access
     ///@{
 
-    virtual typename TPreconditionerType::Pointer GetPreconditioner(void)
+    virtual typename TPreconditionerType::Pointer GetPreconditioner()
     {
         return mpPreconditioner;
     }
 
-    virtual const typename TPreconditionerType::Pointer GetPreconditioner(void) const
+    virtual const typename TPreconditionerType::Pointer GetPreconditioner() const
     {
         return mpPreconditioner;
     }

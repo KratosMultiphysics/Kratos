@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
+//
+
 #ifndef KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
 #define KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
 
@@ -471,10 +485,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    TetrahedralMeshOrientationCheck& operator=(TetrahedralMeshOrientationCheck const& rOther);
+    TetrahedralMeshOrientationCheck& operator=(TetrahedralMeshOrientationCheck const& rOther) = delete;
 
     /// Copy constructor.
-    TetrahedralMeshOrientationCheck(TetrahedralMeshOrientationCheck const& rOther);
+    TetrahedralMeshOrientationCheck(TetrahedralMeshOrientationCheck const& rOther) = delete;
 
 
     ///@}

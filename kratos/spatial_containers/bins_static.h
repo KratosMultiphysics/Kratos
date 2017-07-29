@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-27 17:02:19 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
+
 
 
 #if !defined(KRATOS_BINS_CONTAINER_H_INCLUDE)
@@ -294,7 +299,7 @@ private:
     IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType ThisDimension )
     {
         CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-        IndexType index = static_cast<SizeType>( (d_index < 0.00) ? 0.00 : d_index );
+        auto index = static_cast<SizeType>( (d_index < 0.00) ? 0.00 : d_index );
         return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
     }
 
@@ -354,7 +359,7 @@ public:
     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
     {
         PointerType Nearest;
-        CoordinateType Distance = static_cast<CoordinateType>(DBL_MAX);
+        auto Distance = static_cast<CoordinateType>(DBL_MAX);
         bool Found;
         SearchStructureType Box( CalculateCell(*ThisPoint,-Tolerance), CalculateCell(*ThisPoint,Tolerance), mN );
         SearchNearestInBox( *ThisPoint, Nearest, Distance, Box, Found );
@@ -369,7 +374,7 @@ public:
     PointerType SearchNearestPointInner( PointerType& ThisPoint )
     {
         PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        auto ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         SearchStructureType Box( CalculateCell(*ThisPoint), mN, mIndexCellBegin );
         SearchNearestPointLocalInner( ThisPoint, Result, ResultDistance, Box );
         return Result;
@@ -380,7 +385,7 @@ public:
     PointerType SearchNearestPoint( PointType const& ThisPoint )
     {
         PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        auto ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
         SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box );
         return Result;
@@ -403,7 +408,7 @@ public:
     PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance, SearchStructureType& Box )
     {
         PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        auto ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
         SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
         return Result;
@@ -872,7 +877,7 @@ public:
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else
         {
             return new Bins( PointsBegin, PointsEnd, MinPoint, MaxPoint, BucketSize );

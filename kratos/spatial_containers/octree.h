@@ -1,11 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-27 17:02:19 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
-
 
 #if !defined(KRATOS_OCT_TREE_H_INCLUDED )
 #define  KRATOS_OCT_TREE_H_INCLUDED
@@ -134,7 +137,7 @@ public:
         PointType mid_cell_lenght;
 
         SizeType TempSize = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
-        PointerType* Temp = new PointerType[ TempSize ];
+        auto* Temp = new PointerType[ TempSize ];
 
         // Template definition of SplitMode
         // SplitMode()(mPostion,MinPoint,MaxPoint,mPointBegin,mPointEnd);
@@ -347,7 +350,7 @@ public:
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else if (number_of_points <= BucketSize)
         {
             return new LeafType(PointsBegin, PointsEnd);

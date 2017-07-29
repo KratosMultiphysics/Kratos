@@ -245,7 +245,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual typename TReordererType::Pointer GetReorderer(void)
+    virtual typename TReordererType::Pointer GetReorderer()
     {
         return mpReorderer;
     }

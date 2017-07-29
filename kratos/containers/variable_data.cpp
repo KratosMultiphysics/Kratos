@@ -21,6 +21,8 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable_data.h"
+
+#include <utility>
 #include "input_output/logger.h"
 
 
@@ -28,7 +30,7 @@ namespace Kratos
 {
 
     /// Constructor.
-	VariableData::VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent) : mName(NewName), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {}
+	VariableData::VariableData(std::string  NewName, std::size_t NewSize, bool Iscomponent) : mName(std::move(NewName)), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {}
 
 	/// Copy constructor
     VariableData::VariableData(const VariableData& rOtherVariable)
@@ -63,12 +65,12 @@ namespace Kratos
 
     void* VariableData::Clone(const void* pSource) const
     {
-        return 0;
+        return nullptr;
     }
 
     void* VariableData::Copy(const void* pSource, void* pDestination) const
     {
-        return 0;
+        return nullptr;
     }
 
     void VariableData::Assign(const void* pSource, void* pDestination) const {}

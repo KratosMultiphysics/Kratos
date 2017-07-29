@@ -534,7 +534,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    LevelSetConvectionProcess& operator=(LevelSetConvectionProcess const& rOther);
+    LevelSetConvectionProcess& operator=(LevelSetConvectionProcess const& rOther) = delete;
 
     /// Copy constructor.
     //LevelSetConvectionProcess(LevelSetConvectionProcess const& rOther);

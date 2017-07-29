@@ -341,10 +341,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    IO& operator=(IO const& rOther);
+    IO& operator=(IO const& rOther) = delete;
 
     /// Copy constructor.
-    IO(IO const& rOther);
+    IO(IO const& rOther) = delete;
 
 
     ///@}

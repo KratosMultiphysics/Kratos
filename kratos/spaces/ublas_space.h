@@ -233,7 +233,7 @@ public:
 #ifndef _OPENMP
         return inner_prod(rX, rY);
 #else
-        const int size = static_cast<int>(rX.size());
+        const auto size = static_cast<int>(rX.size());
 
         TDataType total = TDataType();
         #pragma omp parallel for reduction( +: total), firstprivate(size)
@@ -862,10 +862,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    UblasSpace & operator=(UblasSpace const& rOther);
+    UblasSpace & operator=(UblasSpace const& rOther) = delete;
 
     /// Copy constructor.
-    UblasSpace(UblasSpace const& rOther);
+    UblasSpace(UblasSpace const& rOther) = delete;
 
 
     ///@}

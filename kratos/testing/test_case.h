@@ -36,7 +36,7 @@ namespace Kratos
 			public:
 				RegisterThisTest(bool IsDisabled=false)
 				{
-					TestType* p_test = new TestType;
+					auto* p_test = new TestType;
 					if (IsDisabled)
 						p_test->Disable();
 					Tester::AddTestCase(p_test);
@@ -71,7 +71,7 @@ namespace Kratos
 			TestCase(TestCase const& rOther) = delete;
 
 			/// The constructor to be called
-			TestCase(std::string const& Name);
+			TestCase(std::string  Name);
 
 			/// Destructor.
 			virtual ~TestCase();

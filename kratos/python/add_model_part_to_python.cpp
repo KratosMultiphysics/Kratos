@@ -578,9 +578,9 @@ TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSend
 void AddModelPartToPython()
 {
 
-    ModelPart::IndexType(ModelPart::*pointer_to_clone_time_step_1)(void) = &ModelPart::CloneTimeStep;
+    ModelPart::IndexType(ModelPart::*pointer_to_clone_time_step_1)() = &ModelPart::CloneTimeStep;
     ModelPart::IndexType(ModelPart::*pointer_to_clone_time_step_2)(double) = &ModelPart::CloneTimeStep;
-    ProcessInfo::Pointer(ModelPart::*pointer_to_get_process_info)(void) = &ModelPart::pGetProcessInfo;
+    ProcessInfo::Pointer(ModelPart::*pointer_to_get_process_info)() = &ModelPart::pGetProcessInfo;
     void (ModelPart::*pointer_to_set_process_info)(ProcessInfo::Pointer) = &ModelPart::SetProcessInfo;
     // ModelPart::MeshType::Pointer (ModelPart::*pointer_to_get_mesh)() = &ModelPart::pGetMesh;
     //	  std::string& (ModelPart::*pointer_to_name)(void) = &ModelPart::Name;

@@ -1,9 +1,13 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: abel $
-//   Date:                $Date: 2013-05-27 16:48:42 $
-//   Revision:            $Revision: 1.23 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Abel
 //
 
 
@@ -142,7 +146,7 @@ namespace Kratos {
         ///@{
 
         std::size_t GetChildIndex(key_type x_key, key_type y_key, key_type z_key) const {
-	  char next_level = ( char)( level_ - 1);
+	  auto next_level = ( char)( level_ - 1);
             key_type level_bit = 1 << next_level;
             return (((x_key & level_bit) >> next_level) + (((y_key & level_bit) >> next_level) << 1) + (((z_key & level_bit) >> next_level) << 2));
         }
@@ -155,7 +159,7 @@ namespace Kratos {
 
             children_ = new OctreeBinaryCell[CHILDREN_NUMBER];
 
-            char next_level = ( char)( level_ - 1);
+            auto next_level = ( char)( level_ - 1);
 
             for (std::size_t i = 0; i < CHILDREN_NUMBER; i++) {
                 children_[i].SetMinKey(min_key_[0] | ((i & 1) << next_level), min_key_[1] | (((i & 2) >> 1)) << next_level, min_key_[2] | (((i & 4) >> 2)) << next_level);

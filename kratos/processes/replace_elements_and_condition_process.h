@@ -235,7 +235,7 @@ private:
     }
 
     /// Assignment operator.
-    ReplaceElementsAndConditionsProcess& operator=(ReplaceElementsAndConditionsProcess const& rOther);
+    ReplaceElementsAndConditionsProcess& operator=(ReplaceElementsAndConditionsProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ReplaceElementsAndConditionsProcess(ReplaceElementsAndConditionsProcess const& rOther);

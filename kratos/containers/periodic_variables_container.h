@@ -1,9 +1,15 @@
-/*
- * File:   periodic_variables_container.h
- * Author: jcotela
- *
- * Created on September 21, 2011, 12:53 PM
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela Dalmau
+//                    
+//
 
 #ifndef KRATOS_PERIODIC_VARIABLES_CONTAINER_H
 #define	KRATOS_PERIODIC_VARIABLES_CONTAINER_H
@@ -211,15 +217,15 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Double Variables:" << std::endl;
-        for (DoubleVariablesContainerType::const_iterator it = mPeriodicDoubleVars.begin(); it != mPeriodicDoubleVars.end(); ++it)
+        for (auto mPeriodicDoubleVar : mPeriodicDoubleVars)
         {
-            (*it)->PrintInfo(rOStream);
+            mPeriodicDoubleVar->PrintInfo(rOStream);
             rOStream << std::endl;
         }
         rOStream << "Variable Components:" << std::endl;
-        for (VariableComponentsContainerType::const_iterator it = mPeriodicVarComponents.begin(); it != mPeriodicVarComponents.end(); ++it)
+        for (auto mPeriodicVarComponent : mPeriodicVarComponents)
         {
-            (*it)->PrintInfo(rOStream);
+            mPeriodicVarComponent->PrintInfo(rOStream);
             rOStream << std::endl;
         }
     }

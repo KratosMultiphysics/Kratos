@@ -95,7 +95,7 @@ public:
 
     static TComponentType const& Get(std::string const& Name)
     {
-        typename ComponentsContainerType::iterator i =  msComponents.find(Name);
+        auto i =  msComponents.find(Name);
         if(i == msComponents.end())
           KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); 
         return *(i->second);
@@ -234,10 +234,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosComponents& operator=(KratosComponents const& rOther);
+    KratosComponents& operator=(KratosComponents const& rOther) = delete;
 
     /// Copy constructor.
-    KratosComponents(KratosComponents const& rOther);
+    KratosComponents(KratosComponents const& rOther) = delete;
 
     ///@}
 
@@ -443,10 +443,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosComponents& operator=(KratosComponents const& rOther);
+    KratosComponents& operator=(KratosComponents const& rOther) = delete;
 
     /// Copy constructor.
-    KratosComponents(KratosComponents const& rOther);
+    KratosComponents(KratosComponents const& rOther) = delete;
 
     ///@}
 

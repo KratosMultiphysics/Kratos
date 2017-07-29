@@ -223,7 +223,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ConditionEraseProcess& operator=(ConditionEraseProcess const& rOther);
+    ConditionEraseProcess& operator=(ConditionEraseProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ConditionEraseProcess(ConditionEraseProcess const& rOther);

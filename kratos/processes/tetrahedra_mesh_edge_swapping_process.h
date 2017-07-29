@@ -172,10 +172,10 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      TetrahedraMeshEdgeSwappingProcess& operator=(TetrahedraMeshEdgeSwappingProcess const& rOther);
+      TetrahedraMeshEdgeSwappingProcess& operator=(TetrahedraMeshEdgeSwappingProcess const& rOther) = delete;
 
       /// Copy constructor.
-      TetrahedraMeshEdgeSwappingProcess(TetrahedraMeshEdgeSwappingProcess const& rOther);
+      TetrahedraMeshEdgeSwappingProcess(TetrahedraMeshEdgeSwappingProcess const& rOther) = delete;
 
 
       ///@}

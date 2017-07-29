@@ -434,7 +434,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ApplyConstantScalarValueProcess& operator=(ApplyConstantScalarValueProcess const& rOther);
+    ApplyConstantScalarValueProcess& operator=(ApplyConstantScalarValueProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ApplyConstantScalarValueProcess(ApplyConstantScalarValueProcess const& rOther);

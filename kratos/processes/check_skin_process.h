@@ -258,10 +258,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    CheckSkinProcess& operator=(CheckSkinProcess const& rOther);
+    CheckSkinProcess& operator=(CheckSkinProcess const& rOther) = delete;
 
     /// Copy constructor.
-    CheckSkinProcess(CheckSkinProcess const& rOther);
+    CheckSkinProcess(CheckSkinProcess const& rOther) = delete;
 
 
     ///@}

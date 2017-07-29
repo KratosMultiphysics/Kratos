@@ -22,6 +22,7 @@
 #include <iostream>
 #include <map>
 #include <chrono>
+#include <utility>
 
 
 // External includes
@@ -78,8 +79,8 @@ namespace Kratos
 
 			LoggerMessage() : mMessage(), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
-			LoggerMessage(std::string const& TheMessage) 
-				: mMessage(TheMessage), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
+			LoggerMessage(std::string  TheMessage) 
+				: mMessage(std::move(TheMessage)), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
 			LoggerMessage(LoggerMessage const& Other) 
 				: mMessage(Other.mMessage), mLevel(Other.mLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}

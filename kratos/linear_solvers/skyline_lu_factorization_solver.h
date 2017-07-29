@@ -97,9 +97,9 @@ public:
             // Cuthill-McKee ordering (or its reverse)
             initialNode= 0; // node where to start search
             maxDegree=0;
-            int *degree        = new int[size];
-            int *levelSet      = new int[size];
-            int *nextSameDegree= new int[size];
+            auto *degree        = new int[size];
+            auto *levelSet      = new int[size];
+            auto *nextSameDegree= new int[size];
             for (i=0; i<size; i++)
             {
                 degree[i]      = TSparseSpaceType::GraphDegree(i, A);
@@ -107,8 +107,8 @@ public:
                 levelSet[i]    = 0;
                 nextSameDegree[i]= -1;
             }
-            int  *firstWithDegree = new int[maxDegree+1];
-            int *nFirstWithDegree = new int[maxDegree+1];
+            auto  *firstWithDegree = new int[maxDegree+1];
+            auto *nFirstWithDegree = new int[maxDegree+1];
             for (i=0; i<maxDegree+1; i++) firstWithDegree[i]=-1;
 
             // The data structure used to sort and traverse the level sets is the following:
@@ -754,7 +754,7 @@ private:
       */
 
     /// Assignment operator.
-    SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other);
+    SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other) = delete;
 
     /// Copy constructor.
     //SkylineLUFactorizationSolver(const SkylineLUFactorizationSolver& Other);

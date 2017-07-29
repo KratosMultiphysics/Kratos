@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Pablo
-//   Date:                $Date: 2011-09-14 $
-//   Revision:            $Revision: 1.0 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pablo Becker
+//                    
 //
 
 #if !defined(KRATOS_CUTTING_UTILITY)
@@ -28,7 +33,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 #include <algorithm>
 

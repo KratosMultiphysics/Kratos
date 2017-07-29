@@ -790,7 +790,7 @@ private:
 
     /** Copy constructor.
      */
-    ResidualBasedLinearStrategy(const ResidualBasedLinearStrategy& Other);
+    ResidualBasedLinearStrategy(const ResidualBasedLinearStrategy& Other) = delete;
 
 
     /*@} */

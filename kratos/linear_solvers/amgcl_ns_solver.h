@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
+//
+
 #if !defined(KRATOS_AMGCL_NAVIERSTOKES_SOLVER )
 #define  KRATOS_AMGCL_NAVIERSTOKES_SOLVER
 
@@ -380,12 +394,12 @@ private:
     /**
      * Assignment operator.
      */
-    AMGCL_NS_Solver& operator=(const AMGCL_NS_Solver& Other);
+    AMGCL_NS_Solver& operator=(const AMGCL_NS_Solver& Other) = delete;
 
     /**
      * Copy constructor.
      */
-    AMGCL_NS_Solver(const AMGCL_NS_Solver& Other);
+    AMGCL_NS_Solver(const AMGCL_NS_Solver& Other) = delete;
 
 }; // Class AMGCL_NS_Solver
 

@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 // External includes
 
@@ -382,7 +383,7 @@ public:
             {
                 std::stringstream msg;
                 msg << "******************************************************************************************************" << std::endl;
-                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << R"(the item with name ")" << item_name << R"(" is present in this Parameters but NOT in the default values)" << std::endl;
                 msg << "******************************************************************************************************" << std::endl;
                 msg << "hence Validation fails" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
@@ -405,7 +406,7 @@ public:
             {
                 std::stringstream msg;
                 msg << "******************************************************************************************************" << std::endl;
-                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << R"(the item with name :")" << item_name << R"(" does not have the same type as the corresponding one in the default values)" << std::endl;
                 msg << "******************************************************************************************************" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
@@ -461,7 +462,7 @@ public:
             if(!defaults.Has(item_name) )
             {
                 std::stringstream msg;
-                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << R"(the item with name ")" << item_name << R"(" is present in this Parameters but NOT in the default values)" << std::endl;
                 msg << "hence Validation fails" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
@@ -482,7 +483,7 @@ public:
             if(type_coincides == false)
             {
                 std::stringstream msg;
-                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << R"(the item with name :")" << item_name << R"(" does not have the same type as the corresponding one in the default values)" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "defaults against which the current parameters are validated are :" << std::endl;
@@ -570,7 +571,7 @@ public:
 
 private:
   //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-  Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
+  Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(std::move(pdoc))
   {
   }
 

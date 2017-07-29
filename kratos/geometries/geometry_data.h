@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Josep Maria Carbonell
+//                    
 //
 
 #if !defined(KRATOS_GEOMETRY_DATA_H_INCLUDED )
@@ -14,6 +19,8 @@
 // External includes
 
 // Project includes
+#include <utility>
+
 #include "includes/ublas_interface.h"
 #include "integration/integration_point.h"
 
@@ -261,16 +268,16 @@ public:
                   SizeType ThisWorkingSpaceDimension,
                   SizeType ThisLocalSpaceDimension,
                   enum IntegrationMethod ThisDefaultMethod,
-                  const IntegrationPointsContainerType& ThisIntegrationPoints,
-                  const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
-                  const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
+                  IntegrationPointsContainerType  ThisIntegrationPoints,
+                  ShapeFunctionsValuesContainerType  ThisShapeFunctionsValues,
+                  ShapeFunctionsLocalGradientsContainerType  ThisShapeFunctionsLocalGradients )
         : mDimension( ThisDimension )
         , mWorkingSpaceDimension( ThisWorkingSpaceDimension )
         , mLocalSpaceDimension( ThisLocalSpaceDimension )
         , mDefaultMethod( ThisDefaultMethod )
-        , mIntegrationPoints( ThisIntegrationPoints )
-        , mShapeFunctionsValues( ThisShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
+        , mIntegrationPoints(std::move( ThisIntegrationPoints ))
+        , mShapeFunctionsValues(std::move( ThisShapeFunctionsValues ))
+        , mShapeFunctionsLocalGradients(std::move( ThisShapeFunctionsLocalGradients ))
     {
         for ( unsigned int i = 0 ; i < NumberOfIntegrationMethods ; i++ )
         {

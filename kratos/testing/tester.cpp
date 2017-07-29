@@ -34,20 +34,17 @@ namespace Kratos
 
 		Tester::~Tester()
 		{
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				delete i_test->second;
+			for (auto & mTestCase : GetInstance().mTestCases)
+				delete mTestCase.second;
 
-			for (auto i_test = GetInstance().mTestSuites.begin();
-			i_test != GetInstance().mTestSuites.end(); i_test++)
-				delete i_test->second;
+			for (auto & mTestSuite : GetInstance().mTestSuites)
+				delete mTestSuite.second;
 		}
 
 		void Tester::ResetAllTestCasesResults()
 		{
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				i_test->second->ResetResult();
+			for (auto & mTestCase : GetInstance().mTestCases)
+				mTestCase.second->ResetResult();
 		}
 
 		void Tester::RunAllTestCases()
@@ -93,10 +90,9 @@ namespace Kratos
 		std::size_t Tester::NumberOfFailedTestCases()
 		{
 			std::size_t result = 0;
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
+			for (auto & mTestCase : GetInstance().mTestCases)
 			{
-				TestCaseResult const& test_case_result = i_test->second->GetResult();
+				TestCaseResult const& test_case_result = mTestCase.second->GetResult();
 				if (test_case_result.IsFailed())
 					result++;
 			}
@@ -106,7 +102,7 @@ namespace Kratos
 
 		void Tester::AddTestCase(TestCase* pHeapAllocatedTestCase)
 		{
-			KRATOS_ERROR_IF(HasTestCase(pHeapAllocatedTestCase->Name())) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
+			KRATOS_ERROR_IF(HasTestCase(pHeapAllocatedTestCase->Name())) << R"(A duplicated test case found! The test case ")" << pHeapAllocatedTestCase->Name() << R"(" is already added.)" << std::endl;
 			GetInstance().mTestCases[pHeapAllocatedTestCase->Name()] = pHeapAllocatedTestCase;
 		}
 
@@ -115,7 +111,7 @@ namespace Kratos
 		}
 
 		TestCase* Tester::pGetTestCase(std::string const& TestCaseName) {
-			KRATOS_ERROR_IF_NOT(HasTestCase(TestCaseName)) << "The test case \"" << TestCaseName << "\" is not registered in tester" << std::endl;
+			KRATOS_ERROR_IF_NOT(HasTestCase(TestCaseName)) << R"(The test case ")" << TestCaseName << R"(" is not registered in tester)" << std::endl;
 			return GetInstance().mTestCases[TestCaseName];
 		}
 
@@ -123,21 +119,21 @@ namespace Kratos
 		{
 			if (HasTestSuite(TestSuiteName))
 				return pGetTestSuite(TestSuiteName);
-			TestSuite* p_new_test_suite = new TestSuite(TestSuiteName);
+			auto* p_new_test_suite = new TestSuite(TestSuiteName);
 			AddTestSuite(p_new_test_suite);
 			return p_new_test_suite;
 		}
 
 		TestSuite* Tester::CreateNewTestSuite(std::string const& TestSuiteName)
 		{
-			TestSuite* p_new_test_suite = new TestSuite(TestSuiteName);
+			auto* p_new_test_suite = new TestSuite(TestSuiteName);
 			AddTestSuite(p_new_test_suite);
 			return p_new_test_suite;
 		}
 
 		void Tester::AddTestSuite(TestSuite* pHeapAllocatedTestSuite)
 		{
-			KRATOS_ERROR_IF(HasTestSuite(pHeapAllocatedTestSuite->Name())) << "A duplicated test suite found! The test suite \"" << pHeapAllocatedTestSuite->Name() << "\" is already added." << std::endl;
+			KRATOS_ERROR_IF(HasTestSuite(pHeapAllocatedTestSuite->Name())) << R"(A duplicated test suite found! The test suite ")" << pHeapAllocatedTestSuite->Name() << R"(" is already added.)" << std::endl;
 			GetInstance().mTestSuites[pHeapAllocatedTestSuite->Name()] = pHeapAllocatedTestSuite;
 		}
 
@@ -146,7 +142,7 @@ namespace Kratos
 		}
 
 		TestSuite* Tester::pGetTestSuite(std::string const& TestSuiteName) {
-			KRATOS_ERROR_IF_NOT(HasTestSuite(TestSuiteName)) << "The test suite \"" << TestSuiteName << "\" is not registered in tester" << std::endl;
+			KRATOS_ERROR_IF_NOT(HasTestSuite(TestSuiteName)) << R"(The test suite ")" << TestSuiteName << R"(" is not registered in tester)" << std::endl;
 			return GetInstance().mTestSuites[TestSuiteName];
 		}
 
@@ -158,7 +154,7 @@ namespace Kratos
 			else if (HasTestSuite(TestName))
 				p_test_case = pGetTestSuite(TestName);
 			else
-				KRATOS_ERROR << "The test \"" << TestName << "\" is not registered in the tester" << std::endl;
+				KRATOS_ERROR << R"(The test ")" << TestName << R"(" is not registered in the tester)" << std::endl;
 
 			TestSuite* p_test_suite = CreateTestSuite(TestSuiteName);
 			p_test_suite->AddTestCase(p_test_case);
@@ -196,32 +192,28 @@ namespace Kratos
 		void Tester::PrintData(std::ostream& rOStream) const
 		{
 			rOStream << "    Test cases:" << std::endl;
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				rOStream << "        " << i_test->first << std::endl;
+			for (auto & mTestCase : GetInstance().mTestCases)
+				rOStream << "        " << mTestCase.first << std::endl;
 			rOStream << "    Total of " << GetInstance().mTestCases.size() << " Test cases" << std::endl;
 			rOStream << "    Test suites:" << std::endl;
-			for (auto i_test = GetInstance().mTestSuites.begin();
-			i_test != GetInstance().mTestSuites.end(); i_test++)
-				rOStream << "        " << i_test->first << std::endl;
+			for (auto & mTestSuite : GetInstance().mTestSuites)
+				rOStream << "        " << mTestSuite.first << std::endl;
 			rOStream << "    Total of " << GetInstance().mTestSuites.size() << " Test Suites";
 		}
 
 		void Tester::UnSelectAllTestCases()
 		{
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				i_test->second->UnSelect();
+			for (auto & mTestCase : GetInstance().mTestCases)
+				mTestCase.second->UnSelect();
 		}
 
 		void Tester::SelectOnlyEnabledTestCases()
 		{
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				if (i_test->second->IsEnabled())
-					i_test->second->Select();
+			for (auto & mTestCase : GetInstance().mTestCases)
+				if (mTestCase.second->IsEnabled())
+					mTestCase.second->Select();
 				else
-					i_test->second->UnSelect();
+					mTestCase.second->UnSelect();
 		}
 
 		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
@@ -230,14 +222,13 @@ namespace Kratos
 #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))) 
 			KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
 #else  
-			std::regex replace_star("\\*");
+			std::regex replace_star(R"(\*)");
 			std::stringstream regex_pattern_string;
 			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
 				TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
-			for (auto i_test = GetInstance().mTestCases.begin();
-				i_test != GetInstance().mTestCases.end(); i_test++)
-				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
-					i_test->second->Select();
+			for (auto & mTestCase : GetInstance().mTestCases)
+				if (std::regex_match(mTestCase.second->Name(), std::regex(regex_pattern_string.str())))
+					mTestCase.second->Select();
 #endif  
 		}
 
@@ -280,13 +271,12 @@ namespace Kratos
 			auto number_of_run_tests = NumberOfSelectedTestCases();
 
 			std::size_t test_number = 0;
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
+			for (auto & mTestCase : GetInstance().mTestCases)
 			{
-				if (i_test->second->IsSelected()) {
-					StartShowProgress(test_number, number_of_run_tests, i_test->second);
-					i_test->second->Profile();
-					EndShowProgress(++test_number, number_of_run_tests, i_test->second);
+				if (mTestCase.second->IsSelected()) {
+					StartShowProgress(test_number, number_of_run_tests, mTestCase.second);
+					mTestCase.second->Profile();
+					EndShowProgress(++test_number, number_of_run_tests, mTestCase.second);
 				}
 			}
 
@@ -299,10 +289,9 @@ namespace Kratos
 		std::size_t Tester::NumberOfSelectedTestCases()
 		{
 			std::size_t result = 0;
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				if (i_test->second->IsEnabled())
-					if (i_test->second->IsSelected())
+			for (auto & mTestCase : GetInstance().mTestCases)
+				if (mTestCase.second->IsEnabled())
+					if (mTestCase.second->IsSelected())
 						result++;
 
 			return result;
@@ -369,13 +358,12 @@ namespace Kratos
 
 		void Tester::ReportFailures(std::ostream& rOStream)
 		{
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
+			for (auto & mTestCase : GetInstance().mTestCases)
 			{
-				TestCaseResult const& test_case_result = i_test->second->GetResult();
+				TestCaseResult const& test_case_result = mTestCase.second->GetResult();
 				if (test_case_result.IsFailed())
 				{
-					rOStream << "    " << i_test->first << " Failed";
+					rOStream << "    " << mTestCase.first << " Failed";
 					if (test_case_result.GetErrorMessage().size() == 0)
 						rOStream << std::endl;
 					else

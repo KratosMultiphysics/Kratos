@@ -225,7 +225,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    NodeEraseProcess& operator=(NodeEraseProcess const& rOther);
+    NodeEraseProcess& operator=(NodeEraseProcess const& rOther) = delete;
 
     /// Copy constructor.
     //NodeEraseProcess(NodeEraseProcess const& rOther);

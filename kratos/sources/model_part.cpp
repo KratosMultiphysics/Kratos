@@ -37,7 +37,7 @@ ModelPart::ModelPart()
     , mIndices(1, 0)
     , mpVariablesList(new VariablesList)
     , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
+    , mpParentModelPart(nullptr)
     , mSubModelParts()
 {
     mName = "Default";
@@ -55,7 +55,7 @@ ModelPart::ModelPart(std::string const& NewName)
     , mIndices(1, 0)
     , mpVariablesList(new VariablesList)
     , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
+    , mpParentModelPart(nullptr)
     , mSubModelParts()
 {
     mName = NewName;
@@ -73,7 +73,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
     , mIndices(NewBufferSize, 0)
     , mpVariablesList(new VariablesList)
     , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
+    , mpParentModelPart(nullptr)
     , mSubModelParts()
 {
     mName = NewName;
@@ -1135,7 +1135,7 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart* p_model_part = new ModelPart(NewSubModelPartName);
+        auto* p_model_part = new ModelPart(NewSubModelPartName);
         p_model_part->SetParentModelPart(this);
         delete p_model_part->mpVariablesList;
         p_model_part->mpVariablesList = mpVariablesList;

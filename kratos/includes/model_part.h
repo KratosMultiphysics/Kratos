@@ -1226,7 +1226,7 @@ public:
 
     bool IsSubModelPart() const
     {
-        return (mpParentModelPart != NULL);
+        return (mpParentModelPart != nullptr);
     }
 
     ///@}

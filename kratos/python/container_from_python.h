@@ -1,23 +1,15 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
@@ -118,7 +110,7 @@ public:
                      || PyIter_Check(obj_ptr)
                      || PyRange_Check(obj_ptr)))
             {
-                return 0;
+                return nullptr;
             }
         }
 
@@ -127,7 +119,7 @@ public:
         if (!obj_iter.get())   // must be convertible to an iterator
         {
             PyErr_Clear();
-            return 0;
+            return nullptr;
         }
         if (true)
         {
@@ -135,7 +127,7 @@ public:
             if (obj_size < 0)   // must be a measurable sequence
             {
                 PyErr_Clear();
-                return 0;
+                return nullptr;
             }
             /*         if (!TConversionPolicyType::check_size( */
             /*           boost::type<TContainerType>(), obj_size)) return 0; */
@@ -149,12 +141,12 @@ public:
                 if (PyErr_Occurred())
                 {
                     PyErr_Clear();
-                    return 0;
+                    return nullptr;
                 }
                 if (!py_elem_hdl.get()) break; // end of iteration
                 boost::python::object py_elem_obj(py_elem_hdl);
                 boost::python::extract<typename TContainerType::value_type> elem_proxy(py_elem_obj);
-                if (!elem_proxy.check()) return 0;
+                if (!elem_proxy.check()) return nullptr;
                 if (is_range) break; // in a range all elements are of the same type
             }
             if (!is_range) assert(i == static_cast<std::size_t>(obj_size));

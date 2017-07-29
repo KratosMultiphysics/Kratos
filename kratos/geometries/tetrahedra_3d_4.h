@@ -814,7 +814,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges(void) override
+    GeometriesArrayType Edges() override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -840,7 +840,7 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces(void) override
+    GeometriesArrayType Faces() override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;

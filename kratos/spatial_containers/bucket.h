@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-27 17:02:19 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
 
 
@@ -301,10 +305,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    Bucket& operator=(Bucket const& rOther);
+    Bucket& operator=(Bucket const& rOther) = delete;
 
     /// Copy constructor.
-    Bucket(Bucket const& rOther);
+    Bucket(Bucket const& rOther) = delete;
 
 
     ///@}

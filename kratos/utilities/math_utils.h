@@ -1590,9 +1590,9 @@ private:
     ///@name Unaccessible methods
     ///@{
 
-    MathUtils(void);
+    MathUtils() = delete;
 
-    MathUtils(MathUtils& rSource);
+    MathUtils(MathUtils& rSource) = delete;
 
 }; /* Class MathUtils */
 

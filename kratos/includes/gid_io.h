@@ -1568,12 +1568,12 @@ private:
     /**
      * assignment operator
      */
-    GidIO& operator=(GidIO const& rOther);
+    GidIO& operator=(GidIO const& rOther) = delete;
 
     /**
      * Copy constructor
      */
-    GidIO(GidIO const& rOther);
+    GidIO(GidIO const& rOther) = delete;
 }; // Class GidIO
 
 

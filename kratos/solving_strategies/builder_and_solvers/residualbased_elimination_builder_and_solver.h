@@ -598,7 +598,7 @@ public:
 
                 #pragma omp parallel firstprivate( RHS_Contribution, EquationId)
                 {
-                    const int nelements = static_cast<int>(pElements.size());
+                    const auto nelements = static_cast<int>(pElements.size());
                     #pragma omp for schedule(guided, 512) nowait
                     for (int i = 0; i<nelements; i++)
                     {
@@ -620,7 +620,7 @@ public:
                     }
 
                     // assemble all conditions
-                    const int nconditions = static_cast<int>(pConditions.size());
+                    const auto nconditions = static_cast<int>(pConditions.size());
                     #pragma omp  for schedule(guided, 512)
                     for (int i = 0; i<nconditions; i++)
                     {
@@ -663,7 +663,7 @@ public:
 
 		//Gets the array of elements from the modeler
 		ElementsArrayType& pElements = r_model_part.Elements();
-		const int nelements = static_cast<int>(pElements.size());
+		const auto nelements = static_cast<int>(pElements.size());
 
 		Element::DofsVectorType ElementalDofList;
 
@@ -714,7 +714,7 @@ public:
 			}
 
 		ConditionsArrayType& pConditions = r_model_part.Conditions();
-		const int nconditions = static_cast<int>(pConditions.size());
+		const auto nconditions = static_cast<int>(pConditions.size());
 #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
 		for (int i = 0; i < nconditions; i++)
 		{
@@ -1090,7 +1090,7 @@ protected:
 
 		Element::EquationIdVectorType ids(3, 0);
 
-		const int nelements = static_cast<int>(rElements.size());
+		const auto nelements = static_cast<int>(rElements.size());
 #pragma omp parallel for firstprivate(nelements, ids)
 		for (int iii = 0; iii<nelements; iii++)
 		{
@@ -1118,7 +1118,7 @@ protected:
 
 		}
 
-		const int nconditions = static_cast<int>(rConditions.size());
+		const auto nconditions = static_cast<int>(rConditions.size());
 #pragma omp parallel for firstprivate(nconditions, ids)
 		for (int iii = 0; iii<nconditions; iii++)
 		{

@@ -78,10 +78,10 @@ public:
     ///@{
 
     /// Default constructor.
-    FixDataValueContainer() : mSize(0), mpData(0), mpVariablesList(&Globals::DefaultVariablesList) {}
+    FixDataValueContainer() : mSize(0), mpData(nullptr), mpVariablesList(&Globals::DefaultVariablesList) {}
 
     /// Copy constructor.
-    FixDataValueContainer(FixDataValueContainer const& rOther) : mSize(rOther.Size()), mpData(0), mpVariablesList(rOther.mpVariablesList)
+    FixDataValueContainer(FixDataValueContainer const& rOther) : mSize(rOther.Size()), mpData(nullptr), mpVariablesList(rOther.mpVariablesList)
     {
         if(mSize == 0)
             return;
@@ -103,7 +103,7 @@ public:
     }
 
     /// Variables list constructor.
-    FixDataValueContainer(VariablesList*  pVariablesList) : mSize(0), mpData(0), mpVariablesList(pVariablesList)
+    FixDataValueContainer(VariablesList*  pVariablesList) : mSize(0), mpData(nullptr), mpVariablesList(pVariablesList)
     {
         mpVariablesList = pVariablesList;
 
@@ -207,7 +207,7 @@ public:
     /// Assignment operator.
     FixDataValueContainer& operator=(const FixDataValueContainer& rOther)
     {
-        if(rOther.mpVariablesList == 0)
+        if(rOther.mpVariablesList == nullptr)
         {
             //TODO: empty this container
         }

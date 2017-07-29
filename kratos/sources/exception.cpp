@@ -12,6 +12,7 @@
 //
 
 #include <sstream>
+#include <utility>
 
 #include "includes/exception.h"
 
@@ -26,14 +27,14 @@ namespace Kratos
 		update_what();
 	}
 
-	Exception::Exception(const std::string& rWhat )
-		: std::exception(), mMessage(rWhat), mCallStack()
+	Exception::Exception(std::string  rWhat )
+		: std::exception(), mMessage(std::move(rWhat)), mCallStack()
 	{
 		update_what();
 	}
 
-	Exception::Exception(const std::string& rWhat, const CodeLocation& Location)
-		: std::exception(), mMessage(rWhat), mCallStack()
+	Exception::Exception(std::string  rWhat, const CodeLocation& Location)
+		: std::exception(), mMessage(std::move(rWhat)), mCallStack()
 
 	{
 		add_to_call_stack(Location);

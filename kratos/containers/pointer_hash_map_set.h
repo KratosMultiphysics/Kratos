@@ -280,7 +280,7 @@ public:
     template<class TOtherDataType>
     iterator insert(const TOtherDataType& rData)
     {
-		TDataType* p_new_data = new TDataType(rData);
+		auto* p_new_data = new TDataType(rData);
 		return mData.insert(ContainerType::value_type(TGetKeyOf(rData), p_new_data));
     }
 

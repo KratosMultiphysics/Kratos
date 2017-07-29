@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-29 19:37:47 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    klabra
 //
+
 
 
 #if !defined(KRATOS_TREE_H_INCLUDED )
@@ -291,7 +296,7 @@ public:
     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
     {
         PointerType Result = *mPointsBegin;
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        auto ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         // searching the tree
         mRoot->SearchNearestPoint(ThisPoint,Result,ResultDistance);
         if (ResultDistance<Tolerance*Tolerance)
@@ -313,7 +318,7 @@ public:
     PointerType SearchNearestPoint(PointType const& ThisPoint)
     {
         PointerType Result = *mPointsBegin; // NULL ??
-        CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
+        auto rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
         // searching the tree
         mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
@@ -500,10 +505,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    Tree& operator=(Tree const& rOther);
+    Tree& operator=(Tree const& rOther) = delete;
 
     /// Copy constructor.
-    Tree(Tree const& rOther);
+    Tree(Tree const& rOther) = delete;
 
 
     ///@}

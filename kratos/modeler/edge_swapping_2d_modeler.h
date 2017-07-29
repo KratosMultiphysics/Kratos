@@ -1,47 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 
@@ -180,7 +147,7 @@ public:
     }
 
     /// Empty destructor.
-    virtual ~EdgeSwapping2DModeler() {}
+    ~EdgeSwapping2DModeler() override {}
 
 
 
@@ -365,19 +332,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "EdgeSwapping2DModeler";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -488,7 +455,7 @@ private:
 
     void SetCollapsingData(ModelPart& rThisModelPart)
     {
-        const int number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
+        const auto number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
         ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
 
         if(static_cast<int>(mCollapsingData.size()) != number_of_nodes)
@@ -644,8 +611,8 @@ private:
     void FindNodalNeighbours(ModelPart& rThisModelPart)
     {
         ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-        const int number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
-        const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
+        const auto number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
+        const auto number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
 
         if(static_cast<int>(mNodalNeighbourElements.size()) != number_of_nodes)
             mNodalNeighbourElements.resize(number_of_nodes);
@@ -674,7 +641,7 @@ private:
     {
         ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
         ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-        const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
+        const auto number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
 
         FindNodalNeighbours(rThisModelPart);
 
@@ -801,10 +768,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    EdgeSwapping2DModeler& operator=(EdgeSwapping2DModeler const& rOther);
+    EdgeSwapping2DModeler& operator=(EdgeSwapping2DModeler const& rOther) = delete;
 
     /// Copy constructor.
-    EdgeSwapping2DModeler(EdgeSwapping2DModeler const& rOther);
+    EdgeSwapping2DModeler(EdgeSwapping2DModeler const& rOther) = delete;
 
 
     ///@}

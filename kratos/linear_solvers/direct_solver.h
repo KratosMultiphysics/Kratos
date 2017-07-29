@@ -83,7 +83,7 @@ public:
 private:
 
     /// Assignment operator.
-    DirectSolver& operator=(const DirectSolver& Other);
+    DirectSolver& operator=(const DirectSolver& Other) = delete;
 
 
 
