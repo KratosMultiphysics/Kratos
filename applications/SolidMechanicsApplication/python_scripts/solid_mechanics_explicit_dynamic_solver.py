@@ -106,7 +106,7 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
         print("::[Mechanical Solver]:: -END- ")
 
-    def SetVariables(self):
+    def AddVariables(self):
 
         solid_mechanics_solver.MechanicalSolver.SetVariables(self)
         

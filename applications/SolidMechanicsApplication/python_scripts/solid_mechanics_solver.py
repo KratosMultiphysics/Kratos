@@ -100,8 +100,9 @@ class MechanicalSolver(object):
         self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
         
         # Add nodal force variables for component wise calculation
-        if self.settings["component_wise"].GetBool():
-            self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
+        if( self.settings.Has("component_wise") ):
+            if self.settings["component_wise"].GetBool():
+                self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
  
         # Add rotational variables
         if self.settings["rotation_dofs"].GetBool():
