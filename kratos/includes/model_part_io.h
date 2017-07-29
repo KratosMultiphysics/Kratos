@@ -83,7 +83,7 @@ public:
     ///@{
 
     /// Constructor with filenames.
-    ModelPartIO(std::string  Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
+    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
     ModelPartIO(boost::shared_ptr<std::iostream> Stream);
