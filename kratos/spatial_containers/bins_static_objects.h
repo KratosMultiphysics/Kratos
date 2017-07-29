@@ -858,7 +858,7 @@ public:
     IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType& ThisDimension )
     {
         CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-        IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+        auto index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
         return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
 
     }

@@ -211,15 +211,15 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Double Variables:" << std::endl;
-        for (DoubleVariablesContainerType::const_iterator it = mPeriodicDoubleVars.begin(); it != mPeriodicDoubleVars.end(); ++it)
+        for (auto mPeriodicDoubleVar : mPeriodicDoubleVars)
         {
-            (*it)->PrintInfo(rOStream);
+            mPeriodicDoubleVar->PrintInfo(rOStream);
             rOStream << std::endl;
         }
         rOStream << "Variable Components:" << std::endl;
-        for (VariableComponentsContainerType::const_iterator it = mPeriodicVarComponents.begin(); it != mPeriodicVarComponents.end(); ++it)
+        for (auto mPeriodicVarComponent : mPeriodicVarComponents)
         {
-            (*it)->PrintInfo(rOStream);
+            mPeriodicVarComponent->PrintInfo(rOStream);
             rOStream << std::endl;
         }
     }

@@ -13,7 +13,7 @@
 #ifndef KRATOS_OPENMP_UTILS_H
 #define	KRATOS_OPENMP_UTILS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <iostream>
 #ifdef _OPENMP

@@ -218,7 +218,7 @@ public:
         if(pointer_type != SP_INVALID_POINTER)
         {
             read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+            auto i_pointer = mLoadedPointers.find(p_pointer);
             if(i_pointer == mLoadedPointers.end())
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
@@ -232,7 +232,7 @@ public:
                 {
                     std::string object_name;
                     read(object_name);
-                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+                    auto i_prototype =  msRegisteredObjects.find(object_name);
 
                     if(i_prototype == msRegisteredObjects.end())
                         KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
@@ -260,7 +260,7 @@ public:
         if(pointer_type != SP_INVALID_POINTER)
         {
             read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+            auto i_pointer = mLoadedPointers.find(p_pointer);
             if(i_pointer == mLoadedPointers.end())
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
@@ -274,7 +274,7 @@ public:
                 {
                     std::string object_name;
                     read(object_name);
-                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+                    auto i_prototype =  msRegisteredObjects.find(object_name);
 
                     if(i_prototype == msRegisteredObjects.end())
                         KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
@@ -775,7 +775,7 @@ private:
         {
             if (IsDerived(pValue))
             {
-                typename RegisteredObjectsNameContainerType::iterator i_name = msRegisteredObjectsName.find(typeid (*pValue).name());
+                auto i_name = msRegisteredObjectsName.find(typeid (*pValue).name());
 
                 if (i_name == msRegisteredObjectsName.end())
                     KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with type id : ", typeid (*pValue).name())
@@ -839,8 +839,8 @@ private:
     {
         KRATOS_SERIALIZER_MODE_BINARY
 
-        int ptr = (int)rValue;
-        const char * data = reinterpret_cast<const char*>(&ptr);
+        auto ptr = (int)rValue;
+        const auto * data = reinterpret_cast<const char*>(&ptr);
         mpBuffer->write(data,sizeof(PointerType));
 
         KRATOS_SERIALIZER_MODE_ASCII
@@ -856,7 +856,7 @@ private:
 
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
-        char* c_binStream = new char [size];
+        auto* c_binStream = new char [size];
         mpBuffer->read(c_binStream,size);
         std::string s_binStream(c_binStream,size);
         rValue = s_binStream;
@@ -880,14 +880,14 @@ private:
         const char * data = rValue.c_str();
         SizeType rData_size = rValue.length() * sizeof(char);
 
-        const char * data1 = reinterpret_cast<const char *>(&rData_size);
+        const auto * data1 = reinterpret_cast<const char *>(&rData_size);
 
         mpBuffer->write(data1,sizeof(SizeType));
         mpBuffer->write(data,rData_size);
 
         KRATOS_SERIALIZER_MODE_ASCII
 
-        *mpBuffer << "\"" << rValue << "\"" << std::endl;
+        *mpBuffer << R"(")" << rValue << R"(")" << std::endl;
 
         KRATOS_SERIALIZER_MODE_END
     }
@@ -912,7 +912,7 @@ private:
     {
         KRATOS_SERIALIZER_MODE_BINARY
 
-        const char * data = reinterpret_cast<const char*>(&rData);
+        const auto * data = reinterpret_cast<const char*>(&rData);
         mpBuffer->write(data,sizeof(TDataType));
 
         KRATOS_SERIALIZER_MODE_ASCII
@@ -953,7 +953,7 @@ private:
 
         SizeType rData_size = rData.size();
 
-        const char * data = reinterpret_cast<const char *>(&rData_size);
+        const auto * data = reinterpret_cast<const char *>(&rData_size);
         mpBuffer->write(data,sizeof(SizeType));
 
         write(rData.begin(), rData.end(), sizeof(TDataType));
@@ -1035,8 +1035,8 @@ private:
         SizeType rData_size1 = rData.size1();
         SizeType rData_size2 = rData.size2();
 
-        const char * data1 = reinterpret_cast<const char *>(&rData_size1);
-        const char * data2 = reinterpret_cast<const char *>(&rData_size2);
+        const auto * data1 = reinterpret_cast<const char *>(&rData_size1);
+        const auto * data2 = reinterpret_cast<const char *>(&rData_size2);
 
         mpBuffer->write(data1,sizeof(SizeType));
         mpBuffer->write(data2,sizeof(SizeType));
@@ -1081,7 +1081,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            const char * data = reinterpret_cast<const char *>(First);
+            const auto * data = reinterpret_cast<const char *>(First);
             mpBuffer->write(data,sizeof(size));
         }
 
@@ -1115,10 +1115,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    Serializer& operator=(Serializer const& rOther);
+    Serializer& operator=(Serializer const& rOther) = delete;
 
     /// Copy constructor.
-    Serializer(Serializer const& rOther);
+    Serializer(Serializer const& rOther) = delete;
 
 
     ///@}

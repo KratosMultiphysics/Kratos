@@ -304,7 +304,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeBDFCoefficientsProcess& operator=(ComputeBDFCoefficientsProcess const& rOther);
+    ComputeBDFCoefficientsProcess& operator=(ComputeBDFCoefficientsProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ComputeBDFCoefficientsProcess(ComputeBDFCoefficientsProcess const& rOther);

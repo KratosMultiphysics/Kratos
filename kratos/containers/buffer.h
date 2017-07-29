@@ -122,7 +122,7 @@ public:
       @param NewSize This size is for reserving the memory and by default
         is equal to 1.
     */
-    Buffer(SizeType NewSize = 1) :  mpData(0) , mpBegin(mpData), mpEnd(mpData), mCapacity(0)
+    Buffer(SizeType NewSize = 1) :  mpData(nullptr) , mpBegin(mpData), mpEnd(mpData), mCapacity(0)
     {
         resize(BlockCompatibleSize(NewSize));
 
@@ -134,7 +134,7 @@ public:
 
       @param rOther The other buffer to be copied
     */
-    Buffer(const Buffer& rOther) :  mpData(new BlockType[rOther.mCapacity]), mpBegin(0), mpEnd(0), mCapacity(rOther.mCapacity)
+    Buffer(const Buffer& rOther) :  mpData(new BlockType[rOther.mCapacity]), mpBegin(nullptr), mpEnd(nullptr), mCapacity(rOther.mCapacity)
     {
         // Setting the current position with relative source container offset
         mpBegin = mpData + (rOther.mpBegin - rOther.mpData);

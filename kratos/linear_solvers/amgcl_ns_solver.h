@@ -380,12 +380,12 @@ private:
     /**
      * Assignment operator.
      */
-    AMGCL_NS_Solver& operator=(const AMGCL_NS_Solver& Other);
+    AMGCL_NS_Solver& operator=(const AMGCL_NS_Solver& Other) = delete;
 
     /**
      * Copy constructor.
      */
-    AMGCL_NS_Solver(const AMGCL_NS_Solver& Other);
+    AMGCL_NS_Solver(const AMGCL_NS_Solver& Other) = delete;
 
 }; // Class AMGCL_NS_Solver
 

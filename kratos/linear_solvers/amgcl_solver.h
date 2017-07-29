@@ -718,10 +718,10 @@ private:
 //         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
 //         else solve.precond();
 
-        rhs_type* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
+        auto* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
         boost::iterator_range<rhs_type*> x_range = boost::make_iterator_range(x_begin, x_begin + n / TBlockSize);
 
-        const rhs_type* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
+        const auto* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
         boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);
 
         boost::tie(iters, resid) = solve(b_range, x_range);
@@ -730,12 +730,12 @@ private:
     /**
      * Assignment operator.
      */
-    AMGCLSolver& operator=(const AMGCLSolver& Other);
+    AMGCLSolver& operator=(const AMGCLSolver& Other) = delete;
 
     /**
      * Copy constructor.
      */
-    AMGCLSolver(const AMGCLSolver& Other);
+    AMGCLSolver(const AMGCLSolver& Other) = delete;
 
 }; // Class AMGCLSolver
 

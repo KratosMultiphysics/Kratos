@@ -271,7 +271,7 @@ private:
     ///@{
 
     /// Default constructor.
-    VectorComponentAdaptor();
+    VectorComponentAdaptor() = delete;
 
     ///@}
 

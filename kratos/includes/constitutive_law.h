@@ -242,15 +242,15 @@ public:
       {
           //Initialize pointers to NULL
           mDeterminantF=0;
-          mpStrainVector=NULL;
-          mpStressVector=NULL;
-          mpShapeFunctionsValues=NULL;
-          mpShapeFunctionsDerivatives=NULL;
-          mpDeformationGradientF=NULL;
-          mpConstitutiveMatrix=NULL;
-          mpCurrentProcessInfo=NULL;
-          mpMaterialProperties=NULL;
-          mpElementGeometry=NULL;
+          mpStrainVector=nullptr;
+          mpStressVector=nullptr;
+          mpShapeFunctionsValues=nullptr;
+          mpShapeFunctionsDerivatives=nullptr;
+          mpDeformationGradientF=nullptr;
+          mpConstitutiveMatrix=nullptr;
+          mpCurrentProcessInfo=nullptr;
+          mpMaterialProperties=nullptr;
+          mpElementGeometry=nullptr;
       };
 
 
@@ -267,12 +267,12 @@ public:
       {
           //Initialize pointers to NULL
           mDeterminantF=0;
-          mpStrainVector=NULL;
-          mpStressVector=NULL;
-          mpShapeFunctionsValues=NULL;
-          mpShapeFunctionsDerivatives=NULL;
-          mpDeformationGradientF=NULL;
-          mpConstitutiveMatrix=NULL;
+          mpStrainVector=nullptr;
+          mpStressVector=nullptr;
+          mpShapeFunctionsValues=nullptr;
+          mpShapeFunctionsDerivatives=nullptr;
+          mpDeformationGradientF=nullptr;
+          mpConstitutiveMatrix=nullptr;
       };
 
       /**
@@ -307,9 +307,9 @@ public:
       bool CheckAllParameters ()
       {
         if(CheckMechanicalVariables() &&  CheckShapeFunctions() && CheckInfoMaterialGeometry ())
-            return 1;
+            return true;
         else
-            return 0;
+            return false;
       }
 
 
@@ -325,7 +325,7 @@ public:
         if(!mpShapeFunctionsDerivatives)
             KRATOS_ERROR << "ShapeFunctionsDerivatives NOT SET" << std::endl;
 
-        return 1;
+        return true;
       }
 
       /**
@@ -343,7 +343,7 @@ public:
         if(!mpElementGeometry)
             KRATOS_ERROR << "ElementGeometry NOT SET" << std::endl;
 
-        return 1;
+        return true;
       }
 
 
@@ -368,7 +368,7 @@ public:
           if(!mpConstitutiveMatrix)
             KRATOS_ERROR << "ConstitutiveMatrix NOT SET" << std::endl;
 
-          return 1;
+          return true;
       }
 
 
@@ -434,18 +434,18 @@ public:
        */
        
       bool IsSetDeterminantF              () {return (mDeterminantF > 0.0);};
-      bool IsSetShapeFunctionsValues      () {return (mpShapeFunctionsValues != NULL);};
-      bool IsSetShapeFunctionsDerivatives () {return (mpShapeFunctionsDerivatives != NULL);};
-      bool IsSetDeformationGradientF      () {return (mpDeformationGradientF != NULL);};
+      bool IsSetShapeFunctionsValues      () {return (mpShapeFunctionsValues != nullptr);};
+      bool IsSetShapeFunctionsDerivatives () {return (mpShapeFunctionsDerivatives != nullptr);};
+      bool IsSetDeformationGradientF      () {return (mpDeformationGradientF != nullptr);};
 
-      bool IsSetStrainVector              () {return (mpStrainVector != NULL);};
-      bool IsSetStressVector              () {return (mpStressVector != NULL);};
+      bool IsSetStrainVector              () {return (mpStrainVector != nullptr);};
+      bool IsSetStressVector              () {return (mpStressVector != nullptr);};
 
-      bool IsSetConstitutiveMatrix        () {return (mpConstitutiveMatrix != NULL);};
+      bool IsSetConstitutiveMatrix        () {return (mpConstitutiveMatrix != nullptr);};
 
-      bool IsSetProcessInfo               () {return (mpCurrentProcessInfo != NULL);};
-      bool IsSetMaterialProperties        () {return (mpMaterialProperties != NULL);};
-      bool IsSetElementGeometry           () {return (mpElementGeometry != NULL);};
+      bool IsSetProcessInfo               () {return (mpCurrentProcessInfo != nullptr);};
+      bool IsSetMaterialProperties        () {return (mpMaterialProperties != nullptr);};
+      bool IsSetElementGeometry           () {return (mpElementGeometry != nullptr);};
 
     };// struct Parameters end
 

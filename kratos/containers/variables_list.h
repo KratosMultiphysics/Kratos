@@ -439,8 +439,8 @@ public:
     {
         rOStream << " with " << size() << " variables";
         rOStream << " (size : " << mDataSize << " blocks of " << sizeof(BlockType) << " bytes) "<< std::endl;
-        for(IndexType i = 0 ; i < mVariables.size() ; ++i)
-            rOStream << "    " << mVariables[i]->Name() << " \t-> " << mPositions[mVariables[i]->Key()] << std::endl;
+        for(auto mVariable : mVariables)
+            rOStream << "    " << mVariable->Name() << " \t-> " << mPositions[mVariable->Key()] << std::endl;
     }
 
 

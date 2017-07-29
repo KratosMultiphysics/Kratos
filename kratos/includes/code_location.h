@@ -35,7 +35,7 @@ namespace Kratos
 
 		CodeLocation(CodeLocation const & Other);
 
-		CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber);
+		CodeLocation(std::string  FileName, std::string  FunctionName, std::size_t LineNumber);
 
 		///@name Operations
 		///@{

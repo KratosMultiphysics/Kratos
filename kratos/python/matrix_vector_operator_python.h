@@ -183,7 +183,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    MatrixVectorOperatorPython& operator=(const MatrixVectorOperatorPython& rOther);
+    MatrixVectorOperatorPython& operator=(const MatrixVectorOperatorPython& rOther) = delete;
 
 
 

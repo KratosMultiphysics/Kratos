@@ -282,10 +282,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    SpatialContainersConfigure& operator=(SpatialContainersConfigure const& rOther);
+    SpatialContainersConfigure& operator=(SpatialContainersConfigure const& rOther) = delete;
 
     /// Copy constructor.
-    SpatialContainersConfigure(SpatialContainersConfigure const& rOther);
+    SpatialContainersConfigure(SpatialContainersConfigure const& rOther) = delete;
 
 
     ///@}

@@ -180,7 +180,7 @@ public:
     }
 
     /// Empty destructor.
-    virtual ~EdgeSwapping2DModeler() {}
+    ~EdgeSwapping2DModeler() override {}
 
 
 
@@ -365,19 +365,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "EdgeSwapping2DModeler";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -488,7 +488,7 @@ private:
 
     void SetCollapsingData(ModelPart& rThisModelPart)
     {
-        const int number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
+        const auto number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
         ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
 
         if(static_cast<int>(mCollapsingData.size()) != number_of_nodes)
@@ -644,8 +644,8 @@ private:
     void FindNodalNeighbours(ModelPart& rThisModelPart)
     {
         ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-        const int number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
-        const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
+        const auto number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes());
+        const auto number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
 
         if(static_cast<int>(mNodalNeighbourElements.size()) != number_of_nodes)
             mNodalNeighbourElements.resize(number_of_nodes);
@@ -674,7 +674,7 @@ private:
     {
         ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
         ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-        const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
+        const auto number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements());
 
         FindNodalNeighbours(rThisModelPart);
 
@@ -801,10 +801,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    EdgeSwapping2DModeler& operator=(EdgeSwapping2DModeler const& rOther);
+    EdgeSwapping2DModeler& operator=(EdgeSwapping2DModeler const& rOther) = delete;
 
     /// Copy constructor.
-    EdgeSwapping2DModeler(EdgeSwapping2DModeler const& rOther);
+    EdgeSwapping2DModeler(EdgeSwapping2DModeler const& rOther) = delete;
 
 
     ///@}

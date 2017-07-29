@@ -32,43 +32,43 @@ namespace Kratos
 
 
 		void TestSuite::Reset()	{
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Reset();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->Reset();
 		} 
 
 		void TestSuite::ResetResult() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->ResetResult();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->ResetResult();
 		}
 
 		void TestSuite::Run() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Run();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->Run();
 		}
 
 		void TestSuite::Profile() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Profile();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->Profile();
 		}
 
 		void TestSuite::Enable() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Enable();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->Enable();
 		}
 
 		void TestSuite::Disable() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Disable();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->Disable();
 		}
 
 		void TestSuite::Select() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->Select();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->Select();
 		}
 
 		void TestSuite::UnSelect() {
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				(*i_test)->UnSelect();
+			for (auto & mTestCase : mTestCases)
+				mTestCase->UnSelect();
 		}
 
 
@@ -85,14 +85,14 @@ namespace Kratos
 		void TestSuite::PrintData(std::ostream& rOStream) const
 		{
 			rOStream << "This test suite includes following thest cases:" << std::endl;
-			for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
-				rOStream << "    " << (*i_test)->Info();
+			for (auto mTestCase : mTestCases)
+				rOStream << "    " << mTestCase->Info();
 		}
 
 
 		void TestSuite::TestFunction()
 		{
-			KRATOS_ERROR << "Attempting to call the TestFunction of the the test suite \"" << Name() << "\"" << std::endl;
+			KRATOS_ERROR << R"(Attempting to call the TestFunction of the the test suite ")" << Name() << R"(")" << std::endl;
 		}
 
 	} // manespace Testing.

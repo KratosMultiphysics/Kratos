@@ -100,7 +100,7 @@ public:
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, nullptr, 0, nullptr );
             std::vector<double> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -141,7 +141,7 @@ public:
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, nullptr, 0, nullptr );
             std::vector<int> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -183,7 +183,7 @@ public:
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, nullptr, 0, nullptr );
             std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
             if( mMeshElements.size() != 0 )
             {
@@ -279,7 +279,7 @@ public:
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, nullptr, 0, nullptr );
             std::vector<Vector> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -324,7 +324,7 @@ public:
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
-                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, nullptr, 0, nullptr );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -420,7 +420,7 @@ public:
             //setting up gauss points
             if( mGidElementFamily == GiD_Tetrahedra && mSize == 4 )
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, nullptr, 4, 0, 0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 0.58541020,0.13819660,0.13819660 );
                 GiD_fWriteGaussPoint3D( MeshFile, 0.13819660,0.58541020,0.13819660 );
                 GiD_fWriteGaussPoint3D( MeshFile, 0.13819660,0.13819660,0.58541020 );
@@ -429,7 +429,7 @@ public:
             }
             else if( mGidElementFamily == GiD_Quadrilateral && mSize == 4 )
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Quadrilateral, NULL, 4, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Quadrilateral, nullptr, 4, 0, 0 );
                 GiD_fWriteGaussPoint2D( MeshFile, - 1.00/std::sqrt(3.0), - 1.00/std::sqrt(3.0) );
                 GiD_fWriteGaussPoint2D( MeshFile,   1.00/std::sqrt(3.0), - 1.00/std::sqrt(3.0) );
                 GiD_fWriteGaussPoint2D( MeshFile,   1.00/std::sqrt(3.0),   1.00/std::sqrt(3.0) );
@@ -438,7 +438,7 @@ public:
             }
             else if( mGidElementFamily == GiD_Quadrilateral && mSize == 9 )
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Quadrilateral, NULL, 9, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Quadrilateral, nullptr, 9, 0, 0 );
                 GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00));
                 GiD_fWriteGaussPoint2D( MeshFile,  0.00 , -std::sqrt(3.00/5.00) );
                 GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00) );
@@ -452,7 +452,7 @@ public:
             }
             else if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, nullptr, 4, 0, 0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/6.0, 1.0/6.0, 1.0/6.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/2.0, 1.0/6.0, 1.0/6.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/6.0, 1.0/2.0, 1.0/6.0 );
@@ -461,7 +461,7 @@ public:
             }
             else if( mGidElementFamily == GiD_Tetrahedra && mSize == 10 )
             {
-                GiD_fBeginGaussPoint(MeshFile, "tet10_element_gp", GiD_Tetrahedra, NULL, 10, 0, 0);
+                GiD_fBeginGaussPoint(MeshFile, "tet10_element_gp", GiD_Tetrahedra, nullptr, 10, 0, 0);
                 GiD_fWriteGaussPoint3D(MeshFile, tet10_a,  tet10_a,  tet10_a );
                 GiD_fWriteGaussPoint3D(MeshFile, tet10_c,  tet10_a,  tet10_a );
                 GiD_fWriteGaussPoint3D(MeshFile, tet10_a,  tet10_c,  tet10_a );
@@ -476,7 +476,7 @@ public:
             }
             else if( mGidElementFamily == GiD_Tetrahedra && mSize == 11 )
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, nullptr, 4, 0, 0 );
                 //GiD_WriteGaussPoint3D( 1.0/4.0, 1.0/4.0, 1.0/4.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/14.0, 1.0/14.0, 1.0/14.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 11.0/14.0, 1.0/14.0, 1.0/14.0 );
@@ -492,7 +492,7 @@ public:
             }
             else if ( mGidElementFamily == GiD_Triangle && mSize == 3 )
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Triangle, NULL, 3, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Triangle, nullptr, 3, 0, 0 );
                 GiD_fWriteGaussPoint2D( MeshFile, 1.0/6.0, 1.0/6.0 );
                 GiD_fWriteGaussPoint2D( MeshFile, 2.0/3.0, 1.0/6.0 );
                 GiD_fWriteGaussPoint2D( MeshFile, 1.0/6.0, 2.0/3.0 );
@@ -501,7 +501,7 @@ public:
             /* START: Adding manually the custom prism */
             else if ( mGidElementFamily == GiD_Prism  && mSize > 1)
             {
-                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, nullptr, 6, 0, 0 );
 
                 GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
                 GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
@@ -662,7 +662,7 @@ public:
             }
             else
             {
-                GiD_fBeginGaussPoint(MeshFile, mGPTitle, mGidElementFamily, NULL, mSize, 0, 1);
+                GiD_fBeginGaussPoint(MeshFile, mGPTitle, mGidElementFamily, nullptr, mSize, 0, 1);
                 GiD_fEndGaussPoint(MeshFile);
                 /* NOTE: for linear elements, GiD gauss point coordinates are equispaced, visualization coordinates
                  * are wrong. Is there a GiD_fWriteGaussPoint2D equivalent for lines? Not according to documentation!

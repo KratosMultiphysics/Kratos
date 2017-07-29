@@ -270,7 +270,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    EliminateIsolatedNodesProcess& operator=(EliminateIsolatedNodesProcess const& rOther);
+    EliminateIsolatedNodesProcess& operator=(EliminateIsolatedNodesProcess const& rOther) = delete;
 
     /// Copy constructor.
     //EliminateIsolatedNodesProcess(EliminateIsolatedNodesProcess const& rOther);

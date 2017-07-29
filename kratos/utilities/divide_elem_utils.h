@@ -132,11 +132,11 @@ public:
 
         double toll =  0.1*sqrt(Area * 2.30940108);//0.1*(h in a equailateral triangle of given area)
         array_1d<double,3> dist = ZeroVector(3);
-        for (unsigned int i = 0; i < dist.size(); i++)
+        for (double & i : dist)
         {
             dist[i] = geom[i].GetSolutionStepValue(DISTANCE);
-            if(dist[i] < 0.0 && dist[i] > -toll)
-                dist[i] = 0.0;
+            if(i < 0.0 && i > -toll)
+                i = 0.0;
         }
 
 

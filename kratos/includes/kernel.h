@@ -162,10 +162,9 @@ public:
     void Initialize()
     {
         unsigned int j = 0;
-        for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = KratosComponents<VariableData>::GetComponents().begin() ;
-                i != KratosComponents<VariableData>::GetComponents().end() ; i++)
+        for(auto & i : KratosComponents<VariableData>::GetComponents())
             //const_cast<VariableData&>(i->second.get()).SetKey(++j);
-            i->second->SetKey(++j);
+            i.second->SetKey(++j);
     }
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.

@@ -19,14 +19,16 @@
 
 
 // Project includes
+#include <utility>
+
 #include "includes/code_location.h"
 #include "includes/checks.h"
 
 
 namespace Kratos
 {
-	CodeLocation::CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber) :
-		mFileName(FileName), mFunctionName(FunctionName), mLineNumber(LineNumber) {}
+	CodeLocation::CodeLocation(std::string  FileName, std::string  FunctionName, std::size_t LineNumber) :
+		mFileName(std::move(FileName)), mFunctionName(std::move(FunctionName)), mLineNumber(LineNumber) {}
 
 	CodeLocation::CodeLocation(CodeLocation const & Other) :
 		mFileName(Other.mFileName), mFunctionName(Other.mFunctionName), mLineNumber(Other.mLineNumber) {}
@@ -47,7 +49,7 @@ namespace Kratos
 	std::string CodeLocation::CleanFileName() const
 	{
 		std::string clean_file_name(mFileName);
-		ReplaceAll(clean_file_name, "\\", "/");
+		ReplaceAll(clean_file_name, R"(\)", "/");
 
 		std::size_t kratos_root_position = clean_file_name.rfind("/application/");
 		if (kratos_root_position != std::string::npos)

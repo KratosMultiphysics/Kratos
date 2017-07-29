@@ -26,7 +26,7 @@
 
 
 // System includes
-#include <stdio.h>
+#include <cstdio>
 
 
 // External includes
@@ -52,7 +52,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Open MM file for reading
     FILE *f = fopen(FileName, "r");
 
-    if (f == NULL)
+    if (f == nullptr)
     {
         printf("ReadMatrixMarketMatrix(): unable to open %s.\n", FileName);
         return false;
@@ -94,9 +94,9 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     }
 
     // Allocate temporary arrays
-    int *I = new int[nnz];
-    int *J = new int[nnz];
-    double *V = new double[nnz];
+    auto *I = new int[nnz];
+    auto *J = new int[nnz];
+    auto *V = new double[nnz];
 
     // Read MM file
 
@@ -146,7 +146,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     fclose(f);
 
     // Second stage
-    int *nz = new int[size1];
+    auto *nz = new int[size1];
 
     for (int i = 0; i < size1; i++)
         nz[i] = 0;
@@ -184,10 +184,10 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
         nnz2 = nnz;
 
     // Fill in an almost-CSR data structure
-    int *filled = new int[size1];
-    int *indices = new int[size1];
-    int *columns = new int[nnz2];
-    double *values = new double[nnz2];
+    auto *filled = new int[size1];
+    auto *indices = new int[size1];
+    auto *columns = new int[nnz2];
+    auto *values = new double[nnz2];
 
     indices[0] = 0;
     for (int i = 1; i < size1; i++)
@@ -233,7 +233,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
         }
 
     // Create the matrix
-    CompressedMatrixType *m = new CompressedMatrixType(size1, size2, nnz2);
+    auto *m = new CompressedMatrixType(size1, size2, nnz2);
 
     int k = 0;
 
@@ -263,7 +263,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
     // Open MM file for writing
     FILE *f = fopen(FileName, "w");
 
-    if (f == NULL)
+    if (f == nullptr)
     {
         printf("WriteMatrixMarketMatrix(): unable to open %s.\n", FileName);
         return false;
@@ -379,7 +379,7 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
     // Open MM file for reading
     FILE *f = fopen(FileName, "r");
 
-    if (f == NULL)
+    if (f == nullptr)
     {
         printf("ReadMatrixMarketVector(): unable to open %s.\n", FileName);
         return false;
@@ -428,7 +428,7 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
         return false;
     }
 
-    VectorType *v = new VectorType(size1);
+    auto *v = new VectorType(size1);
     double T;
 
     // Read MM file
@@ -460,7 +460,7 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
     // Open MM file for writing
     FILE *f = fopen(FileName, "w");
 
-    if (f == NULL)
+    if (f == nullptr)
     {
         printf("WriteMatrixMarketVector(): unable to open %s.\n", FileName);
         return false;

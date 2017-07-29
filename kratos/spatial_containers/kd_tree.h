@@ -103,7 +103,7 @@ public:
     /// Partition constructor.
     KDTreePartitionBase(IndexType CutingDimension, CoordinateType Position,
                         CoordinateType LeftEnd, CoordinateType RightEnd,
-                        TreeNodeType* pLeftChild = NULL, TreeNodeType* pRightChild = NULL)
+                        TreeNodeType* pLeftChild = nullptr, TreeNodeType* pRightChild = nullptr)
         : mCutingDimension(CutingDimension), mPosition(Position), mLeftEnd(LeftEnd), mRightEnd(RightEnd)
     {
         mpChilds[0] = pLeftChild;
@@ -367,7 +367,7 @@ public:
 
     /// Partition constructor.
     KDTreePartition( IndexType CutingDimension, CoordinateType Position, CoordinateType LeftEnd, CoordinateType RightEnd,
-                     TreeNodeType* pLeftChild = NULL, TreeNodeType* pRightChild = NULL )
+                     TreeNodeType* pLeftChild = nullptr, TreeNodeType* pRightChild = nullptr )
         : BaseType(CutingDimension,Position,LeftEnd,RightEnd,pLeftChild,pRightChild) {}
 
     /// Destructor.
@@ -493,7 +493,7 @@ public:
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else if (number_of_points <= BucketSize)
         {
             return new LeafType(PointsBegin, PointsEnd);
@@ -581,7 +581,7 @@ public:
 
     /// Partition constructor.
     KDTreePartitionAverageSplit( IndexType CutingDimension, CoordinateType Position, CoordinateType LeftEnd, CoordinateType RightEnd,
-                                 TreeNodeType* pLeftChild = NULL, TreeNodeType* pRightChild = NULL)
+                                 TreeNodeType* pLeftChild = nullptr, TreeNodeType* pRightChild = nullptr)
         : BaseType(CutingDimension,Position,LeftEnd,RightEnd,pLeftChild,pRightChild) {}
 
     /// Destructor.
@@ -612,7 +612,7 @@ public:
         CoordinateType max_spread = 0;				// amount of max spread
         AverageValue = 0.0;
 
-        CoordinateType size = static_cast<CoordinateType>(SearchUtils::PointerDistance(PointsBegin,PointsEnd));
+        auto size = static_cast<CoordinateType>(SearchUtils::PointerDistance(PointsBegin,PointsEnd));
 
         CoordinateType min[Dimension];
         CoordinateType max[Dimension];
@@ -677,7 +677,7 @@ public:
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else if (number_of_points <= BucketSize)
         {
             return new LeafType(PointsBegin, PointsEnd);
@@ -760,7 +760,7 @@ public:
 
     /// Partition constructor.
     KDTreePartitionMidPointSplit( IndexType CutingDimension, CoordinateType Position, CoordinateType LeftEnd, CoordinateType RightEnd,
-                                  TreeNodeType* pLeftChild = NULL, TreeNodeType* pRightChild = NULL)
+                                  TreeNodeType* pLeftChild = nullptr, TreeNodeType* pRightChild = nullptr)
         : BaseType(CutingDimension,Position,LeftEnd,RightEnd,pLeftChild,pRightChild) {}
 
     /// Destructor.
@@ -855,7 +855,7 @@ public:
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else if (number_of_points <= BucketSize)
         {
             return new LeafType(PointsBegin, PointsEnd);

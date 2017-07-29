@@ -119,8 +119,8 @@ public:
 
     /// Default constructor.
     VariablesListDataValueContainer(SizeType NewQueueSize = 1)
-        : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(&Globals::DefaultVariablesList)
+        : mQueueSize(NewQueueSize), mpCurrentPosition(nullptr),
+          mpData(nullptr), mpVariablesList(&Globals::DefaultVariablesList)
     {
         // Allcating memory
         Allocate();
@@ -140,8 +140,8 @@ public:
 
     /// Copy constructor.
     VariablesListDataValueContainer(VariablesListDataValueContainer const& rOther)
-        : mQueueSize(rOther.mQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(rOther.mpVariablesList)
+        : mQueueSize(rOther.mQueueSize), mpCurrentPosition(nullptr),
+          mpData(nullptr), mpVariablesList(rOther.mpVariablesList)
     {
         // Allcating memory
         Allocate();
@@ -164,8 +164,8 @@ public:
 
     /// Variables list constructor.
     VariablesListDataValueContainer(VariablesList*  pVariablesList, SizeType NewQueueSize = 1)
-        : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(pVariablesList)
+        : mQueueSize(NewQueueSize), mpCurrentPosition(nullptr),
+          mpData(nullptr), mpVariablesList(pVariablesList)
     {
         // Allcating memory
         Allocate();
@@ -185,8 +185,8 @@ public:
 
     /// Variables list and data constructor
     VariablesListDataValueContainer(VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
-        : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(pVariablesList)
+        : mQueueSize(NewQueueSize), mpCurrentPosition(nullptr),
+          mpData(nullptr), mpVariablesList(pVariablesList)
     {
         // Allcating memory
         Allocate();
@@ -304,7 +304,7 @@ public:
     /// Assignment operator.
     VariablesListDataValueContainer& operator=(const VariablesListDataValueContainer& rOther)
     {
-        if(rOther.mpVariablesList == 0)
+        if(rOther.mpVariablesList == nullptr)
             Clear();
         else if((mpVariablesList == rOther.mpVariablesList) &&
                 (mQueueSize == rOther.mQueueSize))
@@ -550,7 +550,7 @@ public:
         if(mpData)
             free(mpData);
 
-        mpData = 0;
+        mpData = nullptr;
     }
 
 
@@ -631,7 +631,7 @@ public:
             SizeType size = mpVariablesList->DataSize();
 
             //allocating memory
-            BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
+            auto* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
 
             //Copying data to allocated memory
             for(SizeType i = 0 ; i < NewSize ; i++)
@@ -952,7 +952,7 @@ private:
 
     void DestructElements(SizeType ThisIndex)
     {
-        if(mpData == 0)
+        if(mpData == nullptr)
             return;
         BlockType* position = Position(ThisIndex);
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
@@ -963,7 +963,7 @@ private:
 
     void DestructAllElements()
     {
-        if(mpData == 0)
+        if(mpData == nullptr)
             return;
 
         SizeType size = mpVariablesList->DataSize();
@@ -1030,7 +1030,7 @@ private:
             rSerializer.save("QueueIndex", 0);
 
 
-        if(mpData == 0)
+        if(mpData == nullptr)
             KRATOS_THROW_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
 
         SizeType size = mpVariablesList->DataSize();

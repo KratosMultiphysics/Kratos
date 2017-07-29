@@ -340,7 +340,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    CalculateEmbeddedSignedDistanceTo3DSkinProcess& operator=(CalculateEmbeddedSignedDistanceTo3DSkinProcess const& rOther);
+    CalculateEmbeddedSignedDistanceTo3DSkinProcess& operator=(CalculateEmbeddedSignedDistanceTo3DSkinProcess const& rOther) = delete;
 
     /// Copy constructor.
     //CalculateEmbeddedSignedDistanceTo3DSkinProcess(CalculateEmbeddedSignedDistanceTo3DSkinProcess const& rOther);

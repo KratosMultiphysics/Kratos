@@ -14,6 +14,8 @@
 // External includes
 
 // Project includes
+#include <utility>
+
 #include "includes/ublas_interface.h"
 #include "integration/integration_point.h"
 
@@ -261,16 +263,16 @@ public:
                   SizeType ThisWorkingSpaceDimension,
                   SizeType ThisLocalSpaceDimension,
                   enum IntegrationMethod ThisDefaultMethod,
-                  const IntegrationPointsContainerType& ThisIntegrationPoints,
-                  const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
-                  const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
+                  IntegrationPointsContainerType  ThisIntegrationPoints,
+                  ShapeFunctionsValuesContainerType  ThisShapeFunctionsValues,
+                  ShapeFunctionsLocalGradientsContainerType  ThisShapeFunctionsLocalGradients )
         : mDimension( ThisDimension )
         , mWorkingSpaceDimension( ThisWorkingSpaceDimension )
         , mLocalSpaceDimension( ThisLocalSpaceDimension )
         , mDefaultMethod( ThisDefaultMethod )
-        , mIntegrationPoints( ThisIntegrationPoints )
-        , mShapeFunctionsValues( ThisShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
+        , mIntegrationPoints(std::move( ThisIntegrationPoints ))
+        , mShapeFunctionsValues(std::move( ThisShapeFunctionsValues ))
+        , mShapeFunctionsLocalGradients(std::move( ThisShapeFunctionsLocalGradients ))
     {
         for ( unsigned int i = 0 ; i < NumberOfIntegrationMethods ; i++ )
         {

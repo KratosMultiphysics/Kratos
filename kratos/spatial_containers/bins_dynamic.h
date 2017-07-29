@@ -271,7 +271,7 @@ public:
     IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType ThisDimension )
     {
         CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-        IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+        auto index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
         return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
     }
 
@@ -334,7 +334,7 @@ public:
     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
     {
         PointerType Nearest;
-        CoordinateType Distance = static_cast<CoordinateType>(DBL_MAX);
+        auto Distance = static_cast<CoordinateType>(DBL_MAX);
         bool Found;
         SearchStructureType Box( CalculateCell(*ThisPoint,-Tolerance), CalculateCell(*ThisPoint,Tolerance), mN );
         SearchNearestInBox( *ThisPoint, Nearest, Distance, Box, Found );
@@ -351,7 +351,7 @@ public:
             return this->NullPointer();
 
         PointerType Result            = *mPointBegin;
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        auto ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         SearchStructureType Box( CalculateCell(ThisPoint), mN );
         SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box );
         return Result;
@@ -760,7 +760,7 @@ public:
 
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else
         {
             return new BinsDynamic( PointsBegin, PointsEnd, MinPoint, MaxPoint, BucketSize );

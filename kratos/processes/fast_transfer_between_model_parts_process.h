@@ -251,7 +251,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    FastTransferBetweenModelPartsProcess& operator=(FastTransferBetweenModelPartsProcess const& rOther);
+    FastTransferBetweenModelPartsProcess& operator=(FastTransferBetweenModelPartsProcess const& rOther) = delete;
 
     ///@}
     ///@name Serialization

@@ -560,7 +560,7 @@ private:
                 continue;    //already marked
             }
 
-            for(I jj = static_cast<I>(Ap[i]); jj < static_cast<I>(Ap[i+1]); jj++)
+            for(auto jj = static_cast<I>(Ap[i]); jj < static_cast<I>(Ap[i+1]); jj++)
             {
                 const I j = Aj[jj];
 

@@ -187,10 +187,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    ReorderConsecutiveModelPartIO& operator=(ReorderConsecutiveModelPartIO const& rOther);
+    ReorderConsecutiveModelPartIO& operator=(ReorderConsecutiveModelPartIO const& rOther) = delete;
 
     /// Copy constructor.
-    ReorderConsecutiveModelPartIO(ReorderConsecutiveModelPartIO const& rOther);
+    ReorderConsecutiveModelPartIO(ReorderConsecutiveModelPartIO const& rOther) = delete;
 
 
     ///@}

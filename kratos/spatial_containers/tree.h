@@ -291,7 +291,7 @@ public:
     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
     {
         PointerType Result = *mPointsBegin;
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        auto ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         // searching the tree
         mRoot->SearchNearestPoint(ThisPoint,Result,ResultDistance);
         if (ResultDistance<Tolerance*Tolerance)
@@ -313,7 +313,7 @@ public:
     PointerType SearchNearestPoint(PointType const& ThisPoint)
     {
         PointerType Result = *mPointsBegin; // NULL ??
-        CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
+        auto rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
         // searching the tree
         mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
@@ -500,10 +500,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    Tree& operator=(Tree const& rOther);
+    Tree& operator=(Tree const& rOther) = delete;
 
     /// Copy constructor.
-    Tree(Tree const& rOther);
+    Tree(Tree const& rOther) = delete;
 
 
     ///@}

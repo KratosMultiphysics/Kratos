@@ -740,7 +740,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType Edges( ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 

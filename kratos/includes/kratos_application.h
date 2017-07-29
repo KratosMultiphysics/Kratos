@@ -178,13 +178,11 @@ public:
     void SetComponents(KratosComponents<VariableData>::ComponentsContainerType const& VariableDataComponents)
 
     {
-        for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = mpVariableData->begin() ;
-
-                i != mpVariableData->end() ; i++)
+        for(auto & i : *mpVariableData)
 
         {
-            std::string const& variable_name = i->second->Name();
-            KratosComponents<VariableData>::ComponentsContainerType::const_iterator i_variable = VariableDataComponents.find(variable_name);
+            std::string const& variable_name = i.second->Name();
+            auto i_variable = VariableDataComponents.find(variable_name);
 
             if(i_variable == VariableDataComponents.end())
 
@@ -204,7 +202,7 @@ public:
 
             //			KRATOS_WATCH(variable_key);
 
-            i->second->SetKey(variable_key);
+            i.second->SetKey(variable_key);
 
         }
 

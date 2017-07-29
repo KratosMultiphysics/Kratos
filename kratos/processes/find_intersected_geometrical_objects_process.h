@@ -198,10 +198,10 @@ namespace Kratos
 		private:
 
 			/// Assignment operator.
-			DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther);
+			DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther) = delete;
 
 			/// Copy constructor.
-			DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther);
+			DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther) = delete;
 
 
 		}; // Class DistanceSpatialContainersConfigure

@@ -253,7 +253,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    Counter& operator=(Counter const& rOther);
+    Counter& operator=(Counter const& rOther) = delete;
 
     ///@}
 

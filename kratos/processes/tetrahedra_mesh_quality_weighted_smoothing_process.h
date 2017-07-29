@@ -179,10 +179,10 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      TetrahedraMeshQualityWeightedSmoothingProcess& operator=(TetrahedraMeshQualityWeightedSmoothingProcess const& rOther);
+      TetrahedraMeshQualityWeightedSmoothingProcess& operator=(TetrahedraMeshQualityWeightedSmoothingProcess const& rOther) = delete;
 
       /// Copy constructor.
-      TetrahedraMeshQualityWeightedSmoothingProcess(TetrahedraMeshQualityWeightedSmoothingProcess const& rOther);
+      TetrahedraMeshQualityWeightedSmoothingProcess(TetrahedraMeshQualityWeightedSmoothingProcess const& rOther) = delete;
 
 
       ///@}

@@ -307,10 +307,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    Modeler& operator=(Modeler const& rOther);
+    Modeler& operator=(Modeler const& rOther) = delete;
 
     /// Copy constructor.
-    Modeler(Modeler const& rOther);
+    Modeler(Modeler const& rOther) = delete;
 
 
     ///@}

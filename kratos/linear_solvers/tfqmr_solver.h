@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include <math.h>
+#include <cmath>
 
 
 namespace Kratos
@@ -392,7 +392,7 @@ private:
 
 
     /// Assignment operator.
-    TFQMRSolver& operator=(const TFQMRSolver& Other);
+    TFQMRSolver& operator=(const TFQMRSolver& Other) = delete;
 
 
 

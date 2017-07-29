@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <algorithm>
 #include <set>
-#include <time.h>
+#include <ctime>
 
 
 

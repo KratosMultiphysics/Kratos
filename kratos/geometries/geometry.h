@@ -206,7 +206,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Geometry() : mpGeometryData( 0 )
+    Geometry() : mpGeometryData( nullptr )
     {
 
     }
@@ -270,7 +270,7 @@ public:
     must be an empty ShapeFunctionsGradientsType.
     */
     Geometry( const PointsArrayType& ThisPoints,
-              GeometryData const* pThisGeometryData = 0 )
+              GeometryData const* pThisGeometryData = nullptr )
         : BaseType( ThisPoints )
         , mpGeometryData( pThisGeometryData )
     {
@@ -1004,7 +1004,7 @@ public:
     @see Edge()
     */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual GeometriesArrayType Edges( void )
+    virtual GeometriesArrayType Edges( )
     {
         KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 
@@ -1051,7 +1051,7 @@ public:
      * @see Edges
      * @see FacesNumber
      */
-    virtual GeometriesArrayType Faces( void )
+    virtual GeometriesArrayType Faces( )
     {
         KRATOS_ERROR << "Calling base class Faces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 

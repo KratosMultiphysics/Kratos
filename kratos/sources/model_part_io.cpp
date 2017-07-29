@@ -12,6 +12,8 @@
 //
 
 // Project includes
+#include <utility>
+
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
@@ -20,9 +22,9 @@
 namespace Kratos
 {
     /// Constructor with  filenames.
-    ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
+    ModelPartIO::ModelPartIO(std::string  Filename, const Flags Options)
       : mNumberOfLines(1)
-      , mBaseFilename(Filename)
+      , mBaseFilename(std::move(Filename))
       , mFilename(Filename + ".mdpa")
       , mOptions(Options)
     {

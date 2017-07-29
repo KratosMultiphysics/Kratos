@@ -718,10 +718,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    DistanceCalculationElementSimplex & operator=(DistanceCalculationElementSimplex const& rOther);
+    DistanceCalculationElementSimplex & operator=(DistanceCalculationElementSimplex const& rOther) = delete;
 
     /// Copy constructor.
-    DistanceCalculationElementSimplex(DistanceCalculationElementSimplex const& rOther);
+    DistanceCalculationElementSimplex(DistanceCalculationElementSimplex const& rOther) = delete;
 
     ///@}
 

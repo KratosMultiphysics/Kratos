@@ -364,7 +364,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    FindConditionsNeighboursProcess& operator=(FindConditionsNeighboursProcess const& rOther);
+    FindConditionsNeighboursProcess& operator=(FindConditionsNeighboursProcess const& rOther) = delete;
 
     /// Copy constructor.
     //FindConditionsNeighboursProcess(FindConditionsNeighboursProcess const& rOther);

@@ -186,7 +186,7 @@ public:
         OpenMPUtils::PartitionVector DofPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
 
-        const int ndof = static_cast<int>(rDofSet.size());
+        const auto ndof = static_cast<int>(rDofSet.size());
         typename DofsArrayType::iterator DofBegin = rDofSet.begin();
 
         #pragma omp parallel for firstprivate(DofBegin)

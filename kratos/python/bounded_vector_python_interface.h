@@ -117,13 +117,13 @@ public:
             if (!(   PyList_Check(obj_ptr)
                      || PyTuple_Check(obj_ptr)
                      || PyIter_Check(obj_ptr)
-                     || PyRange_Check(obj_ptr))) return 0;
+                     || PyRange_Check(obj_ptr))) return nullptr;
         }
         handle<> obj_iter(allow_null(PyObject_GetIter(obj_ptr)));
         if (!obj_iter.get())   // must be convertible to an iterator
         {
             PyErr_Clear();
-            return 0;
+            return nullptr;
         }
         if (true)
         {
@@ -131,9 +131,9 @@ public:
             if (obj_size < 0)   // must be a measurable sequence
             {
                 PyErr_Clear();
-                return 0;
+                return nullptr;
             }
-            if (TSize < static_cast<std::size_t>(obj_size)) return 0;
+            if (TSize < static_cast<std::size_t>(obj_size)) return nullptr;
             bool is_range = PyRange_Check(obj_ptr);
             std::size_t i=0;
             for(;; i++)
@@ -142,12 +142,12 @@ public:
                 if (PyErr_Occurred())
                 {
                     PyErr_Clear();
-                    return 0;
+                    return nullptr;
                 }
                 if (!py_elem_hdl.get()) break; // end of iteration
                 object py_elem_obj(py_elem_hdl);
                 extract<typename TContainerType::value_type> elem_proxy(py_elem_obj);
-                if (!elem_proxy.check()) return 0;
+                if (!elem_proxy.check()) return nullptr;
                 if (is_range) break; // in a range all elements are of the same type
             }
             if (!is_range) assert(i == static_cast<std::size_t>(obj_size));

@@ -478,7 +478,7 @@ private:
 
     /** Copy constructor.
      */
-    SolvingStrategy(const SolvingStrategy& Other);
+    SolvingStrategy(const SolvingStrategy& Other) = delete;
 
 
     ///@}

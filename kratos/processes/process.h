@@ -193,7 +193,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    Process& operator=(Process const& rOther);
+    Process& operator=(Process const& rOther) = delete;
 
     /// Copy constructor.
     //Process(Process const& rOther);

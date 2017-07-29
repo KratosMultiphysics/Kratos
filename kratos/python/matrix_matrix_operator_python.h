@@ -214,7 +214,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    MatrixMatrixOperatorPython& operator=(const MatrixMatrixOperatorPython& rOther);
+    MatrixMatrixOperatorPython& operator=(const MatrixMatrixOperatorPython& rOther) = delete;
 
 
     ///@}

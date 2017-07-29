@@ -491,7 +491,7 @@ public:
 
         BuildRHSNoDirichlet(pScheme,r_model_part,b);
 
-		const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+		const auto ndofs = static_cast<int>(BaseType::mDofSet.size());
 
 		//NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
 		#pragma omp parallel for firstprivate(ndofs)
@@ -524,7 +524,7 @@ public:
 
         //Gets the array of elements from the modeler
         ElementsArrayType& pElements = r_model_part.Elements();
-        const int nelements = static_cast<int>(pElements.size());
+        const auto nelements = static_cast<int>(pElements.size());
 
         Element::DofsVectorType ElementalDofList;
 
@@ -584,7 +584,7 @@ public:
                 std::cout << "Initializing condition loop\n" << std::endl;
             }
             ConditionsArrayType& pConditions = r_model_part.Conditions();
-            const int nconditions = static_cast<int>(pConditions.size());
+            const auto nconditions = static_cast<int>(pConditions.size());
             #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < nconditions; i++)
             {
@@ -706,7 +706,7 @@ public:
 
         //int free_id = 0;
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
-        int ndofs = static_cast<int>(BaseType::mDofSet.size());
+        auto ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         #pragma omp parallel for firstprivate(ndofs)
         for (int i = 0; i < static_cast<int>(ndofs); i++)
@@ -827,7 +827,7 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, r_model_part, b);
 
-		const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+		const auto ndofs = static_cast<int>(BaseType::mDofSet.size());
 
 		//NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
 		#pragma omp parallel for firstprivate(ndofs)
@@ -858,7 +858,7 @@ public:
         std::size_t system_size = A.size1();
         std::vector<double> scaling_factors (system_size, 0.0f);
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+        const auto ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for firstprivate(ndofs)
@@ -1037,7 +1037,7 @@ protected:
 
         Element::EquationIdVectorType ids(3, 0);
 
-        const int nelements = static_cast<int>(rElements.size());
+        const auto nelements = static_cast<int>(rElements.size());
         #pragma omp parallel for firstprivate(nelements, ids)
         for(int iii=0; iii<nelements; iii++)
         {
@@ -1058,7 +1058,7 @@ protected:
 
         }
 
-        const int nconditions = static_cast<int>(rConditions.size());
+        const auto nconditions = static_cast<int>(rConditions.size());
         #pragma omp parallel for firstprivate(nconditions, ids)
         for (int iii = 0; iii<nconditions; iii++)
         {
@@ -1301,7 +1301,7 @@ private:
         // assemble all elements
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 
-        const int nelements = static_cast<int>(pElements.size());
+        const auto nelements = static_cast<int>(pElements.size());
         #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
         {
             #pragma omp for schedule(guided, 512) nowait
@@ -1329,7 +1329,7 @@ private:
 
             // assemble all conditions
             //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-            const int nconditions = static_cast<int>(ConditionsArray.size());
+            const auto nconditions = static_cast<int>(ConditionsArray.size());
             //#pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId) schedule(dynamic, 1024)
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++)

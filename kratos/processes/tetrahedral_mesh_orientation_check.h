@@ -471,10 +471,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    TetrahedralMeshOrientationCheck& operator=(TetrahedralMeshOrientationCheck const& rOther);
+    TetrahedralMeshOrientationCheck& operator=(TetrahedralMeshOrientationCheck const& rOther) = delete;
 
     /// Copy constructor.
-    TetrahedralMeshOrientationCheck(TetrahedralMeshOrientationCheck const& rOther);
+    TetrahedralMeshOrientationCheck(TetrahedralMeshOrientationCheck const& rOther) = delete;
 
 
     ///@}

@@ -118,7 +118,7 @@ public:
                      || PyIter_Check(obj_ptr)
                      || PyRange_Check(obj_ptr)))
             {
-                return 0;
+                return nullptr;
             }
         }
 
@@ -127,7 +127,7 @@ public:
         if (!obj_iter.get())   // must be convertible to an iterator
         {
             PyErr_Clear();
-            return 0;
+            return nullptr;
         }
         if (true)
         {
@@ -135,7 +135,7 @@ public:
             if (obj_size < 0)   // must be a measurable sequence
             {
                 PyErr_Clear();
-                return 0;
+                return nullptr;
             }
             /*         if (!TConversionPolicyType::check_size( */
             /*           boost::type<TContainerType>(), obj_size)) return 0; */
@@ -149,12 +149,12 @@ public:
                 if (PyErr_Occurred())
                 {
                     PyErr_Clear();
-                    return 0;
+                    return nullptr;
                 }
                 if (!py_elem_hdl.get()) break; // end of iteration
                 boost::python::object py_elem_obj(py_elem_hdl);
                 boost::python::extract<typename TContainerType::value_type> elem_proxy(py_elem_obj);
-                if (!elem_proxy.check()) return 0;
+                if (!elem_proxy.check()) return nullptr;
                 if (is_range) break; // in a range all elements are of the same type
             }
             if (!is_range) assert(i == static_cast<std::size_t>(obj_size));

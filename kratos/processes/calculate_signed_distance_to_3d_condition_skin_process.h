@@ -264,10 +264,10 @@ protected:
 private:
 
     /// Assignment operator.
-    DistanceSpatialContainersConditionConfigure& operator=(DistanceSpatialContainersConditionConfigure const& rOther);
+    DistanceSpatialContainersConditionConfigure& operator=(DistanceSpatialContainersConditionConfigure const& rOther) = delete;
 
     /// Copy constructor.
-    DistanceSpatialContainersConditionConfigure(DistanceSpatialContainersConditionConfigure const& rOther);
+    DistanceSpatialContainersConditionConfigure(DistanceSpatialContainersConditionConfigure const& rOther) = delete;
 
 
 }; // Class DistanceSpatialContainersConditionConfigure
@@ -1349,7 +1349,7 @@ private:
         for (int i_pos=0; i_pos < 8; i_pos++) // position 8 is for center
         {
             ConfigurationType::cell_node_data_type* p_node = (*(pCell->pGetData()))[i_pos];
-            if(p_node == 0)
+            if(p_node == nullptr)
             {
                 (*(pCell->pGetData()))[i_pos] = new ConfigurationType::cell_node_data_type;
 
@@ -2151,7 +2151,7 @@ private:
       ///@{ 
       
       /// Assignment operator.
-      CalculateSignedDistanceTo3DConditionSkinProcess& operator=(CalculateSignedDistanceTo3DConditionSkinProcess const& rOther);
+      CalculateSignedDistanceTo3DConditionSkinProcess& operator=(CalculateSignedDistanceTo3DConditionSkinProcess const& rOther) = delete;
 
       /// Copy constructor.
       //CalculateSignedDistanceTo3DConditionSkinProcess(CalculateSignedDistanceTo3DConditionSkinProcess const& rOther);

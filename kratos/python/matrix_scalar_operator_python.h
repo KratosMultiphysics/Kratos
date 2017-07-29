@@ -229,7 +229,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    MatrixScalarOperatorPython& operator=(const MatrixScalarOperatorPython& rOther);
+    MatrixScalarOperatorPython& operator=(const MatrixScalarOperatorPython& rOther) = delete;
 
 
     ///@}

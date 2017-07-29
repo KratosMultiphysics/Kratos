@@ -222,7 +222,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ElementEraseProcess& operator=(ElementEraseProcess const& rOther);
+    ElementEraseProcess& operator=(ElementEraseProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ElementEraseProcess(ElementEraseProcess const& rOther);

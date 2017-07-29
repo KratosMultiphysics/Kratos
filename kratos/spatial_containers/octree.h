@@ -134,7 +134,7 @@ public:
         PointType mid_cell_lenght;
 
         SizeType TempSize = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
-        PointerType* Temp = new PointerType[ TempSize ];
+        auto* Temp = new PointerType[ TempSize ];
 
         // Template definition of SplitMode
         // SplitMode()(mPostion,MinPoint,MaxPoint,mPointBegin,mPointEnd);
@@ -347,7 +347,7 @@ public:
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
-            return NULL;
+            return nullptr;
         else if (number_of_points <= BucketSize)
         {
             return new LeafType(PointsBegin, PointsEnd);

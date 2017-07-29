@@ -187,10 +187,10 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      MeasureMeshQualityProcess& operator=(MeasureMeshQualityProcess const& rOther);
+      MeasureMeshQualityProcess& operator=(MeasureMeshQualityProcess const& rOther) = delete;
 
       /// Copy constructor.
-      MeasureMeshQualityProcess(MeasureMeshQualityProcess const& rOther);
+      MeasureMeshQualityProcess(MeasureMeshQualityProcess const& rOther) = delete;
 
 
       ///@}

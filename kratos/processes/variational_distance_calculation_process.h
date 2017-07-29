@@ -502,7 +502,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    VariationalDistanceCalculationProcess& operator=(VariationalDistanceCalculationProcess const& rOther);
+    VariationalDistanceCalculationProcess& operator=(VariationalDistanceCalculationProcess const& rOther) = delete;
 
     /// Copy constructor.
     //VariationalDistanceCalculationProcess(VariationalDistanceCalculationProcess const& rOther);

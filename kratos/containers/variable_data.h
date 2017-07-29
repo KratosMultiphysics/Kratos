@@ -212,7 +212,7 @@ protected:
     ///@{
 
     /// Constructor.
-	VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false);
+	VariableData(std::string  NewName, std::size_t NewSize, bool Iscomponent = false);
 
 
     /** default constructor is to be used only with serialization due to the fact that

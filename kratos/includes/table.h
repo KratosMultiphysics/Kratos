@@ -384,7 +384,7 @@ private:
     ///@{
 
     /// Copy constructor.
-    Table(Table const& rOther);
+    Table(Table const& rOther) = delete;
 
 
     ///@}
@@ -601,11 +601,11 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            mData.push_back(RecordType(X,Y));
+            mData.emplace_back(X,Y);
         else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
 		else if(X > mData.back().first)
-			mData.push_back(RecordType(X,Y));
+			mData.emplace_back(X,Y);
 		else
             for(std::size_t i = 1 ; i < size ; i++)
                 if((X > mData[i-1].first) && (X <= mData[i].first))
@@ -620,7 +620,7 @@ public:
     void PushBack(argument_type const& X, result_type const& Y)
     {
         result_row_type a = {{Y}};
-        mData.push_back(RecordType(X,a));
+        mData.emplace_back(X,a);
     }
 
 	 // Get the derivative for the given argument using piecewise linear
@@ -704,8 +704,8 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(std::size_t i = 0 ; i < mData.size() ; i++)
-            rOStream << mData[i].first << "\t\t" << mData[i].second[0] << std::endl;
+        for(const auto & i : mData)
+            rOStream << i.first << "\t\t" << i.second[0] << std::endl;
     }
 
     ///@}

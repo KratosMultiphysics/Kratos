@@ -389,7 +389,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ApplyConstantVectorValueProcess& operator=(ApplyConstantVectorValueProcess const& rOther);
+    ApplyConstantVectorValueProcess& operator=(ApplyConstantVectorValueProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ApplyConstantVectorValueProcess(ApplyConstantVectorValueProcess const& rOther);

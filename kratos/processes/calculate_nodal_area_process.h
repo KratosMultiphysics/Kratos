@@ -309,7 +309,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    CalculateNodalAreaProcess& operator=(CalculateNodalAreaProcess const& rOther);
+    CalculateNodalAreaProcess& operator=(CalculateNodalAreaProcess const& rOther) = delete;
 
     /// Copy constructor.
     //CalculateNodalAreaProcess(CalculateNodalAreaProcess const& rOther);

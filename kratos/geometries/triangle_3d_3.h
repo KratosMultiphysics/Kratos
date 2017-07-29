@@ -550,7 +550,7 @@ public:
 
 	int GetMajorAxis(array_1d<double, 3> const& V) 
     {
-        int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
+        auto index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
 	}
 
@@ -1235,7 +1235,7 @@ public:
     @see EdgesNumber()
     @see Edge()
     */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType Edges( ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -1286,7 +1286,7 @@ public:
      * @see Edges
      * @see FacesNumber
     */
-    GeometriesArrayType Faces( void ) override
+    GeometriesArrayType Faces( ) override
     {
         return GeometriesArrayType();
     }

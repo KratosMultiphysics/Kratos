@@ -301,10 +301,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    Bucket& operator=(Bucket const& rOther);
+    Bucket& operator=(Bucket const& rOther) = delete;
 
     /// Copy constructor.
-    Bucket(Bucket const& rOther);
+    Bucket(Bucket const& rOther) = delete;
 
 
     ///@}

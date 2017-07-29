@@ -333,7 +333,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    FindNodalNeighboursProcess& operator=(FindNodalNeighboursProcess const& rOther);
+    FindNodalNeighboursProcess& operator=(FindNodalNeighboursProcess const& rOther) = delete;
 
     /// Copy constructor.
     //FindNodalNeighboursProcess(FindNodalNeighboursProcess const& rOther);

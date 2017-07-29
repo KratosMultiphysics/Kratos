@@ -15,6 +15,7 @@
 // System includes
 #include <chrono>
 #include <sstream>
+#include <utility>
 
 // External includes
 
@@ -28,8 +29,8 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		TestCase::TestCase(std::string const& Name)
-			:mName(Name), mIsEnabled(true), mIsSelected(false) {}
+		TestCase::TestCase(std::string  Name)
+			:mName(std::move(Name)), mIsEnabled(true), mIsSelected(false) {}
 
 		TestCase::~TestCase() {}
 
