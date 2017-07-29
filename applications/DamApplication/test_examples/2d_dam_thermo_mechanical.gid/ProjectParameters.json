@@ -147,7 +147,7 @@
             "Water_level_Table"                                : 1,
             "Outer_temp"                                       : 5,
             "Outer_temp_Table"                                 : 2,
-            "Month"                                            : 1,
+            "Month"                                            : 1.0,
             "Month_Table"                                      : 3
         }
     }],

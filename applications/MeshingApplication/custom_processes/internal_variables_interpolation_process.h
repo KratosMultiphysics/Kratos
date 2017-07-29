@@ -528,9 +528,9 @@ private:
             // Combine buffers together
             #pragma omp single
             {
-                for( auto& points_buffer : points_buffer)
+                for( auto& point_buffer : points_buffer)
                 {
-                    std::move(points_buffer.begin(),points_buffer.end(),back_inserter(this_point_vector));
+                    std::move(point_buffer.begin(),point_buffer.end(),back_inserter(this_point_vector));
                 }
             }
         }
