@@ -412,58 +412,35 @@ private:
         //submodels= mThisModelPart.GetSubModelPartNames();
         //for (std::vector<std::string>::const_iterator i = submodels.begin();i!=submodels.end();i++) 
         //    std::cout << *i<<std::endl; 
-       FindNodalNeighboursProcess findNeighbours(mThisModelPart);
-       findNeighbours.Execute();
-       std::vector<Vector> stress_vector(1);
-       std::vector<array_1d<double,3>> coordinates_vector(1);
-       Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
-       //iteration over all nodes -- construction of patches
-       ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
-       for(ModelPart::NodesContainerType::iterator i_nodes = rNodes.begin(); i_nodes!=rNodes.end(); i_nodes++)
-       {   
-        int neighbour_size = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).size();
-        std::cout << "Node: " << i_nodes->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
-        if(neighbour_size>2){ 
-            Matrix A(3,3,0);
-            Matrix b(3,3,0); 
-            Matrix p_k(1,3,0);
-            for( WeakPointerVector< Element >::iterator i_elements = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_elements != i_nodes->GetValue(NEIGHBOUR_ELEMENTS).end(); i_elements++) {
-                std::cout << "\tElement: " << i_elements->Id() << std::endl;
-                i_elements->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
-                i_elements->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
-
-                std::cout << "\tstress: " << stress_vector[0] << std::endl;
-                std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
-                Matrix sigma(1,3);
-                for(int j=0;j<3;j++)
-                    sigma(0,j)=stress_vector[0][j];
-            
-                p_k(0,0)=1;
-                p_k(0,1)=coordinates_vector[0][0]-i_nodes->X(); 
-                p_k(0,2)=coordinates_vector[0][1]-i_nodes->Y();   
-                A+=prod(trans(p_k),p_k);
-                b+=prod(trans(p_k),sigma);
+        FindNodalNeighboursProcess findNeighbours(mThisModelPart);
+        findNeighbours.Execute();
+        //std::vector<Vector> stress_vector(1);
+        //std::vector<array_1d<double,3>> coordinates_vector(1);
+        //ariable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
+        //iteration over all nodes -- construction of patches
+        ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
+        for(ModelPart::NodesContainerType::iterator i_nodes = rNodes.begin(); i_nodes!=rNodes.end(); i_nodes++){
+            int neighbour_size = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).size();
+            std::cout << "Node: " << i_nodes->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
+            Vector sigma_recovered(3,0);
+            if(neighbour_size>2){ 
+                CalculatePatch(i_nodes,i_nodes,neighbour_size,sigma_recovered);
+                i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
+                std::cout<<"recovered sigma"<<sigma_recovered<<std::endl;
             }
-           Matrix invA(3,3);
-           double det;
-           MathUtils<double>::InvertMatrix(A,invA,det);
-           //std::cout <<A<<std::endl;
-           //std::cout <<invA<<std::endl;
-           //std::cout << det<< std::endl;
-
-           Matrix coeff(3,3);
-           coeff = prod(invA,b);
-           Vector sigma_recovered(3);
-           sigma_recovered = MatrixRow(coeff,0);
-
-           //compute recovered stress at the node
-           i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
-           std::cout<<"recovered sigma"<<sigma_recovered<<std::endl;
-       }
-       else{
-           Vector sigma_recovered(3);
-           i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
-       }
+            else{
+                for(WeakPointerVector< Node<3> >::iterator i_neighbour_nodes = i_nodes->GetValue(NEIGHBOUR_NODES).begin(); i_neighbour_nodes != i_nodes->GetValue(NEIGHBOUR_NODES).end(); i_neighbour_nodes++){
+                    Vector sigma_recovered_i(3);
+                    unsigned int count_i=1;
+                    for(ModelPart::NodesContainerType::iterator i = rNodes.begin(); i!=rNodes.end(); i++){
+                        if (i->Id() == i_neighbour_nodes->Id() && i->GetValue(NEIGHBOUR_ELEMENTS).size()>2)
+                            CalculatePatch(i_nodes,i,neighbour_size,sigma_recovered_i);
+                    }
+                    //average solution from different patches
+                    sigma_recovered =sigma_recovered*(count_i-1)/count_i + sigma_recovered_i/count_i;
+                }
+                i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
+            }
        }
         /******************************************************************************
         --2-- calculate error estimation and new element size (for each element) --2--
@@ -474,7 +451,7 @@ private:
         {
             //compute the error estimate per element
             std::vector<double> error_integration_point;
-            i_elements->GetValueOnIntegrationPoints(STRAIN_ENERGY,error_integration_point,mThisModelPart.GetProcessInfo());
+            i_elements->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT,error_integration_point,mThisModelPart.GetProcessInfo());
             double error_energy_norm=0;
             for(unsigned int i=0;i<error_integration_point.size();i++)
                 error_energy_norm += error_integration_point[i];
@@ -492,6 +469,56 @@ private:
             //distribute the error on the nodes
         }
         std::cout<<"overall_error:"<<error_overall<<std::endl;
+    }
+    //calculates the recovered stress at a node 
+    // i_node: the node for which the recovered stress should be calculated
+    // i_patch_node: the center node of the patch
+    void CalculatePatch(
+        ModelPart::NodesContainerType::iterator i_nodes,
+        ModelPart::NodesContainerType::iterator i_patch_node,
+        int neighbour_size,
+        Vector& rsigma_recovered)
+    {
+        std::vector<Vector> stress_vector(1);
+        std::vector<array_1d<double,3>> coordinates_vector(1);
+        Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
+        Matrix A(3,3,0);
+        Matrix b(3,3,0); 
+        Matrix p_k(1,3,0);
+        for( WeakPointerVector< Element >::iterator i_elements = i_patch_node->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_elements != i_patch_node->GetValue(NEIGHBOUR_ELEMENTS).end(); i_elements++) {
+            std::cout << "\tElement: " << i_elements->Id() << std::endl;
+            i_elements->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
+            i_elements->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
+
+            std::cout << "\tstress: " << stress_vector[0] << std::endl;
+            std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
+            Matrix sigma(1,3);
+            for(int j=0;j<3;j++)
+                sigma(0,j)=stress_vector[0][j];
+            p_k(0,0)=1;
+            p_k(0,1)=coordinates_vector[0][0]-i_patch_node->X(); 
+            p_k(0,2)=coordinates_vector[0][1]-i_patch_node->Y();   
+            A+=prod(trans(p_k),p_k);
+            b+=prod(trans(p_k),sigma);
+        }
+        Matrix invA(3,3);
+        double det;
+        MathUtils<double>::InvertMatrix(A,invA,det);
+        //std::cout <<A<<std::endl;
+        //std::cout <<invA<<std::endl;
+        //std::cout << det<< std::endl;
+
+        Matrix coeff(3,3);
+        coeff = prod(invA,b);
+        if(neighbour_size > 2)
+            rsigma_recovered = MatrixRow(coeff,0);
+        else{
+            p_k(0,1)=i_nodes->X()-i_patch_node->X(); 
+            p_k(0,2)=i_nodes->Y()-i_patch_node->Y();
+            Matrix sigma(1,3);
+            sigma = prod(p_k,coeff);
+            rsigma_recovered = MatrixRow(sigma,0);
+        }
     }
     
     /**
