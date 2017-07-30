@@ -641,12 +641,18 @@ namespace Kratos
                         sigma_recovered[stress_component]+= this_kinematic_variables.N[node_number]*GetGeometry()[node_number].GetValue(RECOVERED_STRESS)[stress_component];
                     }
                 }
+                std::cout<<"sigma recovered:"<<sigma_recovered<<std::endl;
+                std::cout<<"sigma        FE:"<<sigma_FE_solution[point_number]<<std::endl;
                 //calculate error_sigma
                 Vector error_sigma(strain_size);
                 error_sigma = sigma_recovered - sigma_FE_solution[point_number];
 
+                //calculate inverse of material matrix
+                Matrix invD(strain_size,strain_size);
+                double detD;
+                MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
                 //calculate error_energy 
-                rOutput[point_number]= 0.5*integration_weight*inner_prod(error_sigma,prod(this_constitutive_variables.D,error_sigma));
+                rOutput[point_number]= integration_weight*inner_prod(error_sigma,prod(invD,error_sigma));
             } 
         }
 

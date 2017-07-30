@@ -194,8 +194,8 @@ class MmgProcess(KratosMultiphysics.Process):
                         self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
-        pass
-        #self._ExecuteRefinement()
+        #pass
+        self._ExecuteRefinement()
 
     def ExecuteBeforeOutputStep(self):
         pass

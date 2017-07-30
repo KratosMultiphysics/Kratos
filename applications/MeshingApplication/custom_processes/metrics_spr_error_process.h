@@ -420,31 +420,29 @@ private:
        //iteration over all nodes -- construction of patches
        ModelPart::NodesContainerType& rNodes = mThisModelPart.Nodes();
        for(ModelPart::NodesContainerType::iterator i_nodes = rNodes.begin(); i_nodes!=rNodes.end(); i_nodes++)
-       {
+       {   
         int neighbour_size = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).size();
         std::cout << "Node: " << i_nodes->Id() << " has " << neighbour_size << " neighbouring elements: " << std::endl;
-          
-        Matrix A(3,3);
-        Matrix b(3,3); 
-        Matrix p_k(1,3);
-        for( WeakPointerVector< Element >::iterator i_elements = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_elements != i_nodes->GetValue(NEIGHBOUR_ELEMENTS).end(); i_elements++) {
-            std::cout << "\tElement: " << i_elements->Id() << std::endl;
-            i_elements->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
-            i_elements->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
+        if(neighbour_size>2){ 
+            Matrix A(3,3,0);
+            Matrix b(3,3,0); 
+            Matrix p_k(1,3,0);
+            for( WeakPointerVector< Element >::iterator i_elements = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_elements != i_nodes->GetValue(NEIGHBOUR_ELEMENTS).end(); i_elements++) {
+                std::cout << "\tElement: " << i_elements->Id() << std::endl;
+                i_elements->GetValueOnIntegrationPoints(mVariable,stress_vector,mThisModelPart.GetProcessInfo());
+                i_elements->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
 
-            std::cout << "\tstress_yy: " << stress_vector[0][1] << std::endl;
-            std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
-            Matrix sigma(1,3);
-            for(int j=0;j<3;j++)
-                sigma(0,j)=stress_vector[0][j];
+                std::cout << "\tstress: " << stress_vector[0] << std::endl;
+                std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
+                Matrix sigma(1,3);
+                for(int j=0;j<3;j++)
+                    sigma(0,j)=stress_vector[0][j];
             
-            p_k(0,0)=1;
-            p_k(0,1)=coordinates_vector[0][0]-i_nodes->X(); 
-            p_k(0,2)=coordinates_vector[0][1]-i_nodes->Y();   
-            
-
-            A+=prod(trans(p_k),p_k);
-            b+=prod(trans(p_k),sigma);
+                p_k(0,0)=1;
+                p_k(0,1)=coordinates_vector[0][0]-i_nodes->X(); 
+                p_k(0,2)=coordinates_vector[0][1]-i_nodes->Y();   
+                A+=prod(trans(p_k),p_k);
+                b+=prod(trans(p_k),sigma);
             }
            Matrix invA(3,3);
            double det;
@@ -460,22 +458,40 @@ private:
 
            //compute recovered stress at the node
            i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
+           std::cout<<"recovered sigma"<<sigma_recovered<<std::endl;
        }
-        /************************************************************************
-        --2-- calculate error estimation and metric(for each node) --2--
-        ************************************************************************/
+       else{
+           Vector sigma_recovered(3);
+           i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
+       }
+       }
+        /******************************************************************************
+        --2-- calculate error estimation and new element size (for each element) --2--
+        ******************************************************************************/
         //loop over all elements: 
+        double error_overall=0;
         for(ModelPart::ElementsContainerType::iterator i_elements = mThisModelPart.Elements().begin() ; i_elements != mThisModelPart.Elements().end(); i_elements++) 
         {
             //compute the error estimate per element
             std::vector<double> error_integration_point;
-            i_elements->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT,error_integration_point,mThisModelPart.GetProcessInfo());
+            i_elements->GetValueOnIntegrationPoints(STRAIN_ENERGY,error_integration_point,mThisModelPart.GetProcessInfo());
             double error_energy_norm=0;
             for(unsigned int i=0;i<error_integration_point.size();i++)
                 error_energy_norm += error_integration_point[i];
-            
+            error_energy_norm= sqrt(error_energy_norm);
+            error_overall += error_energy_norm;
+            std::cout<<"element_error:"<<error_energy_norm<<std::endl;
+
+
+            /*std::vector<double> strain_energy;
+            i_elements->GetValueOnIntegrationPoints(STRAIN_ENERGY,strain_energy,mThisModelPart.GetProcessInfo());
+            double strainenergy=0;
+            for(unsigned int i=0;i<strain_energy.size();i++)
+                strainenergy += strain_energy[i];
+            std::cout<<"element_error:"<<strainenergy<<std::endl;*/
             //distribute the error on the nodes
         }
+        std::cout<<"overall_error:"<<error_overall<<std::endl;
     }
     
     /**
