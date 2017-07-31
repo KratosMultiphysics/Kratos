@@ -28,11 +28,13 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3]) {
 
+        double mass_inv = 1.0 / mass;
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
+                vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
             } else {
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
