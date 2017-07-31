@@ -19,7 +19,7 @@
         "response_function_settings" : {
             "response_type"            : "drag",
             "structure_model_part_name" : "NoSlip2D_Cylinder",
-            "boundary_model_part_name" : "NoSlip2D_Cylinder",
+            "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "drag_direction"            : [1.0, 0.0, 0.0]
         },

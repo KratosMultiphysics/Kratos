@@ -39,7 +39,7 @@
         "response_function_settings" : {
             "response_type"            : "drag",
             "structure_model_part_name" : "Structure",
-            "boundary_model_part_name"  : "Boundary",
+            "sensitivity_model_part_name"  : "Boundary",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "drag_direction"            : [1.0, 0.0, 0.0]
         },

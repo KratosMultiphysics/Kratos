@@ -51,7 +51,7 @@ public:
     ResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
       : mrModelPart(rModelPart)
     {
-        mBoundaryModelPartName = rParameters["boundary_model_part_name"].GetString();
+        mSensitivityModelPartName = rParameters["sensitivity_model_part_name"].GetString();
         Parameters nodal_sensitivity_variables = rParameters["nodal_sensitivity_variables"];
         mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
         for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
@@ -85,15 +85,15 @@ public:
     {
         ModelPart& r_model_part = this->GetModelPart();
 
-        if (r_model_part.HasSubModelPart(mBoundaryModelPartName) == false)
-            KRATOS_ERROR << "No sub model part \"" << mBoundaryModelPartName
+        if (r_model_part.HasSubModelPart(mSensitivityModelPartName) == false)
+            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
                          << "\"" << std::endl;
         
         for (auto &node : r_model_part.Nodes())
-            node.Set(BOUNDARY, false);
+            node.SetValue(UPDATE_SENSITIVITIES, false);
 
-        for (auto &node : r_model_part.GetSubModelPart(mBoundaryModelPartName).Nodes())
-            node.Set(BOUNDARY, true);
+        for (auto &node : r_model_part.GetSubModelPart(mSensitivityModelPartName).Nodes())
+            node.SetValue(UPDATE_SENSITIVITIES, true);
 
         for (auto label : mNodalSensitivityVariables)
         {
@@ -281,15 +281,15 @@ protected:
             for (auto it = elements_begin; it != elements_end; ++it)
             {
                 Element::GeometryType& r_geom = it->GetGeometry();
-                bool is_boundary = false;
+                bool update_sensitivities = false;
                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
-                    if (r_geom[i_node].Is(BOUNDARY) == true)
+                    if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
                     {
-                        is_boundary = true;
+                        update_sensitivities = true;
                         break;
                     }
 
-                if (is_boundary == false) // true for most elements
+                if (update_sensitivities == false) // true for most elements
                     continue;
 
                 it->CalculateSensitivityMatrix(
@@ -377,7 +377,7 @@ protected:
         unsigned int index = 0;
         for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
-            if (rGeom[i_node].Is(BOUNDARY) == true)
+            if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
                 double& rSensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
@@ -397,7 +397,7 @@ protected:
         unsigned int index = 0;
         for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
-            if (rGeom[i_node].Is(BOUNDARY) == true)
+            if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
                 array_1d<double, 3>& rSensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
@@ -417,7 +417,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mBoundaryModelPartName;
+    std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
 
     ///@}
