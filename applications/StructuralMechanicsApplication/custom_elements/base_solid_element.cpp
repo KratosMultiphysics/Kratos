@@ -549,6 +549,9 @@ namespace Kratos
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
    
+            // If strain has to be computed inside of the constitutive law with PK2
+            Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+            
             // Displacements vector
             Vector displacements;
             GetValuesVector(displacements);
