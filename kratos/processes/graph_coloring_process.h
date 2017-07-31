@@ -7,33 +7,25 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //
-
-
 
 #if !defined(KRATOS_GRAPH_COLORING_PROCESS_H_INCLUDED )
 #define  KRATOS_GRAPH_COLORING_PROCESS_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/ublas_interface.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Classes
 ///@{
 

@@ -8,7 +8,6 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //
 
 // System includes

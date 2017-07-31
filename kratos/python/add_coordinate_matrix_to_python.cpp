@@ -8,9 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //
-
 
 #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
 
@@ -18,7 +16,6 @@
 
 // External includes
 #include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"

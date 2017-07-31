@@ -7,22 +7,16 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //                    
 //
-
 
 
 #if !defined(KRATOS_ILU0_PRECONDITIONER_H_INCLUDED )
 #define  KRATOS_ILU0_PRECONDITIONER_H_INCLUDED
 
-
-
-
 // System includes
 #include <algorithm>
-
-
 
 // External includes
 
@@ -30,12 +24,8 @@
 #include "includes/define.h"
 #include "linear_solvers/ilu_preconditioner.h"
 
-
-
 namespace Kratos
 {
-
-
 ///@name Kratos Globals
 ///@{
 

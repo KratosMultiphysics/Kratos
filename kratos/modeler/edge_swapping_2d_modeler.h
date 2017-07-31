@@ -7,23 +7,18 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 
-
 #if !defined(KRATOS_EDGE_SWAPPING_2D_MODELER_H_INCLUDED )
 #define  KRATOS_EDGE_SWAPPING_2D_MODELER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"

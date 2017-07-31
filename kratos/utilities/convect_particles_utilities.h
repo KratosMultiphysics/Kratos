@@ -7,11 +7,9 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pablo Becker
 //                    
 //
-
-
 
 #if !defined(KRATOS_CONVECT_PARTICLES_UTILITIES_INCLUDED )
 #define  KRATOS_CONVECT_PARTICLES_UTILITIES_INCLUDED

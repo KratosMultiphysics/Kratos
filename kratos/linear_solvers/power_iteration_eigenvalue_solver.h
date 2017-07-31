@@ -7,14 +7,12 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 
 #if !defined(KRATOS_POWER_ITERATION_EIGENVALUE_SOLVERR_H_INCLUDED )
 #define  KRATOS_POWER_ITERATION_EIGENVALUE_SOLVERR_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -22,14 +20,11 @@
 #include <numeric>
 #include <vector>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-
 
 namespace Kratos
 {

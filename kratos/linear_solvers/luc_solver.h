@@ -7,29 +7,24 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 
 #if !defined(KRATOS_LUC_SOLVER_H_INCLUDED )
 #define  KRATOS_LUC_SOLVER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <fstream>
 
-
 // External includes
 #include <boost/timer.hpp>
-
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-
 
 namespace Kratos
 {

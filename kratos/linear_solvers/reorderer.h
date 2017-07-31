@@ -7,32 +7,25 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 
-
 #if !defined(KRATOS_REORDERER_H_INCLUDED )
 #define  KRATOS_REORDERER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 #include <vector>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 

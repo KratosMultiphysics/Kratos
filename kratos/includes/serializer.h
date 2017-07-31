@@ -8,15 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //                    
 //
 
-
 #if !defined(KRATOS_SERIALIZER_H_INCLUDED )
 #define  KRATOS_SERIALIZER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -27,17 +23,13 @@
 #include <sstream>
 #include <fstream>
 
-
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "containers/buffer.h"
 #include "containers/weak_pointer_vector.h"
 // #include "containers/variable.h"
-
 
 #define KRATOS_SERIALIZATION_DIRECT_LOAD(type)                           \
     void load(std::string const & rTag, type& rValue)                \

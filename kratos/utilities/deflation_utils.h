@@ -7,11 +7,9 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Riccardo Rossi
 //                    
 //
-
-
 
 #if !defined(KRATOS_DEFLATION_UTILS )
 #define  KRATOS_DEFLATION_UTILS

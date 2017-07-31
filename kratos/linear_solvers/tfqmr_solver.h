@@ -7,15 +7,12 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 
-
 #if !defined(KRATOS_TFQMR_SOLVER_H_INCLUDED )
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
-
-
 
 // External includes
 
@@ -24,11 +21,8 @@
 #include "linear_solvers/iterative_solver.h"
 #include <math.h>
 
-
 namespace Kratos
 {
-
-
 template<class TSparseSpaceType,
          class TDenseSpaceType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,

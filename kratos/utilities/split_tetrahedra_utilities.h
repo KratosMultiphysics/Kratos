@@ -7,15 +7,12 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Antonia Laresse
+//  Main authors:    Riccardo Rossi
 //                    
 //
 
-
 #if !defined(KRATOS_SPLIT_TETRAHEDRA_UTILITIES_INCLUDED )
 #define  KRATOS_SPLIT_TETRAHEDRA_UTILITIES_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -25,11 +22,9 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "utilities/split_tetrahedra.h"
-
 
 namespace Kratos
 {

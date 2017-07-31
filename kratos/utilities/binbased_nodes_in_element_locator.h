@@ -8,15 +8,12 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
+//                   Riccardo Rossi
 //                    
 //
 
-
-
 #if !defined(KRATOS_BINBASED_NODES_IN_ELEMENT_LOCATOR_INCLUDED )
 #define  KRATOS_BINBASED_NODES_IN_ELEMENT_LOCATOR_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -25,14 +22,11 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
 
 #include "spatial_containers/spatial_containers.h"
-
-
 
 namespace Kratos
 {

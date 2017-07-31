@@ -8,19 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //                    
 //
 
-
-
-
-
 #if !defined(KRATOS_DOF_H_INCLUDED )
 #define  KRATOS_DOF_H_INCLUDED
-
-
-
 
 // System includes
 #include <string>
@@ -28,12 +20,8 @@
 #include <sstream>
 #include <cstddef>
 
-
-
 // External includes
 #include <boost/variant.hpp>
-
-
 
 // Project includes
 #include "includes/define.h"
@@ -42,8 +30,6 @@
 #include "containers/vector_component_adaptor.h"
 #include "utilities/indexed_object.h"
 #include "containers/array_1d.h"
-
-
 
 namespace Kratos
 {

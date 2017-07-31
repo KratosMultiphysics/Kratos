@@ -7,23 +7,18 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Jordi Cotela Dalmau
 //                    
 //
 
-
 #if !defined(KRATOS_CARTESIAN_MESH_GENERATOR_H_INCLUDED )
 #define  KRATOS_CARTESIAN_MESH_GENERATOR_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -32,7 +27,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 

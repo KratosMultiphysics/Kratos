@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Antonia Laresse
+//  Main authors:    Pablo Becker
 //                    
 //
 

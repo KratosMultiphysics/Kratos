@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Nelson Lafontaine
+//                   Carlos Roig
 //
 
 

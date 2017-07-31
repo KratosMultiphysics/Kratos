@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Josep Maria Carbonell
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 

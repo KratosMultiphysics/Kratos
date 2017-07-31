@@ -8,16 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //                    
 //
 
-
-
 #if !defined( KRATOS_PROCESS_INFO_H_INCLUDED )
 #define  KRATOS_PROCESS_INFO_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -25,16 +20,13 @@
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "includes/variables.h"
 #include "containers/flags.h"
-
 
 namespace Kratos
 {

@@ -7,13 +7,12 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Josep Maria Carbonell
+//  Main authors:    Pooyan Dadvand
 //                    
 //
 
 #if !defined(KRATOS_INTEGRATION_POINT_H_INCLUDED )
 #define  KRATOS_INTEGRATION_POINT_H_INCLUDED
-
 
 
 // System includes

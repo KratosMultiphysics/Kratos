@@ -8,16 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //                    
 //
 
-
-
 #if !defined(KRATOS_KERNEL_H_INCLUDED )
 #define  KRATOS_KERNEL_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -29,7 +24,6 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
-
 
 namespace Kratos
 {

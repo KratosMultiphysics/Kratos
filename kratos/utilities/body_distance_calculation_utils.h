@@ -8,9 +8,9 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Laresse
+//                   Riccardo Rossi
 //                    
 //
-
 
 #include "includes/model_part.h"
 
