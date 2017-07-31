@@ -458,10 +458,6 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void ShellThickElement3D3N::CleanMemory()
-	{
-	}
-
 	void ShellThickElement3D3N::GetValuesVector(Vector& values, int Step)
 	{
 		if (values.size() != OPT_NUM_DOFS)
@@ -562,7 +558,7 @@ namespace Kratos
 
 	void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
+		PropertiesType& props = GetProperties();
 		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
@@ -913,6 +909,63 @@ namespace Kratos
 		std::vector<Vector>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
+		if (rVariable == LOCAL_AXIS_VECTOR_1)
+		{
+			// LOCAL_AXIS_VECTOR_1 output DOES NOT include the effect of section
+			// orientation, which rotates the entrire element section in-plane
+			// and is used in element stiffness calculation.
+
+			rValues.resize(OPT_NUM_GP);
+			for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
+			// Initialize common calculation variables
+			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+			for (size_t GP = 0; GP < 1; GP++)
+			{
+				rValues[GP] = localCoordinateSystem.Vx();
+			}
+		}
+		else if (rVariable == ORTHOTROPIC_FIBER_ORIENTATION_1)
+		{
+			// ORTHOTROPIC_FIBER_ORIENTATION_1 output DOES include the effect of 
+			// section orientation, which rotates the entrire element section 
+			// in-plane and is used in the element stiffness calculation.
+
+			// Resize output
+			rValues.resize(OPT_NUM_GP);
+			for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
+
+			// Initialize common calculation variables
+			// Compute the local coordinate system.
+			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+			// Get local axis 1 in flattened LCS space
+			Vector3 localAxis1 = localCoordinateSystem.P2() - localCoordinateSystem.P1();
+
+			// Perform rotation of local axis 1 to fiber1 in flattened LCS space
+			Matrix localToFiberRotation = Matrix(3, 3, 0.0);
+			double fiberSectionRotation = mSections[0]->GetOrientationAngle();
+			double c = std::cos(fiberSectionRotation);
+			double s = std::sin(fiberSectionRotation);
+			localToFiberRotation(0, 0) = c;
+			localToFiberRotation(0, 1) = -s;
+			localToFiberRotation(1, 0) = s;
+			localToFiberRotation(1, 1) = c;
+			localToFiberRotation(2, 2) = 1.0;
+
+			Vector3 temp = prod(localToFiberRotation, localAxis1);
+
+			// Transform result back to global cartesian coords and normalize
+			Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
+			Vector3 fiberAxis1 = prod(trans(localToGlobalSmall), temp);
+			fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
+
+			//write results
+			for (size_t dir = 0; dir < 1; dir++)
+			{
+				rValues[dir] = fiberAxis1;
+			}
+		}
 	}
 
 	void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -941,10 +994,14 @@ namespace Kratos
 	}
 
 	void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-		std::vector<Vector>& rValues,
+		std::vector<Vector>& rOutput,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-		GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		KRATOS_TRY;
+
+		GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+		KRATOS_CATCH("");
 	}
 
 	void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -966,6 +1023,29 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+
+	void ShellThickElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
+	{
+		if (rVariable == LOCAL_ELEMENT_ORIENTATION)
+		{
+			Output.resize(3, 3, false);
+
+			// Compute the local coordinate system.
+			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+			Output = localCoordinateSystem.Orientation();
+		}
+	}
+
+	void ShellThickElement3D3N::Calculate(const Variable<double>& rVariable, double & rotationAngle, const ProcessInfo & rCurrentProcessInfo)
+	{
+		if (rVariable == ORTHOTROPIC_ORIENTATION_ASSIGNMENT)
+		{
+			if (rotationAngle != 0.0)
+			{
+				mOrthotropicSectionRotation = rotationAngle;
+			}
+		}
 	}
 
 	void ShellThickElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
@@ -1462,8 +1542,18 @@ namespace Kratos
 				angle = -angle;
 		}
 
-		for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-			(*it)->SetOrientationAngle(angle);
+		Properties props = GetProperties();
+		if (props.Has(ORTHOTROPIC_ORIENTATION_ASSIGNMENT))
+		{
+			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+				(*it)->SetOrientationAngle(mOrthotropicSectionRotation);
+		}
+		else
+		{
+			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+				(*it)->SetOrientationAngle(angle);
+		}
+		
 	}
 
 	void ShellThickElement3D3N::CalculateSectionResponse(CalculationData& data)
@@ -1628,20 +1718,29 @@ namespace Kratos
 			// Don't do anything here.
 			// The shear contribution will be added with 3GPs later on.
 		}
+		else if (data.smoothedDSG)
+		{
+			// Use smoothed DSG formulation according to [Nguyen-Thoi et al., 2013]
+			std::cout << "Using smoothed DSG" << std::endl;
+			CalculateSmoothedDSGBMatrix(data);
+		}
 		else if (data.basicTriCST == false)
 		{
-			// Use DSG method
+			// Use DSG method as per Bletzinger (2000)
+			// Entries denoted "altered by -1" are multiplied by -1
 
 			const double a = x21;
 			const double b = y21;
 			const double c = y31;
 			const double d = x31;
+
 			//node 1
 			data.B(6, 2) = b - c;
 			data.B(6, 4) = A;
 
 			data.B(7, 2) = d - a;
-			data.B(7, 3) = -1.0 * A;
+			data.B(7, 3) = -1.0*A;
+			
 
 			//node 2
 			data.B(6, 8) = c;
@@ -1655,7 +1754,7 @@ namespace Kratos
 			//node 3
 			data.B(6, 14) = -1.0 * b;
 			data.B(6, 15) = b*c / 2.0;
-			data.B(6, 16) = b*d / 2.0;
+			data.B(6, 16) = -b*d / 2.0;
 
 			data.B(7, 14) = a;
 			data.B(7, 15) = -1.0 * a*c / 2.0;
@@ -1666,7 +1765,7 @@ namespace Kratos
 			// Basic CST displacement derived shear
 			// strain displacement matrix.
 			// Only for testing!
-
+			std::cout << "Using basic CST shear formulation!" << std::endl;
 			const Matrix & shapeFunctions = 
 				GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
@@ -1739,8 +1838,22 @@ namespace Kratos
 
 	void ShellThickElement3D3N::CalculateDSGc3Contribution(CalculationData & data, MatrixType & rLeftHandSideMatrix)
 	{
-		std::cout << "\n==============================\nUsing Super DSGc3 formulation\n==============================\n" << std::endl;
+		std::cout << "DSGc3" << std::endl;
 
+		// choose formulation options
+		bool use_pure_bubble_mode = false;
+		bool use_no_bubble_mode = true;
+		bool use_reconstructed_shear_gaps = false;
+		bool use_original_dsg = false;
+		bool use_original_dsg_with_bubble = false;
+
+		// Material matrix data.D is already multiplied with A!!!
+		data.D *= 2.0; //now data.D is D*detJ
+
+		// Modified B-matrix
+		Matrix BSuper = Matrix(2, 9, 0.0);
+
+		// Get geometry data
 		const double x1 = data.LCS0.X1();
 		const double y1 = data.LCS0.Y1();
 		const double x2 = data.LCS0.X2();
@@ -1754,17 +1867,14 @@ namespace Kratos
 		const double c = y3 - y1;
 		const double d = x3 - x1;
 
-		bool use_quartic_integration = false;
+		// Numeric integration
 		int numberGPs = 3;
-		if (use_quartic_integration)
+		double integration_weight = 1.0 / 6.0;
+		if (use_original_dsg_with_bubble)
 		{
+			// use quartic integration
 			numberGPs = 7;
 		}
-
-		// Material matrix data.D is already multiplied with A!!!
-		//double dA = data.TotalArea / 3.0 (Corresponds to |J| = 2A with w_i = 1/6)
-		//data.D /= 3.0;	
-		data.D *= 2.0; //now data.D is D*detJ
 
 		std::vector< array_1d<double, 3> > quarticGPLocations;
 		quarticGPLocations.resize(7);
@@ -1772,6 +1882,8 @@ namespace Kratos
 		for (size_t i = 0; i < 7; i++)
 		{
 			quarticGPLocations[i].clear();
+			quarticGPLocations[i][0] = 0.0;
+			quarticGPLocations[i][1] = 0.0;
 		}
 		Vector quarticGPweights = Vector(7, 0.0);
 
@@ -1796,26 +1908,13 @@ namespace Kratos
 		quarticGPLocations[6][0] = 0.3;
 		quarticGPLocations[6][1] = 0.3;
 		quarticGPweights[6] = 9.0 / 40.0;
-
 		
 
-		Matrix shearD = Matrix(2, 2,0.0);
-		shearD.clear();
-		shearD(0, 0) = data.D(6, 6);
-		shearD(1, 1) = data.D(7, 7);
-
-		Matrix shearK = Matrix(9, 9, 0.0);
-		shearK.clear();
-		
-		Matrix SuperB = Matrix(2, 9, 0.0);
-		
-		double loc1;
-		double loc2;
-		for (int gauss_point = 0; gauss_point < numberGPs; gauss_point++)
+		//  Integration loop
+		double loc1, loc2, loc3;
+		for (size_t gauss_point = 0; gauss_point < numberGPs; gauss_point++)
 		{
-			
-
-			if (use_quartic_integration)
+			if (use_original_dsg_with_bubble)
 			{
 				loc1 = quarticGPLocations[gauss_point][0];
 				loc2 = quarticGPLocations[gauss_point][1];
@@ -1825,147 +1924,322 @@ namespace Kratos
 				loc1 = data.gpLocations[gauss_point][0];
 				loc2 = data.gpLocations[gauss_point][1];
 			}
+			
+			BSuper.clear();
 
-			bool reduced_integration = false;
-			if (reduced_integration)
+			if (use_pure_bubble_mode)
 			{
-				std::cout << "Using reduced integraton on superDSG" << std::endl;
-				loc1 = 0.5;
-				loc2 = 0.5;
-			}
-			
-			
-			
-			
-
-			// Modified B-matrix
-			Matrix BSuper = Matrix(2, 9, 0.0);
-
-			bool use_cartesian_bmat = false;
-			if (use_cartesian_bmat)
-			{
-				// without bubble mode
-
-				BSuper(0, 0) = -1.00000000000000;
-				BSuper(0, 1) = 1.00000000000000;
-				BSuper(0, 2) = 0.0;
-				BSuper(0, 3) = -1.0*loc1*x2 - 0.5*loc1*y2 - 1.0*loc2*x3 - 0.5*loc2*y3 + 1.0*x1*(loc1 + loc2 - 1.0) + 0.5*y1*(loc1 + loc2 - 1.0) + 1.0;
-				BSuper(0, 4) = 0.500000000000000;
-				BSuper(0, 5) = 1.0*loc1*x2 + 0.5*loc1*y2 + 1.0*loc2*x3 + 0.5*loc2*y3 - 1.0*x1*(loc1 + loc2 - 1.0) - 0.5*y1*(loc1 + loc2 - 1.0) - 0.5;
-				BSuper(0, 6) = 1.0*loc1*x2 + 0.5*loc1*y2 + 1.0*loc2*x3 + 0.5*loc2*y3 - 1.0*x1*(loc1 + loc2 - 1.0) - 0.5*y1*(loc1 + loc2 - 1.0) - 0.5;
-				BSuper(0, 7) = -1.0*loc1*x2 - 0.5*loc1*y2 - 1.0*loc2*x3 - 0.5*loc2*y3 + 1.0*x1*(loc1 + loc2 - 1.0) + 0.5*y1*(loc1 + loc2 - 1.0) + 0.5;
-				BSuper(0, 8) = 0.0;
-				BSuper(1, 0) = -1.00000000000000;
-				BSuper(1, 1) = 0.0;
-				BSuper(1, 2) = 1.00000000000000;
-				BSuper(1, 3) = 0.5*loc1*x2 + 0.5*loc2*x3 - 0.5*x1*(loc1 + loc2 - 1.0);
-				BSuper(1, 4) = 0.0;
-				BSuper(1, 5) = -0.5*loc1*x2 - 0.5*loc2*x3 + 0.5*x1*(loc1 + loc2 - 1.0);
-				BSuper(1, 6) = -0.5*loc1*x2 - 0.5*loc2*x3 + 0.5*x1*(loc1 + loc2 - 1.0) + 0.5;
-				BSuper(1, 7) = 0.5*loc1*x2 + 0.5*loc2*x3 - 0.5*x1*(loc1 + loc2 - 1.0);
-				BSuper(1, 8) = 0.500000000000000;
+				std::cout << "use_pure_bubble_mode" << std::endl;
+				// pure bubble mode formulation below with no alterations
+				// DOFs are [w1,w2,w3,Rx1,...]
+				BSuper(0, 0) = -2.0*b*loc1 + 1.0*b + 2.0*c*loc2 - 1.0*c;
+				BSuper(0, 1) = 1.0*b*loc1 - 1.0*c*loc2 + 1.0*c;
+				BSuper(0, 2) = 1.0*b*loc1 - 1.0*b - 1.0*c*loc2;
+				BSuper(0, 3) = -1.0*b*(1.0*loc1 - 0.5);
+				BSuper(0, 4) = 0.5*b*loc1 + 0.5*c*loc2;
+				BSuper(0, 5) = -0.5*b*loc1 + 0.5*b + 0.5*c*loc2;
+				BSuper(0, 6) = -1.0*c*(1.0*loc2 - 0.5);
+				BSuper(0, 7) = 0.5*b*loc1 - 0.5*c*loc2 + 0.5*c;
+				BSuper(0, 8) = 0.5*b*loc1 + 0.5*c*loc2;
+				BSuper(1, 0) = 2.0*a*loc1 - 1.0*a - 2.0*d*loc2 + 1.0*d;
+				BSuper(1, 1) = -1.0*a*loc1 + 1.0*d*loc2 - 1.0*d;
+				BSuper(1, 2) = -1.0*a*loc1 + 1.0*a + 1.0*d*loc2;
+				BSuper(1, 3) = 1.0*a*(1.0*loc1 - 0.5);
+				BSuper(1, 4) = -0.5*a*loc1 - 0.5*d*loc2;
+				BSuper(1, 5) = 0.5*a*loc1 - 0.5*a - 0.5*d*loc2;
+				BSuper(1, 6) = 1.0*d*(1.0*loc2 - 0.5);
+				BSuper(1, 7) = -0.5*a*loc1 + 0.5*d*loc2 - 0.5*d;
+				BSuper(1, 8) = -0.5*a*loc1 - 0.5*d*loc2;
 
 				BSuper /= (2.0*data.TotalArea);
 			}
-			else
+			else if (use_no_bubble_mode)
 			{
-				bool bubble_mode = true;
+				std::cout << "use_no_bubble_mode" << std::endl;
+				// pure no bubble mode formulation below with no alterations
+				// DOFs are [w1,w2,w3,Rx1,...]
 
-				if (bubble_mode)
-				{
-					// Minimal energy bubble mode employed
+				BSuper(0, 0) = b - c;
+				BSuper(0, 1) = c;
+				BSuper(0, 2) = -b;
+				BSuper(0, 3) = 0.5*(b - c)*(b*loc1 + c*loc2);
+				BSuper(0, 4) = -0.5*b*b * loc1 + 0.5*b*c*loc1 - 0.5*b*c*loc2 - 0.5*b*c + 0.5*c*c * loc2;
+				BSuper(0, 5) = 0.5*b*b * loc1 - 0.5*b*c*loc1 + 0.5*b*c*loc2 + 0.5*b*c - 0.5*c*c * loc2;
+				BSuper(0, 6) = -0.5*a*b*loc1 - 0.5*a*c*loc2 + 0.5*a*c + 0.5*b*d*loc1 - 0.5*b*d + 0.5*c*d*loc2;
+				BSuper(0, 7) = -0.5*a*b*loc1 - 0.5*a*c*loc2 + 0.5*a*c + 0.5*b*d*loc1 + 0.5*c*d*loc2;
+				BSuper(0, 8) = 0.5*a*b*loc1 + 0.5*a*c*loc2 - 0.5*b*d*loc1 - 0.5*b*d - 0.5*c*d*loc2;
+				BSuper(1, 0) = -a + d;
+				BSuper(1, 1) = -d;
+				BSuper(1, 2) = a;
+				BSuper(1, 3) = -0.5*a*b*loc1 + 0.5*a*c*loc1 - 0.5*a*c - 0.5*b*d*loc2 + 0.5*b*d + 0.5*c*d*loc2;
+				BSuper(1, 4) = 0.5*a*b*loc1 - 0.5*a*c*loc1 + 0.5*b*d*loc2 + 0.5*b*d - 0.5*c*d*loc2;
+				BSuper(1, 5) = -0.5*a*b*loc1 + 0.5*a*c*loc1 - 0.5*a*c - 0.5*b*d*loc2 + 0.5*c*d*loc2;
+				BSuper(1, 6) = 0.5*(a - d)*(a*loc1 + d*loc2);
+				BSuper(1, 7) = 0.5*a*a * loc1 - 0.5*a*d*loc1 + 0.5*a*d*loc2 - 0.5*a*d - 0.5*d*d * loc2;
+				BSuper(1, 8) = -0.5*a*a * loc1 + 0.5*a*d*loc1 - 0.5*a*d*loc2 + 0.5*a*d + 0.5*d*d * loc2;
 
-					BSuper(0, 0) = -2.0*b*loc1 + 1.0*b + 2.0*c*loc2 - 1.0*c;
-					BSuper(0, 1) = 1.0*b*loc1 - 1.0*c*loc2 + 1.0*c;
-					BSuper(0, 2) = 1.0*b*loc1 - 1.0*b - 1.0*c*loc2;
-					BSuper(0, 3) = 1.0*b*loc1 - 1.0*c*loc2 + 0.5*c;
-					BSuper(0, 4) = 0.5*b*loc1 - 0.5*c*loc2 + 0.5*c;
-					BSuper(0, 5) = -0.5*b*loc1 + 0.5*c*loc2;
-					BSuper(0, 6) = -0.5*b;
-					BSuper(0, 7) = 0.5*b*loc1 - 0.5*c*loc2;
-					BSuper(0, 8) = 0.5*b*loc1 - 0.5*b - 0.5*c*loc2;
-					BSuper(1, 0) = 2.0*a*loc1 - 1.0*a - 2.0*d*loc2 + 1.0*d;
-					BSuper(1, 1) = -1.0*a*loc1 + 1.0*d*loc2 - 1.0*d;
-					BSuper(1, 2) = -1.0*a*loc1 + 1.0*a + 1.0*d*loc2;
-					BSuper(1, 3) = -0.5*d;
-					BSuper(1, 4) = -0.5*a*loc1 + 0.5*d*loc2 - 0.5*d;
-					BSuper(1, 5) = -0.5*a*loc1 + 0.5*d*loc2;
-					BSuper(1, 6) = -1.0*a*loc1 + 0.5*a + 1.0*d*loc2;
-					BSuper(1, 7) = 0.5*a*loc1 - 0.5*d*loc2;
-					BSuper(1, 8) = -0.5*a*loc1 + 0.5*a + 0.5*d*loc2;
-				}
-				else
-				{
-					// No bubble mode included
-
-					BSuper(0, 0) = 1.0*b - 1.0*c;
-					BSuper(0, 1) = 1.0*c;
-					BSuper(0, 2) = -1.0*b;
-					BSuper(0, 3) = -1.5*b*loc1*loc1 - 3.0*b*loc1*loc2 + 1.5*b*loc1 + 3.0*c*loc1*loc2 + 1.5*c*loc2*loc2 - 1.5*c*loc2 + 0.5*c;
-					BSuper(0, 4) = 0.5*c;
-					BSuper(0, 5) = 1.5*b*loc1*loc1 + 3.0*b*loc1*loc2 - 1.5*b*loc1 - 3.0*c*loc1*loc2 - 1.5*c*loc2*loc2 + 1.5*c*loc2;
-					BSuper(0, 6) = 1.5*b*loc1*loc1 + 3.0*b*loc1*loc2 - 1.5*b*loc1 - 0.5*b - 3.0*c*loc1*loc2 - 1.5*c*loc2*loc2 + 1.5*c*loc2;
-					BSuper(0, 7) = -1.5*b*loc1*loc1 - 3.0*b*loc1*loc2 + 1.5*b*loc1 + 3.0*c*loc1*loc2 + 1.5*c*loc2*loc2 - 1.5*c*loc2;
-					BSuper(0, 8) = -0.5*b;
-					BSuper(1, 0) = -1.0*a + 1.0*d;
-					BSuper(1, 1) = -1.0*d;
-					BSuper(1, 2) = 1.0*a;
-					BSuper(1, 3) = -1.5*a*loc1*loc1 - 3.0*a*loc1*loc2 + 1.5*a*loc1 + 3.0*d*loc1*loc2 + 1.5*d*loc2*loc2 - 1.5*d*loc2 - 0.5*d;
-					BSuper(1, 4) = -0.5*d;
-					BSuper(1, 5) = 1.5*a*loc1*loc1 + 3.0*a*loc1*loc2 - 1.5*a*loc1 - 3.0*d*loc1*loc2 - 1.5*d*loc2*loc2 + 1.5*d*loc2;
-					BSuper(1, 6) = 1.5*a*loc1*loc1 + 3.0*a*loc1*loc2 - 1.5*a*loc1 + 0.5*a - 3.0*d*loc1*loc2 - 1.5*d*loc2*loc2 + 1.5*d*loc2;
-					BSuper(1, 7) = -1.5*a*loc1*loc1 - 3.0*a*loc1*loc2 + 1.5*a*loc1 + 3.0*d*loc1*loc2 + 1.5*d*loc2*loc2 - 1.5*d*loc2;
-					BSuper(1, 8) = 0.5*a;
-				}
 				BSuper /= (2.0*data.TotalArea);
 			}
+			else if (use_reconstructed_shear_gaps)
+			{
+				std::cout << "use_reconstructed_shear_gaps" << std::endl;
+				// The reconstructed shear gap field is the same for 
+				// bubble and no bubble modes
 
-			
+				BSuper(0, 0) = b - c;
+				BSuper(0, 1) = c;
+				BSuper(0, 2) = -b;
+				BSuper(0, 3) = -0.5*b*loc1 - 0.5*c*loc2;
+				BSuper(0, 4) = -0.5*b*c + 0.5*b*loc1 + 0.5*c*loc2;
+				BSuper(0, 5) = 0.5*b*c;
+				BSuper(0, 6) = 0.5*a*c - 0.5*b*d - 0.5*b*loc1 - 0.5*c*loc2;
+				BSuper(0, 7) = 0.5*a*c;
+				BSuper(0, 8) = -0.5*b*d + 0.5*b*loc1 + 0.5*c*loc2;
+				BSuper(1, 0) = -a + d;
+				BSuper(1, 1) = -d;
+				BSuper(1, 2) = a;
+				BSuper(1, 3) = -0.5*a*c + 0.5*a*loc1 + 0.5*b*d + 0.5*d*loc2;
+				BSuper(1, 4) = -0.5*a*loc1 + 0.5*b*d - 0.5*d*loc2;
+				BSuper(1, 5) = -0.5*a*c;
+				BSuper(1, 6) = 0.5*a*loc1 + 0.5*d*loc2;
+				BSuper(1, 7) = -0.5*a*d;
+				BSuper(1, 8) = 0.5*a*d - 0.5*a*loc1 - 0.5*d*loc2;
 
-			
+				BSuper /= (2.0*data.TotalArea);
+			}
+			else if (use_original_dsg)
+			{
+				std::cout << "use_original_dsg" << std::endl;
+				BSuper(0, 0) = 1.0*b - 1.0*c;
+				BSuper(0, 1) = c;
+				BSuper(0, 2) = -b;
+				BSuper(0, 3) = 0;
+				BSuper(0, 4) = -0.5*b*c;
+				BSuper(0, 5) = 0.5*b*c;
+				BSuper(0, 6) = 0.5*a*c - 0.5*b*d;
+				BSuper(0, 7) = 0.5*a*c;
+				BSuper(0, 8) = -0.5*b*d;
+				BSuper(1, 0) = -1.0*a + 1.0*d;
+				BSuper(1, 1) = -d;
+				BSuper(1, 2) = a;
+				BSuper(1, 3) = -0.5*a*c + 0.5*b*d;
+				BSuper(1, 4) = 0.5*b*d;
+				BSuper(1, 5) = -0.5*a*c;
+				BSuper(1, 6) = 0;
+				BSuper(1, 7) = -0.5*a*d;
+				BSuper(1, 8) = 0.5*a*d;
+
+				BSuper /= (2.0*data.TotalArea);
+			}
+			else if (use_original_dsg_with_bubble)
+			{
+				std::cout << "use_original_dsg with bubble" << std::endl;
+
+				BSuper(0, 0) = 1.0*b - 1.0*c;
+				BSuper(0, 1) = 1.0*c*(1.0);
+				BSuper(0, 2) = -1.0*b*(1.0);
+				BSuper(0, 3) = 0.0;
+				BSuper(0, 4) = -1.0*b*c*(3.0*loc1*loc1 + 12.0*loc1*loc2 - 3.0*loc1 + 3.0*loc2*loc2 - 3.0*loc2 + 0.5);
+				BSuper(0, 5) = 1.0*b*c*(3.0*loc1*loc1 + 12.0*loc1*loc2 - 3.0*loc1 + 3.0*loc2*loc2 - 3.0*loc2 + 0.5);
+				BSuper(0, 6) = 0.5*a*c - 0.5*b*d;
+				BSuper(0, 7) = 6.0*a*c*loc1*loc2 + 3.0*a*c*loc2*loc2 - 3.0*a*c*loc2 + 0.5*a*c + 3.0*b*d*loc1*loc1 + 6.0*b*d*loc1*loc2 - 3.0*b*d*loc1;
+				BSuper(0, 8) = -6.0*a*c*loc1*loc2 - 3.0*a*c*loc2*loc2 + 3.0*a*c*loc2 - 3.0*b*d*loc1*loc1 - 6.0*b*d*loc1*loc2 + 3.0*b*d*loc1 - 0.5*b*d;
+				BSuper(1, 0) = - 1.0*a + 1.0*d;
+				BSuper(1, 1) = -1.0*d*(1.0);
+				BSuper(1, 2) = 1.0*a*(1.0);
+				BSuper(1, 3) = -0.5*a*c + 0.5*b*d;
+				BSuper(1, 4) = 3.0*a*c*loc1*loc1 + 6.0*a*c*loc1*loc2 - 3.0*a*c*loc1 + 6.0*b*d*loc1*loc2 + 3.0*b*d*loc2*loc2 - 3.0*b*d*loc2 + 0.5*b*d;
+				BSuper(1, 5) = -3.0*a*c*loc1*loc1 - 6.0*a*c*loc1*loc2 + 3.0*a*c*loc1 - 0.5*a*c - 6.0*b*d*loc1*loc2 - 3.0*b*d*loc2*loc2 + 3.0*b*d*loc2;
+				BSuper(1, 6) = 0.0;
+				BSuper(1, 7) = -1.0*a*d*(3.0*loc1*loc1 + 12.0*loc1*loc2 - 3.0*loc1 + 3.0*loc2*loc2 - 3.0*loc2 + 0.5);
+				BSuper(1, 8) = 1.0*a*d*(3.0*loc1*loc1 + 12.0*loc1*loc2 - 3.0*loc1 + 3.0*loc2*loc2 - 3.0*loc2 + 0.5);
+
+				BSuper /= (2.0*data.TotalArea);
+
+				integration_weight = quarticGPweights[gauss_point];
+			}
 
 			//comparison K matrix, in Bletzinger DOF ordering
-			Matrix temp2 = Matrix(prod(trans(BSuper), shearD));
-			shearK += prod(temp2, BSuper);
+			//Matrix temp2 = Matrix(prod(trans(BSuper), shearD));
+			//shearK += prod(temp2, BSuper);
 
 			data.B.clear();
 
 			// Transfer from Bletzinger B matrix to Kratos B matrix
 			// Dofs from [w1, w2, w3, px1, ...] to [w1, px1, py1, w2, ...]
-			for (size_t i = 0; i < 3; i++)
+			for (size_t node = 0; node < 3; node++)
 			{
-				data.B(6, 2 + 6 * i) = BSuper(0, i);			// w
-				data.B(6, 3 + 6 * i) = BSuper(0, 3 + i);	// phix
-				data.B(6, 4 + 6 * i) = BSuper(0, 6 + i);	// phiy
+				data.B(6, 2 + 6 * node) = BSuper(0, node);		// w
+				data.B(6, 3 + 6 * node) = BSuper(0, 3 + node);	// phix
+				data.B(6, 4 + 6 * node) = BSuper(0, 6 + node);	// phiy
 
-				data.B(7, 2 + 6 * i) = BSuper(1, i);		// w
-				data.B(7, 3 + 6 * i) = BSuper(1, 3 + i);	// phix
-				data.B(7, 4 + 6 * i) = BSuper(1, 6 + i);	// phiy
-
-
+				data.B(7, 2 + 6 * node) = BSuper(1, node);		// w
+				data.B(7, 3 + 6 * node) = BSuper(1, 3 + node);	// phix
+				data.B(7, 4 + 6 * node) = BSuper(1, 6 + node);	// phiy
 			}
-
 			// Add to stiffness matrix
-			Matrix temp;
-			if (use_quartic_integration)
-			{
-				temp = Matrix(prod(trans(data.B), data.D*quarticGPweights[gauss_point]));
-			}
-			else
-			{
-				temp = Matrix(prod(trans(data.B), data.D/6.0));
-			}
-			
+			Matrix temp = Matrix(prod(trans(data.B), data.D*integration_weight));
 			rLeftHandSideMatrix += prod(temp, data.B);
+		}
+	}
 
-			
-		}
-		if (use_quartic_integration)
+	void ShellThickElement3D3N::CalculateSmoothedDSGBMatrix(CalculationData & data)
+	{
+		// Use smoothed DSG formulation according to [Nguyen-Thoi et al., 2013]
+		//
+
+		//meta-triangle centre coords
+		const double x0 = (data.LCS0.X1() + data.LCS0.X2() + data.LCS0.X3()) / 3.0;
+		const double y0 = (data.LCS0.Y1() + data.LCS0.Y2() + data.LCS0.Y3()) / 3.0;
+
+
+		// Assemble sub triangle coords
+		std::vector<Vector3> subTriangleXCoords = std::vector<Vector3>(3);
+		std::vector<Vector3> subTriangleYCoords = std::vector<Vector3>(3);
+		for (size_t i = 0; i < 3; i++)
 		{
-			std::cout << "local shear K printout isnt updated for quartic integration" << std::endl;
+			subTriangleXCoords[i].clear();
+			subTriangleYCoords[i].clear();
+			subTriangleXCoords[i][0] = x0;
+			subTriangleYCoords[i][0] = y0;
 		}
-		//printMatrix(shearK, "Printing element shear K to Bletzinger Maple DOFs!");
+		subTriangleXCoords[0][1] = data.LCS0.X1(); //subtri_1 = 0, 1, 2
+		subTriangleXCoords[0][2] = data.LCS0.X2();
+		subTriangleYCoords[0][1] = data.LCS0.Y1();
+		subTriangleYCoords[0][2] = data.LCS0.Y2();
+
+		subTriangleXCoords[1][1] = data.LCS0.X2(); //subtri_2 = 0, 2, 3
+		subTriangleXCoords[1][2] = data.LCS0.X3();
+		subTriangleYCoords[1][1] = data.LCS0.Y2();
+		subTriangleYCoords[1][2] = data.LCS0.Y3();
+
+		subTriangleXCoords[2][1] = data.LCS0.X3(); //subtri_3 = 0, 3, 1
+		subTriangleXCoords[2][2] = data.LCS0.X1();
+		subTriangleYCoords[2][1] = data.LCS0.Y3();
+		subTriangleYCoords[2][2] = data.LCS0.Y1();
+
+
+		// The mapping controls how the nodally grouped entries of the virgin 
+		// sub-triangle B matrices are added to the meta-triangle shear B matrix
+		std::vector<Vector3> matrixMapping = std::vector<Vector3>(3);
+		matrixMapping[0][0] = 2; // node number, not index (number = index + 1)
+		matrixMapping[0][1] = 3;
+		matrixMapping[0][2] = 9; // signify no addition contribution needed
+
+		matrixMapping[1][0] = 9;
+		matrixMapping[1][1] = 2;
+		matrixMapping[1][2] = 3;
+
+		matrixMapping[2][0] = 3;
+		matrixMapping[2][1] = 9;
+		matrixMapping[2][2] = 2;
+
+
+		// Setup variables
+		Matrix smoothedShearMatrix = Matrix(2, 18, 0.0);
+		Matrix virginSubTriangleShearMatrix = Matrix(2, 18, 0.0);
+		Matrix convertedSubTriangleShearMatrix = Matrix(2, 18, 0.0);
+		double a, b, c, d, subTriangleArea;
+
+
+		// Loop over all sub triangles
+		for (size_t subTriangle = 0; subTriangle < 3; subTriangle++)
+		{
+			a = subTriangleXCoords[subTriangle][1] - subTriangleXCoords[subTriangle][0]; //x21
+			b = subTriangleYCoords[subTriangle][1] - subTriangleYCoords[subTriangle][0]; //y21
+			c = subTriangleYCoords[subTriangle][2] - subTriangleYCoords[subTriangle][0]; //y31
+			d = subTriangleXCoords[subTriangle][2] - subTriangleXCoords[subTriangle][0]; //x31
+			subTriangleArea = 0.5*(a*c - b*d);
+
+
+			// Calculate the DSG shear B matrix for only the current subtriangle
+			virginSubTriangleShearMatrix.clear();
+			CalculateDSGShearBMatrix(virginSubTriangleShearMatrix, a, b, c, d, subTriangleArea);
+
+
+			// Setup matrix to store shear B converted from subtriangle DOFs to
+			// meta-triangle DOFs
+			convertedSubTriangleShearMatrix.clear();
+
+
+			// Express the subtriangle B matrix in terms of the 3 meta-triangle
+			// nodes
+			for (size_t metaNode = 0; metaNode < 3; metaNode++)
+			{
+				for (size_t row = 0; row < 2; row++)
+				{
+					for (size_t col = 0; col < 6; col++)
+					{
+						// add in B_0 / 3.0 for all nodes in B matrix
+						convertedSubTriangleShearMatrix(row, metaNode * 6 + col) += virginSubTriangleShearMatrix(row, col) / 3.0;
+					}
+				}
+
+				if (matrixMapping[subTriangle][metaNode] == 9)
+				{
+					// centre point entry. do nothing, entries already covered 
+					// by operation above
+				}
+				else
+				{
+					// add in new entries
+					for (size_t row = 0; row < 2; row++)
+					{
+						for (size_t col = 0; col < 6; col++)
+						{
+							convertedSubTriangleShearMatrix(row, metaNode * 6 + col) += virginSubTriangleShearMatrix(row, 6*(matrixMapping[subTriangle][metaNode] - 1) + col);
+						}
+					}
+				}
+			}
+
+			// Add subtriangle contribution to overall meta-triangle B matrix
+			smoothedShearMatrix += (convertedSubTriangleShearMatrix * subTriangleArea);
+		}
+
 		
+		// Smooth by averaging over area
+		smoothedShearMatrix /= data.TotalArea;
+		smoothedShearMatrix *= (2.0*data.TotalArea); // to nullify data.B/=2A in main pipeline
+
+		// copy over entries to main B matrix
+		for (size_t row = 0; row < 2; row++)
+		{
+			for (size_t col = 0; col < 18; col++)
+			{
+				data.B(row + 6, col) = smoothedShearMatrix(row, col);
+			}
+		}
+	}
+
+	void ShellThickElement3D3N::CalculateDSGShearBMatrix(Matrix& shearBMatrix,const double & a, const double & b, const double & c, const double & d, const double & A)
+	{
+		//node 1
+		shearBMatrix(0, 2) = b - c;
+		shearBMatrix(0, 4) = A;
+
+		shearBMatrix(1, 2) = d - a;
+		shearBMatrix(1, 3) = -1.0*A;
+
+		//node 2
+		shearBMatrix(0, 8) = c;
+		shearBMatrix(0, 9) = -1.0 * b*c / 2.0;
+		shearBMatrix(0, 10) = a*c / 2.0;
+
+		shearBMatrix(1, 8) = -1.0 * d;
+		shearBMatrix(1, 9) = b*d / 2.0;
+		shearBMatrix(1, 10) = -1.0 * a*d / 2.0;
+
+		//node 3
+		shearBMatrix(0, 14) = -1.0 * b;
+		shearBMatrix(0, 15) = b*c / 2.0;
+		shearBMatrix(0, 16) = -b*d / 2.0;
+
+		shearBMatrix(1, 14) = a;
+		shearBMatrix(1, 15) = -1.0 * a*c / 2.0;
+		shearBMatrix(1, 16) = a*d / 2.0;
+
+		shearBMatrix /= (2.0*A);
 	}
 
 	void ShellThickElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
@@ -2318,7 +2592,6 @@ namespace Kratos
 				iValue(0, 1) = iValue(1, 0) = data.generalizedStresses(5);
 				iValue(0, 2) = iValue(2, 0) = 0.0;
 				iValue(1, 2) = iValue(2, 1) = 0.0;
-				//std::cout << iValue << std::endl;
 			}
 			else if (ijob == 5) // SHELL_STRESS_TOP_SURFACE
 			{

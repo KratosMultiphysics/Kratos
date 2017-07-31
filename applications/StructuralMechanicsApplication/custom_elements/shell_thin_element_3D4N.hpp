@@ -22,7 +22,6 @@
 #include "custom_utilities/shell_cross_section.hpp"
 #include "utilities/quaternion.h"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
-//#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 
 namespace Kratos
 {
@@ -244,9 +243,18 @@ namespace Kratos
 			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
 			const ProcessInfo& rCurrentProcessInfo);
 
+		// Calculate functions
+		void Calculate(const Variable<Matrix >& rVariable,
+			Matrix& Output,
+			const ProcessInfo& rCurrentProcessInfo);
+
+		void Calculate(const Variable<double>& rVariable,
+			double& Output,
+			const ProcessInfo& rCurrentProcessInfo);
+
 		///@}
 
-		std::vector<Properties> mPly_Properties;
+
 
 		///@name Public specialized Access - Temporary
 		///@{
@@ -445,6 +453,8 @@ namespace Kratos
 		CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
 		IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
+
+		double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */
 
 												  ///@}
 
