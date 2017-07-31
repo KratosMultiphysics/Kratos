@@ -1,19 +1,18 @@
 {
-    "properties": [{
-            "model_part_name": "Parts_surface",
-            "properties_id": 1,
-            "Material": {
-                    "name": "Material",
-                    "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
-                    },
-                    "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 3.10275e9,
-                            "KratosMultiphysics.POISSON_RATIO": 3.0e-1,
-                            "KratosMultiphysics.THICKNESS": 1.27e-2,
-                            "KratosMultiphysics.DENSITY": 7.85e3
-                    },
-                    "Tables": {}
-            }
+    "properties" : [{
+        "model_part_name" : "Parts_surface",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.0127,
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 3102750000.0,
+                "POISSON_RATIO" : 0.3
+            },
+            "Tables"           : {}
+        }
     }]
 }

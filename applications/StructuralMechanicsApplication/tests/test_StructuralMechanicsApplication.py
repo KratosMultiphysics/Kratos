@@ -265,11 +265,11 @@ def AssambleTestSuites():
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
             TShellT3ThickLinearStaticTests,
-            TShellT3ThickNonLinearStaticTests, # Not working
+            TShellT3ThickNonLinearStaticTests,
             TShellT3ThickLinearDynamicTests,
             TShellT3ThickNonLinearDynamicTests,
             TShellQ4ThinLinearStaticTests,
-            TShellQ4ThinNonLinearStaticTests, # Not working
+            TShellQ4ThinNonLinearStaticTests,
             TShellQ4ThinLinearDynamicTests,
             TShellQ4ThinNonLinearDynamicTests,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
