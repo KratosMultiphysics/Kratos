@@ -348,7 +348,7 @@ public:
     typedef array_1d<double, TNumNodes>                  type_1;
     typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
     typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
-    typedef bounded_matrix<double, 3, 3>                 type_4;
+    typedef array_1d<double, TNumNodes>                  type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -435,7 +435,7 @@ public:
         {
             for (unsigned int i = 0; i < 2 * TNumNodes * TDim; i++)
             {
-                DeltaCellVertex[i] = ZeroMatrix(3, 3);
+                DeltaCellVertex[i] = ZeroVector(TNumNodes);
             }
         }
     }

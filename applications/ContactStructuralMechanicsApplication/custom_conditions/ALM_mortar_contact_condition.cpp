@@ -527,11 +527,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 // Initialize the mortar operators
                 rThisMortarConditionMatrices.Initialize();
                 
-//                 if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true && TDim == 2) // TODO: Can be needed for the shape function derivatives
-//                 {
-//                     // Compute the normal derivatives of the master
-//                     this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
-//                 }
+                if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true)
+                {
+                    // Compute the normal derivatives of the master
+                    this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
+                }
                 
                 const bool dual_LM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo, pair_index, conditions_points_slave, this_integration_method, master_normal);
                 
@@ -584,7 +584,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
-//                                 this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
+                                this->CalculateDeltaN(rVariables, rDerivativeData);
                                 // The derivatives of the dual shape function 
                                 this->CalculateDeltaPhi(rVariables, rDerivativeData);
                                 
@@ -1113,7 +1113,55 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
    const array_1d<BelongType, TDim>& TheseBelongs
    ) 
 {
-
+//     const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(GetGeometry(), i_slave); // NOTE: THIS IN THE CENTER!!!!
+    
+    for (unsigned i_belong = 0; i_belong < TDim; i_belong++) 
+    {
+        if (TheseBelongs[i_belong] == 2 * TNumNodes) // It belongs to an intersection
+        {
+            double factor_belong;
+            
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+            {
+                
+            }
+        }
+        else // It belongs to a master/slave node
+        {
+            double factor_belong;
+            
+            unsigned int belong_index = static_cast<unsigned int>(TheseBelongs[i_belong]);
+            
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+            {
+                
+            }
+        }
+    }
+    
+//     // SLAVE DERIVATIVES
+//     for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
+//     {
+//         for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+//         {
+//             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+//             {
+//                 rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof];
+//             }
+//         }
+//     }
+//     
+//     // MASTER DERIVATIVES
+//     for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
+//     {
+//         for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+//         {
+//             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+//             {
+//                 rDerivativeData.DeltaCellVertex[TDim * TNumNodes + i_master * TDim + i_dof];
+//             }
+//         }
+//     }
 }
 
 /***********************************************************************************/
@@ -1329,25 +1377,84 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(
+template<> // NOTE: Formulation taken from Mohamed Khalil work
+void AugmentedLagrangianMethodMortarContactCondition<2,2,false>::CalculateDeltaNormalMaster(
     DerivativeDataType& rDerivativeData,
     GeometryType& MasterGeometry
     )
 {
-    for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
+    for ( unsigned int i_master = 0, i = 0; i_master < 2; ++i_master, i += 2 )
     {
-//        const bounded_matrix<double, TDim, TDim>& delta_normal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
-        const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
-        for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+//        const bounded_matrix<double, 2, 2>& delta_normal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
+        const bounded_matrix<double, 2, 2> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
+        for (unsigned i_dof = 0; i_dof < 2; i_dof++) 
         {
-            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+            for (unsigned int i_node = 0; i_node < 2; i_node++)
             {
-                row(rDerivativeData.DeltaNormalMaster[i_master * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
+                row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
             }
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<2,2,true>::CalculateDeltaNormalMaster(
+    DerivativeDataType& rDerivativeData,
+    GeometryType& MasterGeometry
+    )
+{
+    for ( unsigned int i_master = 0, i = 0; i_master < 2; ++i_master, i += 2 )
+    {
+//        const bounded_matrix<double, 2, 2>& delta_normal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
+        const bounded_matrix<double, 2, 2> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
+        for (unsigned i_dof = 0; i_dof < 2; i_dof++) 
+        {
+            for (unsigned int i_node = 0; i_node < 2; i_node++)
+            {
+                row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,3,false>::CalculateDeltaNormalMaster(
+    DerivativeDataType& rDerivativeData,
+    GeometryType& MasterGeometry
+    ){}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,3,true>::CalculateDeltaNormalMaster(
+    DerivativeDataType& rDerivativeData,
+    GeometryType& MasterGeometry
+    ){}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,4,false>::CalculateDeltaNormalMaster(
+    DerivativeDataType& rDerivativeData,
+    GeometryType& MasterGeometry
+    ){}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,4,true>::CalculateDeltaNormalMaster(
+    DerivativeDataType& rDerivativeData,
+    GeometryType& MasterGeometry
+    ){}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1358,300 +1465,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
    DerivativeDataType& rDerivativeData
    )
 {
-    static const unsigned int Size1 = (TNumNodes * TDim);
-    
-    // Shape functions
-    const VectorType N1 = rVariables.NSlave;
-    const VectorType N2 = rVariables.NMaster;
-    
-    // Coordinates
-    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;
-    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;
-    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;
-    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;
-    
-    // Normals
-    const array_1d<double, TDim > NormalSlaveg = prod(trans(rDerivativeData.NormalSlave), N1);
-    const array_1d<double, TDim > NormalMasterg = prod(trans(rDerivativeData.NormalMaster), N2);
-    
-    const array_1d<bounded_matrix<double, TNumNodes, TDim>, Size1> DNormalSlave = rDerivativeData.DeltaNormalSlave;
-    const array_1d<bounded_matrix<double, TNumNodes, TDim>, Size1> DNormalMaster = rDerivativeData.DeltaNormalMaster;
-    
-    bool compute = false;
-    if (TDim == 2)
-    {
-       if (TNumNodes == 2)
-       {
-          compute = true;
-       }
-    }
-    else
-    {
-      if (TNumNodes == 3)
-       {
-          compute = true;
-       }
-    }
-    
-   /* Calculate Delta N */ // TODO: Do the same for the N1
-   if (compute == true)
-   {
-      const double tol = 1.0e-18;
-      
-//       const array_1d<double, TNumNodes > vector_nodes = trans(row(X2 + u2, 0)) - prod(trans(X1 + u1), N1); // NOTE: This is the way I considered in the symbolic
-      const array_1d<double, TNumNodes > vector_nodes =  prod(trans(X2 + u2), N2) - prod(trans(X1 + u1), N1);
-      const double Dist = inner_prod(vector_nodes, NormalMasterg)/(inner_prod(NormalSlaveg, NormalMasterg) + tol);
-      
-      double div1,div2 = 1.0;
-      double mult1,mult2,mult3,mult4,mult5 = 0.0;
-      if (TDim == 2)
-      {
-         if (TNumNodes == 2)
-         {
-//             div1 = (X1(0,0) + X1(0,1) - X1(1,0) - X1(1,1) + u1(0,0) + u1(0,1) - u1(1,0) - u1(1,1)) + tol; // NOTE: You will need to compute DeltaN1
-            div2 = (X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + tol;
-         }
-      }
-      else
-      {
-         if (TNumNodes == 3)
-         {
-             div1 = ((u2(0, 0) + u2(0, 2) - u2(1, 0) - u2(1, 2) + X2(0, 0) + 
-                      X2(0, 2) - X2(1, 0) - X2(1, 2)) * (u2(0, 0) + u2(0, 1) - 
-                      u2(2, 0) - u2(2, 1) + X2(0, 0) + X2(0, 1) - X2(2, 0) - 
-                      X2(2, 1)) - (u2(0, 0) + u2(0, 1) - u2(1, 0) - u2(1, 1) + 
-                      X2(0, 0) + X2(0, 1) - X2(1, 0) - X2(1, 1)) * (u2(0, 0) + 
-                      u2(0, 2) - u2(2, 0) - u2(2, 2) + X2(0, 0) + X2(0, 2) - 
-                      X2(2, 0) - X2(2, 2))) + tol;
-             div2 = (-(u2(1, 1) + X2(1, 1)) * (u2(2, 0) + X2(2, 0)) + (u2(1, 2) + 
-                       X2(1, 2)) * (u2(2, 0) + X2(2, 0)) + (u2(0, 2) + 
-                       X2(0, 2)) * (u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + 
-                       X2(1, 0) + X2(1, 1) - X2(2, 0) - X2(2, 1)) + (u2(1, 0) + 
-                       X2(1, 0)) * (u2(2, 1) + X2(2, 1)) + (u2(1, 2) + 
-                       X2(1, 2)) * (u2(2, 1) + X2(2, 1)) - (u2(1, 0) + u2(1, 1) + 
-                       X2(1, 0) + X2(1, 1)) * (u2(2, 2) + X2(2, 2)) + (u2(0, 1) + 
-                       X2(0, 1)) * (-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - 
-                       X2(1, 0) - X2(1, 2) + X2(2, 0) + X2(2, 2)) + (u2(0, 0) + 
-                       X2(0, 0)) * (u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + 
-                       X2(1, 1) - X2(1, 2) - X2(2, 1) + X2(2, 2))) + tol;
-                        
-             mult1 = (-(u2(0, 0) + u2(0, 2) - u2(2, 0) - u2(2, 2) + X2(0, 0) + X2(0, 2) - X2(2, 0) - X2(2, 2)));
-             mult2 = ( (u2(0, 0) + u2(0, 1) - u2(2, 0) - u2(2, 1) + X2(0, 0) + X2(0, 1) - X2(2, 0) - X2(2, 1)));
-             mult3 = ( (u2(0, 1) - u2(0, 2) - u2(1, 1) + u2(1, 2) + X2(0, 1) - X2(0, 2) - X2(1, 1) + X2(1, 2)));
-             mult4 = ((-u2(0, 0) - u2(0, 2) + u2(1, 0) + u2(1, 2) - X2(0, 0) - X2(0, 2) + X2(1, 0) + X2(1, 2)));
-             mult5 = ( (u2(0, 0) + u2(0, 1) - u2(1, 0) - u2(1, 1) + X2(0, 0) + X2(0, 1) - X2(1, 0) - X2(1, 1)));
-         }
-      }
-      
-      // Derivatives slave
-      for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
-      {
-         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
-         {
-            const unsigned int i_dof = i_slave * TDim + i_dim;
-            
-            const array_1d<double, TNumNodes > DNormalSlaveg = prod(trans(DNormalSlave[i_dof]), N1);
-            array_1d<double, TNumNodes > AuxVector = ZeroVector(TNumNodes);
-            AuxVector[i_dim] = 1.0;
-            const array_1d<double, TNumNodes > Deltavector_nodes = - N1[i_slave] * AuxVector;
-            const double DeltaDist = ((inner_prod(Deltavector_nodes, NormalMasterg))* inner_prod(NormalSlaveg, NormalMasterg) - inner_prod(vector_nodes, NormalMasterg) * (inner_prod(DNormalSlaveg, NormalMasterg)))/std::pow(inner_prod(NormalSlaveg, NormalMasterg) + tol, 2);
-            const array_1d<double, TNumNodes > Deltax1g = N1[i_slave] * AuxVector;
-            const array_1d<double, TNumNodes > Deltax2g = Deltax1g + DeltaDist * NormalSlaveg + Dist * DNormalSlaveg;
-            
-            if (TDim == 2)
-            {
-               if (TNumNodes == 2)
-               {
-                  rDerivativeData.DeltaN2[i_dof][0] =  (Deltax2g[0] + Deltax2g[1])/div2;
-                  rDerivativeData.DeltaN2[i_dof][1] =  - rDerivativeData.DeltaN2[i_dof][0];
-               }
-            }
-            else
-            {
-               if (TNumNodes == 3)
-               {
-                  rDerivativeData.DeltaN2[i_dof][1] = - (mult1 * (Deltax2g[0] + Deltax2g[1]) + mult2 * (Deltax2g[0] + Deltax2g[2]))/div1;
-                  rDerivativeData.DeltaN2[i_dof][2] =   (mult3 *  Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2])/div2;
-                  rDerivativeData.DeltaN2[i_dof][0] =  - rDerivativeData.DeltaN2[i_dof][1] - rDerivativeData.DeltaN2[i_dof][2];
-               }
-            }
-         }
-      }
-      
-      // Derivatives master
-      for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
-      {
-         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
-         {
-            const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
-            
-            const array_1d<double, TNumNodes > DNormalMasterg = prod(trans(DNormalMaster[i_dof - TNumNodes * TDim]), N2);
-            array_1d<double, TNumNodes > AuxVector = ZeroVector(TNumNodes);
-//             if (i_master == 0) // NOTE: This is the way I considered in the symbolic
-//             {
-                AuxVector[i_dim] = 1.0;
-//             }
-            const array_1d<double, TNumNodes > Deltavector_nodes = N2[i_master] * AuxVector;
-            const double DeltaDist = ((inner_prod(Deltavector_nodes, NormalMasterg) + inner_prod(vector_nodes, DNormalMasterg))* inner_prod(NormalSlaveg, NormalMasterg) - inner_prod(vector_nodes, NormalMasterg) * (inner_prod(NormalSlaveg, DNormalMasterg)))/std::pow(inner_prod(NormalSlaveg, NormalMasterg) + tol, 2);;
-            const array_1d<double, TNumNodes > x2g = prod(trans(X2 + u2), N2);
-            const array_1d<double, TNumNodes > Deltax2g = DeltaDist * NormalSlaveg;
-            
-            if (TDim == 2)
-            {
-               if (TNumNodes == 2)
-               {
-                   if (i_master == 0)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
-                   }
-                   else 
-                   {
-                       rDerivativeData.DeltaN2[i_dof][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
-                   }
-                  
-                  rDerivativeData.DeltaN2[i_dof][1] =  - rDerivativeData.DeltaN2[i_dof][0];
-               }
-            }
-            else
-            {
-               if (TNumNodes == 3)
-               {    
-                   const double multmaster0 = ( (u2(0, 0) + u2(0, 2) - u2(2, 0) - u2(2, 2) + X2(0, 0) + X2(0, 2) - X2(2, 0) - X2(2, 2)));
-                   const double multmaster1 = ((-u2(0, 0) - u2(0, 1) + u2(2, 0) + u2(2, 1) - X2(0, 0) - X2(0, 1) + X2(2, 0) + X2(2, 1)) );
-                   const double multmaster2 = ( (u2(0, 0) + u2(0, 1) + X2(0, 0) + X2(0, 1) - x2g[0] - x2g[1]));
-                   const double multmaster3 = ( (u2(0, 0) + u2(0, 2) + X2(0, 0) + X2(0, 2) - x2g[0] - x2g[2]));
-                   const double multmaster4 = ( (u2(1, 0) + u2(1, 1) + X2(1, 0) + X2(1, 1)) * x2g[2] + (u2(0, 0) + X2(0, 0)));
-                   const double multmaster5 = ((u2(1, 0) + u2(1, 1) + X2(1, 0) + X2(1, 1) - x2g[0] - x2g[1]));
-                   const double multmaster6 = ( (u2(1, 1) - u2(1, 2) + X2(1, 1) - X2(1, 2) - x2g[1] + x2g[2]));
-                   const double coefmaster1 = ( (u2(1, 0) + X2(1, 0)) * x2g[1] + (u2(1, 2) + X2(1, 2)) * x2g[1]);
-                   const double coefmaster2 = ( -(u2(1, 1) + X2(1, 1)) * x2g[0] + (u2(1, 2) + X2(1, 2)) * x2g[0]);
-                   const double coefmaster3 = ( u2(0, 0) + u2(0, 2) + X2(0, 0) + X2(0, 2) - x2g[0] - x2g[2]);
-                   const double coefmaster4 = ( -u2(0, 0) - u2(0, 1) - X2(0, 0) - X2(0, 1) + x2g[0] + x2g[1]);
-                   const double coefmaster5 = ( (u2(0, 1) + X2(0, 1)) * (u2(1, 0) + u2(1, 2) + X2(1, 0) + X2(1, 2) - x2g[0] - x2g[2]));
-                   
-                   if ((i_dof - TDim * TNumNodes) == 0)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  ((u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
-                                                           X2(1, 2) - X2(2, 1) + X2(2, 2)) * (multmaster0*multmaster2 + 
-                                                           multmaster1*multmaster3) - (div1) * (u2(0, 1) - u2(0, 2) + 
-                                                           X2(0, 1) - X2(0, 2) - x2g[1] + x2g[2] + 
-                                                           mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
-                                                           mult2 * (-1 + Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
-                                                           
-                       rDerivativeData.DeltaN2[i_dof][2] =  ( -(u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
-                                                            X2(1, 2) - X2(2, 1) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
-                                                            multmaster5 + coefmaster1 - coefmaster5 - 
-                                                            multmaster4 * multmaster6) + (div2) * (u2(1, 1) - u2(1, 2) + 
-                                                            X2(1, 1) - X2(1, 2) - x2g[1] + x2g[2] + mult3 * Deltax2g[0] + 
-                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 1)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  ((-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
-                                                            X2(1, 2) + X2(2, 0) + X2(2, 2)) * (multmaster0*multmaster2 + 
-                                                            multmaster1*multmaster3) - (div1) * (-u2(0, 0) - u2(0, 2) - 
-                                                            X2(0, 0) - X2(0, 2) + x2g[0] + x2g[2] + 
-                                                            mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
-                                                            mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
-                                                            
-                       rDerivativeData.DeltaN2[i_dof][2] =  (-(-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
-                                                             X2(1, 2) + X2(2, 0) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
-                                                             multmaster5 + coefmaster1 - coefmaster5 - 
-                                                             multmaster4 * multmaster6) + (div2) * (-u2(1, 0) - u2(1, 2) - 
-                                                             X2(1, 0) - X2(1, 2) + x2g[0] + x2g[2] + mult3 * Deltax2g[0] + 
-                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 2)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  ( (u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
-                                                            X2(1, 1) - X2(2, 0) - X2(2, 1)) * (multmaster0*multmaster2 + 
-                                                            multmaster1*multmaster3) - (div1) * (u2(0, 0) + u2(0, 1) + 
-                                                            X2(0, 0) + X2(0, 1) - x2g[0] - x2g[1] + 
-                                                            mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                            mult2 * (-1 + Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                        
-                       rDerivativeData.DeltaN2[i_dof][2] =  (-(u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
-                                                            X2(1, 1) - X2(2, 0) - X2(2, 1)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
-                                                            multmaster5 + coefmaster1 - coefmaster5 - 
-                                                            multmaster4 * multmaster6) + (div2) * (u2(1, 0) + u2(1, 1) + 
-                                                            X2(1, 0) + X2(1, 1) - x2g[0] - x2g[1] + mult3 * Deltax2g[0] + 
-                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 3)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  ( (-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
-                                                            X2(0, 2) + X2(2, 1) - X2(2, 2)) * (multmaster0*multmaster2 + 
-                                                            multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                            mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                                                            
-                       rDerivativeData.DeltaN2[i_dof][2] =  ( -(-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
-                                                              X2(0, 2) + X2(2, 1) - X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
-                                                              multmaster5 + coefmaster1 - coefmaster5 - 
-                                                              multmaster4 * multmaster6) + (div2) * (-u2(0, 1) + u2(0, 2) - 
-                                                              X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + mult3 * Deltax2g[0] + 
-                                                              mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 4)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  ( multmaster0*(multmaster0*multmaster2 + 
-                                                           multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                                                           
-                       rDerivativeData.DeltaN2[i_dof][2] =  ( +mult1 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
-                                                            coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (coefmaster3 + 
-                                                            mult3 * Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 5)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  ( multmaster1 *(multmaster0*multmaster2 + 
-                                                           multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                                                           
-                       rDerivativeData.DeltaN2[i_dof][2] =  ( -multmaster1 *  (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 +
-                                                            coefmaster1 - coefmaster5 -  multmaster4 * multmaster6) + (div2) * (coefmaster4 + 
-                                                            mult3 * Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 6)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  (mult3 *(multmaster0*multmaster2 + 
-                                                          multmaster1*multmaster3) - (div1) * (-u2(0, 1) + u2(0, 2) - 
-                                                          X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + 
-                                                          mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                          mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
-                                                          
-                       rDerivativeData.DeltaN2[i_dof][2] =  ( -mult3 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
-                                                            coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
-                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 7)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  (mult4 *(multmaster0*multmaster2 + 
-                                                          multmaster1*multmaster3) - (div1) * (coefmaster3 + 
-                                                          mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                          mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                                                          
-                       rDerivativeData.DeltaN2[i_dof][2] =  ( -mult4 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
-                                                            coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
-                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
-                   }
-                   else if ((i_dof - TDim * TNumNodes) == 8)
-                   {
-                       rDerivativeData.DeltaN2[i_dof][1] =  (mult5 *(multmaster0*multmaster2 + 
-                                                          multmaster1*multmaster3) - (div1) * (coefmaster4 + 
-                                                          mult1 * (Deltax2g[0] + Deltax2g[1]) + 
-                                                          mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                                                          
-                       rDerivativeData.DeltaN2[i_dof][2] =  (-mult5 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
-                                                          coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
-                                                          mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
-                   }
-
-                  rDerivativeData.DeltaN2[i_dof][0] =  - rDerivativeData.DeltaN2[i_dof][1] - rDerivativeData.DeltaN2[i_dof][2];
-               }
-            }
-         }
-      }
-    }
+    // TODO: Fill this with the consistent formulation
 }
 
 /***********************************************************************************/
