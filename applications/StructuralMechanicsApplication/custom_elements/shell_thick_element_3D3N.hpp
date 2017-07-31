@@ -125,8 +125,6 @@ namespace Kratos
 		
 		int Check(const ProcessInfo& rCurrentProcessInfo);
 
-		void CleanMemory();
-
 		void GetValuesVector(Vector& values, int Step = 0);
 
 		void GetFirstDerivativesVector(Vector& values, int Step = 0);
@@ -183,6 +181,15 @@ namespace Kratos
 
 		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
+			const ProcessInfo& rCurrentProcessInfo);
+
+		// Calculate functions
+		void Calculate(const Variable<Matrix >& rVariable,
+			Matrix& Output,
+			const ProcessInfo& rCurrentProcessInfo);
+
+		void Calculate(const Variable<double>& rVariable,
+			double& Output,
 			const ProcessInfo& rCurrentProcessInfo);
 
 		///@}
@@ -244,28 +251,27 @@ namespace Kratos
 
 			const bool parabolic_composite_transverse_shear_strains = false;
 
-			// DSGc3 ansatz coefficients
-			VectorType a5 = ZeroVector(9);
-			VectorType a6 = ZeroVector(9);
-			VectorType a8 = ZeroVector(9);
-			VectorType a9 = ZeroVector(9);
-
 			// ---------------------------------------
 			// Testing flags
 			// ---------------------------------------
-			// These should both be FALSE unless you are testing, or 
+			// These should all be FALSE unless you are testing, or 
 			// investigating the effects of element enhancements!
 
-			const bool basicTriCST = false;	/*!< flag to use basic CST 
-											displacement-based formulation. This 
-											should be false unless you are 
-											testing! */
+			const bool basicTriCST = false;	// bool to use basic CST 
+			// displacement-based shear formulation. This should be FALSE unless 
+			// you are testing
 
-			const bool ignore_shear_stabilization = false; /*!< flag to 
-											stabilize the transverse shear part of the											material matrix. This should be false unless 
-											you are testing! */
+			const bool ignore_shear_stabilization = false; // bool to 
+			// ignore stabilizing the transverse shear part of the material 
+			// matrix. This should be false unless you are testing
 
-			const bool specialDSGc3 = false;
+			const bool smoothedDSG = false; // bool to use smoothed DSG 
+			// formulation according to [Nguyen-Thoi et al., 2013]. 
+			// This should be false unless you are testing
+
+			const bool specialDSGc3 = false; // bool to use experimental
+			// DSGc3 formulation not yet complete.
+			// This should be false unless you are testing
 
 			// ---------------------------------------
 			// calculation-variable data
@@ -343,6 +349,10 @@ namespace Kratos
 
 		void CalculateDSGc3Contribution(CalculationData& data, MatrixType& rLeftHandSideMatrix);
 
+		void CalculateSmoothedDSGBMatrix(CalculationData& data);
+
+		void CalculateDSGShearBMatrix(Matrix& shearBMatrix, const double& a, const double& b, const double& c, const double& d, const double& A);
+
 		void AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector);
 
 		void CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -373,6 +383,8 @@ namespace Kratos
 		CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
 		IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
+
+		double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */
 
 												  ///@}
 

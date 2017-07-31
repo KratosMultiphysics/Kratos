@@ -599,7 +599,7 @@ namespace Kratos
 	void ShellThinElement3D4N::InitializeSolutionStep
 	(ProcessInfo& CurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
+		PropertiesType& props = GetProperties();
 		const GeometryType & geom = GetGeometry();
 		const Matrix & shapeFunctionsValues =
 			geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -1082,6 +1082,83 @@ namespace Kratos
 		std::vector<Vector>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
+		if (rVariable == LOCAL_AXIS_VECTOR_1)
+		{
+			// LOCAL_AXIS_VECTOR_1 output DOES NOT include the effect of section
+			// orientation, which rotates the entrire element section in-plane
+			// and is used in element stiffness calculation.
+
+			rValues.resize(4);
+			for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
+			// Initialize common calculation variables
+			// Compute the local coordinate system.
+			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+			
+			for (size_t GP = 0; GP < 4; GP++)
+			{
+				rValues[GP] = localCoordinateSystem.Vx();
+			}
+		}
+		else if (rVariable == ORTHOTROPIC_FIBER_ORIENTATION_1)
+		{
+			// ORTHOTROPIC_FIBER_ORIENTATION_1 output DOES include the effect of 
+			// section orientation, which rotates the entrire element section 
+			// in-plane and is used in element stiffness calculation.
+
+			// Resize output
+			rValues.resize(4);
+			for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
+
+
+			// Initialize common calculation variables
+			// Compute the local coordinate system.
+			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+			// Get local axis 1 in flattened LCS space
+			Vector3 localAxis1 = localCoordinateSystem.P2() - localCoordinateSystem.P1();
+
+			// Perform rotation of local axis 1 to fiber1 in flattened LCS space
+			Matrix localToFiberRotation = Matrix(3, 3, 0.0);
+			double fiberSectionRotation = mSections[0]->GetOrientationAngle();
+			double c = std::cos(fiberSectionRotation);
+			double s = std::sin(fiberSectionRotation);
+
+			localToFiberRotation(0, 0) = c;
+			localToFiberRotation(0, 1) = -s;
+			localToFiberRotation(1, 0) = s;
+			localToFiberRotation(1, 1) = c;
+			localToFiberRotation(2, 2) = 1.0;
+
+			Vector3 temp = prod(localToFiberRotation, localAxis1);
+
+			// Transform result back to global cartesian coords
+				// Includes warpage correction
+					/*
+					Matrix localToGlobalLarge;
+					localCoordinateSystem.ComputeLocalToGlobalTransformationMatrix(localToGlobalLarge);
+					Matrix localToGlobalSmall = Matrix(3, 3, 0.0);
+					for (size_t i = 0; i < 3; i++)
+					{
+						for (size_t j = 0; j < 3; j++)
+						{
+							localToGlobalSmall(i, j) = localToGlobalLarge(i, j);
+						}
+					}
+					*/
+				// Basic rotation without warpage correction
+					Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
+
+			Vector3 fiberAxis1 = prod(trans(localToGlobalSmall), temp);
+			fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
+
+			//write results
+			for (size_t dir = 0; dir < 1; dir++)
+			{
+				rValues[dir] = fiberAxis1;
+			}
+		}
 	}
 
 	void ShellThinElement3D4N::GetValueOnIntegrationPoints
@@ -1140,6 +1217,30 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+
+	void ShellThinElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
+	{
+		if (rVariable == LOCAL_ELEMENT_ORIENTATION)
+		{
+			Output.resize(3, 3, false);
+
+			// Compute the local coordinate system.
+			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+			Output = localCoordinateSystem.Orientation();
+		}
+	}
+
+	void ShellThinElement3D4N::Calculate(const Variable<double>& rVariable, double & rotationAngle, const ProcessInfo & rCurrentProcessInfo)
+	{
+		if (rVariable == ORTHOTROPIC_ORIENTATION_ASSIGNMENT)
+		{
+			if (rotationAngle != 0.0)
+			{
+				mOrthotropicSectionRotation = rotationAngle;
+			}
+		}
 	}
 
 	// =========================================================================
@@ -1567,20 +1668,28 @@ namespace Kratos
 				angle = -angle;
 		}
 
-		for (CrossSectionContainerType::iterator it =
-			mSections.begin(); it != mSections.end(); ++it)
-			(*it)->SetOrientationAngle(angle);
+		Properties props = GetProperties();
+		if (props.Has(ORTHOTROPIC_ORIENTATION_ASSIGNMENT))
+		{
+			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+				(*it)->SetOrientationAngle(mOrthotropicSectionRotation);
+		}
+		else
+		{
+			for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+				(*it)->SetOrientationAngle(angle);
+		}
 	}
 
 	void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
 	{
 		KRATOS_TRY
-			//-------------------------------------
-			// Computation of all stuff that remain
-			// constant throughout the calculations
+		//-------------------------------------
+		// Computation of all stuff that remain
+		// constant throughout the calculations
 
-			//-------------------------------------
-			// geometry data
+		//-------------------------------------
+		// geometry data
 		const double x12 = data.LCS0.X1() - data.LCS0.X2();
 		const double x13 = data.LCS0.X1() - data.LCS0.X3();
 		const double x23 = data.LCS0.X2() - data.LCS0.X3();
@@ -1640,425 +1749,438 @@ namespace Kratos
 		}
 
 
-		// Unit vectors s_xi and s_eta (eqn 5.2.25)
-		// eqns 5.2.29 -> 5.2.31
-		data.s_xi.clear();
-		data.s_eta.clear();
 
-		//set values of SFs to xi = 1 and eta = 0
-		Utilities::ShapeFunc(1, 0, data.N);
-		for (int i = 0; i < 4; i++)
+
+		if (data.basicQuad == false)
 		{
-			data.s_xi(0) += data.r_cartesian[i][0] * data.N(i);
-			data.s_xi(1) += data.r_cartesian[i][1] * data.N(i);
-		}
-		double s_xi_mag = std::sqrt(inner_prod(data.s_xi, data.s_xi));
-		data.s_xi = data.s_xi / s_xi_mag;
+			// ---------------------------------------------------------------------
+			//
+			//                     ANDES MEMBRANE FORMULATION
+			//
+			// ---------------------------------------------------------------------
 
-		//set values of SFs to xi = 0 and eta = 1
-		data.N.clear();
-		Utilities::ShapeFunc(0, 1, data.N);
-		for (int i = 0; i < 4; i++)
-		{
-			data.s_eta(0) += data.r_cartesian[i][0] * data.N(i);
-			data.s_eta(1) += data.r_cartesian[i][1] * data.N(i);
-		}
-		double s_eta_mag = std::sqrt(inner_prod(data.s_eta, data.s_eta));
-		data.s_eta = data.s_eta / s_eta_mag;
 
-		// calculate L - Lumping matrix (ref eqn 5.2.4)
-		// for the construction of the basic
-		// stiffness. Transpose from the presented version
-		// to allow combination of B matrices later
+			// Unit vectors s_xi and s_eta (eqn 5.2.25)
+			// eqns 5.2.29 -> 5.2.31
+			data.s_xi.clear();
+			data.s_eta.clear();
 
-		//Template constants
-		double L_mult = 0.5 / A;
-		const double alpha_6 = data.alpha / 6.0;
-		const double alpha_3 = data.alpha / 3.0;
-		//data.L_mem.resize(3, 12, false); \\ TODO delete
-		data.L_mem.clear();
-
-		//j = 1, i=4, k=2
-		//ki = 24, ij = 41
-		data.L_mem(0, 0) = L_mult * y24;
-		data.L_mem(1, 0) = 0.00;
-		data.L_mem(2, 0) = L_mult * x42;
-		data.L_mem(0, 1) = 0.00;
-		data.L_mem(1, 1) = L_mult * x42;
-		data.L_mem(2, 1) = L_mult * y24;
-		data.L_mem(0, 2) = L_mult * alpha_6*(y41*y41 - y21*y21);
-		data.L_mem(1, 2) = L_mult *  alpha_6*(x41*x41 - x21*x21);
-		data.L_mem(2, 2) = L_mult * alpha_3*(x21*y21 - x41*y41);
-
-		//j = 2, i=1, k=3
-		//ki = 31, ij = 12
-		data.L_mem(0, 3) = L_mult * y31;
-		data.L_mem(1, 3) = 0.00;
-		data.L_mem(2, 3) = L_mult * x13;
-		data.L_mem(0, 4) = 0.00;
-		data.L_mem(1, 4) = L_mult * x13;
-		data.L_mem(2, 4) = L_mult * y31;
-		data.L_mem(0, 5) = L_mult * alpha_6*(y12*y12 - y32*y32);
-		data.L_mem(1, 5) = L_mult * alpha_6*(x12*x12 - x32*x32);
-		data.L_mem(2, 5) = L_mult * alpha_3*(x32*y32 - x12*y12);
-
-		//j = 3, i=2, k=4
-		//ki = 42, ij = 23
-		data.L_mem(0, 6) = L_mult * y42;
-		data.L_mem(1, 6) = 0.00;
-		data.L_mem(2, 6) = L_mult * x24;
-		data.L_mem(0, 7) = 0.00;
-		data.L_mem(1, 7) = L_mult * x24;
-		data.L_mem(2, 7) = L_mult * y42;
-		data.L_mem(0, 8) = L_mult * alpha_6*(y23*y23 - y43*y43);
-		data.L_mem(1, 8) = L_mult * alpha_6*(x23*x23 - x43*x43);
-		data.L_mem(2, 8) = L_mult * alpha_3*(x43*y43 - x23*y23);
-
-		//j = 4, i=3, k=1
-		//ki = 13, ij = 34
-		data.L_mem(0, 9) = L_mult * y13;
-		data.L_mem(1, 9) = 0.00;
-		data.L_mem(2, 9) = L_mult * x31;
-		data.L_mem(0, 10) = 0.00;
-		data.L_mem(1, 10) = L_mult * x31;
-		data.L_mem(2, 10) = L_mult * y13;
-		data.L_mem(0, 11) = L_mult * alpha_6*(y34*y34 - y14*y14);
-		data.L_mem(1, 11) = L_mult * alpha_6*(x34*x34 - x14*x14);
-		data.L_mem(2, 11) = L_mult * alpha_3*(x14*y14 - x34*y34);
-
-		//--------------------------------------
-		// calculate H - matrix
-		// for the construction of the
-		// higher order stiffness
-
-		//H_mem_mod transformation matrix 'H' (ref eqn 5.2.26)
-
-		//eqn 5.2.12
-		double detJ = 0.0;
-		for (int i = 0; i < 4; i++)
-		{
-			int j = i + 1;
-			if (j == 4) { j = 0; }
-			detJ += (data.r_cartesian[i][0] * data.r_cartesian[j][1] -
-				data.r_cartesian[j][0] * data.r_cartesian[i][1]);
-		}
-		detJ /= 8.0;
-		const double f = 16.0 * detJ;
-
-		//filter matrix for higher order rotation strain field
-		//eqn 5.2.14
-		Matrix H_theta = Matrix(5, 12, 0.0);
-		H_theta(4, 0) = x42 / f;
-		H_theta(4, 1) = x13 / f;
-		H_theta(4, 2) = x24 / f;
-		H_theta(4, 3) = x31 / f;
-		H_theta(4, 4) = y42 / f;
-		H_theta(4, 5) = y13 / f;
-		H_theta(4, 6) = y24 / f;
-		H_theta(4, 7) = y31 / f;
-
-		H_theta(4, 8) = 0.25;
-		H_theta(4, 9) = 0.25;
-		H_theta(4, 10) = 0.25;
-		H_theta(4, 11) = 0.25;
-
-		for (int row = 0; row < 4; row++)
-		{
-			for (int col = 0; col < 4; col++)
+			//set values of SFs to xi = 1 and eta = 0
+			Utilities::ShapeFunc(1, 0, data.N);
+			for (int i = 0; i < 4; i++)
 			{
-				if (row == col) { H_theta(row, col + 8) = 0.75; }
-				else { H_theta(row, col + 8) = -0.25; }
+				data.s_xi(0) += data.r_cartesian[i][0] * data.N(i);
+				data.s_xi(1) += data.r_cartesian[i][1] * data.N(i);
+			}
+			double s_xi_mag = std::sqrt(inner_prod(data.s_xi, data.s_xi));
+			data.s_xi = data.s_xi / s_xi_mag;
+
+			//set values of SFs to xi = 0 and eta = 1
+			data.N.clear();
+			Utilities::ShapeFunc(0, 1, data.N);
+			for (int i = 0; i < 4; i++)
+			{
+				data.s_eta(0) += data.r_cartesian[i][0] * data.N(i);
+				data.s_eta(1) += data.r_cartesian[i][1] * data.N(i);
+			}
+			double s_eta_mag = std::sqrt(inner_prod(data.s_eta, data.s_eta));
+			data.s_eta = data.s_eta / s_eta_mag;
+
+			// calculate L - Lumping matrix (ref eqn 5.2.4)
+			// for the construction of the basic
+			// stiffness. Transpose from the presented version
+			// to allow combination of B matrices later
+
+			//Template constants
+			double L_mult = 0.5 / A;
+			const double alpha_6 = data.alpha / 6.0;
+			const double alpha_3 = data.alpha / 3.0;
+			data.L_mem.clear();
+
+			//j = 1, i=4, k=2
+			//ki = 24, ij = 41
+			data.L_mem(0, 0) = L_mult * y24;
+			data.L_mem(1, 0) = 0.00;
+			data.L_mem(2, 0) = L_mult * x42;
+			data.L_mem(0, 1) = 0.00;
+			data.L_mem(1, 1) = L_mult * x42;
+			data.L_mem(2, 1) = L_mult * y24;
+			data.L_mem(0, 2) = L_mult * alpha_6*(y41*y41 - y21*y21);
+			data.L_mem(1, 2) = L_mult *  alpha_6*(x41*x41 - x21*x21);
+			data.L_mem(2, 2) = L_mult * alpha_3*(x21*y21 - x41*y41);
+
+			//j = 2, i=1, k=3
+			//ki = 31, ij = 12
+			data.L_mem(0, 3) = L_mult * y31;
+			data.L_mem(1, 3) = 0.00;
+			data.L_mem(2, 3) = L_mult * x13;
+			data.L_mem(0, 4) = 0.00;
+			data.L_mem(1, 4) = L_mult * x13;
+			data.L_mem(2, 4) = L_mult * y31;
+			data.L_mem(0, 5) = L_mult * alpha_6*(y12*y12 - y32*y32);
+			data.L_mem(1, 5) = L_mult * alpha_6*(x12*x12 - x32*x32);
+			data.L_mem(2, 5) = L_mult * alpha_3*(x32*y32 - x12*y12);
+
+			//j = 3, i=2, k=4
+			//ki = 42, ij = 23
+			data.L_mem(0, 6) = L_mult * y42;
+			data.L_mem(1, 6) = 0.00;
+			data.L_mem(2, 6) = L_mult * x24;
+			data.L_mem(0, 7) = 0.00;
+			data.L_mem(1, 7) = L_mult * x24;
+			data.L_mem(2, 7) = L_mult * y42;
+			data.L_mem(0, 8) = L_mult * alpha_6*(y23*y23 - y43*y43);
+			data.L_mem(1, 8) = L_mult * alpha_6*(x23*x23 - x43*x43);
+			data.L_mem(2, 8) = L_mult * alpha_3*(x43*y43 - x23*y23);
+
+			//j = 4, i=3, k=1
+			//ki = 13, ij = 34
+			data.L_mem(0, 9) = L_mult * y13;
+			data.L_mem(1, 9) = 0.00;
+			data.L_mem(2, 9) = L_mult * x31;
+			data.L_mem(0, 10) = 0.00;
+			data.L_mem(1, 10) = L_mult * x31;
+			data.L_mem(2, 10) = L_mult * y13;
+			data.L_mem(0, 11) = L_mult * alpha_6*(y34*y34 - y14*y14);
+			data.L_mem(1, 11) = L_mult * alpha_6*(x34*x34 - x14*x14);
+			data.L_mem(2, 11) = L_mult * alpha_3*(x14*y14 - x34*y34);
+
+			//--------------------------------------
+			// calculate H - matrix
+			// for the construction of the
+			// higher order stiffness
+
+			//H_mem_mod transformation matrix 'H' (ref eqn 5.2.26)
+
+			//eqn 5.2.12
+			double detJ = 0.0;
+			for (int i = 0; i < 4; i++)
+			{
+				int j = i + 1;
+				if (j == 4) { j = 0; }
+				detJ += (data.r_cartesian[i][0] * data.r_cartesian[j][1] -
+					data.r_cartesian[j][0] * data.r_cartesian[i][1]);
+			}
+			detJ /= 8.0;
+			const double f = 16.0 * detJ;
+
+			//filter matrix for higher order rotation strain field
+			//eqn 5.2.14
+			Matrix H_theta = Matrix(5, 12, 0.0);
+			H_theta(4, 0) = x42 / f;
+			H_theta(4, 1) = x13 / f;
+			H_theta(4, 2) = x24 / f;
+			H_theta(4, 3) = x31 / f;
+			H_theta(4, 4) = y42 / f;
+			H_theta(4, 5) = y13 / f;
+			H_theta(4, 6) = y24 / f;
+			H_theta(4, 7) = y31 / f;
+
+			H_theta(4, 8) = 0.25;
+			H_theta(4, 9) = 0.25;
+			H_theta(4, 10) = 0.25;
+			H_theta(4, 11) = 0.25;
+
+			for (int row = 0; row < 4; row++)
+			{
+				for (int col = 0; col < 4; col++)
+				{
+					if (row == col) { H_theta(row, col + 8) = 0.75; }
+					else { H_theta(row, col + 8) = -0.25; }
+				}
+			}
+
+			//xi and eta unit vectors
+			Vector s_xi = Vector(data.r_cartesian[1] + data.r_cartesian[2]);
+			s_xi /= std::sqrt(inner_prod(s_xi, s_xi));
+
+			Vector s_eta = Vector(data.r_cartesian[2] + data.r_cartesian[3]);
+			s_eta /= std::sqrt(inner_prod(s_eta, s_eta));
+
+			//eqn 5.2.21 - modified as per Felippa supernatural quad paper
+			//eqns 63, 65
+			array_1d<double, 4> v_h;
+			double A_0 = data.LCS0.Area();		//element area
+			double A_1 = 0.5*(x34*y12 - x12*y34);
+			double A_2 = 0.5*(x23*y14 - x14*y23);
+			v_h[0] = (A_0 + A_1 + A_2) / 2.0 / A_0;
+			v_h[1] = (-1.0*A_0 + A_1 - A_2) / 2.0 / A_0;
+			v_h[2] = (A_0 - A_1 - A_2) / 2.0 / A_0;
+			v_h[3] = (-1.0*A_0 - A_1 + A_2) / 2.0 / A_0;
+
+			//filter matrix for higher order translations strain field
+			Matrix H_tv = Matrix(2, 12, 0.0);
+			for (int i = 0; i < 4; i++)
+			{
+				// x-components
+				H_tv(0, i) = v_h[i] * s_xi[0];
+				H_tv(1, i) = v_h[i] * s_eta[0];
+
+				//y components
+				H_tv(0, 4 + i) = v_h[i] * s_xi[1];
+				H_tv(1, 4 + i) = v_h[i] * s_eta[1];
+			}
+
+			//eqn 5.2.26
+			Matrix H = Matrix(7, 12, 0.0);
+			for (int col = 0; col < 12; col++)
+			{
+				for (int row = 0; row < 5; row++)
+				{
+					H(row, col) = H_theta(row, col);
+				}
+				for (int row = 0; row < 2; row++)
+				{
+					H(row + 5, col) = H_tv(row, col);
+				}
+			}
+
+			//Q matrices
+			array_1d<double, 4> d_xi_i;
+			array_1d<double, 4> d_eta_i;
+			array_1d<double, 4> chi_xi_i;
+			array_1d<double, 4> chi_eta_i;
+
+			Vector r_xi = Vector(data.r_cartesian[1] + data.r_cartesian[2] -
+				data.r_cartesian[0] - data.r_cartesian[3]);
+			r_xi /= 2.0;
+			Vector r_eta = Vector(data.r_cartesian[2] + data.r_cartesian[3] -
+				data.r_cartesian[0] - data.r_cartesian[1]);
+			r_eta /= 2.0;
+			double l_xi = std::sqrt(inner_prod(r_xi, r_xi));
+			double l_eta = std::sqrt(inner_prod(r_eta, r_eta));
+
+			for (int i = 0; i < 4; i++)
+			{
+				//eqn 5.2.29
+				Vector vec1 = Vector(MathUtils<double>::CrossProduct
+				(data.r_cartesian[i], s_xi));
+				d_xi_i[i] = std::sqrt(inner_prod(vec1, vec1));
+				chi_xi_i[i] = d_xi_i[i] / l_xi;
+
+				Vector vec2 = Vector(MathUtils<double>::CrossProduct
+				(data.r_cartesian[i], s_eta));
+				d_eta_i[i] = std::sqrt(inner_prod(vec2, vec2));
+				chi_eta_i[i] = d_eta_i[i] / l_eta;
+			}
+
+			Vector r_24 = Vector(data.r_cartesian[1] - data.r_cartesian[3]);
+			Vector r_13 = Vector(data.r_cartesian[0] - data.r_cartesian[2]);
+			double l_24 = std::sqrt(inner_prod(r_24, r_24));
+			double l_13 = std::sqrt(inner_prod(r_13, r_13));
+
+			Vector e_24 = Vector(r_24 / l_24);
+			Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13*-1.0, e_24));
+			Vector vec2 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
+			double d_24 = std::sqrt(inner_prod(vec1, vec2));
+			double d_13 = std::sqrt(inner_prod(vec1, vec2));
+			double chi_24 = d_24 / 2.0 / l_24;
+			double chi_13 = d_13 / 2.0 / l_13;
+
+			double chi_xi_t = l_eta / l_xi;
+			double chi_eta_t = l_xi / l_eta;
+
+			double chi_xi_hat = 0.0;
+			double chi_eta_hat = 0.0;
+			for (int i = 0; i < 4; i++)
+			{
+				chi_xi_hat += chi_xi_i[i];
+				chi_eta_hat += chi_eta_i[i];
+			}
+			chi_xi_hat /= 4.0;
+			chi_eta_hat /= 4.0;
+
+			// Template constants defined in eqn 5.2.41
+			const double rho1 = 0.1;
+			const double rho2 = -0.1;
+			const double rho3 = -0.1;
+			const double rho4 = 0.1;
+			const double rho5 = 0.0;
+			const double rho6 = 0.5;
+			const double rho7 = 0.0;
+			const double rho8 = -0.5;
+			const double beta1 = 0.6;
+			//double beta2 = 0.0; - entries disabled to save effort
+
+			//s_13 and s_24 unit vectors
+			Vector s_13 = Vector(data.r_cartesian[2] - data.r_cartesian[0]);
+			s_13 /= std::sqrt(inner_prod(s_13, s_13));
+			Vector s_24 = Vector(data.r_cartesian[3] - data.r_cartesian[1]);
+			s_24 /= std::sqrt(inner_prod(s_24, s_24));
+
+			Matrix Q1 = Matrix(3, 7, 0.0);
+			Matrix Q2 = Matrix(3, 7, 0.0);
+			Matrix Q3 = Matrix(3, 7, 0.0);
+			Matrix Q4 = Matrix(3, 7, 0.0);
+
+			Q1(0, 0) = rho1*chi_xi_i[0];
+			Q1(0, 1) = rho2*chi_xi_i[0];
+			Q1(0, 2) = rho3*chi_xi_i[0];
+			Q1(0, 3) = rho4*chi_xi_i[0];
+
+			Q1(0, 4) = data.alpha*chi_xi_t;
+			Q1(0, 5) = -1.0 * beta1 * chi_xi_i[0] / chi_xi_hat / l_xi;
+
+			Q1(1, 0) = -1.0* rho1*chi_eta_i[0];
+			Q1(1, 1) = -1.0* rho4*chi_eta_i[0];
+			Q1(1, 2) = -1.0* rho3*chi_eta_i[0];
+			Q1(1, 3) = -1.0* rho2*chi_eta_i[0];
+
+			Q1(1, 4) = -1.0 * data.alpha*chi_eta_t;
+			Q1(1, 6) = -1.0 * beta1 * chi_eta_i[0] / chi_eta_hat / l_eta;
+
+			Q1(2, 0) = rho5*chi_24;
+			Q1(2, 1) = rho6*chi_24;
+			Q1(2, 2) = rho7*chi_24;
+			Q1(2, 3) = rho8*chi_24;
+
+			//Q1(2, 5) = beta2 * c_24_xi / l_24;	- beta2 = 0!!!
+			//Q1(2, 6) = -1.0 * beta2 * c_24_eta / l_24;	- beta2 = 0!!!
+
+			Q2(0, 0) = -1.0*rho2*chi_xi_i[1];
+			Q2(0, 1) = -1.0*rho1*chi_xi_i[1];
+			Q2(0, 2) = -1.0*rho4*chi_xi_i[1];
+			Q2(0, 3) = -1.0*rho3*chi_xi_i[1];
+
+			Q2(0, 4) = -1.0*data.alpha*chi_xi_t;
+			Q2(0, 5) = -1.0 * beta1 * chi_xi_i[1] / chi_xi_hat / l_xi;
+
+			Q2(1, 0) = rho4*chi_eta_i[1];
+			Q2(1, 1) = rho1*chi_eta_i[1];
+			Q2(1, 2) = rho2*chi_eta_i[1];
+			Q2(1, 3) = rho3*chi_eta_i[1];
+
+			Q2(1, 4) = data.alpha*chi_eta_t;
+			Q2(1, 6) = beta1 * chi_eta_i[1] / chi_eta_hat / l_eta;
+
+			Q2(2, 0) = rho8*chi_13;
+			Q2(2, 1) = rho5*chi_13;
+			Q2(2, 2) = rho6*chi_13;
+			Q2(2, 3) = rho7*chi_13;
+
+			//Q2(2, 5) = -1.0* beta2 * c_13_xi / l_13;	 beta2 = 0!!!
+			//Q2(2, 6) = beta2 * c_13_eta / l_13;	beta2=0!!!
+
+
+			Q3(0, 0) = rho3*chi_xi_i[2];
+			Q3(0, 1) = rho4*chi_xi_i[2];
+			Q3(0, 2) = rho1*chi_xi_i[2];
+			Q3(0, 3) = rho2*chi_xi_i[2];
+
+			Q3(0, 4) = data.alpha*chi_xi_t;
+			Q3(0, 5) = beta1 * chi_xi_i[2] / chi_xi_hat / l_xi;
+
+			Q3(1, 0) = -1.0* rho3*chi_eta_i[2];
+			Q3(1, 1) = -1.0* rho2*chi_eta_i[2];
+			Q3(1, 2) = -1.0* rho1*chi_eta_i[2];
+			Q3(1, 3) = -1.0* rho4*chi_eta_i[2];
+
+			Q3(1, 4) = -1.0 * data.alpha*chi_eta_t;
+			Q3(1, 6) = beta1 * chi_eta_i[2] / chi_eta_hat / l_eta;
+
+			Q3(2, 0) = rho7*chi_13;
+			Q3(2, 1) = rho8*chi_13;
+			Q3(2, 2) = rho5*chi_13;
+			Q3(2, 3) = rho6*chi_13;
+
+			//Q3(2, 5) = -1.0*beta2 * c_13_xi / l_13;	beta2 = 0!!!
+			//Q3(2, 6) = beta2 * c_13_eta / l_13;	beta2 = 0!!!
+
+
+			Q4(0, 0) = -1.0*rho4*chi_xi_i[3];
+			Q4(0, 1) = -1.0*rho3*chi_xi_i[3];
+			Q4(0, 2) = -1.0*rho2*chi_xi_i[3];
+			Q4(0, 3) = -1.0*rho1*chi_xi_i[3];
+
+			Q4(0, 4) = -1.0*data.alpha*chi_xi_t;
+			Q4(0, 5) = beta1 * chi_xi_i[3] / chi_xi_hat / l_xi;
+
+			Q4(1, 0) = rho2*chi_eta_i[3];
+			Q4(1, 1) = rho3*chi_eta_i[3];
+			Q4(1, 2) = rho4*chi_eta_i[3];
+			Q4(1, 3) = rho1*chi_eta_i[3];
+
+			Q4(1, 4) = data.alpha*chi_eta_t;
+			Q4(1, 6) = -1.0* beta1 * chi_eta_i[3] / chi_eta_hat / l_eta;
+
+			Q4(2, 0) = rho6*chi_13;
+			Q4(2, 1) = rho7*chi_13;
+			Q4(2, 2) = rho8*chi_13;
+			Q4(2, 3) = rho5*chi_13;
+
+			//Q4(2, 5) = beta2 * c_13_xi / l_13;	beta2 = 0
+			//Q4(2, 6) = -1.0*beta2 * c_13_eta / l_13;	beta2 = 0
+
+			Matrix T_13_inv = Matrix(3, 3, 0.0);
+			T_13_inv(0, 0) = s_xi[0] * s_xi[0];
+			T_13_inv(0, 1) = s_xi[1] * s_xi[1];
+			T_13_inv(0, 2) = s_xi[0] * s_xi[1];
+			T_13_inv(1, 0) = s_eta[0] * s_eta[0];
+			T_13_inv(1, 1) = s_eta[1] * s_eta[1];
+			T_13_inv(1, 2) = s_eta[0] * s_eta[1];
+			T_13_inv(2, 0) = s_24[0] * s_24[0];
+			T_13_inv(2, 1) = s_24[1] * s_24[1];
+			T_13_inv(2, 2) = s_24[0] * s_24[1];
+
+			Matrix T_24_inv = Matrix(3, 3, 0.0);
+			T_24_inv(0, 0) = s_xi[0] * s_xi[0];
+			T_24_inv(0, 1) = s_xi[1] * s_xi[1];
+			T_24_inv(0, 2) = s_xi[0] * s_xi[1];
+			T_24_inv(1, 0) = s_eta[0] * s_eta[0];
+			T_24_inv(1, 1) = s_eta[1] * s_eta[1];
+			T_24_inv(1, 2) = s_eta[0] * s_eta[1];
+			T_24_inv(2, 0) = s_13[0] * s_13[0];
+			T_24_inv(2, 1) = s_13[1] * s_13[1];
+			T_24_inv(2, 2) = s_13[0] * s_13[1];
+
+			Matrix T_13 = Matrix(3, 3, 0.0);
+			Matrix T_24 = Matrix(3, 3, 0.0);
+			double t13invdet = MathUtils<double>::Det(T_13_inv);
+			MathUtils<double>::InvertMatrix(T_13_inv, T_13, t13invdet);
+			double t24invdet = MathUtils<double>::Det(T_24_inv);
+			MathUtils<double>::InvertMatrix(T_24_inv, T_24, t24invdet);
+
+			data.B_h_1 = prod(T_13, Q1);
+			data.B_h_2 = prod(T_24, Q2);
+			data.B_h_3 = prod(T_13, Q3);
+			data.B_h_4 = prod(T_24, Q4);
+
+			//transform DOFs from Haugen to Kratos
+			//data.Z.resize(12, 12, false); // TODO delete
+			data.Z.clear();
+			for (int i = 0; i < 3; i++)
+			{
+				data.Z(4 * i, i) = 1.0;
+				data.Z(4 * i + 1, i + 3) = 1.0;
+				data.Z(4 * i + 2, i + 6) = 1.0;
+				data.Z(4 * i + 3, i + 9) = 1.0;
+			}
+
+			//data.H_mem_mod.resize(7, 12, 0.0); // TODO delete
+			data.H_mem_mod.clear();
+			data.H_mem_mod = prod(H, data.Z);
+
+			//calculate Bh bar
+			//data.B_h_bar.resize(3, 7, false); // TODO deletes
+			data.B_h_bar.clear();
+			const Matrix & shapeFunctionsValues =
+				geom.ShapeFunctionsValues(GetIntegrationMethod());
+			for (int i = 0; i < 4; i++)
+			{
+				data.B_h_bar += shapeFunctionsValues(i, 0) * data.B_h_1;
+				data.B_h_bar += shapeFunctionsValues(i, 1) * data.B_h_2;
+				data.B_h_bar += shapeFunctionsValues(i, 2) * data.B_h_3;
+				data.B_h_bar += shapeFunctionsValues(i, 3) * data.B_h_4;
 			}
 		}
 
-		//xi and eta unit vectors
-		Vector s_xi = Vector(data.r_cartesian[1] + data.r_cartesian[2]);
-		s_xi /= std::sqrt(inner_prod(s_xi, s_xi));
+		
 
-		Vector s_eta = Vector(data.r_cartesian[2] + data.r_cartesian[3]);
-		s_eta /= std::sqrt(inner_prod(s_eta, s_eta));
-
-		//eqn 5.2.21 - modified as per Felippa supernatural quad paper
-		//eqns 63, 65
-		array_1d<double, 4> v_h;
-		double A_0 = data.LCS0.Area();		//element area
-		double A_1 = 0.5*(x34*y12 - x12*y34);
-		double A_2 = 0.5*(x23*y14 - x14*y23);
-		v_h[0] = (A_0 + A_1 + A_2) / 2.0 / A_0;
-		v_h[1] = (-1.0*A_0 + A_1 - A_2) / 2.0 / A_0;
-		v_h[2] = (A_0 - A_1 - A_2) / 2.0 / A_0;
-		v_h[3] = (-1.0*A_0 - A_1 + A_2) / 2.0 / A_0;
-
-		//filter matrix for higher order translations strain field
-		Matrix H_tv = Matrix(2, 12, 0.0);
-		for (int i = 0; i < 4; i++)
-		{
-			// x-components
-			H_tv(0, i) = v_h[i] * s_xi[0];
-			H_tv(1, i) = v_h[i] * s_eta[0];
-
-			//y components
-			H_tv(0, 4 + i) = v_h[i] * s_xi[1];
-			H_tv(1, 4 + i) = v_h[i] * s_eta[1];
-		}
-
-		//eqn 5.2.26
-		Matrix H = Matrix(7, 12, 0.0);
-		for (int col = 0; col < 12; col++)
-		{
-			for (int row = 0; row < 5; row++)
-			{
-				H(row, col) = H_theta(row, col);
-			}
-			for (int row = 0; row < 2; row++)
-			{
-				H(row + 5, col) = H_tv(row, col);
-			}
-		}
-
-		//Q matrices
-		array_1d<double, 4> d_xi_i;
-		array_1d<double, 4> d_eta_i;
-		array_1d<double, 4> chi_xi_i;
-		array_1d<double, 4> chi_eta_i;
-
-		Vector r_xi = Vector(data.r_cartesian[1] + data.r_cartesian[2] -
-			data.r_cartesian[0] - data.r_cartesian[3]);
-		r_xi /= 2.0;
-		Vector r_eta = Vector(data.r_cartesian[2] + data.r_cartesian[3] -
-			data.r_cartesian[0] - data.r_cartesian[1]);
-		r_eta /= 2.0;
-		double l_xi = std::sqrt(inner_prod(r_xi, r_xi));
-		double l_eta = std::sqrt(inner_prod(r_eta, r_eta));
-
-		for (int i = 0; i < 4; i++)
-		{
-			//eqn 5.2.29
-			Vector vec1 = Vector(MathUtils<double>::CrossProduct
-			(data.r_cartesian[i], s_xi));
-			d_xi_i[i] = std::sqrt(inner_prod(vec1, vec1));
-			chi_xi_i[i] = d_xi_i[i] / l_xi;
-
-			Vector vec2 = Vector(MathUtils<double>::CrossProduct
-			(data.r_cartesian[i], s_eta));
-			d_eta_i[i] = std::sqrt(inner_prod(vec2, vec2));
-			chi_eta_i[i] = d_eta_i[i] / l_eta;
-		}
-
-		Vector r_24 = Vector(data.r_cartesian[1] - data.r_cartesian[3]);
-		Vector r_13 = Vector(data.r_cartesian[0] - data.r_cartesian[2]);
-		double l_24 = std::sqrt(inner_prod(r_24, r_24));
-		double l_13 = std::sqrt(inner_prod(r_13, r_13));
-
-		Vector e_24 = Vector(r_24 / l_24);
-		Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13*-1.0, e_24));
-		Vector vec2 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
-		double d_24 = std::sqrt(inner_prod(vec1, vec2));
-		double d_13 = std::sqrt(inner_prod(vec1, vec2));
-		double chi_24 = d_24 / 2.0 / l_24;
-		double chi_13 = d_13 / 2.0 / l_13;
-
-		double chi_xi_t = l_eta / l_xi;
-		double chi_eta_t = l_xi / l_eta;
-
-		double chi_xi_hat = 0.0;
-		double chi_eta_hat = 0.0;
-		for (int i = 0; i < 4; i++)
-		{
-			chi_xi_hat += chi_xi_i[i];
-			chi_eta_hat += chi_eta_i[i];
-		}
-		chi_xi_hat /= 4.0;
-		chi_eta_hat /= 4.0;
-
-		// Template constants defined in eqn 5.2.41
-		const double rho1 = 0.1;
-		const double rho2 = -0.1;
-		const double rho3 = -0.1;
-		const double rho4 = 0.1;
-		const double rho5 = 0.0;
-		const double rho6 = 0.5;
-		const double rho7 = 0.0;
-		const double rho8 = -0.5;
-		const double beta1 = 0.6;
-		//double beta2 = 0.0; - entries disabled to save effort
-
-		//s_13 and s_24 unit vectors
-		Vector s_13 = Vector(data.r_cartesian[2] - data.r_cartesian[0]);
-		s_13 /= std::sqrt(inner_prod(s_13, s_13));
-		Vector s_24 = Vector(data.r_cartesian[3] - data.r_cartesian[1]);
-		s_24 /= std::sqrt(inner_prod(s_24, s_24));
-
-		Matrix Q1 = Matrix(3, 7, 0.0);
-		Matrix Q2 = Matrix(3, 7, 0.0);
-		Matrix Q3 = Matrix(3, 7, 0.0);
-		Matrix Q4 = Matrix(3, 7, 0.0);
-
-		Q1(0, 0) = rho1*chi_xi_i[0];
-		Q1(0, 1) = rho2*chi_xi_i[0];
-		Q1(0, 2) = rho3*chi_xi_i[0];
-		Q1(0, 3) = rho4*chi_xi_i[0];
-
-		Q1(0, 4) = data.alpha*chi_xi_t;
-		Q1(0, 5) = -1.0 * beta1 * chi_xi_i[0] / chi_xi_hat / l_xi;
-
-		Q1(1, 0) = -1.0* rho1*chi_eta_i[0];
-		Q1(1, 1) = -1.0* rho4*chi_eta_i[0];
-		Q1(1, 2) = -1.0* rho3*chi_eta_i[0];
-		Q1(1, 3) = -1.0* rho2*chi_eta_i[0];
-
-		Q1(1, 4) = -1.0 * data.alpha*chi_eta_t;
-		Q1(1, 6) = -1.0 * beta1 * chi_eta_i[0] / chi_eta_hat / l_eta;
-
-		Q1(2, 0) = rho5*chi_24;
-		Q1(2, 1) = rho6*chi_24;
-		Q1(2, 2) = rho7*chi_24;
-		Q1(2, 3) = rho8*chi_24;
-
-		//Q1(2, 5) = beta2 * c_24_xi / l_24;	- beta2 = 0!!!
-		//Q1(2, 6) = -1.0 * beta2 * c_24_eta / l_24;	- beta2 = 0!!!
-
-		Q2(0, 0) = -1.0*rho2*chi_xi_i[1];
-		Q2(0, 1) = -1.0*rho1*chi_xi_i[1];
-		Q2(0, 2) = -1.0*rho4*chi_xi_i[1];
-		Q2(0, 3) = -1.0*rho3*chi_xi_i[1];
-
-		Q2(0, 4) = -1.0*data.alpha*chi_xi_t;
-		Q2(0, 5) = -1.0 * beta1 * chi_xi_i[1] / chi_xi_hat / l_xi;
-
-		Q2(1, 0) = rho4*chi_eta_i[1];
-		Q2(1, 1) = rho1*chi_eta_i[1];
-		Q2(1, 2) = rho2*chi_eta_i[1];
-		Q2(1, 3) = rho3*chi_eta_i[1];
-
-		Q2(1, 4) = data.alpha*chi_eta_t;
-		Q2(1, 6) = beta1 * chi_eta_i[1] / chi_eta_hat / l_eta;
-
-		Q2(2, 0) = rho8*chi_13;
-		Q2(2, 1) = rho5*chi_13;
-		Q2(2, 2) = rho6*chi_13;
-		Q2(2, 3) = rho7*chi_13;
-
-		//Q2(2, 5) = -1.0* beta2 * c_13_xi / l_13;	 beta2 = 0!!!
-		//Q2(2, 6) = beta2 * c_13_eta / l_13;	beta2=0!!!
-
-
-		Q3(0, 0) = rho3*chi_xi_i[2];
-		Q3(0, 1) = rho4*chi_xi_i[2];
-		Q3(0, 2) = rho1*chi_xi_i[2];
-		Q3(0, 3) = rho2*chi_xi_i[2];
-
-		Q3(0, 4) = data.alpha*chi_xi_t;
-		Q3(0, 5) = beta1 * chi_xi_i[2] / chi_xi_hat / l_xi;
-
-		Q3(1, 0) = -1.0* rho3*chi_eta_i[2];
-		Q3(1, 1) = -1.0* rho2*chi_eta_i[2];
-		Q3(1, 2) = -1.0* rho1*chi_eta_i[2];
-		Q3(1, 3) = -1.0* rho4*chi_eta_i[2];
-
-		Q3(1, 4) = -1.0 * data.alpha*chi_eta_t;
-		Q3(1, 6) = beta1 * chi_eta_i[2] / chi_eta_hat / l_eta;
-
-		Q3(2, 0) = rho7*chi_13;
-		Q3(2, 1) = rho8*chi_13;
-		Q3(2, 2) = rho5*chi_13;
-		Q3(2, 3) = rho6*chi_13;
-
-		//Q3(2, 5) = -1.0*beta2 * c_13_xi / l_13;	beta2 = 0!!!
-		//Q3(2, 6) = beta2 * c_13_eta / l_13;	beta2 = 0!!!
-
-
-		Q4(0, 0) = -1.0*rho4*chi_xi_i[3];
-		Q4(0, 1) = -1.0*rho3*chi_xi_i[3];
-		Q4(0, 2) = -1.0*rho2*chi_xi_i[3];
-		Q4(0, 3) = -1.0*rho1*chi_xi_i[3];
-
-		Q4(0, 4) = -1.0*data.alpha*chi_xi_t;
-		Q4(0, 5) = beta1 * chi_xi_i[3] / chi_xi_hat / l_xi;
-
-		Q4(1, 0) = rho2*chi_eta_i[3];
-		Q4(1, 1) = rho3*chi_eta_i[3];
-		Q4(1, 2) = rho4*chi_eta_i[3];
-		Q4(1, 3) = rho1*chi_eta_i[3];
-
-		Q4(1, 4) = data.alpha*chi_eta_t;
-		Q4(1, 6) = -1.0* beta1 * chi_eta_i[3] / chi_eta_hat / l_eta;
-
-		Q4(2, 0) = rho6*chi_13;
-		Q4(2, 1) = rho7*chi_13;
-		Q4(2, 2) = rho8*chi_13;
-		Q4(2, 3) = rho5*chi_13;
-
-		//Q4(2, 5) = beta2 * c_13_xi / l_13;	beta2 = 0
-		//Q4(2, 6) = -1.0*beta2 * c_13_eta / l_13;	beta2 = 0
-
-		Matrix T_13_inv = Matrix(3, 3, 0.0);
-		T_13_inv(0, 0) = s_xi[0] * s_xi[0];
-		T_13_inv(0, 1) = s_xi[1] * s_xi[1];
-		T_13_inv(0, 2) = s_xi[0] * s_xi[1];
-		T_13_inv(1, 0) = s_eta[0] * s_eta[0];
-		T_13_inv(1, 1) = s_eta[1] * s_eta[1];
-		T_13_inv(1, 2) = s_eta[0] * s_eta[1];
-		T_13_inv(2, 0) = s_24[0] * s_24[0];
-		T_13_inv(2, 1) = s_24[1] * s_24[1];
-		T_13_inv(2, 2) = s_24[0] * s_24[1];
-
-		Matrix T_24_inv = Matrix(3, 3, 0.0);
-		T_24_inv(0, 0) = s_xi[0] * s_xi[0];
-		T_24_inv(0, 1) = s_xi[1] * s_xi[1];
-		T_24_inv(0, 2) = s_xi[0] * s_xi[1];
-		T_24_inv(1, 0) = s_eta[0] * s_eta[0];
-		T_24_inv(1, 1) = s_eta[1] * s_eta[1];
-		T_24_inv(1, 2) = s_eta[0] * s_eta[1];
-		T_24_inv(2, 0) = s_13[0] * s_13[0];
-		T_24_inv(2, 1) = s_13[1] * s_13[1];
-		T_24_inv(2, 2) = s_13[0] * s_13[1];
-
-		Matrix T_13 = Matrix(3, 3, 0.0);
-		Matrix T_24 = Matrix(3, 3, 0.0);
-		double t13invdet = MathUtils<double>::Det(T_13_inv);
-		MathUtils<double>::InvertMatrix(T_13_inv, T_13, t13invdet);
-		double t24invdet = MathUtils<double>::Det(T_24_inv);
-		MathUtils<double>::InvertMatrix(T_24_inv, T_24, t24invdet);
-
-		data.B_h_1 = prod(T_13, Q1);
-		data.B_h_2 = prod(T_24, Q2);
-		data.B_h_3 = prod(T_13, Q3);
-		data.B_h_4 = prod(T_24, Q4);
-
-		//transform DOFs from Haugen to Kratos
-		//data.Z.resize(12, 12, false); // TODO delete
-		data.Z.clear();
-		for (int i = 0; i < 3; i++)
-		{
-			data.Z(4 * i, i) = 1.0;
-			data.Z(4 * i + 1, i + 3) = 1.0;
-			data.Z(4 * i + 2, i + 6) = 1.0;
-			data.Z(4 * i + 3, i + 9) = 1.0;
-		}
-
-		//data.H_mem_mod.resize(7, 12, 0.0); // TODO delete
-		data.H_mem_mod.clear();
-		data.H_mem_mod = prod(H, data.Z);
-
-		//calculate Bh bar
-		//data.B_h_bar.resize(3, 7, false); // TODO deletes
-		data.B_h_bar.clear();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
-		for (int i = 0; i < 4; i++)
-		{
-			data.B_h_bar += shapeFunctionsValues(i, 0) * data.B_h_1;
-			data.B_h_bar += shapeFunctionsValues(i, 1) * data.B_h_2;
-			data.B_h_bar += shapeFunctionsValues(i, 2) * data.B_h_3;
-			data.B_h_bar += shapeFunctionsValues(i, 3) * data.B_h_4;
-		}
-
-		//--------------------------------------
+		// ---------------------------------------------------------------------
 		//
-		//     BENDING PART OF THE ELEMENT
+		//                       DKQ BENDING FORMULATION
 		//
-		//--------------------------------------
+		// ---------------------------------------------------------------------
 
 		//Calculate edge normal vectors for eqn 5.3.15
 		//ref eqn 5.1.9 for calc of normal vector from edge vec
@@ -2074,9 +2196,9 @@ namespace Kratos
 		Vector s_41 = Vector(data.LCS0.P4() - data.LCS0.P1());
 		const double l_41 = std::sqrt(inner_prod(s_41, s_41));
 
-		s_13 = Vector(data.LCS0.P1() - data.LCS0.P3());
+		Vector s_13 = Vector(data.LCS0.P1() - data.LCS0.P3());
 
-		s_24 = Vector(data.LCS0.P2() - data.LCS0.P4());
+		Vector s_24 = Vector(data.LCS0.P2() - data.LCS0.P4());
 
 		//--------------------------------------
 		// calculate DKQ bending stiffness
@@ -2212,30 +2334,11 @@ namespace Kratos
 		//---------------------------------------------
 		// set to zero the total B matrix
 		data.B.clear();
-
-		//---------------------------------------------
-		// membrane basic part L
-		// already computed.it is constant over the
-		// element
-
-		//---------------------------------------------
-		// membrane higher order part B_h
-		// already calculated in calculate B_h_mats func
-		Matrix B_h = Matrix(3, 7, 0.0);
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
-		B_h += shapeFunctionsValues(data.gpIndex, 0) * data.B_h_1;
-		B_h += shapeFunctionsValues(data.gpIndex, 1) * data.B_h_2;
-		B_h += shapeFunctionsValues(data.gpIndex, 2) * data.B_h_3;
-		B_h += shapeFunctionsValues(data.gpIndex, 3) * data.B_h_4;
-		B_h -= data.B_h_bar;
-
-		//---------------------------------------------
-		// combine membrane entries by transforming
-		// B_h
 		Matrix B_mem = Matrix(3, 12, 0.0);
-		Matrix B_hH_mem = Matrix(prod(B_h, data.H_mem_mod));
-		B_mem += data.L_mem + B_hH_mem;
+
+		// --------------------------------------------
+		//	 ANDES MEMBRANE FORMULATION 
+		//---------------------------------------------
 
 		if (data.basicQuad == true)
 		{
@@ -2244,7 +2347,9 @@ namespace Kratos
 			// B-matrix. Only for comparison purposes!
 			//
 			// ref: ToP-1516-tutorial1.pdf
-			B_mem.clear();
+
+			std::cout << "Using basic membrane formulation!" << std::endl;
+
 			const GeometryType::IntegrationPointsArrayType & integrationPoints =
 				geom.IntegrationPoints(GetIntegrationMethod());
 
@@ -2268,9 +2373,39 @@ namespace Kratos
 				B_mem(2, 3 * node + 1) = B_mem(0, 3 * node);
 			}
 		}
+		else
+		{
+			//---------------------------------------------
+			// membrane basic part L
+			// already computed.it is constant over the
+			// element
+
+			//---------------------------------------------
+			// membrane higher order part B_h
+			// already calculated in calculate B_h_mats func
+			Matrix B_h = Matrix(3, 7, 0.0);
+			const Matrix & shapeFunctionsValues =
+				geom.ShapeFunctionsValues(GetIntegrationMethod());
+			B_h += shapeFunctionsValues(data.gpIndex, 0) * data.B_h_1;
+			B_h += shapeFunctionsValues(data.gpIndex, 1) * data.B_h_2;
+			B_h += shapeFunctionsValues(data.gpIndex, 2) * data.B_h_3;
+			B_h += shapeFunctionsValues(data.gpIndex, 3) * data.B_h_4;
+			B_h -= data.B_h_bar;
+
+			//---------------------------------------------
+			// combine membrane entries by transforming
+			// B_h
+			
+			Matrix B_hH_mem = Matrix(prod(B_h, data.H_mem_mod));
+			B_mem += data.L_mem + B_hH_mem;
+		}
+
+		
+
+		
 
 		// --------------------------------------------
-		//	 DKQ BENDING FORMULATION HERE
+		//	 DKQ BENDING FORMULATION 
 		//---------------------------------------------
 		Matrix B_bend_total = Matrix(3, 12, 0.0);
 
@@ -2719,7 +2854,6 @@ namespace Kratos
 						data.rlaminateStresses[i] = prod(R, data.rlaminateStresses[i]);
 					}
 
-					// TODO p2 if statement here
 					section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
 					for (unsigned int i = 0; i < data.rlaminateStrains.size(); i++)
 					{
