@@ -51,6 +51,7 @@ public:
     ResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
       : mrModelPart(rModelPart)
     {
+        mBoundaryModelPartName = rParameters["boundary_model_part_name"].GetString();
         Parameters nodal_sensitivity_variables = rParameters["nodal_sensitivity_variables"];
         mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
         for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
@@ -83,6 +84,17 @@ public:
     virtual void Initialize()
     {
         ModelPart& r_model_part = this->GetModelPart();
+
+        if (r_model_part.HasSubModelPart(mBoundaryModelPartName) == false)
+            KRATOS_ERROR << "No sub model part \"" << mBoundaryModelPartName
+                         << "\"" << std::endl;
+        
+        for (auto &node : r_model_part.Nodes())
+            node.Set(BOUNDARY, false);
+
+        for (auto &node : r_model_part.GetSubModelPart(mBoundaryModelPartName).Nodes())
+            node.Set(BOUNDARY, true);
+
         for (auto label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
@@ -166,7 +178,7 @@ public:
     }
 
 
-    void UpdateSensitivities()
+    virtual void UpdateSensitivities()
     {
       KRATOS_TRY;
 
@@ -405,6 +417,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    std::string mBoundaryModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
 
     ///@}

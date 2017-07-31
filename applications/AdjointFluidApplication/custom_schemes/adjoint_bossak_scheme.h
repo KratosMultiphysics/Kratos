@@ -11,7 +11,6 @@
 
 // System includes
 #include <vector>
-#include <string>
 
 // External includes
 
@@ -108,13 +107,11 @@ public:
         Parameters DefaultParams(R"(
         {
             "scheme_type": "bossak",
-            "boundary_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "alpha_bossak": -0.3
         })");
 
         rParameters.ValidateAndAssignDefaults(DefaultParams);
 
-        mBoundaryModelPartName = rParameters["boundary_model_part_name"].GetString();
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
         mInvGamma = 1.0 / mGammaNewmark;
@@ -164,27 +161,14 @@ public:
             KRATOS_THROW_ERROR(
                 std::runtime_error, "DOMAIN_SIZE != WorkingSpaceDimension", "")
 
-        if (rModelPart.HasSubModelPart(mBoundaryModelPartName) == false)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid parameters \"boundary_model_part_name\": ",
-                mBoundaryModelPartName)
-        }
-
         // initialize the variables to zero.
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
-            it->Set(BOUNDARY, false);
             it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
             it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) = ADJOINT_ACCELERATION.Zero();
             it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION) = AUX_ADJOINT_ACCELERATION.Zero();
         }
-
-        ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
-        for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
-            it->Set(BOUNDARY, true);
 
         mpResponseFunction->Initialize();
 
@@ -192,9 +176,9 @@ public:
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart,
-                                        SystemMatrixType& rA,
-                                        SystemVectorType& rDx,
-                                        SystemVectorType& rb) override
+                                SystemMatrixType& rA,
+                                SystemVectorType& rDx,
+                                SystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -213,13 +197,13 @@ public:
         mInvDt = 1.0 / DeltaTime;
 
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-            it->GetValue(NODAL_AREA) = 0.0; // todo: define application variable
+            it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0; // todo: define application variable
 
         for (auto it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
             for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
-                it->GetGeometry()[iNode].GetValue(NODAL_AREA) += 1.0;
+                it->GetGeometry()[iNode].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1.0;
 
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
         mpResponseFunction->InitializeSolutionStep();
 
@@ -440,7 +424,7 @@ public:
         {
             const array_1d<double, 3>& rAuxAdjointAcceleration =
                         pCurrentElement->GetGeometry()[iNode].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
-            double InvNodalArea = 1.0 / pCurrentElement->GetGeometry()[iNode].GetValue(NODAL_AREA);
+            double InvNodalArea = 1.0 / pCurrentElement->GetGeometry()[iNode].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
             for (int d = 0; d < DomainSize; ++d)
             {
                 rRHS_Contribution[LocalIndex] = mInvGamma * InvNodalArea *
@@ -479,9 +463,9 @@ public:
     }
 
     void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                            LocalSystemMatrixType& LHS_Contribution,
-                                            Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo) override
+                                    LocalSystemMatrixType& LHS_Contribution,
+                                    Element::EquationIdVectorType& EquationId,
+                                    ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -495,12 +479,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
+                                                LocalSystemMatrixType& LHS_Contribution,
+                                                LocalSystemVectorType& RHS_Contribution,
+                                                Condition::EquationIdVectorType& EquationId,
+                                                ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -511,9 +494,9 @@ public:
     }
 
     void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                                      LocalSystemMatrixType& LHS_Contribution,
-                                                      Condition::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo) override
+                                              LocalSystemMatrixType& LHS_Contribution,
+                                              Condition::EquationIdVectorType& EquationId,
+                                              ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -524,8 +507,8 @@ public:
     }
 
     void GetElementalDofList(Element::Pointer rCurrentElement,
-                                     Element::DofsVectorType& ElementalDofList,
-                                     ProcessInfo& CurrentProcessInfo) override
+                             Element::DofsVectorType& ElementalDofList,
+                             ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
@@ -582,7 +565,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mBoundaryModelPartName;
     double mAlphaBossak;
     double mGammaNewmark;
     double mInvDt;

@@ -86,13 +86,10 @@ public:
 
         Parameters DefaultParams(R"(
         {
-            "scheme_type": "steady",
-            "boundary_model_part_name": "PLEASE_SPECIFY_MODEL_PART"
+            "scheme_type": "steady"
         })");
 
         rParameters.ValidateAndAssignDefaults(DefaultParams);
-
-        mBoundaryModelPartName = rParameters["boundary_model_part_name"].GetString();
 
         mpResponseFunction = pResponseFunction;
 
@@ -135,45 +132,32 @@ public:
             KRATOS_THROW_ERROR(
                 std::runtime_error, "DOMAIN_SIZE != WorkingSpaceDimension", "")
 
-        if (rModelPart.HasSubModelPart(mBoundaryModelPartName) == false)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid parameters \"boundary_model_part_name\": ",
-                mBoundaryModelPartName)
-        }
-
         mpResponseFunction->Initialize();
 
         KRATOS_CATCH("")
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart,
-				SystemMatrixType& rA,
-				SystemVectorType& rDx,
-				SystemVectorType& rb) override
+                                SystemMatrixType& rA,
+                                SystemVectorType& rDx,
+                                SystemVectorType& rb) override
     {
         KRATOS_TRY
 
-	// Sensitivities are generally computed as a time integral. For steady
-	// problems, we set the time step to -1.0 (minus because adjoint is
-	// backward in time).
-	  rModelPart.GetProcessInfo()[DELTA_TIME] = -1.0;
+        // Sensitivities are generally computed as a time integral. For steady
+        // problems, we set the time step to -1.0 (minus because adjoint is
+        // backward in time).
+        rModelPart.GetProcessInfo()[DELTA_TIME] = -1.0;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         // initialize the variables to zero.
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
-            it->Set(BOUNDARY, false);
             it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
             it->FastGetSolutionStepValue(ACCELERATION) = ACCELERATION.Zero();
         }
-
-        ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
-        for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
-            it->Set(BOUNDARY, true);
 
         mpResponseFunction->InitializeSolutionStep();
 
@@ -358,7 +342,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mBoundaryModelPartName;
     ResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
 

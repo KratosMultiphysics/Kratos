@@ -59,6 +59,7 @@ public:
         {
             "response_type": "drag",
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
+            "boundary_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "nodal_sensitivity_variables" : [],
             "drag_direction": [1.0, 0.0, 0.0]
         })");
@@ -115,6 +116,8 @@ public:
     void Initialize() override
     {
         KRATOS_TRY
+
+        ResponseFunction::Initialize();
 
         ModelPart& rModelPart = this->GetModelPart();
 
