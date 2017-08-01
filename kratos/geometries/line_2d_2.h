@@ -897,7 +897,8 @@ public:
         // Project point
         const double Tolerance = 1e-14; // Tolerance
 
-        const double Length = this->Length();
+        const double Length = std::sqrt((SecondPoint[0] - FirstPoint[0]) * (SecondPoint[0] - FirstPoint[0])
+                    + (SecondPoint[1] - FirstPoint[1]) * (SecondPoint[1] - FirstPoint[1]));
 
         const double Length1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
                     + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));

@@ -397,8 +397,7 @@ public:
                    const Variable< array_1d<double,3> > & rDestVar,
                    const int MaxIter,
                    const double TolIter,
-                   const bool sign_pos,
-                   const bool distributed);
+                   const bool sign_pos);
 
     /**
      * It searches neighbours nodes in a specific radius

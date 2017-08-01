@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -13,8 +13,8 @@
 #define  KRATOS_SMALL_DISPLACEMENT_ANALYTIC_SENSITIVITIES_ELEMENT_H_INCLUDED
 
 // Project includes
-#include "solid_mechanics_application.h"
-#include "custom_elements/small_displacement_element.hpp"
+#include "structural_mechanics_application.h"
+#include "custom_elements/small_displacement.h"
 
 namespace Kratos
 {
@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 class SmallDisplacementAnalyticSensitivityElement :
-        public SmallDisplacementElement
+        public SmallDisplacement
 {
 public:
 
@@ -128,7 +128,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    SmallDisplacementAnalyticSensitivityElement() : SmallDisplacementElement()
+    SmallDisplacementAnalyticSensitivityElement() : SmallDisplacement()
     {
     }
 
