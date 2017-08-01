@@ -134,6 +134,8 @@ void PrestressMembraneElement::Initialize()
     mThickness0 = GetProperties()[THICKNESS];
     mThickness = 0.00;
 
+    mTotalDomainInitialSize = 0.00;
+
     //// temporary set the pre-stress
     mPreStress[0] = GetProperties()[PRESTRESS_11];
     mPreStress[1] = GetProperties()[PRESTRESS_22];
