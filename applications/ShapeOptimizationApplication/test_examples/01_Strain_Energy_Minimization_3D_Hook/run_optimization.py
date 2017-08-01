@@ -113,6 +113,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         CSM_solver.SetEchoLevel(echo_level)
 
         mesh_solver.Initialize()
+        mesh_solver.SetEchoLevel(echo_level)
 
         for responseFunctionId in listOfResponseFunctions:
             listOfResponseFunctions[responseFunctionId].initialize()
