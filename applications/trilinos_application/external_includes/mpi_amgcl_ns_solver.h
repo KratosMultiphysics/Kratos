@@ -77,74 +77,74 @@ public:
 
     AmgclMPI_NS_Solver ( Parameters rParameters )
     {
-        Parameters default_parameters( R"(
-                                       {
-                                       "solver_type" : "AmgclMPI_NS_Solver",
-                                       "krylov_type" : "fgmres",
-                                       "velocity_block_preconditioner" :
-                                        {
-                                            "krylov_type" : "lgmres",
-                                            "tolerance" : 1e-3,
-                                            "preconditioner_type" : "ilu0",
-                                            "max_iteration": 5
-                                        },
-                                        "pressure_block_preconditioner" :
-                                        {
-                                            "krylov_type" : "lgmres",
-                                            "tolerance" : 1e-2,
-                                            "preconditioner_type" : "spai0",
-                                            "max_iteration": 20
-                                        },
-                                       "tolerance" : 1e-9,
-                                       "gmres_krylov_space_dimension": 50,
-                                       "coarsening_type": "aggregation",
-                                       "max_iteration": 50,
-                                       "verbosity" : 1,
-                                       "scaling": false,
-                                       "coarse_enough" : 5000
-                                   }  )" );
-
-
-        //now validate agains defaults -- this also ensures no type mismatch
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-
-        std::stringstream msg;
-
-        //validate if values are admissible
-        std::set<std::string> available_preconditioners = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
-
-        //check velocity block settings
-        if(available_preconditioners.find(rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString()) == available_preconditioners.end())
-        {
-            msg << "currently prescribed velocity_block_preconditioner preconditioner_type : " << rParameters["velocity_block_preconditioner"]["smoother_type"].GetString() << std::endl;
-            msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
-            KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
-        }    
-
-        mcoarse_enough = rParameters["coarse_enough"].GetInt();
-
-        mtol = rParameters["tolerance"].GetDouble();
-        mmax_it = rParameters["max_iteration"].GetInt();
-        mverbosity=rParameters["verbosity"].GetInt();
-        mprm.put("solver.type", rParameters["krylov_type"].GetString());
-        
-        if(rParameters["krylov_type"].GetString() == "gmres" || rParameters["krylov_type"].GetString() == "lgmres" || rParameters["krylov_type"].GetString() == "fgmres")
-            mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
-
-        //setting velocity solver options
-        mprm.put("precond.usolver.solver.type", rParameters["velocity_block_preconditioner"]["krylov_type"].GetString());
-        mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.usolver.solver.maxiter", rParameters["velocity_block_preconditioner"]["max_iteration"].GetInt());
-        mprm.put("precond.usolver.precond.type", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
-
-        //setting pressure solver options
-        mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
-        mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
-        mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
-        mprm.put("precond.psolver.precond.coarsening.aggr.eps_strong", 0.0);
-        mprm.put("precond.psolver.precond.coarsening.aggr.block_size", 1);
-        mprm.put("precond.psolver.precond.coarse_enough",mcoarse_enough);
+//         Parameters default_parameters( R"(
+//                                        {
+//                                        "solver_type" : "AmgclMPI_NS_Solver",
+//                                        "krylov_type" : "fgmres",
+//                                        "velocity_block_preconditioner" :
+//                                         {
+//                                             "krylov_type" : "lgmres",
+//                                             "tolerance" : 1e-3,
+//                                             "preconditioner_type" : "ilu0",
+//                                             "max_iteration": 5
+//                                         },
+//                                         "pressure_block_preconditioner" :
+//                                         {
+//                                             "krylov_type" : "lgmres",
+//                                             "tolerance" : 1e-2,
+//                                             "preconditioner_type" : "spai0",
+//                                             "max_iteration": 20
+//                                         },
+//                                        "tolerance" : 1e-9,
+//                                        "gmres_krylov_space_dimension": 50,
+//                                        "coarsening_type": "aggregation",
+//                                        "max_iteration": 50,
+//                                        "verbosity" : 1,
+//                                        "scaling": false,
+//                                        "coarse_enough" : 5000
+//                                    }  )" );
+// 
+// 
+//         //now validate agains defaults -- this also ensures no type mismatch
+//         rParameters.ValidateAndAssignDefaults(default_parameters);
+// 
+//         std::stringstream msg;
+// 
+//         //validate if values are admissible
+//         std::set<std::string> available_preconditioners = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
+// 
+//         //check velocity block settings
+//         if(available_preconditioners.find(rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString()) == available_preconditioners.end())
+//         {
+//             msg << "currently prescribed velocity_block_preconditioner preconditioner_type : " << rParameters["velocity_block_preconditioner"]["smoother_type"].GetString() << std::endl;
+//             msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
+//             KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
+//         }    
+// 
+//         mcoarse_enough = rParameters["coarse_enough"].GetInt();
+// 
+//         mtol = rParameters["tolerance"].GetDouble();
+//         mmax_it = rParameters["max_iteration"].GetInt();
+//         mverbosity=rParameters["verbosity"].GetInt();
+//         mprm.put("solver.type", rParameters["krylov_type"].GetString());
+//         
+//         if(rParameters["krylov_type"].GetString() == "gmres" || rParameters["krylov_type"].GetString() == "lgmres" || rParameters["krylov_type"].GetString() == "fgmres")
+//             mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
+// 
+//         //setting velocity solver options
+//         mprm.put("precond.usolver.solver.type", rParameters["velocity_block_preconditioner"]["krylov_type"].GetString());
+//         mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
+//         mprm.put("precond.usolver.solver.maxiter", rParameters["velocity_block_preconditioner"]["max_iteration"].GetInt());
+//         mprm.put("precond.usolver.precond.type", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
+// 
+//         //setting pressure solver options
+//         mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
+//         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
+//         mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
+//         mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+//         mprm.put("precond.psolver.precond.coarsening.aggr.eps_strong", 0.0);
+//         mprm.put("precond.psolver.precond.coarsening.aggr.block_size", 1);
+//         mprm.put("precond.psolver.precond.coarse_enough",mcoarse_enough);
 
     }
 
@@ -165,22 +165,26 @@ public:
     bool Solve ( SparseMatrixType& rA, VectorType& rX, VectorType& rB )
     {
         KRATOS_TRY
-
+KRATOS_WATCH(__LINE__)
         using amgcl::prof;
         prof.reset();
+KRATOS_WATCH(__LINE__)
 
         amgcl::mpi::communicator world ( MPI_COMM_WORLD );
         if ( mverbosity >=0 && world.rank == 0 ) {
             std::cout << "World size: " << world.size << std::endl;
         }
+KRATOS_WATCH(__LINE__)
 
         int chunk = rA.NumMyRows();
         boost::iterator_range<double*> xrange ( rX.Values(), rX.Values() + chunk );
         boost::iterator_range<double*> frange ( rB.Values(), rB.Values() + chunk );
+KRATOS_WATCH(__LINE__)
 
         if ( mverbosity > 1 && world.rank == 0 ) {
             write_json ( std::cout, mprm );
         }
+KRATOS_WATCH(__LINE__)
 
         typedef amgcl::backend::builtin<double> Backend;
         
@@ -203,6 +207,7 @@ public:
             >,
             amgcl::runtime::iterative_solver
             > SDD;
+KRATOS_WATCH(__LINE__)
 
         boost::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
         mprm.put("precond.psolver.precond.num_def_vec", 1);
@@ -210,10 +215,12 @@ public:
         
         mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
         mprm.put("precond.pmask_size", mp.size());
+KRATOS_WATCH(__LINE__)
 
         prof.tic ( "setup" );
         SDD solve ( world, amgcl::backend::map ( rA ), mprm );
         double tm_setup = prof.toc ( "setup" );
+KRATOS_WATCH(__LINE__)
 
         prof.tic ( "Solve" );
         size_t iters;
@@ -288,12 +295,13 @@ public:
         ModelPart& r_model_part
     )
     {
+KRATOS_WATCH(__LINE__)
         int my_pid = rA.Comm().MyPID();
 
         //filling the pressure mask
         if(mp.size() != static_cast<unsigned int>(rA.NumMyRows())) mp.resize( rA.NumMyRows() );
-
-        int counter = 0.0;
+KRATOS_WATCH(__LINE__)
+        int counter = 0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
         {
             if( it->GetSolutionStepValue ( PARTITION_INDEX ) == my_pid )
@@ -302,6 +310,9 @@ public:
                 counter++;
             }
         }
+KRATOS_WATCH(__LINE__)
+        if(counter != rA.NumMyRows())
+            KRATOS_ERROR << "pressure mask as a size " << mp.size() << " which does not correspond with the number of local rows:" << rA.NumMyRows() << std::endl; 
 
     }
 
