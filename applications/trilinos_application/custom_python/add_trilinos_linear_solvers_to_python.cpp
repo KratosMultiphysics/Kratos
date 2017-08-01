@@ -74,6 +74,7 @@
 #include "external_includes/ml_solver.h"
 
 #include "external_includes/amgcl_solver.h"
+#include "external_includes/mpi_amgcl_ns_solver.h"
 
 namespace Kratos
 {
@@ -133,6 +134,11 @@ void  AddLinearSolvers()
     ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
     .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
     .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
+    ;
+    
+    typedef AmgclMPI_NS_Solver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPI_NS_SolverType;
+    class_<AmgclMPI_NS_SolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
+    ("AmgclMPI_NS_Solver",init<Parameters>()) 
     ;
     
     enum_<AztecScalingType>("AztecScalingType")

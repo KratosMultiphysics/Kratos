@@ -21,6 +21,8 @@ def ConstructSolver(configuration):
         linear_solver = MultiLevelSolver(configuration)
     elif(solver_type == "AmgclMPISolver"):
         linear_solver = AmgclMPISolver(configuration);
+    elif(solver_type == "AmgclMPI_NS_Solver"):
+        linear_solver = AmgclMPI_NS_Solver(configuration);
     #
     elif(solver_type == "Deflated Conjugate gradient"):
         raise Exception("not implemented within trilinos")
