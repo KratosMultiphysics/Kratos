@@ -21,6 +21,9 @@ void AddCustomResponseFunctionsToPython()
         .def("InitializeSolutionStep", &ResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &ResponseFunction::FinalizeSolutionStep)
         .def("Check", &ResponseFunction::Check)
+        .def("Clear", &ResponseFunction::Clear)
+        .def("CalculateGradient",
+             &ResponseFunction::CalculateGradient)
         .def("CalculateFirstDerivativesGradient",
              &ResponseFunction::CalculateFirstDerivativesGradient)
         .def("CalculateSecondDerivativesGradient",

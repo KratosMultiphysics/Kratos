@@ -45,6 +45,8 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DragResponseFunction);
 
+    typedef ResponseFunction BaseType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -53,7 +55,7 @@ public:
     DragResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
       : ResponseFunction(rModelPart, rParameters)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         Parameters DefaultParams(R"(
         {
@@ -97,7 +99,7 @@ public:
                 mDragDirection[d] /= magnitude;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -115,64 +117,64 @@ public:
 
     void Initialize() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        ResponseFunction::Initialize();
+        BaseType::Initialize();
 
-        ModelPart& rModelPart = this->GetModelPart();
+        ModelPart& r_model_part = this->GetModelPart();
 
-        if (rModelPart.HasSubModelPart(mStructureModelPartName) == false)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid parameters \"structure_model_part_name\": ",
-                mStructureModelPartName)
-        }
+        if (r_model_part.HasSubModelPart(mStructureModelPartName) == false)
+            KRATOS_ERROR << "Invalid structure_model_part_name: \""
+                         << mStructureModelPartName << "\"." << std::endl;
 
-// initialize the variables to zero.
 #pragma omp parallel
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
 
-            for (auto it = NodesBegin; it != NodesEnd; ++it)
+            for (auto it = nodes_begin; it != nodes_end; ++it)
                 it->Set(STRUCTURE, false);
         }
 
         // mark structure
-        ModelPart& rStructureModelPart = rModelPart.GetSubModelPart(mStructureModelPartName);
-        for (auto it = rStructureModelPart.NodesBegin();
-             it != rStructureModelPart.NodesEnd();
-             ++it)
-            it->Set(STRUCTURE, true);
+        ModelPart& r_structure_model_part = r_model_part.GetSubModelPart(mStructureModelPartName);
 
-        KRATOS_CATCH("")
+#pragma omp parallel
+        {
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(r_structure_model_part.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+                it->Set(STRUCTURE, true);
+        }
+
+        KRATOS_CATCH("");
     }
 
     void InitializeSolutionStep() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        ModelPart& rModelPart = this->GetModelPart();
+        ModelPart& r_model_part = this->GetModelPart();
 
         // allocate auxiliary memory. this is done here instead of Initialize()
         // in case of restart.
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        mElementIds.resize(NumThreads);
-        mDragFlagVector.resize(NumThreads);
+        int num_threads = OpenMPUtils::GetNumThreads();
+        mElementIds.resize(num_threads);
+        mDragFlagVector.resize(num_threads);
 
         // use first element to initialize drag flag vector
-        Element& rElem = *std::begin(rModelPart.Elements());
+        Element& r_elem = *std::begin(r_model_part.Elements());
 #pragma omp parallel
         {
             // initialize drag flag and element id vectors
             int k = OpenMPUtils::ThisThread();
-            mElementIds[k] = rElem.Id() + 1; // force initialization
-            this->GetDragFlagVector(rElem);
+            mElementIds[k] = r_elem.Id() + 1; // force initialization
+            this->GetDragFlagVector(r_elem);
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void CalculateFirstDerivativesGradient(const Element& rElem,
@@ -180,15 +182,15 @@ public:
                                            Vector& rRHSContribution,
                                            ProcessInfo& rProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if (rRHSContribution.size() != rAdjointMatrix.size1())
             rRHSContribution.resize(rAdjointMatrix.size1(), false);
 
-        Vector& rDragFlagVector = this->GetDragFlagVector(rElem);
-        noalias(rRHSContribution) = prod(rAdjointMatrix, rDragFlagVector);
+        Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
+        noalias(rRHSContribution) = prod(rAdjointMatrix, r_drag_flag_vector);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void CalculateSecondDerivativesGradient(const Element& rElem,
@@ -196,15 +198,15 @@ public:
                                             Vector& rRHSContribution,
                                             ProcessInfo& rProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if (rRHSContribution.size() != rAdjointMatrix.size1())
             rRHSContribution.resize(rAdjointMatrix.size1(), false);
 
-        Vector& rDragFlagVector = this->GetDragFlagVector(rElem);
-        noalias(rRHSContribution) = prod(rAdjointMatrix, rDragFlagVector);
+        Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
+        noalias(rRHSContribution) = prod(rAdjointMatrix, r_drag_flag_vector);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -221,23 +223,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateSensitivityContribution(const Element& rElem,
-                                          const Variable<array_1d<double,3>>& rVariable,
-                                          const Matrix& rDerivativesMatrix,
-                                          Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) override
+    void CalculateSensitivityGradient(const Element& rElem,
+                                      const Variable<array_1d<double,3>>& rVariable,
+                                      const Matrix& rDerivativesMatrix,
+                                      Vector& rRHSContribution,
+                                      ProcessInfo& rProcessInfo) override
     {
-      KRATOS_TRY
+        KRATOS_TRY;
 
-      if (rRHSContribution.size() != rDerivativesMatrix.size1())
-          rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+        if (rRHSContribution.size() != rDerivativesMatrix.size1())
+            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
 
-      Vector& rDragFlagVector = this->GetDragFlagVector(rElem);
-      noalias(rRHSContribution) = prod(rDerivativesMatrix, rDragFlagVector);
+        Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
+        noalias(rRHSContribution) = prod(rDerivativesMatrix, r_drag_flag_vector);
 
-      KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
-    
+
     ///@}
 
 private:
@@ -264,27 +266,27 @@ private:
         // if needed, compute the drag flag vector for this element
         if (rElement.Id() != mElementIds[k])
         {
-            const unsigned int NumNodes = rElement.GetGeometry().PointsNumber();
-            const unsigned int LocalSize = (TDim + 1) * NumNodes;
+            const unsigned int num_nodes = rElement.GetGeometry().PointsNumber();
+            const unsigned int local_size = (TDim + 1) * num_nodes;
 
-            if (mDragFlagVector[k].size() != LocalSize)
-                mDragFlagVector[k].resize(LocalSize, false);
+            if (mDragFlagVector[k].size() != local_size)
+                mDragFlagVector[k].resize(local_size, false);
 
-            unsigned int LocalIndex = 0;
-            for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+            unsigned int local_index = 0;
+            for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
             {
-                if (rElement.GetGeometry()[iNode].Is(STRUCTURE))
+                if (rElement.GetGeometry()[i_node].Is(STRUCTURE))
                 {
                     for (unsigned int d = 0; d < TDim; d++)
-                        mDragFlagVector[k][LocalIndex++] = mDragDirection[d];
+                        mDragFlagVector[k][local_index++] = mDragDirection[d];
                 }
                 else
                 {
                     for (unsigned int d = 0; d < TDim; d++)
-                        mDragFlagVector[k][LocalIndex++] = 0.0;
+                        mDragFlagVector[k][local_index++] = 0.0;
                 }
 
-                mDragFlagVector[k][LocalIndex++] = 0.0; // pressure dof
+                mDragFlagVector[k][local_index++] = 0.0; // pressure dof
             }
 
             mElementIds[k] = rElement.Id();

@@ -51,11 +51,16 @@ public:
     ResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
       : mrModelPart(rModelPart)
     {
-        mSensitivityModelPartName = rParameters["sensitivity_model_part_name"].GetString();
+        KRATOS_TRY;
+
+        mSensitivityModelPartName =
+            rParameters["sensitivity_model_part_name"].GetString();
         Parameters nodal_sensitivity_variables = rParameters["nodal_sensitivity_variables"];
         mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
         for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
             mNodalSensitivityVariables[i] = nodal_sensitivity_variables[i].GetString();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -83,37 +88,26 @@ public:
 
     virtual void Initialize()
     {
+        KRATOS_TRY;
+
+        this->Clear();
+        this->Check();
+
         ModelPart& r_model_part = this->GetModelPart();
 
-        if (r_model_part.HasSubModelPart(mSensitivityModelPartName) == false)
-            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
-                         << "\"" << std::endl;
-        
-        for (auto &node : r_model_part.Nodes())
-            node.SetValue(UPDATE_SENSITIVITIES, false);
-
-        for (auto &node : r_model_part.GetSubModelPart(mSensitivityModelPartName).Nodes())
-            node.SetValue(UPDATE_SENSITIVITIES, true);
-
-        for (auto label : mNodalSensitivityVariables)
+        // Initialize flags.
+#pragma omp parallel
         {
-            if (KratosComponents<Variable<double>>::Has(label) == true)
-            {
-                const Variable<double>& rVariable =
-                    KratosComponents<Variable<double>>::Get(label);
-                for (auto& node : r_model_part.Nodes())
-                    node.FastGetSolutionStepValue(rVariable) = rVariable.Zero();
-            }
-            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
-            {
-                const Variable<array_1d<double,3>>& rVariable =
-                    KratosComponents<Variable<array_1d<double,3>>>::Get(label);
-                for (auto& node : r_model_part.Nodes())
-                    node.FastGetSolutionStepValue(rVariable) = rVariable.Zero();
-            }
-            else
-                KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(
+                r_model_part.GetSubModelPart(mSensitivityModelPartName).Nodes(),
+                nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+                it->SetValue(UPDATE_SENSITIVITIES, true);
         }
+
+        KRATOS_CATCH("");
     }
 
     virtual void InitializeSolutionStep()
@@ -122,11 +116,104 @@ public:
 
     virtual void FinalizeSolutionStep()
     {
-      this->UpdateSensitivities();
+        KRATOS_TRY;
+
+        this->UpdateSensitivities();
+
+        KRATOS_CATCH("");
     }
 
     virtual void Check()
     {
+        KRATOS_TRY;
+
+        ModelPart& r_model_part = this->GetModelPart();
+
+        if (r_model_part.HasSubModelPart(mSensitivityModelPartName) == false)
+            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
+                         << "\"" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    virtual void Clear()
+    {
+        KRATOS_TRY;
+
+        ModelPart& r_model_part = this->GetModelPart();
+
+        // Reset flags.
+#pragma omp parallel
+        {
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+                it->SetValue(UPDATE_SENSITIVITIES, false);
+        }
+
+        // Set sensitivity variables to zero.
+        for (auto label : mNodalSensitivityVariables)
+        {
+            if (KratosComponents<Variable<double>>::Has(label) == true)
+            {
+                const Variable<double>& r_variable =
+                    KratosComponents<Variable<double>>::Get(label);
+
+#pragma omp parallel
+                {
+                    ModelPart::NodeIterator nodes_begin;
+                    ModelPart::NodeIterator nodes_end;
+                    OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),
+                                                      nodes_begin, nodes_end);
+                    for (auto it = nodes_begin; it != nodes_end; ++it)
+                        it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
+                }
+            }
+            else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(label) == true)
+            {
+                const Variable<array_1d<double, 3>>& r_variable =
+                    KratosComponents<Variable<array_1d<double, 3>>>::Get(label);
+
+#pragma omp parallel
+                {
+                    ModelPart::NodeIterator nodes_begin;
+                    ModelPart::NodeIterator nodes_end;
+                    OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),
+                                                      nodes_begin, nodes_end);
+                    for (auto it = nodes_begin; it != nodes_end; ++it)
+                        it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
+                }
+            }
+            else
+                KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /// Calculate the local gradient w.r.t. displacement.
+    /**
+     * @param[in]     rElem            the local adjoint element.
+     * @param[in]     rAdjointMatrix   the transposed gradient of the local
+     *                                 element's residual w.r.t. displacement.
+     * @param[out]    rRHSContribution the gradient of the response function.
+     * @param[in,out] rProcessInfo     the current process info.
+     */
+    virtual void CalculateGradient(const Element& rElem,
+                                   const Matrix& rAdjointMatrix,
+                                   Vector& rRHSContribution,
+                                   ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY;
+
+        if (rRHSContribution.size() != rAdjointMatrix.size1())
+            rRHSContribution.resize(rAdjointMatrix.size1(), false);
+
+        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
+            rRHSContribution[k] = 0.0;
+
+        KRATOS_CATCH("");
     }
 
     /// Calculate the local gradient w.r.t. velocity
@@ -142,7 +229,7 @@ public:
                                                    Vector& rRHSContribution,
                                                    ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if (rRHSContribution.size() != rAdjointMatrix.size1())
             rRHSContribution.resize(rAdjointMatrix.size1(), false);
@@ -150,7 +237,7 @@ public:
         for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
             rRHSContribution[k] = 0.0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// Calculate the local gradient w.r.t. acceleration
@@ -166,7 +253,7 @@ public:
                                                     Vector& rRHSContribution,
                                                     ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if (rRHSContribution.size() != rAdjointMatrix.size1())
             rRHSContribution.resize(rAdjointMatrix.size1(), false);
@@ -174,44 +261,39 @@ public:
         for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
             rRHSContribution[k] = 0.0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
-
 
     virtual void UpdateSensitivities()
     {
-      KRATOS_TRY;
+        KRATOS_TRY;
 
         for (auto label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
-                const Variable<double>& rVariable =
+                const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(label);
-                this->UpdateNodalSensitivities(rVariable);
+                this->UpdateNodalSensitivities(r_variable);
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
             {
-                const Variable<array_1d<double,3>>& rVariable =
+                const Variable<array_1d<double,3>>& r_variable =
                     KratosComponents<Variable<array_1d<double,3>>>::Get(label);
-                this->UpdateNodalSensitivities(rVariable);
+                this->UpdateNodalSensitivities(r_variable);
             }
             else
                 KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
         }
       
-      KRATOS_CATCH("");
+        KRATOS_CATCH("");
     }
 
 
     /// Calculate the scalar valued response function
     virtual double CalculateValue(ModelPart& rModelPart)
     {
-        KRATOS_TRY
-
         return 0.0;
-
-        KRATOS_CATCH("")
     }
 
     ///@}
@@ -264,10 +346,16 @@ protected:
         {
             // here we make sure we only add the old sensitivity once
             // when we assemble.
-            for (auto it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); ++it)
-                if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
-                    it->FastGetSolutionStepValue(rSensitivityVariable) =
-                        rSensitivityVariable.Zero();
+#pragma omp parallel
+            {
+                ModelPart::NodeIterator nodes_begin;
+                ModelPart::NodeIterator nodes_end;
+                OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
+                for (auto it = nodes_begin; it != nodes_end; ++it)
+                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
+                        it->FastGetSolutionStepValue(rSensitivityVariable) =
+                            rSensitivityVariable.Zero();
+            }
         }
 
 #pragma omp parallel
@@ -292,10 +380,13 @@ protected:
                 if (update_sensitivities == false) // true for most elements
                     continue;
 
+                // This is multiplied with the adjoint to compute sensitivity.
                 it->CalculateSensitivityMatrix(
                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                this->CalculateSensitivityContribution(
+                // This part of the sensitivity is computed from the objective
+                // with primal variables treated as constant.
+                this->CalculateSensitivityGradient(
                     *it, rSensitivityVariable, sensitivity_matrix[k],
                     response_gradient[k], r_process_info);
 
@@ -318,7 +409,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    /// Calculate the local gradient w.r.t. design variable.
+    /// Calculate the local gradient of response function w.r.t. the sensitivity variable.
     /**
      * @param[in]     rElem              the local adjoint element.
      * @param[in]     rVariable          the sensitivity variable.
@@ -327,24 +418,20 @@ protected:
      * @param[out]    rRHSContribution   the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    virtual void CalculateSensitivityContribution(const Element& rElem,
-                                                  const Variable<double>& rVariable,
-                                                  const Matrix& rDerivativesMatrix,
-                                                  Vector& rRHSContribution,
-                                                  ProcessInfo& rProcessInfo)
+    virtual void CalculateSensitivityGradient(const Element& rElem,
+                                              const Variable<double>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rRHSContribution,
+                                              ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        if (rRHSContribution.size() != rDerivativesMatrix.size1())
-            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
 
-        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    /// Calculate the local gradient w.r.t. design variable.
+    /// Calculate the local gradient of response function w.r.t. the sensitivity variable.
     /**
      * @param[in]     rElem              the local adjoint element.
      * @param[in]     rVariable          the sensitivity variable.
@@ -353,21 +440,17 @@ protected:
      * @param[out]    rRHSContribution   the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    virtual void CalculateSensitivityContribution(const Element& rElem,
-                                                  const Variable<array_1d<double,3>>& rVariable,
-                                                  const Matrix& rDerivativesMatrix,
-                                                  Vector& rRHSContribution,
-                                                  ProcessInfo& rProcessInfo)
+    virtual void CalculateSensitivityGradient(const Element& rElem,
+                                              const Variable<array_1d<double,3>>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rRHSContribution,
+                                              ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        if (rRHSContribution.size() != rDerivativesMatrix.size1())
-            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
 
-        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
@@ -379,10 +462,10 @@ protected:
         {
             if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
-                double& rSensitivity =
+                double& r_sensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
                 rGeom[i_node].SetLock();
-                rSensitivity += rSensitivityVector[index++];
+                r_sensitivity += rSensitivityVector[index++];
                 rGeom[i_node].UnSetLock();
             }
             else
@@ -399,11 +482,11 @@ protected:
         {
             if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
-                array_1d<double, 3>& rSensitivity =
+                array_1d<double, 3>& r_sensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
                 rGeom[i_node].SetLock();
                 for (unsigned int d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
-                    rSensitivity[d] += rSensitivityVector[index++];
+                    r_sensitivity[d] += rSensitivityVector[index++];
                 rGeom[i_node].UnSetLock();
             }
             else
