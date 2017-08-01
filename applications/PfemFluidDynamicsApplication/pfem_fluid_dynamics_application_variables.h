@@ -33,7 +33,7 @@
 #include "includes/variables.h"
 
 #include "solid_mechanics_application_variables.h"
-#include "pfem_base_application_variables.h"
+#include "pfem_application_variables.h"
 
 namespace Kratos
 {

@@ -4,7 +4,7 @@ import sys
 import os.path
 
 Import_SolidMechanicsApplication = False
-Import_PfemBaseApplication = False
+Import_PfemApplication = False
 Import_PfemSolidMechanicsApplication = False
 Import_MachiningApplication = False
 Import_PfemFluidDynamicsApplication = False
@@ -15,7 +15,6 @@ Import_StructuralApplication = False
 Import_StructuralMechanicsApplication = False
 Import_ConvectionDiffusionApplication = False
 Import_FSIApplication = False
-Import_PFEMApplication = False
 Import_ExternalSolversApplication = False
 Import_ConstitutiveLawsApplication = False
 Import_ULFApplication = False
@@ -47,7 +46,7 @@ Import_ConstitutiveModelsApplication = False
 
 print("Applications Available:")
 print("Import_SolidMechanicsApplication: False")
-print("Import_PfemBaseApplication: False")
+print("Import_PfemApplication: False")
 print("Import_PfemSolidMechanicsApplication: False")
 print("Import_MachiningApplication: False")
 print("Import_PfemFluidDynamicsApplication: False")
@@ -93,7 +92,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     # importing the applications
     print("Applications Available:")
     print("Import_SolidMechanicsApplication: " + str(Import_SolidMechanicsApplication))
-    print("Import_PfemBaseApplication: " + str(Import_PfemBaseApplication))
+    print("Import_PfemApplication: " + str(Import_PfemApplication))
     print("Import_PfemSolidMechanicsApplication: " + str(Import_PfemSolidMechanicsApplication))
     print("Import_MachiningApplication: " + str(Import_MachiningApplication))
     print("Import_PfemFluidDynamicsApplication: " + str(Import_PfemFluidDynamicsApplication))
@@ -142,14 +141,14 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(solid_mechanics_application)
         print("KratosSolidMechanicsApplication Succesfully imported")
 
-    if(Import_PfemBaseApplication):
-        print("importing KratosPfemBaseApplication ...")
-        sys.path.append(applications_path + '/PfemBaseApplication/python_scripts')
-        sys.path.append(applications_path + '/PfemBaseApplication/Linux')
-        from KratosPfemBaseApplication import *
-        pfem_base_application = KratosPfemBaseApplication()
-        kernel.AddApplication(pfem_base_application)
-        print("KratosPfemBaseApplication Succesfully imported")
+    if(Import_PfemApplication):
+        print("importing KratosPfemApplication ...")
+        sys.path.append(applications_path + '/PfemApplication/python_scripts')
+        sys.path.append(applications_path + '/PfemApplication/Linux')
+        from KratosPfemApplication import *
+        pfem_application = KratosPfemApplication()
+        kernel.AddApplication(pfem_application)
+        print("KratosPfemApplication Succesfully imported")
 
     if(Import_PfemSolidMechanicsApplication):
         print("importing KratosPfemSolidMechanicsApplication ...")
@@ -242,15 +241,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         fsi_application = KratosFSIApplication()
         kernel.AddApplication(fsi_application)
         print("FSIapplication Succesfully imported")
-
-    if(Import_PFEMApplication):
-        print("importing KratosPFEMApplication ...")
-        sys.path.append(applications_path + '/PFEMapplication/python_scripts')
-        sys.path.append(applications_path + '/PFEMapplication/Linux')
-        from KratosPFEMApplication import *
-        pfem_application = KratosPFEMApplication()
-        kernel.AddApplication(pfem_application)
-        print("KratosPFEMApplication Succesfully imported")
 
     if(Import_ExternalSolversApplication):
         print("importing KratosExternalSolversApplication ...")
@@ -488,8 +478,8 @@ def ImportApplications(kernel, applications_path=application_directory):
     kernel.Initialize()
     if(Import_SolidMechanicsApplication):
         kernel.InitializeApplication(solid_mechanics_application)
-    if(Import_PfemBaseApplication):
-        kernel.InitializeApplication(pfem_base_application)
+    if(Import_PfemApplication):
+        kernel.InitializeApplication(pfem_application)
     if(Import_PfemSolidMechanicsApplication):
         kernel.InitializeApplication(pfem_solid_mechanics_application)
     if(Import_MachiningApplication):
@@ -510,8 +500,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(convection_diffusion_application)
     if(Import_FSIApplication):
         kernel.InitializeApplication(fsi_application)
-    if(Import_PFEMApplication):
-        kernel.InitializeApplication(pfem_application)
     if(Import_ExternalSolversApplication):
         kernel.InitializeApplication(external_solvers_application)
     if(Import_ConstitutiveLawsApplication):

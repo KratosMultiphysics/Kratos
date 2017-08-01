@@ -106,10 +106,10 @@ public:
     ///@{
 
     /// Default constructor.
-    MeshTransfer() {} //
+    MeshTransfer() = default; //
 
     /// Destructor.
-    virtual ~MeshTransfer() {}
+    virtual ~MeshTransfer() = default;
 
 
     ///@}
@@ -256,7 +256,7 @@ public:
 
 
             //check if inside
-            for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
+            for( auto it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
             {
 
                 bool is_inside = false;
@@ -439,7 +439,7 @@ public:
 
 
             //check if inside
-            for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
+            for( auto it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
             {
 // KRATOS_WATCH("line 402")
                 bool is_inside = false;

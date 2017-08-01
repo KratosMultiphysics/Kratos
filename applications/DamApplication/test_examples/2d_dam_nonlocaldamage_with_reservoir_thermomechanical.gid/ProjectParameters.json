@@ -162,7 +162,7 @@
             "Water_level_Table"                                : 0,
             "Outer_temp"                                       : 5.0,
             "Outer_temp_Table"                                 : 0,
-            "Month"                                            : 6,
+            "Month"                                            : 6.0,
             "Month_Table"                                      : 0
         }
     }],

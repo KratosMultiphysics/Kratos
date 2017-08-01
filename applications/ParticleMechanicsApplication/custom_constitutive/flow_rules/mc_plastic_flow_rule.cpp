@@ -77,7 +77,7 @@ MCPlasticFlowRule::~MCPlasticFlowRule()
 {
 }
 
-void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer pYieldCriterionPointer, HardeningLawPointer pHardeningPointer, const Properties& rProp)
+void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterionPointer, HardeningLawPointer& pHardeningPointer, const Properties& rProp)
 {
     MPMFlowRule::InitializeMaterial(pYieldCriterionPointer, pHardeningPointer, rProp);
     //mTrialEigenValues = ZeroVector(3);
