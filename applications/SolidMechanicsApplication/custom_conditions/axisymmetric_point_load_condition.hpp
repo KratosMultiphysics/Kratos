@@ -7,15 +7,16 @@
 //
 //
 
-#if !defined(KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_3D_condition.hpp"
+#include "custom_conditions/point_load_condition.hpp"
+
 
 namespace Kratos
 {
@@ -34,36 +35,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Force Load Condition for 3D and 2D geometries. (base class)
+/// Axisymmetric point load condition for 2D geometries
 
-/**
- * Implements a Force Load definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
- */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineLoad2DCondition
-    : public LineLoad3DCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricPointLoadCondition
+    : public PointLoadCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of LineLoad2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoad2DCondition );
+    // Counted pointer of AxisymmetricPointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricPointLoadCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    AxisymmetricPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    AxisymmetricPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    LineLoad2DCondition( LineLoad2DCondition const& rOther);
+    AxisymmetricPointLoadCondition( AxisymmetricPointLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~LineLoad2DCondition();
+    virtual ~AxisymmetricPointLoadCondition();
 
     ///@}
     ///@name Operators
@@ -97,10 +94,8 @@ public:
 			     NodesArrayType const& ThisNodes) const;
 
 
-
-    //************* COMPUTING  METHODS
-
-
+    //************************************************************************************
+    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -130,20 +125,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    LineLoad2DCondition() {};
+    AxisymmetricPointLoadCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * Initialize System Matrices
-     */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
-
+   
     /**
      * Calculate Condition Kinematics
      */
@@ -152,12 +141,25 @@ protected:
 
 
     /**
-     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight);
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
 
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation of the contidion radius (axisymmetry)
+     */
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -214,8 +216,8 @@ private:
     virtual void load(Serializer& rSerializer);
 
 
-}; // class LineLoad2DCondition.
+}; // class AxisymmetricPointLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED defined 

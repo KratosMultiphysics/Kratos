@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_FORCE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_FORCE_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -41,15 +41,15 @@ namespace Kratos
  * Implements a Force Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ForceLoadCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LoadCondition
     : public Condition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of ForceLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ForceLoadCondition );
+    // Counted pointer of LoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( LoadCondition );
     ///@}
 
 protected:
@@ -231,18 +231,18 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    ForceLoadCondition();
+    LoadCondition();
   
     /// Default constructor.
-    ForceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    LoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    ForceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    LoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    ForceLoadCondition( ForceLoadCondition const& rOther);
+    LoadCondition( LoadCondition const& rOther);
 
     /// Destructor
-    virtual ~ForceLoadCondition();
+    virtual ~LoadCondition();
 
     ///@}
     ///@name Operators
@@ -635,8 +635,8 @@ private:
     virtual void load(Serializer& rSerializer);
 
 
-}; // class ForceLoadCondition.
+}; // class LoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_FORCE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LOAD_CONDITION_H_INCLUDED defined 

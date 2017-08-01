@@ -37,30 +37,28 @@
 #include "containers/flags.h"
 
 //conditions
-#include "custom_conditions/point_moment_3D_condition.hpp"
-#include "custom_conditions/point_load_2D_condition.hpp"
-#include "custom_conditions/point_load_axisym_2D_condition.hpp"
-#include "custom_conditions/point_load_3D_condition.hpp"
+#include "custom_conditions/point_moment_condition.hpp"
+#include "custom_conditions/point_load_condition.hpp"
+#include "custom_conditions/axisymmetric_point_load_condition.hpp"
 
-#include "custom_conditions/line_load_2D_condition.hpp"
-#include "custom_conditions/line_load_axisym_2D_condition.hpp"
-#include "custom_conditions/line_load_3D_condition.hpp"
+#include "custom_conditions/line_load_condition.hpp"
+#include "custom_conditions/axisymmetric_line_load_condition.hpp"
 
-#include "custom_conditions/surface_load_3D_condition.hpp"
+#include "custom_conditions/surface_load_condition.hpp"
 
 //elements
 #include "custom_elements/linear_solid_element.hpp"
 
 #include "custom_elements/small_displacement_element.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
-#include "custom_elements/axisym_small_displacement_element.hpp"
+#include "custom_elements/axisymmetric_small_displacement_element.hpp"
 
 #include "custom_elements/total_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_element.hpp"
-#include "custom_elements/axisym_updated_lagrangian_element.hpp"
+#include "custom_elements/axisymmetric_updated_lagrangian_element.hpp"
 
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
-#include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 
@@ -308,11 +306,11 @@ typedef array_1d<double,6> Vector6;
    const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D3N;
    const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D4N;
 
-   const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
-   const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
-   const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
-   const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D8N;
-   const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D9N;
+   const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
+   const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
+   const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
+   const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D8N;
+   const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D9N;
 
    //large displacement
    const LargeDisplacementElement     mLargeDisplacementElement;
@@ -348,15 +346,15 @@ typedef array_1d<double,6> Vector6;
    const UpdatedLagrangianElement mUpdatedLagrangianElement3D20N;
    const UpdatedLagrangianElement mUpdatedLagrangianElement3D27N;
 
-   const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D3N;
-   const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D4N;
-   const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D6N;
-   const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
-   const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D9N;
+   const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D3N;
+   const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D4N;
+   const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D6N;
+   const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
+   const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D9N;
 
-   const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement2D3N;
-   const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
-   const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement3D4N;
+   const UpdatedLagrangianUPElement                   mUpdatedLagrangianUPElement2D3N;
+   const AxisymmetricUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
+   const UpdatedLagrangianUPElement                   mUpdatedLagrangianUPElement3D4N;
 
    //beams
    const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
@@ -370,25 +368,25 @@ typedef array_1d<double,6> Vector6;
 
    
    //conditions
-   const ForceLoadCondition                    mForceLoadCondition;
+   const LoadCondition                                  mLoadCondition;
 
-   const PointLoad2DCondition              mPointLoadCondition2D1N;
-   const PointLoadAxisym2DCondition  mAxisymPointLoadCondition2D1N;
-   const PointLoad3DCondition              mPointLoadCondition3D1N;
-   const PointMoment3DCondition          mPointMomentCondition3D1N;
+   const PointLoadCondition                    mPointLoadCondition2D1N;
+   const AxisymmetricPointLoadCondition  mAxisymPointLoadCondition2D1N;
+   const PointLoadCondition                    mPointLoadCondition3D1N;
+   const PointMomentCondition                mPointMomentCondition3D1N;
    
-   const LineLoad2DCondition                mLineLoadCondition2D2N;
-   const LineLoad2DCondition                mLineLoadCondition2D3N;
-   const LineLoadAxisym2DCondition    mAxisymLineLoadCondition2D2N;
-   const LineLoadAxisym2DCondition    mAxisymLineLoadCondition2D3N;
-   const LineLoad3DCondition                mLineLoadCondition3D2N;
-   const LineLoad3DCondition                mLineLoadCondition3D3N;
+   const LineLoadCondition                      mLineLoadCondition2D2N;
+   const LineLoadCondition                      mLineLoadCondition2D3N;
+   const AxisymmetricLineLoadCondition    mAxisymLineLoadCondition2D2N;
+   const AxisymmetricLineLoadCondition    mAxisymLineLoadCondition2D3N;
+   const LineLoadCondition                      mLineLoadCondition3D2N;
+   const LineLoadCondition                      mLineLoadCondition3D3N;
 
-   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D3N;
-   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D4N;
-   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D6N;
-   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D8N;
-   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D9N;
+   const SurfaceLoadCondition                mSurfaceLoadCondition3D3N;
+   const SurfaceLoadCondition                mSurfaceLoadCondition3D4N;
+   const SurfaceLoadCondition                mSurfaceLoadCondition3D6N;
+   const SurfaceLoadCondition                mSurfaceLoadCondition3D8N;
+   const SurfaceLoadCondition                mSurfaceLoadCondition3D9N;
 
 
    //constitutive laws

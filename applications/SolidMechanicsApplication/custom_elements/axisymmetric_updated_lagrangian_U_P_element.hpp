@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -35,14 +35,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisym Updated Lagrangian U-P Element for 2D geometries. For Linear Triangles
+/// Axisymmetric Updated Lagrangian U-P Element for 2D geometries. For Linear Triangles
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
  * This works for Linear Triangles
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymUpdatedLagrangianUPElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricUpdatedLagrangianUPElement
     : public LargeDisplacementUPElement
 {
 public:
@@ -58,30 +58,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of AxisymUpdatedLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUPElement );
+    /// Counted pointer of AxisymmetricUpdatedLagrangianUPElement
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricUpdatedLagrangianUPElement );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    AxisymUpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymmetricUpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymUpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymmetricUpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymUpdatedLagrangianUPElement(AxisymUpdatedLagrangianUPElement const& rOther);
+    AxisymmetricUpdatedLagrangianUPElement(AxisymmetricUpdatedLagrangianUPElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymUpdatedLagrangianUPElement();
+    virtual ~AxisymmetricUpdatedLagrangianUPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymUpdatedLagrangianUPElement& operator=(AxisymUpdatedLagrangianUPElement const& rOther);
+    AxisymmetricUpdatedLagrangianUPElement& operator=(AxisymmetricUpdatedLagrangianUPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -192,7 +192,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    AxisymUpdatedLagrangianUPElement() : LargeDisplacementUPElement()
+    AxisymmetricUpdatedLagrangianUPElement() : LargeDisplacementUPElement()
     {
     }
 
@@ -407,7 +407,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AxisymUpdatedLagrangianUPElement
+}; // Class AxisymmetricUpdatedLagrangianUPElement
 
 ///@}
 ///@name Type Definitions
@@ -418,4 +418,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 

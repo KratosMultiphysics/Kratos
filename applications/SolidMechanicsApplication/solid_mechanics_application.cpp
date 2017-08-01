@@ -307,7 +307,7 @@ namespace Kratos
       
 
     //Register Conditions
-    KRATOS_REGISTER_CONDITION( "ForceLoadCondition", mForceLoadCondition )
+    KRATOS_REGISTER_CONDITION( "LoadCondition", mLoadCondition )
 
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
       

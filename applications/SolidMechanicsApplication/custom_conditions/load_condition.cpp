@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/force_load_condition.hpp"
+#include "custom_conditions/load_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -22,15 +22,15 @@ namespace Kratos
 /**
  * Flags related to the condition computation
  */
-KRATOS_CREATE_LOCAL_FLAG( ForceLoadCondition, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( ForceLoadCondition, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( ForceLoadCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( ForceLoadCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
+KRATOS_CREATE_LOCAL_FLAG( LoadCondition, COMPUTE_RHS_VECTOR,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( LoadCondition, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( LoadCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
+KRATOS_CREATE_LOCAL_FLAG( LoadCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
 //***********************************************************************************
 //***********************************************************************************
-ForceLoadCondition::ForceLoadCondition()
+LoadCondition::LoadCondition()
     : Condition()
 {
   //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -39,7 +39,7 @@ ForceLoadCondition::ForceLoadCondition()
 
 //***********************************************************************************
 //***********************************************************************************
-ForceLoadCondition::ForceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -47,7 +47,7 @@ ForceLoadCondition::ForceLoadCondition(IndexType NewId, GeometryType::Pointer pG
 
 //***********************************************************************************
 //***********************************************************************************
-ForceLoadCondition::ForceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
 
@@ -58,7 +58,7 @@ ForceLoadCondition::ForceLoadCondition(IndexType NewId, GeometryType::Pointer pG
 
 //************************************************************************************
 //************************************************************************************
-ForceLoadCondition::ForceLoadCondition( ForceLoadCondition const& rOther )
+LoadCondition::LoadCondition( LoadCondition const& rOther )
     : Condition(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mEnergy(rOther.mEnergy)
@@ -68,35 +68,35 @@ ForceLoadCondition::ForceLoadCondition( ForceLoadCondition const& rOther )
 
 //***********************************************************************************
 //***********************************************************************************
-Condition::Pointer ForceLoadCondition::Create(
+Condition::Pointer LoadCondition::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new ForceLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new LoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Condition::Pointer ForceLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Condition::Pointer LoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
   std::cout<<" Call base class FORCE LOAD CONDITION Clone "<<std::endl;
   
-  ForceLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+  LoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
   NewCondition.SetData(this->GetData());
   NewCondition.SetFlags(this->GetFlags());
 
   
-  return Condition::Pointer( new ForceLoadCondition(NewCondition) );
+  return Condition::Pointer( new LoadCondition(NewCondition) );
 }
 
 
 //***********************************************************************************
 //***********************************************************************************
-ForceLoadCondition::~ForceLoadCondition()
+LoadCondition::~LoadCondition()
 {
 }
 
@@ -105,7 +105,7 @@ ForceLoadCondition::~ForceLoadCondition()
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::GetDofList(DofsVectorType& rConditionDofList,
+void LoadCondition::GetDofList(DofsVectorType& rConditionDofList,
 				    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -129,7 +129,7 @@ void ForceLoadCondition::GetDofList(DofsVectorType& rConditionDofList,
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::EquationIdVector(EquationIdVectorType& rResult,
+void LoadCondition::EquationIdVector(EquationIdVectorType& rResult,
 					  ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -157,7 +157,7 @@ void ForceLoadCondition::EquationIdVector(EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::GetValuesVector(Vector& rValues, int Step)
+void LoadCondition::GetValuesVector(Vector& rValues, int Step)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -180,7 +180,7 @@ void ForceLoadCondition::GetValuesVector(Vector& rValues, int Step)
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LoadCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -203,7 +203,7 @@ void ForceLoadCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LoadCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -226,7 +226,7 @@ void ForceLoadCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 
 //************************************************************************************
 //************************************************************************************
-void ForceLoadCondition::ClearNodalForces()
+void LoadCondition::ClearNodalForces()
 {
     KRATOS_TRY
 
@@ -253,7 +253,7 @@ void ForceLoadCondition::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
+void LoadCondition::AddExplicitContribution(const VectorType& rRHS, 
 						 const Variable<VectorType>& rRHSVariable,
 						 Variable<array_1d<double,3> >& rDestinationVariable, 
 						 const ProcessInfo& rCurrentProcessInfo)
@@ -308,7 +308,7 @@ void ForceLoadCondition::AddExplicitContribution(const VectorType& rRHS,
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::Initialize()
+void LoadCondition::Initialize()
 {
     KRATOS_TRY
 
@@ -321,7 +321,7 @@ void ForceLoadCondition::Initialize()
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -335,7 +335,7 @@ void ForceLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -347,7 +347,7 @@ void ForceLoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProc
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+void LoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 						  VectorType& rRightHandSideVector,
 						  Flags& rCalculationFlags)
 
@@ -359,7 +359,7 @@ void ForceLoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatri
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension;
 
-    if ( rCalculationFlags.Is(ForceLoadCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(LoadCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
@@ -369,7 +369,7 @@ void ForceLoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatri
 
 
     //resizing as needed the RHS
-    if ( rCalculationFlags.Is(ForceLoadCondition::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(LoadCondition::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
@@ -383,7 +383,7 @@ void ForceLoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatri
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void LoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -405,7 +405,7 @@ void ForceLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
+void LoadCondition::CalculateKinematics(GeneralVariables& rVariables,
 					     const double& rPointNumber)
 {
     KRATOS_TRY
@@ -419,7 +419,7 @@ void ForceLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
 //***********************************************************************************
 //***********************************************************************************
 
-Vector& ForceLoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
+Vector& LoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -435,7 +435,7 @@ Vector& ForceLoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVa
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+void LoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 						  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -468,13 +468,13 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 	//calculation of the force and the pressure loads
 	VectorForce = this->CalculateVectorForce( VectorForce, Variables );
 
-        if ( rLocalSystem.CalculationFlags.Is(ForceLoadCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rLocalSystem.CalculationFlags.Is(LoadCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
-        if ( rLocalSystem.CalculationFlags.Is(ForceLoadCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rLocalSystem.CalculationFlags.Is(LoadCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces 
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VectorForce, IntegrationWeight );
@@ -493,11 +493,11 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void LoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
   //contributions of the stiffness matrix calculated on the reference configuration
-  if( rLocalSystem.CalculationFlags.Is( ForceLoadCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+  if( rLocalSystem.CalculationFlags.Is( LoadCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
       std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
       const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
@@ -535,10 +535,10 @@ void ForceLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVectorForce, double& rIntegrationWeight)
+void LoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVectorForce, double& rIntegrationWeight)
 {
     //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( ForceLoadCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    if( rLocalSystem.CalculationFlags.Is( LoadCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
 
       std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
@@ -583,13 +583,13 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
@@ -610,13 +610,13 @@ void ForceLoadCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -635,14 +635,14 @@ void ForceLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -672,14 +672,14 @@ void ForceLoadCondition::CalculateRightHandSide( std::vector< VectorType >& rRig
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_RHS_VECTOR);
 
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
@@ -700,7 +700,7 @@ void ForceLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
+void LoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
 					       const std::vector< Variable< MatrixType > >& rLHSVariables,
 					       std::vector< VectorType >& rRightHandSideVectors,
 					       const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -710,8 +710,8 @@ void ForceLoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftH
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
 
     //Initialize sizes for the system components:
@@ -721,22 +721,22 @@ void ForceLoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftH
     if( rRHSVariables.size() != rRightHandSideVectors.size() )
       rRightHandSideVectors.resize(rRHSVariables.size());
     
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_LHS_MATRIX);
     for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
       {
 	//Note: rRightHandSideVectors.size() > 0
 	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
       }
 
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX,false);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_LHS_MATRIX,false);
 
     for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
       {
 	//Note: rLeftHandSideMatrices.size() > 0
     	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
       }
-    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX,true);
+    LocalSystem.CalculationFlags.Set(LoadCondition::COMPUTE_LHS_MATRIX,true);
 
 
     //Set Variables to Local system components
@@ -755,7 +755,7 @@ void ForceLoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftH
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void LoadCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -767,7 +767,7 @@ void ForceLoadCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessIn
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void LoadCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -780,7 +780,7 @@ void ForceLoadCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, Pro
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+void LoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 					     GeneralVariables& rVariables,
 					     double& rIntegrationWeight)
 
@@ -796,7 +796,7 @@ void ForceLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
 						       GeneralVariables& rVariables,
 						       Vector& rVectorForce,
 						       double& rIntegrationWeight)
@@ -847,7 +847,7 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
+void LoadCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
 {
   unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -887,7 +887,7 @@ void ForceLoadCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNod
 //************************************************************************************
 //************************************************************************************
 
-Vector& ForceLoadCondition::GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+Vector& LoadCondition::GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
 {
     KRATOS_TRY
 
@@ -913,7 +913,7 @@ Vector& ForceLoadCondition::GetCurrentValue(const Variable<array_1d<double,3> >&
 //************************************************************************************
 //************************************************************************************
 
-Vector& ForceLoadCondition::GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+Vector& LoadCondition::GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
 {
     KRATOS_TRY
 
@@ -939,7 +939,7 @@ Vector& ForceLoadCondition::GetPreviousValue(const Variable<array_1d<double,3> >
 //*********************************GET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ForceLoadCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void LoadCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 						      std::vector<double>& rValues,
 						      const ProcessInfo& rCurrentProcessInfo )
 { 
@@ -949,7 +949,7 @@ void ForceLoadCondition::GetValueOnIntegrationPoints( const Variable<double>& rV
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void LoadCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -982,7 +982,7 @@ void ForceLoadCondition::CalculateOnIntegrationPoints( const Variable<double>& r
 //***********************************************************************************
 
 
-int ForceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int LoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }
@@ -990,12 +990,12 @@ int ForceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::save( Serializer& rSerializer ) const
+void LoadCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
 }
 
-void ForceLoadCondition::load( Serializer& rSerializer )
+void LoadCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
 }

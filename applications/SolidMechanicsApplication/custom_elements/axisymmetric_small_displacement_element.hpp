@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -35,14 +35,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisym Small Displacements Element for 2D geometries.
+/// Axisymmetric Small Displacements Element for 2D geometries.
 
 /**
  * Implements a Small Displacement definition for structural analysis.
  * This works for arbitrary geometries in 2D
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymSmallDisplacementElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricSmallDisplacementElement
     : public SmallDisplacementElement
 {
 public:
@@ -58,30 +58,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of AxisymSmallDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymSmallDisplacementElement );
+    /// Counted pointer of AxisymmetricSmallDisplacementElement
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricSmallDisplacementElement );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    AxisymSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymmetricSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymmetricSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymSmallDisplacementElement(AxisymSmallDisplacementElement const& rOther);
+    AxisymmetricSmallDisplacementElement(AxisymmetricSmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymSmallDisplacementElement();
+    virtual ~AxisymmetricSmallDisplacementElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymSmallDisplacementElement& operator=(AxisymSmallDisplacementElement const& rOther);
+    AxisymmetricSmallDisplacementElement& operator=(AxisymmetricSmallDisplacementElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -148,7 +148,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    AxisymSmallDisplacementElement() : SmallDisplacementElement()
+    AxisymmetricSmallDisplacementElement() : SmallDisplacementElement()
     {
     }
 
@@ -286,7 +286,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AxisymSmallDisplacementElement
+}; // Class AxisymmetricSmallDisplacementElement
 
 ///@}
 ///@name Type Definitions
@@ -297,4 +297,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 

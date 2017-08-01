@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_LINE_LOAD_AXISYM_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_AXISYM_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LINE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_2D_condition.hpp"
+#include "custom_conditions/load_condition.hpp"
 
 namespace Kratos
 {
@@ -34,36 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Force Load Condition for 3D and 2D geometries. (base class)
+/// Line load condition for 3D and 2D geometries.
 
-/**
- * Implements a Force Load definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
- */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineLoadAxisym2DCondition
-    : public LineLoad2DCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineLoadCondition
+  : public LoadCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of LineLoadAxisym2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadAxisym2DCondition );
+    // Counted pointer of LineLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    LineLoadAxisym2DCondition( LineLoadAxisym2DCondition const& rOther);
+    LineLoadCondition( LineLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~LineLoadAxisym2DCondition();
+    virtual ~LineLoadCondition();
 
     ///@}
     ///@name Operators
@@ -130,7 +126,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    LineLoadAxisym2DCondition() {};
+    LineLoadCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
@@ -138,6 +134,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Condition Kinematics
@@ -146,26 +147,28 @@ protected:
 				     const double& rPointNumber);
 
     /**
-     * Calculation and addition of the matrices of the LHS
+     * Calculation of the Position Increment
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
     /**
-     * Calculation and addition of the vectors of the RHS
+     * Calculation of the Total Position Increment
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
+    
+    /**
+     * Calculation of the Vector Force of the Condition
+     */
+    virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
+
 
     /**
-     * Calculation of the contidion radius (axisymmetry)
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius,
-			 const Vector& rN);
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
+
 
     ///@}
     ///@name Protected  Access
@@ -223,8 +226,8 @@ private:
     virtual void load(Serializer& rSerializer);
 
 
-}; // class LineLoadAxisym2DCondition.
+}; // class LineLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_AXISYM_2D_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_LOAD_CONDITION_H_INCLUDED defined 

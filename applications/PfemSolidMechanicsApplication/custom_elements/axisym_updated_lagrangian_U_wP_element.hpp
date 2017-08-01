@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/axisym_updated_lagrangian_element.hpp"
+#include "custom_elements/axisymmetric_updated_lagrangian_element.hpp"
 
 namespace Kratos
 {
@@ -38,7 +38,7 @@ namespace Kratos
 
 
 class AxisymUpdatedLagrangianUwPElement
-    : public AxisymUpdatedLagrangianElement
+    : public AxisymmetricUpdatedLagrangianElement
 {
 public:
 

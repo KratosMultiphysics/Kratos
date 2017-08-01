@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/axisym_small_displacement_element.hpp"
+#include "custom_elements/axisymmetric_small_displacement_element.hpp"
 #include "solid_mechanics_application_variables.h"
 
 
@@ -22,7 +22,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry )
+AxisymmetricSmallDisplacementElement::AxisymmetricSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : SmallDisplacementElement( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -32,7 +32,7 @@ AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId,
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+AxisymmetricSmallDisplacementElement::AxisymmetricSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : SmallDisplacementElement( NewId, pGeometry, pProperties )
 {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
@@ -44,7 +44,7 @@ AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId,
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( AxisymSmallDisplacementElement const& rOther)
+AxisymmetricSmallDisplacementElement::AxisymmetricSmallDisplacementElement( AxisymmetricSmallDisplacementElement const& rOther)
     :SmallDisplacementElement(rOther)
 {
 }
@@ -53,19 +53,19 @@ AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( AxisymSmallDispl
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer AxisymSmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer AxisymmetricSmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new AxisymSmallDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new AxisymmetricSmallDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Element::Pointer AxisymSmallDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer AxisymmetricSmallDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    AxisymSmallDisplacementElement NewElement ( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    AxisymmetricSmallDisplacementElement NewElement ( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     //-----------//
 
@@ -82,13 +82,13 @@ Element::Pointer AxisymSmallDisplacementElement::Clone( IndexType NewId, NodesAr
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new AxisymSmallDisplacementElement(NewElement) );
+    return Element::Pointer( new AxisymmetricSmallDisplacementElement(NewElement) );
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-AxisymSmallDisplacementElement::~AxisymSmallDisplacementElement()
+AxisymmetricSmallDisplacementElement::~AxisymmetricSmallDisplacementElement()
 {
 }
 
@@ -101,7 +101,7 @@ AxisymSmallDisplacementElement::~AxisymSmallDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymmetricSmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -138,7 +138,7 @@ void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariable
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
   
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius;
@@ -155,7 +155,7 @@ void AxisymSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& r
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius;
     if ( this->GetProperties().Has( THICKNESS ) )
@@ -171,7 +171,7 @@ void AxisymSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& r
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& AxisymSmallDisplacementElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
+double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -204,7 +204,7 @@ double& AxisymSmallDisplacementElement::CalculateTotalMass( double& rTotalMass, 
 //************************************************************************************
 
 
-void AxisymSmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
+void AxisymmetricSmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
         const double& rPointNumber)
 
 {
@@ -248,7 +248,7 @@ void AxisymSmallDisplacementElement::CalculateKinematics(GeneralVariables& rVari
 //*************************COMPUTE AXYSIMMETRIC RADIUS********************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateRadius(double & rRadius,
+void AxisymmetricSmallDisplacementElement::CalculateRadius(double & rRadius,
         const Vector& rN)
 
 
@@ -284,7 +284,7 @@ void AxisymSmallDisplacementElement::CalculateRadius(double & rRadius,
 //*************************COMPUTE DISPLACEMENT GRADIENT******************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
+void AxisymmetricSmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
         const Matrix& rDN_DX,
         const Vector & rN,
         const double & rRadius)
@@ -336,7 +336,7 @@ void AxisymSmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
 //************************************************************************************
 
 
-void AxisymSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
+void AxisymmetricSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
         const Matrix& rDN_DX,
         const Vector& rN,
         const double & rRadius)
@@ -384,7 +384,7 @@ void AxisymSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
+void AxisymmetricSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
         Vector& rStrainVector )
 {
     KRATOS_TRY
@@ -427,12 +427,12 @@ void AxisymSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& 
 
 //************************************************************************************
 //************************************************************************************
-void AxisymSmallDisplacementElement::save( Serializer& rSerializer ) const
+void AxisymmetricSmallDisplacementElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement )
 }
 
-void AxisymSmallDisplacementElement::load( Serializer& rSerializer )
+void AxisymmetricSmallDisplacementElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacementElement )
 }

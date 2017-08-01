@@ -43,29 +43,29 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointMoment3DCondition
+class PointMomentCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PointMoment3DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointMoment3DCondition );
+    /// Counted pointer of PointMomentCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    PointMomentCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    PointMomentCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    PointMoment3DCondition( PointMoment3DCondition const& rOther);
+    PointMomentCondition( PointMomentCondition const& rOther);
 
     /// Destructor.
-    virtual ~PointMoment3DCondition();
+    virtual ~PointMomentCondition();
 
 
     ///@}
@@ -116,8 +116,6 @@ public:
 				 const Variable<VectorType>& rRHSVariable, 
 				 Variable<array_1d<double,3> >& rDestinationVariable, 
 				 const ProcessInfo& rCurrentProcessInfo);
-
-
 
 
     /**
@@ -219,7 +217,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    PointMoment3DCondition() {};
+    PointMomentCondition() {};
 
     virtual void save(Serializer& rSerializer) const;
 
@@ -249,15 +247,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //PointMoment3DCondition& operator=(const PointMoment3DCondition& rOther);
+    //PointMomentCondition& operator=(const PointMomentCondition& rOther);
 
     /// Copy constructor.
-    //PointMoment3DCondition(const PointMoment3DCondition& rOther);
+    //PointMomentCondition(const PointMomentCondition& rOther);
 
 
     ///@}
 
-}; // Class PointMoment3DCondition
+}; // Class PointMomentCondition
 
 ///@}
 
@@ -272,11 +270,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointMoment3DCondition& rThis);
+				    PointMomentCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointMoment3DCondition& rThis)
+				    const PointMomentCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -288,6 +286,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_MOMENT_3D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_MOMENT_CONDITION_H_INCLUDED  defined 
 
 

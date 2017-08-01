@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_POINT_LOAD_3D_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_3D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/force_load_condition.hpp"
-
+#include "custom_conditions/load_condition.hpp"
 
 namespace Kratos
 {
@@ -35,36 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Force Load Condition for 3D and 2D geometries. (base class)
+// Surface load condition for 3D geometries.
 
-/**
- * Implements a Force Load definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
- */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) PointLoad3DCondition
-    : public ForceLoadCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SurfaceLoadCondition
+    : public LoadCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of PointLoad3DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoad3DCondition );
+    // Counted pointer of SurfaceLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    SurfaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    PointLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    PointLoad3DCondition( PointLoad3DCondition const& rOther);
+    SurfaceLoadCondition( SurfaceLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~PointLoad3DCondition();
+    virtual ~SurfaceLoadCondition();
 
     ///@}
     ///@name Operators
@@ -98,8 +93,10 @@ public:
 			     NodesArrayType const& ThisNodes) const;
 
 
-    //************************************************************************************
-    //************************************************************************************
+
+    //************* COMPUTING  METHODS
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -118,30 +115,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "Point Load 3D Condition #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "Point Load 3D Condition #" << Id();
-    }
-
-    /// Print object's data.
-
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
-
     ///@}
     ///@name Friends
     ///@{
@@ -153,7 +126,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointLoad3DCondition() {};
+    SurfaceLoadCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
@@ -166,6 +139,16 @@ protected:
      */
     virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Calculation of the Position Increment
+     */
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+
+    /**
+     * Calculation of the Total Position Increment
+     */
+    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
 
     /**
@@ -181,10 +164,36 @@ protected:
 
 
     /**
-     * Calculates the condition contributions
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
+
+
+    //utilities::
+
+    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+			 Vector& U );
+
+    void CrossProduct(Vector& cross,
+		      Vector& a,
+		      Vector& b );
+
+
+    void AddMatrix(MatrixType& Destination,
+		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+		   int InitialRow,
+		   int InitialCol );
+
+    void SubtractMatrix(MatrixType& Destination,
+			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+			int InitialRow,
+			int InitialCol );
+
+
+    void ExpandReducedMatrix(Matrix& Destination,
+			     Matrix& ReducedMatrix );
 
 
     ///@}
@@ -242,9 +251,8 @@ private:
 
     virtual void load(Serializer& rSerializer);
 
-
-}; // class PointLoad3DCondition.
+}; // class SurfaceLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_3D_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED defined 

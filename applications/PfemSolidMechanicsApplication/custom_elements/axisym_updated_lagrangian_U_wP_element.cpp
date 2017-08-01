@@ -27,7 +27,7 @@ namespace Kratos
    //************************************************************************************
    // Aquest a l'altre no hi és....
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement()
-      : AxisymUpdatedLagrangianElement()
+      : AxisymmetricUpdatedLagrangianElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -37,7 +37,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : AxisymUpdatedLagrangianElement( NewId, pGeometry )
+      : AxisymmetricUpdatedLagrangianElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -47,7 +47,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : AxisymUpdatedLagrangianElement( NewId, pGeometry, pProperties )
+      : AxisymmetricUpdatedLagrangianElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -56,7 +56,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement::AxisymUpdatedLagrangianUwPElement( AxisymUpdatedLagrangianUwPElement const& rOther)
-      :AxisymUpdatedLagrangianElement(rOther)
+      :AxisymmetricUpdatedLagrangianElement(rOther)
        ,mTimeStep( rOther.mTimeStep)
    {
    }
@@ -67,7 +67,7 @@ namespace Kratos
 
    AxisymUpdatedLagrangianUwPElement&  AxisymUpdatedLagrangianUwPElement::operator=(AxisymUpdatedLagrangianUwPElement const& rOther)
    {
-      AxisymUpdatedLagrangianElement::operator=(rOther);
+      AxisymmetricUpdatedLagrangianElement::operator=(rOther);
 
       mTimeStep = rOther.mTimeStep; 
 
@@ -272,7 +272,7 @@ namespace Kratos
       }
       else{
 
-         AxisymUpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+         AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
       }
 
@@ -428,7 +428,7 @@ namespace Kratos
 
       }
       else {
-         AxisymUpdatedLagrangianElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+         AxisymmetricUpdatedLagrangianElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
       }
 
    }
@@ -538,7 +538,7 @@ namespace Kratos
    void AxisymUpdatedLagrangianUwPElement::InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
 
-      AxisymUpdatedLagrangianElement::InitializeGeneralVariables( rVariables, rCurrentProcessInfo);
+      AxisymmetricUpdatedLagrangianElement::InitializeGeneralVariables( rVariables, rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -625,7 +625,7 @@ namespace Kratos
       Matrix BaseClassLeftHandSideMatrix = ZeroMatrix( dimension*number_of_nodes, dimension*number_of_nodes);
       BaseClassLocalSystem.SetLeftHandSideMatrix( BaseClassLeftHandSideMatrix );
 
-      AxisymUpdatedLagrangianElement::CalculateAndAddLHS( BaseClassLocalSystem, rVariables, rIntegrationWeight);
+      AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS( BaseClassLocalSystem, rVariables, rIntegrationWeight);
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
@@ -683,7 +683,7 @@ namespace Kratos
       BaseClassLocalSystem.SetRightHandSideVector(BaseClassRightHandSideVector );
       Vector VolumeForce = rVolumeForce; 
       VolumeForce *= 0.0;
-      AxisymUpdatedLagrangianElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
+      AxisymmetricUpdatedLagrangianElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
 
 
       // Reshape the BaseClass RHS and Add the Hydro Part
@@ -723,12 +723,12 @@ namespace Kratos
 
    void AxisymUpdatedLagrangianUwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianElement )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymmetricUpdatedLagrangianElement )
    }
 
    void AxisymUpdatedLagrangianUwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianElement )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymmetricUpdatedLagrangianElement )
    }
 
 

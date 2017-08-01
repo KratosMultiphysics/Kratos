@@ -25,27 +25,25 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_small_displacement_element.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
 	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/force_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_axisym_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_axisym_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_line_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition.cpp
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 	

@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_POINT_LOAD_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/point_load_3D_condition.hpp"
-
+#include "custom_conditions/line_load_condition.hpp"
 
 namespace Kratos
 {
@@ -41,30 +40,30 @@ namespace Kratos
  * Implements a Force Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) PointLoad2DCondition
-    : public PointLoad3DCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricLineLoadCondition
+    : public LineLoadCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of PointLoad2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoad2DCondition );
+    // Counted pointer of AxisymmetricLineLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricLineLoadCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    AxisymmetricLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    PointLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    AxisymmetricLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    PointLoad2DCondition( PointLoad2DCondition const& rOther);
+    AxisymmetricLineLoadCondition( AxisymmetricLineLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~PointLoad2DCondition();
+    virtual ~AxisymmetricLineLoadCondition();
 
     ///@}
     ///@name Operators
@@ -98,8 +97,10 @@ public:
 			     NodesArrayType const& ThisNodes) const;
 
 
-    //************************************************************************************
-    //************************************************************************************
+
+    //************* COMPUTING  METHODS
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -129,7 +130,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointLoad2DCondition() {};
+    AxisymmetricLineLoadCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
@@ -137,6 +138,34 @@ protected:
     ///@name Protected Operations
     ///@{
 
+
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
+
+    /**
+     * Calculation and addition of the matrices of the LHS
+     */
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation of the contidion radius (axisymmetry)
+     */
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius,
+			 const Vector& rN);
 
     ///@}
     ///@name Protected  Access
@@ -194,8 +223,8 @@ private:
     virtual void load(Serializer& rSerializer);
 
 
-}; // class PointLoad2DCondition.
+}; // class AxisymmetricLineLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_2D_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED defined 
