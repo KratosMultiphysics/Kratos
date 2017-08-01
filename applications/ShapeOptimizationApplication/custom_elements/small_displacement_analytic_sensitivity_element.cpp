@@ -21,7 +21,7 @@ namespace Kratos
 // =============================================================================================================================================
 
 SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivityElement( IndexType NewId, GeometryType::Pointer pGeometry )
-: KinematicLinear( NewId, pGeometry )
+: SmallDisplacement( NewId, pGeometry )
 {
 	//DO NOT ADD DOFS HERE!!!
 }
@@ -32,7 +32,7 @@ SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivit
 // =============================================================================================================================================
 
 SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivityElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-: KinematicLinear( NewId, pGeometry, pProperties )
+: SmallDisplacement( NewId, pGeometry, pProperties )
 {
 }
 
@@ -42,7 +42,7 @@ SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivit
 // =============================================================================================================================================
 
 SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivityElement( SmallDisplacementAnalyticSensitivityElement const& rOther)
-:KinematicLinear(rOther)
+:SmallDisplacement(rOther)
 {
 }
 
@@ -181,12 +181,12 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
 
 void SmallDisplacementAnalyticSensitivityElement::save( Serializer& rSerializer ) const
 {
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, KinematicLinear )
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacement )
 }
 
 void SmallDisplacementAnalyticSensitivityElement::load( Serializer& rSerializer )
 {
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, KinematicLinear )
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacement )
 }
 
 // ----------------------------------------------------------------------------------------------------

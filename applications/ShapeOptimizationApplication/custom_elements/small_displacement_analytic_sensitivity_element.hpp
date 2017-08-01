@@ -14,7 +14,7 @@
 
 // Project includes
 #include "structural_mechanics_application.h"
-#include "custom_elements/kinematic_linear.h"
+#include "custom_elements/small_displacement.h"
 
 namespace Kratos
 {
@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 class SmallDisplacementAnalyticSensitivityElement :
-        public KinematicLinear
+        public SmallDisplacement
 {
 public:
 
@@ -128,7 +128,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    SmallDisplacementAnalyticSensitivityElement() : KinematicLinear()
+    SmallDisplacementAnalyticSensitivityElement() : SmallDisplacement()
     {
     }
 
