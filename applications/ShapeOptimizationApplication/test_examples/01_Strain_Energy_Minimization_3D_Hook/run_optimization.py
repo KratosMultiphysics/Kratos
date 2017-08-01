@@ -193,7 +193,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         mesh_solver.Solve()
 
         # Update reference mesh (Since shape updates are imposed as incremental quantities)
-        mesh_solver.UpdateReferenceMesh()
+        mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
 
     # --------------------------------------------------------------------------
     def solveStructure( self, optimizationIteration ): 
