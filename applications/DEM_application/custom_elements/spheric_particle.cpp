@@ -150,9 +150,9 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_frictional_energy = 0.0;
     double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
     inelastic_viscodamping_energy = 0.0;
-    
+
     mBoundDeltaDispSq = 0.0;
-    
+
     CreateDiscontinuumConstitutiveLaws(r_process_info);
     
     DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
@@ -596,7 +596,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         RelVel[0] += vel[0] - other_vel[0];
         RelVel[1] += vel[1] - other_vel[1];
         RelVel[2] += vel[2] - other_vel[2];
-        
+
         // Contribution of the rotation velocity
 
         DeltDisp[0] += (new_axes1[0] - new_axes2[0]) + (e2[0] - e1[0]);
@@ -1853,12 +1853,13 @@ void   SphericParticle::SetParticleCohesionFromProperties(double* particle_cohes
 void   SphericParticle::SetParticleKNormalFromProperties(double* particle_k_normal)      { GetFastProperties()->SetParticleKNormalFromProperties( particle_k_normal);       }
 void   SphericParticle::SetParticleKTangentialFromProperties(double* particle_k_tangential) { GetFastProperties()->SetParticleKTangentialFromProperties( particle_k_tangential); }
 
-DEMDiscontinuumConstitutiveLaw::Pointer SphericParticle::GetConstitutiveLawPointer(){return mDiscontinuumConstitutiveLaw;}
-
 // Dependent Friction
 void   SphericParticle::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { GetFastProperties()->SetParticleContactRadiusFromProperties( particle_contact_radius); }
 void   SphericParticle::SetParticleMaxStressFromProperties(double* particle_max_stress)  { GetFastProperties()->SetParticleMaxStressFromProperties( particle_max_stress);   }
 void   SphericParticle::SetParticleGammaFromProperties(double* particle_gamma)           { GetFastProperties()->SetParticleGammaFromProperties( particle_gamma);            }
+
+DEMDiscontinuumConstitutiveLaw::Pointer SphericParticle::GetConstitutiveLawPointer(){return mDiscontinuumConstitutiveLaw;}
+
 
 PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                          }
 void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                        }
