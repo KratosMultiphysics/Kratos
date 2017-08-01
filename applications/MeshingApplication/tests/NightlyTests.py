@@ -45,4 +45,4 @@ class MeshingTestFactory(KratosUnittest.TestCase):
         pass
 
 class StanfordBunnyTest(MeshingTestFactory):
-    file_name = "mmg_test/bunny_test"
+    file_name = "mmg_eulerian_test/bunny_test"

@@ -1,4 +1,4 @@
-// //    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -214,9 +214,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_1 )
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_2 )
 
-
-  //for Electric application
-
+  // For MeshingApplication
+  KRATOS_CREATE_VARIABLE( double, NODAL_ERROR )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
 
   //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( double, NODAL_AREA )
@@ -466,6 +466,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, SEARCH_RADIUS )
 
   KRATOS_CREATE_VARIABLE( double, INTEGRATION_WEIGHT )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
   //for Vulcan application
 //   Kratos::Variable<double> LAST_AIR( "LAST AIR" );
@@ -863,9 +864,11 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( SHAPE_DERIVATIVE_MATRIX_1 )
       KRATOS_REGISTER_VARIABLE( SHAPE_DERIVATIVE_MATRIX_2 )
 
-      //--------------- FOTOELECTRIC Application -------------------//
-
-
+      //--------------- Meshing ApplicationApplication -------------------//
+      
+      KRATOS_REGISTER_VARIABLE( NODAL_ERROR )
+      KRATOS_REGISTER_VARIABLE( NODAL_ERROR_COMPONENTS )
+      
       //--------------- PFEM fluids Application -------------------//
 
       KRATOS_REGISTER_VARIABLE( NODAL_AREA )
@@ -1018,6 +1021,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( SEARCH_RADIUS )
 
       KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT )
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
 //       KRATOS_REGISTER_VARIABLE( LAST_AIR )
 //       KRATOS_REGISTER_VARIABLE( PRESSURES )

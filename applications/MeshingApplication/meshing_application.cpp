@@ -10,6 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes
@@ -35,10 +36,11 @@ typedef array_1d<double,3> Vector3;
 //KRATOS_CREATE_VARIABLE( double, WEIGHT_FATHER_NODES )
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
 //KRATOS_CREATE_VARIABLE(double, COUNTER) //already put on variables.cpp (warning was appearing on Windows)
-KRATOS_CREATE_VARIABLE(double, ANISOTROPIC_RATIO);
-KRATOS_CREATE_VARIABLE(Vector3, AUXILIAR_GRADIENT);
-KRATOS_CREATE_VARIABLE(Vector, AUXILIAR_HESSIAN); 
-KRATOS_CREATE_VARIABLE(Vector, MMG_METRIC); 
+KRATOS_CREATE_VARIABLE(double, AVERAGE_NODAL_ERROR); // The average nodal error
+KRATOS_CREATE_VARIABLE(double, ANISOTROPIC_RATIO);   // The anisotropic aspect ratio
+KRATOS_CREATE_VARIABLE(Vector3, AUXILIAR_GRADIENT);  // An auxiliar gradient needed to compute the metric
+KRATOS_CREATE_VARIABLE(Vector,  AUXILIAR_HESSIAN);   // An auxiliar hessian needed to compute the metric
+KRATOS_CREATE_VARIABLE(Vector,  MMG_METRIC);         // The condensed metric used to remesh with MMG utility
 
 KratosMeshingApplication::KratosMeshingApplication():
     mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -53,10 +55,11 @@ void KratosMeshingApplication::Register()
     std::cout << "Initializing Kratos MeshingApplication... " << std::endl;
 
     //KRATOS_REGISTER_VARIABLE(COUNTER); //already put on variables.cpp (warning was appearing on Windows)
-    KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);
-    KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT);
-    KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);
-    KRATOS_REGISTER_VARIABLE(MMG_METRIC);
+    KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);  // The average nodal error
+    KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);    // The anisotropic aspect ratio
+    KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT);    // An auxiliar gradient needed to compute the metric
+    KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);     // An auxiliar hessian needed to compute the metric
+    KRATOS_REGISTER_VARIABLE(MMG_METRIC);           // The condensed metric used to remesh with MMG utility
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);

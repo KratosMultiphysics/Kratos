@@ -24,6 +24,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement_element.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp

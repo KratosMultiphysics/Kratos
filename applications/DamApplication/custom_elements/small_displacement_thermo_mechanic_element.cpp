@@ -55,7 +55,7 @@ void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(Proces
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY); //Note: this is for nonlocal damage
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
     
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
@@ -292,12 +292,17 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
         
-        if( rVariable == CAUCHY_STRESS_VECTOR)
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        else if(rVariable == THERMAL_STRESS_VECTOR) 
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY);
-        else if(rVariable == MECHANICAL_STRESS_VECTOR)  
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::TOTAL_TENSOR);
+        if( rVariable == CAUCHY_STRESS_VECTOR){
+	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	}
+	else if(rVariable == THERMAL_STRESS_VECTOR){
+	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	  ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
+	}
+	else if(rVariable == MECHANICAL_STRESS_VECTOR){
+	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	  ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
+	}
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -329,8 +334,9 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
         
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
-        
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
+	
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
