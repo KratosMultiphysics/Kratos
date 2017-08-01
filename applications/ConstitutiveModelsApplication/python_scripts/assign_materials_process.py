@@ -19,8 +19,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 	    "properties_id"   : 1,
             "material_name"   : "steel",
 	    "constitutive_law": {
-                "law_name"   : "LargeStrain3DLaw",
-		"model_name" : "SaintVenantKirchhoff"
+                "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.LinearElasticModel"
             },
 	    "variables": {},
 	    "tables": {},
@@ -68,9 +67,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 
         
         #create constitutive law
-        self.material_model = self._GetItemFromModule( self.settings["constitutive_law"]["model_name"].GetString())()
-        self.material_law   = self._GetItemFromModule( self.settings["constitutive_law"]["law_name"].GetString())(self.material_model)
-
+        self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
+        
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
               
@@ -108,6 +106,37 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         for Condition in self.model_part.Conditions:
             Condition.Properties = self.properties
  
+    def _GetLawFromModule(self,my_string):
+        splitted = my_string.split(".")
+        if(len(splitted) == 0):
+            raise Exception("something wrong. Trying to split the string "+my_string)
+        if(len(splitted) == 1):
+            material_law = "KratosMaterialModels."+my_string+"()"
+            return eval(material_law)
+        elif(len(splitted) == 2):
+            material_law = "KratosMaterialModels."+splitted[0]+"(KratosMaterialModels."+splitted[1]+"())"
+            return eval(material_law)
+        elif(len(splitted) == 3):
+            module_name = ""
+            for i in range(len(splitted)-1):
+                module_name += splitted[i] 
+                if i != len(splitted)-2:
+                    module_name += "."
+            module = importlib.import_module(module_name)
+            return getattr(module,splitted[-1])
+        elif(len(splitted) == 4):
+            module_name = ""
+            for i in range(len(splitted)-2):
+                module_name += splitted[i] 
+                if i != len(splitted)-3:
+                    module_name += "."
+            module = importlib.import_module(module_name)
+            material_law = module_name+"."+splitted[-2]+"("+module_name+"."+splitted[-1]+"())"            
+            return eval(material_law)
+        else:
+            raise Exception("something wrong .. Trying to split the string "+my_string)
+
+
         
     def _GetItemFromModule(self,my_string):
         splitted = my_string.split(".")

@@ -26,9 +26,6 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //member variables initialization
-    mStrainVector.clear();
-
     KRATOS_CATCH(" ")
   }
 
@@ -42,10 +39,7 @@ namespace Kratos
 
     //model
     mpModel = pModel->Clone();
-      
-    //member variables initialization
-    mStrainVector.clear();
-    
+          
     KRATOS_CATCH(" ")    
   }
 
@@ -54,7 +48,6 @@ namespace Kratos
 
   SmallStrain3DLaw::SmallStrain3DLaw(const SmallStrain3DLaw& rOther)
     : Constitutive3DLaw(rOther)
-    ,mStrainVector(rOther.mStrainVector)
   {
     mpModel = rOther.mpModel->Clone();
   }
@@ -66,7 +59,6 @@ namespace Kratos
   {
     Constitutive3DLaw::operator=(rOther);
     mpModel = rOther.mpModel->Clone();
-    mStrainVector = rOther.mStrainVector;
     return *this;
   } 
   
@@ -97,13 +89,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    // A method to compute the initial linear strain from the stress is needed
-    //if(rThisVariable == INITIAL_STRESS_VECTOR)
-
-    // A method to compute the initial linear strain from the stress is needed
-    // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-    //   mStrainVector = rValue;
-    // }
+    mpModel->SetValue(rThisVariable,rValue, rCurrentProcessInfo);
          
     KRATOS_CATCH(" ")
   }
@@ -113,112 +99,237 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
-
- 
-  //*****************************MATERIAL RESPONSES*************************************
-  //************************************************************************************
-
-
-  void SmallStrain3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+  
+  void SmallStrain3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
     KRATOS_TRY
-     
-    //-----------------------------//
 
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    //CheckParameters(rValues);
+    rModelValues.SetOptions(rValues.GetOptions());
+    rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
+    rModelValues.SetProcessInfo(rValues.GetProcessInfo());
+    rModelValues.SetVoigtSize(this->GetStrainSize());
+    rModelValues.SetVoigtIndexTensor(this->GetVoigtIndexTensor());
 
-    //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
+    Vector& rStrainVector = rValues.GetStrainVector();
+    MatrixType& rStrainMatrix = rModelValues.rStrainMatrix();
+    rStrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(rStrainVector,rStrainMatrix);
     
-    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
+    if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
+      rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
 
-    Vector& rStrainVector                  = rValues.GetStrainVector();
-    Vector& rStressVector                  = rValues.GetStressVector();
-
-    AddPreviousStrainVector(rStrainVector);
+    //initialize model
+    mpModel->InitializeModel(rModelValues);    
     
-    //-----------------------------//
+    KRATOS_CATCH(" ")      
+  }
 
-    
-    // Calculate total PK2 stress
+  //************************************************************************************
+  //************************************************************************************
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
+  void SmallStrain3DLaw::FinalizeModelData(Parameters& rValues,ModelDataType& rModelValues)
+  {
+    KRATOS_TRY
       
-      Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+    //Finalize Material response
+    if(rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE)){
       
-      this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
-      
-      this->CalculateStress(rStrainVector, rConstitutiveMatrix, rStressVector);
-      
-    }
-    else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-
-      Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-      this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+      //finalize model (update total strain measure)
+      mpModel->FinalizeModel(rModelValues);
       
     }
     
     KRATOS_CATCH(" ")
   }
-
-
+ 
+  //*****************************MATERIAL RESPONSES*************************************
   //************************************************************************************
-  //************************************************************************************
-
 
   void SmallStrain3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
   {    
     KRATOS_TRY
 
-    //-----------------------------//
-
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
+    //0.- Check if the constitutive parameters are passed correctly to the law calculation
     //CheckParameters(rValues);
 
-    //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
+    const Flags& rOptions = rValues.GetOptions();
+    
+    //1.- Initialize hyperelastic model parameters    
+    ModelDataType ModelValues;
+
+    LawDataType& rVariables = ModelValues.rConstitutiveLawData();
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //set required stress measure
+    
+    this->InitializeModelData(rValues, ModelValues);
+
+    //2.-Calculate domain variables (Temperature, Pressure, Size) and calculate material parameters
+    this->CalculateDomainVariables(rValues, ModelValues);
+
+    ConstitutiveModelData::CalculateMaterialParameters(ModelValues);
+    
+    //3.-Calculate Total kirchhoff stress and  Constitutive Matrix related to Total Kirchhoff stress
+
+    if(rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS) && rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
+
+      Vector& rStressVector       = rValues.GetStressVector();
+      Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+
+      this->CalculateStressVectorAndConstitutiveMatrix(ModelValues, rStressVector, rConstitutiveMatrix);
+
+    }
+    else{
+
+      //4.-Calculate Total Kirchhoff stress
+
+      if(rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS)){
+	
+	Vector& rStressVector       = rValues.GetStressVector();
+	this->CalculateStressVector(ModelValues, rStressVector);
+	
+      }
+
+      //5.-Calculate Constitutive Matrix related to Total Kirchhoff stress
+
+      if(rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
+	
+      	Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+	this->CalculateConstitutiveMatrix(ModelValues, rConstitutiveMatrix);
+	
+      }
+ 
+    }
+
+    //6.- Finalize hyperelastic model parameters    
+    this->FinalizeModelData(rValues,ModelValues);
 
     
-    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
+    // std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
+    // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
+    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
 
-    Vector& rStrainVector                  = rValues.GetStrainVector();
-    Vector& rStressVector                  = rValues.GetStressVector();
 
-    AddPreviousStrainVector(rStrainVector);
     
     //-----------------------------//
+    // const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
 
-    // Calculate total Kirchhoff stress
+    // Vector& rStrainVector                  = rValues.GetStrainVector();
+    // Vector& rStressVector                  = rValues.GetStressVector();
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-      
-      Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-      
-      this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
-      
-      this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
-      
-    }
-    else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    
+    // // Calculate total Kirchhoff stress
 
-      Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-      this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+    // if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
       
-    }
+    //   Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+      
+    //   this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
+      
+    //   this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
+      
+    // }
+    // else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
+    //   Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
+    //   this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+      
+    // }
+    //-----------------------------//
+
+    
     KRATOS_CATCH(" ")
 
   }
 
+  //*******************************COMPUTE STRESS VECTOR********************************
+  //************************************************************************************
 
-  //***********************COMPUTE TOTAL STRESS PK2*************************************
+  void SmallStrain3DLaw::CalculateStressVector(ModelDataType& rModelValues, Vector& rStressVector)
+  {
+    KRATOS_TRY
+
+    MatrixType StressMatrix;
+    StressMatrix.clear();
+    
+    if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
+      mpModel->CalculateIsochoricStressTensor(rModelValues, StressMatrix);
+    }
+    else if(rModelValues.GetOptions().Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY)){     
+      mpModel->CalculateVolumetricStressTensor(rModelValues, StressMatrix);
+    }
+    else{      
+      mpModel->CalculateStressTensor(rModelValues, StressMatrix);
+    }
+
+    rStressVector.clear();
+    rStressVector = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, rStressVector);
+        
+    KRATOS_CATCH(" ")
+  }
+  
+  //***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
+  //************************************************************************************
+
+  void SmallStrain3DLaw::CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix)
+  {
+    KRATOS_TRY
+      
+    rConstitutiveMatrix.clear();
+    
+    //Calculate ConstitutiveMatrix   
+    if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
+
+      mpModel->CalculateIsochoricConstitutiveTensor(rModelValues, rConstitutiveMatrix);
+    }
+    else if(rModelValues.GetOptions().Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY)){
+      
+      mpModel->CalculateVolumetricConstitutiveTensor(rModelValues, rConstitutiveMatrix);
+    }
+    else{
+
+      mpModel->CalculateConstitutiveTensor(rModelValues, rConstitutiveMatrix);
+    }
+        
+    KRATOS_CATCH(" ")
+  }
+
+  //******************COMPUTE STRESS AND ALGORITHMIC CONSTITUTIVE MATRIX****************
+  //************************************************************************************
+
+  void SmallStrain3DLaw::CalculateStressVectorAndConstitutiveMatrix(ModelDataType& rModelValues, Vector& rStressVector, Matrix& rConstitutiveMatrix)
+  {
+    KRATOS_TRY
+      
+    MatrixType StressMatrix;
+
+    StressMatrix.clear();
+    rConstitutiveMatrix.clear();
+    
+    //Calculate Stress and ConstitutiveMatrix   
+    if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
+
+      mpModel->CalculateIsochoricStressAndConstitutiveTensors(rModelValues, StressMatrix, rConstitutiveMatrix);
+    }
+    else if(rModelValues.GetOptions().Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY)){
+      
+      mpModel->CalculateVolumetricStressAndConstitutiveTensors(rModelValues, StressMatrix, rConstitutiveMatrix);
+    }
+    else{
+    
+      mpModel->CalculateStressAndConstitutiveTensors(rModelValues, StressMatrix, rConstitutiveMatrix);
+    }
+
+    rStressVector = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, rStressVector);
+
+    
+    KRATOS_CATCH(" ")
+  }
+  
+  //***********************COMPUTE TOTAL STRESS ****************************************
   //************************************************************************************
 
 
   void SmallStrain3DLaw::CalculateStress(const Vector & rStrainVector,
-					   const Matrix & rConstitutiveMatrix,
-					   Vector& rStressVector)
+					 const Matrix & rConstitutiveMatrix,
+					 Vector& rStressVector)
   {
     KRATOS_TRY
           
@@ -239,7 +350,7 @@ namespace Kratos
 
 
   void SmallStrain3DLaw::CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-							const Properties& rMaterialProperties)
+						     const Properties& rMaterialProperties)
   {
     KRATOS_TRY
           
@@ -271,24 +382,7 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-
-  //***********************COMPUTE TOTAL STRESS PK2*************************************
-  //************************************************************************************
-
-
-  void SmallStrain3DLaw::AddPreviousStrainVector(Vector & rStrainVector)
-  {
-    KRATOS_TRY
-          
-    for(unsigned int i=0; i<rStrainVector.size(); i++)
-      {
-	rStrainVector[i] += mStrainVector[i];
-      }
-          
-    KRATOS_CATCH(" ")
-
-  }
-  
+ 
 
   //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
   //************************************************************************************

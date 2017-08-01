@@ -233,7 +233,7 @@ namespace Kratos
     // 	rStressMatrix += StressMatrix;      
     //   }
     
-    //   rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
+    //   rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     //   KRATOS_CATCH(" ")
     // }
@@ -270,7 +270,7 @@ namespace Kratos
       
     //   rCabcd += Cabcd;
     
-    //   rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    //   rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
     
     //   return rCabcd;
     

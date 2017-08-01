@@ -2,15 +2,14 @@
     "material_models_list" : [{
         "python_module"   : "assign_materials_process",
         "kratos_module"   : "KratosMultiphysics.ConstitutiveModelsApplication",
-        "help"            : "This process tests a constitutive model",
+        "help"            : "This process assigns a constitutive model",
 	"process_name"    : "AssignMaterialsProcess",
 	"Parameters"      : {
 	    "model_part_name" : "Parts_Parts_Auto1",
 	    "properties_id"   : 1,
             "material_name"   : "steel",
 	    "constitutive_law": {
-                "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.SmallStrainPlaneStrain2DLaw",
-		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.LinearElasticModel"
+		"name" : "SmallStrainPlaneStrain2DLaw.LinearElasticModel"
             },
 	    "variables": {
 	        "KratosMultiphysics.YOUNG_MODULUS": 1.0e3,

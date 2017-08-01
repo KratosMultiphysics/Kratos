@@ -317,7 +317,7 @@ namespace Kratos
       
     //   rCabcd += Cabcd;
     
-    //   rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    //   rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
     
     //   return rCabcd;
     
@@ -367,7 +367,7 @@ namespace Kratos
       
     //   rCabcd += Cabcd;
     
-    //   rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    //   rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
     
     //   return rCabcd;
     

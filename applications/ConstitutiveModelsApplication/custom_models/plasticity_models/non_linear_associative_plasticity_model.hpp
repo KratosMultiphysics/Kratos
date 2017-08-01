@@ -242,7 +242,7 @@ namespace Kratos
       if( Variables.State().Is(ConstitutiveModelData::PLASTIC_REGION) )
       	this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
               
-      Variables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+      Variables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
       
       //rValues.StressMatrix = StoredStressMatrix; //recovered (commented because it is the same)
     
@@ -289,7 +289,7 @@ namespace Kratos
       	this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
       }
 
-      Variables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+      Variables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
       
       rStressMatrix += VolumetricStressMatrix;      
         
@@ -509,7 +509,7 @@ namespace Kratos
       //6.- Recover working stress
       this->GetWorkingMeasures(rVariables,rStressMatrix);
       
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_RETURN_MAPPING,true);
+      rVariables.State().Set(ConstitutiveModelData::RETURN_MAPPING_COMPUTED,true);
    
       KRATOS_CATCH(" ")    
     }
@@ -522,7 +522,7 @@ namespace Kratos
       KRATOS_TRY
     
       //Compute radial return
-      if( rVariables.State().IsNot(ConstitutiveModelData::COMPUTED_RETURN_MAPPING) )
+      if( rVariables.State().IsNot(ConstitutiveModelData::RETURN_MAPPING_COMPUTED) )
 	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculation" << std::endl;
       
       //Algorithmic moduli factors
@@ -548,7 +548,7 @@ namespace Kratos
 	}
 
       
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+      rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
     
       KRATOS_CATCH(" ")
     }

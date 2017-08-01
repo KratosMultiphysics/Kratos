@@ -108,6 +108,52 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
   
+  
+  //***********************SET VALUE: DOUBLE - VECTOR - MATRIX**************************
+  //************************************************************************************
+
+
+  void Constitutive3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+				    const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+      
+    KRATOS_CATCH(" ")
+  }
+
+  void Constitutive3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+				    const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+      
+    KRATOS_CATCH(" ")
+  }
+
+  void Constitutive3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+				    const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+      
+    KRATOS_CATCH(" ")
+  }
+
+  void Constitutive3DLaw::SetValue( const Variable<array_1d<double,3> >& rThisVariable, const array_1d<double,3>& rValue,
+				    const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+      
+    KRATOS_CATCH(" ")
+  }
+
+
+  void Constitutive3DLaw::SetValue( const Variable<array_1d<double,6> >& rThisVariable, const array_1d<double,6>& rValue,
+				    const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+      
+    KRATOS_CATCH(" ")
+  }
+
   //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
   //************************************************************************************
 
@@ -155,48 +201,60 @@ namespace Kratos
     
     KRATOS_CATCH(" ")   
   }
-  
-  //***********************SET VALUE: DOUBLE - VECTOR - MATRIX**************************
+
+  //***********************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX********************
   //************************************************************************************
-
-
-  void Constitutive3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
+  
+  int& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue)
   {
     KRATOS_TRY
+
+    return rValue;
       
     KRATOS_CATCH(" ")
   }
-
-  void Constitutive3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
+  
+  double& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
   {
     KRATOS_TRY
+
+    return rValue;
       
     KRATOS_CATCH(" ")
   }
-
-  void Constitutive3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
+  
+  Vector& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue)
   {
     KRATOS_TRY
+
+    return rValue;
+    
+    KRATOS_CATCH(" ")
+  }
+  
+  Matrix& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue)
+  {
+    KRATOS_TRY
+
+    return rValue;
       
     KRATOS_CATCH(" ")
   }
-
-  void Constitutive3DLaw::SetValue( const Variable<array_1d<double,3> >& rThisVariable, const array_1d<double,3>& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
+  
+  array_1d<double, 3 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rVariable, array_1d<double,3> & rValue)
   {
     KRATOS_TRY
+
+    return rValue;
       
     KRATOS_CATCH(" ")
   }
-
-
-  void Constitutive3DLaw::SetValue( const Variable<array_1d<double,6> >& rThisVariable, const array_1d<double,6>& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
+  
+  array_1d<double, 6 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rVariable, array_1d<double,6> & rValue)
   {
     KRATOS_TRY
+
+    return rValue;      
       
     KRATOS_CATCH(" ")
   }
@@ -204,7 +262,6 @@ namespace Kratos
   //************* STARTING - ENDING  METHODS
   //************************************************************************************
   //************************************************************************************
-
 
   void Constitutive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
 					      const GeometryType& rElementGeometry,
@@ -380,7 +437,62 @@ namespace Kratos
   }
 
 
-  //***********************************UPDATE*******************************************
+  //***********************************INITIALIZE***************************************
+  //************************************************************************************
+
+  void Constitutive3DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
+  {
+    KRATOS_TRY
+
+    // nothing to be done
+    // rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+    // rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void Constitutive3DLaw::InitializeMaterialResponsePK1(Parameters& rValues)
+  {
+    KRATOS_TRY
+      
+    // nothing to be done
+      
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void Constitutive3DLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
+  {
+    KRATOS_TRY
+      
+    // nothing to be done
+      
+    KRATOS_CATCH(" ")
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void Constitutive3DLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
+  {
+    KRATOS_TRY
+      
+    // nothing to be done
+      
+    KRATOS_CATCH(" ")
+  }
+
+
+  
+  //***********************************FINALIZE*****************************************
   //************************************************************************************
 
   void Constitutive3DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)

@@ -27,6 +27,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 
 
 	#general constitutive models
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/constitutive_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/constitutive_model_data.cpp
 
 	#elasticity models

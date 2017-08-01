@@ -76,14 +76,6 @@ namespace Kratos
 
     /**
      * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
-
-    /**
-     * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
      * @param rValues
      * @see   Parameters
@@ -164,10 +156,7 @@ namespace Kratos
 
     //constitutive model
     ModelTypePointer mpModel;
-
-    //internal elastic variables 
-    VectorType  mStrainVector; 
-    
+   
     
     ///@}
     ///@name Protected Operators
@@ -178,7 +167,41 @@ namespace Kratos
     ///@{
     ///@}
 
+    /**
+     * Initialize ModelData type:
+     */
+    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);	
+
+
+    /**
+     * Finalize ModelData type:
+     */
+    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues);
     
+    /**
+     * Calculates the stress vector
+     * matrix is to be generated for
+     * @param rResult Vector the result (Stress Vector) will be stored in
+     */
+    virtual void CalculateStressVector(ModelDataType& rModelValues, Vector& rStressVector);
+
+    
+    /**
+     * Calculates the constitutive matrix
+     * matrix is to be generated for
+     * @param rResult Matrix the result (Constitutive Matrix) will be stored in
+     */
+    virtual void CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix);   
+
+
+    /**
+     * Calculates the stress vector and constitutive matrix
+     * matrix is to be generated for
+     * @param rResult Vector the result (Stress Vector) will be stored in
+     * @param rResult Matrix the result (ConstitutiveMatrix) will be stored in
+     */
+    virtual void CalculateStressVectorAndConstitutiveMatrix(ModelDataType& rModelValues, Vector& rStressVector, Matrix& rConstitutiveMatrix);
+     
     /**
      * Calculates the stresses for given strain state
      * @param rStrainVector
@@ -201,14 +224,6 @@ namespace Kratos
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
 					     const Properties& rMaterialProperties);
-
-
-    /**
-     * Adds Initial Strain to Strain Vector
-     * @param rStrainVector
-     */
-    void AddPreviousStrainVector(Vector& rStrainVector);
-
     
     
     ///@}

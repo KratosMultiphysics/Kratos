@@ -28,11 +28,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    mStrainVector.clear();
+    this->mHistoryVector.clear();
     
-    mStrainVector[0] = 1.0;
-    mStrainVector[1] = 1.0;    
-    mStrainVector[2] = 1.0;
+    this->mHistoryVector[0] = 1.0;
+    this->mHistoryVector[1] = 1.0;    
+    this->mHistoryVector[2] = 1.0;
 
     KRATOS_CATCH(" ")    
   }
@@ -43,7 +43,6 @@ namespace Kratos
   HyperElasticModel::HyperElasticModel(const HyperElasticModel& rOther)
     : ConstitutiveModel(rOther)
     , msIdentityMatrix(rOther.msIdentityMatrix)
-    , mStrainVector(rOther.mStrainVector)
   {
   }
 
@@ -60,7 +59,6 @@ namespace Kratos
   HyperElasticModel& HyperElasticModel::operator=(HyperElasticModel const& rOther)
   {
     ConstitutiveModel::operator=(rOther);
-    mStrainVector = rOther.mStrainVector; 
     return *this;
   }
   
@@ -91,7 +89,7 @@ namespace Kratos
     KRATOS_TRY
       
     //update total strain measure
-    mStrainVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rValues.StrainMatrix, mStrainVector);
+    this->mHistoryVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rValues.StrainMatrix, this->mHistoryVector);
     
     KRATOS_CATCH(" ")
   }
@@ -196,7 +194,7 @@ namespace Kratos
     }
 
     
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
+    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -301,7 +299,7 @@ namespace Kratos
 	
       }
 
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
     
     KRATOS_CATCH(" ")
   }
@@ -414,7 +412,7 @@ namespace Kratos
       rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
       
       //historical strain matrix
-      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 
       //current strain matrix
       noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeformationGradientF);
@@ -425,7 +423,7 @@ namespace Kratos
       //inverted strain measure
       ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
       
-      rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+      rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
       
       
     }
@@ -435,7 +433,7 @@ namespace Kratos
       rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
      
       //historical strain matrix
-      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 
       //current strain matrix
       noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeformationGradientF));
@@ -445,7 +443,7 @@ namespace Kratos
 
       //inverted strain measure
       ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
-      rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+      rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
       
     }
     else{
@@ -495,7 +493,7 @@ namespace Kratos
 	
       }
 
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
     
     KRATOS_CATCH(" ")
   }
@@ -543,7 +541,7 @@ namespace Kratos
 	
       }
 
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
     
     KRATOS_CATCH(" ")
   }

@@ -123,6 +123,45 @@ namespace Kratos
       ///@name Operations
       ///@{
       
+      void CalculateMaterialResponseKirchhoff(Parameters& rValues) override
+      {    
+	KRATOS_TRY
+
+	//0.- Check if the constitutive parameters are passed correctly to the law calculation
+	//CheckParameters(rValues);
+
+        const Flags& rOptions = rValues.GetOptions();
+  
+	const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
+
+	Vector& rStrainVector                  = rValues.GetStrainVector();
+	Vector& rStressVector                  = rValues.GetStressVector();
+    
+	// Calculate total Kirchhoff stress
+	
+	if( rOptions.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
+      
+	  Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+	
+	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
+	
+	  this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
+	
+	}
+	else if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+	
+	  Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
+	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+	
+	}
+	        
+	// std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
+	// std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
+	// std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
+	
+	KRATOS_CATCH(" ")
+	  
+      }
       
       ///@}
       ///@name Access
@@ -183,7 +222,7 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					const Properties& rMaterialProperties) override
+				       const Properties& rMaterialProperties) override
       {
 	KRATOS_TRY
 

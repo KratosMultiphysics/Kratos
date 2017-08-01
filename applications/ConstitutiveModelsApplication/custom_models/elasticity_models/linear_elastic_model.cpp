@@ -89,7 +89,18 @@ namespace Kratos
     //set model data pointer
     rVariables.SetModelData(rValues);
     rVariables.SetState(rValues.State);     
-    
+
+    //add initial strain
+    if(this->mOptions.Is(ConstitutiveModel::ADD_HISTORY_VECTOR) && this->mOptions.Is(ConstitutiveModel::HISTORY_STRAIN_MEASURE) ){
+      VectorType StrainVector;
+      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+      for(unsigned int i=0; i<StrainVector.size(); i++)
+	{
+	  StrainVector[i] += this->mHistoryVector[i];	
+	}
+      rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
+    }
+        
     KRATOS_CATCH(" ")
   }
   
@@ -139,8 +150,8 @@ namespace Kratos
     KRATOS_TRY
 
     noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
-      
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
+    
+    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -222,7 +233,7 @@ namespace Kratos
     this->CalculateAndAddConstitutiveTensor(rVariables);
     
     rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor,rConstitutiveMatrix);
-      
+    
     KRATOS_CATCH(" ")
   }
   
@@ -241,8 +252,9 @@ namespace Kratos
     const double& rYoungModulus       = rMaterial.GetYoungModulus();
     const double& rPoissonCoefficient = rMaterial.GetPoissonCoefficient();
 
+    rVariables.ConstitutiveTensor.clear();
     
-    // 3D linear elastic constitutive matrix
+    // 3D linear elastic constitutive matrix       
     rVariables.ConstitutiveTensor ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
     rVariables.ConstitutiveTensor ( 1 , 1 ) = rVariables.ConstitutiveTensor ( 0 , 0 );
     rVariables.ConstitutiveTensor ( 2 , 2 ) = rVariables.ConstitutiveTensor ( 0 , 0 );
@@ -261,7 +273,7 @@ namespace Kratos
     rVariables.ConstitutiveTensor ( 2 , 1 ) = rVariables.ConstitutiveTensor ( 0 , 1 );
 
     
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
 
     
     KRATOS_CATCH(" ")
