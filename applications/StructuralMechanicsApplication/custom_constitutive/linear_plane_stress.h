@@ -148,6 +148,15 @@ public:
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
     /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */ 
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+    
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -162,33 +171,32 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
-
-
 protected:
 
     ///@name Protected static Member Variables
     ///@{
+    
     ///@}
     ///@name Protected member Variables
     ///@{
+    
     ///@}
     ///@name Protected Operators
     ///@{
+    
     ///@}
     ///@name Protected Operations
     ///@{
     ///@}
 
-
 private:
-
 
     ///@name Static Member Variables
     ///@{
+    
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
@@ -216,11 +224,9 @@ private:
         double c2 = c1 * NU;
         double c3 = 0.5* E / (1 + NU);
 
-
         StressVector[0] = c1*StrainVector[0] + c2 * (StrainVector[1])	;
         StressVector[1] = c1*StrainVector[1] + c2 * (StrainVector[0])	;
         StressVector[2] = c3*StrainVector[2];
-
     }
 
     void CalculateCauchyGreenStrain(
@@ -237,7 +243,6 @@ private:
 
         noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
     }
-
 
     ///@}
     ///@name Private Operations
