@@ -86,13 +86,23 @@ class NonConformant_OneSideMap:
 
     # Standard mappers
     def StructureToFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.StructureToFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.str_interface,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            self.StructureToFluidMapper.VectorMap(VAUX_EQ_TRACTION, VAUX_EQ_TRACTION, self.it_max, self.tol, sign_pos)
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.fl_interface,VAUX_EQ_TRACTION,VectorVar_Destination)
+        else:
+            self.StructureToFluidMapper.VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
     def StructureToFluid_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.StructureToFluidMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
 
     def FluidToStructure_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.FluidToStructureMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.fl_interface,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            self.FluidToStructureMapper.VectorMap(VAUX_EQ_TRACTION, VAUX_EQ_TRACTION, self.it_max, self.tol, sign_pos)
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.str_interface,VAUX_EQ_TRACTION,VectorVar_Destination)
+        else:
+            self.FluidToStructureMapper.VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
     def FluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.FluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
@@ -128,6 +138,10 @@ class NonConformantTwoFaces_OneSideMap:
         self.it_max = it_max
         self.tol = tol
 
+        self.fluid_model_part_positive = fluid_model_part_positive
+        self.fluid_model_part_negative = fluid_model_part_negative
+        self.structure_model_part = structure_model_part
+
         self.PositiveFluidToStructureMapper = AdvancedNMPointsMapper(fluid_model_part_positive, structure_model_part)
         self.NegativeFluidToStructureMapper = AdvancedNMPointsMapper(fluid_model_part_negative, structure_model_part)
         self.StructureToPositiveFluidMapper = AdvancedNMPointsMapper(structure_model_part, fluid_model_part_positive)
@@ -149,26 +163,46 @@ class NonConformantTwoFaces_OneSideMap:
 
     # Standard mappers for positive fluid face
     def StructureToPositiveFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.StructureToPositiveFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.structure_model_part,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            self.StructureToPositiveFluidMapper.VectorMap(VAUX_EQ_TRACTION, VAUX_EQ_TRACTION, self.it_max, self.tol, sign_pos)
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.positive_fluid,VAUX_EQ_TRACTION,VectorVar_Destination)
+        else:
+            self.StructureToPositiveFluidMapper.VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
     def StructureToPositiveFluid_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.StructureToPositiveFluidMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
 
     def PositiveFluidToStructure_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.PositiveFluidToStructureMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.fluid_model_part_positive,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            self.PositiveFluidToStructureMapper.VectorMap(VAUX_EQ_TRACTION, VAUX_EQ_TRACTION, self.it_max, self.tol, sign_pos)
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.structure_model_part,VAUX_EQ_TRACTION,VectorVar_Destination)
+        else:
+            self.PositiveFluidToStructureMapper.VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
     def PositiveFluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.PositiveFluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
 
     # Standard mappers for negative fluid face
     def StructureToNegativeFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.StructureToNegativeFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.structure_model_part,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            self.StructureToNegativeFluidMapper.VectorMap(VAUX_EQ_TRACTION, VAUX_EQ_TRACTION, self.it_max, self.tol, sign_pos)
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.negative_fluid,VAUX_EQ_TRACTION,VectorVar_Destination)
+        else:
+            self.StructureToNegativeFluidMapper.VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
     def StructureToNegativeFluid_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.StructureToNegativeFluidMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
 
     def NegativeFluidToStructure_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
-        (self.NegativeFluidToStructureMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+        if distributed:
+            VariableRedistributionUtility.DistributePointValues(self.fluid_model_part_negative,VectorVar_Origin,VAUX_EQ_TRACTION,self.tol,self.it_max)
+            self.NegativeFluidToStructureMapper.VectorMap(VAUX_EQ_TRACTION, VAUX_EQ_TRACTION, self.it_max, self.tol, sign_pos)
+            VariableRedistributionUtility.ConvertDistributedValuesToPoint(self.structure_model_part,VAUX_EQ_TRACTION,VectorVar_Destination)
+        else:
+            self.NegativeFluidToStructureMapper.VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
     def NegativeFluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.NegativeFluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
