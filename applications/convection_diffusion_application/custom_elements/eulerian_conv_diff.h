@@ -148,7 +148,7 @@ protected:
         array_1d< array_1d<double,3 >, TNumNodes> vold;
     };
 
-    void InitializeEulerianElement(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+    void InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume);
 
