@@ -49,8 +49,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Flags needed used in the MappingApplication
+/** This class implements the flags needed in the MappingApplication.
+* Some of them are exposed to Python
 */
 class MapperFlags
 {
