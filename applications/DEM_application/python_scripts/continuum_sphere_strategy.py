@@ -13,31 +13,31 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
-        self.print_skin_sphere = self.Var_Translator(DEM_parameters.PostSkinSphere)
+        self.print_skin_sphere = DEM_parameters["PostSkinSphere"].GetBool()
 
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-        if not hasattr(DEM_parameters, "LoadingVelocityTop"):
+        if not "LoadingVelocityTop" in DEM_parameters:
             self.fixed_vel_top = 0
         else:
-            self.fixed_vel_top = DEM_parameters.LoadingVelocityTop
+            self.fixed_vel_top = DEM_parameters["LoadingVelocityTop"].GetDouble()
 
-        if not hasattr(DEM_parameters, "LoadingVelocityBot"):
+        if not "LoadingVelocityBot" in DEM_parameters:
             self.fixed_vel_bot = 0
         else:
-            self.fixed_vel_bot = DEM_parameters.LoadingVelocityBot
+            self.fixed_vel_bot = DEM_parameters["LoadingVelocityBot"].GetDouble()
 
         if (self.Var_Translator(DEM_parameters.DontSearchUntilFailure)):
             print ("Search is not active until a bond is broken.")
             self.search_control = 0
-            if (len(fem_model_part.Nodes) > 0 or DEM_parameters.TestType== "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+            if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
                 print ("WARNING: Search should be activated since there might contact with FEM.")
 
-        if not hasattr(DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             self.test_type = "None"
         else:
-            self.test_type = DEM_parameters.TestType
+            self.test_type = DEM_parameters["TestType"].GetString() 
 
         self.amplified_continuum_search_radius_extension = DEM_parameters.AmplifiedSearchRadiusExtension
         
@@ -51,15 +51,15 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.poisson_ratio_option = self.Var_Translator(DEM_parameters.PostPoissonRatio)
             
-        if not hasattr(DEM_parameters, "PoissonEffectOption"):
-            self.poisson_effect_option = 0
+        if not "PoissonEffectOption" in DEM_parameters:
+            self.poisson_effect_option = False
         else:
-            self.poisson_effect_option = self.Var_Translator(DEM_parameters.PoissonEffectOption)
+            self.poisson_effect_option = DEM_parameters["PoissonEffectOption"].GetBool()
 
         if not hasattr(DEM_parameters, "ShearStrainParallelToBondOption"):
-            self.shear_strain_parallel_to_bond_option = 0
+            self.shear_strain_parallel_to_bond_option = False
         else:
-            self.shear_strain_parallel_to_bond_option = self.Var_Translator(DEM_parameters.ShearStrainParallelToBondOption)
+            self.shear_strain_parallel_to_bond_option = DEM_parameters["ShearStrainParallelToBondOption"]
 
         if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
             self.compute_stress_tensor_option = 1
@@ -72,7 +72,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # ADDITIONAL VARIABLES AND OPTIONS
         self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
-        self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
+        if self.contact_mesh_option:
+            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
@@ -82,8 +85,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
         self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
         
-        self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
-        self.spheres_model_part.ProcessInfo.SetValue(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
 
         for properties in self.spheres_model_part.Properties:
             ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]

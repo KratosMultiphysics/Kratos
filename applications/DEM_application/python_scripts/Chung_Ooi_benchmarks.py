@@ -112,7 +112,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
     model_part_io_spheres = ModelPartIO(spheres_mp_filename)
     
-    if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+    if "do_not_perform_initial_partition" in DEM_parameters and DEM_parameters["do_not_perform_initial_partition"].GetBool(): #TODO: add subIndex _option to this variable? Or the type is enough? Discuss with the team
         pass
     else:
         parallelutils.PerformInitialPartition(model_part_io_spheres)
@@ -169,8 +169,8 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
     demio.Configure(DEM_parameters["problem_name"].GetString(),
                     DEM_parameters["OutputFileType"].GetString(),
-                    DEM_parameters.Multifile,
-                    DEM_parameters.ContactMeshOption)
+                    DEM_parameters["Multifile"].GetString(),
+                    DEM_parameters["ContactMeshOption"].GetBool())
 
     demio.SetOutputName(DEM_parameters["problem_name"].GetString())
 
@@ -203,7 +203,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     os.chdir(post_path)
 
     #Setting up the BoundingBox
-    if (DEM_parameters.BoundingBoxOption == "ON"):
+    if DEM_parameters["BoundingBoxOption"].GetBool():
         procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
     # Creating a solver object and set the search strategy
@@ -212,13 +212,13 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
     solver.Initialize()    # Possible modifications of DELTA_TIME
         
-    if (DEM_parameters.ContactMeshOption =="ON"):
+    if (DEM_parameters["ContactMeshOption"].GetBool()):
         contact_model_part = solver.contact_model_part
 
     # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
     # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 
-    if (DEM_parameters.dem_inlet_option):    
+    if DEM_parameters["dem_inlet_option"].GetBool():    
         max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 
@@ -247,20 +247,20 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     time           = 0.0
     time_old_print = 0.0
 
-    report.Prepare(timer,DEM_parameters.ControlTime)
+    report.Prepare(timer,DEM_parameters["ControlTime"].GetDouble())
 
     first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
 
-    if (DEM_parameters.ModelDataInfo == "ON"):
+    if DEM_parameters["ModelDataInfo"].GetBool():
         os.chdir(data_and_results)
-        if (DEM_parameters.ContactMeshOption == "ON"):
+        if DEM_parameters["ContactMeshOption"].GetBool():
           (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
           KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
           os.chdir(main_path)
         else:
           KRATOSprint("Activate Contact Mesh for ModelData information")
 
-    if (DEM_parameters.Dempack):
+    if DEM_parameters["Dempack"].GetBool():
     #    if(mpi.rank == 0):
         materialTest.PrintChart();
         materialTest.PrepareDataForGraph()
@@ -319,7 +319,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         #### TIME CONTROL ##################################
 
         # adding DEM elements by the inlet:
-        if (DEM_parameters.dem_inlet_option):
+        if DEM_parameters["dem_inlet_option"].GetBool(): 
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
         stepinfo = report.StepiReport(timer,time,step)
@@ -329,7 +329,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         #### PRINTING GRAPHS ####
         os.chdir(graphs_path)
         # measuring mean velocities in a certain control volume (the 'velocity trap')
-        if (DEM_parameters.VelocityTrapOption):
+        if DEM_parameters["VelocityTrapOption"].GetBool():
             post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
 
         #### MATERIAL TEST GRAPHS ############################
@@ -357,7 +357,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
             os.chdir(post_path)
 
-            if (DEM_parameters.ContactMeshOption == "ON"):
+            if DEM_parameters["ContactMeshOption"].GetBool():
                 solver.PrepareContactElementsForPrinting()
 
             demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time)

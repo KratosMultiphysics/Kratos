@@ -36,9 +36,9 @@ class ExplicitStrategy:
         else:
             self.critical_time_option = self.Var_Translator(DEM_parameters.AutomaticTimestep)
                    
-        self.trihedron_option        = self.Var_Translator(DEM_parameters.PostEulerAngles)
-        self.rotation_option         = self.Var_Translator(DEM_parameters.RotationOption)
-        self.bounding_box_option     = self.Var_Translator(DEM_parameters.BoundingBoxOption)
+        self.trihedron_option        = DEM_parameters["PostEulerAngles"].GetBool()
+        self.rotation_option         = DEM_parameters["RotationOption"].GetBool()
+        self.bounding_box_option     = DEM_parameters["BoundingBoxOption"].GetBool()
         self.fix_velocities_flag     = 0
         self.Procedures              = procedures
         self.time_integration_scheme = scheme
@@ -46,9 +46,9 @@ class ExplicitStrategy:
 
         self.clean_init_indentation_option = self.Var_Translator(DEM_parameters.CleanIndentationsOption)
         self.contact_mesh_option           = 0
-        if (hasattr(DEM_parameters, "ContactMeshOption")):
-            self.contact_mesh_option      = self.Var_Translator(DEM_parameters.ContactMeshOption)
-        self.automatic_bounding_box_option = self.Var_Translator(DEM_parameters.AutomaticBoundingBoxOption)
+        if "ContactMeshOption" in DEM_parameters:
+            self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
+        self.automatic_bounding_box_option = DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
 
         self.delta_option = self.Var_Translator(DEM_parameters.DeltaOption)
 
@@ -58,9 +58,9 @@ class ExplicitStrategy:
         self.search_control = 1
 
         if (hasattr(DEM_parameters, "LocalResolutionMethod")):
-            if (DEM_parameters.LocalResolutionMethod == "hierarchical"):
+            if (DEM_parameters["LocalResolutionMethod"].GetString() == "hierarchical"):
                 self.local_resolution_method = 1
-            elif (DEM_parameters.LocalResolutionMethod == "area_distribution"):
+            elif (DEM_parameters["LocalResolutionMethod"].GetString() == "area_distribution"):
                 self.local_resolution_method = 2
             else:
                 self.local_resolution_method = 1
@@ -80,12 +80,12 @@ class ExplicitStrategy:
             self.search_tolerance = 0.01 * 0.0001 #DEM_parameters.MeanRadius
 
         # TIME RELATED PARAMETERS
-        self.delta_time = DEM_parameters.MaxTimeStep
-        self.max_delta_time = DEM_parameters.MaxTimeStep
-        self.final_time = DEM_parameters.FinalTime
+        self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
+        self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
+        self.final_time = DEM_parameters["FinalTime"].GetDouble()
 
         # BOUNDING_BOX
-        self.enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
+        self.enlargement_factor = DEM_parameters["BoundingBoxEnlargementFactor"].GetDouble()
         self.top_corner = Array3()
         self.bottom_corner = Array3()        
         self.bottom_corner[0] = DEM_parameters["BoundingBoxMinX"].GetDouble()
@@ -117,7 +117,7 @@ class ExplicitStrategy:
         if (self.nodal_mass_coeff != 1.0):
             self.virtual_mass_option = 1
 
-        self.rolling_friction_option = self.Var_Translator(DEM_parameters.RollingFrictionOption)
+        self.rolling_friction_option = DEM_parameters["RollingFrictionOption"].GetBool()
 
         if not (hasattr(DEM_parameters, "GlobalDamping")):
             self.global_damping = 0.0
@@ -164,6 +164,13 @@ class ExplicitStrategy:
             variable = 1
 
         return variable
+    
+    def SetOneOrZeroInProcessInfoAccordingToBoolValue(self, model_part, variable, bool_value): #TODO: to be removed, because the Kratos variables should be bools already
+        if bool_value:
+            model_part.ProcessInfo.SetValue(variable, 1)
+        else:
+            model_part.ProcessInfo.SetValue(variable, 0)
+        
 
     def SetVariablesAndOptions(self):
 
@@ -174,8 +181,8 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
-        self.spheres_model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
-        self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.spheres_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.spheres_model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
@@ -195,7 +202,7 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
-        self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED

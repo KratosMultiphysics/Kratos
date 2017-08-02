@@ -105,7 +105,7 @@ os.chdir(main_path)
 spheres_mp_filename   = DEM_parameters["problem_name"].GetString() + "DEM"
 model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
-if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+if "do_not_perform_initial_partition" in DEM_parameters and DEM_parameters["do_not_perform_initial_partition"].GetBool():
     pass
 else:
     parallelutils.PerformInitialPartition(model_part_io_spheres)
@@ -165,7 +165,7 @@ parallelutils.Repart(spheres_model_part)
 #Setting up the BoundingBox
 bounding_box_time_limits = procedures.SetBoundingBoxLimits(all_model_parts, creator_destructor)
 
-dt = DEM_parameters.MaxTimeStep
+dt = DEM_parameters["MaxTimeStep"].GetDouble()
 
 #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
 max_Id = procedures.FindMaxNodeIdAccrossModelParts(creator_destructor, all_model_parts)
@@ -174,11 +174,11 @@ creator_destructor.SetMaxNodeId(max_Id)
 #Strategy Initialization
 os.chdir(main_path)
 solver.Initialize() # Possible modifications of number of elements and number of nodes
-#dt = min(DEM_parameters.MaxTimeStep, spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
-dt = DEM_parameters.MaxTimeStep
+#dt = min(DEM_parameters["MaxTimeStep"].GetDouble(), spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
+dt = DEM_parameters["MaxTimeStep"].GetDouble()
 #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
 #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-if (DEM_parameters.dem_inlet_option):
+if DEM_parameters["dem_inlet_option"].GetBool(): 
     #Constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, solver.continuum_type)
@@ -196,7 +196,7 @@ step           = 0
 time           = 0.0
 time_old_print = 0.0
 
-report.Prepare(timer, DEM_parameters.ControlTime)
+report.Prepare(timer, DEM_parameters["ControlTime"].GetDouble())
 
 procedures.ModelData(spheres_model_part, solver)
 
@@ -210,10 +210,10 @@ step = 0
 ##############################################################################
 #    MAIN LOOP                                                               #
 ##############################################################################
-report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
+report.total_steps_expected = int(DEM_parameters["FinalTime"].GetDouble() / dt)
 KRATOSprint(report.BeginReport(timer))
 
-while (time < DEM_parameters.FinalTime):
+while time < DEM_parameters["FinalTime"].GetDouble():
     
     dt    = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time  = time + dt
@@ -228,7 +228,7 @@ while (time < DEM_parameters.FinalTime):
     DEMFEMProcedures.MoveAllMeshes(all_model_parts, time, dt)
        
     ##### adding DEM elements by the inlet ######
-    if (DEM_parameters.dem_inlet_option):
+    if DEM_parameters["dem_inlet_option"].GetBool(): 
         DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
     stepinfo = report.StepiReport(timer,time,step)
@@ -250,12 +250,12 @@ while (time < DEM_parameters.FinalTime):
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
+    if (DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * dt):
         
         if solver.poisson_ratio_option:
             DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
             
-        if DEM_parameters.PostEulerAngles:
+        if DEM_parameters["PostEulerAngles"].GetBool():
             post_utils.PrintEulerAngles(spheres_model_part, cluster_model_part)
 
         demio.ShowPrintingResultsOnScreen(all_model_parts)
@@ -265,7 +265,7 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         solver.PrepareElementsForPrinting()
-        if (DEM_parameters.ContactMeshOption == "ON"):
+        if DEM_parameters["ContactMeshOption"].GetBool():
             solver.PrepareContactElementsForPrinting()
         
         demio.PrintResults(all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
@@ -289,7 +289,7 @@ os.chdir(main_path)
 objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
                       cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part]
 
-if (DEM_parameters.dem_inlet_option):
+if DEM_parameters["dem_inlet_option"].GetBool(): 
     objects_to_destroy.append(DEM_inlet)
 
 for obj in objects_to_destroy:

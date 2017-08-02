@@ -150,7 +150,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         spheres_mp_filename   = DEM_parameters["problem_name"].GetString() + "DEM"
         model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
-        if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+        if "do_not_perform_initial_partition" in DEM_parameters and DEM_parameters["do_not_perform_initial_partition"].GetBool():
             pass
         else:
             parallelutils.PerformInitialPartition(model_part_io_spheres)
@@ -222,7 +222,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-        if (DEM_parameters.dem_inlet_option):
+        if DEM_parameters["dem_inlet_option"].GetBool(): 
             #Constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
             DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
             DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, solver.continuum_type)
@@ -240,7 +240,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         time           = 0.0
         time_old_print = 0.0
 
-        report.Prepare(timer,DEM_parameters.ControlTime)
+        report.Prepare(timer,DEM_parameters["ControlTime"].GetDouble())
 
         procedures.ModelData(spheres_model_part, solver)
 
@@ -283,7 +283,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             DEMFEMProcedures.MoveAllMeshes(all_model_parts, time, dt)
        
             ##### adding DEM elements by the inlet ######
-            if (DEM_parameters.dem_inlet_option):
+            if DEM_parameters["dem_inlet_option"].GetBool(): 
                 DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
             stepinfo = report.StepiReport(timer,time,step)
@@ -307,12 +307,12 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             #### GiD IO ##########################################
             time_to_print = time - time_old_print
 
-            if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
+            if (DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * dt):
         
                 if solver.poisson_ratio_option:
                     DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
             
-                if DEM_parameters.PostEulerAngles:
+                if DEM_parameters["PostEulerAngles"].GetBool():
                     post_utils.PrintEulerAngles(spheres_model_part, cluster_model_part)
 
                 demio.ShowPrintingResultsOnScreen(all_model_parts)
@@ -322,7 +322,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 os.chdir(post_path)
 
                 solver.PrepareElementsForPrinting()
-                if (DEM_parameters.ContactMeshOption == "ON"):
+                if DEM_parameters["ContactMeshOption"].GetBool():
                     solver.PrepareContactElementsForPrinting()
 
                 demio.PrintResults(all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
@@ -367,7 +367,7 @@ DBC.delete_archives() #.......Removing some unuseful files
 objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
                       cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part]
 
-if (DEM_parameters.dem_inlet_option):
+if DEM_parameters["dem_inlet_option"].GetBool(): 
     objects_to_destroy.append(DEM_inlet)
 
 for obj in objects_to_destroy:

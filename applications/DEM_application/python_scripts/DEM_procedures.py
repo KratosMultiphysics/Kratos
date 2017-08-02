@@ -178,7 +178,7 @@ class PostUtils(object):
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
-        if (self.DEM_parameters.VelocityTrapOption):
+        if DEM_parameters["VelocityTrapOption"].GetBool():
             compute_flow = False
 
             self.vel_trap_graph_counter += 1
@@ -245,8 +245,8 @@ class DEMEnergyCalculator(object):
         
         self.calculate_option = False
         
-        if (hasattr(DEM_parameters, "EnergyCalculationOption")):
-            if (DEM_parameters.EnergyCalculationOption): #TODO: add Var_translator here
+        if "EnergyCalculationOption" in DEM_parameters:
+            if DEM_parameters["EnergyCalculationOption"].GetBool(): 
                 self.calculate_option = True
                 self.DEM_parameters = DEM_parameters
                 self.SpheresModelPart = spheres_model_part
@@ -273,7 +273,7 @@ class DEMEnergyCalculator(object):
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
-            if not hasattr(self.DEM_parameters, "TestType"):
+            if not "TestType" in DEM_parameters:
                 if (self.energy_graph_counter == self.graph_frequency):
                     self.energy_graph_counter = 0
 
@@ -322,9 +322,9 @@ class Procedures(object):
         self.DEM_parameters = DEM_parameters
 
         # SIMULATION FLAGS
-        self.rotation_OPTION               = Var_Translator(self.DEM_parameters.RotationOption)
-        self.bounding_box_OPTION           = Var_Translator(self.DEM_parameters.BoundingBoxOption)
-        self.automatic_bounding_box_OPTION = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
+        self.rotation_OPTION               = self.DEM_parameters["RotationOption"].GetBool()
+        self.bounding_box_OPTION           = self.DEM_parameters["BoundingBoxOption"].GetBool()
+        self.automatic_bounding_box_OPTION = self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
         
         self.contact_mesh_OPTION           = False
         if "ContactMeshOption" in self.DEM_parameters:
@@ -337,10 +337,10 @@ class Procedures(object):
         self.b_box_maxX = self.DEM_parameters["BoundingBoxMaxX"].GetDouble()
         self.b_box_maxY = self.DEM_parameters["BoundingBoxMaxY"].GetDouble()
         self.b_box_maxZ = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
-        self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
+        self.bounding_box_enlargement_factor = self.DEM_parameters["BoundingBoxEnlargementFactor"].GetDouble()
 
         # MODEL
-        self.domain_size = self.DEM_parameters.Dimension
+        self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         self.aux = AuxiliaryUtilities()
         
     def SetScheme(self):
@@ -391,9 +391,9 @@ class Procedures(object):
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
         # KINEMATIC
-        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
-        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
-        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
 
@@ -403,7 +403,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
-        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_MOMENT)
 
@@ -415,22 +415,22 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_RATIO)
 
         # ROTATION RELATED PROPERTIES
-        if (Var_Translator(self.DEM_parameters.RotationOption)):
-            model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
-            model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
-            if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
+        if self.DEM_parameters["RotationOption"].GetBool():
+            model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+            model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO) #TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
+            if self.DEM_parameters["RollingFrictionOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
                 model_part.AddNodalSolutionStepVariable(ROLLING_RESISTANCE_MOMENT)
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
         
-        if (hasattr(self.DEM_parameters, "PostSkinSphere")):
-            if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
+        if "PostSkinSphere" in self.DEM_parameters:
+            if self.DEM_parameters["PostSkinSphere"].GetBool():
                 model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
         
         # LOCAL AXIS
-        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
+        if DEM_parameters["PostEulerAngles"].GetBool():
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 
@@ -500,7 +500,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
         
         # LOCAL AXIS
-        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
+        if DEM_parameters["PostEulerAngles"].GetBool():
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 
@@ -769,7 +769,7 @@ class Procedures(object):
     def SetBoundingBoxLimits(self, all_model_parts, creator_destructor):
         
         bounding_box_time_limits = []
-        if (self.DEM_parameters.BoundingBoxOption == "ON"):
+        if self.DEM_parameters["BoundingBoxOption"].GetBool():
             self.SetBoundingBox(all_model_parts.Get("SpheresPart"), all_model_parts.Get("ClusterPart"), all_model_parts.Get("RigidFacePart"), creator_destructor)
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
             return bounding_box_time_limits
@@ -828,13 +828,13 @@ class DEMFEMProcedures(object):
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
 
-        if not hasattr(DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             self.TestType = "None"
-        # self.TestType = self.DEM_parameters.TestType
+        # self.TestType = self.DEM_parameters["TestType"].GetString()
 
         # Initialization of member variables
         # SIMULATION FLAGS
-        self.rotation_OPTION     = self.DEM_parameters["RotationOption"].GetBool()
+        self.rotation_OPTION     = self.DEM_parameters["RotationOption"].GetBool() #TODO: Why is this in DEM FEM Procs also?
         self.bounding_box_OPTION = self.DEM_parameters["BoundingBoxOption"].GetBool()
         
         self.contact_mesh_OPTION           = False #TODO: This is already in the Procedures object. why to repeat it?
@@ -915,15 +915,15 @@ class DEMFEMProcedures(object):
 
         self.particle_graph_forces = {}                    
 
-        if not hasattr(self.DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             open_graph_files(self, RigidFace_model_part)
             open_balls_graph_files(self,spheres_model_part)
 
         # SIMULATION SETTINGS
-        self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
+        self.bounding_box_enlargement_factor = self.DEM_parameters["BoundingBoxEnlargementFactor"].GetDouble()
 
         # MODEL
-        self.domain_size = self.DEM_parameters.Dimension
+        self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         evaluate_computation_of_fem_results()
         
     def MoveAllMeshes(self, all_model_parts, time, dt):
@@ -1010,7 +1010,7 @@ class DEMFEMProcedures(object):
 
     def PrintPoisson(self, model_part, DEM_parameters, filename, time):
         
-        if (DEM_parameters.Dimension == 3):
+        if (DEM_parameters["Dimension"].GetInt() == 3):
             poisson, dummy, _ = PostUtilities().ComputePoisson(model_part)
         else:
             poisson, dummy, _ = PostUtilities().ComputePoisson2D(model_part)
@@ -1021,7 +1021,7 @@ class DEMFEMProcedures(object):
     
     def PrintGraph(self, time):
 
-        if not hasattr(self.DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
 
@@ -1055,12 +1055,12 @@ class DEMFEMProcedures(object):
 
     def FinalizeGraphs(self,RigidFace_model_part):
 
-        if not hasattr(self.DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             self.close_graph_files(RigidFace_model_part)
 
     def PrintBallsGraph(self, time):
 
-        if not hasattr(self.DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
@@ -1086,7 +1086,7 @@ class DEMFEMProcedures(object):
 
     def FinalizeBallsGraphs(self,spheres_model_part):
 
-        if not hasattr(self.DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             self.close_balls_graph_files(spheres_model_part)
 
 
@@ -1095,7 +1095,7 @@ class DEMFEMProcedures(object):
             #if (time < 0.5e-2 ) :
             if (time < 3.8e-5):
 
-                #while ( time < self.DEM_parameters.FinalTime):
+                #while ( time < self.DEM_parameters["FinalTime"].GetDouble()):
                 #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
                 d0 = 1.694
@@ -1233,10 +1233,10 @@ class MaterialTest(object):
 
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
 
-        if not hasattr(DEM_parameters, "TestType"):
+        if not "TestType" in DEM_parameters:
             self.TestType = "None"
         else:
-            self.TestType = DEM_parameters.TestType
+            self.TestType = DEM_parameters["TestType"].GetString()
 
         if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
@@ -1349,7 +1349,7 @@ class DEMIo(object):
         else:
             self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
             
-        self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
+        self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool())
         self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
         self.b_box_minY = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
         self.b_box_minZ = self.DEM_parameters["BoundingBoxMinZ"].GetDouble()
@@ -1413,7 +1413,7 @@ class DEMIo(object):
         self.AddClusterVariables()
         self.AddContactVariables()
         self.AddMpiVariables()
-        self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters.Multifile, DEM_parameters.ContactMeshOption)
+        self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters["Multifile"].GetString(), DEM_parameters["ContactMeshOption"].GetBool())
         self.SetOutputName(DEM_parameters["problem_name"].GetString())
 
     def PushPrintVar(self, variable, name, print_list):
@@ -1430,15 +1430,13 @@ class DEMIo(object):
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
-        #if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
         if (Var_Translator(self.DEM_parameters.PostAngularVelocity)):
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,        self.spheres_and_clusters_variables)
         if (Var_Translator(self.DEM_parameters.PostParticleMoment)):       
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
             
     def AddSpheresNotInClusterAndClustersVariables(self):  # variables common to spheres and clusters
-        #if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
-        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
+        if DEM_parameters["PostEulerAngles"].GetBool():
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,            self.spheres_not_in_cluster_and_clusters_local_axis_variables)
 
     def AddSpheresVariables(self):
@@ -1453,12 +1451,12 @@ class DEMIo(object):
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         if (hasattr(self.DEM_parameters, "PostRollingResistanceMoment")):
-            if (Var_Translator(self.DEM_parameters.RotationOption)):
-                if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
+            if self.DEM_parameters["RotationOption"].GetBool():
+                if self.DEM_parameters["RollingFrictionOption"].GetBool():
                     self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
 
-        if (hasattr(self.DEM_parameters, "PostSkinSphere")):
-            if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
+        if "PostSkinSphere" in self.DEM_parameters:
+            if self.DEM_parameters["PostSkinSphere"].GetBool():
                 self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
 
         if (hasattr(self.DEM_parameters, "PostNeighbourSize")):
@@ -1497,7 +1495,7 @@ class DEMIo(object):
 
     def AddClusterVariables(self):
         self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
-        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
+        if DEM_parameters["PostEulerAngles"].GetBool():
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
             #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
@@ -1505,7 +1503,7 @@ class DEMIo(object):
     def AddContactVariables(self):
         # Contact Elements Variables
         if (self.DEM_parameters["ElementType"].GetString() in self.continuum_element_types):
-            if (Var_Translator(self.DEM_parameters.ContactMeshOption)):
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
                 self.PushPrintVar(self.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
                 self.PushPrintVar(self.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
                 self.PushPrintVar(self.PostContactFailureId,      CONTACT_FAILURE,         self.contact_variables)
@@ -1524,7 +1522,7 @@ class DEMIo(object):
         else:
             self.encoding = GiDPostMode.GiD_PostAscii
 
-        if (self.DEM_parameters.Multifile == "multiple_files"):
+        if (self.DEM_parameters["Multifile"].GetString() == "multiple_files"):
             self.filesystem = MultiFileFlag.MultipleFiles
         else:
             self.filesystem = MultiFileFlag.SingleFile
@@ -1590,7 +1588,7 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, spheres_model_part)
 
-            if (self.contact_mesh_option == "ON"):
+            if self.contact_mesh_option:
                 self.post_utility.AddModelPartToModelPart(self.mixed_model_part, contact_model_part)
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_face_model_part)
@@ -1609,7 +1607,7 @@ class DEMIo(object):
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
 
-            if (self.contact_mesh_option == "ON"):
+            if self.contact_mesh_option:
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
@@ -1627,7 +1625,7 @@ class DEMIo(object):
             self.mixed_spheres_not_in_cluster_and_clusters_model_part.Nodes.clear()
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, spheres_model_part)
-            if (self.contact_mesh_option == "ON"):
+            if self.contact_mesh_option:
                 self.post_utility.AddModelPartToModelPart(self.mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_face_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, cluster_model_part)
@@ -1642,7 +1640,7 @@ class DEMIo(object):
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
-            if (self.contact_mesh_option == "ON"):
+            if self.contact_mesh_option:
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9184
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
@@ -1651,7 +1649,7 @@ class DEMIo(object):
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
             
             #Compute and print the graphical bounding box if active in time
-            if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
+            if self.DEM_parameters["BoundingBoxOption"].GetBool() and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1]):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
                         
             # Ice. Printing a virtual sea surface
@@ -1703,7 +1701,7 @@ class DEMIo(object):
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
     def PrintingContactElementsVariables(self, export_model_part, time):
-        if (self.contact_mesh_option == "ON"):
+        if self.contact_mesh_option:
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
