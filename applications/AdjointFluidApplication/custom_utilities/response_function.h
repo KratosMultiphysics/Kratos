@@ -192,74 +192,74 @@ public:
         KRATOS_CATCH("");
     }
 
-    /// Calculate the local gradient w.r.t. displacement.
+    /// Calculate the local gradient w.r.t. primal solution.
     /**
-     * @param[in]     rElem            the local adjoint element.
-     * @param[in]     rAdjointMatrix   the transposed gradient of the local
-     *                                 element's residual w.r.t. displacement.
-     * @param[out]    rRHSContribution the gradient of the response function.
+     * @param[in]     rElem            the adjoint element.
+     * @param[in]     rAdjointMatrix   the transposed gradient of the
+     *                                 element's residual w.r.t. primal.
+     * @param[out]    rGradient        the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
     virtual void CalculateGradient(const Element& rElem,
                                    const Matrix& rAdjointMatrix,
-                                   Vector& rRHSContribution,
+                                   Vector& rGradient,
                                    ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rRHSContribution.size() != rAdjointMatrix.size1())
-            rRHSContribution.resize(rAdjointMatrix.size1(), false);
+        if (rGradient.size() != rAdjointMatrix.size1())
+            rGradient.resize(rAdjointMatrix.size1(), false);
 
-        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
+        for (unsigned int k = 0; k < rGradient.size(); ++k)
+            rGradient[k] = 0.0;
 
         KRATOS_CATCH("");
     }
 
-    /// Calculate the local gradient w.r.t. velocity
+    /// Calculate the local gradient w.r.t. first derivatives of primal solution.
     /**
-     * @param[in]     rElem            the local adjoint element.
-     * @param[in]     rAdjointMatrix   the transposed gradient of the local
-     *                                 element's residual w.r.t. velocity.
-     * @param[out]    rRHSContribution the gradient of the response function.
+     * @param[in]     rElem            the adjoint element.
+     * @param[in]     rAdjointMatrix   the transposed gradient of the
+     *                                 element's residual w.r.t. first derivatives.
+     * @param[out]    rGradient        the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
     virtual void CalculateFirstDerivativesGradient(const Element& rElem,
                                                    const Matrix& rAdjointMatrix,
-                                                   Vector& rRHSContribution,
+                                                   Vector& rGradient,
                                                    ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rRHSContribution.size() != rAdjointMatrix.size1())
-            rRHSContribution.resize(rAdjointMatrix.size1(), false);
+        if (rGradient.size() != rAdjointMatrix.size1())
+            rGradient.resize(rAdjointMatrix.size1(), false);
 
-        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
+        for (unsigned int k = 0; k < rGradient.size(); ++k)
+            rGradient[k] = 0.0;
 
         KRATOS_CATCH("");
     }
 
-    /// Calculate the local gradient w.r.t. acceleration
+    /// Calculate the local gradient w.r.t. second derivatives of primal solution.
     /**
-     * @param[in]     rElem            the local adjoint element.
-     * @param[in]     rAdjointMatrix   the transposed gradient of the local
-     *                                 element's residual w.r.t. acceleration.
-     * @param[out]    rRHSContribution the gradient of the response function.
+     * @param[in]     rElem            the adjoint element.
+     * @param[in]     rAdjointMatrix   the transposed gradient of the
+     *                                 element's residual w.r.t. second derivative.
+     * @param[out]    rGradient        the gradient of the response function.
      * @param[in,out] rProcessInfo     the current process info.
      */
     virtual void CalculateSecondDerivativesGradient(const Element& rElem,
                                                     const Matrix& rAdjointMatrix,
-                                                    Vector& rRHSContribution,
+                                                    Vector& rGradient,
                                                     ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rRHSContribution.size() != rAdjointMatrix.size1())
-            rRHSContribution.resize(rAdjointMatrix.size1(), false);
+        if (rGradient.size() != rAdjointMatrix.size1())
+            rGradient.resize(rAdjointMatrix.size1(), false);
 
-        for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
+        for (unsigned int k = 0; k < rGradient.size(); ++k)
+            rGradient[k] = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -380,21 +380,24 @@ protected:
                 if (update_sensitivities == false) // true for most elements
                     continue;
 
-                // This is multiplied with the adjoint to compute sensitivity.
+                // This is multiplied with the adjoint to compute sensitivity
+                // contributions from the element.
                 it->CalculateSensitivityMatrix(
                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                // This part of the sensitivity is computed from the objective
-                // with primal variables treated as constant.
+                // This is the sensitivity contribution coming from the response
+                // function with primal variables treated as constant.
                 this->CalculateSensitivityGradient(
                     *it, rSensitivityVariable, sensitivity_matrix[k],
                     response_gradient[k], r_process_info);
 
+                // Get the element adjoint vector.
                 it->GetValuesVector(adjoint_vector[k]);
 
                 if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                     sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
+                // Calculated the total sensitivity contribution for the element.
                 noalias(sensitivity_vector[k]) =
                     delta_time * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                   response_gradient[k]);
@@ -411,17 +414,17 @@ protected:
 
     /// Calculate the local gradient of response function w.r.t. the sensitivity variable.
     /**
-     * @param[in]     rElem              the local adjoint element.
+     * @param[in]     rElem              the adjoint element.
      * @param[in]     rVariable          the sensitivity variable.
-     * @param[in]     rDerivativesMatrix the transposed gradient of the local
-     *                                   element's residual.
-     * @param[out]    rRHSContribution   the gradient of the response function.
+     * @param[in]     rDerivativesMatrix the transposed gradient of the element's
+     *                                   residual w.r.t. the sensitivity variable.
+     * @param[out]    rGradient          the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
     virtual void CalculateSensitivityGradient(const Element& rElem,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
-                                              Vector& rRHSContribution,
+                                              Vector& rGradient,
                                               ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
@@ -433,17 +436,17 @@ protected:
 
     /// Calculate the local gradient of response function w.r.t. the sensitivity variable.
     /**
-     * @param[in]     rElem              the local adjoint element.
+     * @param[in]     rElem              the adjoint element.
      * @param[in]     rVariable          the sensitivity variable.
-     * @param[in]     rDerivativesMatrix the transposed gradient of the local
-     *                                   element's residual.
+     * @param[in]     rDerivativesMatrix the transposed gradient of the element's
+     *                                   residual w.r.t. the sensitivity variable.
      * @param[out]    rRHSContribution   the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
     virtual void CalculateSensitivityGradient(const Element& rElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
-                                              Vector& rRHSContribution,
+                                              Vector& rGradient,
                                               ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;

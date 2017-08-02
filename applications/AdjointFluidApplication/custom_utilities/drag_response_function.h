@@ -179,32 +179,32 @@ public:
 
     void CalculateFirstDerivativesGradient(const Element& rElem,
                                            const Matrix& rAdjointMatrix,
-                                           Vector& rRHSContribution,
+                                           Vector& rGradient,
                                            ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY;
 
-        if (rRHSContribution.size() != rAdjointMatrix.size1())
-            rRHSContribution.resize(rAdjointMatrix.size1(), false);
+        if (rGradient.size() != rAdjointMatrix.size1())
+            rGradient.resize(rAdjointMatrix.size1(), false);
 
         Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
-        noalias(rRHSContribution) = prod(rAdjointMatrix, r_drag_flag_vector);
+        noalias(rGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
     }
 
     void CalculateSecondDerivativesGradient(const Element& rElem,
                                             const Matrix& rAdjointMatrix,
-                                            Vector& rRHSContribution,
+                                            Vector& rGradient,
                                             ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY;
 
-        if (rRHSContribution.size() != rAdjointMatrix.size1())
-            rRHSContribution.resize(rAdjointMatrix.size1(), false);
+        if (rGradient.size() != rAdjointMatrix.size1())
+            rGradient.resize(rAdjointMatrix.size1(), false);
 
         Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
-        noalias(rRHSContribution) = prod(rAdjointMatrix, r_drag_flag_vector);
+        noalias(rGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
     }
@@ -226,16 +226,16 @@ protected:
     void CalculateSensitivityGradient(const Element& rElem,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
-                                      Vector& rRHSContribution,
+                                      Vector& rGradient,
                                       ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY;
 
-        if (rRHSContribution.size() != rDerivativesMatrix.size1())
-            rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+        if (rGradient.size() != rDerivativesMatrix.size1())
+            rGradient.resize(rDerivativesMatrix.size1(), false);
 
         Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
-        noalias(rRHSContribution) = prod(rDerivativesMatrix, r_drag_flag_vector);
+        noalias(rGradient) = prod(rDerivativesMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
     }
