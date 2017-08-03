@@ -18,10 +18,12 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "structure_model_part_name" : "NoSlip2D_Cylinder",
             "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
-            "drag_direction"            : [1.0, 0.0, 0.0]
+            "custom_settings" : {
+                "structure_model_part_name" : "NoSlip2D_Cylinder",
+                "drag_direction"            : [1.0, 0.0, 0.0]
+            }
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",

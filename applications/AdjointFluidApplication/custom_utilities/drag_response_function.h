@@ -57,30 +57,28 @@ public:
     {
         KRATOS_TRY;
 
-        Parameters DefaultParams(R"(
+        Parameters default_settings(R"(
         {
-            "response_type": "drag",
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
-            "sensitivity_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
-            "nodal_sensitivity_variables" : [],
             "drag_direction": [1.0, 0.0, 0.0]
         })");
 
-        rParameters.ValidateAndAssignDefaults(DefaultParams);
+        Parameters custom_settings = rParameters["custom_settings"];
+        custom_settings.ValidateAndAssignDefaults(default_settings);
 
-        mStructureModelPartName = rParameters["structure_model_part_name"].GetString();
+        mStructureModelPartName = custom_settings["structure_model_part_name"].GetString();
 
-        if (rParameters["drag_direction"].IsArray() == false ||
-            rParameters["drag_direction"].size() != 3)
+        if (custom_settings["drag_direction"].IsArray() == false ||
+            custom_settings["drag_direction"].size() != 3)
         {
             KRATOS_THROW_ERROR(std::runtime_error,
                                "drag_direction vector is not a vector or does "
                                "not have size 3:",
-                               rParameters.PrettyPrintJsonString())
+                               custom_settings.PrettyPrintJsonString())
         }
 
         for (unsigned int d = 0; d < TDim; ++d)
-            mDragDirection[d] = rParameters["drag_direction"][d].GetDouble();
+            mDragDirection[d] = custom_settings["drag_direction"][d].GetDouble();
 
         if (std::abs(norm_2(mDragDirection) - 1.0) > 1e-3)
         {
@@ -90,9 +88,8 @@ public:
                                    "drag_direction is not properly defined.",
                                    "")
 
-            std::cout
-                << "WARNING: non unit vector detected in \"drag_direction\": "
-                << rParameters.PrettyPrintJsonString() << std::endl;
+            std::cout << "WARNING: non unit vector detected in \"drag_direction\": "
+                << custom_settings.PrettyPrintJsonString() << std::endl;
             std::cout << "normalizing \"drag_direction\"..." << std::endl;
 
             for (unsigned int d = 0; d < TDim; d++)
