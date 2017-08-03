@@ -625,7 +625,7 @@ void AddModelPartToPython()
 
 
 
-	class_<ModelPart, bases<DataValueContainer, Flags> >("ModelPart")
+	class_<ModelPart, bases<DataValueContainer, Flags>, boost::noncopyable >("ModelPart")
 		.def(init<std::string const&>())
 		.def(init<>())
 		.add_property("Name", GetModelPartName, SetModelPartName)
