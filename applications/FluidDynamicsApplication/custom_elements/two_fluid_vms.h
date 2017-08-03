@@ -375,8 +375,9 @@ KRATOS_WATCH(Ngauss);  */
 //         }
 
         // Porous media losses
-        const double A = rConstProcessInfo[LIN_DARCY_COEF];
-        const double B = rConstProcessInfo[NONLIN_DARCY_COEF];
+        const Properties& r_properties = this->GetProperties();
+        const double A = r_properties[LIN_DARCY_COEF];
+        const double B = r_properties[NONLIN_DARCY_COEF];
 
 
         //****************************************************
@@ -409,14 +410,14 @@ KRATOS_WATCH(Ngauss);  */
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
-            const double ReactionTerm = Density * (A + B*VelNorm);
+            const double DarcyTerm = Density * (A + B*VelNorm);
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
             //compute stabilization parameters
-            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, ReactionTerm, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
-            this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
+            this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, DarcyTerm, TauOne, TauTwo, N, DN_DX, wGauss);
             
             //compute mass matrix - terms related to real mass
             this->AddConsistentMassMatrixContribution(MassMatrix, N, Density, wGauss);
@@ -523,13 +524,13 @@ KRATOS_WATCH(Ngauss);  */
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
-            const double ReactionTerm = Density * (A + B*VelNorm);
+            const double DarcyTerm = Density * (A + B*VelNorm);
 
             double TauOne,TauTwo;
-            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, ReactionTerm, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
-            this->AddMassStabTerms(MassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
+            this->AddMassStabTerms(MassMatrix, Density, AdvVel, DarcyTerm, TauOne, N, DN_DX, wGauss);
 
         }
         
@@ -1005,6 +1006,7 @@ protected:
             const double Density,
             const double Viscosity,
             const array_1d< double, 3 > & rAdvVel,
+            const double ReactionTerm,
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1024,6 +1026,10 @@ protected:
         array_1d<double,3> BodyForce(3,0.0);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
+        
+        array_1d<double, TNumNodes> StabilizationOperator = Density*AGradN;
+        noalias(StabilizationOperator) += ReactionTerm * rShapeFunc;
+        StabilizationOperator *= TauOne;
 
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
@@ -1033,7 +1039,7 @@ protected:
 
                 // Velocity block
                 K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-                K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
+                K += StabilizationOperator[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v) + sigma * N) * TauOne * (a * Grad(u))
                 K *= Weight;
 
                 // q-p stabilization block (reset result)
@@ -1047,7 +1053,7 @@ protected:
 //                        K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
                     // v * Grad(p) block
-                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                    G = StabilizationOperator[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + sigma * N) * TauOne * Grad(p)
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 
                     // Write v * Grad(p) component
@@ -1064,6 +1070,9 @@ protected:
                     {
                         // Velocity block
                         rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+
+                        // Reaction (Darcy porosity) losses
+                        rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * (rShapeFunc[m] + StabilizationOperator[m]) * ReactionTerm * rShapeFunc[n];
                     }
 
                 }
@@ -1084,7 +1093,7 @@ protected:
             qF = 0.0;
             for (unsigned int d = 0; d < TDim; ++d)
             {
-                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                rDampRHS[FirstRow + d] += Weight * StabilizationOperator[i] * BodyForce[d]; // (a * Grad(v) + sigma * N) * TauOne * (Density * BodyForce)
                 qF += rShapeDeriv(i, d) * BodyForce[d];
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
@@ -1096,6 +1105,53 @@ protected:
 
 //            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
         this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
+    }
+
+    void AddMassStabTerms(MatrixType& rLHSMatrix,
+                          const double Density,
+                          const array_1d<double, 3 > & rAdvVel,
+                          const double ReactionTerm,
+                          const double TauOne,
+                          const array_1d<double, TNumNodes>& rShapeFunc,
+                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const double Weight)
+    {
+        const unsigned int BlockSize = TDim + 1;
+
+        double Coef = Weight * TauOne;
+        unsigned int FirstRow(0), FirstCol(0);
+        double K; // Temporary results
+
+        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+        array_1d<double, TNumNodes> AGradN;
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+        array_1d<double, TNumNodes> StabilizationOperator = Density*AGradN;
+        noalias(StabilizationOperator) += ReactionTerm * rShapeFunc;
+        StabilizationOperator *= TauOne;
+
+        // Note: Dof order is (vx,vy,[vz,]p) for each node
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            // Loop over columns
+            for (unsigned int j = 0; j < TNumNodes; ++j)
+            {
+                // Delta(u) * TauOne * [ AdvVel * Grad(v) + sigma * N ] in velocity block
+                K = Coef * StabilizationOperator[i] * Density * rShapeFunc[j];
+
+                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+                {
+                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
+                    // Delta(u) * TauOne * Grad(q) in q * Div(u) block
+                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
+                }
+                // Update column index
+                FirstCol += BlockSize;
+            }
+            // Update matrix indices
+            FirstRow += BlockSize;
+            FirstCol = 0;
+        }
     }
 
     void CalculateTau(
