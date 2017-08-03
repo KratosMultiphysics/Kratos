@@ -131,7 +131,6 @@ void PrestressMembraneElement::Initialize()
 
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
-    mThickness0 = GetProperties()[THICKNESS];
     mThickness = 0.00;
 
     mTotalDomainInitialSize = 0.00;
@@ -888,13 +887,10 @@ void PrestressMembraneElement::CalculateAll(
         
         // Getting the prestress values
 
-        // mPreStress[0] = GetProperties()[PRESTRESS_11];
-        // mPreStress[1] = GetProperties()[PRESTRESS_22];
-        // mPreStress[2] = GetProperties()[PRESTRESS_12];
+        pre_stress_tensor(0) = GetProperties()[MEMBRANE_PRESTRESS](0);
+        pre_stress_tensor(1) = GetProperties()[MEMBRANE_PRESTRESS](1);
+        pre_stress_tensor(2) = GetProperties()[MEMBRANE_PRESTRESS](2);
 
-        pre_stress_tensor(0) = GetProperties()[PRESTRESS_11];
-        pre_stress_tensor(1) = GetProperties()[PRESTRESS_22];
-        pre_stress_tensor(2) = GetProperties()[PRESTRESS_12];
 
         array_1d<double, 2> par_g1_1;
         par_g1_1(0) = 0.0;
@@ -917,7 +913,7 @@ void PrestressMembraneElement::CalculateAll(
 
         // integration on the REFERENCE CONFIGURATION
         double DetJ0 = mDetJ0[PointNumber];
-        double IntToReferenceWeight = IntegrationWeight * DetJ0 * mThickness0;
+        double IntToReferenceWeight = IntegrationWeight * DetJ0 * GetProperties()[THICKNESS];
 
         // Nonlinear Deformation
         Matrix Strain_locCartesian_11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
