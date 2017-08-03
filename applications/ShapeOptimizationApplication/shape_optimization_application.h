@@ -31,7 +31,6 @@
 
 // elements
 #include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
-#include "custom_elements/small_displacement_beam_element_3D2N_4_sensitivity_analysis.hpp"
 
 //conditions
 #include "custom_conditions/shape_optimization_condition.h"
@@ -251,8 +250,6 @@ namespace Kratos
       	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D10N;
       	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D8N;
       	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D20N;
-
-		const SmallDisplacementBeamElement3D2N4SensitivityAnalysis mSmallDisplacementBeamElement3D2N4SensitivityAnalysis;
 
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;

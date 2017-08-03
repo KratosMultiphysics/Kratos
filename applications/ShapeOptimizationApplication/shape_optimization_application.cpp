@@ -37,7 +37,6 @@
 
 // elements
 #include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
-#include "custom_elements/small_displacement_beam_element_3D2N_4_sensitivity_analysis.hpp"
 
 // conditions
 #include "custom_conditions/shape_optimization_condition.h"
@@ -98,8 +97,6 @@ namespace Kratos
 		mSmallDisplacementAnalyticSensitivityElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
     	mSmallDisplacementAnalyticSensitivityElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
 		mSmallDisplacementAnalyticSensitivityElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
-
-        mSmallDisplacementBeamElement3D2N4SensitivityAnalysis( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
 
         mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mShapeOptimizationCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -170,9 +167,6 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D10N", mSmallDisplacementAnalyticSensitivityElement3D10N );
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D8N", mSmallDisplacementAnalyticSensitivityElement3D8N );
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D20N", mSmallDisplacementAnalyticSensitivityElement3D20N );
-
-        // Register the beam element
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N4SensitivityAnalysis", mSmallDisplacementBeamElement3D2N4SensitivityAnalysis );
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
