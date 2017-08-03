@@ -4,13 +4,15 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
 
 #ifndef DAMPING_FUNCTION_H
 #define DAMPING_FUNCTION_H
+
+#define PI 3.141592653589793238462643383279502884197169399375105820974944592308
 
 // ------------------------------------------------------------------------------
 // System includes

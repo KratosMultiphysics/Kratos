@@ -96,6 +96,12 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
     # Private methods section
     def _AddOutletHydrostaticComponent(self):
+        # Initialize body force value (avoid segfault in MPI if the local mesh has no outlet nodes)
+        body_force = KratosMultiphysics.Vector(3)
+        body_force[0] = 0.0
+        body_force[1] = 0.0
+        body_force[2] = 0.0
+
         # Get the body force value
         for node in self.outlet_model_part.Nodes:
             body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)

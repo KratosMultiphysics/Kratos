@@ -4,7 +4,7 @@ message("**** configuring KratosPfemSolidMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ContactMechanicsApplication )
 
 
@@ -12,9 +12,9 @@ if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
 endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 
-if(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_BASE_APPLICATION=ON in the configure file.")
-endif(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
+if(NOT (${PFEM_APPLICATION} MATCHES "ON"))
+    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
+endif(NOT (${PFEM_APPLICATION} MATCHES "ON"))
 
 if(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The Contact Mechanics Application must be compiled before this one. Set CONTACT_MECHANICS_APPLICATION=ON in the configure file.")

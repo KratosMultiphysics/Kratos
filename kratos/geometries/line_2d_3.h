@@ -352,18 +352,27 @@ public:
 
         return sqrt( length );
     }
-
-
-
+    
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
+        {
             return true;
+        }
 
         return false;
     }
@@ -927,7 +936,9 @@ private:
         IntegrationPointsContainerType integration_points = {{
                 Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -938,7 +949,9 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values = {{
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 )
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -949,7 +962,9 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
                 Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 )
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                Line2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;

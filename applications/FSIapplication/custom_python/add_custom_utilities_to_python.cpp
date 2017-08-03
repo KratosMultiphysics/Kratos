@@ -21,6 +21,7 @@
 #include "custom_utilities/FSI_utils.h"
 #include "custom_utilities/aitken_utils.h"
 #include "custom_utilities/partitioned_fsi_utilities.hpp"
+#include "custom_utilities/variable_redistribution_utility.h"
 
 namespace Kratos
 {
@@ -62,6 +63,25 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
     ;
 
+    typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
+    typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
+
+    DistributePointDoubleType DistributePointDouble = &VariableRedistributionUtility::DistributePointValues;
+    DistributePointArrayType  DistributePointArray  = &VariableRedistributionUtility::DistributePointValues;
+    
+    typedef void (*ConvertDistributedDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&);
+    typedef void (*ConvertDistributedArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&);
+
+    ConvertDistributedDoubleType ConvertDistributedDouble = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
+    ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
+
+    // Note: The StaticMethod thing should be done only once for each set of overloads
+    class_< VariableRedistributionUtility, boost::noncopyable >("VariableRedistributionUtility", no_init)
+    .def("DistributePointValues",DistributePointDouble)
+    .def("DistributePointValues",DistributePointArray).staticmethod("DistributePointValues")
+    .def("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
+    .def("ConvertDistributedValuesToPoint",ConvertDistributedArray).staticmethod("ConvertDistributedValuesToPoint")
+    ;
 }
 
 }  // namespace Python.
