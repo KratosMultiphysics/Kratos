@@ -197,7 +197,7 @@ public:
         mInvDt = 1.0 / DeltaTime;
 
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-            it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0; // todo: define application variable
+            it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0;
 
         for (auto it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
             for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
