@@ -15,20 +15,23 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/line_2d.h"
 #include "geometries/point_2d.h"
-#include "shallow_water_application.h"
+#include "includes/define.h"
 #include "includes/variables.h"
+#include "shallow_water_application.h"
 
 
 namespace Kratos
 {
 
 	KratosShallowWaterApplication::KratosShallowWaterApplication():
-	mPrimitiveVarElement2D3N (0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mConservedVarElement2D3N (0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
+	mPrimitiveVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	mConservedVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	
+	mRainCondition2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
+	
 	//~ mProjectedSWE ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
 	//~ mNonConservativeDC ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
 	//~ mNonConservativeStab ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
@@ -64,6 +67,9 @@ namespace Kratos
 		// Registering elements and conditions here
 		KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
 		KRATOS_REGISTER_ELEMENT("ConservedVarElement2D3N", mConservedVarElement2D3N)   // mesh stage element
+		
+		KRATOS_REGISTER_CONDITION("RainCondition2D3N", mRainCondition2D3N)
+		
 		//~ KRATOS_REGISTER_ELEMENT("ProjectedSWE", mProjectedSWE)                       // mesh stage element
 		//~ KRATOS_REGISTER_ELEMENT("NonConservativeDC", mNonConservativeDC)             // mesh stage element with discontinuity capturing
 		//~ KRATOS_REGISTER_ELEMENT("NonConservativeStab", mNonConservativeStab)         // mesh stage element with stabilization
