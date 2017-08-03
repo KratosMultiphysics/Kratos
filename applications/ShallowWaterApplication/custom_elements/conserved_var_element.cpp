@@ -75,6 +75,12 @@ namespace Kratos
 	void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		
+		const unsigned int number_of_points = GetGeometry().size();
+		if(rLeftHandSideMatrix.size1() != number_of_points*3)
+			rLeftHandSideMatrix.resize(number_of_points*3,number_of_points*3,false); // Resizing the system in case it does not have the right size
+		if(rRightHandSideVector.size() != number_of_points*3)
+			rRightHandSideVector.resize(number_of_points*3,false);
 
 		// Getting the BDF2 coefficients (not fixed to allow variable time step)
 		// The coefficients INCLUDE the time step
@@ -113,11 +119,6 @@ namespace Kratos
 		double height_grad_norm;
 		double k_dc;
 
-		const unsigned int number_of_points = GetGeometry().size();
-		if(rLeftHandSideMatrix.size1() != number_of_points*3)
-			rLeftHandSideMatrix.resize(number_of_points*3,number_of_points*3,false); // Resizing the system in case it does not have the right size
-		if(rRightHandSideVector.size() != number_of_points*3)
-			rRightHandSideVector.resize(number_of_points*3,false);
 
 		// Getting data for the given geometry
 		double Area;
@@ -130,7 +131,12 @@ namespace Kratos
 
 		// Get current step and projected values
 		int counter = 0;
-		for(unsigned int iii = 0; iii<number_of_points; iii++){
+		for (unsigned int iii = 0; iii<number_of_points; iii++){
+			if (GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT) < 1e-3){
+				GetGeometry()[iii].GetSolutionStepValue(HEIGHT)     = 1e-8;
+				GetGeometry()[iii].GetSolutionStepValue(MOMENTUM_X) = 0;
+				GetGeometry()[iii].GetSolutionStepValue(MOMENTUM_Y) = 0;
+			}
 			ms_depth[counter]        = 0;
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_X);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_X);
@@ -141,9 +147,6 @@ namespace Kratos
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y);
 			counter++;
 
-			if(GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT)<1e-6){
-				GetGeometry()[iii].GetSolutionStepValue(HEIGHT) = 1e-10;
-			}
 			ms_depth[counter]        = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_HEIGHT);
@@ -196,7 +199,6 @@ namespace Kratos
 		msN_mom(1,1) = msNGauss[0];
 		msN_mom(1,4) = msNGauss[1];
 		msN_mom(1,7) = msNGauss[2];
-
 
 		// Previous height iteration at current time step
 		height = msNGauss[0]*ms_unknown[2] + msNGauss[1]*ms_unknown[5] + msNGauss[2]*ms_unknown[8];
