@@ -148,8 +148,7 @@ class ExplicitStrategy:
                                                      DEM_parameters["BoundingBoxMaxX"].GetDouble(), 
                                                      DEM_parameters["BoundingBoxMaxY"].GetDouble(), 
                                                      DEM_parameters["BoundingBoxMaxZ"].GetDouble())
-        else:
-            DEM_parameters["PeriodicDomainOption"] = False
+        
 
         self.SetContinuumType()
 
@@ -194,8 +193,9 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
         # GLOBAL PHYSICAL ASPECTS
-        if self.DEM_parameters["PeriodicDomainOption"].GetBool()
-            self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
+        if "PeriodicDomainOption" in self.DEM_parameters:
+            if self.DEM_parameters["PeriodicDomainOption"].GetBool():
+                self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         else:
             self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)

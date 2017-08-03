@@ -26,6 +26,12 @@ def Var_Translator(variable):
 
     return variable
 
+def GetBoolParameterIfItExists(set_of_parameters, parameter_key):
+    if parameter_key in set_of_parameters:
+        return set_of_parameters[parameter_key].GetBool()
+    else:
+        return False
+
 
 class MdpaCreator(object):
 
@@ -166,7 +172,7 @@ class PostUtils(object):
         self.post_utilities = PostUtilities()
 
         self.vel_trap_graph_counter = 0
-        self.vel_trap_graph_frequency = int(DEM_parameters["VelTrapGraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) #TODO: change the name of VelTrapGraphExportFreq to VelTrapGraphExportTimeInterval
+        self.vel_trap_graph_frequency = int(self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) #TODO: change the name of VelTrapGraphExportFreq to VelTrapGraphExportTimeInterval
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -178,7 +184,7 @@ class PostUtils(object):
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
-        if DEM_parameters["VelocityTrapOption"].GetBool():
+        if self.DEM_parameters["VelocityTrapOption"].GetBool():
             compute_flow = False
 
             self.vel_trap_graph_counter += 1
@@ -273,7 +279,7 @@ class DEMEnergyCalculator(object):
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
-            if not "TestType" in DEM_parameters:
+            if not "TestType" in self.DEM_parameters:
                 if (self.energy_graph_counter == self.graph_frequency):
                     self.energy_graph_counter = 0
 
@@ -1024,7 +1030,7 @@ class DEMFEMProcedures(object):
     
     def PrintGraph(self, time):
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in self.DEM_parameters:
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
 
@@ -1058,12 +1064,12 @@ class DEMFEMProcedures(object):
 
     def FinalizeGraphs(self,RigidFace_model_part):
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in self.DEM_parameters:
             self.close_graph_files(RigidFace_model_part)
 
     def PrintBallsGraph(self, time):
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in self.DEM_parameters:
             
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
@@ -1089,7 +1095,7 @@ class DEMFEMProcedures(object):
 
     def FinalizeBallsGraphs(self,spheres_model_part):
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in self.DEM_parameters:
             self.close_balls_graph_files(spheres_model_part)
 
 
@@ -1321,30 +1327,30 @@ class DEMIo(object):
         self.PostDampForces               = self.DEM_parameters["PostDampForces"].GetBool()
         self.PostRadius                   = self.DEM_parameters["PostRadius"].GetBool()
         self.PostExportId                 = self.DEM_parameters["PostExportId"].GetBool()
-        self.PostSkinSphere               = self.DEM_parameters["PostSkinSphere"].GetBool()
+        self.PostSkinSphere               = GetBoolParameterIfItExists(self.DEM_parameters, "PostSkinSphere")
         self.PostAngularVelocity          = self.DEM_parameters["PostAngularVelocity"].GetBool()
         self.PostParticleMoment           = self.DEM_parameters["PostParticleMoment"].GetBool()
         self.PostEulerAngles              = self.DEM_parameters["PostEulerAngles"].GetBool()
         self.PostRollingResistanceMoment  = self.DEM_parameters["PostRollingResistanceMoment"].GetBool()
-        self.PostLocalContactForce        = self.DEM_parameters["PostLocalContactForce"].GetBool()
-        self.PostFailureCriterionState    = self.DEM_parameters["PostFailureCriterionState"].GetBool()
-        self.PostContactFailureId         = self.DEM_parameters["PostContactFailureId"].GetBool()
-        self.PostContactTau               = self.DEM_parameters["PostContactTau"].GetBool()
-        self.PostContactSigma             = self.DEM_parameters["PostContactSigma"].GetBool()
-        self.PostMeanContactArea          = self.DEM_parameters["PostMeanContactArea"].GetBool()
+        self.PostLocalContactForce        = GetBoolParameterIfItExists(self.DEM_parameters, "PostLocalContactForce")
+        self.PostFailureCriterionState    = GetBoolParameterIfItExists(self.DEM_parameters, "PostFailureCriterionState")
+        self.PostContactFailureId         = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactFailureId")        
+        self.PostContactTau               = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactTau")
+        self.PostContactSigma             = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactSigma")
+        self.PostMeanContactArea          = GetBoolParameterIfItExists(self.DEM_parameters, "PostMeanContactArea")        
         self.PostElasticForces            = self.DEM_parameters["PostElasticForces"].GetBool()
         self.PostContactForces            = self.DEM_parameters["PostContactForces"].GetBool()
         self.PostRigidElementForces       = self.DEM_parameters["PostRigidElementForces"].GetBool()
         self.PostPressure                 = self.DEM_parameters["PostPressure"].GetBool()
         self.PostTangentialElasticForces  = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
         self.PostShearStress              = self.DEM_parameters["PostShearStress"].GetBool()
-        self.PostNodalArea                = self.DEM_parameters["PostNodalArea"].GetBool()        
-        self.PostTemperature              = self.DEM_parameters["PostTemperature"].GetBool()
-        self.PostHeatFlux                 = self.DEM_parameters["PostHeatFlux"].GetBool()
-        self.PostNeighbourSize            = self.DEM_parameters["PostNeighbourSize"].GetBool()
-        self.PostBrokenRatio              = self.DEM_parameters["PostBrokenRatio"].GetBool()
-        self.PostNormalImpactVelocity     = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
-        self.PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
+        self.PostNodalArea                = self.DEM_parameters["PostNodalArea"].GetBool()       
+        self.PostTemperature              = GetBoolParameterIfItExists(self.DEM_parameters, "PostTemperature")
+        self.PostHeatFlux                 = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatFlux")
+        self.PostNeighbourSize            = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
+        self.PostBrokenRatio              = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
+        self.PostNormalImpactVelocity     = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
+        self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.VelTrapGraphExportFreq       = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
 
         if not "PostBoundingBox" in self.DEM_parameters:
@@ -1364,13 +1370,13 @@ class DEMIo(object):
         
         one_level_up_path = os.path.join(self.post_path,"..")
         self.multifiles = (            
-            MultifileList(one_level_up_path, DEM_parameters["problem_name"].GetString(), 1, "outer"),
-            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(), 1, "inner"),
-            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(), 2, "inner"),
-            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(), 5, "inner"),
-            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(),10, "inner"),
-            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(),20, "inner"),
-            MultifileList(self.post_path, DEM_parameters["problem_name"].GetString(),50, "inner"),
+            MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(),10, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(),20, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(),50, "inner"),
             )
             
         self.SetMultifileLists(self.multifiles)
@@ -1439,7 +1445,7 @@ class DEMIo(object):
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
             
     def AddSpheresNotInClusterAndClustersVariables(self):  # variables common to spheres and clusters
-        if DEM_parameters["PostEulerAngles"].GetBool():
+        if self.DEM_parameters["PostEulerAngles"].GetBool():
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,            self.spheres_not_in_cluster_and_clusters_local_axis_variables)
 
     def AddSpheresVariables(self):
@@ -1498,7 +1504,7 @@ class DEMIo(object):
 
     def AddClusterVariables(self):
         self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
-        if DEM_parameters["PostEulerAngles"].GetBool():
+        if self.DEM_parameters["PostEulerAngles"].GetBool():
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
             #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
