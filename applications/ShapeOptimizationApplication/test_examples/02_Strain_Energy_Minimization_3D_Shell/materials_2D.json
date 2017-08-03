@@ -5,7 +5,7 @@
             "Material": {
                     "name": "Shell_Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
                     },
                     "Variables": {
                             "KratosMultiphysics.DENSITY": 7.85000E+03,                            
