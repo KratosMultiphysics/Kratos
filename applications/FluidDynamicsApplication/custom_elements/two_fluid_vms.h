@@ -49,12 +49,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/vms.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
 #include "utilities/split_tetrahedra.h"
 // #include "utilities/enrichment_utilities.h"
 #include "utilities/enrichment_utilities_duplicate_dofs.h"
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "vms.h"
+
 namespace Kratos
 {
     
@@ -240,6 +242,8 @@ public:
                                           ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+
+        const ProcessInfo& rConstProcessInfo = rCurrentProcessInfo; // Taking const reference for thread safety
     
         //****************************************************
         // Resize and set to zero the RHS
@@ -256,7 +260,7 @@ public:
 
        //****************************************************
         //Get Vector of BDF coefficients
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        const Vector& BDFVector = rConstProcessInfo[BDF_COEFFICIENTS];
 
        //****************************************************
         // Get this element's geometric properties
@@ -370,10 +374,9 @@ KRATOS_WATCH(Ngauss);  */
 //             }
 //         }
 
-
-
-
-
+        // Porous media losses
+        const double A = rConstProcessInfo[LIN_DARCY_COEF];
+        const double B = rConstProcessInfo[NONLIN_DARCY_COEF];
 
 
         //****************************************************
@@ -405,12 +408,13 @@ KRATOS_WATCH(Ngauss);  */
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
+            const double VelNorm = MathUtils<double>::Norm3(AdvVel);
+            const double ReactionTerm = Density * (A + B*VelNorm);
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
             //compute stabilization parameters
-            this->CalculateTau(TauOne, TauTwo, AdvVel, ElemSize, Density, Viscosity, rCurrentProcessInfo);
-//              TauOne = rCurrentProcessInfo[DELTA_TIME]/Density;
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, ReactionTerm, rCurrentProcessInfo);
 
             this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
             
@@ -518,9 +522,11 @@ KRATOS_WATCH(Ngauss);  */
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
+            const double VelNorm = MathUtils<double>::Norm3(AdvVel);
+            const double ReactionTerm = Density * (A + B*VelNorm);
 
             double TauOne,TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, ReactionTerm, rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
             this->AddMassStabTerms(MassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
@@ -1091,6 +1097,22 @@ protected:
 //            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
         this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
     }
+
+    void CalculateTau(
+        double& TauOne,
+        double& TauTwo,
+        const double VelNorm,
+        const double ElemSize,
+        const double Density,
+        const double Viscosity,
+        const double ReactionTerm,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        double InvTau = Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 2.0*VelNorm / ElemSize ) + 4.0*Viscosity/ (ElemSize * ElemSize) + ReactionTerm;
+        TauOne = 1.0 / InvTau;
+        TauTwo = Viscosity + 0.5 * Density * ElemSize * VelNorm;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
