@@ -64,7 +64,8 @@
             "time_frequency"   : 0.01
         }
     }
-    ],   
+    ],
+    "check_analytic_results_process" : [],    
     "apply_custom_function_process" : [],
     "restart_options"          : {
         "SaveRestart"      : false,

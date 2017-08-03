@@ -920,7 +920,7 @@ public:
         }
         else
         {
-            rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
+            rResult[0] = 2.0; // Out of the line!!!
         }
 
         return( rResult );
