@@ -904,7 +904,7 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
     }
-    
+
     // If this is a 2D problem, check that nodes are in XY plane
     if (this->GetGeometry().WorkingSpaceDimension() == 2)
     {
@@ -1113,7 +1113,7 @@ void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayTy
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 
-    
+
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1195,15 +1195,15 @@ double FractionalStep<TDim>::EffectiveViscosity(double Density,
                                                 double ElemSize,
                                                 const ProcessInfo &rProcessInfo)
 {
-    double Csmag = this->GetValue(C_SMAGORINSKY);
+    const FractionalStep<TDim>* const_this = static_cast<const FractionalStep<TDim>*> (this);
+    const double Csmag = const_this->GetValue(C_SMAGORINSKY);
     double Viscosity = 0.0;
     this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
 
     if (Csmag > 0.0)
     {
-        double StrainRate = this->EquivalentStrainRate(rDN_DX); // (2SijSij)^0.5
-        double LengthScale = Csmag*ElemSize;
-        LengthScale *= LengthScale; // square
+        const double StrainRate = this->EquivalentStrainRate(rDN_DX); // (2SijSij)^0.5
+        const double LengthScale = std::pow(Csmag*ElemSize, 2);
         Viscosity += 2.0*LengthScale*StrainRate;
     }
 
@@ -1450,7 +1450,7 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rMomentumRHS,
 		const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         for (SizeType d = 0; d < TDim; ++d)
             Convection[d] += ConvOp[i] * vel[d];
-			
+
 	}
 
     array_1d<double,TDim> PressureGradient(TDim,0.0);
@@ -1494,10 +1494,10 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
 
     array_1d<double,3> Convection(3,0.0);
     for (unsigned int i = 0; i < NumNodes; ++i)
-	{	
+	{
 		const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         for (unsigned int d = 0; d < TDim; ++d)
-            Convection[d] += ConvOp[i] * vel[d];			
+            Convection[d] += ConvOp[i] * vel[d];
 	}
 
     array_1d<double,TDim> PressureGradient(TDim,0.0);
@@ -1585,7 +1585,7 @@ void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampMatrix,
 
         // C_epsilon
         const double Ce = 1.0;
-        
+
         // ksgs
         double ksgs = -4*AvgDeltaSq*GijSij/(Ce*Ce*Gkk);
 

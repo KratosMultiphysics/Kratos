@@ -18,7 +18,7 @@
             "input_filename" : "3D_Shell_fine"
         },
             "material_import_settings" :{
-            "materials_filename": "materials_3D.json"
+            "materials_filename": "materials_2D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
