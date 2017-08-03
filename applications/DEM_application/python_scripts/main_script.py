@@ -347,8 +347,8 @@ class Solution(object):
         pass
 
     def AfterSolveOperations(self):
-        if (hasattr(DEM_parameters, "AnalyticParticle")):
-            if (DEM_parameters.AnalyticParticle):
+        if "AnalyticParticle" in DEM_parameters: #TODO: Change the name of AnalyticParticle to something more understandable
+            if DEM_parameters["AnalyticParticle"].GetBool():
                 self.particle_watcher.MakeMeasurements(self.analytic_model_part)
                 time_to_print = self.time - self.time_old_print
                 if (DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):

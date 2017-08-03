@@ -166,7 +166,7 @@ class PostUtils(object):
         self.post_utilities = PostUtilities()
 
         self.vel_trap_graph_counter = 0
-        self.vel_trap_graph_frequency = int(DEM_parameters.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.vel_trap_graph_frequency = int(DEM_parameters["VelTrapGraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) #TODO: change the name of VelTrapGraphExportFreq to VelTrapGraphExportTimeInterval
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -267,7 +267,7 @@ class DEMEnergyCalculator(object):
                 self.inelastic_viscodamping_energy          = 0.0
                 self.external_energy                        = 0.0
                 self.total_energy                           = 0.0
-                self.graph_frequency                        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+                self.graph_frequency                        = int(self.DEM_parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))  #TODO: change the name GraphExportFreq to GraphExportTimeInterval
                 self.energy_graph_counter                   = 0
                 self.energy_plot.write(str("Time").rjust(9)+"   "+str("Trans kinematic energy").rjust(22)+"   "+str("Rot kinematic energy").rjust(20)+"   "+str("Kinematic energy").rjust(16)+"   "+str("Gravitational energy").rjust(20)+"   "+str("Elastic energy").rjust(14)+"   "+str("Frictonal energy").rjust(16)+"   "+str("Viscodamping energy").rjust(19)+"   "+str("Total energy").rjust(12)+"\n")
 
@@ -434,8 +434,10 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 
-        if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
+        if "PostStressStrainOption" in self.DEM_parameters:
+            if self.DEM_parameters["PostStressStrainOption"].GetBool():
+                model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
+                
         if (self.solver.compute_stress_tensor_option):
             model_part.AddNodalSolutionStepVariable(FORCE_REACTION)
             model_part.AddNodalSolutionStepVariable(MOMENT_REACTION)
@@ -447,8 +449,9 @@ class Procedures(object):
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
             model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION)
             model_part.AddNodalSolutionStepVariable(DRAG_COEFFICIENT)
+            
         # ONLY VISUALIZATION
-        if (Var_Translator(self.DEM_parameters.PostExportId)):
+        if self.DEM_parameters["PostExportId"].GetBool(): #TODO: add suffix Option
             model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
         #model_part.AddNodalSolutionStepVariable(SPRAYED_MATERIAL)
@@ -852,7 +855,7 @@ class DEMFEMProcedures(object):
         self.graph_counter = 0
         self.balls_graph_counter = 0
 
-        self.graph_frequency        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.graph_frequency        = int(self.DEM_parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.graph_frequency < 1:
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
         os.chdir(self.graphs_path)
@@ -884,24 +887,24 @@ class DEMFEMProcedures(object):
         def evaluate_computation_of_fem_results():
 
             self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 0)
-            elastic_forces            = Var_Translator(self.DEM_parameters.PostElasticForces)
-            tangential_elastic_forces = Var_Translator(self.DEM_parameters.PostTangentialElasticForces)
-            dem_pressure              = Var_Translator(self.DEM_parameters.PostPressure)
+            elastic_forces            = self.DEM_parameters["PostElasticForces"].GetBool()
+            tangential_elastic_forces = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
+            dem_pressure              = self.DEM_parameters["PostPressure"].GetBool()
             
-            if not (hasattr(self.DEM_parameters, "PostContactForces")):
+            if not "PostContactForces" in self.DEM_parameters:
                 contact_forces = 0
             else:
-                contact_forces = Var_Translator(self.DEM_parameters.PostContactForces)
+                contact_forces = self.DEM_parameters["PostContactForces"].GetBool()
             
-            if not (hasattr(self.DEM_parameters, "PostShearStress")):
+            if not "PostShearStress" in self.DEM_parameters:
                 shear_stress = 0
             else:
-                shear_stress = Var_Translator(self.DEM_parameters.PostShearStress)
+                shear_stress = self.DEM_parameters["PostShearStress"].GetBool()
             
-            if not (hasattr(self.DEM_parameters, "PostNodalArea")):
+            if not "PostNodalArea" in self.DEM_parameters:
                 dem_nodal_area = 0
             else:
-                dem_nodal_area = Var_Translator(self.DEM_parameters.PostNodalArea)
+                dem_nodal_area = self.DEM_parameters["PostNodalArea"].GetBool()
             
             integration_groups = False
             
@@ -1310,44 +1313,44 @@ class DEMIo(object):
         self.multifilelists                            = []
 
         # Reading Post options from DEM_parameters
-        self.PostDisplacement             = getattr(self.DEM_parameters, "PostDisplacement", 0)
-        self.PostVelocity                 = getattr(self.DEM_parameters, "PostVelocity", 0)
-        self.PostTotalForces              = getattr(self.DEM_parameters, "PostTotalForces", 0)
-        self.PostNonDimensionalVolumeWear = getattr(self.DEM_parameters, "PostNonDimensionalVolumeWear", 0)
-        self.PostAppliedForces            = getattr(self.DEM_parameters, "PostAppliedForces", 0)
-        self.PostDampForces               = getattr(self.DEM_parameters, "PostDampForces", 0)
-        self.PostRadius                   = getattr(self.DEM_parameters, "PostRadius", 0)
-        self.PostExportId                 = getattr(self.DEM_parameters, "PostExportId", 0)
-        self.PostSkinSphere               = getattr(self.DEM_parameters, "PostSkinSphere", 0)
-        self.PostAngularVelocity          = getattr(self.DEM_parameters, "PostAngularVelocity", 0)
-        self.PostParticleMoment           = getattr(self.DEM_parameters, "PostParticleMoment", 0)
-        self.PostEulerAngles              = getattr(self.DEM_parameters, "PostEulerAngles", 0)
-        self.PostRollingResistanceMoment  = getattr(self.DEM_parameters, "PostRollingResistanceMoment", 0)
-        self.PostLocalContactForce        = getattr(self.DEM_parameters, "PostLocalContactForce", 0)
-        self.PostFailureCriterionState    = getattr(self.DEM_parameters, "PostFailureCriterionState", 0)
-        self.PostContactFailureId         = getattr(self.DEM_parameters, "PostContactFailureId", 0)
-        self.PostContactTau               = getattr(self.DEM_parameters, "PostContactTau", 0)
-        self.PostContactSigma             = getattr(self.DEM_parameters, "PostContactSigma", 0)
-        self.PostMeanContactArea          = getattr(self.DEM_parameters, "PostMeanContactArea", 0)
-        self.PostElasticForces            = getattr(self.DEM_parameters, "PostElasticForces", 0)
-        self.PostContactForces            = getattr(self.DEM_parameters, "PostContactForces", 0)
-        self.PostRigidElementForces       = getattr(self.DEM_parameters, "PostRigidElementForces", 0)
-        self.PostPressure                 = getattr(self.DEM_parameters, "PostPressure", 0)
-        self.PostTangentialElasticForces  = getattr(self.DEM_parameters, "PostTangentialElasticForces", 0)
-        self.PostShearStress              = getattr(self.DEM_parameters, "PostShearStress", 0)
-        self.PostNodalArea                = getattr(self.DEM_parameters, "PostNodalArea", 0)
-        self.VelTrapGraphExportFreq       = getattr(self.DEM_parameters, "VelTrapGraphExportFreq", 0)
-        self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
-        self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
-        self.PostNeighbourSize            = getattr(self.DEM_parameters, "PostNeighbourSize", 0)
-        self.PostBrokenRatio              = getattr(self.DEM_parameters, "PostBrokenRatio", 0)
-        self.PostNormalImpactVelocity     = getattr(self.DEM_parameters, "PostNormalImpactVelocity", 0)
-        self.PostTangentialImpactVelocity = getattr(self.DEM_parameters, "PostTangentialImpactVelocity", 0)
+        self.PostDisplacement             = self.DEM_parameters["PostDisplacement"].GetBool()
+        self.PostVelocity                 = self.DEM_parameters["PostVelocity"].GetBool()
+        self.PostTotalForces              = self.DEM_parameters["PostTotalForces"].GetBool()
+        self.PostNonDimensionalVolumeWear = self.DEM_parameters["PostNonDimensionalVolumeWear"].GetBool()
+        self.PostAppliedForces            = self.DEM_parameters["PostAppliedForces"].GetBool()
+        self.PostDampForces               = self.DEM_parameters["PostDampForces"].GetBool()
+        self.PostRadius                   = self.DEM_parameters["PostRadius"].GetBool()
+        self.PostExportId                 = self.DEM_parameters["PostExportId"].GetBool()
+        self.PostSkinSphere               = self.DEM_parameters["PostSkinSphere"].GetBool()
+        self.PostAngularVelocity          = self.DEM_parameters["PostAngularVelocity"].GetBool()
+        self.PostParticleMoment           = self.DEM_parameters["PostParticleMoment"].GetBool()
+        self.PostEulerAngles              = self.DEM_parameters["PostEulerAngles"].GetBool()
+        self.PostRollingResistanceMoment  = self.DEM_parameters["PostRollingResistanceMoment"].GetBool()
+        self.PostLocalContactForce        = self.DEM_parameters["PostLocalContactForce"].GetBool()
+        self.PostFailureCriterionState    = self.DEM_parameters["PostFailureCriterionState"].GetBool()
+        self.PostContactFailureId         = self.DEM_parameters["PostContactFailureId"].GetBool()
+        self.PostContactTau               = self.DEM_parameters["PostContactTau"].GetBool()
+        self.PostContactSigma             = self.DEM_parameters["PostContactSigma"].GetBool()
+        self.PostMeanContactArea          = self.DEM_parameters["PostMeanContactArea"].GetBool()
+        self.PostElasticForces            = self.DEM_parameters["PostElasticForces"].GetBool()
+        self.PostContactForces            = self.DEM_parameters["PostContactForces"].GetBool()
+        self.PostRigidElementForces       = self.DEM_parameters["PostRigidElementForces"].GetBool()
+        self.PostPressure                 = self.DEM_parameters["PostPressure"].GetBool()
+        self.PostTangentialElasticForces  = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
+        self.PostShearStress              = self.DEM_parameters["PostShearStress"].GetBool()
+        self.PostNodalArea                = self.DEM_parameters["PostNodalArea"].GetBool()        
+        self.PostTemperature              = self.DEM_parameters["PostTemperature"].GetBool()
+        self.PostHeatFlux                 = self.DEM_parameters["PostHeatFlux"].GetBool()
+        self.PostNeighbourSize            = self.DEM_parameters["PostNeighbourSize"].GetBool()
+        self.PostBrokenRatio              = self.DEM_parameters["PostBrokenRatio"].GetBool()
+        self.PostNormalImpactVelocity     = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
+        self.PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
+        self.VelTrapGraphExportFreq       = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
 
-        if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
+        if not "PostBoundingBox" in self.DEM_parameters:
             self.PostBoundingBox = 0
         else:
-            self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
+            self.PostBoundingBox = self.DEM_parameters["PostBoundingBox"].GetBool()
             
         self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool())
         self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
@@ -1373,23 +1376,23 @@ class DEMIo(object):
         self.SetMultifileLists(self.multifiles)
         
         #Analytic
-        if not (hasattr(self.DEM_parameters, "PostNormalImpactVelocity")):
+        if not "PostNormalImpactVelocity" in self.DEM_parameters:
             PostNormalImpactVelocity = 0
             PostTangentialImpactVelocity = 0
         else:
-            PostNormalImpactVelocity = Var_Translator(self.DEM_parameters.PostNormalImpactVelocity)
-            PostTangentialImpactVelocity = Var_Translator(self.DEM_parameters.PostTangentialImpactVelocity)
+            PostNormalImpactVelocity = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
+            PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
 
         # Ice
-        if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
-            self.SeaSurfaceX1 = self.DEM_parameters.PostVirtualSeaSurfaceX1
-            self.SeaSurfaceY1 = self.DEM_parameters.PostVirtualSeaSurfaceY1
-            self.SeaSurfaceX2 = self.DEM_parameters.PostVirtualSeaSurfaceX2
-            self.SeaSurfaceY2 = self.DEM_parameters.PostVirtualSeaSurfaceY2
-            self.SeaSurfaceX3 = self.DEM_parameters.PostVirtualSeaSurfaceX3
-            self.SeaSurfaceY3 = self.DEM_parameters.PostVirtualSeaSurfaceY3
-            self.SeaSurfaceX4 = self.DEM_parameters.PostVirtualSeaSurfaceX4
-            self.SeaSurfaceY4 = self.DEM_parameters.PostVirtualSeaSurfaceY4
+        if "PostVirtualSeaSurfaceX1" in self.DEM_parameters:
+            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"]
+            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"]
+            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"]
+            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"]
+            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"]
+            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"]
+            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"]
+            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"]
 
     def KRATOSprint(self,message):
         print(message)
@@ -1430,9 +1433,9 @@ class DEMIo(object):
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
-        if (Var_Translator(self.DEM_parameters.PostAngularVelocity)):
+        if self.DEM_parameters["PostAngularVelocity"].GetBool():
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,        self.spheres_and_clusters_variables)
-        if (Var_Translator(self.DEM_parameters.PostParticleMoment)):       
+        if self.DEM_parameters["PostParticleMoment"].GetBool():       
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
             
     def AddSpheresNotInClusterAndClustersVariables(self):  # variables common to spheres and clusters
@@ -1450,7 +1453,7 @@ class DEMIo(object):
 
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
-        if (hasattr(self.DEM_parameters, "PostRollingResistanceMoment")):
+        if "PostRollingResistanceMoment" in self.DEM_parameters:
             if self.DEM_parameters["RotationOption"].GetBool():
                 if self.DEM_parameters["RollingFrictionOption"].GetBool():
                     self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
@@ -1459,28 +1462,28 @@ class DEMIo(object):
             if self.DEM_parameters["PostSkinSphere"].GetBool():
                 self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
 
-        if (hasattr(self.DEM_parameters, "PostNeighbourSize")):
-            if (Var_Translator(self.DEM_parameters.PostNeighbourSize)):
+        if "PostNeighbourSize" in self.DEM_parameters:
+            if self.DEM_parameters["PostNeighbourSize"].GetBool():
                 self.PushPrintVar(self.PostNeighbourSize,       NEIGHBOUR_SIZE,              self.spheres_variables)
 
-        if (hasattr(self.DEM_parameters, "PostBrokenRatio")):
-            if (Var_Translator(self.DEM_parameters.PostBrokenRatio)):
+        if "PostBrokenRatio" in self.DEM_parameters:
+            if self.DEM_parameters["PostBrokenRatio"].GetBool():
                 self.PushPrintVar(self.PostBrokenRatio,       NEIGHBOUR_RATIO,              self.spheres_variables)
 
         # NANO (TODO: must be removed from here.)
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
-        if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
-            if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
+        if "PostStressStrainOption" in self.DEM_parameters:
+            if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_TENSOR,     self.spheres_variables)
                 self.PushPrintVar(1, FORCE_REACTION,        self.spheres_variables)
                 self.PushPrintVar(1, MOMENT_REACTION,       self.spheres_variables)
 
-        if (hasattr(self.DEM_parameters, "PostPoissonRatio")):
-            if Var_Translator(self.DEM_parameters.PostPoissonRatio):
-                self.PushPrintVar(self.DEM_parameters.PostPoissonRatio, POISSON_VALUE, self.spheres_variables)
+        if "PostPoissonRatio" in self.DEM_parameters:
+            if self.DEM_parameters["PostPoissonRatio"].GetBool():
+                self.PushPrintVar(1, POISSON_VALUE, self.spheres_variables)
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
@@ -1653,7 +1656,7 @@ class DEMIo(object):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
                         
             # Ice. Printing a virtual sea surface
-            if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
+            if "PostVirtualSeaSurfaceX1" in self.DEM_parameters:
                 self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
                 
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI

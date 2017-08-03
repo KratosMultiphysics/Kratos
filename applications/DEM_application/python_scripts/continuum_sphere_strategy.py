@@ -28,7 +28,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.fixed_vel_bot = DEM_parameters["LoadingVelocityBot"].GetDouble()
 
-        if (self.Var_Translator(DEM_parameters.DontSearchUntilFailure)):
+        if DEM_parameters["DontSearchUntilFailure"].GetBool():
             print ("Search is not active until a bond is broken.")
             self.search_control = 0
             if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
@@ -39,27 +39,27 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.test_type = DEM_parameters["TestType"].GetString() 
 
-        self.amplified_continuum_search_radius_extension = DEM_parameters.AmplifiedSearchRadiusExtension
+        self.amplified_continuum_search_radius_extension = DEM_parameters["AmplifiedSearchRadiusExtension"].GetDouble()
         
-        if hasattr(DEM_parameters, "MaxAmplificationRatioOfSearchRadius"):
-            self.max_amplification_ratio_of_search_radius = DEM_parameters.MaxAmplificationRatioOfSearchRadius
+        if "MaxAmplificationRatioOfSearchRadius" in DEM_parameters:
+            self.max_amplification_ratio_of_search_radius = DEM_parameters["MaxAmplificationRatioOfSearchRadius"].GetDouble()
         else:
             self.max_amplification_ratio_of_search_radius = 0.0
             
-        if not hasattr(DEM_parameters, "PostPoissonRatio"):
+        if not "PostPoissonRatio" in DEM_parameters:
             self.poisson_ratio_option = 0
         else:
-            self.poisson_ratio_option = self.Var_Translator(DEM_parameters.PostPoissonRatio)
+            self.poisson_ratio_option = DEM_parameters["PostPoissonRatio"].GetBool()
             
         if not "PoissonEffectOption" in DEM_parameters:
             self.poisson_effect_option = False
         else:
             self.poisson_effect_option = DEM_parameters["PoissonEffectOption"].GetBool()
 
-        if not hasattr(DEM_parameters, "ShearStrainParallelToBondOption"):
+        if not "ShearStrainParallelToBondOption" in DEM_parameters:
             self.shear_strain_parallel_to_bond_option = False
         else:
-            self.shear_strain_parallel_to_bond_option = DEM_parameters["ShearStrainParallelToBondOption"]
+            self.shear_strain_parallel_to_bond_option = DEM_parameters["ShearStrainParallelToBondOption"].GetBool()
 
         if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
             self.compute_stress_tensor_option = 1
