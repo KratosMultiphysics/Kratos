@@ -48,7 +48,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
-        self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )        
+        if self.performDamping:        
+            self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )        
 
         self.timer = timer_factory.CreateTimer()
         self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, communicator, optimizationSettings, self.timer )
