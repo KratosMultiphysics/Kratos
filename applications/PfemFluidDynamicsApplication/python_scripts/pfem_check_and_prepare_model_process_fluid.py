@@ -1,7 +1,7 @@
 import KratosMultiphysics 
 from KratosMultiphysics.ExternalSolversApplication import *
 #from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemBaseApplication import *
+from KratosMultiphysics.PfemApplication import *
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 #from KratosMultiphysics.PfemFluidDynamicsApplication import *

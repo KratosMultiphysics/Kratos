@@ -110,7 +110,7 @@ void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rParamet
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rParameterValues)
+void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rParameterValues);
 }
@@ -118,7 +118,7 @@ void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rParameterValu
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rParameterValues)
+void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rParameterValues);
 }
@@ -126,7 +126,7 @@ void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rParameterV
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -134,7 +134,7 @@ void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rParameterValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -142,7 +142,7 @@ void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rParamete
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -150,7 +150,7 @@ void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rParameterValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rParameterValues)
+void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     // TODO: Add if necessary
 }

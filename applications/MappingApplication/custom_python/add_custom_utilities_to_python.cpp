@@ -150,7 +150,7 @@ void  AddCustomUtilitiesToPython()
         = &MapperFactory::InverseMap;
 
 
-    class_< MapperFactory > mapper_factory = class_<MapperFactory>("MapperFactory", init<ModelPart&, ModelPart&, Parameters&>())
+    class_< MapperFactory > mapper_factory = class_<MapperFactory>("MapperFactory", init<ModelPart&, ModelPart&, Parameters>())
             .def("UpdateInterface",  pUpdateInterface)
             .def("UpdateInterface",  pUpdateInterfaceOptions)
             .def("UpdateInterface",  pUpdateInterfaceSearchRadius)
