@@ -34,7 +34,9 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
 #include "custom_utilities/response_functions/eigenfrequency_response_function.h"
-
+#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
+#include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
+#include "custom_utilities/response_functions/local_stress_response_function.h"
 
 // ==============================================================================
 
@@ -116,7 +118,43 @@ void  AddCustomUtilitiesToPython()
         .def("get_value", &MassResponseFunction::get_value)
         .def("get_initial_value", &MassResponseFunction::get_initial_value) 
         .def("get_gradient", &MassResponseFunction::get_gradient)                              
-        ;                     
+        ;   
+
+    class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
+        .def("initialize", &EigenfrequencyResponseFunction::initialize)
+        .def("calculate_value", &EigenfrequencyResponseFunction::calculate_value)
+        .def("calculate_gradient", &EigenfrequencyResponseFunction::calculate_gradient) 
+        .def("get_value", &EigenfrequencyResponseFunction::get_value)
+        .def("get_initial_value", &EigenfrequencyResponseFunction::get_initial_value)  
+        .def("get_gradient", &EigenfrequencyResponseFunction::get_gradient)   
+        ;   
+
+    class_<EigenfrequencyResponseFunctionLinScal, bases<Process> >("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>())
+        .def("initialize", &EigenfrequencyResponseFunctionLinScal::initialize)
+        .def("calculate_value", &EigenfrequencyResponseFunctionLinScal::calculate_value)
+        .def("calculate_gradient", &EigenfrequencyResponseFunctionLinScal::calculate_gradient) 
+        .def("get_value", &EigenfrequencyResponseFunctionLinScal::get_value)
+        .def("get_initial_value", &EigenfrequencyResponseFunctionLinScal::get_initial_value)  
+        .def("get_gradient", &EigenfrequencyResponseFunctionLinScal::get_gradient)   
+        ;  
+
+    class_<EigenfrequencyResponseFunctionKS, bases<Process> >("EigenfrequencyResponseFunctionKS", init<ModelPart&, Parameters&>())
+        .def("initialize", &EigenfrequencyResponseFunctionKS::initialize)
+        .def("calculate_value", &EigenfrequencyResponseFunctionKS::calculate_value)
+        .def("calculate_gradient", &EigenfrequencyResponseFunctionKS::calculate_gradient) 
+        .def("get_value", &EigenfrequencyResponseFunctionKS::get_value)
+        .def("get_initial_value", &EigenfrequencyResponseFunctionKS::get_initial_value)  
+        .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
+        ;
+
+    class_<LocalStressResponseFunction, bases<Process> >("LocalStressResponseFunction", init<ModelPart&, Parameters&>())
+        .def("initialize", &LocalStressResponseFunction::initialize)
+        .def("calculate_value", &LocalStressResponseFunction::calculate_value)
+        .def("calculate_gradient", &LocalStressResponseFunction::calculate_gradient) 
+        .def("get_value", &LocalStressResponseFunction::get_value)
+        .def("get_initial_value", &LocalStressResponseFunction::get_initial_value)  
+        .def("get_gradient", &LocalStressResponseFunction::get_gradient)                              
+        ;           
 
     // ========================================================================
     // For input / output

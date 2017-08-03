@@ -29,15 +29,19 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/line_2d.h"
+#include "geometries/line_3d_2.h"
 #include "includes/variables.h"
 #include "includes/condition.h"
 #include "shape_optimization_application.h"
 
+
 // elements
 #include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
+#include "custom_elements/small_displacement_beam_element_3D2N_4_sensitivity_analysis.hpp"
 
 // conditions
 #include "custom_conditions/shape_optimization_condition.h"
+
 
 // ==============================================================================
 
@@ -69,12 +73,23 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_STRESS_GRADIENT);
     KRATOS_CREATE_VARIABLE( int, ACTIVE_NODE_INDEX );
     KRATOS_CREATE_VARIABLE( Vector, DKDXU );
     KRATOS_CREATE_VARIABLE( Vector, DKDXU_X );
     KRATOS_CREATE_VARIABLE( Vector, DKDXU_Y );
     KRATOS_CREATE_VARIABLE( Vector, DKDXU_Z );
+    KRATOS_CREATE_VARIABLE( double, CROSS_AREA ); //fusseder
+    KRATOS_CREATE_VARIABLE( double, STRESS_VALUE ); //fusseder
+    KRATOS_CREATE_VARIABLE( int, LOCATION_OF_TRACED_STRESS ); //fusseder
+    KRATOS_CREATE_VARIABLE( std::string, TRACED_STRESS_TYPE ); //fusseder
+    KRATOS_CREATE_VARIABLE( Vector, ADJOINT_LOAD ); //fusseder
+    KRATOS_CREATE_VARIABLE( Vector, ZERO_ADJOINT_LOAD ); //fusseder
+    KRATOS_CREATE_VARIABLE( std::string, STRESS_TREATMENT ); //fusseder
 
+
+
+    
 
     // Eof variables
 
@@ -84,10 +99,15 @@ namespace Kratos
     	mSmallDisplacementAnalyticSensitivityElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
 		mSmallDisplacementAnalyticSensitivityElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
 
+        mSmallDisplacementBeamElement3D2N4SensitivityAnalysis( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+
         mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mShapeOptimizationCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
+        mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+        mShapeOptimizationCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ) //fusseder
+        
 
+      
     {}
  	
  	void KratosShapeOptimizationApplication::Register()
@@ -127,11 +147,23 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LOCAL_STRESS_GRADIENT);
         KRATOS_REGISTER_VARIABLE( ACTIVE_NODE_INDEX )
         KRATOS_REGISTER_VARIABLE( DKDXU )
 		KRATOS_REGISTER_VARIABLE( DKDXU_X )
 		KRATOS_REGISTER_VARIABLE( DKDXU_Y )
 		KRATOS_REGISTER_VARIABLE( DKDXU_Z )
+        KRATOS_REGISTER_VARIABLE( CROSS_AREA ) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_VALUE ) //fusseder
+        KRATOS_REGISTER_VARIABLE( CROSS_AREA ) //fusseder
+        KRATOS_REGISTER_VARIABLE( LOCATION_OF_TRACED_STRESS ) //fusseder
+        KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE ) //fusseder
+        KRATOS_REGISTER_VARIABLE( ADJOINT_LOAD ) //fusseder
+        KRATOS_REGISTER_VARIABLE( ZERO_ADJOINT_LOAD ) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_TREATMENT ) //fusseder
+        
+
+        
 
         // Register elements
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D4N", mSmallDisplacementAnalyticSensitivityElement3D4N );
@@ -139,10 +171,14 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D8N", mSmallDisplacementAnalyticSensitivityElement3D8N );
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D20N", mSmallDisplacementAnalyticSensitivityElement3D20N );
 
+        // Register the beam element
+        KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N4SensitivityAnalysis", mSmallDisplacementBeamElement3D2N4SensitivityAnalysis );
+
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D4N", mShapeOptimizationCondition3D4N );
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition2D2N", mShapeOptimizationCondition2D2N );
+        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D2N", mShapeOptimizationCondition3D2N ); //fusseder
  	}
 
 }  // namespace Kratos.

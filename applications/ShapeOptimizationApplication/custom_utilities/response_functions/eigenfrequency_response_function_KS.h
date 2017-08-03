@@ -9,8 +9,8 @@
 //
 // ==============================================================================
 
-#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_H
-#define EIGENFREQUENCY_RESPONSE_FUNCTION_H
+#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_KS_H
+#define EIGENFREQUENCY_RESPONSE_FUNCTION_KS_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -67,7 +67,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class EigenfrequencyResponseFunction : ResponseFunction
+class EigenfrequencyResponseFunctionKS : ResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -83,15 +83,15 @@ public:
 	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
 	
 
-	/// Pointer definition of EigenfrequencyResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunction);
+	/// Pointer definition of EigenfrequencyResponseFunctionKS
+	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionKS);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	EigenfrequencyResponseFunctionKS(ModelPart& model_part, Parameters& responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
@@ -107,19 +107,39 @@ public:
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
 
-		// Get number of eigenfrequency for which the structure has to be optimized
-		m_traced_eigenvalue = responseSettings["traced_eigenfrequency"].GetInt();
 
-
+        // Get array of numbers of eigenfrequencies which have to be traced by this response function
+		m_num_eigenvalues =  responseSettings["traced_eigenfrequency"].size();
+		m_vector_ev.resize(m_num_eigenvalues,false);
+		
+		for(int i = 0; i < m_num_eigenvalues; i++)
+			m_vector_ev[i] = responseSettings["traced_eigenfrequency"][i].GetInt();
+		
+		// Set KS-Parameter
+		m_KS_parameter= responseSettings["KS_parameter"].GetDouble();
+	
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
-		m_eigenvalue = 0.0;
+		m_resp_function_value = 0.0;
+		m_scal_fac_computed = false;
+
+
+  		// Check validity of KS-Parameter
+  		if (m_KS_parameter <= 0)
+  		{
+			KRATOS_THROW_ERROR(std::invalid_argument, "KS-parameter has to be positive. Your choice is: ", m_KS_parameter);
+  		}
+  		else if (m_KS_parameter > 100.0 || m_KS_parameter < 1.0)
+  		{
+			KRATOS_THROW_ERROR(std::invalid_argument, "KS-parameter is out of the recommended range of [1, 100]. Your choice is: ", m_KS_parameter);
+  		}
+
 
 	}
 
 	/// Destructor.
-	virtual ~EigenfrequencyResponseFunction()
+	virtual ~EigenfrequencyResponseFunctionKS()
 	{
 	}
 
@@ -142,32 +162,131 @@ public:
 	{
 		KRATOS_TRY;
 
-		m_eigenvalue = 0.0;
+		m_resp_function_value = 0.0;
+
+		// Compute response function by weighting with Kreisselmeier-Steinhauser
+		for(int i = 0; i < m_num_eigenvalues; i++)
+			m_resp_function_value += compute_single_ks_value(i);
+
+		m_resp_function_value  = log( m_resp_function_value );	
+		m_resp_function_value /= m_KS_parameter;
+
+		// Set initial value if not done yet
+		if(!m_initial_value_defined)
+		{
+			m_initial_value = m_resp_function_value;
+			m_initial_value_defined = true;
+		}
+
+		KRATOS_CATCH("");
+	}
+
+	// --------------------------------------------------------------------------
+	double get_single_eigenvalue(int id_eigenvalue)
+	{
+
+		KRATOS_TRY;
+
+		double current_eigenvalue = 0.0;
 
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
 
 		int num_of_computed_eigenvalues = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
 
-		if(num_of_computed_eigenvalues < m_traced_eigenvalue)
+		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		m_eigenvalue = 	(mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1]; 
+		current_eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1]; 
 
-		// Change sign of response: only maximization makes sense in case of eigenfrequency optimization		
-		m_eigenvalue *= (-1.0);
+		return current_eigenvalue;
+		
+		KRATOS_CATCH("");
 
-		std::cout << ("I use eigenvalue: ") << m_eigenvalue << std::endl;
+	}
 
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
+	// --------------------------------------------------------------------------
+	double compute_single_ks_value(int id_eigenvalue_in_vector)
+	{
+
+		KRATOS_TRY;
+
+		double lower_bound_mapping = 0.1;
+    	double upper_bound_mapping = 0.5;
+    	double shift= 80.0;
+
+		// Perform tranformation of eigenvalues into [0.1 , 0.5] (only performed once)
+    	if (!m_scal_fac_computed)
 		{
-			m_initial_value = m_eigenvalue;
-			m_initial_value_defined = true;
-		}
 
+        	m_scaling_factors_eigenvalues.resize(m_num_eigenvalues);
+        	double smallest_ev = get_single_eigenvalue(m_vector_ev[0]);
+        	double largest_ev =  get_single_eigenvalue(m_vector_ev[m_num_eigenvalues - 1]);
+        	double lambda_scaled;
+			double current_eigenvalue = 0.0;
+
+        	if (m_num_eigenvalues == 1)
+            	m_scaling_factors_eigenvalues[0] = upper_bound_mapping / smallest_ev;
+        	else
+        	{
+          		// Loop over traced eigenvalues
+          		for (int i = 0; i < m_num_eigenvalues; ++i)
+          		{
+					current_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
+					lambda_scaled = lower_bound_mapping  + (current_eigenvalue - smallest_ev) *
+                	(upper_bound_mapping - lower_bound_mapping ) / (largest_ev - smallest_ev);
+					m_scaling_factors_eigenvalues[i] = lambda_scaled / current_eigenvalue;
+          		}
+			}
+        
+        	// Change boolean
+        	m_scal_fac_computed = true;
+   		}
+
+		double traced_eigenvalue = get_single_eigenvalue(m_vector_ev[id_eigenvalue_in_vector]);
+
+    	// Calculate KS-term for one eigenvalue
+   		double KS_value = (std::exp( -1.0 * m_KS_parameter *
+       					  std::sqrt(traced_eigenvalue * m_scaling_factors_eigenvalues[id_eigenvalue_in_vector]) + shift));
+		//double KS_value = std::exp( -1.0 * m_KS_parameter * current_eigenvalue * m_scaling_factors_eigenvalues[id_eigenvalue_in_vector]  + shift  );
+
+    	return KS_value;
 
 		KRATOS_CATCH("");
+	}
+
+	// --------------------------------------------------------------------------
+	Vector get_eigenvector_of_element(ModelPart::ElementIterator traced_element, int id_eigenvalue, int size_of_eigenvector)
+	{
+
+		KRATOS_TRY;
+
+		Vector eigenvector_of_element;
+		eigenvector_of_element.resize(size_of_eigenvector,false);
+
+		const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
+           	  KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
+		
+		int k = 0;
+		for (ModelPart::NodeIterator node_i = traced_element->GetGeometry().begin(); node_i != traced_element->GetGeometry().end(); ++node_i)
+		{
+			Matrix& rNodeEigenvectors = node_i->GetValue(rEIGENVECTOR_MATRIX);
+
+			ModelPart::NodeType::DofsContainerType& NodeDofs = node_i->GetDofs();
+
+			int NumNodeDofs = NodeDofs.size();
+
+			for (int i = 0; i < NumNodeDofs; i++)
+            {
+                eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((id_eigenvalue-1),i);
+            }
+			k++;
+		}
+
+		return eigenvector_of_element;
+
+		KRATOS_CATCH("");
+
 	}
 
 	// --------------------------------------------------------------------------
@@ -175,14 +294,10 @@ public:
 	{
 		KRATOS_TRY;
 
-		// Formula computed in general notation:
-		// \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} - 
-		//				   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
-
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) )= zeros_array;
+			noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) ) = zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
 		// The gradient is computed in one step
@@ -218,7 +333,7 @@ public:
 	{
 		KRATOS_TRY;
 
-		return m_eigenvalue;
+		return m_resp_function_value;
 
 		KRATOS_CATCH("");
 	}
@@ -257,13 +372,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const
 	{
-		return "EigenfrequencyResponseFunction";
+		return "EigenfrequencyResponseFunctionKS";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "EigenfrequencyResponseFunction";
+		rOStream << "EigenfrequencyResponseFunctionKS";
 	}
 
 	/// Print object's data.
@@ -301,128 +416,157 @@ protected:
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
-		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} - 
-		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
 		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-		//for (auto& i_elem : mr_model_part.Elements())
 		{
-
-	
-
 			Matrix mass_matrix_org;
 			Matrix LHS_org;
 			Vector eigenvector_of_element = Vector(0);
 			Vector dummy;
+			Matrix aux_matrix = Matrix(0,0);
+			Vector aux_vector = Vector(0);
 			elem_i->CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
 			elem_i->CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
+			double traced_eigenvalue = 0.0;
 		
 			// Get size of element eigenvector and initialize eigenvector
 			int num_dofs_element = mass_matrix_org.size1();
 			eigenvector_of_element.resize(num_dofs_element,false);
 
-			const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
-           	      KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
-		
-			int k = 0;
-			// Get eigenvector of element
-			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
+			Vector ks_values = Vector(0);
+			ks_values.resize(m_num_eigenvalues,false);
+			double ks_values_sum = 0.0;
+
+			for(int i = 0; i < m_num_eigenvalues; i++)
 			{
-				Matrix& rNodeEigenvectors = node_i->GetValue(rEIGENVECTOR_MATRIX);
-
-				ModelPart::NodeType::DofsContainerType& NodeDofs = node_i->GetDofs();
-    
-				int NumNodeDofs = NodeDofs.size();
-
-				for (int i = 0; i < NumNodeDofs; i++)
-                {
-                    eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((m_traced_eigenvalue-1),i);
-                }
-				k++;
+				ks_values[i] = compute_single_ks_value(i);
+				ks_values_sum += ks_values[i]; 
 			}
-			
+
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
 			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
 			{
-
 				array_3d gradient_contribution(3, 0.0);
 				Matrix perturbed_LHS = Matrix(0,0);
 				Matrix perturbed_mass_matrix = Matrix(0,0);
-				Vector aux = Vector(0);
-
+				
 				// Derivative of response w.r.t. x-coord ------------------------
 				node_i->X0() += mDelta;
 
 				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= m_eigenvalue;
 				
 				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
-				perturbed_LHS -= perturbed_mass_matrix;
+				// Loop over eigenvalues
+				for(int i = 0; i < m_num_eigenvalues; i++)
+				{
+					traced_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
+					eigenvector_of_element = get_eigenvector_of_element(elem_i, m_vector_ev[i], num_dofs_element);
 
-				aux = prod(perturbed_LHS , eigenvector_of_element);
-				gradient_contribution[0] = inner_prod(eigenvector_of_element , aux);
+					aux_matrix = perturbed_LHS;
+					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
+					aux_vector = prod(aux_matrix , eigenvector_of_element);
+					
+					gradient_contribution[0] += (inner_prod(eigenvector_of_element , aux_vector) *
+												ks_values[i] * m_scaling_factors_eigenvalues[i] / 
+												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));							
 
+					eigenvector_of_element = Vector(0);
+					aux_matrix = Matrix(0,0);
+					aux_vector = Vector(0);
+
+				}
+								
+				gradient_contribution[0] /= ks_values_sum;
+				gradient_contribution[0] *= -1.0;
+			
 				node_i->X0() -= mDelta;
+
 				// End derivative of response w.r.t. x-coord --------------------
 
 				// Reset pertubed RHS and mass matrix
 				perturbed_LHS = Matrix(0,0);
 				perturbed_mass_matrix = Matrix(0,0);
-				aux = Vector(0);
+		
 
 				// Derivative of response w.r.t. y-coord ------------------------
 				node_i->Y0() += mDelta;
-				
-				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 
+				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= m_eigenvalue;
 
 				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
-				perturbed_LHS -= perturbed_mass_matrix;
-				
-				aux = prod(perturbed_LHS , eigenvector_of_element);
-				gradient_contribution[1] = inner_prod(eigenvector_of_element , aux);
+				// Loop over eigenvalues
+				for(int i = 0; i < m_num_eigenvalues; i++)
+				{
+					traced_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
+					eigenvector_of_element = get_eigenvector_of_element(elem_i, m_vector_ev[i], num_dofs_element);
+
+					aux_matrix = perturbed_LHS;
+					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
+					aux_vector = prod(aux_matrix , eigenvector_of_element);
+					gradient_contribution[1] += (inner_prod(eigenvector_of_element , aux_vector) *
+												ks_values[i] * m_scaling_factors_eigenvalues[i] / 
+												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));
+					
+					eigenvector_of_element = Vector(0);
+				    aux_matrix = Matrix(0,0);
+					aux_vector = Vector(0);
+				}
+
+				gradient_contribution[1] /= ks_values_sum;
+				gradient_contribution[1] *= -1.0;
+		
 				node_i->Y0() -= mDelta;
 				// End derivative of response w.r.t. y-coord --------------------
 
 				// Reset pertubed RHS and mass matrix
 				perturbed_LHS = Matrix(0,0);
 				perturbed_mass_matrix= Matrix(0,0);
-				aux = Vector(0);
 
 				// Derivative of response w.r.t. z-coord ------------------------
 				node_i->Z0() += mDelta;
 
 				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= m_eigenvalue;
+
 
 				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
-				perturbed_LHS -= perturbed_mass_matrix;
-				
-				aux = prod(perturbed_LHS , eigenvector_of_element);
-				gradient_contribution[2] =  inner_prod(eigenvector_of_element , aux);
+				// Loop over eigenvalues
+				for(int i = 0; i < m_num_eigenvalues; i++)
+				{
+					traced_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
+					eigenvector_of_element = get_eigenvector_of_element(elem_i, m_vector_ev[i], num_dofs_element);
+
+					aux_matrix = perturbed_LHS;
+					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
+					aux_vector = prod(aux_matrix , eigenvector_of_element);
+					gradient_contribution[2] += (inner_prod(eigenvector_of_element , aux_vector) *
+												ks_values[i] * m_scaling_factors_eigenvalues[i] / 
+												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));
+
+					eigenvector_of_element = Vector(0);
+					aux_matrix = Matrix(0,0);
+					aux_vector = Vector(0);
+				}
+
+				gradient_contribution[2] /= ks_values_sum;
+				gradient_contribution[2] *= -1.0;
+	
 				node_i->Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------
 
-				// Change sign of gradient: only maximization makes sense in case of eigenfrequency optimization	
-				gradient_contribution[0] *= (-1.0);
-				gradient_contribution[1] *= (-1.0);
-				gradient_contribution[2] *= (-1.0);
-
 				// Assemble sensitivity to node
 				noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
-				
-			}
-		}
+
+			}// End loop over nodes of element
+	
+		}// End loop over elements
 		KRATOS_CATCH("");
 	}
 
@@ -452,13 +596,15 @@ private:
 
 	ModelPart &mr_model_part;
 	unsigned int mGradientMode;
-	unsigned int mWeightingMethod;
-	double m_eigenvalue; 
+	double m_resp_function_value;
 	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
-	int m_traced_eigenvalue;
-
+	int m_num_eigenvalues;
+	std::vector<int> m_vector_ev;
+	double m_KS_parameter;
+	Vector m_scaling_factors_eigenvalues;
+	bool m_scal_fac_computed;
 
 	///@}
 ///@name Private Operators
@@ -481,14 +627,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      EigenfrequencyResponseFunction& operator=(SEigenfrequencyResponseFunction const& rOther);
+	//      EigenfrequencyResponseFunctionKS& operator=(EigenfrequencyResponseFunctionKS const& rOther);
 
 	/// Copy constructor.
-	//      EigenfrequencyResponseFunction(EigenfrequencyResponseFunction const& rOther);
+	//      EigenfrequencyResponseFunctionKS(EigenfrequencyResponseFunctionKS const& rOther);
 
 	///@}
 
-}; // Class EigenfrequencyResponseFunction
+}; // Class EigenfrequencyResponseFunctionKS
 
 ///@}
 
@@ -503,4 +649,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // EIGENFRQUENCY_RESPONSE_FUNCTION_H
+#endif // EIGENFRQUENCY_RESPONSE_FUNCTION_KS_H

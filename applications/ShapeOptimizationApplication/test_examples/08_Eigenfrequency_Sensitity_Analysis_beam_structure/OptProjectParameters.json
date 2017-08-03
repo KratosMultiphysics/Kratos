@@ -1,0 +1,194 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Beam_EV_Opt",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.1,
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_eigensolver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "analysis_type"                      : "Linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+             "input_filename" : "Beam_EV"
+        },
+	"eigensolver_settings":{
+        "solver_type": "FEAST",
+        "print_feast_output": false,
+        "perform_stochastic_estimate": false,
+        "solve_eigenvalue_problem": true,
+        "lambda_min": 1.0e2,
+        "lambda_max": 1.0e4,
+        "search_dimension": 100,
+        "linear_solver_settings":{
+            "solver_type": "skyline_lu"
+        }
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support", "DISPLACEMENT_z_support"],
+        "rotation_dofs"                      : true
+    },
+    "constraints_process_list" : [{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+        },
+        {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "ROTATION_support",
+            "variable_name"   : "ROTATION",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : false,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },
+        {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_z_support",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+        }
+    ],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          : 100.0,
+            "direction"       : [0.0,-1,0.0]
+        }
+    }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","TORQUE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "optimization_settings" : {
+        "objectives" : [{ 
+                "identifier"    : "eigenfrequency",
+                "use_kratos"    : true,
+                "gradient_mode" : "semi_analytic", 
+                "step_size"     : 1e-8,
+                "traced_eigenfrequency": 1,
+                "weighting_method": "none",
+                "KS_parameter": 1,
+                "weighting_factors": [1.0]
+
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "design_variables_type"     : "vertex_morphing", 
+            "input_model_part_name"     : "Beam_EV",
+            "design_submodel_part_name" : "design_surface",
+            "domain_size"               : 3,
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.1,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false 
+            },
+            "damping" : {
+                "perform_damping" : true,
+                  "damping_regions" : [{ 
+                        "sub_model_part_name"   : "support",
+                        "damp_X"                : true, 
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 0.2 }
+                    ]
+        }
+        }, 
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 1,
+            "relative_tolerance" : 1e-1
+        },
+        "line_search" : {
+            "line_search_type"           : "manual_stepping",
+            "normalize_search_direction" : true,
+            "step_size"                  : 0.1
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "design_history_filename" : "design_history",
+            "response_log_filename"   : "response_log",
+            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
+                                          "OBJECTIVE_SENSITIVITY",
+                                          "MAPPED_OBJECTIVE_SENSITIVITY",
+                                          "DESIGN_UPDATE",
+                                          "DESIGN_CHANGE_ABSOLUTE",
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE_ABSOLUTE" ],            
+            "output_format" : {
+                "name"                   : "gid",
+                "VolumeOutput"           : true,
+                "GiDPostMode"            : "Binary",
+                "GiDWriteMeshFlag"       : true,
+                "GiDWriteConditionsFlag" : true,
+                "GiDMultiFileFlag"       : "Single"
+            }      
+        }                  
+    }
+}

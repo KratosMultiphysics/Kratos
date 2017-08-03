@@ -1,0 +1,112 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "circle_plate",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 0.002,
+        "start_time"      : 0.0,
+        "end_time"        : 0.41,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Bossak",
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "circle_plate",
+            "input_file_label" : 0
+        },
+	"line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+                "solver_type": "SuperLUSolver",
+                "scaling"     : false
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_plate"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support","PointLoad3D_load"],
+        "rotation_dofs"                      : true,
+        "block_builder"                      : true
+    },
+    "constraints_process_list" : [{
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "ROTATION_support",
+            "variable_name"   : "ROTATION",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : false,
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [{
+        "implemented_in_file"   : "process_factory",
+        "implemented_in_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          : 1,
+            "direction"       : [0.0,0.0,-1.0]
+        }
+    }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 0.002,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","ROTATION"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

@@ -1,0 +1,97 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.1,
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_eigensolver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "analysis_type"                      : "Linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "circle_plate",
+            "input_file_label" : 0
+        },
+	"eigensolver_settings":{
+        "solver_type": "FEAST",
+        "print_feast_output": false,
+        "perform_stochastic_estimate": false,
+        "solve_eigenvalue_problem": true,
+        "lambda_min": 0.0,
+        "lambda_max": 1.0e4,
+        "search_dimension": 400,
+        "linear_solver_settings":{
+            "solver_type": "skyline_lu"
+        }
+	},
+        "problem_domain_sub_model_part_list" : ["Parts_plate"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],
+        "rotation_dofs"                      : true
+    },
+    "constraints_process_list" : [{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","ROTATION","TORQUE","ANGULAR_VELOCITY","ANGULAR_ACCELERATION"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "optimization_settings" : {
+        "objectives" : [{ 
+                "identifier"    : "eigenfrequency",
+                "use_kratos"    : true,
+                "gradient_mode" : "semi_analytic", 
+                "step_size"     : 1e-8,
+                "traced_eigenfrequency": 1,
+                "weighting_method": "linear_scalarization",
+                "weighting_factors": [0.5,0.3,0.2]
+        }]
+       
+    }
+
+}

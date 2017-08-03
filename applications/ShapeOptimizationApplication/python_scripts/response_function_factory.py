@@ -88,9 +88,19 @@ class ResponseFunctionCreator:
             self.inputModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
             self.listOfResponseFunctions["mass"] = MassResponseFunction( self.inputModelPart, solverSettings )   
         elif responseId == "eigenfrequency":
-            responseFunctionSolverIsNotImplemented = False
-            self.inputModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
-            self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.inputModelPart, solverSettings ) 
+             responseFunctionSolverIsNotImplemented = False
+             self.inputModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
+
+             weightingMethod = solverSettings["weighting_method"].GetString()
+             if weightingMethod == "none":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.inputModelPart, solverSettings ) 
+             elif weightingMethod == "linear_scalarization":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionLinScal( self.inputModelPart, solverSettings ) 
+             elif weightingMethod == "KS":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionKS( self.inputModelPart, solverSettings ) 
+             else:
+                raise NameError("The following weighting method is not specified: " + weightingMethod)
+
         else:
             raise NameError("The following response function is not specified: " + responseId)
 

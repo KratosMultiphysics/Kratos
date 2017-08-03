@@ -31,6 +31,7 @@
 
 // elements
 #include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
+#include "custom_elements/small_displacement_beam_element_3D2N_4_sensitivity_analysis.hpp"
 
 //conditions
 #include "custom_conditions/shape_optimization_condition.h"
@@ -72,11 +73,24 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_STRESS_GRADIENT);
     KRATOS_DEFINE_VARIABLE(int,ACTIVE_NODE_INDEX);
 	KRATOS_DEFINE_VARIABLE(Vector,DKDXU);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_X);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
+
+	KRATOS_DEFINE_VARIABLE(double,CROSS_AREA); //fusseder
+	//KRATOS_DEFINE_APPLICATION_VARIABLE( SHAPE_OPTIMIZATION_APPLICATION, double, CROSS_AREA ); //Fusseder
+
+	KRATOS_DEFINE_VARIABLE(double, STRESS_VALUE); //fusseder
+	KRATOS_DEFINE_VARIABLE(int, LOCATION_OF_TRACED_STRESS); //fusseder
+	KRATOS_DEFINE_VARIABLE(std::string, TRACED_STRESS_TYPE); //fusseder
+	KRATOS_DEFINE_VARIABLE(Vector, ADJOINT_LOAD); //fusseder
+	KRATOS_DEFINE_VARIABLE(Vector, ZERO_ADJOINT_LOAD); //fusseder
+	KRATOS_DEFINE_VARIABLE(std::string, STRESS_TREATMENT); //fusseder
+	
+
 
 	///@} 
 	///@name Type Definitions
@@ -238,10 +252,13 @@ namespace Kratos
       	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D8N;
       	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D20N;
 
+		const SmallDisplacementBeamElement3D2N4SensitivityAnalysis mSmallDisplacementBeamElement3D2N4SensitivityAnalysis;
+
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
 		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
         const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
+		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N; //fusseder
 
 
 		///@} 
