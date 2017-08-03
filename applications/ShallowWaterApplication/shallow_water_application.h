@@ -24,16 +24,19 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "includes/condition.h"                        // We'll also need conditions for the point heat loads
+#include "includes/ublas_interface.h"
+
+// Shallow water includes
 #include "shallow_water_application_variables.h"
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
+#include "custom_conditions/rain_condition.hpp"
 //~ #include "custom_elements/projected_swe.h"             // Including the file for the element
 //~ #include "custom_elements/non_conservative_dc.h"       // Inlcuding the file for the element with discontinuity capturing
 //~ #include "custom_elements/non_conservative_stab.h"     // Inlcuding the file for the element with stabilization
 //~ #include "custom_elements/conservative.h"              // Inlcuding the file for the conservative lagrangian element
 //~ #include "custom_elements/eulerian_non_conservative.h" // Inlcuding the file for the eulerian element
-#include "includes/condition.h"                        // We'll also need conditions for the point heat loads
-#include "includes/ublas_interface.h"
 
 
 namespace Kratos
@@ -195,6 +198,9 @@ namespace Kratos
 		///@{ 
 		const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
 		const ConservedVarElement<3> mConservedVarElement2D3N;
+		
+		const RainCondition<3> mRainCondition2D3N;
+		
 		//~ const ProjectedSWE mProjectedSWE;                        // Element
 		//~ const NonConservativeDC mNonConservativeDC;              // Element with discontinuty capturing
 		//~ const NonConservativeStab mNonConservativeStab;          // Element with stabilization

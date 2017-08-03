@@ -17,16 +17,16 @@ namespace Kratos
 {
 
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	ConservedVarElement<TNumNodes>::ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
 	{
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	ConservedVarElement<TNumNodes>::ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
@@ -44,8 +44,8 @@ namespace Kratos
 	{
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	void ConservedVarElement<TNumNodes>::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
 	{
@@ -69,8 +69,8 @@ namespace Kratos
 		rMassMatrix *= 1.0/(3.0);
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
@@ -85,7 +85,6 @@ namespace Kratos
 
 		boost::numeric::ublas::bounded_matrix<double,9,9> msMass   = ZeroMatrix(9,9);     // Mass matrix
 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX  = ZeroMatrix(3,2);     // Shape functions gradients
-		boost::numeric::ublas::bounded_matrix<double,3,1> ms_hU    = ZeroMatrix(3,1);     // Iteration matrix: momentum unknown
 		boost::numeric::ublas::bounded_matrix<double,9,9> msC      = ZeroMatrix(9,9);     // Nt*A*B (LHS)
 		boost::numeric::ublas::bounded_matrix<double,3,9> msN      = ZeroMatrix(3,9);     // Shape functions type
 		//
@@ -97,24 +96,21 @@ namespace Kratos
 		//
 		array_1d<double,3> msNGauss;                                    // Dimension = number of nodes . Position of the gauss point
 		array_1d<double,9> ms_depth;
-		array_1d<double,9> ms_rain;
 		array_1d<double,9> ms_unknown;
 		array_1d<double,9> ms_proj_unknown;
 		array_1d<double,9> ms_inv_unknown;
-		array_1d<double,2> momentum;
-		array_1d<double,2> inv_h_grad;
-		//~ boost::numeric::ublas::bounded_matrix<double,2,1> inv_h_grad;
 		double height;
-		// double inv_height;
 		double divU;
 		//
+		bool stabilization = true;
+		double height_threshold = 1e-6;
 		double Ctau;        // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
-		double depth;
 		double tau_h;
 		boost::numeric::ublas::bounded_matrix<double,2,2> tau_u = ZeroMatrix(2,2);
-		double gradient_threshold;    // Shock capturing parameters
-		double m_residual;
-		double m_height_grad_norm;
+		bool discontinuity_capturing = true;
+		double gradient_threshold = 1e-6;    // Shock capturing parameters
+		double residual;
+		double height_grad_norm;
 		double k_dc;
 
 		const unsigned int number_of_points = GetGeometry().size();
@@ -136,28 +132,25 @@ namespace Kratos
 		int counter = 0;
 		for(unsigned int iii = 0; iii<number_of_points; iii++){
 			ms_depth[counter]        = 0;
-			ms_rain[counter]         = 0;
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_X);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_X);
 			counter++;
 
 			ms_depth[counter]        = 0;
-			ms_rain[counter]         = 0;
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_Y);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y);
 			counter++;
 
 			if(GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT)<1e-6){
 				GetGeometry()[iii].GetSolutionStepValue(HEIGHT) = 1e-10;
-				}
+			}
 			ms_depth[counter]        = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
-			ms_rain[counter]         = GetGeometry()[iii].FastGetSolutionStepValue(RAIN);
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_HEIGHT);
 			counter++;
 		}
 
-		// Compute parameters and derivatives matrices on Gauss points
+		// Compute parameters and derivatives matrices at Gauss points
 
 		// Height gradient
 		msDN_DX_height(0,2) = msDN_DX(0,0);
@@ -206,13 +199,7 @@ namespace Kratos
 
 
 		// Previous height iteration at current time step
-		height = norm_1(prod(msN_height,ms_unknown));
-		//~ height = inner_prod(msN_height,ms_unknown);
-		// Previous momentum iteration at current time step
-		momentum = prod(msN_mom,ms_unknown);
-		// Previous inv height gradient at current time step
-		inv_h_grad[0] = msDN_DX(0,0)/ms_unknown[2] + msDN_DX(1,0)/ms_unknown[5] + msDN_DX(2,0)/ms_unknown[8];
-		inv_h_grad[1] = msDN_DX(0,1)/ms_unknown[2] + msDN_DX(1,1)/ms_unknown[5] + msDN_DX(2,1)/ms_unknown[8];
+		height = msNGauss[0]*ms_unknown[2] + msNGauss[1]*ms_unknown[5] + msNGauss[2]*ms_unknown[8];
 		// Previous div(U) iteration
 		divU  = msDN_DX(0,0)*ms_unknown[0]/ms_unknown[2];
 		divU += msDN_DX(0,1)*ms_unknown[1]/ms_unknown[2];
@@ -220,11 +207,6 @@ namespace Kratos
 		divU += msDN_DX(1,1)*ms_unknown[4]/ms_unknown[5];
 		divU += msDN_DX(2,0)*ms_unknown[6]/ms_unknown[8];
 		divU += msDN_DX(2,1)*ms_unknown[7]/ms_unknown[8];
-
-		// U matrix
-		ms_hU(0,0) = momentum[0];
-		ms_hU(1,0) = momentum[1];
-		ms_hU(2,0) = 0;
 
 
 		// Main loop
@@ -241,41 +223,46 @@ namespace Kratos
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMass;          // LHS += bdf*M
 
 
+		// Non linear terms
 		noalias(rLeftHandSideMatrix) += divU * msMass;                  // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
 
 
-		// Stabilization parameters
-		Ctau = 0.01;
-		depth = norm_1(prod(msN_height,ms_depth));
-		tau_h = Ctau/elem_size*pow(depth/gravity,0.5);
-		tau_u(0,0) = Ctau/elem_size*pow(gravity/depth,0.5);
-		tau_u(1,1) = Ctau/elem_size*pow(gravity/depth,0.5);
-		// Stabilization term
-		noalias(rLeftHandSideMatrix) += tau_h * prod(trans(msDN_DX_mom), msDN_DX_mom);                    // Add artifficial diffusion to Mass eq.
-		noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // Add artifficial diffusion to Momentum eq.
-
-		// Add discontinuity capturing term via adding artificial diffusion to height
-		gradient_threshold = 1e-6;
-		m_residual = norm_1(prod(msN_height,ms_unknown)) * norm_1(prod(msDN_DX_mom,ms_unknown)) + BDFcoeffs[1]*norm_1(prod(msN_height, (ms_unknown - ms_proj_unknown)));
-		m_height_grad_norm = norm_2(prod(msDN_DX_height,ms_unknown));
-		if (m_height_grad_norm < gradient_threshold){
-			k_dc = 0;
+		// Stabilization terms
+		if (stabilization){
+			// Stabilization parameters
+			Ctau = 0.01;
+			tau_h = Ctau/elem_size*pow(height/gravity,0.5);
+			if (height > height_threshold){
+				tau_u(0,0) = Ctau/elem_size*pow(gravity/height,0.5);
+				tau_u(1,1) = Ctau/elem_size*pow(gravity/height,0.5);
+			}
+			// Stabilization term
+			noalias(rLeftHandSideMatrix) += tau_h * prod(trans(msDN_DX_mom), msDN_DX_mom);                    // Add artifficial diffusion to Mass eq.
+			noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // Add artifficial diffusion to Momentum eq.
 		}
-		else{
-			k_dc = 0.5*0.4*elem_size*m_residual;//m_height_grad_norm;  // Residual formulation
+		if (discontinuity_capturing){
+			// Add discontinuity capturing term via adding artificial diffusion to height
+			gradient_threshold = 1e-6;
+			residual = norm_1(prod(msN_height,ms_unknown)) * norm_1(prod(msDN_DX_mom,ms_unknown)) + BDFcoeffs[1]*norm_1(prod(msN_height, (ms_unknown - ms_proj_unknown)));
+			height_grad_norm = norm_2(prod(msDN_DX_height,ms_unknown));
+			if (height_grad_norm < gradient_threshold){
+				k_dc = 0;
+			}
+			else{
+				k_dc = 0.5*0.4*elem_size*residual;//height_grad_norm;  // Residual formulation
+			}
+			// Add discontinuity capturing to LHS
+			noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_mom), msDN_DX_mom);
+			// Print values on Gauss points
+			this->SetValue(MIU,height_grad_norm);
+			this->SetValue(RESIDUAL_NORM,residual);
+			this->SetValue(PR_ART_VISC,k_dc);
 		}
-		// Print values on Gauss points
-		this->SetValue(MIU,m_height_grad_norm);
-		this->SetValue(RESIDUAL_NORM,m_residual);
-		this->SetValue(PR_ART_VISC,k_dc);
-		// Add discontinuity capturing to LHS
-		noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_height), msDN_DX_height);
 
 
 		// RHS
 		// Source terms
 		noalias(rRightHandSideVector)  = -prod(msC, ms_depth);          // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
-		noalias(rRightHandSideVector) +=  prod(msMass, ms_rain);        // Add <q,rain>         to RHS (Mass Eq.)
 
 		// Inertia terms
 		// RHS += M*vhistory
@@ -299,16 +286,16 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	void ConservedVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	// This subroutine calculates the nodal contributions for the explicit steps of the
 	// Fractional step procedure
 	template< unsigned int TNumNodes >
@@ -319,8 +306,8 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	void ConservedVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 	{
@@ -336,8 +323,8 @@ namespace Kratos
 		}
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	void ConservedVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
 	{
@@ -354,8 +341,8 @@ namespace Kratos
 		}
 	}
 
-	//************************************************************************************
-	//************************************************************************************
+	//******************************************************************
+	//******************************************************************
 	template< unsigned int TNumNodes >
 	void ConservedVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
