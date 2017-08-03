@@ -28,7 +28,7 @@
                     },
                     "Variables": {
                             "KratosMultiphysics.YOUNG_MODULUS": 210e10,
-                            "KratosMultiphysics.StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2": 1.5e9,
+                            "KratosMultiphysics.TRUSS_PRESTRESS_PK2": 1.5e9,
                             "KratosMultiphysics.StructuralMechanicsApplication.CROSS_AREA": 0.07
                     },
                     "Tables": {}
