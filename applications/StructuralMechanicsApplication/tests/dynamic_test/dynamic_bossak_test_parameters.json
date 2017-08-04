@@ -50,34 +50,6 @@
     ],
     "loads_process_list" : [],
     "_list_other_processes" :[],
-    "_print_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
-            "output_file_name" : "dynamic_test/dynamic_bossak_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
-    "_check_json_results_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X"],
-            "input_file_name" : "dynamic_test/dynamic_bossak_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
     "check_analytic_results_process" : [
     {
         "python_module"   : "check_scalar_to_nodes_process",
