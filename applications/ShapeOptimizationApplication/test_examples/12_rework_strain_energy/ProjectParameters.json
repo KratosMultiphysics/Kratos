@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "Beam_EV",
+        "problem_name"    : "Beam_structure",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.1,
@@ -16,7 +16,7 @@
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Beam_EV"
+            "input_filename" : "Beam_structure"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
@@ -31,7 +31,7 @@
             "scaling"     : true,
             "verbosity"   : 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Beam","Design_Variables"],
+        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
     },
@@ -76,8 +76,8 @@
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
-            "modulus"          : 100.0,
-            "direction"       : [0.0,-1,0.0]
+            "modulus"          : 100000.0,
+            "direction"       : [0.0,-1.0,0.0]
         }
     }],
     "output_configuration"     : {
@@ -112,17 +112,13 @@
     },
     "optimization_settings" : {
         "objectives" : [{ 
-                "identifier"        : "local_stress",
+                "identifier"        : "rework_strain_energy",
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic", 
-                "nodal_sensitivity_variables"  : [],
+                "nodal_sensitivity_variables"  : ["ADJOINT_NODE_COORD"],
                 "element_sensitivity_variables"  : [],
-                "condition_sensitivity_variables"  : ["POINT_LOAD"],
-                "step_size"         : 1e-8,
-                "traced_element"    : 2,
-                "stress_type"       : "MY",
-                "stress_treatment"  : "mean",
-                "stress_location"   : 1
+                "condition_sensitivity_variables"  : [],
+                "step_size"         : 1e-6
         }]
        
     }

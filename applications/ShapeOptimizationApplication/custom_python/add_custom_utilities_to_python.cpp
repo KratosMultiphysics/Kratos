@@ -37,6 +37,7 @@
 #include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 #include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
 #include "custom_utilities/response_functions/local_stress_response_function.h"
+#include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //fusseder rename it after finishing
 
 // ==============================================================================
 
@@ -148,12 +149,19 @@ void  AddCustomUtilitiesToPython()
         ;
 
     class_<LocalStressResponseFunction, bases<Process> >("LocalStressResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &LocalStressResponseFunction::initialize)
-        .def("calculate_value", &LocalStressResponseFunction::calculate_value)
-        .def("calculate_gradient", &LocalStressResponseFunction::calculate_gradient) 
-        .def("get_value", &LocalStressResponseFunction::get_value)
-        .def("get_initial_value", &LocalStressResponseFunction::get_initial_value)  
-        .def("get_gradient", &LocalStressResponseFunction::get_gradient)                              
+        .def("Initialize", &LocalStressResponseFunction::Initialize)
+        .def("CalculateValue", &LocalStressResponseFunction::CalculateValue)
+        .def("UpdateSensitivities", &LocalStressResponseFunction::UpdateSensitivities) 
+        .def("GetValue", &LocalStressResponseFunction::GetValue)
+        .def("GetInitialValue", &LocalStressResponseFunction::GetInitialValue)                             
+        ;  
+
+    class_<ReworkStrainEnergyResponseFunction, bases<Process> >("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
+        .def("Initialize", &ReworkStrainEnergyResponseFunction::Initialize)
+        .def("CalculateValue", &ReworkStrainEnergyResponseFunction::CalculateValue)
+        .def("UpdateSensitivities", &ReworkStrainEnergyResponseFunction::UpdateSensitivities) 
+        .def("GetValue", &ReworkStrainEnergyResponseFunction::GetValue)
+        .def("GetInitialValue", &ReworkStrainEnergyResponseFunction::GetInitialValue)                             
         ;           
 
     // ========================================================================

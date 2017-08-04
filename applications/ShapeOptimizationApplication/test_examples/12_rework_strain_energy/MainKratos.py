@@ -232,10 +232,20 @@ while(time <= end_time):
 # initialize response function(s), compute function value and gradient and write gradient output
 # numberOfObjectives = ProjectParameters["optimization_settings"]["objectives"].size()
 # for objectiveNumber in range(numberOfObjectives):
-    main_model_part.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
-    MyResponseFunction = LocalStressResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0]) 
+    main_model_part.AddNodalSolutionStepVariable(ADJOINT_NODE_COORD)
+    MyResponseFunction = ReworkStrainEnergyResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0]) 
     MyResponseFunction.CalculateValue()
-    #MyResponseFunction.calculate_gradient()
+    my_resp_value = MyResponseFunction.GetValue()
+    MyResponseFunction.UpdateSensitivities()
+    print("my response function value = ", my_resp_value )
+
+    main_model_part.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
+    MyResponseFunction2 = StrainEnergyResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0]) 
+    MyResponseFunction2.calculate_value()
+    my_resp_value_reference = MyResponseFunction2.get_value()
+    MyResponseFunction2.calculate_gradient()
+    print("my response function refernce value = ", my_resp_value_reference )
+
     print("I am ready with the sensitivty analysis computations")
    
 
@@ -277,21 +287,41 @@ while(time <= end_time):
 
 
 
-#from gid_output import GiDOutput
-#listOfNodalResults = ["EIGENFREQUENCY_SHAPE_GRADIENT"]
-#resultsDirectory = ""
-#designHistoryFilename = "result_gradient"
-#designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
-#gidIO = GiDOutput( "result_gradient",
- #                   True,
-  #                  "Binary",
-   #                 "Single",
-    #                True,
-     #               True )
-#iteratorForInitialDesign = 0
-#gidIO.initialize_results( main_model_part )
-#gidIO.write_results( 1, main_model_part, listOfNodalResults, [] )     
+from gid_output import GiDOutput
+listOfNodalResults = ["STRAIN_ENERGY_SHAPE_GRADIENT"]
+resultsDirectory = ""
+designHistoryFilename = "result_gradient_reference"
+designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
+gidIO = GiDOutput( "result_gradient_reference",
+                     True,
+                    "Binary",
+                    "Single",
+                     True,
+                     True )
+iteratorForInitialDesign = 0
+gidIO.initialize_results( main_model_part )
+gidIO.write_results( 1, main_model_part, listOfNodalResults, [] )     
       
 
 #gidIO.finalize_results()  
+
+from gid_output import GiDOutput
+listOfNodalResults = ["ADJOINT_NODE_COORD"]
+resultsDirectory = ""
+designHistoryFilename = "result_gradient"
+designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
+gidIO = GiDOutput( "result_gradient",
+                     True,
+                    "Binary",
+                    "Single",
+                     True,
+                     True )
+iteratorForInitialDesign = 0
+gidIO.initialize_results( main_model_part )
+gidIO.write_results( 1, main_model_part, listOfNodalResults, [] )     
+      
+
+gidIO.finalize_results()  
+
+print("I finished the output process")
 

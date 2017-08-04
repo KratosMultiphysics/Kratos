@@ -385,7 +385,7 @@ namespace Kratos
 			for(unsigned int i = 0; i < RHS_dist.size(); i++)
 			{
 				 rOutput(0, i) = RHS_dist[i];
-				 std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
+				 //std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
 			}
 
 			// undisturb design variable
@@ -413,8 +413,7 @@ namespace Kratos
 
 		double delta = 1e-6;	//get this from outside!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-		//if(rDesignVariable == NODAL_COORDINATES)
-		if(rDesignVariable == IZ) //---------------------------------------------------------------------------->change this
+		if(rDesignVariable == ADJOINT_NODE_COORD) //---------------------------------------------------------------------------->change this
 		{
 			const int number_of_nodes = GetGeometry().PointsNumber();
 			const int dimension = this->GetGeometry().WorkingSpaceDimension();

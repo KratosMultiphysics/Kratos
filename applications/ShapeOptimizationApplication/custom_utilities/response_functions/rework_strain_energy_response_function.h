@@ -9,8 +9,8 @@
 //
 // ==============================================================================
 
-#ifndef LOCAL_STRESS_RESPONSE_FUNCTION_H
-#define LOCAL_STRESS_RESPONSE_FUNCTION_H
+#ifndef REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#define REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -72,7 +72,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class LocalStressResponseFunction : StructuralResponseFunction
+class ReworkStrainEnergyResponseFunction : StructuralResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -83,19 +83,17 @@ public:
 
 	
 
-	/// Pointer definition of LocalStressResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(LocalStressResponseFunction);
+	/// Pointer definition of ReworkStrainEnergyResponseFunction
+	KRATOS_CLASS_POINTER_DEFINITION(ReworkStrainEnergyResponseFunction);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	LocalStressResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	ReworkStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
-		ModelPart& r_model_part = this->GetModelPart();
-
 		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 
@@ -108,32 +106,17 @@ public:
 		}
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
-	
 
-		//get traced element
-		m_id_of_traced_element = responseSettings["traced_element"].GetInt();
-		m_traced_pElement = r_model_part.pGetElement(m_id_of_traced_element);
-
-		//give stress location to traced element
-		m_id_of_location = responseSettings["stress_location"].GetInt();
-		m_traced_pElement->SetValue(LOCATION_OF_TRACED_STRESS, m_id_of_location);
-
-		//tell traced element the stress type 
-		m_traced_stress_type = responseSettings["stress_type"].GetString();
-		m_traced_pElement->SetValue(TRACED_STRESS_TYPE, m_traced_stress_type);
-
-		m_stress_treatment = responseSettings["stress_treatment"].GetString();
-		m_traced_pElement->SetValue(STRESS_TREATMENT, m_stress_treatment);
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
-		m_stress_value = 0.0;	
+		m_current_response_value = 0.0;
 
 	}
 
 	/// Destructor.
-	virtual ~LocalStressResponseFunction()
+	virtual ~ReworkStrainEnergyResponseFunction()
 	{
 	}
 
@@ -160,39 +143,31 @@ public:
 		KRATOS_TRY;
 
 		ModelPart& r_model_part = this->GetModelPart();
-
-		// Working variables
 		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
+		m_current_response_value = 0.0;
 
-		m_traced_pElement->Calculate(STRESS_VALUE, m_stress_value, CurrentProcessInfo);
-
-		//just for testing the computation of the adjoint load--> erase this later!!!!!!!!!!!!!!!!!
-		std::cout << ("Response Function value= ") << m_stress_value << std::endl;
-
-		Vector adjoint_load;
-		Vector zero_adjoint_load;
-		m_traced_pElement->Calculate(ADJOINT_LOAD, adjoint_load, CurrentProcessInfo);
-
-		m_traced_pElement->Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_load, CurrentProcessInfo);
-
-		int size_load = adjoint_load.size();
-
-		for(int i = 0; i < size_load; i++)
+		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+		for (ModelPart::ElementIterator elem_i = r_model_part.ElementsBegin(); elem_i != r_model_part.ElementsEnd(); ++elem_i)
 		{
-			//std::cout << ("adjoint_load = ") << adjoint_load[i] << std::endl;	
-			std::cout << ("zero_adjoint_load = ") << zero_adjoint_load[i] << std::endl;	
-		}
+			Matrix LHS;
+			Vector RHS;
+			Vector u;
 
-		this->UpdateSensitivities();
-		//-------------------------------------------------------------------------!!!!!!!!!!!!!!!!!!
+			// Get state solution relevant for energy calculation
+			elem_i->GetValuesVector(u,0);
+
+			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+
+			// Compute strain energy
+			m_current_response_value += 0.5 * inner_prod(u,prod(LHS,u));
+		}	
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
 		{
-			m_initial_value = m_stress_value;
+			m_initial_value = m_current_response_value;
 			m_initial_value_defined = true;
 		}
-
 
 		KRATOS_CATCH("");
 	}
@@ -214,7 +189,7 @@ public:
 	{
 		KRATOS_TRY;
 
-		return m_stress_value;
+		return m_current_response_value;
 
 		KRATOS_CATCH("");
 	}
@@ -255,13 +230,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const
 	{
-		return "LocalStressResponseFunction";
+		return "ReworkStrainEnergyResponseFunction";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "LocalStressResponseFunction";
+		rOStream << "ReworkStrainEnergyResponseFunction";
 	}
 
 	/// Print object's data.
@@ -275,25 +250,7 @@ public:
 
 	///@}
 
-	// ==============================================================================
-	void CalculateGradient(const Element& rElem, const Matrix& rLHS, 
-								Vector& rOutput, ProcessInfo& rProcessInfo) override
-	{
-		if(rElem.Id() == m_id_of_traced_element)
-		{
-			//computes adjoint load in global direction. Or is it in local direction required???????????????
-			m_traced_pElement->Calculate(ADJOINT_LOAD, rOutput, rProcessInfo);
-		}
-		else
-		{
-			// There is only a contribution of the traced element to the adjoint load case
-			int num_DOFs_element = rLHS.size1();
-			rOutput.resize(num_DOFs_element);
-			for(int i = 0; i < num_DOFs_element; i++){ rOutput[i] = 0.0; }
-		}
-
-	}
-
+	// =============================================================================
 	void UpdateSensitivities() override
 	{
 		KRATOS_TRY;
@@ -332,20 +289,10 @@ protected:
       	if (rRHSContribution.size() != rDerivativesMatrix.size1())
           	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
 
-		Vector zero_adjoint_vector;	  
-		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
+		for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
+            rRHSContribution[k] = 0.0;
 
-		if(rElem.Id() == m_id_of_traced_element)
-		{
-			rElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			noalias(rRHSContribution) = prod(rDerivativesMatrix, zero_adjoint_vector);
-		}
-		else
-		{
-			 noalias(rRHSContribution) = zero_adjoint_vector;
-		}	  
-
-      KRATOS_CATCH("")
+     	 KRATOS_CATCH("")
 	}
 
 	// ==============================================================================
@@ -357,27 +304,17 @@ protected:
     {
       	KRATOS_TRY
 
-      	if (rRHSContribution.size() != rDerivativesMatrix.size1())
+		if (rRHSContribution.size() != rDerivativesMatrix.size1())
           	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
 
-		Vector zero_adjoint_vector;	  
-		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
+		for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
+            rRHSContribution[k] = 0.0;
 
-		if(rElem.Id() == m_id_of_traced_element)
-		{
-			rElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			noalias(rRHSContribution) = prod(rDerivativesMatrix, zero_adjoint_vector);;
-		}
-		else
-		{
-			 noalias(rRHSContribution) = zero_adjoint_vector;
-		}	  
-
-       KRATOS_CATCH("")
+        KRATOS_CATCH("")
 	}
 
 	// ==============================================================================
-	virtual void CalculateSensitivityGradient(Condition& rCond,
+	void CalculateSensitivityGradient(Condition& rCond,
                                 	  const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rRHSContribution,
@@ -385,13 +322,17 @@ protected:
     {
 		KRATOS_TRY;
 
-        // ----> insert code
+		rCond.GetValuesVector(rRHSContribution);
+		rRHSContribution *= 0.5;
+
+		if (rRHSContribution.size() != rDerivativesMatrix.size1())
+			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!." << std::endl;
 
 		KRATOS_CATCH("");
 	}
 
 	// ==============================================================================
-	virtual void CalculateSensitivityGradient(Condition& rCond,
+	void CalculateSensitivityGradient(Condition& rCond,
                                           const Variable<double>& rVariable,
                                           const Matrix& rDerivativesMatrix,
                                           Vector& rRHSContribution,
@@ -399,7 +340,33 @@ protected:
     {
 		KRATOS_TRY;
 
-         // ----> insert code
+		rCond.GetValuesVector(rRHSContribution);
+		rRHSContribution *= 0.5;
+
+		if (rRHSContribution.size() != rDerivativesMatrix.size1())
+			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!." << std::endl;
+
+		KRATOS_CATCH("");
+	}
+
+	// ==============================================================================
+	void GetAdjointVariables(Element& rElem, Vector& rValues) override
+    {
+		KRATOS_TRY;
+
+		rElem.GetValuesVector(rValues);
+		rValues *= 0.5;
+
+		KRATOS_CATCH("");
+	}
+
+	// ==============================================================================
+	void GetAdjointVariables(Condition& rCond, Vector& rValues) override
+    {
+		KRATOS_TRY;
+
+		rCond.GetValuesVector(rValues);
+		rValues *= 0.5;
 
 		KRATOS_CATCH("");
 	}
@@ -428,15 +395,10 @@ private:
 	///@name Member Variables
 	///@{
 	unsigned int mGradientMode;
-	double m_stress_value; 
+	double m_current_response_value; 
 	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
-	unsigned int m_id_of_traced_element;
-	int m_id_of_location;
-	Element::Pointer m_traced_pElement;
-	std::string m_traced_stress_type;
-	std::string m_stress_treatment;
 
 	///@}
 ///@name Private Operators
@@ -459,14 +421,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      LocalStressResponseFunction& operator=(SLocalStressResponseFunction const& rOther);
+	//      ReworkStrainEnergyResponseFunction& operator=(SReworkStrainEnergyResponseFunction const& rOther);
 
 	/// Copy constructor.
-	//      LocalStressResponseFunction(LocalStressResponseFunction const& rOther);
+	//      ReworkStrainEnergyResponseFunction(ReworkStrainEnergyResponseFunction const& rOther);
 
 	///@}
 
-}; // Class LocalStressResponseFunction
+}; // Class ReworkStrainEnergyResponseFunction
 
 ///@}
 
@@ -481,4 +443,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // LOCAL_STRESS_RESPONSE_FUNCTION_H
+#endif // REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H

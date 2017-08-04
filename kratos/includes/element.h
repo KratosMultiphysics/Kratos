@@ -973,7 +973,7 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
-}
+    }
 
 
     //METHODS TO BE CLEANED: DEPRECATED end
