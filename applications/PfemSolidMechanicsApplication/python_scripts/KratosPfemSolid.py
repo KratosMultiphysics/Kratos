@@ -48,7 +48,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemBaseApplication           as KratosPfemBase
+import KratosMultiphysics.PfemApplication           as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 

@@ -65,18 +65,25 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if (self.non_deterministic_comp == "mesh_file"):
                 error = _ReadVertices(self.file_name_1, self.file_name_2, self.dimension)
                 self.assertTrue(error < self.error_assumed)
+            elif (self.non_deterministic_comp == "sol_file"):
+                error = _ReadMetric(self.file_name_1, self.file_name_2, self.dimension)
+                self.assertTrue(error < self.error_assumed)
             else: 
                 raise NameError('Non-deterministic comparision not implemented yet')
 
-def _ConvertStringToListFloat(line):
+def _ConvertStringToListFloat(line, space = " ", endline = ""):
     list_values = []
-    value = ""
-    for i in line:
-        if (i == " "):
-            list_values.append(float(value))
-            value = ""
-        else:
-            value += i
+    string_values = (line.replace(endline,"")).split(space)
+    for string in string_values:
+        list_values.append(float(string))
+    #value = ""
+    #for i in line:
+        #if ((i == " ") or (i == "  ")):
+            #num_value = float(value)
+            #list_values.append(num_value)
+            #value = ""
+        #else:
+            #value += i
     return list_values
 
 def _ReadVertices(input_file1, input_file2, dimension):
@@ -98,12 +105,52 @@ def _ReadVertices(input_file1, input_file2, dimension):
         
     error = 0.0
     for i in range(numline, nvertices + numline):
-        tmp1 = _ConvertStringToListFloat(lines1[i])
-        tmp2 = _ConvertStringToListFloat(lines2[i])
+        tmp1 = _ConvertStringToListFloat(lines1[i], "", "\n")
+        tmp2 = _ConvertStringToListFloat(lines2[i], "", "\n")
         if (dimension == 2): 
             error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0)**(0.5)
         else:
             error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)    
+            
+    f1.close()
+    f2.close()
+    
+    return (error/nvertices)
+
+def _ReadMetric(input_file1, input_file2, dimension):
+    f1 = open(input_file1,'r')
+    f2 = open(input_file2,'r')
+    
+    lines1 = f1.readlines()
+    lines2 = f2.readlines()
+    
+    numline = 0
+    for line1 in lines1:
+        numline += 1
+        
+        if("SolAtVertices" in line1):
+            line = lines1[numline]
+            nvertices = int(line)
+            numline += 2
+            break
+        
+    error = 0.0
+    for i in range(numline, nvertices + numline):
+        
+        if dimension == 2:
+            space = " "
+            end_line = " \n"
+        else:
+            space = "  "
+            end_line = "  \n"
+        
+        tmp1 = _ConvertStringToListFloat(lines1[i], space, end_line)
+        tmp2 = _ConvertStringToListFloat(lines2[i], space, end_line)
+        
+        if (dimension == 2): 
+            error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)   
+        else:
+            error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0 + (tmp1[3] - tmp2[3])**2.0 + (tmp1[4] - tmp2[4])**2.0 + (tmp1[5] - tmp2[5])**2.0)**(0.5)    
             
     f1.close()
     f2.close()

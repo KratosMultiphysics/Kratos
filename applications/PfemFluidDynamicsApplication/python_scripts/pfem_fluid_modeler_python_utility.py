@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics 
 from KratosMultiphysics.SolidMechanicsApplication import *
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -80,7 +80,7 @@ class ModelerUtility:
         mesh_id = 0
 
         # define search utility
-        nodal_neighbour_search = KratosPfemBase.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
+        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -95,7 +95,7 @@ class ModelerUtility:
         mesh_id = 0
          
         # define search utility
-        elemental_neighbour_search = KratosPfemBase.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -107,7 +107,7 @@ class ModelerUtility:
 
         # define calculation utility
         # normals_calculation = BoundaryNormalsCalculation()
-        normals_calculation = KratosPfemBase.BoundaryNormalsCalculation()
+        normals_calculation = KratosPfem.BoundaryNormalsCalculation()
 
         # execute calculation:
         #(scaled normals)
@@ -126,7 +126,7 @@ class ModelerUtility:
 
         # define building utility
         # skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
-        skin_build = KratosPfemBase.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
+        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
 
         # execute building:
         skin_build.Execute()

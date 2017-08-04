@@ -13,13 +13,14 @@ from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideM
 from SmallTests import NonConformantOneSideMap3D_test1 as TNonConformantOneSideMap3D_test1
 from SmallTests import NonConformantOneSideMapTwoFaces3D_test1 as TNonConformantOneSideMapTwoFaces3D_test1
 from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as TConvergenceAcceleratorTest
+from variable_redistribution_test import VariableRedistributionTest
 
 ## NIGTHLY TESTS
 
 ## VALIDATION TESTS
 from ValidationTests import MokBenchmarkTest as TMokBenchmark
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
@@ -44,6 +45,11 @@ def AssambleTestSuites():
     smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
     smallSuite.addTest(TFSIProblemEmulatorTest('test_execution'))
+    smallSuite.addTest(VariableRedistributionTest('testLinearFunction'))
+    smallSuite.addTest(VariableRedistributionTest('testSharpCorners'))
+    smallSuite.addTest(VariableRedistributionTest('testVector'))
+    smallSuite.addTest(VariableRedistributionTest('testQuadratic'))
+    smallSuite.addTest(VariableRedistributionTest('testNodalArea'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -60,4 +66,4 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())

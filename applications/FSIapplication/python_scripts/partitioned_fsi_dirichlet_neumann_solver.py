@@ -196,7 +196,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self._ComputeCorrectedInterfaceDisplacementDerivatives()
 
         # Solve fluid problem
-        self.fluid_solver.SolverSolveSolutionStep()
+        self.fluid_solver.SolveSolutionStep()
 
 
     def _SolveStructureSingleFaced(self):

@@ -41,9 +41,11 @@ class SourceTermTest(UnitTest.TestCase):
         self.theta = 1.0 # Since it is steady state, use backward Euler
         # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
 
+        self.checked_variable = TEMPERATURE
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
+        self.calculate_reactions = False
 
         self.config = TestCaseConfiguration()
 
@@ -105,6 +107,17 @@ class SourceTermTest(UnitTest.TestCase):
         
         self.testSourceTerm()
 
+    def testReaction(self):
+        self.reference_file = "reaction_test"
+        self.config.T_xmin = 0.0
+        self.config.T_xmax = 0.0
+        self.config.source = 1.0
+        self.config.ux = 0.0
+        self.checked_variable = REACTION_FLUX
+        self.calculate_reactions = True
+
+        self.testSourceTerm()
+
     def testSourceTerm(self):
 
         with WorkFolderScope("SourceTermTest"):
@@ -132,14 +145,13 @@ class SourceTermTest(UnitTest.TestCase):
         thermal_settings.SetVelocityVariable(VELOCITY)
         thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
         #thermal_settings.SetProjectionVariable(PROJECTED_SCALAR1)
+        thermal_settings.SetReactionVariable(REACTION_FLUX)
 
         self.model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
     def setUpSolvers(self):
 
         import convection_diffusion_solver as thermal_solver
-        thermal_solver.AddVariables(self.model_part)
-
         thermal_solver.AddVariables(self.model_part)
 
         model_part_io = ModelPartIO(self.input_file)
@@ -150,6 +162,7 @@ class SourceTermTest(UnitTest.TestCase):
 
         # thermal solver
         self.thermal_solver = thermal_solver.ConvectionDiffusionSolver(self.model_part,self.domain_size)
+        self.thermal_solver.calculate_reactions = self.calculate_reactions
         self.thermal_solver.theta = self.theta
         self.thermal_solver.Initialize()
 
@@ -188,10 +201,10 @@ class SourceTermTest(UnitTest.TestCase):
 
         if self.print_reference_values:
             with open(self.reference_file+'.csv','w') as ref_file:
-                ref_file.write("#ID, TEMPERATURE\n")
+                ref_file.write("#ID, {0}\n".format(self.checked_variable.Name()))
                 for node in self.model_part.Nodes:
-                    temp = node.GetSolutionStepValue(TEMPERATURE,0)
-                    ref_file.write("{0}, {1}\n".format(node.Id, temp))
+                    value = node.GetSolutionStepValue(self.checked_variable,0)
+                    ref_file.write("{0}, {1}\n".format(node.Id, value))
         else:
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
@@ -201,10 +214,10 @@ class SourceTermTest(UnitTest.TestCase):
                 for node in self.model_part.Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                     node_id = values[0]
-                    reference_temp = values[1]
+                    reference_value = values[1]
 
-                    temperature = node.GetSolutionStepValue(TEMPERATURE)
-                    self.assertAlmostEqual(reference_temp, temperature, delta=self.check_tolerance)
+                    value = node.GetSolutionStepValue(self.checked_variable)
+                    self.assertAlmostEqual(reference_value, value, delta=self.check_tolerance)
 
                     line = reference_file.readline()
                 if line != '': # If we did not reach the end of the reference file
@@ -230,13 +243,17 @@ class SourceTermTest(UnitTest.TestCase):
         gid_io.WriteNodalResults(CONDUCTIVITY,self.model_part.Nodes,label,0)
         gid_io.WriteNodalResults(SPECIFIC_HEAT,self.model_part.Nodes,label,0)
         gid_io.WriteNodalResults(HEAT_FLUX,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(REACTION_FLUX,self.model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 
 if __name__ == '__main__':
     a = SourceTermTest()
     a.setUp()
-    a.testPureDiffusion()
+    a.print_reference_values = False
+    a.print_output = True
+    #a.testPureDiffusion()
     #a.testConvectionDominated()
     #a.testDiffusionDominated()
+    a.testReaction()
     a.tearDown()
