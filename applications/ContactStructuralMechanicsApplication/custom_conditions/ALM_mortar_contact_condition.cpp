@@ -568,7 +568,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             {
                                 /* Update the derivatives */
                                 // Update the derivative of the integration vertex (just in 3D)
-                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[pair_index]->GetGeometry());
+//                                 if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[pair_index]->GetGeometry());
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
@@ -700,7 +700,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, PairIndex, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                 
                 // Update the derivative of the integration vertex (just in 3D)
-                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[PairIndex]->GetGeometry());
+//                 if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[PairIndex]->GetGeometry());
                                 
                 // Update the derivative of DetJ
                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
@@ -1116,7 +1116,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     {
         for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
         {
-            delta_normal += this->LocalDeltaNormal(GetGeometry(), i_slave); 
+            delta_normal += this->LocalDeltaNormal(GetGeometry(), i_slave); // TODO: Check this!!!!
         }
         
         delta_normal /= static_cast<double>(TNumNodes);
@@ -1124,83 +1124,198 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     
     for (unsigned i_belong = 0; i_belong < 3; i_belong++) 
     {
-        if (TheseBelongs[i_belong] == 2 * TNumNodes) // It belongs to an intersection
-        {
-            // TODO: FINISH ME!!!!
-//             double factor_belong;
-//             
+        if (TheseBelongs[i_belong] >= 2 * TNumNodes) // It belongs to an intersection
+        {    
+            // We compute the indexes
+            const unsigned int aux_index_hash = static_cast<unsigned int>(TheseBelongs[i_belong]);
+            unsigned int belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
+            ConvertAuxHashIndex(aux_index_hash, belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
+            
+            // We add the initial value // NOTE: Added in the second part
 //             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
 //             {
-//                 
+//                 LocalDeltaVertex(row(rDerivativeData.DeltaCellVertex[belong_index_slave_start * TDim + i_dof], i_belong), normal, delta_normal, N1, N2, i_dof, belong_index_slave_start, ConsiderNormalVariation, MasterGeometry);
 //             }
+            
+            const array_1d<double, 3> xs1 = GetGeometry()[belong_index_slave_start].Coordinates();
+            const array_1d<double, 3> xe1 = GetGeometry()[belong_index_slave_end].Coordinates();
+            const array_1d<double, 3> xs2 = MasterGeometry[belong_index_master_start].Coordinates();
+            const array_1d<double, 3> xe2 = MasterGeometry[belong_index_master_end].Coordinates();
+            
+            array_1d<double, 3> aux_num, aux_denom;
+            MathUtils<double>::CrossProduct(aux_num, xs1 - xs2, xe2 - xs2);
+            MathUtils<double>::CrossProduct(aux_denom, xe1 - xs1, xe2 - xs2);
+            const double num = inner_prod(aux_num, normal);
+            const double denom = inner_prod(aux_denom, normal);
+            
+            // We compute the first part
+            array_1d<double, 3> aux_coords = (xe1 - xs1);
+            array_1d<double, 3> aux_vertex_matrix;
+            array_1d<double, 3> aux_cross_product;
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+            {
+                aux_vertex_matrix = ZeroVector(3);
+                
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_slave_start, ConsiderNormalVariation, MasterGeometry, 1.0);
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_slave_end, ConsiderNormalVariation, MasterGeometry, - 1.0);   
+            }
+            
+            MathUtils<double>::CrossProduct(aux_cross_product, aux_vertex_matrix, xe2 - xs2);
+            const double coeff1 = inner_prod(aux_cross_product, normal);
+            
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+            {
+                aux_vertex_matrix = ZeroVector(3);
+                
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_master_end, ConsiderNormalVariation, MasterGeometry, 1.0);
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_master_start, ConsiderNormalVariation, MasterGeometry, - 1.0);   
+            }
+
+            MathUtils<double>::CrossProduct(aux_cross_product, xs1 - xs2, aux_vertex_matrix);
+            const double coeff2 = inner_prod(aux_cross_product, normal);
+            
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+            {
+                aux_vertex_matrix = ZeroVector(3);
+                
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_slave_end, ConsiderNormalVariation, MasterGeometry, - 1.0);
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_slave_start, ConsiderNormalVariation, MasterGeometry, 1.0);   
+            }
+
+            MathUtils<double>::CrossProduct(aux_cross_product, aux_vertex_matrix, xe2 - xs2);
+            const double coeff3 = inner_prod(aux_cross_product, normal);
+            
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+            {
+                aux_vertex_matrix = ZeroVector(3);
+                
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_master_end, ConsiderNormalVariation, MasterGeometry, - 1.0);
+                LocalDeltaVertex(aux_vertex_matrix, normal, delta_normal, N1, N2, i_dof, belong_index_master_start, ConsiderNormalVariation, MasterGeometry, 1.0);   
+            }
+
+            MathUtils<double>::CrossProduct(aux_cross_product, xe1 - xs1, aux_vertex_matrix);
+            const double coeff4 = inner_prod(aux_cross_product, normal);
+            
+            for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave)
+            {
+                for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+                {
+                    row(rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof], i_belong) -= coeff1/denom * aux_coords; 
+                    row(rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof], i_belong) -= coeff2/denom * aux_coords; 
+                    row(rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof], i_belong) -= num * coeff3/std::pow(denom, 2.0) * aux_coords; 
+                    row(rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof], i_belong) -= num * coeff4/std::pow(denom, 2.0) * aux_coords; 
+                }
+            }
+            
+            for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave)
+            {
+                for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+                {
+                    row(rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof], i_belong) += inner_prod(aux_num,   trans(column(delta_normal, i_dof)))/std::pow(denom, 2.0) * aux_coords; 
+                    row(rDerivativeData.DeltaCellVertex[i_slave * TDim + i_dof], i_belong) -= inner_prod(aux_denom, trans(column(delta_normal, i_dof)))/std::pow(denom, 2.0) * aux_coords; 
+                }
+            }
+            
+            // We compute the second part
+            double coeff0 = num/denom;
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
+            {
+                LocalDeltaVertex(row(rDerivativeData.DeltaCellVertex[belong_index_slave_end * TDim + i_dof], i_belong), normal, delta_normal, N1, N2, i_dof, belong_index_slave_end, ConsiderNormalVariation, MasterGeometry,     - coeff0);
+                LocalDeltaVertex(row(rDerivativeData.DeltaCellVertex[belong_index_slave_start * TDim + i_dof], i_belong), normal, delta_normal, N1, N2, i_dof, belong_index_slave_start, ConsiderNormalVariation, MasterGeometry, 1.0 + coeff0);
+            }
+            
         }
         else // It belongs to a master/slave node
         {
-            unsigned int belong_index = static_cast<unsigned int>(TheseBelongs[i_belong]);
+            const unsigned int belong_index = static_cast<unsigned int>(TheseBelongs[i_belong]);
             
-            const array_1d<double, 3> coords_center = GetGeometry().Center().Coordinates();
-            array_1d<double, 3> coords_node;
-            if (belong_index < TNumNodes)
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++)
             {
-                coords_node = GetGeometry()[belong_index].Coordinates();
-            }
-            else
-            {
-                coords_node = MasterGeometry[belong_index - TNumNodes].Coordinates();
-            }
-            
-            // The corresponding part to the nodal coordinates
-            const array_1d<double, 3> aux_der(1.0);
-            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) // MASTER AND SLAVE
-            {
-                row(rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof], i_belong) += aux_der * N1[belong_index];
-            }
-            
-            // The corresponding part to the normal
-            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
-            {
-                const double coordsxdeltanormal = inner_prod(coords_node - coords_center, column(delta_normal, i_dof));
-                
-                for (unsigned int i_node = 0; i_node < TNumNodes; i_node++) // SLAVE
-                {
-                    double factor_belong = - N1[belong_index]/static_cast<double>(TNumNodes);   
-                    
-                    if (i_node == belong_index)
-                    {
-                        factor_belong += N1[belong_index];
-                    }
-                    
-                    const array_1d<double, 3> factors_belong(factor_belong);
-                    
-                    const double deltacoordsxnormal = inner_prod(factors_belong, normal);
-                    
-                    row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong)  += - normal * (deltacoordsxnormal + coordsxdeltanormal);
-                }
-                for (unsigned int i_node = TNumNodes; i_node <  2 *TNumNodes; i_node++) // MASTER
-                {
-                    if (i_node == belong_index)
-                    {                    
-                        const array_1d<double, 3> factors_belong(N2[belong_index]);
-                        
-                        const double deltacoordsxnormal = inner_prod(factors_belong, normal);
-                        
-                        row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong)  += - normal * deltacoordsxnormal;
-                    }
-                }
-            }
-            
-            // The corresponding part to delta normal
-            const double coordsxnormal = - inner_prod(coords_node - coords_center, normal);
-            
-            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) // SLAVE
-            {
-                for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-                {
-                    row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong) += coordsxnormal * trans(column(delta_normal, i_dof)); 
-                }
+                LocalDeltaVertex(row(rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof], i_belong), normal, delta_normal, N1, N2, i_dof, belong_index, ConsiderNormalVariation, MasterGeometry);
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::ConvertAuxHashIndex(
+    const unsigned int& AuxIndex,
+    unsigned int& BelongIndexSlaveStart, 
+    unsigned int& BelongIndexSlaveEnd, 
+    unsigned int& BelongIndexMasterStart, 
+    unsigned int& BelongIndexMasterEnd
+    )
+{
+    unsigned int index_to_decompose = AuxIndex - 2 * TNumNodes;
+    
+    BelongIndexMasterEnd = index_to_decompose/10000;
+    index_to_decompose = std::fmod(index_to_decompose, 10000);
+    BelongIndexMasterStart = index_to_decompose/1000;
+    index_to_decompose = std::fmod(index_to_decompose, 1000);
+    BelongIndexSlaveEnd = index_to_decompose/100;
+    index_to_decompose = std::fmod(index_to_decompose, 100);
+    BelongIndexSlaveStart = index_to_decompose/10;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::LocalDeltaVertex(
+   array_1d<double, 3> DeltaVertexMatrix,
+   const array_1d<double, 3>& Normal,
+   const bounded_matrix<double, TDim, TDim>& DeltaNormal,
+   const VectorType& N1,
+   const VectorType& N2,
+   const unsigned & iDoF,
+   const unsigned & BelongIndex,
+   const bool& ConsiderNormalVariation,
+   GeometryType& MasterGeometry,
+   const double Coeff 
+   ) 
+{
+    const array_1d<double, 3> coords_center = GetGeometry().Center().Coordinates();
+    array_1d<double, 3> coords_node;
+    if (BelongIndex < TNumNodes)
+    {
+        coords_node = GetGeometry()[BelongIndex].Coordinates();
+    }
+    else
+    {
+        coords_node = MasterGeometry[BelongIndex - TNumNodes].Coordinates();
+    }
+    
+    // The corresponding part to the nodal coordinates
+    const array_1d<double, 3> aux_der(1.0);
+    DeltaVertexMatrix += Coeff * aux_der * N1[BelongIndex];
+    
+    // The corresponding part to the normal
+    const double coordsxdeltanormal = inner_prod(coords_node - coords_center, column(DeltaNormal, iDoF));
+    
+    if (BelongIndex < TNumNodes) // SLAVE
+    {
+        const double factor_belong = - N1[BelongIndex]/static_cast<double>(TNumNodes) + N1[BelongIndex];   
+        const array_1d<double, 3> factors_belong(factor_belong);
+        
+        const double deltacoordsxnormal = inner_prod(factors_belong, Normal);
+        
+        DeltaVertexMatrix += - Coeff * Normal * (deltacoordsxnormal + coordsxdeltanormal);
+    }
+    else // MASTER
+    {
+        const array_1d<double, 3> factors_belong(N2[BelongIndex]);
+        
+        const double deltacoordsxnormal = inner_prod(factors_belong, Normal);
+        
+        DeltaVertexMatrix += - Coeff * Normal * deltacoordsxnormal;
+    }
+    
+    // The corresponding part to delta normal
+    const double coordsxnormal = - inner_prod(coords_node - coords_center, Normal);
+    DeltaVertexMatrix += Coeff * coordsxnormal * trans(column(DeltaNormal, iDoF));
 }
 
 /***********************************************************************************/
@@ -1229,7 +1344,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         const array_1d<double,TDim>& Jxi  = column( rVariables.jSlave, 0 );
         const array_1d<double,TDim>& Jeta = column( rVariables.jSlave, 1 );
         
-        const array_1d<double,TDim>& Normal = prod(trans(rDerivativeData.NormalMaster), rVariables.NSlave);
+        const array_1d<double,TDim>& normal = prod(trans(rDerivativeData.NormalMaster), rVariables.NSlave);
         
         bounded_matrix<double, TDim, TDim> DeltaJxixJeta;
         
@@ -1245,9 +1360,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             DeltaJxixJeta(2,1) = -Jeta(0) * DNDxi(i_slave) + Jxi(0) * DNDeta(i_slave); 
             DeltaJxixJeta(2,2) = 0.0;
             
-            rDerivativeData.DeltaDetjSlave[i    ] = inner_prod( Normal, column( DeltaJxixJeta, 0 ) );
-            rDerivativeData.DeltaDetjSlave[i + 1] = inner_prod( Normal, column( DeltaJxixJeta, 1 ) );
-            rDerivativeData.DeltaDetjSlave[i + 2] = inner_prod( Normal, column( DeltaJxixJeta, 2 ) );
+            rDerivativeData.DeltaDetjSlave[i    ] = inner_prod( normal, column( DeltaJxixJeta, 0 ) );
+            rDerivativeData.DeltaDetjSlave[i + 1] = inner_prod( normal, column( DeltaJxixJeta, 1 ) );
+            rDerivativeData.DeltaDetjSlave[i + 2] = inner_prod( normal, column( DeltaJxixJeta, 2 ) );
         }
     }
 }
@@ -1262,7 +1377,7 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
     )
 {
     // Tolerance
-    const double Tolerance = 1.0e-14;
+    const double tolerance = 1.0e-14;
         
     bounded_matrix<double, TDim, TDim> DeltaNeAdj;
     bounded_matrix<double, TDim, TDim> Ce;
@@ -1384,7 +1499,7 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
     NeNorm = norm_2( Ne );
     const double NeNorm3 = NeNorm * NeNorm * NeNorm;
     
-    if ( NeNorm3 > Tolerance )
+    if ( NeNorm3 > tolerance )
     {
         const bounded_matrix<double, TDim, TDim> Cj = I / NeNorm - NeoNe / NeNorm3;
         delta_normal = prod( Cj, delta_normal );
@@ -1405,6 +1520,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 //         const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(GetGeometry(), i_slave);
         for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
         {
+//             row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_slave) = trans(column(delta_normal, i_dof)); 
+            
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
                 row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
@@ -1428,6 +1545,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2,false>::CalculateDeltaN
         const bounded_matrix<double, 2, 2> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
         for (unsigned i_dof = 0; i_dof < 2; i_dof++) 
         {
+//             row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_master) = trans(column(delta_normal, i_dof));
+            
             for (unsigned int i_node = 0; i_node < 2; i_node++)
             {
                 row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
@@ -1451,6 +1570,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2,true>::CalculateDeltaNo
         const bounded_matrix<double, 2, 2> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
         for (unsigned i_dof = 0; i_dof < 2; i_dof++) 
         {
+//             row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_master) = trans(column(delta_normal, i_dof));
+            
             for (unsigned int i_node = 0; i_node < 2; i_node++)
             {
                 row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_node) = trans(column(delta_normal, i_dof)); 

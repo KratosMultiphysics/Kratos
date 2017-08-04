@@ -662,6 +662,33 @@ protected:
         );
     
     /**
+     * This method computes the equivalent indexes to the auxiliar hash
+     */
+    void ConvertAuxHashIndex(
+        const unsigned int& AuxIndex,
+        unsigned int& BelongIndexSlaveStart, 
+        unsigned int& BelongIndexSlaveEnd, 
+        unsigned int& BelongIndexMasterStart, 
+        unsigned int& BelongIndexMasterEnd
+        );
+    
+    /**
+     * This method is used to compute the directional derivatives of the cell vertex (locally)
+     */
+    void LocalDeltaVertex(
+        array_1d<double, 3> DeltaVertexMatrix,
+        const array_1d<double, 3>& Normal,
+        const bounded_matrix<double, TDim, TDim>& DeltaNormal,
+        const VectorType& N1,
+        const VectorType& N2,
+        const unsigned & iDoF,
+        const unsigned & BelongIndex,
+        const bool& ConsiderNormalVariation,
+        GeometryType& MasterGeometry,
+        const double Coeff = 1.0
+        );
+    
+    /**
      * This method is used to compute the directional derivatives of the jacobian determinant
      */
     void CalculateDeltaDetjSlave(
