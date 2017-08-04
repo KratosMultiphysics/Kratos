@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
@@ -17,7 +17,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
  
     def ComputeAverageMeshParameters(self):
         
-        ModelerUtils = KratosPfemBase.ModelerUtilities();
+        ModelerUtils = KratosPfem.ModelerUtilities();
         self.domain_volume =  ModelerUtils.ComputeModelPartVolume(self.main_model_part)
         self.element_mean_volume = 0
         

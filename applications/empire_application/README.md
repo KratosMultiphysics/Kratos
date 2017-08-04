@@ -6,3 +6,4 @@ _EMPIRE_ is a research tool for co-simulation in the context of field and signal
 
 Got to [Website_EMPIRE](http://empire.st.bv.tum.de) and follow the [instructions](http://empire-multiphysics.com/projects/empire/wiki/HowTos) on how to download and install it.
 
+_EMPIRE_ requires an MPI installation (e.g. OpenMPI), but Kratos does not have to be compiled with MPI
