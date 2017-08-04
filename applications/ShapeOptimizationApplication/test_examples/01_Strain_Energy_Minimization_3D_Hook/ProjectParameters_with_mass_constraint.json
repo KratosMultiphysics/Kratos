@@ -49,7 +49,7 @@
                 "input_filename" : "3D_Hook"
             },
             "compute_reactions"     : true
-    },    
+    },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
         "kratos_module" : "KratosMultiphysics",
@@ -111,8 +111,8 @@
         "objectives" : [{
                 "identifier"    : "strain_energy",
                 "use_kratos"    : true,
-                "step_size"     : 1e-5 
-                "gradient_mode" : "semi_analytic", 
+                "step_size"     : 1e-5,
+                "gradient_mode" : "semi_analytic",
                 "discretization_weighting": false
         }],
         "constraints" : [{
