@@ -69,7 +69,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         CalculateCauchyGreenStrain(rValues, StrainVector);
     }
@@ -96,46 +96,87 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         {
             CalculatePK2Stress( StrainVector, StressVector, E, NU );
         }
-
     }
 }
 
+//************************************************************************************
+//************************************************************************************
+
 // NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+
 void ElasticIsotropic3D::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
-// NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
-// NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void ElasticIsotropic3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     // TODO: Add if necessary
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& ElasticIsotropic3D::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+{
+    const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
+    Vector& StrainVector                  = rParameterValues.GetStrainVector();
+    Vector& StressVector                  = rParameterValues.GetStressVector();
+    const double& E          = MaterialProperties[YOUNG_MODULUS];
+    const double& NU    = MaterialProperties[POISSON_RATIO];
+    
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+        CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+        CalculatePK2Stress( StrainVector, StressVector, E, NU );
+
+        rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
+    }
+
+    return( rValue );
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************

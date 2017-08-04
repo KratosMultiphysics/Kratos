@@ -462,7 +462,7 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 
         double IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
-	//std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
+	// std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
 
        
 	//calculation of the force and the pressure loads
@@ -482,6 +482,9 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 
     }
 
+    //VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();    
+    //std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    
     KRATOS_CATCH( "" )
 }
 
@@ -569,7 +572,7 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
       this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVectorForce, rIntegrationWeight );
 
-      //KRATOS_WATCH( rRightHandSideVector )
+      //std::cout<<" rRightHandSideVectorPart "<<rRightHandSideVector<<std::endl;
 
     }
     

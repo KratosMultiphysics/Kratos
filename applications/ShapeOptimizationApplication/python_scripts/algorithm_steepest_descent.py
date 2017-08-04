@@ -4,7 +4,7 @@
 #  License:         BSD License
 #                   license: ShapeOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 #                   Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
@@ -45,7 +45,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
-        self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )
+        if self.performDamping:
+            self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )
 
         self.timer = timer_factory.CreateTimer()
         self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, communicator, optimizationSettings, self.timer )

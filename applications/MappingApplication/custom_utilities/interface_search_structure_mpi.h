@@ -23,6 +23,7 @@
 // Project includes
 #include "interface_search_structure.h"
 #include "interface_object_manager_parallel.h"
+#include "mapper_utilities.h"
 #include "mapper_utilities_mpi.h"
 
 
@@ -51,8 +52,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// MPI-parallel searching
+/** This class provides features for remote searching. It first computes candidate partitions 
+* (partitions in the vicinity of a point), where possible neighbors can be.
+* It then send the objects for which neighbors are to be found to the corresponding candidate partitions
+* In the candidate partitions (can be either local or remote), a local search is conducted (see BaseClass)
+* The results are sent back to the partition where the object is local, and the best result is then chosen.
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceSearchStructureMPI : public InterfaceSearchStructure
 {
@@ -77,7 +83,7 @@ public:
         mCommRank = CommRank;
         mCommSize = CommSize;
 
-        MapperUtilitiesMPI::ComputeLocalBoundingBox(rModelPartBins,
+        MapperUtilities::ComputeLocalBoundingBox(rModelPartBins,
                 mLocalBoundingBox);
     }
 
@@ -243,7 +249,7 @@ private:
         MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, mCommSize,
                 rDomainsColoredGraph, rMaxColors);
         // Output the colored Graph
-        if (mCommRank == 0 && mEchoLevel > 2)
+        if (mCommRank == 0 && mEchoLevel >= 3)
         {
             MapperUtilitiesMPI::PrintGraph(rDomainsColoredGraph, rMaxColors);
         }
@@ -376,7 +382,7 @@ private:
         mDomainsColoredGraph = rDomainsColoredGraph; // save it for the mapping
         mMaxColors = rMaxColors;
         // Output the colored Graph
-        if (mCommRank == 0 && mEchoLevel > 2)
+        if (mCommRank == 0 && mEchoLevel >= 3)
         {
             MapperUtilitiesMPI::PrintGraph(rDomainsColoredGraph, rMaxColors);
         }

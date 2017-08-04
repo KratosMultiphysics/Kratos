@@ -26,7 +26,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISTANCE","ANISOTROPIC_RATIO"],
+            "nodal_results"       : ["DISTANCE"],
+            "nodal_nonhistorical_results" : ["ANISOTROPIC_RATIO"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []

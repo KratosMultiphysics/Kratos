@@ -29,7 +29,6 @@
 #include "geometries/triangle_3d_6.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
@@ -48,7 +47,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
 namespace Kratos
@@ -87,23 +85,23 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mNodalConcentratedElement3D1N( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1 ) ) ), true ),
     mNodalConcentratedDampedElement3D1N( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1 ) ) ), false ),
     // Adding the kinematic linear elements
-    mKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-    mKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
-    mKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-    mKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
-    mKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-    mKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
-    mKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-    mKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
-    mKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) ),
-    mKinematicLinear3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
-    mKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) ),
-    mAxisymKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAxisymKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-    mAxisymKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
-    mAxisymKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-    mAxisymKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
+    mSmallDisplacement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mSmallDisplacement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSmallDisplacement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSmallDisplacement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSmallDisplacement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
+    mSmallDisplacement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSmallDisplacement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSmallDisplacement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSmallDisplacement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
+    mSmallDisplacement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) ),
+    mSmallDisplacement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
+    mSmallDisplacement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) ),
+    mAxisymSmallDisplacement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymSmallDisplacement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mAxisymSmallDisplacement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mAxisymSmallDisplacement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mAxisymSmallDisplacement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
     // Adding the Total lagrangian elements
     mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ), 
     mTotalLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -201,7 +199,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Z)
     KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Y)
     KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Z)
+	KRATOS_REGISTER_VARIABLE(LUMPED_MASS_MATRIX)
     KRATOS_REGISTER_VARIABLE(LOCAL_AXES_VECTOR)
+	KRATOS_REGISTER_VARIABLE(LOCAL_INERTIA_VECTOR)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
@@ -213,10 +213,8 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT_GLOBAL )
 
-    // Prestressed membrane vairiables
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_11 )
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_22 )
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_12 )
+    // Prestresse membrane generalized vairiables
+    KRATOS_REGISTER_VARIABLE( MEMBRANE_PRESTRESS )
 
     // Cross section
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
@@ -309,24 +307,24 @@ void KratosStructuralMechanicsApplication::Register()
 
     // SOLID ELEMENTS
     // Small displacement elements
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D3N", mKinematicLinear2D3N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D4N", mKinematicLinear2D4N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D6N", mKinematicLinear2D6N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D8N", mKinematicLinear2D8N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D9N", mKinematicLinear2D9N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D4N", mKinematicLinear3D4N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D6N", mKinematicLinear3D6N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D8N", mKinematicLinear3D8N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D10N", mKinematicLinear3D10N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D15N", mKinematicLinear3D15N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D20N", mKinematicLinear3D20N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D27N", mKinematicLinear3D27N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D3N", mSmallDisplacement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D4N", mSmallDisplacement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D6N", mSmallDisplacement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D8N", mSmallDisplacement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D9N", mSmallDisplacement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D4N", mSmallDisplacement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D6N", mSmallDisplacement3D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D8N", mSmallDisplacement3D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D10N", mSmallDisplacement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D15N", mSmallDisplacement3D15N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D20N", mSmallDisplacement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D27N", mSmallDisplacement3D27N )
     
-    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D3N", mAxisymKinematicLinear2D3N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D4N", mAxisymKinematicLinear2D4N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D6N", mAxisymKinematicLinear2D6N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D8N", mAxisymKinematicLinear2D8N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D9N", mAxisymKinematicLinear2D9N )
+    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D3N", mAxisymSmallDisplacement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D4N", mAxisymSmallDisplacement2D4N )
+    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D6N", mAxisymSmallDisplacement2D6N )
+    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D8N", mAxisymSmallDisplacement2D8N )
+    KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D9N", mAxisymSmallDisplacement2D9N )
 
     // Total lagrangian elements
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement2D3N", mTotalLagrangian2D3N )
