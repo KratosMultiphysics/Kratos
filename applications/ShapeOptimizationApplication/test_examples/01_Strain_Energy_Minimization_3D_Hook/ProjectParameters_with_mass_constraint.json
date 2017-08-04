@@ -112,7 +112,7 @@
                 "identifier"    : "strain_energy",
                 "use_kratos"    : true,
                 "gradient_mode" : "semi_analytic", 
-                "step_size"     : 1e-8 
+                "step_size"     : 1e-5 
         }],
         "constraints" : [{
                 "identifier"    : "mass",
