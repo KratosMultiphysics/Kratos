@@ -43,6 +43,12 @@ constexpr unsigned int FluidElementData<TDim,TNumNodes>::Dim;
 template< unsigned int TDim, unsigned int TNumNodes >
 constexpr unsigned int FluidElementData<TDim,TNumNodes>::NumNodes;
 
+template< unsigned int TDim, unsigned int TNumNodes >
+constexpr unsigned int FluidElementData<TDim,TNumNodes>::BlockSize;
+
+template< unsigned int TDim, unsigned int TNumNodes >
+constexpr unsigned int FluidElementData<TDim,TNumNodes>::LocalSize;
+
 template class FluidElementData<2, 3>; // Trianlge2D3
 template class FluidElementData<3, 4>; // Tetrahedra3D4
 }

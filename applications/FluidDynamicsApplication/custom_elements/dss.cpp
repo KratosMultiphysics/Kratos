@@ -389,7 +389,6 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
     AGradN *= Density; // Convective term is always multiplied by density
 
     // Auxiliary variables for matrix looping
-    const unsigned int BlockSize = TElementData::Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
 
@@ -400,12 +399,12 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
-        Row = i*BlockSize;
+        Row = i*TElementData::BlockSize;
 
         // LHS terms
         for (unsigned int j = 0; j < TElementData::NumNodes; j++)
         {
-            Col = j*BlockSize;
+            Col = j*TElementData::BlockSize;
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
             K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
@@ -470,8 +469,6 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
 template< class TElementData >
 void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, MatrixType &rMassMatrix)
 {
-    const unsigned int BlockSize = TElementData::Dim+1;
-
     double Density;
     this->EvaluateInPoint(Density,DENSITY,rN);
 
@@ -481,10 +478,10 @@ void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsTyp
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
-        Row = i*BlockSize;
+        Row = i*TElementData::BlockSize;
         for (unsigned int j = 0; j < TElementData::NumNodes; j++)
         {
-            Col = j*BlockSize;
+            Col = j*TElementData::BlockSize;
             const double Mij = GaussWeight * Density * rN[i] * rN[j];
             for (unsigned int d = 0; d < TElementData::Dim; d++)
                 rMassMatrix(Row+d,Col+d) += Mij;
@@ -525,7 +522,6 @@ void DSS<TElementData>::AddMassStabilization(unsigned int GaussIndex,
     AGradN *= Density; // Convective term is always multiplied by density
 
     // Auxiliary variables for matrix looping
-    const unsigned int BlockSize = TElementData::Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
 
@@ -536,11 +532,11 @@ void DSS<TElementData>::AddMassStabilization(unsigned int GaussIndex,
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < TElementData::NumNodes; i++)
     {
-        Row = i*BlockSize;
+        Row = i*TElementData::BlockSize;
 
         for (unsigned int j = 0; j < TElementData::NumNodes; j++)
         {
-            Col = j*BlockSize;
+            Col = j*TElementData::BlockSize;
 
             K = W * AGradN[i] * rN[j];
 
@@ -564,7 +560,6 @@ void DSS< FluidElementData<2,3> >::AddViscousTerm(double DynamicViscosity,
                             const ShapeFunctionDerivativesType &rDN_DX,
                             MatrixType &rLHS)
 {
-    const unsigned int BlockSize = 3;
     double Weight = GaussWeight * DynamicViscosity;
 
     const double FourThirds = 4.0 / 3.0;
@@ -574,10 +569,10 @@ void DSS< FluidElementData<2,3> >::AddViscousTerm(double DynamicViscosity,
 
     for (unsigned int a = 0; a < FluidElementData<2,3>::NumNodes; ++a)
     {
-        Row = a*BlockSize;
+        Row = a*FluidElementData<2,3>::BlockSize;
         for (unsigned int b = 0; b < FluidElementData<2,3>::NumNodes; ++b)
         {
-            Col = b*BlockSize;
+            Col = b*FluidElementData<2,3>::BlockSize;
 
             // First Row
             rLHS(Row,Col) += Weight * ( FourThirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
@@ -601,7 +596,6 @@ void DSS< FluidElementData<3,4> >::AddViscousTerm(double DynamicViscosity,
                             const ShapeFunctionDerivativesType &rDN_DX,
                             MatrixType &rLHS)
 {
-    const unsigned int BlockSize = 4;
     double Weight = GaussWeight * DynamicViscosity;
 
     const double OneThird = 1.0 / 3.0;
@@ -611,10 +605,10 @@ void DSS< FluidElementData<3,4> >::AddViscousTerm(double DynamicViscosity,
 
     for (unsigned int i = 0; i < FluidElementData<3,4>::NumNodes; ++i)
     {
-        Row = i*BlockSize;
+        Row = i*FluidElementData<3,4>::BlockSize;
         for (unsigned int j = 0; j < FluidElementData<3,4>::NumNodes; ++j)
         {
-            Col = j*BlockSize;
+            Col = j*FluidElementData<3,4>::BlockSize;
             // (dN_i/dx_k dN_j/dx_k)
             const double Diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
 

@@ -63,59 +63,51 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType &rLeftHandSideM
                                                  VectorType &rRightHandSideVector,
                                                  ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TElementData::Dim+1);
-
     // Resize and intialize output
-    if( rLeftHandSideMatrix.size1() != LocalSize )
-        rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
+    if( rLeftHandSideMatrix.size1() != TElementData::LocalSize )
+        rLeftHandSideMatrix.resize(TElementData::LocalSize,TElementData::LocalSize,false);
 
-    if( rRightHandSideVector.size() != LocalSize )
-        rRightHandSideVector.resize(LocalSize,false);
+    if( rRightHandSideVector.size() != TElementData::LocalSize )
+        rRightHandSideVector.resize(TElementData::LocalSize,false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
-    rRightHandSideVector = ZeroVector(LocalSize);
+    rLeftHandSideMatrix = ZeroMatrix(TElementData::LocalSize,TElementData::LocalSize);
+    rRightHandSideVector = ZeroVector(TElementData::LocalSize);
 }
 
 
 template< class TElementData >
 void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TElementData::Dim+1);
-
     // Resize and intialize output
-    if( rLeftHandSideMatrix.size1() != LocalSize )
-        rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
+    if( rLeftHandSideMatrix.size1() != TElementData::LocalSize )
+        rLeftHandSideMatrix.resize(TElementData::LocalSize,TElementData::LocalSize,false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
+    rLeftHandSideMatrix = ZeroMatrix(TElementData::LocalSize,TElementData::LocalSize);
 }
 
 
 template< class TElementData >
 void FluidElement<TElementData>::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = this->GetGeometry().PointsNumber()*(TElementData::Dim+1);
+    if( rRightHandSideVector.size() != TElementData::LocalSize )
+        rRightHandSideVector.resize(TElementData::LocalSize,false);
 
-    if( rRightHandSideVector.size() != LocalSize )
-        rRightHandSideVector.resize(LocalSize,false);
-
-    rRightHandSideVector = ZeroVector(LocalSize);
+    rRightHandSideVector = ZeroVector(TElementData::LocalSize);
 }
 
 
 template< class TElementData >
 void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = TElementData::NumNodes*(TElementData::Dim+1);
-
     // Resize and intialize output
-    if( rDampMatrix.size1() != LocalSize )
-        rDampMatrix.resize(LocalSize,LocalSize,false);
+    if( rDampMatrix.size1() != TElementData::LocalSize )
+        rDampMatrix.resize(TElementData::LocalSize,TElementData::LocalSize,false);
 
-    if( rRightHandSideVector.size() != LocalSize )
-        rRightHandSideVector.resize(LocalSize,false);
+    if( rRightHandSideVector.size() != TElementData::LocalSize )
+        rRightHandSideVector.resize(TElementData::LocalSize,false);
 
-    rDampMatrix = ZeroMatrix(LocalSize,LocalSize);
-    rRightHandSideVector = ZeroVector(LocalSize);
+    rDampMatrix = ZeroMatrix(TElementData::LocalSize,TElementData::LocalSize);
+    rRightHandSideVector = ZeroVector(TElementData::LocalSize);
 
     // Get Shape function data
     Vector GaussWeights;
@@ -135,7 +127,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
-    VectorType U = ZeroVector(LocalSize);
+    VectorType U = ZeroVector(TElementData::LocalSize);
     int LocalIndex = 0;
 
     for (unsigned int i = 0; i < TElementData::NumNodes; ++i)
@@ -153,13 +145,11 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
 template< class TElementData >
 void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
 {
-    const unsigned int LocalSize = TElementData::NumNodes*(TElementData::Dim+1);
-
     // Resize and intialize output
-    if( rMassMatrix.size1() != LocalSize )
-        rMassMatrix.resize(LocalSize,LocalSize,false);
+    if( rMassMatrix.size1() != TElementData::LocalSize )
+        rMassMatrix.resize(TElementData::LocalSize,TElementData::LocalSize,false);
 
-    rMassMatrix = ZeroMatrix(LocalSize,LocalSize);
+    rMassMatrix = ZeroMatrix(TElementData::LocalSize,TElementData::LocalSize);
 
     // Get Shape function data
     Vector GaussWeights;
@@ -266,12 +256,10 @@ template<>
 void FluidElement< FluidElementData<2,3> >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
-    const unsigned int LocalSize = 3*FluidElementData<2,3>::NumNodes;
-
     unsigned int LocalIndex = 0;
 
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
+    if (rResult.size() != FluidElementData<2,3>::LocalSize)
+        rResult.resize(FluidElementData<2,3>::LocalSize, false);
 
     const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
@@ -289,10 +277,9 @@ template<>
 void FluidElement< FluidElementData<2,3> >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
-     const unsigned int LocalSize = 3*FluidElementData<2,3>::NumNodes;
 
-     if (rElementalDofList.size() != LocalSize)
-         rElementalDofList.resize(LocalSize);
+     if (rElementalDofList.size() != FluidElementData<2,3>::LocalSize)
+         rElementalDofList.resize(FluidElementData<2,3>::LocalSize);
 
      unsigned int LocalIndex = 0;
 
@@ -312,12 +299,11 @@ template<>
 void FluidElement< FluidElementData<3,4> >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
-    const unsigned int LocalSize = 4*FluidElementData<3,4>::NumNodes;
 
     unsigned int LocalIndex = 0;
 
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
+    if (rResult.size() != FluidElementData<3,4>::LocalSize)
+        rResult.resize(FluidElementData<3,4>::LocalSize, false);
 
     const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
@@ -336,10 +322,9 @@ template<>
 void FluidElement< FluidElementData<3,4> >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
-     const unsigned int LocalSize = 4*FluidElementData<3,4>::NumNodes;
 
-     if (rElementalDofList.size() != LocalSize)
-         rElementalDofList.resize(LocalSize);
+     if (rElementalDofList.size() != FluidElementData<3,4>::LocalSize)
+         rElementalDofList.resize(FluidElementData<3,4>::LocalSize);
 
      unsigned int LocalIndex = 0;
 
@@ -358,12 +343,11 @@ template< class TElementData >
 void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step)
 {
     GeometryType& rGeom = this->GetGeometry();
-    const unsigned int LocalSize = TElementData::NumNodes * (TElementData::Dim+1);
 
-    if (rValues.size() != LocalSize)
-        rValues.resize(LocalSize,false);
+    if (rValues.size() != TElementData::LocalSize)
+        rValues.resize(TElementData::LocalSize,false);
 
-    noalias(rValues) = ZeroVector(LocalSize);
+    noalias(rValues) = ZeroVector(TElementData::LocalSize);
 
     unsigned int Index = 0;
 
@@ -381,12 +365,11 @@ template< class TElementData >
 void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step)
 {
     GeometryType& rGeom = this->GetGeometry();
-    const unsigned int LocalSize = TElementData::NumNodes * (TElementData::Dim+1);
 
-    if (rValues.size() != LocalSize)
-        rValues.resize(LocalSize,false);
+    if (rValues.size() != TElementData::LocalSize)
+        rValues.resize(TElementData::LocalSize,false);
 
-    noalias(rValues) = ZeroVector(LocalSize);
+    noalias(rValues) = ZeroVector(TElementData::LocalSize);
 
     unsigned int Index = 0;
 

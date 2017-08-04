@@ -57,6 +57,10 @@ public:
 
     static constexpr unsigned int NumNodes = TNumNodes;
 
+    static constexpr unsigned int BlockSize = TDim + 1;
+
+    static constexpr unsigned int LocalSize = TNumNodes * BlockSize;
+
     ScalarDataType Pressure;
 
     ScalarDataType Density;
