@@ -407,8 +407,8 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
             Col = j*TElementData::BlockSize;
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
-            K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
-            //K = rN[i]*AGradN[j];
+            //K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
+            K = rN[i]*AGradN[j];
             K += AGradN[i]*TauOne*(AGradN[j]); // Stabilization: u*grad(v) * TauOne * u*grad(u)
             K *= GaussWeight;
 
