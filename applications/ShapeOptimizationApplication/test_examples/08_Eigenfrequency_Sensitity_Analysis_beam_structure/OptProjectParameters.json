@@ -125,10 +125,10 @@
         "incremental_displacement" : false
     },
     "optimization_settings" : {
-        "objectives" : [{ 
+        "objectives" : [{
                 "identifier"    : "eigenfrequency",
                 "use_kratos"    : true,
-                "gradient_mode" : "semi_analytic", 
+                "gradient_mode" : "semi_analytic",
                 "step_size"     : 1e-8,
                 "traced_eigenfrequency": 1,
                 "weighting_method": "none",
@@ -138,37 +138,38 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing",
             "input_model_part_name"     : "Beam_EV",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
+            "align_sensitivities_with_normal" : false,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.1,
                 "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false 
+                "matrix_free_filtering"      : false
             },
             "damping" : {
                 "perform_damping" : true,
-                  "damping_regions" : [{ 
+                  "damping_regions" : [{
                         "sub_model_part_name"   : "support",
-                        "damp_X"                : true, 
+                        "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
                         "damping_function_type" : "linear",
                         "damping_radius"        : 0.2 }
                     ]
         }
-        }, 
+        },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 1,
+            "max_iterations"     : 10,
             "relative_tolerance" : 1e-1
         },
         "line_search" : {
             "line_search_type"           : "manual_stepping",
             "normalize_search_direction" : true,
-            "step_size"                  : 0.1
+            "step_size"                  : 0.05
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
@@ -180,7 +181,7 @@
                                           "DESIGN_UPDATE",
                                           "DESIGN_CHANGE_ABSOLUTE",
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE_ABSOLUTE" ],            
+                                          "SHAPE_CHANGE_ABSOLUTE" ],
             "output_format" : {
                 "name"                   : "gid",
                 "VolumeOutput"           : true,
@@ -188,7 +189,7 @@
                 "GiDWriteMeshFlag"       : true,
                 "GiDWriteConditionsFlag" : true,
                 "GiDMultiFileFlag"       : "Single"
-            }      
-        }                  
+            }
+        }
     }
 }

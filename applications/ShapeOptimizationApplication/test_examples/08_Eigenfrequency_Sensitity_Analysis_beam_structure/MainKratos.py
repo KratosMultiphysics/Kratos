@@ -202,7 +202,7 @@ while(time <= end_time):
     print("START SOLVING")
     solver.Solve()
     print("END SOLVING")
-   
+
     eig = False
     if eig:
         eigenvector = main_model_part.ProcessInfo[EIGENVALUE_VECTOR]
@@ -234,7 +234,7 @@ while(time <= end_time):
  #numberOfObjectives = ProjectParameters["optimization_settings"]["objectives"].size()
  #for objectiveNumber in range(numberOfObjectives):
     main_model_part.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
-    MyResponseFunction = EigenfrequencyResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0]) 
+    MyResponseFunction = EigenfrequencyResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0])
     MyResponseFunction.calculate_value()
     MyResponseFunction.calculate_gradient()
     my_value = MyResponseFunction.get_value()
@@ -276,8 +276,6 @@ if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
     print(timer.ctime())
     print(main_model_part.ProcessInfo[EIGENVALUE_VECTOR])
 
-
-
 from gid_output import GiDOutput
 listOfNodalResults = ["EIGENFREQUENCY_SHAPE_GRADIENT"]
 resultsDirectory = ""
@@ -285,14 +283,13 @@ designHistoryFilename = "result_gradient"
 designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
 gidIO = GiDOutput( "result_gradient",
                     True,
-                    "Binary",
+                    "Ascii",
                     "Single",
                     True,
                     True )
 iteratorForInitialDesign = 0
 gidIO.initialize_results( main_model_part )
-gidIO.write_results( 1, main_model_part, listOfNodalResults, [] )     
-      
-
-gidIO.finalize_results()  
+gidIO.write_results( 0, main_model_part, listOfNodalResults, [] )
+gidIO.write_results( 1, main_model_part, listOfNodalResults, [] )
+gidIO.finalize_results()
 
