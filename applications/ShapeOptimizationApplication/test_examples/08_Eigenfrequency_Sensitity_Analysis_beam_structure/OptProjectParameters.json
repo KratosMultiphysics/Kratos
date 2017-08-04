@@ -141,11 +141,11 @@
             "design_variables_type"     : "vertex_morphing",
             "input_model_part_name"     : "Beam_EV",
             "design_submodel_part_name" : "design_surface",
-            "domain_size"               : 3,
+            "domain_size"               : 2,
             "align_sensitivities_with_normal" : false,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 0.1,
+                "filter_radius"              : 1.0,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : false
             },
@@ -157,7 +157,7 @@
                         "damp_Y"                : true,
                         "damp_Z"                : true,
                         "damping_function_type" : "linear",
-                        "damping_radius"        : 0.2 }
+                        "damping_radius"        : 0.75 }
                     ]
         }
         },
@@ -181,7 +181,8 @@
                                           "DESIGN_UPDATE",
                                           "DESIGN_CHANGE_ABSOLUTE",
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE_ABSOLUTE" ],
+                                          "SHAPE_CHANGE_ABSOLUTE",
+                                          "NORMALIZED_SURFACE_NORMAL" ],
             "output_format" : {
                 "name"                   : "gid",
                 "VolumeOutput"           : true,
