@@ -347,13 +347,15 @@ void DSS<TElementData>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
-                               double GaussWeight,
-                               const ShapeFunctionsType &rN,
-                               const ShapeFunctionDerivativesType &rDN_DX,
-                               const ProcessInfo &rProcessInfo,
-                               MatrixType &rLHS,
-                               VectorType &rRHS)
+void DSS<TElementData>::AddSystemTerms(
+    const TElementData& rData,
+    unsigned int GaussIndex,
+    double GaussWeight,
+    const ShapeFunctionsType &rN,
+    const ShapeFunctionDerivativesType &rDN_DX,
+    const ProcessInfo &rProcessInfo,
+    MatrixType &rLHS,
+    VectorType &rRHS)
 {
     // Interpolate nodal data on the integration point
     double Density;
@@ -467,10 +469,15 @@ void DSS<TElementData>::AddSystemTerms(unsigned int GaussIndex,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsType &rN, MatrixType &rMassMatrix)
+void DSS<TElementData>::AddMassTerms(
+    const TElementData& rData,
+    double GaussWeight,
+    const ShapeFunctionsType &rN,
+    MatrixType &rMassMatrix)
 {
     double Density;
-    this->EvaluateInPoint(Density,DENSITY,rN);
+    KRATOS_WATCH("NOTE TO SELF: ERROR HERE")
+    this->EvaluateInPoint(Density,rData.Density,rN);
 
     unsigned int Row = 0;
     unsigned int Col = 0;
@@ -492,12 +499,14 @@ void DSS<TElementData>::AddMassTerms(double GaussWeight, const ShapeFunctionsTyp
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DSS<TElementData>::AddMassStabilization(unsigned int GaussIndex,
-                                     double GaussWeight,
-                                     const ShapeFunctionsType &rN,
-                                     const ShapeFunctionDerivativesType &rDN_DX,
-                                     const ProcessInfo &rProcessInfo,
-                                     MatrixType &rMassMatrix)
+void DSS<TElementData>::AddMassStabilization(
+    const TElementData& rData,
+    unsigned int GaussIndex,
+    double GaussWeight,
+    const ShapeFunctionsType &rN,
+    const ShapeFunctionDerivativesType &rDN_DX,
+    const ProcessInfo &rProcessInfo,
+    MatrixType &rMassMatrix)
 {
     // Interpolate nodal data on the integration point
     double Density;

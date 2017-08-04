@@ -116,6 +116,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
     const unsigned int NumGauss = GaussWeights.size();
 
+    TElementData Data(this->GetGeometry());
+
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < NumGauss; g++)
     {
@@ -123,7 +125,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
         const ShapeFunctionsType& rN = row(ShapeFunctions,g);
         const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
 
-        this->AddSystemTerms(g,GaussWeight,rN,rDN_DX,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
+        this->AddSystemTerms(Data,g,GaussWeight,rN,rDN_DX,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
@@ -158,6 +160,8 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, Pr
     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
     const unsigned int NumGauss = GaussWeights.size();
 
+    TElementData Data(this->GetGeometry());
+
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < NumGauss; g++)
     {
@@ -165,7 +169,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, Pr
         const ShapeFunctionsType& rN = row(ShapeFunctions,g);
         const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
 
-        this->AddMassTerms(GaussWeight,rN,rMassMatrix);
+        this->AddMassTerms(Data,GaussWeight,rN,rMassMatrix);
 
         /* Note on OSS and full projection: Riccardo says that adding the terms provided by
          * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
@@ -175,7 +179,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, Pr
          * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
          */
         if ( rCurrentProcessInfo[OSS_SWITCH] != 1.0 )
-            this->AddMassStabilization(g,GaussWeight,rN,rDN_DX,rCurrentProcessInfo,rMassMatrix);
+            this->AddMassStabilization(Data,g,GaussWeight,rN,rDN_DX,rCurrentProcessInfo,rMassMatrix);
     }
 }
 
@@ -703,6 +707,41 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 
     for (unsigned int g = 0; g < NumGauss; g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+}
+
+
+template< class TElementData >
+void FluidElement<TElementData>::EvaluateInPoint(
+        double& rResult,
+        const typename TElementData::ScalarDataType& rNodalValues,
+        const ShapeFunctionsType& rShapeFunc)
+{
+    rResult = rShapeFunc[0] * rNodalValues[0];
+    
+    for(unsigned int i = 1; i < TElementData::NumNodes; i++)
+    {
+        rResult += rShapeFunc[i] * rNodalValues[i];
+    }
+}
+
+template< class TElementData >
+void FluidElement<TElementData>::EvaluateInPoint(
+        array_1d<double,3>& rResult,
+        const typename TElementData::VectorDataType& rNodalValues,
+        const ShapeFunctionsType& rShapeFunc)
+{
+    for (unsigned int d = 0; d < TElementData::Dim; d++)
+    {
+        rResult[d] = rShapeFunc[0] * rNodalValues(0,d);
+    }
+
+    for(unsigned int i = 1; i < TElementData::NumNodes; i++)
+    {
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
+        {
+            rResult[d] = rShapeFunc[i] * rNodalValues(i,d);
+        }
+    }
 }
 
 /** Calculate characteristic element length.

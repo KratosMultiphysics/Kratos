@@ -16,7 +16,7 @@ namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
 FluidElementData<TDim, TNumNodes>::FluidElementData(Geometry<Node<3>>& rGeom)
-    : Pressure(TDim, 0.0), Density(TDim, 0.0), Viscosity(TDim, 0.0)
+    : Pressure(TNumNodes, 0.0), Density(TNumNodes, 0.0), Viscosity(TNumNodes, 0.0)
 {
     for (unsigned int i = 0; i < TNumNodes; i++)
     {

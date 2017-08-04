@@ -38,7 +38,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef array_1d<double, TDim> ScalarDataType;
+    typedef array_1d<double, TNumNodes> ScalarDataType;
 
     typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VectorDataType;
 

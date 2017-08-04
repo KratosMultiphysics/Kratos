@@ -248,26 +248,32 @@ protected:
                                 const ShapeFunctionsType& rN,
                                 const array_1d<double,3>& rSubscaleVel);
 
-    virtual void AddSystemTerms(unsigned int GaussIndex,
-                                double GaussWeight,
-                                const ShapeFunctionsType& rN,
-                                const ShapeFunctionDerivativesType& rDN_DX,
-                                const ProcessInfo& rProcessInfo,
-                                MatrixType& rLHS,
-                                VectorType& rRHS);
+    virtual void AddSystemTerms(
+        const TElementData& rData,
+        unsigned int GaussIndex,
+        double GaussWeight,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        const ProcessInfo& rProcessInfo,
+        MatrixType& rLHS,
+        VectorType& rRHS);
 
 
-    virtual void AddMassTerms(double GaussWeight,
-                              const ShapeFunctionsType& rN,
-                              MatrixType& rMassMatrix);
+    virtual void AddMassTerms(
+        const TElementData& rData,
+        double GaussWeight,
+        const ShapeFunctionsType& rN,
+        MatrixType& rMassMatrix);
 
 
-    virtual void AddMassStabilization(unsigned int GaussIndex,
-                                      double GaussWeight,
-                                      const ShapeFunctionsType& rN,
-                                      const ShapeFunctionDerivativesType& rDN_DX,
-                                      const ProcessInfo& rProcessInfo,
-                                      MatrixType& rMassMatrix);
+    virtual void AddMassStabilization(
+        const TElementData& rData,
+        unsigned int GaussIndex,
+        double GaussWeight,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        const ProcessInfo& rProcessInfo,
+        MatrixType& rMassMatrix);
 
 
     void AddViscousTerm(double DynamicViscosity,

@@ -332,6 +332,17 @@ protected:
                                        Matrix& rNContainer,
                                        ShapeFunctionDerivativesArrayType& rDN_DX);
 
+    void EvaluateInPoint(
+        double& rResult,
+        const typename TElementData::ScalarDataType& rNodalValues,
+        const ShapeFunctionsType& rShapeFunc);
+
+    void EvaluateInPoint(
+        array_1d<double,3>& rResult,
+        const typename TElementData::VectorDataType& rNodalValues,
+        const ShapeFunctionsType& rShapeFunc);
+    
+
     /**
      * @brief EvaluateInPoint Interpolate nodal data inside the element.
      * Evaluate a nodal variable in the point where the form functions take the
@@ -469,26 +480,32 @@ protected:
                             const ShapeFunctionDerivativesType& DN_DX);
 
 
-    virtual void AddSystemTerms(unsigned int GaussIndex,
-                                double GaussWeight,
-                                const ShapeFunctionsType& rN,
-                                const ShapeFunctionDerivativesType& rDN_DX,
-                                const ProcessInfo& rProcessInfo,
-                                MatrixType& rLHS,
-                                VectorType& rRHS) = 0;
+    virtual void AddSystemTerms(
+        const TElementData& rData,
+        unsigned int GaussIndex,
+        double GaussWeight,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        const ProcessInfo& rProcessInfo,
+        MatrixType& rLHS,
+        VectorType& rRHS) = 0;
 
 
-    virtual void AddMassTerms(double GaussWeight,
-                              const ShapeFunctionsType& rN,
-                              MatrixType& rMassMatrix) = 0;
+    virtual void AddMassTerms(
+        const TElementData& rData,
+        double GaussWeight,
+        const ShapeFunctionsType& rN,
+        MatrixType& rMassMatrix) = 0;
 
 
-    virtual void AddMassStabilization(unsigned int GaussIndex,
-                                      double GaussWeight,
-                                      const ShapeFunctionsType& rN,
-                                      const ShapeFunctionDerivativesType& rDN_DX,
-                                      const ProcessInfo& rProcessInfo,
-                                      MatrixType& rMassMatrix) = 0;
+    virtual void AddMassStabilization(
+        const TElementData& rData,
+        unsigned int GaussIndex,
+        double GaussWeight,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        const ProcessInfo& rProcessInfo,
+        MatrixType& rMassMatrix) = 0;
 
 
     virtual void SubscaleVelocity(unsigned int GaussIndex,
