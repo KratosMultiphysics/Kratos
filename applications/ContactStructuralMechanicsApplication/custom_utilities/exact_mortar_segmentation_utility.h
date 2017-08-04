@@ -743,7 +743,7 @@ protected:
                     
                     if (add_point == true) 
                     {
-                        if (TBelong == true) PointList.push_back(PointBelong<TNumNodes>(intersected_point.Coordinates(), static_cast<BelongType>(2 * TNumNodes)));
+                        if (TBelong == true) PointList.push_back(PointBelong<TNumNodes>(intersected_point.Coordinates(), static_cast<BelongType>(2 * TNumNodes + 10 * i_edge + 100 * ip_edge + 1000 * j_edge + 10000 * jp_edge))); // NOTE: We do some kind of strange hash to know the intersected edges
                         else PointList.push_back(intersected_point);
                     }
                 }
