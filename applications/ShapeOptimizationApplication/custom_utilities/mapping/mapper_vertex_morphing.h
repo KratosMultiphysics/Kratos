@@ -109,29 +109,19 @@ public:
           mNumberOfDesignVariables(designSurface.Nodes().size()),
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() )
+          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() ),
+          mConsistentBackwardMapping (optimizationSettings["design_variables"]["consistent_backward_mapping"].GetBool() );
     {
         CreateListOfNodesOfDesignSurface();
         CreateFilterFunction();
         InitializeMappingVariables();
         AssignMappingIds();
-
-        // optional flags
-        try {
-            mConsistentBackwardMapping = optimizationSettings["design_variables"]["consistent_backward_mapping"].GetBool();
-        }
-        catch (...)
-        {
-            mConsistentBackwardMapping = false;
-        }
-
     }
 
     /// Destructor.
     virtual ~MapperVertexMorphing()
     {
     }
-
 
     ///@}
     ///@name Operators

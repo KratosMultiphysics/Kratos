@@ -101,13 +101,7 @@ public:
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
 
-		try{
-			mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
-		}
-		catch (...)
-		{
-			mConsiderDiscretization = false;
-		}
+		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;

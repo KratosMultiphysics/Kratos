@@ -95,24 +95,32 @@ public:
     // --------------------------------------------------------------------------
     void SetIntegrationMethod( Parameters& optimizationSettings )
     {
-        int integrationMethod = optimizationSettings["design_variables"]["integration_method"].GetInt();
-        mAreaWeightedNodeSum = false;
-        if (integrationMethod == 0)
+        std::string integration_method = optimizationSettings["design_variables"]["integration"]["integration_method"].GetString();
+        if (integration_method.compare("area_weighted_sum") == 0)
             mAreaWeightedNodeSum = true;
-        else if (integrationMethod == 1)
-            mIntegrationMethod = GeometryData::GI_GAUSS_1;
-        else if (integrationMethod == 2)
-            mIntegrationMethod = GeometryData::GI_GAUSS_2;
-        else if (integrationMethod == 3)
-            mIntegrationMethod = GeometryData::GI_GAUSS_3;
-        else if (integrationMethod == 4)
-            mIntegrationMethod = GeometryData::GI_GAUSS_4;
-        else if (integrationMethod == 5)
-            mIntegrationMethod = GeometryData::GI_GAUSS_5;
-        else
+        else if (integration_method.compare("gauss_integration") == 0)
         {
-            std::cout << "\n> Integration method " << integrationMethod << " not valid! USING DEFAULT: 2 " << std::endl;
-            mIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mAreaWeightedNodeSum = false;
+            int number_of_gauss_points = optimizationSettings["design_variables"]["integration"]["number_of_gauss_points"].GetInt();
+            if (number_of_gauss_points == 1)
+                mIntegrationMethod = GeometryData::GI_GAUSS_1;
+            else if (number_of_gauss_points == 2)
+                mIntegrationMethod = GeometryData::GI_GAUSS_2;
+            else if (number_of_gauss_points == 3)
+                mIntegrationMethod = GeometryData::GI_GAUSS_3;
+            else if (number_of_gauss_points == 4)
+                mIntegrationMethod = GeometryData::GI_GAUSS_4;
+            else if (number_of_gauss_points == 5)
+                mIntegrationMethod = GeometryData::GI_GAUSS_5;
+            else
+            {
+                std::cout << "\n> number_of_gauss_points: " << number_of_gauss_points << " not valid! USING DEFAULT: 2 " << std::endl;
+                mIntegrationMethod = GeometryData::GI_GAUSS_2;
+            }
+        }
+        else{
+            std::cout << "\n> Integration method " << integration_method << " unknown!" << std::endl;
+            exit(-1);
         }
     }
 
