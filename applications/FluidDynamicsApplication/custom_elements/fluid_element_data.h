@@ -53,9 +53,9 @@ public:
     ///@name Public members
     ///@{
 
-    constexpr static unsigned int Dim = TDim;
+    static constexpr unsigned int Dim = TDim;
 
-    constexpr static unsigned int NumNodes = TNumNodes;
+    static constexpr unsigned int NumNodes = TNumNodes;
 
     ScalarDataType Pressure;
 
