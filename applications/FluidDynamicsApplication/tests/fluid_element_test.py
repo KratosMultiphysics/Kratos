@@ -199,7 +199,7 @@ class FluidElementTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = FluidElementTest()
     test.setUp()
-    test.print_reference_values = True
+    test.print_reference_values = False
     test.print_output = True
     test.testCavity()
     test.tearDown()
