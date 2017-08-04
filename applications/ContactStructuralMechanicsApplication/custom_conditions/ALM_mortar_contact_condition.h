@@ -656,7 +656,9 @@ protected:
     void CalculateDeltaCellVertex(
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        const array_1d<BelongType, TDim>& TheseBelongs
+        const array_1d<BelongType, TDim>& TheseBelongs,
+        const bool& ConsiderNormalVariation,
+        GeometryType& MasterGeometry
         );
     
     /**
