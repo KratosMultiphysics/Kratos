@@ -110,7 +110,7 @@ public:
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
           mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() ),
-          mConsistentBackwardMapping (optimizationSettings["design_variables"]["consistent_backward_mapping"].GetBool() );
+          mConsistentBackwardMapping (optimizationSettings["design_variables"]["consistent_mapping_to_geometry_space"].GetBool() )
     {
         CreateListOfNodesOfDesignSurface();
         CreateFilterFunction();
