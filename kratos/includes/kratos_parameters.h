@@ -494,7 +494,7 @@ public:
             {
                 Parameters subobject = (*this)[item_name];
                 Parameters defaults_subobject = defaults[item_name];
-                subobject.ValidateAndAssignDefaults(defaults_subobject);
+                subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
             }
         }
 
