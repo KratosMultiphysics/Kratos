@@ -430,12 +430,12 @@ public:
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaNormalSlave[i] = ZeroMatrix(TNumNodes, TDim);
         }
-        
+    
         if (TDim == 3)
         {
             for (unsigned int i = 0; i < 2 * TNumNodes * TDim; i++)
             {
-                DeltaCellVertex[i] = ZeroMatrix(TNumNodes, TDim);
+                DeltaCellVertex[i] = ZeroMatrix(3, 3);
             }
         }
     }

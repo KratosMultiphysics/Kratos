@@ -492,7 +492,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     
     // We call the exact integration utility
     ExactMortarIntegrationUtility<TDim, TNumNodes, true>  integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes, true> (mIntegrationOrder);
-
+    
     // Iterate over the master segments
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
     {   
@@ -568,7 +568,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             {
                                 /* Update the derivatives */
                                 // Update the derivative of the integration vertex (just in 3D)
-//                                 if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[pair_index]->GetGeometry());
+                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[pair_index]->GetGeometry());
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
@@ -674,6 +674,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             PointType global_point;
             GetGeometry().GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
             points_array[i_node] = boost::make_shared<PointType>(global_point);
+            belong_array[i_node] = ConditionsPointsSlave[i_geom][i_node].GetBelong();
         }
         
         DecompositionType decomp_geom( points_array );
@@ -700,7 +701,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, PairIndex, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                 
                 // Update the derivative of the integration vertex (just in 3D)
-//                 if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[PairIndex]->GetGeometry());
+                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[PairIndex]->GetGeometry());
                                 
                 // Update the derivative of DetJ
                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
@@ -1127,9 +1128,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         if (TheseBelongs[i_belong] >= 2 * TNumNodes) // It belongs to an intersection
         {    
             // We compute the indexes
-            const unsigned int aux_index_hash = static_cast<unsigned int>(TheseBelongs[i_belong]);
             unsigned int belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
-            ConvertAuxHashIndex(aux_index_hash, belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
+            ConvertAuxHashIndex(static_cast<unsigned int>(TheseBelongs[i_belong]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
             
             // We add the initial value // NOTE: Added in the second part
 //             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
@@ -1223,7 +1223,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 LocalDeltaVertex(row(rDerivativeData.DeltaCellVertex[belong_index_slave_end * TDim + i_dof], i_belong), normal, delta_normal, N1, N2, i_dof, belong_index_slave_end, ConsiderNormalVariation, MasterGeometry,     - coeff0);
                 LocalDeltaVertex(row(rDerivativeData.DeltaCellVertex[belong_index_slave_start * TDim + i_dof], i_belong), normal, delta_normal, N1, N2, i_dof, belong_index_slave_start, ConsiderNormalVariation, MasterGeometry, 1.0 + coeff0);
             }
-            
         }
         else // It belongs to a master/slave node
         {
@@ -1289,8 +1288,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     }
     
     // The corresponding part to the nodal coordinates
-    const array_1d<double, 3> aux_der(1.0);
-    DeltaVertexMatrix += Coeff * aux_der * N1[BelongIndex];
+    if (BelongIndex < TNumNodes) // SLAVE
+    {
+        const array_1d<double, 3> aux_der(1.0);
+        DeltaVertexMatrix += Coeff * aux_der * N1[BelongIndex]; 
+    }
     
     // The corresponding part to the normal
     const double coordsxdeltanormal = inner_prod(coords_node - coords_center, column(DeltaNormal, iDoF));
@@ -1306,7 +1308,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     }
     else // MASTER
     {
-        const array_1d<double, 3> factors_belong(N2[BelongIndex]);
+        const array_1d<double, 3> factors_belong(N2[BelongIndex - TNumNodes]);
         
         const double deltacoordsxnormal = inner_prod(factors_belong, Normal);
         
