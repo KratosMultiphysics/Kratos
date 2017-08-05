@@ -173,7 +173,7 @@ public:
     double GetIntegrationWeight(
         GeneralVariables& rVariables,
         const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-        const unsigned int PointNumber
+        const unsigned int& PointNumber
         ) override;
     
     /**

@@ -572,7 +572,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
-                                this->CalculateDeltaN(rVariables, rDerivativeData);
+                                this->CalculateDeltaN(rVariables, rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
                                 // The derivatives of the dual shape function 
                                 this->CalculateDeltaPhi(rVariables, rDerivativeData);
                                 
@@ -1624,10 +1624,61 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4,true>::CalculateDeltaNo
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaN(
    GeneralVariables& rVariables,
-   DerivativeDataType& rDerivativeData
+   DerivativeDataType& rDerivativeData,
+   GeometryType& MasterGeometry
    )
 {
-    // TODO: Fill this with the consistent formulation
+    const VectorType& N1 = rVariables.NSlave;
+    const VectorType& N2 = rVariables.NMaster;
+    const MatrixType& DNDe1 = rVariables.DNDeSlave;
+    const MatrixType& DNDe2 = rVariables.DNDeMaster;
+    const MatrixType& LHS1 = rVariables.jSlave;
+//     const MatrixType& LHS2 = rVariables.jMaster;
+    
+    MatrixType inv_LHS1, inv_LHS2;
+    double aux_det;
+    MathUtils<double>::GeneralizedInvertMatrix(LHS1, inv_LHS1, aux_det);
+//     MathUtils<double>::GeneralizedInvertMatrix(LHS2, inv_LHS2, aux_det);
+    
+    if (TDim == 2)
+    {
+        // TODO: Finish this!!!!
+    }
+    else
+    {      
+        // TODO: Finish this!!!! NOTE: Define the derivatives for each DoF!!!!!! (not for node)
+//         for ( unsigned int i_node = 0; i_node < 2 * TNumNodes; ++i_node)
+//         {
+//             VectorType aux_RHS1 = ZeroVector(3);
+//             VectorType aux_RHS2 = ZeroVector(3);
+//         
+//             VectorType delta_position;
+//             CalculateDeltaPosition(delta_position, MasterGeometry, i_node);
+//             aux_RHS1 -= N1[i_node] * delta_position;
+//             aux_RHS2 -= N2[i_node] * delta_position;
+//         
+//             VectorType aux_delta_coords1, aux_delta_coords2;
+//   
+//             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+//             {
+// //             rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof]  
+//             }
+//                 
+//             // We compute the delta coordinates 
+//             aux_delta_coords1 = prod(inv_LHS1, aux_RHS1);
+//             aux_delta_coords2 = prod(inv_LHS2, aux_RHS2);
+//             
+//             VectorType aux_delta_N1 = aux_delta_coords1[0] + column(DNDe1, 0) + aux_delta_coords1[1] + column(DNDe1, 1);
+//             VectorType aux_delta_N2 = aux_delta_coords2[0] + column(DNDe2, 0) + aux_delta_coords2[1] + column(DNDe2, 1);
+//             
+//             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+//             {
+//                 // Now we can compute the delta shape functions
+//                 rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_N1; 
+//                 rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_N2; 
+//             }
+//         }
+    }
 }
 
 /***********************************************************************************/
@@ -1773,7 +1824,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition(
         Matrix& DeltaPosition,
-        const ConditionArrayType LocalCoordinates
+        const ConditionArrayType& LocalCoordinates
         )
 {
     KRATOS_TRY;
@@ -1805,10 +1856,34 @@ Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictiona
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition(
+        VectorType& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode
+        )
+{
+    KRATOS_TRY;
+
+    if (IndexNode < TNumNodes)
+    {
+        DeltaPosition = GetGeometry()[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1);
+    }
+    else
+    {
+        DeltaPosition = MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT,1);
+    }
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 double AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::GetIntegrationWeight(
     GeneralVariables& rVariables,
     const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-    const unsigned int PointNumber
+    const unsigned int& PointNumber
     )
 {
     return ThisIntegrationMethod[PointNumber].Weight();

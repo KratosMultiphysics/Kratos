@@ -725,7 +725,8 @@ protected:
     
     void CalculateDeltaN(
         GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData
+        DerivativeDataType& rDerivativeData,
+        GeometryType& MasterGeometry
         );
     
     /**
@@ -807,7 +808,17 @@ protected:
     
     Matrix CalculateDeltaPosition(
         Matrix& DeltaPosition,
-        const ConditionArrayType LocalCoordinates
+        const ConditionArrayType& LocalCoordinates
+        );
+    
+    /**
+     * Returns a vector with the increment of displacements
+     */
+    
+    void CalculateDeltaPosition(
+        VectorType& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode
         );
     
     /**
@@ -819,7 +830,7 @@ protected:
     virtual double GetIntegrationWeight(
         GeneralVariables& rVariables,
         const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-        const unsigned int PointNumber
+        const unsigned int& PointNumber
         );
     
     ///@}

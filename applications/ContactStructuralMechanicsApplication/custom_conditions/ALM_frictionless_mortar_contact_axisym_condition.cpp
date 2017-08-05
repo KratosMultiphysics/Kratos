@@ -60,7 +60,7 @@ template< unsigned int TNumNodes, bool TNormalVariation >
 double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetIntegrationWeight(
     GeneralVariables& rVariables,
     const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-    const unsigned int PointNumber
+    const unsigned int& PointNumber
     )
 {
     const double Radius = CalculateRadius(rVariables);
