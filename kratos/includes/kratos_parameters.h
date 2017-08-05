@@ -549,6 +549,58 @@ public:
 			}
 		}
 	}
+        
+    bool IsEquivalentTo(Parameters& reference) {
+        //Checks if the names and values are the same, no importance to the order. 
+        //Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
+        
+        for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
+        {
+            std::string item_name = itr->name.GetString();
+            
+            bool found = false;
+            
+            for (rapidjson::Value::ConstMemberIterator itr_ref = reference.mpvalue->MemberBegin(); itr_ref != reference.mpvalue->MemberEnd(); ++itr_ref)
+            {
+                if(item_name == itr_ref->name.GetString()) {
+                    found = true;
+                    Parameters subobject = (*this)[item_name];
+                    Parameters reference_subobject = reference[item_name];
+                    
+                    if(itr->value.IsObject()) {                        
+                        if ( ! subobject.IsEquivalentTo(reference_subobject) ) return false;
+                    }
+                    else {
+                        if(itr->value != itr_ref->value) return false;
+                    }
+                    break;
+                }
+            }       
+            
+            if ( ! found) return false;
+        }
+        
+        //reverse check: the reference can contain fields that are missing in the object
+        for (rapidjson::Value::ConstMemberIterator itr = reference.mpvalue->MemberBegin(); itr != reference.mpvalue->MemberEnd(); ++itr)
+        {
+            std::string item_name = itr->name.GetString();
+            
+            bool found = false;
+            
+            for (rapidjson::Value::ConstMemberIterator itr_ref = this->mpvalue->MemberBegin(); itr_ref != this->mpvalue->MemberEnd(); ++itr_ref)
+            {
+                if(item_name == itr_ref->name.GetString()) {
+                    found = true;
+                    //no need to check the values here, if they were found in the previous loop, values were checked there
+                    break;
+                }
+            }       
+            
+            if ( ! found) return false;
+        }
+        
+        return true;
+    }
 
 
 
