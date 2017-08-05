@@ -726,7 +726,9 @@ protected:
     void CalculateDeltaN(
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        GeometryType& MasterGeometry
+        GeometryType& MasterGeometry,
+        const DecompositionType& DecompGeom,
+        const PointType& LocalPointDecomp
         );
     
     /**
@@ -819,6 +821,17 @@ protected:
         VectorType& DeltaPosition,
         GeometryType& MasterGeometry,
         const unsigned int& IndexNode
+        );
+    
+    /**
+     * Returns a vector with the increment of displacements
+     */
+    
+    void CalculateDeltaPosition(
+        VectorType& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode,
+        const unsigned int& iDoF
         );
     
     /**

@@ -572,7 +572,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
-                                this->CalculateDeltaN(rVariables, rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
+                                this->CalculateDeltaN(rVariables, rDerivativeData, mThisMasterElements[pair_index]->GetGeometry(), decomp_geom, local_point_decomp);
                                 // The derivatives of the dual shape function 
                                 this->CalculateDeltaPhi(rVariables, rDerivativeData);
                                 
@@ -1526,7 +1526,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             
             for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
+                row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); // TODO: Check this!!!!
             }
         }
     }
@@ -1625,7 +1625,9 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaN(
    GeneralVariables& rVariables,
    DerivativeDataType& rDerivativeData,
-   GeometryType& MasterGeometry
+   GeometryType& MasterGeometry,
+   const DecompositionType& DecompGeom,
+   const PointType& LocalPointDecomp
    )
 {
     const VectorType& N1 = rVariables.NSlave;
@@ -1634,6 +1636,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const MatrixType& DNDe2 = rVariables.DNDeMaster;
     const MatrixType& LHS1 = rVariables.jSlave;
 //     const MatrixType& LHS2 = rVariables.jMaster;
+    
+    VectorType N_decomp;
+    DecompGeom.ShapeFunctionsValues( N_decomp, LocalPointDecomp.Coordinates() );
     
     MatrixType inv_LHS1, inv_LHS2;
     double aux_det;
@@ -1646,36 +1651,34 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     }
     else
     {      
-        // TODO: Finish this!!!! NOTE: Define the derivatives for each DoF!!!!!! (not for node)
+//         // TODO: Finish this!!!!
 //         for ( unsigned int i_node = 0; i_node < 2 * TNumNodes; ++i_node)
 //         {
-//             VectorType aux_RHS1 = ZeroVector(3);
-//             VectorType aux_RHS2 = ZeroVector(3);
-//         
-//             VectorType delta_position;
-//             CalculateDeltaPosition(delta_position, MasterGeometry, i_node);
-//             aux_RHS1 -= N1[i_node] * delta_position;
-//             aux_RHS2 -= N2[i_node] * delta_position;
-//         
-//             VectorType aux_delta_coords1, aux_delta_coords2;
-//   
 //             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
 //             {
-// //             rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof]  
-//             }
+//                 VectorType aux_RHS1 = ZeroVector(3);
+//                 VectorType aux_RHS2 = ZeroVector(3);
+//             
+//                 VectorType delta_position;
+//                 CalculateDeltaPosition(delta_position, MasterGeometry, i_node, i_dof);
+//                 aux_RHS1 -= N1[i_node] * delta_position;
+//                 aux_RHS2 -= N2[i_node] * delta_position;
+//             
+//                 VectorType aux_delta_coords1, aux_delta_coords2;
+//             
+//                 for(unsigned int i_belong = 0; i_belong < 3; i_belong++)
+//                 {
+//                     aux_RHS1 += N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
+//                     aux_RHS2 += N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
+//                 }
 //                 
-//             // We compute the delta coordinates 
-//             aux_delta_coords1 = prod(inv_LHS1, aux_RHS1);
-//             aux_delta_coords2 = prod(inv_LHS2, aux_RHS2);
-//             
-//             VectorType aux_delta_N1 = aux_delta_coords1[0] + column(DNDe1, 0) + aux_delta_coords1[1] + column(DNDe1, 1);
-//             VectorType aux_delta_N2 = aux_delta_coords2[0] + column(DNDe2, 0) + aux_delta_coords2[1] + column(DNDe2, 1);
-//             
-//             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
-//             {
+//                 // We compute the delta coordinates 
+//                 aux_delta_coords1 = prod(inv_LHS1, aux_RHS1);
+//                 aux_delta_coords2 = prod(inv_LHS2, aux_RHS2);
+//                 
 //                 // Now we can compute the delta shape functions
-//                 rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_N1; 
-//                 rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_N2; 
+//                 rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_coords1[0] + column(DNDe1, 0) + aux_delta_coords1[1] + column(DNDe1, 1);
+//                 rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_coords2[0] + column(DNDe2, 0) + aux_delta_coords2[1] + column(DNDe2, 1);
 //             }
 //         }
     }
@@ -1871,6 +1874,33 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     else
     {
         DeltaPosition = MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT,1);
+    }
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition(
+        VectorType& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode,
+        const unsigned int& iDoF
+        )
+{
+    KRATOS_TRY;
+
+    DeltaPosition = ZeroVector(3);
+    
+    if (IndexNode < TNumNodes)
+    {
+        DeltaPosition[iDoF] = (GetGeometry()[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+    }
+    else
+    {
+        DeltaPosition[iDoF] = (MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
     }
 
     KRATOS_CATCH( "" );
