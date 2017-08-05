@@ -121,6 +121,39 @@ expected_validation_output = """{
     }
 }"""
 
+four_levels = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "level2": {
+            "level3": {
+                "level4": {
+                }
+            }
+        } 
+    }
+}"""
+
+four_levels_defaults = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "a":1.0,
+        "level2": {
+            "b":2.0,
+            "level3": {
+                "c":3.0,
+                "level4": {
+                    "d":4.0
+                }
+            }
+        } 
+    }
+}"""
 
 class TestParameters(KratosUnittest.TestCase):    
 
@@ -215,6 +248,14 @@ class TestParameters(KratosUnittest.TestCase):
         # should check which errors are thrown!!
         with self.assertRaises(RuntimeError):
             kp.RecursivelyValidateAndAssignDefaults(defaults_params)
+
+    def test_recursive_validation_4_levels(self):
+        kp = Parameters(four_levels)
+        defaults_params = Parameters(four_levels_defaults)
+
+        kp.RecursivelyValidateAndAssignDefaults(defaults_params)
+
+        self.assertTrue( kp.IsEquivalentTo(defaults_params) )
 
     def test_validation_succeds_error_on_first_level(self):
         kp = Parameters(wrong_lev2)
