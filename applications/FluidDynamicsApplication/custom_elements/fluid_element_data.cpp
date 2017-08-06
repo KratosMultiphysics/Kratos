@@ -25,7 +25,7 @@ FluidElementData<TDim, TNumNodes>::FluidElementData(Geometry<Node<3>>& rGeom)
         const array_1d<double, 3>& rNodalMeshVel =
             rNode.FastGetSolutionStepValue(MESH_VELOCITY);
 
-        for (unsigned int d = 0; d < 3; d++)
+        for (unsigned int d = 0; d < TDim; d++)
         {
             Velocity(i, d) = rNodalVel[d];
             MeshVelocity(i, d) = rNodalMeshVel[d];

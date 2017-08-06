@@ -476,7 +476,6 @@ void DSS<TElementData>::AddMassTerms(
     MatrixType &rMassMatrix)
 {
     double Density;
-    KRATOS_WATCH("NOTE TO SELF: ERROR HERE")
     this->EvaluateInPoint(Density,rData.Density,rN);
 
     unsigned int Row = 0;
