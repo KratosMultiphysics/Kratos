@@ -13,7 +13,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
-        self.print_skin_sphere = DEM_parameters["PostSkinSphere"].GetBool()
+        self.print_skin_sphere = 0 #TODO: check if this variable is important. There's a similar one in DEM_procedures called PostSkinSphere
+        if "PostSkinSphere" in DEM_parameters:
+            self.print_skin_sphere = DEM_parameters["PostSkinSphere"].GetBool()
 
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
@@ -28,11 +30,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.fixed_vel_bot = DEM_parameters["LoadingVelocityBot"].GetDouble()
 
-        if DEM_parameters["DontSearchUntilFailure"].GetBool():
-            print ("Search is not active until a bond is broken.")
-            self.search_control = 0
-            if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
-                print ("WARNING: Search should be activated since there might contact with FEM.")
+        if "DontSearchUntilFailure" in DEM_parameters: #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
+            if DEM_parameters["DontSearchUntilFailure"].GetBool():
+                print ("Search is not active until a bond is broken.")
+                self.search_control = 0
+                if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+                    print ("WARNING: Search should be activated since there might contact with FEM.")
 
         if not "TestType" in DEM_parameters:
             self.test_type = "None"
