@@ -1,8 +1,6 @@
 //-------------------------------------------------------------
-//         ___  __                  
-//  KRATOS| _ \/ _|___ _ __ 
-//        |  _/  _/ -_) '  \
-//        |_| |_| \___|_|_|_|APPLICATION
+//
+//  KRATOS PFEM APPLICATION
 //                                                                
 //  License:(BSD)    PfemApplication/license.txt
 //
