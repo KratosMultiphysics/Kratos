@@ -201,53 +201,7 @@ void FluidElement<TElementData>::Calculate(const Variable<array_1d<double,3> > &
     // Lumped projection terms
     if (rVariable == ADVPROJ)
     {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        GeometryType& rGeom = this->GetGeometry();
-        VectorType MomentumRHS = ZeroVector(TElementData::NumNodes*TElementData::Dim);
-        VectorType MassRHS = ZeroVector(TElementData::NumNodes);
-        VectorType NodalArea = ZeroVector(TElementData::NumNodes);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& rN = row(ShapeFunctions,g);
-            const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-
-            array_1d<double,3> MomentumRes(3,0.0);
-            double MassRes = 0.0;
-
-            this->MomentumProjTerm(g,rN,rDN_DX,MomentumRes);
-            this->MassProjTerm(g,rN,rDN_DX,MassRes);
-
-            for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-            {
-                double W = GaussWeight*rN[i];
-                unsigned int Row = i*TElementData::Dim;
-                for (unsigned int d = 0; d < TElementData::Dim; d++)
-                    MomentumRHS[Row+d] += W*MomentumRes[d];
-                NodalArea[i] += W;
-                MassRHS[i] += W*MassRes;
-            }
-        }
-
-        // Add carefully to nodal variables to avoid OpenMP race condition
-        unsigned int Row = 0;
-        for (SizeType i = 0; i < TElementData::NumNodes; ++i)
-        {
-            rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
-            array_1d<double,3>& rMomValue = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-            for (unsigned int d = 0; d < TElementData::Dim; ++d)
-                rMomValue[d] += MomentumRHS[Row++];
-            rGeom[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
-            rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
-            rGeom[i].UnSetLock(); // Free the node for other threads
-        }
+        this->CalculateProjections();
     }
 }
 
@@ -391,180 +345,6 @@ template< class TElementData >
 GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                            std::vector<array_1d<double, 3 > >& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == SUBSCALE_VELOCITY)
-    {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        rValues.resize(NumGauss);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            const ShapeFunctionsType& rN = row(ShapeFunctions,g);
-            const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-            this->SubscaleVelocity(g,rN,rDN_DX,rCurrentProcessInfo,rValues[g]);
-        }
-    }
-    else if (rVariable == VORTICITY)
-    {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        rValues.resize(NumGauss);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            this->IntegrationPointVorticity(ShapeDerivatives[g],rValues[g]);
-        }
-    }
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                            std::vector<double>& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == SUBSCALE_PRESSURE)
-    {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        rValues.resize(NumGauss);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            const ShapeFunctionsType& rN = row(ShapeFunctions,g);
-            const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-
-            this->SubscalePressure(g,rN,rDN_DX,rCurrentProcessInfo,rValues[g]);
-        }
-
-    }
-    else if (rVariable == Q_VALUE)
-    {
-		Vector GaussWeights;
-		Matrix ShapeFunctions;
-		ShapeFunctionDerivativesArrayType ShapeDerivatives;
-		this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-		const unsigned int NumGauss = GaussWeights.size();
-
-		rValues.resize(NumGauss);
-		Matrix GradVel;
-
-		// Loop on integration points
-		for (unsigned int g = 0; g < NumGauss; g++)
-		{
-			GradVel = ZeroMatrix(TElementData::Dim,TElementData::Dim);
-			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-
-			// Compute velocity gradient
-			for (unsigned int i=0; i < TElementData::Dim; ++i)
-				for (unsigned int j=0; j < TElementData::Dim; ++j)
-					for (unsigned int iNode=0; iNode < TElementData::NumNodes; ++iNode)
-					{
-						array_1d<double,3>& Vel =
-							this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-						GradVel(i,j) += Vel[i] * rDN_DX(iNode,j);
-					}
-
-			// Compute Q-value
-			double qval = 0.0;
-			for (unsigned int i=0; i < TElementData::Dim; ++i)
-				for (unsigned int j=0; j < TElementData::Dim; ++j)
-					qval += GradVel(i,j) * GradVel(j,i);
-
-			qval *= -0.5;
-			rValues[g] = qval;
-		}
-	}
-	else if (rVariable == VORTICITY_MAGNITUDE)
-	{
-		Vector GaussWeights;
-		Matrix ShapeFunctions;
-		ShapeFunctionDerivativesArrayType ShapeDerivatives;
-		this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-		const unsigned int NumGauss = GaussWeights.size();
-
-		rValues.resize(NumGauss);
-		
-  		// Loop on integration points
-		for (unsigned int g = 0; g < NumGauss; g++)
-		{
-			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-			array_1d<double,3> Vorticity(3,0.0);
-
-			if(TElementData::Dim == 2)
-			{
-				for (unsigned int iNode = 0; iNode < TElementData::NumNodes; iNode++)
-				{
-					array_1d<double,3>& Vel =
-						this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-					Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-				}
-			}
-			else
-			{
-				for (unsigned int iNode = 0; iNode < this->GetGeometry().size(); iNode++)
-				{
-					array_1d<double,3>& Vel =
-						this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-					Vorticity[0] += Vel[2] * rDN_DX(iNode,1) - Vel[1] * rDN_DX(iNode,2);
-					Vorticity[1] += Vel[0] * rDN_DX(iNode,2) - Vel[2] * rDN_DX(iNode,0);
-					Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-				}
-			}
-
-			rValues[g] = sqrt(Vorticity[0] * Vorticity[0] + Vorticity[1] * Vorticity[1]
-					+ Vorticity[2] * Vorticity[2]);
-		}
-	}
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                            std::vector<array_1d<double, 6 > >& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                            std::vector<Vector>& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                            std::vector<Matrix>& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
-{
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -942,151 +722,20 @@ void FluidElement<TElementData>::CalculateStaticTau(double Density,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< class TElementData >
-void FluidElement<TElementData>::ASGSMomentumResidual(double GaussIndex,
-                                     const ShapeFunctionsType &rN,
-                                     const ShapeFunctionDerivativesType &rDN_DX,
-                                     array_1d<double,3> &rMomentumRes)
-{
-    const GeometryType rGeom = this->GetGeometry();
-    double Density;
-    this->EvaluateInPoint(Density,DENSITY,rN);
-
-    array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
-
-    Vector AGradN;
-    this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
-
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-    {
-        const array_1d<double,3>& rBodyForce = rGeom[i].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        const double Press = rGeom[i].FastGetSolutionStepValue(PRESSURE);
-
-        for (unsigned int d = 0; d < TElementData::Dim; d++)
-        {
-            rMomentumRes[d] += Density * ( rN[i]*(rBodyForce[d] - rAcc[d]) - AGradN[i]*rVel[d]) - rDN_DX(i,d)*Press;
-        }
-    }
-}
-
 
 template< class TElementData >
-void FluidElement<TElementData>::ASGSMassResidual(double GaussIndex,
-                                 const ShapeFunctionsType &rN,
-                                 const ShapeFunctionDerivativesType &rDN_DX,
-                                 double &rMomentumRes)
-{
-    this->MassProjTerm(GaussIndex,rN,rDN_DX,rMomentumRes);
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::OSSMomentumResidual(double GaussIndex,
-                                    const ShapeFunctionsType &rN,
-                                    const ShapeFunctionDerivativesType &rDN_DX,
-                                    array_1d<double,3> &rMomentumRes)
-{
-    this->MomentumProjTerm(GaussIndex,rN,rDN_DX,rMomentumRes);
-
-    const GeometryType& rGeom = this->GetGeometry();
-
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-    {
-        const array_1d<double,3>& rProj = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-
-        for (unsigned int d = 0; d < TElementData::Dim; d++)
-            rMomentumRes[d] -= rN[i]*rProj[d];
-    }
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::OSSMassResidual(double GaussIndex,
-                                const ShapeFunctionsType &rN,
-                                const ShapeFunctionDerivativesType &rDN_DX,
-                                double &rMassRes)
-{
-    this->MassProjTerm(GaussIndex,rN,rDN_DX,rMassRes);
-
-    const GeometryType& rGeom = this->GetGeometry();
-
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-    {
-        const double Proj = rGeom[i].FastGetSolutionStepValue(DIVPROJ);
-        rMassRes -= rN[i]*Proj;
-    }
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::MomentumProjTerm(double GaussIndex,
-                                 const ShapeFunctionsType &rN,
-                                 const ShapeFunctionDerivativesType &rDN_DX,
-                                 array_1d<double,3> &rMomentumRHS)
-{
-    const GeometryType& rGeom = this->GetGeometry();
-
-    double Density;
-    this->EvaluateInPoint(Density,DENSITY,rN);
-
-    array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
-
-    Vector AGradN;
-    this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
-
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-    {
-        const array_1d<double,3>& rBodyForce = rGeom[i].FastGetSolutionStepValue(BODY_FORCE);
-        //const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        //const array_1d<double,3>& rAccOld = rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-        //array_1d<double,3> BossakAcc = 1.3*rAcc - 0.3*rAccOld;
-        const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        const double Press = rGeom[i].FastGetSolutionStepValue(PRESSURE);
-
-        for (unsigned int d = 0; d < TElementData::Dim; d++)
-        {
-            rMomentumRHS[d] += Density * ( rN[i]*(rBodyForce[d] /*- BossakAcc[d]*/ /*- rAcc[d]*/) - AGradN[i]*rVel[d]) - rDN_DX(i,d)*Press;
-        }
-    }
-}
-
-
-template< class TElementData >
-void FluidElement<TElementData>::MassProjTerm(double GaussIndex,
-                             const ShapeFunctionsType &rN,
-                             const ShapeFunctionDerivativesType &rDN_DX,
-                             double &rMassRHS)
-{
-    const GeometryType& rGeom = this->GetGeometry();
-
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-    {
-        const array_1d<double,3>& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-
-        for (unsigned int d = 0; d < TElementData::Dim; d++)
-            rMassRHS -= rDN_DX(i,d)*rVel[d];
-    }
-
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-template< class TElementData >
-double FluidElement<TElementData>::EffectiveViscosity(const ShapeFunctionsType &rN,
-                                     const ShapeFunctionDerivativesType &rDN_DX,
-                                     double ElemSize,
-                                     const ProcessInfo &rCurrentProcessInfo)
+double FluidElement<TElementData>::EffectiveViscosity(
+    const TElementData& rData,
+    const ShapeFunctionsType &rN,
+    const ShapeFunctionDerivativesType &rDN_DX,
+    double ElemSize,
+    const ProcessInfo &rCurrentProcessInfo)
 {
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
     double Csmag = const_this->GetValue(C_SMAGORINSKY);
 
     double KinViscosity = 0.0;
-    this->EvaluateInPoint(KinViscosity,VISCOSITY,rN);
+    this->EvaluateInPoint(KinViscosity,rData.Viscosity,rN);
 
     if (Csmag != 0.0 )
     {
@@ -1094,10 +743,9 @@ double FluidElement<TElementData>::EffectiveViscosity(const ShapeFunctionsType &
         MatrixType S = ZeroMatrix(TElementData::Dim,TElementData::Dim);
         for (unsigned int n = 0; n < TElementData::NumNodes; ++n)
         {
-            const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
             for (unsigned int i = 0; i < TElementData::Dim; ++i)
                 for (unsigned int j = 0; j < TElementData::Dim; ++j)
-                    S(i,j) += 0.5 * ( rDN_DX(n,j) * rVel[i] + rDN_DX(n,i) * rVel[j] );
+                    S(i,j) += 0.5 * ( rDN_DX(n,j) * rData.Velocity(n,i) + rDN_DX(n,i) * rData.Velocity(n,j) );
         }
 
         // Norm of symetric gradient
@@ -1161,70 +809,6 @@ void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
         for(unsigned int k = 1; k < TElementData::Dim; k++)
             rResult[i] += rConvVel[k]*DN_DX(i,k);
     }
-}
-
-template< class TElementData >
-void FluidElement<TElementData>::SubscaleVelocity(unsigned int GaussIndex,
-                                 const ShapeFunctionsType &rN,
-                                 const ShapeFunctionDerivativesType &rDN_DX,
-                                 const ProcessInfo &rProcessInfo,
-                                 array_1d<double,3> &rVelocitySubscale)
-{
-    // Interpolate nodal data on the integration point
-    double Density;
-    this->EvaluateInPoint(Density,DENSITY,rN);
-
-    array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
-
-    double ElemSize = this->ElementSize();
-    //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
-    double Viscosity = this->EffectiveViscosity(rN,rDN_DX,ElemSize,rProcessInfo);
-
-    double TauOne;
-    double TauTwo;
-    this->CalculateStaticTau(Density,Viscosity,ConvVel,ElemSize,rProcessInfo,TauOne,TauTwo);
-
-    array_1d<double,3> Residual(3,0.0);
-
-    if (rProcessInfo[OSS_SWITCH] != 1.0)
-        this->ASGSMomentumResidual(GaussIndex,rN,rDN_DX,Residual);
-    else
-        this->OSSMomentumResidual(GaussIndex,rN,rDN_DX,Residual);
-
-    rVelocitySubscale = TauOne*Residual;
-}
-
-template< class TElementData >
-void FluidElement<TElementData>::SubscalePressure(unsigned int GaussIndex,
-                                 const ShapeFunctionsType &rN,
-                                 const ShapeFunctionDerivativesType &rDN_DX,
-                                 const ProcessInfo &rProcessInfo,
-                                 double &rPressureSubscale)
-{
-    // Interpolate nodal data on the integration point
-    double Density;
-    this->EvaluateInPoint(Density,DENSITY,rN);
-
-    array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
-
-    //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
-    double ElemSize = this->ElementSize();
-    double Viscosity = this->EffectiveViscosity(rN,rDN_DX,ElemSize,rProcessInfo);
-
-    double TauOne;
-    double TauTwo;
-    this->CalculateStaticTau(Density,Viscosity,ConvVel,ElemSize,rProcessInfo,TauOne,TauTwo);
-
-    double Residual = 0.0;
-
-    if (rProcessInfo[OSS_SWITCH] != 1.0)
-        this->ASGSMassResidual(GaussIndex,rN,rDN_DX,Residual);
-    else
-        this->OSSMassResidual(GaussIndex,rN,rDN_DX,Residual);
-
-    rPressureSubscale = TauTwo*Residual;
 }
 
 

@@ -159,6 +159,31 @@ public:
     ///@{
 
 
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                             std::vector<array_1d<double, 3 > >& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                             std::vector<double>& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                                             std::vector<array_1d<double, 6 > >& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                             std::vector<Vector>& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                             std::vector<Matrix>& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -205,39 +230,51 @@ protected:
     ///@{
 
 
-    virtual void ASGSMomentumResidual(double GaussIndex,
-                                      const ShapeFunctionsType &rN,
-                                      const ShapeFunctionDerivativesType &rDN_DX,
-                                      array_1d<double,3>& rMomentumRes);
+    virtual void ASGSMomentumResidual(
+        const TElementData& rData,
+        double GaussIndex,
+        const ShapeFunctionsType &rN,
+        const ShapeFunctionDerivativesType &rDN_DX,
+        array_1d<double,3>& rMomentumRes);
 
 
-    virtual void ASGSMassResidual(double GaussIndex,
-                                  const ShapeFunctionsType &rN,
-                                  const ShapeFunctionDerivativesType &rDN_DX,
-                                  double& rMomentumRes);
+    virtual void ASGSMassResidual(
+        const TElementData& rData,
+        double GaussIndex,
+        const ShapeFunctionsType &rN,
+        const ShapeFunctionDerivativesType &rDN_DX,
+        double& rMomentumRes);
 
 
-    virtual void OSSMomentumResidual(double GaussIndex,
-                                     const ShapeFunctionsType &rN,
-                                     const ShapeFunctionDerivativesType &rDN_DX,
-                                     array_1d<double,3>& rMomentumRes);
+    virtual void OSSMomentumResidual(
+        const TElementData& rData,
+        double GaussIndex,
+        const ShapeFunctionsType &rN,
+        const ShapeFunctionDerivativesType &rDN_DX,
+        array_1d<double,3>& rMomentumRes);
 
-    virtual void OSSMassResidual(double GaussIndex,
-                                 const ShapeFunctionsType& rN,
-                                 const ShapeFunctionDerivativesType& rDN_DX,
-                                 double& rMassRes);
-
-
-    virtual void MomentumProjTerm(double GaussIndex,
-                                  const ShapeFunctionsType &rN,
-                                  const ShapeFunctionDerivativesType &rDN_DX,
-                                  array_1d<double,3>& rMomentumRHS);
+    virtual void OSSMassResidual(
+        const TElementData& rData,
+        double GaussIndex,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        double& rMassRes);
 
 
-    virtual void MassProjTerm(double GaussIndex,
-                              const ShapeFunctionsType &rN,
-                              const ShapeFunctionDerivativesType &rDN_DX,
-                              double& rMassRHS);
+    virtual void MomentumProjTerm(
+        const TElementData& rData,
+        double GaussIndex,
+        const ShapeFunctionsType &rN,
+        const ShapeFunctionDerivativesType &rDN_DX,
+        array_1d<double,3>& rMomentumRHS);
+
+
+    virtual void MassProjTerm(
+        const TElementData& rData,
+        double GaussIndex,
+        const ShapeFunctionsType &rN,
+        const ShapeFunctionDerivativesType &rDN_DX,
+        double& rMassRHS);
 
 
     void ResolvedConvectiveVelocity(array_1d<double,3>& rConvVel,
@@ -275,6 +312,8 @@ protected:
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix);
 
+    void CalculateProjections();
+
 
     void AddViscousTerm(double DynamicViscosity,
                         double GaussWeight,
@@ -282,17 +321,21 @@ protected:
                         MatrixType& rLHS);
 
 
-    virtual void SubscaleVelocity(unsigned int GaussIndex,
-                                  const ShapeFunctionsType& rN,
-                                  const ShapeFunctionDerivativesType& rDN_DX,
-                                  const ProcessInfo& rProcessInfo,
-                                  array_1d<double,3>& rVelocitySubscale);
+    virtual void SubscaleVelocity(
+        const TElementData& rData,
+        unsigned int GaussIndex,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        const ProcessInfo& rProcessInfo,
+        array_1d<double,3>& rVelocitySubscale);
 
-    virtual void SubscalePressure(unsigned int GaussIndex,
-                                  const ShapeFunctionsType& rN,
-                                  const ShapeFunctionDerivativesType& rDN_DX,
-                                  const ProcessInfo& rProcessInfo,
-                                  double &rPressureSubscale);
+    virtual void SubscalePressure(
+        const TElementData& rData,
+        unsigned int GaussIndex,
+        const ShapeFunctionsType& rN,
+        const ShapeFunctionDerivativesType& rDN_DX,
+        const ProcessInfo& rProcessInfo,
+        double &rPressureSubscale);
 
     ///@}
     ///@name Protected  Access

@@ -251,31 +251,6 @@ public:
     virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                             std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                             std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-
     ///@}
     ///@name Access
     ///@{
@@ -341,60 +316,6 @@ protected:
         array_1d<double,3>& rResult,
         const typename TElementData::VectorDataType& rNodalValues,
         const ShapeFunctionsType& rShapeFunc);
-    
-
-    /**
-     * @brief EvaluateInPoint Interpolate nodal data inside the element.
-     * Evaluate a nodal variable in the point where the form functions take the
-     * values given by rShapeFunc and write the result to rResult.
-     * This is an auxiliary function used to compute values in integration points.
-     * @param rResult The variable where the value will be added to
-     * @param rVar The nodal variable to be read
-     * @param rShapeFunc The values of the form functions in the point
-     */
-    template< class TVariableType >
-    void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType>& Var,
-                         const ShapeFunctionsType& rShapeFunc)
-    {
-        GeometryType& rGeom = this->GetGeometry();
-        const unsigned int NumNodes = rGeom.PointsNumber();
-
-        rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var);
-
-        for(unsigned int i = 1; i < NumNodes; i++)
-        {
-            rResult += rShapeFunc[i] * rGeom[i].FastGetSolutionStepValue(Var);
-        }
-    }
-
-
-    /**
-     * @brief EvaluateInPoint Interpolate nodal data inside the element.
-     * Evaluate a nodal variable in the point where the form functions take the
-     * values given by rShapeFunc and write the result to rResult.
-     * This is an auxiliary function used to compute values in integration points.
-     * @param rResult The variable where the value will be added to
-     * @param rVar The nodal variable to be read
-     * @param rShapeFunc The values of the form functions in the point
-     * @param Step Number of time steps back
-     */
-    template< class TVariableType >
-    void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType>& Var,
-                         const ShapeFunctionsType& rShapeFunc,
-                         const IndexType Step)
-    {
-        GeometryType& rGeom = this->GetGeometry();
-        const unsigned int NumNodes = rGeom.PointsNumber();
-
-        rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var,Step);
-
-        for(unsigned int i = 1; i < NumNodes; i++)
-        {
-            rResult += rShapeFunc[i] * rGeom[i].FastGetSolutionStepValue(Var,Step);
-        }
-    }
 
 
     /// Characteristic element size h to be used in stabilization parameters.
@@ -408,55 +329,22 @@ protected:
                                     double &TauOne,
                                     double &TauTwo);
 
-
-    virtual void ASGSMomentumResidual(double GaussIndex,
-                                      const ShapeFunctionsType &rN,
-                                      const ShapeFunctionDerivativesType &rDN_DX,
-                                      array_1d<double,3>& rMomentumRes);
-
-
-    virtual void ASGSMassResidual(double GaussIndex,
-                                  const ShapeFunctionsType &rN,
-                                  const ShapeFunctionDerivativesType &rDN_DX,
-                                  double& rMomentumRes);
-
-
-    virtual void OSSMomentumResidual(double GaussIndex,
-                                     const ShapeFunctionsType &rN,
-                                     const ShapeFunctionDerivativesType &rDN_DX,
-                                     array_1d<double,3>& rMomentumRes);
-
-    virtual void OSSMassResidual(double GaussIndex,
-                                 const ShapeFunctionsType& rN,
-                                 const ShapeFunctionDerivativesType& rDN_DX,
-                                 double& rMassRes);
-
-
-    virtual void MomentumProjTerm(double GaussIndex,
-                                  const ShapeFunctionsType &rN,
-                                  const ShapeFunctionDerivativesType &rDN_DX,
-                                  array_1d<double,3>& rMomentumRHS);
-
-
-    virtual void MassProjTerm(double GaussIndex,
-                              const ShapeFunctionsType &rN,
-                              const ShapeFunctionDerivativesType &rDN_DX,
-                              double& rMassRHS);
-
-
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
      * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
+     * @param rData TElementData instance with information about nodal values
      * @param rN Shape function values at integration point
      * @param rDN_DX Shape function derivatives at integration point
      * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
      * @param rCurrentProcessInfo
      * @return Kinematic viscosity at the integration point.
      */
-    virtual double EffectiveViscosity(const ShapeFunctionsType &rN,
-                                      const ShapeFunctionDerivativesType &rDN_DX,
-                                      double ElemSize,
-                                      const ProcessInfo &rCurrentProcessInfo);
+    virtual double EffectiveViscosity(
+        const TElementData &rData,
+        const ShapeFunctionsType &rN,
+        const ShapeFunctionDerivativesType &rDN_DX,
+        double ElemSize,
+        const ProcessInfo &rCurrentProcessInfo);
 
 
     void ResolvedConvectiveVelocity(array_1d<double,3>& rConvVel,
@@ -507,18 +395,7 @@ protected:
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 
-
-    virtual void SubscaleVelocity(unsigned int GaussIndex,
-                                  const ShapeFunctionsType& rN,
-                                  const ShapeFunctionDerivativesType& rDN_DX,
-                                  const ProcessInfo& rProcessInfo,
-                                  array_1d<double,3>& rVelocitySubscale);
-
-    virtual void SubscalePressure(unsigned int GaussIndex,
-                                  const ShapeFunctionsType& rN,
-                                  const ShapeFunctionDerivativesType& rDN_DX,
-                                  const ProcessInfo& rProcessInfo,
-                                  double &rPressureSubscale);
+    virtual void CalculateProjections() = 0;
 
     void IntegrationPointVorticity(const ShapeFunctionDerivativesType& rDN_DX,
                                    array_1d<double,3> &rVorticity) const;

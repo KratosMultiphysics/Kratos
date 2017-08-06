@@ -67,9 +67,15 @@ public:
 
     ScalarDataType Viscosity;
 
+    ScalarDataType MassProjection;
+
     VectorDataType Velocity;
 
     VectorDataType MeshVelocity;
+
+    VectorDataType BodyForce;
+
+    VectorDataType MomentumProjection;
 
     ///@}
 
