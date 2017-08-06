@@ -1,6 +1,8 @@
 //-------------------------------------------------------------
-//
-//  KRATOS PFEM APPLICATION
+//         ___  __          
+//  KRATOS| _ \/ _|___ _ __
+//        |  _/  _/ -_) '  '
+//        |_| |_| \___|_|_|_|APPLICATION
 //                                                                
 //  License:(BSD)    PfemFluidMechanicsApplication/license.txt
 //
