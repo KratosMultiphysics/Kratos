@@ -77,8 +77,8 @@ public:
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 	typedef array_1d<double, 3> array_3d;
-    typedef typename LocalSpaceType::VectorType DenseVectorType;
-	typedef typename LocalSpaceType::MatrixType DenseMatrixType;
+    typedef LocalSpaceType::VectorType DenseVectorType;
+	typedef LocalSpaceType::MatrixType DenseMatrixType;
 	typedef Variable<DenseVectorType> VariableDenseVectorType;
 	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
 	
