@@ -516,7 +516,7 @@ void DSS<TElementData>::AddSystemTerms(
     double MassProj = 0;
     this->EvaluateInPoint(MomentumProj,rData.MomentumProjection,rN);
     this->EvaluateInPoint(MassProj,rData.MassProjection,rN);
-
+    
     // Multiplying some quantities by density to have correct units
     Viscosity *= Density; // Dynamic viscosity
     BodyForce *= Density; // Force per unit of volume

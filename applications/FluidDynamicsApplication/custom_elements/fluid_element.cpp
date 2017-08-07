@@ -518,7 +518,7 @@ void FluidElement<TElementData>::EvaluateInPoint(
     {
         for (unsigned int d = 0; d < TElementData::Dim; d++)
         {
-            rResult[d] = rShapeFunc[i] * rNodalValues(i,d);
+            rResult[d] += rShapeFunc[i] * rNodalValues(i,d);
         }
     }
 }
