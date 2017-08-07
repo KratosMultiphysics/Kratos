@@ -1911,8 +1911,8 @@ namespace Kratos
 		
 
 		//  Integration loop
-		double loc1, loc2, loc3;
-		for (size_t gauss_point = 0; gauss_point < numberGPs; gauss_point++)
+		double loc1, loc2;
+		for (int gauss_point = 0; gauss_point < numberGPs; gauss_point++)
 		{
 			if (use_original_dsg_with_bubble)
 			{
