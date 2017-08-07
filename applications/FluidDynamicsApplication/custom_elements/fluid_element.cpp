@@ -134,10 +134,9 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
 
     for (unsigned int i = 0; i < TElementData::NumNodes; ++i)
     {
-        const array_1d<double,3> &rVel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         for (unsigned int d = 0; d < TElementData::Dim; ++d) // Velocity Dofs
-            U[LocalIndex++] = rVel[d];
-        U[LocalIndex++] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
+            U[LocalIndex++] = Data.Velocity(i,d);
+        U[LocalIndex++] = Data.Pressure[i]; // Pressure Dof
     }
 
     noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
@@ -764,19 +763,18 @@ double FluidElement<TElementData>::EffectiveViscosity(
 
 
 template< class TElementData >
-void FluidElement<TElementData>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
+void FluidElement<TElementData>::ResolvedConvectiveVelocity(
+    const TElementData& rData,
+    const ShapeFunctionsType &rN,
+    array_1d<double,3> &rConvVel)
 {
-    GeometryType& rGeom = this->GetGeometry();
-
-    array_1d<double,3> NodeVel = rGeom[0].FastGetSolutionStepValue(VELOCITY);
-    NodeVel -= rGeom[0].FastGetSolutionStepValue(MESH_VELOCITY);
-    rConvVel = rN[0] * NodeVel;
+    for (unsigned int d = 0; d < TElementData::Dim; d++)
+        rConvVel[d] = rN[0] * ( rData.Velocity(0,d) - rData.MeshVelocity(0,d) );
 
     for (unsigned int i = 1; i < TElementData::NumNodes; i++)
     {
-        NodeVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        NodeVel -= rGeom[i].FastGetSolutionStepValue(MESH_VELOCITY);
-        rConvVel += rN[i] * NodeVel;
+        for (unsigned int d = 0; d < TElementData::Dim; d++)
+            rConvVel[d] += rN[i] * ( rData.Velocity(i,d) - rData.MeshVelocity(i,d) );
     }
 }
 

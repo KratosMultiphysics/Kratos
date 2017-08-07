@@ -273,15 +273,6 @@ protected:
         const ShapeFunctionDerivativesType &rDN_DX,
         double& rMassRHS);
 
-
-    void ResolvedConvectiveVelocity(array_1d<double,3>& rConvVel,
-                                    const ShapeFunctionsType& rN);
-
-
-    void FullConvectiveVelocity(array_1d<double,3>& rConvVel,
-                                const ShapeFunctionsType& rN,
-                                const array_1d<double,3>& rSubscaleVel);
-
     virtual void AddSystemTerms(
         const TElementData& rData,
         unsigned int GaussIndex,

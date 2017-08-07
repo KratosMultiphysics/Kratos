@@ -347,8 +347,10 @@ protected:
         const ProcessInfo &rCurrentProcessInfo);
 
 
-    void ResolvedConvectiveVelocity(array_1d<double,3>& rConvVel,
-                                    const ShapeFunctionsType& rN);
+    void ResolvedConvectiveVelocity(
+        const TElementData& rData,
+        const ShapeFunctionsType &rN,
+        array_1d<double,3> &rConvVel);
 
 
     void FullConvectiveVelocity(array_1d<double,3>& rConvVel,

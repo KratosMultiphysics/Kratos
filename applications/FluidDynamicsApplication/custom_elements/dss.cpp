@@ -367,7 +367,7 @@ void DSS<TElementData>::ASGSMomentumResidual(
     this->EvaluateInPoint(Density,rData.Density,rN);
 
     array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
+    this->ResolvedConvectiveVelocity(rData,rN,ConvVel);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
@@ -443,7 +443,8 @@ void DSS<TElementData>::MomentumProjTerm(
     this->EvaluateInPoint(Density,rData.Density,rN);
 
     array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
+    this->ResolvedConvectiveVelocity(rData,rN,ConvVel);
+
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
@@ -474,40 +475,6 @@ void DSS<TElementData>::MassProjTerm(
 
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-template< class TElementData >
-void DSS<TElementData>::ResolvedConvectiveVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &rN)
-{
-    GeometryType& rGeom = this->GetGeometry();
-
-    array_1d<double,3> NodeVel = rGeom[0].FastGetSolutionStepValue(VELOCITY);
-    NodeVel -= rGeom[0].FastGetSolutionStepValue(MESH_VELOCITY);
-    rConvVel = rN[0] * NodeVel;
-
-    for (unsigned int i = 1; i < TElementData::NumNodes; i++)
-    {
-        NodeVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        NodeVel -= rGeom[i].FastGetSolutionStepValue(MESH_VELOCITY);
-        rConvVel += rN[i] * NodeVel;
-    }
-}
-
-
-template< class TElementData >
-void DSS<TElementData>::FullConvectiveVelocity(array_1d<double,3> &rConvVel,
-                                       const ShapeFunctionsType &rN,
-                                       const array_1d<double,3> &rSubscaleVel)
-{
-    GeometryType& rGeom = this->GetGeometry();
-
-    rConvVel = rSubscaleVel;
-
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++)
-        rConvVel += rN[i]*(rGeom[i].FastGetSolutionStepValue(VELOCITY)-rGeom[i].FastGetSolutionStepValue(MESH_VELOCITY));
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
@@ -530,13 +497,11 @@ void DSS<TElementData>::AddSystemTerms(
 
     array_1d<double,3> BodyForce(3,0.0);
     this->EvaluateInPoint(BodyForce,rData.BodyForce,rN);
-    //this->BodyForceTest(rProcessInfo,rN,BodyForce);
 
     array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
+    this->ResolvedConvectiveVelocity(rData,rN,ConvVel);
 
     double ElemSize = this->ElementSize();
-    //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double Viscosity = this->EffectiveViscosity(rData,rN,rDN_DX,ElemSize,rProcessInfo);
 
     double TauOne;
@@ -628,9 +593,6 @@ void DSS<TElementData>::AddSystemTerms(
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
     // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
     this->AddViscousTerm(Viscosity,GaussWeight,rDN_DX,rLHS);
-
-    // Modulated gradient diffusion
-    //this->ModulatedGradientDiffusion(rLHS,rDN_DX,GaussWeight);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -679,10 +641,9 @@ void DSS<TElementData>::AddMassStabilization(
     this->EvaluateInPoint(Density,rData.Density,rN);
 
     array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
+    this->ResolvedConvectiveVelocity(rData,rN,ConvVel);
 
     double ElemSize = this->ElementSize();
-    //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double Viscosity = this->EffectiveViscosity(rData,rN,rDN_DX,ElemSize,rProcessInfo);
 
     double TauOne;
@@ -693,7 +654,6 @@ void DSS<TElementData>::AddMassStabilization(
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
 
     // Multiplying some quantities by density to have correct units
-    //Viscosity *= Density; // Dynamic viscosity
     AGradN *= Density; // Convective term is always multiplied by density
 
     // Auxiliary variables for matrix looping
@@ -873,7 +833,7 @@ void DSS<TElementData>::SubscaleVelocity(
     this->EvaluateInPoint(Density,rData.Density,rN);
 
     array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
+    this->ResolvedConvectiveVelocity(rData,rN,ConvVel);
 
     double ElemSize = this->ElementSize();
     //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
@@ -907,7 +867,7 @@ void DSS<TElementData>::SubscalePressure(
     this->EvaluateInPoint(Density,rData.Density,rN);
 
     array_1d<double,3> ConvVel(3,0.0);
-    this->ResolvedConvectiveVelocity(ConvVel,rN);
+    this->ResolvedConvectiveVelocity(rData,rN,ConvVel);
 
     //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double ElemSize = this->ElementSize();
