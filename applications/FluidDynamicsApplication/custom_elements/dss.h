@@ -22,9 +22,6 @@
 #include "custom_elements/fluid_element.h"
 #include "fluid_dynamics_application_variables.h"
 
-// For body force test
-#include <cmath>
-
 namespace Kratos
 {
 
