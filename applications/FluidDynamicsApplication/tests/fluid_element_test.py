@@ -29,6 +29,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.print_output = False
         self.print_reference_values = False
 
+        self.oss_switch = 0
+
     def tearDown(self):
         import os
         with WorkFolderScope(self.work_folder):
@@ -36,11 +38,6 @@ class FluidElementTest(UnitTest.TestCase):
                 os.remove(self.input_file+'.time')
             except FileNotFoundError as e:
                 pass
-
-    def testEulerian(self):
-        self.convection_diffusion_solver = "eulerian"
-        self.reference_file = "reference10_eulerian"
-        self.testBuoyancy()
 
     def testCavity(self):
 
@@ -55,13 +52,15 @@ class FluidElementTest(UnitTest.TestCase):
             if self.print_output:
                 self.printOutput()
 
-    def setUpModel(self):
+    def testCavityOSS(self):
+        self.reference_file = "reference10_oss"
+        self.oss_switch = 1
+        self.testCavity()
 
+    def setUpModel(self):
         self.fluid_model_part = ModelPart("Fluid")
 
     def setUpSolvers(self):
-        oss_switch = 0
-
         import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
 
@@ -104,7 +103,7 @@ class FluidElementTest(UnitTest.TestCase):
         self.fluid_solver.solver.SetEchoLevel(0)
         self.fluid_solver.solver.Check()
 
-        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,oss_switch)
+        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,self.oss_switch)
 
         self.fluid_solver.divergence_clearance_steps = 0
         self.fluid_solver.use_slip_conditions = 0
@@ -201,5 +200,5 @@ if __name__ == '__main__':
     test.setUp()
     test.print_reference_values = False
     test.print_output = True
-    test.testCavity()
+    test.testCavityOSS()
     test.tearDown()
