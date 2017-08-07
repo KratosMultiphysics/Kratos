@@ -241,7 +241,7 @@ public:
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ACCELERATION) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ACCELERATION << std::endl;
 
-        return BaseType::Check(); // check elements and conditions
+        return BaseType::Check(rModelPart); // check elements and conditions
         KRATOS_CATCH("");
     }
 
