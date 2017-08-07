@@ -115,26 +115,13 @@ public:
 
     void Initialize(ModelPart& rModelPart) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         BaseType::Initialize(rModelPart);
 
-        // check domain dimension and element
-        const unsigned int WorkingSpaceDimension =
-            rModelPart.Elements().begin()->WorkingSpaceDimension();
-
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
-        if (DomainSize != 2 && DomainSize != 3)
-            KRATOS_THROW_ERROR(std::runtime_error, "invalid DOMAIN_SIZE: ", DomainSize)
-        if (DomainSize != WorkingSpaceDimension)
-            KRATOS_THROW_ERROR(
-                std::runtime_error, "DOMAIN_SIZE != WorkingSpaceDimension", "")
-
         mpResponseFunction->Initialize();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart,
@@ -152,11 +139,18 @@ public:
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         // initialize the variables to zero.
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+#pragma omp parallel
         {
-            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
-            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-            it->FastGetSolutionStepValue(ACCELERATION) = ACCELERATION.Zero();
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+            {
+                noalias(it->FastGetSolutionStepValue(ADJOINT_VELOCITY)) = ADJOINT_VELOCITY.Zero();
+                it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
+                // Make sure the primal ACCELERATION is zero for the steady adjoint problem.
+                noalias(it->FastGetSolutionStepValue(ACCELERATION)) = ACCELERATION.Zero();
+            }
         }
 
         mpResponseFunction->InitializeSolutionStep();
@@ -185,31 +179,70 @@ public:
                         SystemVectorType& rDx,
                         SystemVectorType& rb) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         Communicator& rComm = rModelPart.GetCommunicator();
 
         if (rComm.TotalProcesses() == 1)
         {
-            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+            int ndofs = static_cast<int>(rDofSet.size());
+            #pragma omp parallel for
+            for (int i = 0; i < ndofs; ++i)
+            {
+                typename DofsArrayType::iterator it = rDofSet.begin() + i;
                 if (it->IsFree() == true)
                     it->GetSolutionStepValue() +=
                         TSparseSpace::GetValue(rDx, it->EquationId());
+            }
         }
         else
         {
-            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+            int ndofs = static_cast<int>(rDofSet.size());
+            #pragma omp parallel for
+            for (int i = 0; i < ndofs; ++i)
+            {
+                typename DofsArrayType::iterator it = rDofSet.begin() + i;
                 if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
                     if (it->IsFree() == true)
                         it->GetSolutionStepValue() +=
                             TSparseSpace::GetValue(rDx, it->EquationId());
+            }
 
             // todo: add a function Communicator::SynchronizeDofVariables() to
             // reduce communication here.
             rComm.SynchronizeNodalSolutionStepsData();
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
+    }
+
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY;
+
+        // check domain dimension and element
+        const unsigned int WorkingSpaceDimension =
+            rModelPart.Elements().begin()->WorkingSpaceDimension();
+
+        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        const unsigned int DomainSize =
+            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+        if (DomainSize != 2 && DomainSize != 3)
+            KRATOS_ERROR << "invalid DOMAIN_SIZE: " << DomainSize << std::endl;
+        if (DomainSize != WorkingSpaceDimension)
+            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension" << std::endl;
+
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
+        
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_PRESSURE << std::endl;
+        
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ACCELERATION) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ACCELERATION << std::endl;
+
+        return BaseType::Check(); // check elements and conditions
+        KRATOS_CATCH("");
     }
 
     /// Calculate residual based element contributions to steady adjoint.

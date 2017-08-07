@@ -144,35 +144,28 @@ public:
 
     void Initialize(ModelPart& rModelPart) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         BaseType::Initialize(rModelPart);
 
-        // check domain dimension and element
-        const unsigned int WorkingSpaceDimension =
-            rModelPart.Elements().begin()->WorkingSpaceDimension();
-
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
-        if (DomainSize != 2 && DomainSize != 3)
-            KRATOS_THROW_ERROR(std::runtime_error, "invalid DOMAIN_SIZE: ", DomainSize)
-        if (DomainSize != WorkingSpaceDimension)
-            KRATOS_THROW_ERROR(
-                std::runtime_error, "DOMAIN_SIZE != WorkingSpaceDimension", "")
-
         // initialize the variables to zero.
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+#pragma omp parallel
         {
-            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
-            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-            it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) = ADJOINT_ACCELERATION.Zero();
-            it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION) = AUX_ADJOINT_ACCELERATION.Zero();
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+            {
+                noalias(it->FastGetSolutionStepValue(ADJOINT_VELOCITY)) = ADJOINT_VELOCITY.Zero();
+                it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
+                noalias(it->FastGetSolutionStepValue(ADJOINT_ACCELERATION)) = ADJOINT_ACCELERATION.Zero();
+                noalias(it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION)) = AUX_ADJOINT_ACCELERATION.Zero();
+            }
         }
 
         mpResponseFunction->Initialize();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart,
@@ -196,12 +189,28 @@ public:
 
         mInvDt = 1.0 / DeltaTime;
 
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-            it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0;
+#pragma omp parallel
+        {
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+                it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0;
+        }
 
-        for (auto it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
-            for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
-                it->GetGeometry()[iNode].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1.0;
+#pragma omp parallel
+        {
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
+            for (auto it = elements_begin; it != elements_end; ++it)
+                for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
+                {
+                    double& r_num_neighbour = it->GetGeometry()[iNode].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+                    #pragma omp atomic
+                    r_num_neighbour += 1.0;
+                }
+        }
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
@@ -219,28 +228,29 @@ public:
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-            it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION) =
-                AUX_ADJOINT_ACCELERATION.Zero();
+#pragma omp parallel
+        {
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+                noalias(it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION)) =
+                    AUX_ADJOINT_ACCELERATION.Zero();
+        }
 
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
 
         // Calculate and store old contributions for solution of next time step.
-        const int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector Partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), NumThreads, Partition);
 #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
 
-            ModelPart::ElementIterator ElementsBegin =
-                rModelPart.ElementsBegin() + Partition[k];
-            ModelPart::ElementIterator ElementsEnd =
-                rModelPart.ElementsBegin() + Partition[k + 1];
-
-            for (auto it = ElementsBegin; it != ElementsEnd; ++it)
+            for (auto it = elements_begin; it != elements_end; ++it)
             {
                 // transposed gradient of element residual w.r.t.
                 // acceleration
@@ -299,45 +309,25 @@ public:
 
         if (rComm.TotalProcesses() == 1)
         {
-            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+            int ndofs = static_cast<int>(rDofSet.size());
+            #pragma omp parallel for
+            for (int i = 0; i < ndofs; ++i)
+            {
+                typename DofsArrayType::iterator it = rDofSet.begin() + i;
                 if (it->IsFree() == true)
                     it->GetSolutionStepValue() +=
                         TSparseSpace::GetValue(rDx, it->EquationId());
-
-            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-            {
-                array_1d<double, 3>& rCurrentAdjointAcceleration =
-                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
-                const array_1d<double, 3>& rOldAdjointAcceleration =
-                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
-                const array_1d<double, 3>& rAuxAdjointAcceleration =
-                    it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
-                for (unsigned int d = 0; d < DomainSize; ++d)
-                    rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                        (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
             }
-        }
-        else
-        {
-            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
-                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
-                    if (it->IsFree() == true)
-                        it->GetSolutionStepValue() +=
-                            TSparseSpace::GetValue(rDx, it->EquationId());
 
-            // todo: add a function Communicator::SynchronizeDofVariables() to
-            // reduce communication here.
-            rComm.SynchronizeNodalSolutionStepsData();
-
-            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+            #pragma omp parallel
             {
-                array_1d<double, 3>& rCurrentAdjointAcceleration =
-                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
-
-                // in the end we need to assemble so we only compute this part
-                // on the process that owns the node.
-                if (it->FastGetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                ModelPart::NodeIterator nodes_begin;
+                ModelPart::NodeIterator nodes_end;
+                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+                for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
+                    array_1d<double, 3>& rCurrentAdjointAcceleration =
+                        it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
                     const array_1d<double, 3>& rOldAdjointAcceleration =
                         it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
                     const array_1d<double, 3>& rAuxAdjointAcceleration =
@@ -346,27 +336,63 @@ public:
                         rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
                             (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
                 }
-                else
+            }
+        }
+        else
+        {
+            int ndofs = static_cast<int>(rDofSet.size());
+            #pragma omp parallel for
+            for (int i = 0; i < ndofs; ++i)
+            {
+                typename DofsArrayType::iterator it = rDofSet.begin() + i;
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                    if (it->IsFree() == true)
+                        it->GetSolutionStepValue() +=
+                            TSparseSpace::GetValue(rDx, it->EquationId());
+            }
+
+            // todo: add a function Communicator::SynchronizeDofVariables() to
+            // reduce communication here.
+            rComm.SynchronizeNodalSolutionStepsData();
+
+            #pragma omp parallel
+            {
+                ModelPart::NodeIterator nodes_begin;
+                ModelPart::NodeIterator nodes_end;
+                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+                for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
-                    for (unsigned int d = 0; d < DomainSize; ++d)
-                        rCurrentAdjointAcceleration[d] = 0.0;
+                    array_1d<double, 3>& rCurrentAdjointAcceleration =
+                        it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+
+                    // in the end we need to assemble so we only compute this part
+                    // on the process that owns the node.
+                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                    {
+                        const array_1d<double, 3>& rOldAdjointAcceleration =
+                            it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                        const array_1d<double, 3>& rAuxAdjointAcceleration =
+                            it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
+                        for (unsigned int d = 0; d < DomainSize; ++d)
+                            rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                                (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
+                    }
+                    else
+                    {
+                        for (unsigned int d = 0; d < DomainSize; ++d)
+                            rCurrentAdjointAcceleration[d] = 0.0;
+                    }
                 }
             }
         }
 
-        const int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector Partition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), NumThreads, Partition);
 #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
-
-            ModelPart::ElementIterator ElementsBegin =
-                rModelPart.ElementsBegin() + Partition[k];
-            ModelPart::ElementIterator ElementsEnd =
-                rModelPart.ElementsBegin() + Partition[k + 1];
-
-            for (auto it = ElementsBegin; it != ElementsEnd; ++it)
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
+            for (auto it = elements_begin; it != elements_end; ++it)
             {
                 // transposed gradient of element residual w.r.t. acceleration
                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
@@ -403,6 +429,38 @@ public:
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_ACCELERATION);
 
         KRATOS_CATCH("")
+    }
+
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY;
+
+        // check domain dimension and element
+        const unsigned int WorkingSpaceDimension =
+            rModelPart.Elements().begin()->WorkingSpaceDimension();
+
+        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        const unsigned int DomainSize =
+            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+        if (DomainSize != 2 && DomainSize != 3)
+            KRATOS_ERROR << "invalid DOMAIN_SIZE: " << DomainSize << std::endl;
+        if (DomainSize != WorkingSpaceDimension)
+            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension" << std::endl;
+
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
+        
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_PRESSURE << std::endl;
+        
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ACCELERATION) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_ACCELERATION << std::endl;
+
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(AUX_ADJOINT_ACCELERATION) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << AUX_ADJOINT_ACCELERATION << std::endl;
+
+        return BaseType::Check(); // check elements and conditions
+        KRATOS_CATCH("");
     }
 
     /// Calculate residual based element contributions to transient adjoint.
