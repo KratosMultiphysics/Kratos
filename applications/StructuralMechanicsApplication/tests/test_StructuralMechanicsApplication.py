@@ -134,7 +134,7 @@ def AssambleTestSuites():
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
-    # smallSuite.addTest(TDynamicBossakTests('test_execution')) # FIXME: Needs get up to date
+    smallSuite.addTest(TDynamicBossakTests('test_execution'))
     smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
@@ -198,12 +198,12 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution')) # Not working
+    nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
 
     nightSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution')) # Not working
+    nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     # CL tests
@@ -223,7 +223,7 @@ def AssambleTestSuites():
             TTestQuadraticElements,
             TestLoadingConditions,
             TSimpleMeshMovingTest,
-            # TDynamicBossakTests, # FIXME: Needs get up to date
+            TDynamicBossakTests,
             TDynamicNewmarkTests,
             TNodalDampingTests,
             TSDTwoDShearQuaPatchTest,
@@ -257,7 +257,7 @@ def AssambleTestSuites():
             TMembraneQ4PointLoadTests,
             TMembraneQ4TrussPointLoadTests,
             TShellQ4ThickBendingRollUpTests,
-            #TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
+            # TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
