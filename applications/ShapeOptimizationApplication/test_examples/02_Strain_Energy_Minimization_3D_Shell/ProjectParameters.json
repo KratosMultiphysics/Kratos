@@ -9,13 +9,16 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "3D_Shell"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_2D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -111,7 +114,7 @@
                 "identifier"    : "strain_energy",
                 "use_kratos"    : true,
                 "gradient_mode" : "semi_analytic", 
-                "step_size"     : 1e-8 
+                "step_size"     : 1e-8
         }],
         "constraints" : [],
         "design_variables" : {
