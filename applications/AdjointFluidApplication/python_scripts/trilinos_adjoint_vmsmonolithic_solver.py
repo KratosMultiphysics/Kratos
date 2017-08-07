@@ -55,10 +55,8 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
         if KratosMPI.mpi.rank == 0:
             print("Construction of AdjointVMSMonolithicMPISolver finished.")
 
-
     def GetMinimumBufferSize(self):
         return 2
-
 
     def AddVariables(self):
         ## Add variables from the base class
@@ -71,9 +69,7 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
         if KratosMPI.mpi.rank == 0:
             print("Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
 
-
     def ImportModelPart(self):
-
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # here we read the already existing partitions from the primal solution.
             input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
@@ -153,9 +149,9 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.settings["response_function_settings"])
+                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.settings["response_function_settings"])
+                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
