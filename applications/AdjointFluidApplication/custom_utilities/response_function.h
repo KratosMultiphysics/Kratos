@@ -210,8 +210,7 @@ public:
         if (rGradient.size() != rAdjointMatrix.size1())
             rGradient.resize(rAdjointMatrix.size1(), false);
 
-        for (unsigned int k = 0; k < rGradient.size(); ++k)
-            rGradient[k] = 0.0;
+        rGradient.clear();
 
         KRATOS_CATCH("");
     }
@@ -234,8 +233,7 @@ public:
         if (rGradient.size() != rAdjointMatrix.size1())
             rGradient.resize(rAdjointMatrix.size1(), false);
 
-        for (unsigned int k = 0; k < rGradient.size(); ++k)
-            rGradient[k] = 0.0;
+        rGradient.clear();
 
         KRATOS_CATCH("");
     }
@@ -258,8 +256,7 @@ public:
         if (rGradient.size() != rAdjointMatrix.size1())
             rGradient.resize(rAdjointMatrix.size1(), false);
 
-        for (unsigned int k = 0; k < rGradient.size(); ++k)
-            rGradient[k] = 0.0;
+        rGradient.clear();
 
         KRATOS_CATCH("");
     }

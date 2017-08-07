@@ -273,9 +273,7 @@ public:
         if (rLeftHandSideMatrix.size1() != TFluidLocalSize || rLeftHandSideMatrix.size2() != TFluidLocalSize)
             rLeftHandSideMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        for (IndexType i=0; i < TFluidLocalSize; i++)
-            for (IndexType j=0; j < TFluidLocalSize; j++)
-                rLeftHandSideMatrix(i,j) = 0.0;
+        rLeftHandSideMatrix.clear();
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -432,9 +430,7 @@ protected:
         if (rMassMatrix.size1() != TFluidLocalSize || rMassMatrix.size2() != TFluidLocalSize)
             rMassMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        for (IndexType i=0; i < TFluidLocalSize; i++)
-            for (IndexType j=0; j < TFluidLocalSize; j++)
-                rMassMatrix(i,j) = 0.0;
+        rMassMatrix.clear();
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -850,9 +846,7 @@ protected:
         if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
             rAdjointMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        for (IndexType i=0; i < TFluidLocalSize; i++)
-            for (IndexType j=0; j < TFluidLocalSize; j++)
-                rAdjointMatrix(i,j) = 0.0;
+        rAdjointMatrix.clear();
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
