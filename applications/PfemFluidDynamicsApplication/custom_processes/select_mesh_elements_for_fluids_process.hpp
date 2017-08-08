@@ -170,8 +170,10 @@ public:
 	      unsigned int  numinlet =0;	      
 	      unsigned int  numisolated =0;	      
 	      // unsigned int  numinsertednodes =0;	      
-
-
+	      std::vector<double > normVelocityP;
+	      normVelocityP.resize(nds);
+	      // array_1d<double,3> normVelocityP;
+	      unsigned int  checkedNodes =0;
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
@@ -220,7 +222,13 @@ public:
 		  }
 		  if(vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)){
 		    numfreesurf++;
-		    // std::cout<<"FREE SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		    const array_1d<double,3> &velocityP0=vertices.back().FastGetSolutionStepValue(VELOCITY,0);
+		    normVelocityP[pn]=norm_2(velocityP0);
+		    checkedNodes++;
+		  }else if(vertices.back().Is(ISOLATED)){
+		    checkedNodes++;
+		    const array_1d<double,3> &velocityP0=vertices.back().FastGetSolutionStepValue(VELOCITY,0);
+		    normVelocityP[pn]=norm_2(velocityP0);
 		  }
 
 		  if(vertices.back().Is(INLET)){
@@ -286,36 +294,65 @@ public:
 		//   Alpha*=0;
 		// }
 	      if(dimension==2){
-		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  Alpha*=0;
-		  // Alpha*=0.8;
-		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  // Alpha*=0.9;
-		  Alpha*=0.95;
-		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
-		  // Alpha*=0.95;
-		  Alpha*=0.975;
+		if((numfreesurf==nds || (numisolated+numfreesurf)==nds) && firstMesh==false){
+		  if(checkedNodes==nds){
+		    const double maxValue=1.5;
+		    const double minValue=1.0/maxValue;
+		    if(normVelocityP[0]/normVelocityP[1]>maxValue || normVelocityP[0]/normVelocityP[1]<minValue ||
+		       normVelocityP[0]/normVelocityP[2]>maxValue || normVelocityP[0]/normVelocityP[2]<minValue ||
+		       normVelocityP[1]/normVelocityP[2]>maxValue || normVelocityP[1]/normVelocityP[2]<minValue){
+		      Alpha*=0;
+		    }
+		  }else{
+		    std::cout<<"ATTENTION!!! CHECKED NODES= "<<checkedNodes<<" and the nodes are "<<nds<<std::endl;
+		    Alpha*=0;
+		  }
 		}
-		if(numrigid==0 && numfreesurf==0 && numisolated==0){
-		  Alpha*=1.75;
-		}else if(numfreesurf==0 && numisolated==0){
-		  Alpha*=1.25;
-		}
-	      }else  if(dimension==3){
-		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  // Alpha*=0.9;
-		  Alpha*=0;
-		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  // Alpha*=0.95;
-		  Alpha*=0.975;
-		}// else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
+		// else if((numrigid+numisolated+numfreesurf)==nds){
+		//   // Alpha*=0.9;
+		//   Alpha*=0.95;
+		// }else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+		//   // Alpha*=0.95;
 		//   Alpha*=0.975;
 		// }
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
-		}else if(numfreesurf==0 && numisolated==0){
-		  Alpha*=1.25;
 		}
+		// else if(numfreesurf==0 && numisolated==0){
+		//   Alpha*=1.25;
+		// }
+	      }else  if(dimension==3){
+		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+		  if(checkedNodes==nds){
+		    const double maxValue=1.5;
+		    const double minValue=1.0/maxValue;
+		    if(normVelocityP[0]/normVelocityP[1]<minValue || normVelocityP[0]/normVelocityP[2]<minValue || normVelocityP[0]/normVelocityP[3]<minValue ||
+		       normVelocityP[0]/normVelocityP[1]>maxValue || normVelocityP[0]/normVelocityP[2]<maxValue || normVelocityP[0]/normVelocityP[3]>maxValue ||
+		       normVelocityP[1]/normVelocityP[2]<minValue || normVelocityP[1]/normVelocityP[3]<minValue ||
+		       normVelocityP[1]/normVelocityP[2]>maxValue || normVelocityP[1]/normVelocityP[3]<maxValue ||
+		       normVelocityP[2]/normVelocityP[3]<minValue ||
+		       normVelocityP[2]/normVelocityP[3]>maxValue){
+		      Alpha*=0;
+		    }
+		  }else{
+		    std::cout<<"ATTENTION!!! CHECKED NODES= "<<checkedNodes<<" and the nodes are "<<nds<<std::endl;
+		    Alpha*=0;
+		  }
+	
+		}
+		// else if((numrigid+numisolated+numfreesurf)==nds){
+		//   // Alpha*=0.95;
+		//   Alpha*=0.975;
+		// }
+		// else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
+		//   Alpha*=0.975;
+		// }
+		if(numrigid==0 && numfreesurf==0 && numisolated==0){
+		  Alpha*=1.75;
+		}
+		// else if(numfreesurf==0 && numisolated==0){
+		//   Alpha*=1.25;
+		// }
 	      }
 	      if(firstMesh==true){
 		Alpha*=1.15;
