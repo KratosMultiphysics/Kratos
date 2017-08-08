@@ -153,8 +153,6 @@ Southern California, 2012.
 			double mDet;     //*!< Determinant of the Jacobian matrix
 		};
 
-		// TODO: Add Calculation Data
-
 		///@}
 
 		///@name Life Cycle
@@ -399,7 +397,7 @@ Southern California, 2012.
 			std::vector<VectorType> rlaminateStresses;	/*!< laminate stress vector at all surfaces at the current integration point */
 
 			JacobianOperator jacOp;
-			ShellCrossSection::Parameters SectionParameters; /*!< parameters for cross section calculations */
+			ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
 		public:
 

@@ -2175,7 +2175,6 @@ namespace Kratos
 			data.B_h_4 = prod(T_24, Q4);
 
 			//transform DOFs from Haugen to Kratos
-			//data.Z.resize(12, 12, false); // TODO delete
 			data.Z.clear();
 			for (int i = 0; i < 3; i++)
 			{
@@ -2185,12 +2184,10 @@ namespace Kratos
 				data.Z(4 * i + 3, i + 9) = 1.0;
 			}
 
-			//data.H_mem_mod.resize(7, 12, 0.0); // TODO delete
 			data.H_mem_mod.clear();
 			data.H_mem_mod = prod(H, data.Z);
 
 			//calculate Bh bar
-			//data.B_h_bar.resize(3, 7, false); // TODO deletes
 			data.B_h_bar.clear();
 			const Matrix & shapeFunctionsValues =
 				geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -2273,7 +2270,6 @@ namespace Kratos
 			l_41;
 
 		//prepare DKT assembly indices - for eqn 3.92 a->f
-		//data.DKQ_indices.resize(4, 2); // TODO delete
 		data.DKQ_indices.clear();
 		// 1st col = r, 2nd col = s
 		data.DKQ_indices(0, 0) = 5;	//actual node number, not index!
@@ -2315,7 +2311,6 @@ namespace Kratos
 		// calculate the displacement vector
 		// in global and local coordinate systems
 
-		//data.globalDisplacements.resize(OPT_NUM_DOFS, false); // TODO delete
 		GetValuesVector(data.globalDisplacements);
 		data.localDisplacements =
 			mpCoordinateTransformation->CalculateLocalDisplacements(
