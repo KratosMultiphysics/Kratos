@@ -184,7 +184,7 @@ public:
         if (rResponseGradient.size() != rAdjointMatrix.size1())
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
 
-        Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
+        Vector& r_drag_flag_vector = this->GetDragFlagVector(rAdjointElem);
         noalias(rResponseGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
@@ -200,7 +200,7 @@ public:
         if (rResponseGradient.size() != rAdjointMatrix.size1())
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
 
-        Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
+        Vector& r_drag_flag_vector = this->GetDragFlagVector(rAdjointElem);
         noalias(rResponseGradient) = prod(rAdjointMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
@@ -231,7 +231,7 @@ protected:
         if (rResponseGradient.size() != rDerivativesMatrix.size1())
             rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 
-        Vector& r_drag_flag_vector = this->GetDragFlagVector(rElem);
+        Vector& r_drag_flag_vector = this->GetDragFlagVector(rAdjointElem);
         noalias(rResponseGradient) = prod(rDerivativesMatrix, r_drag_flag_vector);
 
         KRATOS_CATCH("");
@@ -256,14 +256,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    Vector& GetDragFlagVector(const Element& rElement)
+    Vector& GetDragFlagVector(const Element& rAdjointElement)
     {
         int k = OpenMPUtils::ThisThread();
 
         // if needed, compute the drag flag vector for this element
-        if (rElement.Id() != mElementIds[k])
+        if (rAdjointElement.Id() != mElementIds[k])
         {
-            const unsigned int num_nodes = rElement.GetGeometry().PointsNumber();
+            const unsigned int num_nodes = rAdjointElement.GetGeometry().PointsNumber();
             const unsigned int local_size = (TDim + 1) * num_nodes;
 
             if (mDragFlagVector[k].size() != local_size)
@@ -272,7 +272,7 @@ private:
             unsigned int local_index = 0;
             for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
             {
-                if (rElement.GetGeometry()[i_node].Is(STRUCTURE))
+                if (rAdjointElement.GetGeometry()[i_node].Is(STRUCTURE))
                 {
                     for (unsigned int d = 0; d < TDim; d++)
                         mDragFlagVector[k][local_index++] = mDragDirection[d];
@@ -286,7 +286,7 @@ private:
                 mDragFlagVector[k][local_index++] = 0.0; // pressure dof
             }
 
-            mElementIds[k] = rElement.Id();
+            mElementIds[k] = rAdjointElement.Id();
         }
 
         return mDragFlagVector[k];
