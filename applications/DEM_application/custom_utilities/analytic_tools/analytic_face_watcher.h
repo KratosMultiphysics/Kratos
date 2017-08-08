@@ -61,7 +61,7 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         mMass += mass;
         mMasses.push_back(mass);
         mId1.push_back(id1);
-        mId2.push_back(fabs(id2));
+        mId2.push_back(std::abs(id2));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);
     }    
@@ -129,7 +129,7 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         mNSignedCrossings += Sign(id2);
         mMass += mass * Sign(normal_vel);
         mTimes.push_back(time);
-        mId2.push_back(fabs(id2));
+        mId2.push_back(std::abs(id2));
         mMasses.push_back(mass * Sign(normal_vel));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);
