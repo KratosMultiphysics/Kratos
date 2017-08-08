@@ -82,22 +82,18 @@ public:
     AdjointSteadyVelocityPressureScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        Parameters DefaultParams(R"(
+        Parameters default_params(R"(
         {
             "scheme_type": "steady"
         })");
 
-        rParameters.ValidateAndAssignDefaults(DefaultParams);
+        rParameters.ValidateAndAssignDefaults(default_params);
 
         mpResponseFunction = pResponseFunction;
 
-        // Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        mAdjointValues.resize(NumThreads);
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -119,6 +115,10 @@ public:
 
         BaseType::Initialize(rModelPart);
 
+        // Allocate auxiliary memory
+        int num_threads = OpenMPUtils::GetNumThreads();
+        mAdjointValues.resize(num_threads);
+
         mpResponseFunction->Initialize();
 
         KRATOS_CATCH("");
@@ -129,7 +129,7 @@ public:
                                 SystemVectorType& rDx,
                                 SystemVectorType& rb) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // Sensitivities are generally computed as a time integral. For steady
         // problems, we set the time step to -1.0 (minus because adjoint is
@@ -155,35 +155,35 @@ public:
 
         mpResponseFunction->InitializeSolutionStep();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart,
-                                      SystemMatrixType& rA,
-                                      SystemVectorType& rDx,
-                                      SystemVectorType& rb) override
+                              SystemMatrixType& rA,
+                              SystemVectorType& rDx,
+                              SystemVectorType& rb) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         mpResponseFunction->FinalizeSolutionStep();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// Update adjoint.
     void Update(ModelPart& rModelPart,
-                        DofsArrayType& rDofSet,
-                        SystemMatrixType& rA,
-                        SystemVectorType& rDx,
-                        SystemVectorType& rb) override
+                DofsArrayType& rDofSet,
+                SystemMatrixType& rA,
+                SystemVectorType& rDx,
+                SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
-        Communicator& rComm = rModelPart.GetCommunicator();
+        Communicator& r_comm = rModelPart.GetCommunicator();
 
-        if (rComm.TotalProcesses() == 1)
+        if (r_comm.TotalProcesses() == 1)
         {
             int ndofs = static_cast<int>(rDofSet.size());
             #pragma omp parallel for
@@ -202,7 +202,7 @@ public:
             for (int i = 0; i < ndofs; ++i)
             {
                 typename DofsArrayType::iterator it = rDofSet.begin() + i;
-                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
                     if (it->IsFree() == true)
                         it->GetSolutionStepValue() +=
                             TSparseSpace::GetValue(rDx, it->EquationId());
@@ -210,7 +210,7 @@ public:
 
             // todo: add a function Communicator::SynchronizeDofVariables() to
             // reduce communication here.
-            rComm.SynchronizeNodalSolutionStepsData();
+            r_comm.SynchronizeNodalSolutionStepsData();
         }
 
         KRATOS_CATCH("");
@@ -221,16 +221,16 @@ public:
         KRATOS_TRY;
 
         // check domain dimension and element
-        const unsigned int WorkingSpaceDimension =
+        const unsigned int working_space_dimension =
             rModelPart.Elements().begin()->WorkingSpaceDimension();
 
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
-        if (DomainSize != 2 && DomainSize != 3)
-            KRATOS_ERROR << "invalid DOMAIN_SIZE: " << DomainSize << std::endl;
-        if (DomainSize != WorkingSpaceDimension)
-            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension" << std::endl;
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const unsigned int domain_size =
+            static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
+        if (domain_size != 2 && domain_size != 3)
+            KRATOS_ERROR << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
+        if (domain_size != working_space_dimension)
+            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
@@ -247,14 +247,14 @@ public:
 
     /// Calculate residual based element contributions to steady adjoint.
     void CalculateSystemContributions(Element::Pointer pCurrentElement,
-                                              LocalSystemMatrixType& rLHS_Contribution,
-                                              LocalSystemVectorType& rRHS_Contribution,
-                                              Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationId,
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        int ThreadId = OpenMPUtils::ThisThread();
+        int thread_id = OpenMPUtils::ThisThread();
 
         // adjoint system matrix
         pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
@@ -269,58 +269,58 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // residual form
-        pCurrentElement->GetValuesVector(mAdjointValues[ThreadId]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[ThreadId]);
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                            LocalSystemMatrixType& LHS_Contribution,
-                                            Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo) override
+                                    LocalSystemMatrixType& rLHS_Contribution,
+                                    Element::EquationIdVectorType& rEquationId,
+                                    ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         LocalSystemVectorType RHS_Contribution;
 
-        RHS_Contribution.resize(LHS_Contribution.size1(), false);
+        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         CalculateSystemContributions(
-            pCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+            pCurrentElement, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    // void Condition_CalculateSystemContributions(
+    //     Condition::Pointer pCurrentCondition,
+    //     LocalSystemMatrixType& rLHS_Contribution,
+    //     LocalSystemVectorType& rRHS_Contribution,
+    //     Condition::EquationIdVectorType& rEquationId,
+    //     ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     KRATOS_TRY;
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("");
+    // }
 
-    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                                      LocalSystemMatrixType& LHS_Contribution,
-                                                      Condition::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    // void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
+    //                                           LocalSystemMatrixType& rLHS_Contribution,
+    //                                           Condition::EquationIdVectorType& rEquationId,
+    //                                           ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     KRATOS_TRY;
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("");
+    // }
 
     void GetElementalDofList(Element::Pointer rCurrentElement,
-                                     Element::DofsVectorType& ElementalDofList,
-                                     ProcessInfo& CurrentProcessInfo) override
+                             Element::DofsVectorType& rElementalDofList,
+                             ProcessInfo& rCurrentProcessInfo) override
     {
-        rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
+        rCurrentElement->GetDofList(rElementalDofList, rCurrentProcessInfo);
     }
 
     ///@}

@@ -1,7 +1,7 @@
 //  KratosAdjointFluidApplication
 //
-//  License:		 BSD License
-//					 license: AdjointFluidApplication/license.txt
+//  License:         BSD License
+//                   license: AdjointFluidApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -102,15 +102,15 @@ public:
     AdjointBossakScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        Parameters DefaultParams(R"(
+        Parameters default_params(R"(
         {
             "scheme_type": "bossak",
             "alpha_bossak": -0.3
         })");
 
-        rParameters.ValidateAndAssignDefaults(DefaultParams);
+        rParameters.ValidateAndAssignDefaults(default_params);
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
@@ -119,14 +119,7 @@ public:
 
         mpResponseFunction = pResponseFunction;
 
-        // Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        mAdjointValues.resize(NumThreads);
-        mAdjointAcceleration.resize(NumThreads);
-        mResponseGradient.resize(NumThreads);
-        mAdjointMassMatrix.resize(NumThreads);
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -148,7 +141,15 @@ public:
 
         BaseType::Initialize(rModelPart);
 
-        // initialize the variables to zero.
+        // Allocate auxiliary memory.
+        int num_threads = OpenMPUtils::GetNumThreads();
+        mAdjointValues.resize(num_threads);
+        mAdjointAcceleration.resize(num_threads);
+        mResponseGradient.resize(num_threads);
+        mAdjointMassMatrix.resize(num_threads);
+
+        // Initialize the adjoint variables to zero (adjoint initial conditions
+        // are always zero).
 #pragma omp parallel
         {
             ModelPart::NodeIterator nodes_begin;
@@ -177,18 +178,14 @@ public:
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        double DeltaTime = -rCurrentProcessInfo[DELTA_TIME]; // DELTA_TIME < 0
+        // Get current time step.
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        double delta_time = -r_current_process_info[DELTA_TIME]; // DELTA_TIME < 0
+        if (delta_time <= 0.0)
+            KRATOS_ERROR << "detected for adjoint solution DELTA_TIME >= 0" << std::endl;
+        mInvDt = 1.0 / delta_time;
 
-        if (DeltaTime <= 0.0)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                               "detected for adjoint solution DELTA_TIME >= 0",
-                               "")
-        }
-
-        mInvDt = 1.0 / DeltaTime;
-
+        // Calculate number of neighbour elements for each node.
 #pragma omp parallel
         {
             ModelPart::NodeIterator nodes_begin;
@@ -204,9 +201,9 @@ public:
             ModelPart::ElementIterator elements_end;
             OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
             for (auto it = elements_begin; it != elements_end; ++it)
-                for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
+                for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
-                    double& r_num_neighbour = it->GetGeometry()[iNode].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+                    double& r_num_neighbour = it->GetGeometry()[i_node].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
                     #pragma omp atomic
                     r_num_neighbour += 1.0;
                 }
@@ -228,6 +225,7 @@ public:
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
+        // Set aux adjoint acceleration to zero before we assemble it.
 #pragma omp parallel
         {
             ModelPart::NodeIterator nodes_begin;
@@ -238,11 +236,13 @@ public:
                     AUX_ADJOINT_ACCELERATION.Zero();
         }
 
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const unsigned int domain_size =
+            static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
 
-        // Calculate and store old contributions for solution of next time step.
+        // Calculate and store contributions to the adjoint acceleration for
+        // the adjoint solution of the next time step.
+        // Loop over elements.
 #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
@@ -252,39 +252,72 @@ public:
 
             for (auto it = elements_begin; it != elements_end; ++it)
             {
-                // transposed gradient of element residual w.r.t.
-                // acceleration
-                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
+                // Calculate transposed gradient of element residual w.r.t. acceleration.
+                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
                 mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
 
-                // d (response) / d (primal acceleration)
+                // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
-                    *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
+                    *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
 
-                // adjoint velocity
+                // Get adjoint vector.
                 it->GetValuesVector(mAdjointValues[k]);
 
-                // terms depending on the mass matrix
                 mAdjointAcceleration[k] =
-                    prod(mAdjointMassMatrix[k], mAdjointValues[k]) +
-                    mResponseGradient[k];
+                    prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k];
 
-                // write to aux variable for use in next time step.
-                unsigned int LocalIndex = 0;
-                for (unsigned int iNode = 0;
-                     iNode < it->GetGeometry().PointsNumber(); ++iNode)
+                // Assemble.
+                unsigned int local_index = 0;
+                for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
-                    array_1d<double, 3>& rAuxAdjointAcceleration =
-                        it->GetGeometry()[iNode].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION);
-                    it->GetGeometry()[iNode].SetLock();
-                    for (unsigned int d = 0; d < DomainSize; ++d)
-                        rAuxAdjointAcceleration[d] +=
-                            mAdjointAcceleration[k][LocalIndex++];
-                    it->GetGeometry()[iNode].UnSetLock();
-                    ++LocalIndex; // pressure dof
+                    array_1d<double, 3>& r_aux_adjoint_acceleration =
+                        it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION);
+                    it->GetGeometry()[i_node].SetLock();
+                    for (unsigned int d = 0; d < domain_size; ++d)
+                        r_aux_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
+                    it->GetGeometry()[i_node].UnSetLock();
+                    ++local_index; // pressure dof
                 }
             }
         }
+//         // Loop over conditions.
+// #pragma omp parallel
+//         {
+//             int k = OpenMPUtils::ThisThread();
+//             ModelPart::ConditionIterator conditions_begin;
+//             ModelPart::ConditionIterator conditions_end;
+//             OpenMPUtils::PartitionedIterators(rModelPart.Conditions(), conditions_begin, conditions_end);
+
+//             for (auto it = conditions_begin; it != conditions_end; ++it)
+//             {
+//                 // Calculate transposed gradient of condition residual w.r.t. acceleration.
+//                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
+//                 mAdjointMassMatrix[k] = -mAlphaBossak * mAdjointMassMatrix[k];
+
+//                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
+//                 mpResponseFunction->CalculateSecondDerivativesGradient(
+//                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
+
+//                 // Get adjoint vector.
+//                 it->GetValuesVector(mAdjointValues[k]);
+
+//                 mAdjointAcceleration[k] =
+//                     prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k];
+
+//                 // Assemble.
+//                 unsigned int local_index = 0;
+//                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
+//                 {
+//                     array_1d<double, 3>& r_aux_adjoint_acceleration =
+//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION);
+//                     it->GetGeometry()[i_node].SetLock();
+//                     for (unsigned int d = 0; d < domain_size; ++d)
+//                         r_aux_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
+//                     it->GetGeometry()[i_node].UnSetLock();
+//                     ++local_index; // pressure dof
+//                 }
+//             }
+//         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
 
@@ -293,22 +326,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    /// Update adjoint and adjoint acceleration.
+    /// Update the adjoint solution.
     void Update(ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
                 SystemMatrixType& rA,
                 SystemVectorType& rDx,
                 SystemVectorType& rb) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
-        Communicator& rComm = rModelPart.GetCommunicator();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const unsigned int domain_size =
+            static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
+        Communicator& r_comm = rModelPart.GetCommunicator();
 
-        if (rComm.TotalProcesses() == 1)
+        if (r_comm.TotalProcesses() == 1)
         {
+            // Update adjoint values.
             int ndofs = static_cast<int>(rDofSet.size());
             #pragma omp parallel for
             for (int i = 0; i < ndofs; ++i)
@@ -319,6 +353,8 @@ public:
                         TSparseSpace::GetValue(rDx, it->EquationId());
             }
 
+            // Assign contributions to adjoint second derivatives that don't 
+            // require assembly.
             #pragma omp parallel
             {
                 ModelPart::NodeIterator nodes_begin;
@@ -326,26 +362,27 @@ public:
                 OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
-                    array_1d<double, 3>& rCurrentAdjointAcceleration =
+                    array_1d<double, 3>& r_current_adjoint_acceleration =
                         it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
-                    const array_1d<double, 3>& rOldAdjointAcceleration =
+                    const array_1d<double, 3>& r_old_adjoint_acceleration =
                         it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
-                    const array_1d<double, 3>& rAuxAdjointAcceleration =
+                    const array_1d<double, 3>& r_aux_adjoint_acceleration =
                         it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
-                    for (unsigned int d = 0; d < DomainSize; ++d)
-                        rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                            (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
+                    for (unsigned int d = 0; d < domain_size; ++d)
+                        r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                            (r_old_adjoint_acceleration[d] + mInvDt * r_aux_adjoint_acceleration[d]);
                 }
             }
         }
         else
         {
+            // Update adjoint values.
             int ndofs = static_cast<int>(rDofSet.size());
             #pragma omp parallel for
             for (int i = 0; i < ndofs; ++i)
             {
                 typename DofsArrayType::iterator it = rDofSet.begin() + i;
-                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
                     if (it->IsFree() == true)
                         it->GetSolutionStepValue() +=
                             TSparseSpace::GetValue(rDx, it->EquationId());
@@ -353,8 +390,10 @@ public:
 
             // todo: add a function Communicator::SynchronizeDofVariables() to
             // reduce communication here.
-            rComm.SynchronizeNodalSolutionStepsData();
+            r_comm.SynchronizeNodalSolutionStepsData();
 
+            // Assign contributions to adjoint second derivatives that don't 
+            // require assembly.
             #pragma omp parallel
             {
                 ModelPart::NodeIterator nodes_begin;
@@ -362,30 +401,32 @@ public:
                 OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                 {
-                    array_1d<double, 3>& rCurrentAdjointAcceleration =
+                    array_1d<double, 3>& r_current_adjoint_acceleration =
                         it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
 
-                    // in the end we need to assemble so we only compute this part
+                    // In the end we need to assemble so we only compute this part
                     // on the process that owns the node.
-                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) == r_comm.MyPID())
                     {
-                        const array_1d<double, 3>& rOldAdjointAcceleration =
+                        const array_1d<double, 3>& r_old_adjoint_acceleration =
                             it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
-                        const array_1d<double, 3>& rAuxAdjointAcceleration =
+                        const array_1d<double, 3>& r_aux_adjoint_acceleration =
                             it->FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
-                        for (unsigned int d = 0; d < DomainSize; ++d)
-                            rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
-                                (rOldAdjointAcceleration[d] + mInvDt * rAuxAdjointAcceleration[d]);
+                        for (unsigned int d = 0; d < domain_size; ++d)
+                            r_current_adjoint_acceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                                (r_old_adjoint_acceleration[d] + mInvDt * r_aux_adjoint_acceleration[d]);
                     }
                     else
                     {
-                        for (unsigned int d = 0; d < DomainSize; ++d)
-                            rCurrentAdjointAcceleration[d] = 0.0;
+                        for (unsigned int d = 0; d < domain_size; ++d)
+                            r_current_adjoint_acceleration[d] = 0.0;
                     }
                 }
             }
         }
 
+        // Add contributions to adjoint second derivatives that require assembly.
+        // Loop over elements.
 #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
@@ -394,48 +435,82 @@ public:
             OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
             for (auto it = elements_begin; it != elements_end; ++it)
             {
-                // transposed gradient of element residual w.r.t. acceleration
-                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], rCurrentProcessInfo);
+                // Calculate transposed gradient of element residual w.r.t. second derivatives.
+                it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
                 mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
 
-                // d (response) / d (primal acceleration)
+                // Calculate transposed gradient of response function on element w.r.t. acceleration.
                 mpResponseFunction->CalculateSecondDerivativesGradient(
-                    *it, mAdjointMassMatrix[k], mResponseGradient[k], rCurrentProcessInfo);
+                    *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
 
-                // adjoint velocity
+                // Get adjoint vector.
                 it->GetValuesVector(mAdjointValues[k]);
 
-                // terms depending on the mass matrix
                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
                     (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
-
-                unsigned int LocalIndex = 0;
-                for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
+                
+                // Assemble contributions to adjoint acceleration.
+                unsigned int local_index = 0;
+                for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
                 {
-                    it->GetGeometry()[iNode].SetLock();
-                    array_1d<double, 3>& rCurrentAdjointAcceleration =
-                        it->GetGeometry()[iNode].FastGetSolutionStepValue(ADJOINT_ACCELERATION);
-                    for (unsigned int d = 0; d < DomainSize; ++d)
-                    {
-                        rCurrentAdjointAcceleration[d] +=
-                            mAdjointAcceleration[k][LocalIndex++];
-                    }
-                    it->GetGeometry()[iNode].UnSetLock();
-                    ++LocalIndex; // pressure dof
+                    array_1d<double, 3>& r_current_adjoint_acceleration =
+                        it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+                    it->GetGeometry()[i_node].SetLock();
+                    for (unsigned int d = 0; d < domain_size; ++d)
+                        r_current_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
+                    it->GetGeometry()[i_node].UnSetLock();
+                    ++local_index; // pressure dof
                 }
             }
         }
+        // Loop over conditions.
+// #pragma omp parallel
+//         {
+//             int k = OpenMPUtils::ThisThread();
+//             ModelPart::ConditionIterator conditions_begin;
+//             ModelPart::ConditionIterator conditions_end;
+//             OpenMPUtils::PartitionedIterators(rModelPart.Conditions(), conditions_begin, conditions_end);
+//             for (auto it = conditions_begin; it != conditions_end; ++it)
+//             {
+//                 // Calculate transposed gradient of condition residual w.r.t. second derivatives.
+//                 it->CalculateSecondDerivativesLHS(mAdjointMassMatrix[k], r_current_process_info);
+//                 mAdjointMassMatrix[k] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[k];
+
+//                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
+//                 mpResponseFunction->CalculateSecondDerivativesGradient(
+//                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
+
+//                 // Get adjoint vector.
+//                 it->GetValuesVector(mAdjointValues[k]);
+
+//                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
+//                     (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
+                
+//                 // Assemble contributions to adjoint acceleration.
+//                 unsigned int local_index = 0;
+//                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
+//                 {
+//                     array_1d<double, 3>& r_current_adjoint_acceleration =
+//                         it->GetGeometry()[i_node].FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+//                     it->GetGeometry()[i_node].SetLock();
+//                     for (unsigned int d = 0; d < domain_size; ++d)
+//                         r_current_adjoint_acceleration[d] += mAdjointAcceleration[k][local_index++];
+//                     it->GetGeometry()[i_node].UnSetLock();
+//                     ++local_index; // pressure dof
+//                 }
+//             }
+//         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_ACCELERATION);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
-        // check domain dimension and element
+        // Check domain dimension and element.
         const unsigned int WorkingSpaceDimension =
             rModelPart.Elements().begin()->WorkingSpaceDimension();
 
@@ -459,7 +534,7 @@ public:
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(AUX_ADJOINT_ACCELERATION) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << AUX_ADJOINT_ACCELERATION << std::endl;
 
-        return BaseType::Check(rModelPart); // check elements and conditions
+        return BaseType::Check(rModelPart); // Check elements and conditions.
         KRATOS_CATCH("");
     }
 
@@ -470,106 +545,129 @@ public:
                                       Element::EquationIdVectorType& rEquationId,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        int ThreadId = OpenMPUtils::ThisThread();
+        int thread_id = OpenMPUtils::ThisThread();
 
-        // old adjoint acceleration
+        // Calculate contribution from old adjoint acceleration.
         pCurrentElement->GetSecondDerivativesVector(rRHS_Contribution, 1);
-        unsigned int LocalIndex = 0;
-        const int DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
-        for (unsigned int iNode = 0; iNode < pCurrentElement->GetGeometry().PointsNumber(); ++iNode)
+        const unsigned int domain_size = static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+        unsigned int local_index = 0;
+        for (unsigned int i_node = 0; i_node < pCurrentElement->GetGeometry().PointsNumber(); ++i_node)
         {
-            const array_1d<double, 3>& rAuxAdjointAcceleration =
-                        pCurrentElement->GetGeometry()[iNode].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
-            double InvNodalArea = 1.0 / pCurrentElement->GetGeometry()[iNode].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-            for (int d = 0; d < DomainSize; ++d)
+            const array_1d<double, 3>& r_aux_adjoint_acceleration =
+                        pCurrentElement->GetGeometry()[i_node].FastGetSolutionStepValue(AUX_ADJOINT_ACCELERATION, 1);
+            double weight = 1.0 / pCurrentElement->GetGeometry()[i_node].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            for (unsigned int d = 0; d < domain_size; ++d)
             {
-                rRHS_Contribution[LocalIndex] = mInvGamma * InvNodalArea *
-                    (mInvGammaMinusOne * rRHS_Contribution[LocalIndex] - mInvDt * rAuxAdjointAcceleration[d]);
-                ++LocalIndex;
+                rRHS_Contribution[local_index] = mInvGamma * weight *
+                    (mInvGammaMinusOne * rRHS_Contribution[local_index] - mInvDt * r_aux_adjoint_acceleration[d]);
+                ++local_index;
             }
-            ++LocalIndex; // pressure dof
+            ++local_index; // pressure dof
         }
 
-        // transposed gradient of element residual w.r.t. acceleration
-        pCurrentElement->CalculateSecondDerivativesLHS(mAdjointMassMatrix[ThreadId], rCurrentProcessInfo);
-        mAdjointMassMatrix[ThreadId] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[ThreadId];
+        // Calculate transposed gradient of element residual w.r.t. acceleration.
+        pCurrentElement->CalculateSecondDerivativesLHS(mAdjointMassMatrix[thread_id], rCurrentProcessInfo);
+        mAdjointMassMatrix[thread_id] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
 
-        // d (response) / d (primal acceleration)
+        // Calculate transposed gradient of response function on element w.r.t. acceleration.
         mpResponseFunction->CalculateSecondDerivativesGradient(
-            *pCurrentElement, mAdjointMassMatrix[ThreadId], mResponseGradient[ThreadId], rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mResponseGradient[ThreadId];
+            *pCurrentElement, mAdjointMassMatrix[thread_id], mResponseGradient[thread_id], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mResponseGradient[thread_id];
 
-        // transposed gradient of element residual w.r.t. primal
+        // Calculate transposed gradient of element residual w.r.t. velocity.
         pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
-        // d (response) / d (primal)
+        // Calculate transposed gradient of response function on element w.r.t. velocity.
         mpResponseFunction->CalculateFirstDerivativesGradient(
-            *pCurrentElement, rLHS_Contribution, mResponseGradient[ThreadId], rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -= mResponseGradient[ThreadId];
+            *pCurrentElement, rLHS_Contribution, mResponseGradient[thread_id], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mResponseGradient[thread_id];
 
-        noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[ThreadId];
+        noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[thread_id];
 
-        // residual form
-        pCurrentElement->GetValuesVector(mAdjointValues[ThreadId]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[ThreadId]);
+        // Calculate system contributions in residual form.
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                    LocalSystemMatrixType& LHS_Contribution,
-                                    Element::EquationIdVectorType& EquationId,
-                                    ProcessInfo& CurrentProcessInfo) override
+                                    LocalSystemMatrixType& rLHS_Contribution,
+                                    Element::EquationIdVectorType& rEquationId,
+                                    ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         LocalSystemVectorType RHS_Contribution;
 
-        RHS_Contribution.resize(LHS_Contribution.size1(), false);
+        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         CalculateSystemContributions(
-            pCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+            pCurrentElement, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-                                                LocalSystemMatrixType& LHS_Contribution,
-                                                LocalSystemVectorType& RHS_Contribution,
-                                                Condition::EquationIdVectorType& EquationId,
-                                                ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    // /// Calculate residual based condition contributions to transient adjoint.
+    // void Condition_CalculateSystemContributions(
+    //     Condition::Pointer pCurrentCondition,
+    //     LocalSystemMatrixType& rLHS_Contribution,
+    //     LocalSystemVectorType& rRHS_Contribution,
+    //     Condition::EquationIdVectorType& rEquationId,
+    //     ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     KRATOS_TRY;
 
-        BaseType::Condition_CalculateSystemContributions(
-            pCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+    //     int thread_id = OpenMPUtils::ThisThread();
 
-        KRATOS_CATCH("")
-    }
+    //     // Calculate transposed gradient of condition residual w.r.t. acceleration.
+    //     pCurrentCondition->CalculateSecondDerivativesLHS(mAdjointMassMatrix[thread_id], rCurrentProcessInfo);
+    //     mAdjointMassMatrix[thread_id] = -(1.0 - mAlphaBossak) * mAdjointMassMatrix[thread_id];
 
-    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                              LocalSystemMatrixType& LHS_Contribution,
-                                              Condition::EquationIdVectorType& EquationId,
-                                              ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    //     // Calculate transposed gradient of response function on condition w.r.t. acceleration.
+    //     mpResponseFunction->CalculateSecondDerivativesGradient(
+    //         *pCurrentCondition, mAdjointMassMatrix[thread_id], mResponseGradient[thread_id], rCurrentProcessInfo);
+    //     rRHS_Contribution = -mInvGamma * mInvDt * mResponseGradient[thread_id];
 
-        BaseType::Condition_Calculate_LHS_Contribution(
-            pCurrentCondition, LHS_Contribution, EquationId, CurrentProcessInfo);
+    //     // Calculate transposed gradient of condition residual w.r.t. velocity.
+    //     pCurrentCondition->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
-    }
+    //     // Calculate transposed gradient of response function on condition w.r.t. velocity.
+    //     mpResponseFunction->CalculateFirstDerivativesGradient(
+    //         *pCurrentCondition, rLHS_Contribution, mResponseGradient[thread_id], rCurrentProcessInfo);
+    //     noalias(rRHS_Contribution) -= mResponseGradient[thread_id];
 
-    void GetElementalDofList(Element::Pointer rCurrentElement,
-                             Element::DofsVectorType& ElementalDofList,
-                             ProcessInfo& CurrentProcessInfo) override
-    {
-        rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
-    }
+    //     noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[thread_id];
+
+    //     // Calculate system contributions in residual form.
+    //     pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
+    //     noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+
+    //     pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+    //     KRATOS_CATCH("");
+    // }
+
+    // void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
+    //                                           LocalSystemMatrixType& rLHS_Contribution,
+    //                                           Condition::EquationIdVectorType& rEquationId,
+    //                                           ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     KRATOS_TRY;
+
+    //     LocalSystemVectorType RHS_Contribution;
+
+    //     RHS_Contribution.resize(rLHS_Contribution.size1(), false);
+
+    //     this->Condition_CalculateSystemContributions(
+    //         pCurrentCondition, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
+
+    //     KRATOS_CATCH("");
+    // }
 
     ///@}
     ///@name Access
