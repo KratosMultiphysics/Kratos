@@ -145,7 +145,7 @@ class subdomain_deflation {
           q( backend_type::create_vector(nrows, bprm) ),
           S(nrows, prm.isolver, bprm, mpi::inner_product(mpi_comm))
         {
-            AMGCL_TIC("setup deflation");
+            TIC("setup deflation");
             typedef backend::crs<value_type, ptrdiff_t>                build_matrix;
             typedef typename backend::row_iterator<Matrix>::type       row_iterator1;
             typedef typename backend::row_iterator<build_matrix>::type row_iterator2;
@@ -170,7 +170,7 @@ class subdomain_deflation {
             ptrdiff_t loc_end = domain[comm.rank + 1];
 
             // Fill deflation vectors.
-            AMGCL_TIC("copy deflation vectors");
+            TIC("copy deflation vectors");
             {
                 std::vector<value_type> z(nrows);
                 for(int j = 0; j < ndv; ++j) {
@@ -179,12 +179,12 @@ class subdomain_deflation {
                     Z[j] = backend_type::copy_vector(z, bprm);
                 }
             }
-            AMGCL_TOC("copy deflation vectors");
+            TOC("copy deflation vectors");
 
             // Number of nonzeros in local and remote parts of the matrix.
             ptrdiff_t loc_nnz = 0, rem_nnz = 0;
 
-            AMGCL_TIC("first pass");
+            TIC("first pass");
             // First pass over Astrip rows:
             // 1. Count local and remote nonzeros,
             // 3. Build sparsity pattern of matrix AZ.
@@ -218,9 +218,9 @@ class subdomain_deflation {
                     }
                 }
             }
-            AMGCL_TOC("first pass");
+            TOC("first pass");
 
-            AMGCL_TIC("second pass");
+            TIC("second pass");
             // Second pass over Astrip rows:
             // 1. Build local and remote matrix parts.
             // 2. Build local part of AZ matrix.
@@ -273,7 +273,7 @@ class subdomain_deflation {
                 aloc->ptr[i+1] = loc_head;
                 arem->ptr[i+1] = rem_head;
             }
-            AMGCL_TOC("second pass");
+            TOC("second pass");
 
             // Create local preconditioner.
             P = boost::make_shared<LocalPrecond>( *aloc, prm.local, bprm );
@@ -284,7 +284,7 @@ class subdomain_deflation {
             Arem = backend_type::copy_matrix(arem, bprm);
             A = boost::make_shared<matrix>(*C, P->system_matrix(), *Arem);
 
-            AMGCL_TIC("A*Z");
+            TIC("A*Z");
             /* Finish construction of AZ */
             // Exchange deflation vectors
             std::vector<ptrdiff_t> zrecv_ptr(C->recv.nbr.size() + 1, 0);
@@ -358,12 +358,12 @@ class subdomain_deflation {
 
             std::rotate(az->ptr, az->ptr + nrows, az->ptr + nrows + 1);
             az->ptr[0] = 0;
-            AMGCL_TOC("A*Z");
+            TOC("A*Z");
 
             MPI_Waitall(C->send.req.size(), &C->send.req[0], MPI_STATUSES_IGNORE);
 
             /* Build deflated matrix E. */
-            AMGCL_TIC("assemble E");
+            TIC("assemble E");
             // Who is responsible for solution of coarse problem
             int nmasters = std::min(comm.size, DirectSolver::comm_size(nz, prm.dsolver));
             int nslaves  = (comm.size + nmasters - 1) / nmasters;
@@ -488,10 +488,10 @@ class subdomain_deflation {
                         dtype, 0, slaves_comm
                         );
             }
-            AMGCL_TOC("assemble E");
+            TOC("assemble E");
 
             // Prepare E factorization.
-            AMGCL_TIC("factorize E");
+            TIC("factorize E");
             if (comm.rank == master_rank) {
                 E = boost::make_shared<DirectSolver>(
                         masters_comm, Eptr.size() - 1, Eptr, Ecol, Eval, prm.dsolver
@@ -500,9 +500,9 @@ class subdomain_deflation {
                 cf.resize(Eptr.size() - 1);
                 cx.resize(Eptr.size() - 1);
             }
-            AMGCL_TOC("factorize E");
+            TOC("factorize E");
 
-            AMGCL_TOC("setup deflation");
+            TOC("setup deflation");
 
             // Move matrices to backend.
             AZ = backend_type::copy_matrix(az, bprm);
@@ -561,18 +561,18 @@ class subdomain_deflation {
 
         template <class Vec1, class Vec2>
         void mul(value_type alpha, const Vec1 &x, value_type beta, Vec2 &y) const {
-            AMGCL_TIC("top/spmv");
+            TIC("top/spmv");
             backend::spmv(alpha, *A, x, beta, y);
-            AMGCL_TOC("top/spmv");
+            TOC("top/spmv");
 
             project(y);
         }
 
         template <class Vec1, class Vec2, class Vec3>
         void residual(const Vec1 &f, const Vec2 &x, Vec3 &r) const {
-            AMGCL_TIC("top/residual");
+            TIC("top/residual");
             backend::residual(f, *A, x, r);
-            AMGCL_TOC("top/residual");
+            TOC("top/residual");
 
             project(r);
         }
@@ -614,27 +614,27 @@ class subdomain_deflation {
 
         template <class Vector>
         void project(Vector &x) const {
-            AMGCL_TIC("project");
+            TIC("project");
 
-            AMGCL_TIC("local inner product");
+            TIC("local inner product");
             for(ptrdiff_t j = 0; j < ndv; ++j)
                 df[j] = backend::inner_product(x, *Z[j]);
-            AMGCL_TOC("local inner product");
+            TOC("local inner product");
 
             coarse_solve(df, dx);
 
-            AMGCL_TIC("spmv");
+            TIC("spmv");
             backend::copy_to_backend(dx, *dd);
             backend::spmv(-1, *AZ, *dd, 1, x);
-            AMGCL_TOC("spmv");
+            TOC("spmv");
 
-            AMGCL_TOC("project");
+            TOC("project");
         }
 
         void coarse_solve(std::vector<value_type> &f, std::vector<value_type> &x) const
         {
-            AMGCL_TIC("coarse solve");
-            AMGCL_TIC("exchange rhs");
+            TIC("coarse solve");
+            TIC("exchange rhs");
             if (comm.rank == master_rank) {
                 MPI_Gatherv(
                         &f[0], f.size(), dtype, &cf[0],
@@ -647,41 +647,41 @@ class subdomain_deflation {
                         dtype, 0, slaves_comm
                         );
             }
-            AMGCL_TOC("exchange rhs");
+            TOC("exchange rhs");
 
             if (comm.rank == master_rank) {
-                AMGCL_TIC("call solver");
+                TIC("call solver");
                 (*E)(cf, cx);
-                AMGCL_TOC("call solver");
+                TOC("call solver");
 
-                AMGCL_TIC("gather result");
+                TIC("gather result");
                 MPI_Gatherv(
                         &cx[0], cx.size(), dtype, &x[0],
                         const_cast<int*>(&msize[0]), const_cast<int*>(&mstart[0]),
                         dtype, 0, masters_comm
                         );
-                AMGCL_TOC("gather result");
+                TOC("gather result");
             }
 
-            AMGCL_TIC("broadcast result");
+            TIC("broadcast result");
             MPI_Bcast(&x[0], x.size(), dtype, 0, comm);
-            AMGCL_TOC("broadcast result");
-            AMGCL_TOC("coarse solve");
+            TOC("broadcast result");
+            TOC("coarse solve");
         }
 
         template <class Vec1, class Vec2>
         void postprocess(const Vec1 &rhs, Vec2 &x) const {
-            AMGCL_TIC("postprocess");
+            TIC("postprocess");
 
             // q = Ax
             backend::spmv(1, *A, x, 0, *q);
 
             // df = transp(Z) * (rhs - Ax)
-            AMGCL_TIC("local inner product");
+            TIC("local inner product");
             for(ptrdiff_t j = 0; j < ndv; ++j)
                 df[j] = backend::inner_product(rhs, *Z[j])
                       - backend::inner_product(*q,  *Z[j]);
-            AMGCL_TOC("local inner product");
+            TOC("local inner product");
 
             // dx = inv(E) * df
             coarse_solve(df, dx);
@@ -689,7 +689,7 @@ class subdomain_deflation {
             // x += Z * dx
             backend::lin_comb(ndv, &dx[dv_start[comm.rank]], Z, 1, x);
 
-            AMGCL_TOC("postprocess");
+            TOC("postprocess");
         }
 
 };
