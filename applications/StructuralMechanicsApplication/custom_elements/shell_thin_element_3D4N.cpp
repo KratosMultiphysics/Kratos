@@ -21,10 +21,41 @@
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_NODES 4
-#define OPT_STRAIN_SIZE 6
-#define OPT_NUM_DOFS 24
-#define OPT_NUM_GP 4
+/*
+Element overview:---------------------------------------------------------------
+This element represents a 4-node Shell element.
+The membrane part is Felippa's assumed Natural DEviatoric Strain (ANDES)
+formulation, while the bending part is the Discrete Kirchhoff Quadrilateral.
+This element is formulated for small strains,
+but can be used in Geometrically nonlinear problems
+involving large displacements and rotations
+using a Corotational Coordinate Transformation.
+Material nonlinearity is handled by means of the cross section object.
+
+
+
+Shell formulation references:---------------------------------------------------
+ANDES formulation:
+Bjorn Haugen. "Buckling and Stability Problems for Thin Shell Structures
+Using High Performance Finite Elements". Dissertation. Colorado: University
+of Colorado, 1994.
+
+ANDES filter matrix H modification as per:
+Carlos A Felippa. "Supernatural QUAD4: a template formulation".	In: Computer
+methods in applied mechanics and engineering 195.41 (2006), pp. 5316-5342.
+
+DKQ original formulation:
+Jean-Louis Batoz and Mabrouk Ben Tahar. "Evaluation of a new quadrilateral
+thin plate bending element". In: International Journal for Numerical Methods
+in Engineering 18.11 (1982), pp. 1655-1677.
+
+Clearly presented DKQ formulation:
+Fabian Rojas Barrales. "Development of a nonlinear quadrilateral layered
+membrane element with drilling degrees of freedom and a nonlinear
+quadrilateral thin flat layered shell element for the modeling of reinforced
+concrete walls". Dissertation. Los Angeles, California: University of
+Southern California, 2012.
+*/
 
 namespace Kratos
 {
@@ -144,6 +175,17 @@ namespace Kratos
 			return returnValue;
 		}
 	}
+
+	// =========================================================================
+	//
+	// Definitions
+	//
+	// =========================================================================
+
+	#define OPT_NUM_NODES 4
+	#define OPT_STRAIN_SIZE 6
+	#define OPT_NUM_DOFS 24
+	#define OPT_NUM_GP 4
 
 	// =========================================================================
 	//
@@ -836,29 +878,14 @@ namespace Kratos
 		{
 			caseId = 20;
 		}
-		else if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY)
+		else if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY ||
+			SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION ||
+			SHELL_ELEMENT_BENDING_ENERGY ||
+			SHELL_ELEMENT_BENDING_ENERGY_FRACTION ||
+			SHELL_ELEMENT_SHEAR_ENERGY ||
+			SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
 		{
 			caseId = 30;
-		}
-		else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY)
-		{
-			caseId = 31;
-		}
-		else if (rVariable == SHELL_ELEMENT_SHEAR_ENERGY)
-		{
-			caseId = 32;
-		}
-		else if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
-		{
-			caseId = 33;
-		}
-		else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
-		{
-			caseId = 34;
-		}
-		else if (rVariable == SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
-		{
-			caseId = 35;
 		}
 
 
@@ -912,12 +939,12 @@ namespace Kratos
 
 				double resultDouble = 0.0;
 
-				if (caseId > 29)
+				if (caseId == 30)
 				{
-					// Energy calcs
+					// Energy calcs - these haven't been verified or tested yet.
 					CalculateShellElementEnergy(data, rVariable, resultDouble);
 				}
-				else if (caseId > 19)
+				else if (caseId == 20)
 				{
 					//Von mises calcs
 
@@ -1471,6 +1498,8 @@ namespace Kratos
 
 	void ShellThinElement3D4N::CalculateShellElementEnergy(const CalculationData & data, const Variable<double>& rVariable, double & rEnergy_Result)
 	{
+		// Energy calcs - these haven't been verified or tested yet.
+
 		// At each Gauss Point the energy of that Gauss Point's weighted area
 		// dA*w_i is output. This means that the total energy of the element is
 		// the sum of the Gauss Point energies. Accordingly, the total energy of

@@ -49,14 +49,44 @@ namespace Kratos
 	///@{
 	/** \brief ShellThinElement3D4N
 	*
-	* This element represents a 4-node Shell element
-	* based on the Assumed Natural DEviatoric Strain (ANDES) by Felippa.
+	* This element represents a 4-node Shell element.
+	* The membrane part is Felippa's assumed Natural DEviatoric Strain (ANDES)
+	* formulation, while the bending part is the Discrete Kirchhoff 
+	* Quadrilateral.
 	* This element is formulated for small strains,
 	* but can be used in Geometrically nonlinear problems
 	* involving large displacements and rotations
 	* using a Corotational Coordinate Transformation.
 	* Material nonlinearity is handled by means of the cross section object.
 	*/
+
+	/*
+	Shell formulation references:
+
+	ANDES formulation:
+Bjorn Haugen. "Buckling and Stability Problems for Thin Shell Structures
+Using High Performance Finite Elements". Dissertation. Colorado: University
+of Colorado, 1994.
+
+ANDES filter matrix H modification as per:
+Carlos A Felippa. "Supernatural QUAD4: a template formulation".	In: Computer
+methods in applied mechanics and engineering 195.41 (2006), pp. 5316-5342.
+
+DKQ original formulation:
+Jean-Louis Batoz and Mabrouk Ben Tahar. "Evaluation of a new quadrilateral
+thin plate bending element". In: International Journal for Numerical Methods
+in Engineering 18.11 (1982), pp. 1655-1677.
+
+Clearly presented DKQ formulation:
+Fabian Rojas Barrales. "Development of a nonlinear quadrilateral layered
+membrane element with drilling degrees of freedom and a nonlinear
+quadrilateral thin flat layered shell element for the modeling of reinforced
+concrete walls". Dissertation. Los Angeles, California: University of
+Southern California, 2012.
+	*/
+
+
+
 	class ShellThinElement3D4N : public Element
 	{
 	public:

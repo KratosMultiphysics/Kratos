@@ -21,39 +21,25 @@
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_NODES 3
-#define OPT_STRAIN_SIZE 6
-#define OPT_NUM_DOFS 18
 
-//----------------------------------------
-// preprocessors for the integration
-// method used by this element.
+/*
+Element overview:---------------------------------------------------------------
+This element represents a 3-node Shell element
+based on the Discrete Shear Gap theory (DSG) by Bletzinger.
+This element is formulated for small strains,
+but can be used in Geometrically nonlinear problems
+involving large displacements and rotations
+using a Corotational Coordinate Transformation.
+Material nonlinearity is handled by means of the cross section object.
 
-//#define OPT_1_POINT_INTEGRATION
-
-#ifdef OPT_1_POINT_INTEGRATION
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
-#define OPT_NUM_GP 1
-#else
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
-#define OPT_NUM_GP 3
-#endif // OPT_1_POINT_INTEGRATION
-
-//----------------------------------------
-// preprocessors to handle the output
-// in case of 3 integration points
-
-//#define OPT_USES_INTERIOR_GAUSS_POINTS
-
-#ifdef OPT_1_POINT_INTEGRATION
-#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
-#else
-#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
-#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
-#else
-#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) Utilities::InterpToStandardGaussPoints(X)
-#endif // OPT_USES_INTERIOR_GAUSS_POINTS
-#endif // OPT_1_POINT_INTEGRATION
+Shell formulation references:---------------------------------------------------
+1.	Bletzinger, K.U., Bischoff, M. and Ramm, E., 2000. A unified approach for
+	shear-locking-free triangular and rectangular shell finite elements.
+	Computers & Structures, 75(3), pp.321-334.
+2.	Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational
+	3-node shell element. American Journal of Engineering and Applied Sciences, 
+	Volume 9, Issue 2, Pages 420-431.
+*/
 
 namespace Kratos
 {
@@ -65,7 +51,7 @@ namespace Kratos
 			double vg1 = v1;
 			double vg2 = v2;
 			double vg3 = v3;
-#ifdef OPT_AVARAGE_RESULTS
+#ifdef OPT_AVERAGE_RESULTS
 			v1 = (vg1 + vg2 + vg3) / 3.0;
 			v2 = (vg1 + vg2 + vg3) / 3.0;
 			v3 = (vg1 + vg2 + vg3) / 3.0;
@@ -73,7 +59,7 @@ namespace Kratos
 			v1 = (2.0*vg1) / 3.0 - vg2 / 3.0 + (2.0*vg3) / 3.0;
 			v2 = (2.0*vg1) / 3.0 + (2.0*vg2) / 3.0 - vg3 / 3.0;
 			v3 = (2.0*vg2) / 3.0 - vg1 / 3.0 + (2.0*vg3) / 3.0;
-#endif // OPT_AVARAGE_RESULTS
+#endif // OPT_AVERAGE_RESULTS
 		}
 
 		inline void InterpToStandardGaussPoints(std::vector< double >& v)
@@ -123,6 +109,46 @@ namespace Kratos
 					(v[0](i, j), v[1](i, j), v[2](i, j));
 		}
 	}
+
+	// =========================================================================
+	//
+	// Definitions
+	//
+	// =========================================================================
+
+	#define OPT_NUM_NODES 3
+	#define OPT_STRAIN_SIZE 6
+	#define OPT_NUM_DOFS 18
+
+	//----------------------------------------
+	// preprocessors for the integration
+	// method used by this element.
+
+	//#define OPT_1_POINT_INTEGRATION
+
+	#ifdef OPT_1_POINT_INTEGRATION
+	#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
+	#define OPT_NUM_GP 1
+	#else
+	#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
+	#define OPT_NUM_GP 3
+	#endif // OPT_1_POINT_INTEGRATION
+
+	//----------------------------------------
+	// preprocessors to handle the output
+	// in case of 3 integration points
+
+	//#define OPT_USES_INTERIOR_GAUSS_POINTS
+
+	#ifdef OPT_1_POINT_INTEGRATION
+	#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
+	#else
+	#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
+	#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
+	#else
+	#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) Utilities::InterpToStandardGaussPoints(X)
+	#endif // OPT_USES_INTERIOR_GAUSS_POINTS
+	#endif // OPT_1_POINT_INTEGRATION
 
 	// =========================================================================
 	//
@@ -714,33 +740,17 @@ namespace Kratos
 		{
 			caseId = 20;
 		}
-		else if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY)
+		else if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY ||
+			SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION ||
+			SHELL_ELEMENT_BENDING_ENERGY ||
+			SHELL_ELEMENT_BENDING_ENERGY_FRACTION ||
+			SHELL_ELEMENT_SHEAR_ENERGY ||
+			SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
 		{
 			caseId = 30;
 		}
-		else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY)
-		{
-			caseId = 31;
-		}
-		else if (rVariable == SHELL_ELEMENT_SHEAR_ENERGY)
-		{
-			caseId = 32;
-		}
-		else if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
-		{
-			caseId = 33;
-		}
-		else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
-		{
-			caseId = 34;
-		}
-		else if (rVariable == SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
-		{
-			caseId = 35;
-		}
 
-
-		if (caseId > 19)
+		if (caseId > 19) // calculate stresses
 		{
 			// Initialize common calculation variables
 			CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
@@ -771,12 +781,12 @@ namespace Kratos
 
 			double resultDouble = 0.0;
 
-			if (caseId > 29)
+			if (caseId == 30)
 			{
-				// Energy calcs
+				// Energy calcs - these haven't been verified or tested yet.
 				CalculateShellElementEnergy(data, rVariable, resultDouble);
 			}
-			else if (caseId > 19)
+			else if (caseId == 20)
 			{
 				//Von mises calcs
 
@@ -808,9 +818,6 @@ namespace Kratos
 				// store the result calculated
 				rValues[gauss_point] = resultDouble;
 			}
-			
-
-			
 		}
 		else if (rVariable == TSAI_WU_RESERVE_FACTOR)
 		{
@@ -1340,6 +1347,8 @@ namespace Kratos
 
 	void ShellThickElement3D3N::CalculateShellElementEnergy(const CalculationData & data, const Variable<double>& rVariable, double & rEnergy_Result)
 	{
+		// Energy calcs - these haven't been verified or tested yet.
+
 		// At each Gauss Point the energy of that Gauss Point's weighted area
 		// dA*w_i is output. This means that the total energy of the element is
 		// the sum of the Gauss Point energies. Accordingly, the total energy of
