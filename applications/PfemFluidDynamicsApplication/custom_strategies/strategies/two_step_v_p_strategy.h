@@ -18,6 +18,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -270,6 +271,9 @@ public:
 
 	  this->CalculateDisplacements();
 	  BaseType::MoveMesh();
+	  BoundaryNormalsCalculationUtilities BoundaryComputation;
+	  BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, BaseType::GetEchoLevel());
+   
 	  
 	  if( fixedTimeStep==false){
 	    continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
