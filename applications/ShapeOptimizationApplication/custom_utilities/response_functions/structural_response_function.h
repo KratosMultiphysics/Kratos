@@ -146,10 +146,8 @@ public:
 	{
 		KRATOS_TRY;
 
-		std::cout << ("I was in base class to initialize") << std::endl;
-	//move this to base class---------------------------------------------------------------
         // Set sensitivity variables to zero.
-        for (auto label : mNodalSensitivityVariables)
+        for (auto label : mNodalSensitivityVariables) //--------> Do this for output variables??????????
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
@@ -284,23 +282,48 @@ public:
 		// Elemental sensitivity variables e.g. 2nd moment of inertia---------------------------------
 		for (auto label : mElementSensitivityVariables)
         {
+			//create label for output variable
+			std::string output_label = label + "_SENSITIVITY";
+
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(label);
-                this->UpdateElementSensitivities(r_variable);
+				
+				//check for output variable to save later the computed sensitivity
+				if( KratosComponents<Variable<double>>::Has(label) == true )
+				{
+					const Variable<double>& r_output_variable =
+                    	KratosComponents<Variable<double>>::Get(output_label);	
+					this->UpdateElementSensitivities(r_variable, r_output_variable);	
+				}
+				else
+                	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
+
+                
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
             {
                 const Variable<array_1d<double,3>>& r_variable =
                     KratosComponents<Variable<array_1d<double,3>>>::Get(label);
-                this->UpdateElementSensitivities(r_variable);
+				
+				//check for output variable to save later the computed sensitivity
+				if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
+				{
+					const Variable<array_1d<double,3>>& r_output_variable =
+                    	KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
+					this->UpdateElementSensitivities(r_variable, r_output_variable);	
+				}
+				else
+                	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;	
+			
+               
             }
             else
                 KRATOS_ERROR << "Unsupported element variable: " << label << "." << std::endl;
         }
 
-		std::cout << ("I looped all design variables and all elements") << std::endl;
+		//std::cout << ("I looped all design variables and all elements") << std::endl;
 
 		// Add condition sensitivity variables e.g. point load---------------------------------------
 		for (auto label : mConditionSensitivityVariables)
@@ -320,6 +343,7 @@ public:
             else
                 KRATOS_ERROR << "Unsupported condition variable: " << label << "." << std::endl;
         }
+		//std::cout << ("I looped all design variables and all conditions") << std::endl;
       
         KRATOS_CATCH("");
 	}
@@ -387,12 +411,12 @@ public:
                     			(prod(sensitivity_matrix, adjoint_vector) +
                                     response_gradient);
 
-            this->AssembleNodalSensitivityContribution(
+           this->AssembleNodalSensitivityContribution(
                 rSensitivityVariable, sensitivity_vector, r_geom);  //----> check for correct output
         }
 
 		// Reset 
-		/*sensitivity_vector =  Vector(0);
+		sensitivity_vector =  Vector(0);
 		response_gradient = Vector(0);
         adjoint_vector = Vector(0);
         sensitivity_matrix = Matrix (0,0);
@@ -428,9 +452,15 @@ public:
                     			(prod(sensitivity_matrix, adjoint_vector) +
                                     response_gradient);
 
+		
+			/*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
+			{
+					std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
+			}*/							
+
             this->AssembleNodalSensitivityContribution(
                 rSensitivityVariable, sensitivity_vector, r_geom);	//----> check for correct output
-        }*/
+        }
     
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
@@ -439,7 +469,7 @@ public:
 
 	// ==============================================================================
 	template <typename TDataType>
-	void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable)  
+	void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)  
 	{
 		KRATOS_TRY;
 
@@ -452,6 +482,8 @@ public:
 
 		for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
         {
+
+			//Element::GeometryType& r_geom = it->GetGeometry();	
 
             // Compute the pseudo load
             it->CalculateSensitivityMatrix(
@@ -476,12 +508,14 @@ public:
                 				(prod(sensitivity_matrix, adjoint_vector) +
                                  response_gradient);
 
-			std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
-               // this->AssembleNodalSensitivityContribution(
-                  //  rSensitivityVariable, sensitivity_vector[k], r_geom);		//----> check for correct output
+			
+			//std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
+
+            this->AssembleElementSensitivityContribution(
+                  	rOutputVariable, sensitivity_vector, *it);		//----> check for correct output
+	  
         }
        
-
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
@@ -506,8 +540,6 @@ public:
 		{
 			ModelPart::ConditionsContainerType::iterator cond_i = cond_begin + k;
 
-			Condition::GeometryType& r_geom = cond_i->GetGeometry();	
-
             // Compute the pseudo load
             cond_i->CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix, r_process_info);
@@ -530,8 +562,15 @@ public:
                     			(prod(sensitivity_matrix, adjoint_vector) +
                                     response_gradient);
 
-            this->AssembleNodalSensitivityContribution(
-                rSensitivityVariable, sensitivity_vector, r_geom); //----> check for correct output
+			
+			/*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
+			{
+					std::cout << ("SA result = ") << i << sensitivity_vector[i] << std::endl;
+			}*/
+
+			/*Condition::GeometryType& r_geom = cond_i->GetGeometry();
+          this->AssembleNodalSensitivityContribution(
+               		rSensitivityVariable, sensitivity_vector, r_geom); */
         }
     
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
@@ -599,7 +638,7 @@ public:
 	// ==============================================================================
 	virtual void GetAdjointVariables(Element& rElem, Vector& rValues)
     {
-		KRATOS_TRY;
+		KRATOS_TRY; 
 
 		rElem.GetValuesVector(rValues);
 
@@ -626,9 +665,7 @@ public:
         {
                 double& r_sensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
-                rGeom[i_node].SetLock();
-                r_sensitivity += rSensitivityVector[index++];
-                rGeom[i_node].UnSetLock();
+				r_sensitivity += rSensitivityVector[index++];
         }
     }
 
@@ -642,27 +679,29 @@ public:
         {
             array_1d<double, 3>& r_sensitivity =
                 rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
-            rGeom[i_node].SetLock();
             for (unsigned int d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
                 r_sensitivity[d] += rSensitivityVector[index++];
-            rGeom[i_node].UnSetLock();
+
+			// Problem for vector DV (e.g. point load) and scalar result (e.g. strain energy)
         }
 	}
 
 	// ==============================================================================
     void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom) 
-    {
-		//-->add code
+                                              Element& rElem) 
+    {  
+		rElem.SetValue(rSensitivityVariable , rSensitivityVector[0]);
+		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points	
 	}
 
 	// ==============================================================================
     void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom)
+                                              Element& rElem)
     {
-		//-->add code
+		rElem.SetValue(rSensitivityVariable , rSensitivityVector);
+		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points	
 	}
 
 	// ==============================================================================

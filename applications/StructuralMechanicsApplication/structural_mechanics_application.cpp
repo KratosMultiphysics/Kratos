@@ -146,7 +146,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding point load conditions
     mPointLoadCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointLoadCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+     //fusseder TODO: move this to another application
+    mPointLoadCondition3D1NForSA(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mAxisymPointLoadCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+   
     // Adding line load conditions
     mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -190,6 +193,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
     KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
+
+    //fusseder
+    KRATOS_REGISTER_VARIABLE( IZ_SENSITIVITY )
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
@@ -272,6 +278,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(SURFACE_LOADS_VECTOR )
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR )
+
+    // fusseder needed for sensitivity analysis
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_NODE_COORD )
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N",mTrussElement3D2N)
@@ -375,6 +384,9 @@ void KratosStructuralMechanicsApplication::Register()
     // Point loads
     KRATOS_REGISTER_CONDITION( "PointLoadCondition2D1N", mPointLoadCondition2D1N )
     KRATOS_REGISTER_CONDITION( "PointLoadCondition3D1N", mPointLoadCondition3D1N )
+
+    //fusseder TODO: move this to another application
+    KRATOS_REGISTER_CONDITION( "PointLoadCondition3D1NForSA", mPointLoadCondition3D1NForSA )
     
     KRATOS_REGISTER_CONDITION( "AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N )
     

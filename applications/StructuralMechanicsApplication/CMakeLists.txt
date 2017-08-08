@@ -72,6 +72,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
+  #fusseder TODO: move this element to other application
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition_for_SA.cpp
 )
 
 ###############################################################

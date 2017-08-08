@@ -1775,6 +1775,48 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	void CrBeamElement3D2NForSA::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+		KRATOS_TRY;
+		
+		if(this->GetValue(rVariable) != 0)
+		{
+			// Get result value for output
+			double output_value = this->GetValue(rVariable);
+
+			// Resize Output
+			const unsigned int&  write_points_number = GetGeometry()
+				.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+			if (rOutput.size() != write_points_number) 
+			{
+				rOutput.resize(write_points_number);
+			}
+
+			// Write scalar result value on all Gauss-Points
+			for(unsigned int i = 0; i < write_points_number; ++i)
+			{
+				rOutput[i] = output_value; 
+			}
+		}
+		else
+            KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+
+		KRATOS_CATCH("")
+
+    }
+
+	void CrBeamElement3D2NForSA::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+		KRATOS_TRY;
+		this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		KRATOS_CATCH("")
+    }
+
 	void CrBeamElement3D2NForSA::AssembleSmallInBigMatrix(Matrix SmallMatrix,
 		Matrix& BigMatrix) {
 

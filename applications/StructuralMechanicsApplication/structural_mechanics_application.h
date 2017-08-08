@@ -70,6 +70,9 @@
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 
+//fusseder TODO: move this to another application
+#include "custom_conditions/point_load_condition_for_SA.h"
+
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
@@ -340,6 +343,9 @@ private:
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
+
+    //fusseder TODO: move this to another application
+    const PointLoadConditionForSA mPointLoadCondition3D1NForSA;
     
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     

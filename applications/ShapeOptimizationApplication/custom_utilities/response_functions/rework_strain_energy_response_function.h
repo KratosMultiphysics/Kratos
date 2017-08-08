@@ -322,11 +322,18 @@ protected:
     {
 		KRATOS_TRY;
 
-		rCond.GetValuesVector(rRHSContribution);
-		rRHSContribution *= 0.5;
+		Vector zero_adjoint_vector;
+		zero_adjoint_vector = Vector(0);
 
-		if (rRHSContribution.size() != rDerivativesMatrix.size1())
+		rCond.GetValuesVector(zero_adjoint_vector);
+
+		if (zero_adjoint_vector.size() != rDerivativesMatrix.size2())
 			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!." << std::endl;
+
+		if (rRHSContribution.size() != rDerivativesMatrix.size2())
+			rRHSContribution.resize(zero_adjoint_vector.size(), false);
+	
+		noalias(rRHSContribution) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
 
 		KRATOS_CATCH("");
 	}
@@ -340,11 +347,17 @@ protected:
     {
 		KRATOS_TRY;
 
-		rCond.GetValuesVector(rRHSContribution);
-		rRHSContribution *= 0.5;
+		Vector zero_adjoint_vector;
 
-		if (rRHSContribution.size() != rDerivativesMatrix.size1())
+		rCond.GetValuesVector(zero_adjoint_vector);
+
+		if (zero_adjoint_vector.size() != rDerivativesMatrix.size2())
 			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!." << std::endl;
+
+		if (rRHSContribution.size() != rDerivativesMatrix.size2())
+			rRHSContribution.resize(zero_adjoint_vector.size(), false);	
+	
+		noalias(rRHSContribution) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
 
 		KRATOS_CATCH("");
 	}

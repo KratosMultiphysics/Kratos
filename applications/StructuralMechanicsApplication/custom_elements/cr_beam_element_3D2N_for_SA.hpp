@@ -80,9 +80,11 @@ namespace Kratos
 
 		int get_id_in_stress_vector();
 
-		void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+		void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo);
 		
-		void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+		void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo);
 		//-----------------------------------------------------------------------------------------------------------
 		
 		Matrix CreateElementStiffnessMatrix_Material();
@@ -182,6 +184,13 @@ namespace Kratos
 			std::vector<Vector>& rValues,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
+		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override;				  
 
 		IntegrationMethod GetIntegrationMethod() const override;
 
