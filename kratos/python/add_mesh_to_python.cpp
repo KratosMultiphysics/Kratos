@@ -380,6 +380,15 @@ void ElementCalculateLocalSystem1(Element& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
+template<class TDataType>
+void ElementCalculateSensitivityMatrix(Element& dummy,
+        const Variable<TDataType>& rDesignVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
+}
+
 void ElementGetFirstDerivativesVector1(Element& dummy,
         Vector& rOutput)
 {
@@ -500,11 +509,15 @@ void  AddMeshToPython()
     .def("CalculateMassMatrix", &Element::CalculateMassMatrix)
     .def("CalculateDampingMatrix", &Element::CalculateDampingMatrix)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
+    .def("CalculateFirstDerivativesLHS", &Element::CalculateFirstDerivativesLHS)
+    .def("CalculateSecondDerivativesLHS", &Element::CalculateSecondDerivativesLHS)
     .def("CalculateLocalVelocityContribution", &Element::CalculateLocalVelocityContribution)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector1)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
+    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<double>)
+    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<array_1d<double,3> >)
     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
