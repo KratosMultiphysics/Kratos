@@ -290,8 +290,8 @@ public:
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB,
-        typename ModelPart::DofsArrayType& rdof_set,
-        ModelPart& r_model_part
+        typename ModelPart::DofsArrayType& rDofSet,
+        ModelPart& rModelPart
     ) override
     {
 
@@ -303,7 +303,7 @@ public:
 
         int counter = 0;
         int npressures = 0;
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+        for (ModelPart::DofsArrayType::iterator it = rDofSet.begin(); it!=rDofSet.end(); it++)
         {
             if( it->GetSolutionStepValue ( PARTITION_INDEX ) == my_pid )
             {
