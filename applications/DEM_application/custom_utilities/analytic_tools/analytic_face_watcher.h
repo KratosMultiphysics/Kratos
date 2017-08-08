@@ -119,8 +119,8 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
     {
     public:
 
-    FaceHistoryDatabase(): mNCrossings(0), mNSignedCrossings(0), mId(0), mMass(0.0){}
-    FaceHistoryDatabase(const int id): mNCrossings(0), mNSignedCrossings(0), mId(id), mMass(0.0){}
+    FaceHistoryDatabase(): mNCrossings(0), mNSignedCrossings(0), /*mId(0),*/ mMass(0.0){}
+    FaceHistoryDatabase(const int id): mNCrossings(0), mNSignedCrossings(0), /*mId(id),*/ mMass(0.0){}
     ~FaceHistoryDatabase(){}
 
     void PushBackCrossings(const double time, const int id2, const double mass, const double normal_vel, const double tang_vel)
@@ -170,7 +170,7 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 
         int mNCrossings;
         int mNSignedCrossings;
-        int mId;        
+        //int mId;        
         double mMass;
         std::vector<double> mTimes;
         std::vector<double> mMasses;
