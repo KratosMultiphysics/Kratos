@@ -256,19 +256,19 @@ public:
 
         int thread_id = OpenMPUtils::ThisThread();
 
-        // adjoint system matrix
+        // Calculate transposed gradient of element residual w.r.t. first derivatives.
         pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
-        // d (response) / d (primal)
+        // Calculate transposed gradient of response function on element w.r.t. first derivatives.
         mpResponseFunction->CalculateFirstDerivativesGradient(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
-        // residual form
+        // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
@@ -294,14 +294,33 @@ public:
         KRATOS_CATCH("");
     }
 
-    // void Condition_CalculateSystemContributions(
-    //     Condition::Pointer pCurrentCondition,
-    //     LocalSystemMatrixType& rLHS_Contribution,
-    //     LocalSystemVectorType& rRHS_Contribution,
-    //     Condition::EquationIdVectorType& rEquationId,
-    //     ProcessInfo& rCurrentProcessInfo) override
+    // void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
+    //                                             LocalSystemMatrixType& rLHS_Contribution,
+    //                                             LocalSystemVectorType& rRHS_Contribution,
+    //                                             Condition::EquationIdVectorType& rEquationId,
+    //                                             ProcessInfo& rCurrentProcessInfo) override
     // {
     //     KRATOS_TRY;
+
+    //     int thread_id = OpenMPUtils::ThisThread();
+
+    //     // Calculate transposed gradient of condition residual w.r.t. first derivatives.
+    //     pCurrentCondition->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
+
+    //     if (rRHS_Contribution.size() != rLHS_Contribution.size1())
+    //         rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
+
+    //     // Calculate transposed gradient of response function on condition w.r.t. first derivatives.
+    //     mpResponseFunction->CalculateFirstDerivativesGradient(
+    //         *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+    //     noalias(rRHS_Contribution) = -rRHS_Contribution;
+
+    //     // Calculate system contributions in residual form.
+    //     pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
+    //     noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+
+    //     pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
     //     KRATOS_CATCH("");
     // }
@@ -312,16 +331,15 @@ public:
     //                                           ProcessInfo& rCurrentProcessInfo) override
     // {
     //     KRATOS_TRY;
+    //     LocalSystemVectorType RHS_Contribution;
+
+    //     RHS_Contribution.resize(rLHS_Contribution.size1(), false);
+
+    //     CalculateSystemContributions(
+    //         pCurrentCondition, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
 
     //     KRATOS_CATCH("");
     // }
-
-    void GetElementalDofList(Element::Pointer rCurrentElement,
-                             Element::DofsVectorType& rElementalDofList,
-                             ProcessInfo& rCurrentProcessInfo) override
-    {
-        rCurrentElement->GetDofList(rElementalDofList, rCurrentProcessInfo);
-    }
 
     ///@}
     ///@name Access

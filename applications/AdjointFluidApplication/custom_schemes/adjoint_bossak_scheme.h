@@ -174,7 +174,7 @@ public:
                                 SystemVectorType& rDx,
                                 SystemVectorType& rb) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -213,7 +213,7 @@ public:
 
         mpResponseFunction->InitializeSolutionStep();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart,
@@ -221,7 +221,7 @@ public:
                               SystemVectorType& rDx,
                               SystemVectorType& rb) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -280,7 +280,7 @@ public:
                 }
             }
         }
-//         // Loop over conditions.
+        // Loop over conditions.
 // #pragma omp parallel
 //         {
 //             int k = OpenMPUtils::ThisThread();
@@ -297,6 +297,9 @@ public:
 //                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
 //                 mpResponseFunction->CalculateSecondDerivativesGradient(
 //                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
+                
+//                 if (mResponseGradient[k].size() == 0)
+//                     continue;
 
 //                 // Get adjoint vector.
 //                 it->GetValuesVector(mAdjointValues[k]);
@@ -323,7 +326,7 @@ public:
 
         mpResponseFunction->FinalizeSolutionStep();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// Update the adjoint solution.
@@ -480,6 +483,9 @@ public:
 //                 mpResponseFunction->CalculateSecondDerivativesGradient(
 //                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
 
+//                 if (mResponseGradient[k].size() == 0)
+//                     continue;
+
 //                 // Get adjoint vector.
 //                 it->GetValuesVector(mAdjointValues[k]);
 
@@ -511,16 +517,16 @@ public:
         KRATOS_TRY;
 
         // Check domain dimension and element.
-        const unsigned int WorkingSpaceDimension =
+        const unsigned int working_space_dimension =
             rModelPart.Elements().begin()->WorkingSpaceDimension();
 
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-        const unsigned int DomainSize =
-            static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
-        if (DomainSize != 2 && DomainSize != 3)
-            KRATOS_ERROR << "invalid DOMAIN_SIZE: " << DomainSize << std::endl;
-        if (DomainSize != WorkingSpaceDimension)
-            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension" << std::endl;
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const unsigned int domain_size =
+            static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
+        if (domain_size != 2 && domain_size != 3)
+            KRATOS_ERROR << "invalid DOMAIN_SIZE: " << domain_size << std::endl;
+        if (domain_size != working_space_dimension)
+            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
