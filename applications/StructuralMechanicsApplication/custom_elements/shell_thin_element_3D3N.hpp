@@ -266,7 +266,7 @@ private:
         VectorType H4;
         MatrixType Bb;
 
-        ShellCrossSection::Parameters SectionParameters; /*!< parameters for cross section calculations */
+        ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
         array_1d< Vector3Type, 3 > Sig;
 

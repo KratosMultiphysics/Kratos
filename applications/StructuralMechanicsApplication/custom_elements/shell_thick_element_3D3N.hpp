@@ -315,7 +315,7 @@ namespace Kratos
 
 			VectorType generalizedStresses = ZeroVector(8); /*!< generalized stress vector at the current integration point */
 
-			ShellCrossSection::Parameters SectionParameters; /*!< parameters for cross section calculations */
+			ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
 			std::vector<VectorType> rlaminateStrains;
 

@@ -341,7 +341,7 @@ void ShellCrossSection::FinalizeNonLinearIteration(const Properties& rMaterialPr
 {
 }
 
-void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
+void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     // parameters initialization
     ConstitutiveLaw::Parameters materialValues;
@@ -704,7 +704,7 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
     }
 }
 
-void ShellCrossSection::FinalizeSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
+void ShellCrossSection::FinalizeSectionResponse(SectionParameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     ConstitutiveLaw::Parameters materialValues;
     GeneralVariables variables;
@@ -966,7 +966,7 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
     }
 }
 
-void ShellCrossSection::InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
+void ShellCrossSection::InitializeParameters(SectionParameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
 {
     // share common data between section and materials
 
@@ -1064,7 +1064,7 @@ void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoin
 
 void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoint,
     ConstitutiveLaw::Parameters& rMaterialValues,
-    Parameters& rValues,
+    SectionParameters& rValues,
     GeneralVariables& rVariables,
     const ConstitutiveLaw::StressMeasure& rStressMeasure,
     const unsigned int& plyNumber)

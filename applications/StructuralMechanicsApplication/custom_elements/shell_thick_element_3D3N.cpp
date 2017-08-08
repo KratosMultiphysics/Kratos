@@ -2253,7 +2253,6 @@ namespace Kratos
 
 	void ShellThickElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
 	{
-		// TODO p2 update this when results is sorted out
 		// This is hardcoded to use 1 gauss point, despite the declared def
 		// using 3 gps.
 		const GeometryType& geom = GetGeometry();
@@ -2510,7 +2509,6 @@ namespace Kratos
 			{
 				CalculateSectionResponse(data);
 				noalias(data.generalizedStresses) = prod(data.D, data.generalizedStrains);
-				//TODO p3 might be able to achieve this function in shell_cross_section by modifying it a bit to include a shear stabilization flag
 
 				if (ijob > 4)
 				{
@@ -2538,7 +2536,6 @@ namespace Kratos
 					data.rlaminateStresses[i] = prod(R, data.rlaminateStresses[i]);
 				}
 
-				// TODO p2 if statement here
 				section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
 				for (unsigned int i = 0; i < data.rlaminateStrains.size(); i++)
 				{
