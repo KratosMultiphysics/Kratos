@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/condition.h"
 #include "includes/process_info.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
@@ -215,6 +216,21 @@ public:
         KRATOS_CATCH("");
     }
 
+    // virtual void CalculateGradient(const Condition& rAdjointCondition,
+    //                                const Matrix& rAdjointMatrix,
+    //                                Vector& rResponseGradient,
+    //                                ProcessInfo& rProcessInfo)
+    // {
+    //     KRATOS_TRY;
+
+    //     if (rResponseGradient.size() != rAdjointMatrix.size1())
+    //         rResponseGradient.resize(rAdjointMatrix.size1(), false);
+
+    //     rResponseGradient.clear();
+
+    //     KRATOS_CATCH("");
+    // }
+
     /// Calculate the local gradient w.r.t. first derivatives of primal solution.
     /**
      * @param[in]     rAdjointElem      the adjoint element.
@@ -238,6 +254,21 @@ public:
         KRATOS_CATCH("");
     }
 
+    // virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+    //                                                const Matrix& rAdjointMatrix,
+    //                                                Vector& rResponseGradient,
+    //                                                ProcessInfo& rProcessInfo)
+    // {
+    //     KRATOS_TRY;
+
+    //     if (rResponseGradient.size() != rAdjointMatrix.size1())
+    //         rResponseGradient.resize(rAdjointMatrix.size1(), false);
+
+    //     rResponseGradient.clear();
+
+    //     KRATOS_CATCH("");
+    // }
+
     /// Calculate the local gradient w.r.t. second derivatives of primal solution.
     /**
      * @param[in]     rAdjointElem      the adjoint element.
@@ -260,6 +291,21 @@ public:
 
         KRATOS_CATCH("");
     }
+
+    // virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+    //                                                 const Matrix& rAdjointMatrix,
+    //                                                 Vector& rResponseGradient,
+    //                                                 ProcessInfo& rProcessInfo)
+    // {
+    //     KRATOS_TRY;
+
+    //     if (rResponseGradient.size() != rAdjointMatrix.size1())
+    //         rResponseGradient.resize(rAdjointMatrix.size1(), false);
+
+    //     rResponseGradient.clear();
+
+    //     KRATOS_CATCH("");
+    // }
 
     virtual void UpdateSensitivities()
     {
@@ -354,7 +400,7 @@ protected:
                             rSensitivityVariable.Zero();
             }
         }
-
+        // Assemble element contributions.
 #pragma omp parallel
         {
             ModelPart::ElementIterator elements_begin;
@@ -403,6 +449,55 @@ protected:
                     rSensitivityVariable, sensitivity_vector[k], r_geom);
             }
         }
+//         // Assemble condition contributions.
+// #pragma omp parallel
+//         {
+//             ModelPart::ConditionIterator conditions_begin;
+//             ModelPart::ConditionIterator conditions_end;
+//             OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
+//                                               conditions_begin, conditions_end);
+//             int k = OpenMPUtils::ThisThread();
+
+//             for (auto it = conditions_begin; it != conditions_end; ++it)
+//             {
+//                 Condition::GeometryType& r_geom = it->GetGeometry();
+//                 bool update_sensitivities = false;
+//                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
+//                     if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
+//                     {
+//                         update_sensitivities = true;
+//                         break;
+//                     }
+
+//                 if (update_sensitivities == false)
+//                     continue;
+
+//                 // This is multiplied with the adjoint to compute sensitivity
+//                 // contributions from the condition.
+//                 it->CalculateSensitivityMatrix(
+//                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+
+//                 // This is the sensitivity contribution coming from the response
+//                 // function with primal variables treated as constant.
+//                 this->CalculateSensitivityGradient(
+//                     *it, rSensitivityVariable, sensitivity_matrix[k],
+//                     response_gradient[k], r_process_info);
+
+//                 // Get the element adjoint vector.
+//                 it->GetValuesVector(adjoint_vector[k]);
+
+//                 if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+//                     sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+
+//                 // Calculated the total sensitivity contribution for the condition.
+//                 noalias(sensitivity_vector[k]) =
+//                     delta_time * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
+//                                   response_gradient[k]);
+
+//                 this->AssembleNodalSensitivityContribution(
+//                     rSensitivityVariable, sensitivity_vector[k], r_geom);
+//             }
+//         }
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
@@ -431,6 +526,19 @@ protected:
         KRATOS_CATCH("");
     }
 
+    // virtual void CalculateSensitivityGradient(const Condition& rAdjointCondition,
+    //                                           const Variable<double>& rVariable,
+    //                                           const Matrix& rDerivativesMatrix,
+    //                                           Vector& rResponseGradient,
+    //                                           ProcessInfo& rProcessInfo)
+    // {
+    //     KRATOS_TRY;
+
+    //     KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
+
+    //     KRATOS_CATCH("");
+    // }
+
     /// Calculate the local gradient of response function w.r.t. the sensitivity variable.
     /**
      * @param[in]     rAdjointElem       the adjoint element.
@@ -452,6 +560,19 @@ protected:
 
         KRATOS_CATCH("");
     }
+
+    // virtual void CalculateSensitivityGradient(const Condition& rAdjointCondition,
+    //                                           const Variable<array_1d<double,3>>& rVariable,
+    //                                           const Matrix& rDerivativesMatrix,
+    //                                           Vector& rResponseGradient,
+    //                                           ProcessInfo& rProcessInfo)
+    // {
+    //     KRATOS_TRY;
+
+    //     KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
+
+    //     KRATOS_CATCH("");
+    // }
 
     void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
