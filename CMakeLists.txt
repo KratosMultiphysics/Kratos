@@ -7,25 +7,22 @@ set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
+SET( CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;FastDebug;Debug;FullDebug" )
 SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
-SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}"
-    CACHE STRING "Flags used by the C++ compiler during Release builds." FORCE)
-SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}"
-    CACHE STRING "Flags used by the C++ compiler during RelWithDebInfo builds." FORCE)
-SET( CMAKE_CXX_FLAGS_FASTDEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG"
-    CACHE STRING "Flags used by the C++ compiler during FastDebug builds." FORCE)
-SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG"
-    CACHE STRING "Flags used by the C++ compiler during Debug builds." FORCE)
-SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG"
-    CACHE STRING "Flags used by the C++ compiler during FullDebug builds." FORCE)
+#SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
+#SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+SET( CMAKE_CXX_FLAGS_FASTDEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG" )
+SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
 
 message("BASIC_DEBUG_FLAGS ${BASIC_DEBUG_FLAGS}")
-message("RELEASE:        ${CMAKE_CXX_FLAGS_RELEASE}")
-message("RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-message("FASTDEBUG:      ${CMAKE_CXX_FLAGS_FASTDEBUG}")
-message("DEBUG:          ${CMAKE_CXX_FLAGS_DEBUG}")
-message("FULLDEBUG:      ${CMAKE_CXX_FLAGS_FULLDEBUG}")
+message("Release:        ${CMAKE_CXX_FLAGS_RELEASE}")
+message("RelWithDebInfo: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+message("FastDebug:      ${CMAKE_CXX_FLAGS_FASTDEBUG}")
+message("Debug:          ${CMAKE_CXX_FLAGS_DEBUG}")
+message("FullDebug:      ${CMAKE_CXX_FLAGS_FULLDEBUG}")
 message("CMAKE_CONFIGURATION_TYPES: ${CMAKE_CONFIGURATION_TYPES}")
+
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
@@ -43,12 +40,11 @@ else(GIT_FOUND)
 endif(GIT_FOUND)
 
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-string( TOUPPER "${CMAKE_BUILD_TYPE}" UPPERCASE_BUILD_TYPE )
-if( UPPERCASE_BUILD_TYPE MATCHES RELEASE )
+if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "")
-else( UPPERCASE_BUILD_TYPE MATCHES RELEASE )
+else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
-endif( UPPERCASE_BUILD_TYPE MATCHES RELEASE )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
@@ -305,17 +301,6 @@ include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
-
-if(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    message("*************** ATTENTION AVOIDING DEFINING NDEBUG --- EXTREMELY SLOW!! ***************************")
-else(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    add_definitions( -DNDEBUG )
-endif(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-
-if(${KRATOS_DEBUG} MATCHES ON )
-    message("*************** DEFINING KRATOS_DEBUG --- VERY SLOW!! ***************************")
-    add_definitions( -DKRATOS_DEBUG )
-endif(${KRATOS_DEBUG} MATCHES ON )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
