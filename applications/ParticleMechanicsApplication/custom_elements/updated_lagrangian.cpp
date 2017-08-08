@@ -535,13 +535,11 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
         double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
         
         //this->SetValue(MP_DENSITY, MP_Density);
-        this->SetValue(MP_VOLUME, MP_Volume);
+        this->SetValue(MP_VOLUME, MP_Volume);   
+    }    
         
-        
-        
-        
-        if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
+    if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+    {
         
         //contributions to stiffness matrix calculated on the reference config
         this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_Volume );
@@ -1494,8 +1492,9 @@ void UpdatedLagrangian::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcess
 ////************************************************************************************
 ////************************************************************************************
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
 
     //create and initialize element variables:
     GeneralVariables Variables;
@@ -1533,7 +1532,6 @@ void UpdatedLagrangian::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcess
 
     KRATOS_CATCH( "" )
 }
-
 
 
 ////************************************************************************************
@@ -1709,8 +1707,9 @@ void UpdatedLagrangian::InitializeMaterial()
     else
         KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
         //std::cout<< "in initialize material "<<std::endl;
-        KRATOS_CATCH( "" )
-    }
+    
+    KRATOS_CATCH( "" )
+}
 
 
 //************************************************************************************
