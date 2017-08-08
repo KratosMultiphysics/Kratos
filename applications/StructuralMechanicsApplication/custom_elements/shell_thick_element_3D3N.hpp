@@ -59,6 +59,19 @@ namespace Kratos
 	* using a Corotational Coordinate Transformation.
 	* Material nonlinearity is handled by means of the cross section object.
 	*/
+
+	/*
+	Shell formulation reference:
+	1.	Bletzinger, K.U., Bischoff, M. and Ramm, E., 2000. A unified approach for 
+		shear-locking-free triangular and rectangular shell finite elements. 
+		Computers & Structures, 75(3), pp.321-334.
+	2.	Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational 
+		3-node shell element.
+		American Journal of Engineering and Applied Sciences, Volume 9, Issue 2, 
+		Pages 420-431.
+	*/
+
+
 	class ShellThickElement3D3N : public Element
 	{
 	public:
