@@ -48,8 +48,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Serial Verison of the Entity that manages the InterfaceObjects
+/** It implements the functions that are only needed if the mapper is a serial 
+* mapper. These functions are implemented as virtual functions in the BaseClass
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceObjectManagerSerial : public InterfaceObjectManagerBase
 {

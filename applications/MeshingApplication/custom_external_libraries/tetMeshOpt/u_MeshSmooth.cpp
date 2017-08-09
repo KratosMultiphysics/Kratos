@@ -178,7 +178,7 @@ void localMeshSmooth(int i, int thId  ,TObject* destObject)
 	   TVertex *v = (TVertex*)destObject;
 	   if (v->fixed == 1) return;
 	   vList = v->elementsList;
-	   if (vList == NULL) return ;
+	   if (vList == nullptr) return ;
 	   if (vList->Count() == 0) return;
 	   //calculo la calidad minima del set
 		minq = 1000000;
