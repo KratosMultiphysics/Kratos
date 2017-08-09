@@ -57,6 +57,12 @@ Element::Pointer DSS<TElementData>::Create(IndexType NewId,NodesArrayType const&
 }
 
 
+template< class TElementData >
+Element::Pointer DSS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
+{
+    return Element::Pointer(new DSS(NewId, pGeom, pProperties));
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
