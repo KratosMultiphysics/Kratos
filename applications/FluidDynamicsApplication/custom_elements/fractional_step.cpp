@@ -1,5 +1,6 @@
 #include "fractional_step.h"
 #include "includes/cfd_variables.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -839,70 +840,44 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check that the application was correctly registered.","");
-    if(PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check that the application was correctly registered.","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check that the application was correctly registered.","");
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
-    if(MESH_VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check that the application was correctly registered.","");
-    if(FRACT_VEL.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"FRACT_VEL Key is 0. Check that the application was correctly registered.","");
-    if(PRESSURE_OLD_IT.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE_OLD_IT Key is 0. Check that the application was correctly registered.","");
-    if(NODAL_AREA.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
-    if(CONV_PROJ.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"CONV_PROJ Key is 0. Check that the application was correctly registered.","");
-    if(PRESS_PROJ.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESS_PROJ Key is 0. Check that the application was correctly registered.","");
-    if(DIVPROJ.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check that the application was correctly registered.","");
-    if(BDF_COEFFICIENTS.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
-    if(DELTA_TIME.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
-    if(DYNAMIC_TAU.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check that the application was correctly registered.","");
+    VariableUtils::CheckVariableKey(VELOCITY);
+    VariableUtils::CheckVariableKey(PRESSURE);
+    VariableUtils::CheckVariableKey(BODY_FORCE);
+    VariableUtils::CheckVariableKey(DENSITY);
+    VariableUtils::CheckVariableKey(VISCOSITY);
+    VariableUtils::CheckVariableKey(MESH_VELOCITY);
+    VariableUtils::CheckVariableKey(FRACT_VEL);
+    VariableUtils::CheckVariableKey(PRESSURE_OLD_IT);
+    VariableUtils::CheckVariableKey(NODAL_AREA);
+    VariableUtils::CheckVariableKey(CONV_PROJ);
+    VariableUtils::CheckVariableKey(PRESS_PROJ);
+    VariableUtils::CheckVariableKey(DIVPROJ);
+    VariableUtils::CheckVariableKey(BDF_COEFFICIENTS);
+    VariableUtils::CheckVariableKey(DELTA_TIME);
+    VariableUtils::CheckVariableKey(DYNAMIC_TAU);
+    VariableUtils::CheckVariableKey(C_SMAGORINSKY);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing BODY_FORCE variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(FRACT_VEL) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing FRACT_VEL variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE_OLD_IT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE_OLD_IT variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(CONV_PROJ) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing CONV_PROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(PRESS_PROJ) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESS_PROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(DIVPROJ) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing DIVPROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-           this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-           this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+        Node<3> &rNode = this->GetGeometry()[i];
+        VariableUtils::CheckVariableInNodalData(VELOCITY,rNode);
+        VariableUtils::CheckVariableInNodalData(PRESSURE,rNode);
+        VariableUtils::CheckVariableInNodalData(BODY_FORCE,rNode);
+        VariableUtils::CheckVariableInNodalData(DENSITY,rNode);
+        VariableUtils::CheckVariableInNodalData(VISCOSITY,rNode);
+        VariableUtils::CheckVariableInNodalData(MESH_VELOCITY,rNode);
+        VariableUtils::CheckVariableInNodalData(FRACT_VEL,rNode);
+        VariableUtils::CheckVariableInNodalData(PRESSURE_OLD_IT,rNode);
+        VariableUtils::CheckVariableInNodalData(NODAL_AREA,rNode);
+        VariableUtils::CheckVariableInNodalData(CONV_PROJ,rNode);
+        VariableUtils::CheckVariableInNodalData(PRESS_PROJ,rNode);
+        VariableUtils::CheckVariableInNodalData(DIVPROJ,rNode);
+
+        VariableUtils::CheckDofInNode(VELOCITY_X,rNode);
+        VariableUtils::CheckDofInNode(VELOCITY_Y,rNode);
+        if (TDim == 3) VariableUtils::CheckDofInNode(VELOCITY_Z,rNode);
+        VariableUtils::CheckDofInNode(PRESSURE,rNode);
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
@@ -911,7 +886,7 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
         for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
+                KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
         }
     }
 
