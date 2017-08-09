@@ -9,7 +9,7 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::Initialize() {
         
         KRATOS_TRY
-
+        
         ModelPart& r_model_part = GetModelPart();
         ModelPart& fem_model_part = GetFemModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -17,39 +17,39 @@ namespace Kratos {
         if (r_model_part.GetCommunicator().MyPID() == 0) {
             std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }        
-
+        
         // Omp initializations
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
         BaseType::DisplayThreadInfo();
-
+        
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-
+        
         r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
         for (int i = 0; i < mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
-
+        
         CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *mpInlet_model_part, *mpCluster_model_part);
-
+        
         BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
         BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);
-
+        
         BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
         BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
-
+        
         BaseType::GetSearchControl() = r_process_info[SEARCH_CONTROL];
-
+        
         BaseType::InitializeDEMElements();
         BaseType::InitializeFEMElements();
         BaseType::InitializeSolutionStep();
         BaseType::ApplyInitialConditions();
-
+        
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-
+        
         // 0. Set search radius.
         unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
         if (BaseType::GetResults().size() != number_of_elements) BaseType::GetResults().resize(number_of_elements);
@@ -58,22 +58,22 @@ namespace Kratos {
             BaseType::GetRigidFaceResults().resize(number_of_elements);
             BaseType::GetRigidFaceResultsDistances().resize(number_of_elements);
         }
-
+        
         // 3. Search Neighbors with tolerance (after first repartition process)
         BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
         SearchNeighbours();
         MeshRepairOperations();
         SearchNeighbours();
-
+        
         if (BaseType::GetDeltaOption() == 2) {
             SetCoordinationNumber(r_model_part);
         }
-
+        
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-
+        
         bool has_mpi = false;
         Check_MPI(has_mpi);
 
@@ -81,33 +81,33 @@ namespace Kratos {
             BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
             BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);
         }
-
+        
         BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
         BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
-
+        
         if (has_mpi) {
             //RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's
         }
-
+        
         // 4. Set Initial Contacts
         if (r_process_info[CASE_OPTION] != 0) {
             SetInitialDemContacts();
         }
-
+        
         if (r_process_info[CRITICAL_TIME_OPTION]) {
             //InitialTimeStepCalculation();   //obsolete call
             BaseType::CalculateMaxTimeStep();
         }
-
+        
         ComputeNewNeighboursHistoricalData();
-
+        
         if (fem_model_part.Nodes().size() > 0) {
             BaseType::SetSearchRadiiWithFemOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
             BaseType::SearchRigidFaceNeighbours();
             SetInitialFemContacts();
             BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
         }
-
+        
         if (r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
             InitializeContactElements();
@@ -120,7 +120,7 @@ namespace Kratos {
             CalculateMeanContactArea();
             CalculateMaxSearchDistance();
         }
-
+        
         // 5. Finalize Solution Step
         //BaseType::FinalizeSolutionStep();
 
@@ -650,21 +650,21 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::MeshRepairOperations() {
 
         KRATOS_TRY
-
+        
         const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
-        int particle_counter = 0.0;
-
+        int particle_counter = 0;
+        
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             bool result = mListOfSphericContinuumParticles[i]->OverlappedParticleRemoval();
-
+            
             if (result == true) {particle_counter += 1;}
         }
-
+        
         GetModelPart().GetCommunicator().SynchronizeElementalFlags();
         
         DestroyMarkedParticlesRebuildLists();
-
+        
         //std::cout << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
         double total_spheres_removed = particle_counter;
         GetModelPart().GetCommunicator().SumAll(total_spheres_removed);
