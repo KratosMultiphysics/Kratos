@@ -64,6 +64,9 @@ class ShallowWaterConservativeSolver:
         maximum_number_of_particles= 8*self.domain_size
         self.moveparticles = MoveShallowWaterParticleHUUtility(self.model_part,maximum_number_of_particles)  
         self.moveparticles.MountBin()
+        
+        # Initialize dry/wet state utility
+        self.drybedutility = DryBedUtility(self.model_part)
 
     #######################################################################   
     def Solve(self):
@@ -81,6 +84,9 @@ class ShallowWaterConservativeSolver:
         #(self.moveparticles).CopyScalarVarToPreviousTimeStep(PROJECTED_HEIGHT,self.model_part.Nodes)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_MOMENTUM,self.model_part.Nodes)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_VELOCITY,self.model_part.Nodes)
+        
+        # Check dry bed
+        (self.drybedutility).CheckDryWetState(self.model_part.Nodes)
         
         # Solve equations on mesh
         (self.mesh_solver).Solve()

@@ -132,11 +132,6 @@ namespace Kratos
 		// Get current step and projected values
 		int counter = 0;
 		for (unsigned int iii = 0; iii<number_of_points; iii++){
-			if (GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT) < 1e-3){
-				GetGeometry()[iii].GetSolutionStepValue(HEIGHT)     = 1e-8;
-				GetGeometry()[iii].GetSolutionStepValue(MOMENTUM_X) = 0;
-				GetGeometry()[iii].GetSolutionStepValue(MOMENTUM_Y) = 0;
-			}
 			ms_depth[counter]        = 0;
 			ms_unknown[counter]      = GetGeometry()[iii].FastGetSolutionStepValue(MOMENTUM_X);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_MOMENTUM_X);
