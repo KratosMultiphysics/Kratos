@@ -173,7 +173,7 @@ namespace Kratos
             ProcessInfo testProcessInfo = rCurrentProcessInfo;  
 
             // alternative 1: derive w.r.t. load modulus
-            rOutput = ZeroMatrix(1,MatSize);
+            /*rOutput = ZeroMatrix(1,MatSize);
 
             this->CalculateAll(dummy_LHS,RHS,testProcessInfo,false,true);
 
@@ -187,10 +187,10 @@ namespace Kratos
                 }
                 rOutput(0, i) = RHS[i];
                // std::cout << ("Pseudo load = ") << RHS[i]  << std::endl;
-            }
+            }*/
 
             // alternative 2: treat each load component as induvidual design variable
-            /*rOutput = ZeroMatrix(MatSize,MatSize);
+            rOutput = ZeroMatrix(MatSize,MatSize);
 
             this->CalculateAll(dummy_LHS,RHS,testProcessInfo,false,true);
 
@@ -205,7 +205,7 @@ namespace Kratos
                    
                 }
                 k++;
-            }*/
+            }
 
         }
         else if( rDesignVariable == ADJOINT_NODE_COORD )

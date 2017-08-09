@@ -387,7 +387,7 @@ public:
 		for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
         {
 
-			Element::GeometryType& r_geom = it->GetGeometry();	
+			Element::GeometryType& r_geom_elem = it->GetGeometry();	
 
             // Compute the pseudo load
             it->CalculateSensitivityMatrix(
@@ -412,7 +412,7 @@ public:
                                     response_gradient);
 
            this->AssembleNodalSensitivityContribution(
-                rSensitivityVariable, sensitivity_vector, r_geom);  //----> check for correct output
+                rSensitivityVariable, sensitivity_vector, r_geom_elem);  //----> check for correct output
         }
 
 		// Reset 
@@ -428,7 +428,7 @@ public:
 		{
 			ModelPart::ConditionsContainerType::iterator cond_i = cond_begin + k;
 
-			Condition::GeometryType& r_geom = cond_i->GetGeometry();	
+			Condition::GeometryType& r_geom_cond = cond_i->GetGeometry();	
 
             // Compute the pseudo load
             cond_i->CalculateSensitivityMatrix(
@@ -459,7 +459,7 @@ public:
 			}*/							
 
             this->AssembleNodalSensitivityContribution(
-                rSensitivityVariable, sensitivity_vector, r_geom);	//----> check for correct output
+                rSensitivityVariable, sensitivity_vector, r_geom_cond);	//----> check for correct output
         }
     
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
@@ -568,9 +568,9 @@ public:
 					std::cout << ("SA result = ") << i << sensitivity_vector[i] << std::endl;
 			}*/
 
-			/*Condition::GeometryType& r_geom = cond_i->GetGeometry();
+		  Condition::GeometryType& r_geom = cond_i->GetGeometry();
           this->AssembleNodalSensitivityContribution(
-               		rSensitivityVariable, sensitivity_vector, r_geom); */
+               		rSensitivityVariable, sensitivity_vector, r_geom); 
         }
     
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
