@@ -38,9 +38,6 @@ namespace Kratos
 	LinearElasticOrthotropic2DLaw::LinearElasticOrthotropic2DLaw
 		(const LinearElasticOrthotropic2DLaw& rOther)
 		: ConstitutiveLaw(rOther)
-		, mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
-		, mDeterminantF0(rOther.mDeterminantF0)
-		, mStrainEnergy(rOther.mStrainEnergy)
 	{
 	}
 
@@ -60,148 +57,7 @@ namespace Kratos
 	LinearElasticOrthotropic2DLaw::~LinearElasticOrthotropic2DLaw()
 	{
 	}
-
-	void LinearElasticOrthotropic2DLaw::testString()
-	{
-		std::cout << "Printing LinearElasticOrthotropic2DLaw test string" << std::endl;
-	}
-
-	//*******************************OPERATIONS FROM BASE CLASS***************************
-	//************************************************************************************
-
-	//***********************HAS : DOUBLE - VECTOR - MATRIX*******************************
-	//************************************************************************************
 	
-	// pwdebug
-	bool LinearElasticOrthotropic2DLaw::Has(const Variable<double>& rThisVariable)
-	{
-		return false;
-	}
-
-	bool LinearElasticOrthotropic2DLaw::Has(const Variable<Vector>& rThisVariable)
-	{
-		return false;
-	}
-
-	bool LinearElasticOrthotropic2DLaw::Has(const Variable<Matrix>& rThisVariable)
-	{
-		return false;
-	}
-	
-
-	//***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
-	//************************************************************************************
-	
-	// pwdebug
-	double& LinearElasticOrthotropic2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
-	{
-		if (rThisVariable == STRAIN_ENERGY)
-		{
-			rValue = mStrainEnergy;
-		}
-		else {
-			rValue = 0;
-		}
-
-
-		return(rValue);
-	}
-
-	Vector& LinearElasticOrthotropic2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
-	{
-		return(rValue);
-	}
-
-	Matrix& LinearElasticOrthotropic2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
-	{
-		return(rValue);
-	}
-	
-
-	//***********************SET VALUE: DOUBLE - VECTOR - MATRIX**************************
-	//************************************************************************************
-
-	
-	// pwdebug
-	void LinearElasticOrthotropic2DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-
-		if (rThisVariable == DETERMINANT_F)
-		{
-			mDeterminantF0 = rValue;
-		}
-	}
-
-	void LinearElasticOrthotropic2DLaw::SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-
-	}
-
-	void LinearElasticOrthotropic2DLaw::SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-
-	}
-	
-
-
-	//************* STARTING - ENDING  METHODS
-	//************************************************************************************
-	//************************************************************************************
-
-	
-	// pwdebug
-	void LinearElasticOrthotropic2DLaw::InitializeMaterial(const Properties& rMaterialProperties,
-		const GeometryType& rElementGeometry,
-		const Vector& rShapeFunctionsValues)
-	{
-		mDeterminantF0 = 1;
-		mInverseDeformationGradientF0 = identity_matrix<double>(3);
-		mStrainEnergy = 0;
-
-	}
-	
-	//************************************************************************************
-	//************************************************************************************
-
-	
-	// pwdebug
-	void LinearElasticOrthotropic2DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
-		const GeometryType& rElementGeometry, //this is just to give the array of nodes
-		const Vector& rShapeFunctionsValues,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-
-	}
-	
-	//************************************************************************************
-	//************************************************************************************
-
-	
-	// pwdebug
-	void LinearElasticOrthotropic2DLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
-		const GeometryType& rElementGeometry, //this is just to give the array of nodes
-		const Vector& rShapeFunctionsValues,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-
-	}
-	
-
-
-	//************* COMPUTING  METHODS
-	//**************************************************************************
-	//**************************************************************************
-
-
-
-
-
-
-
-
 	//*****************************MATERIAL RESPONSES***************************
 	//**************************************************************************
 
@@ -262,39 +118,6 @@ namespace Kratos
 			this->CalculateLinearElasticMatrix(ConstitutiveMatrix, MaterialProperties);
 		}
 	}
-
-	
-
-	//***********************************UPDATE*******************************************
-	//************************************************************************************
-	/*
-	// pwdebug
-	void LinearElasticOrthotropic2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
-	{
-
-		rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-		this->CalculateMaterialResponsePK2(rValues);
-		rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-
-		UpdateInternalVariables(rValues);
-	}
-	*/
-
-	//************************************************************************************
-	//************************************************************************************
-	/*
-	// pwdebug
-	void LinearElasticOrthotropic2DLaw::UpdateInternalVariables(Parameters& rValues)
-	{
-		const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-		const double& DeterminantF = rValues.GetDeterminantF();
-
-		Matrix DeformationGradientF0 = DeformationGradientF;
-		DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
-		MathUtils<double>::InvertMatrix(DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
-		mDeterminantF0 = DeterminantF; //special treatment of the determinant 
-	}
-	*/
 	
 	//***********************COMPUTE TOTAL STRAIN*****************************************
 	//************************************************************************************
@@ -323,31 +146,27 @@ namespace Kratos
 		noalias(rStressVector) = prod(rConstitutiveMatrix, rStrainVector);
 	}
 
-	//***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
-	//************************************************************************************
+	//***********************COMPUTE LINEAR ELASTIC MATRIX**********************
+	//**************************************************************************
 
 	void LinearElasticOrthotropic2DLaw::CalculateLinearElasticMatrix(Matrix& rConstitutiveMatrix,
 		const Properties& rMaterialProperties)
 	{
-		double E1 = rMaterialProperties[YOUNG_MODULUS_X];
-		double E2 = rMaterialProperties[YOUNG_MODULUS_Y];
-
-		double G12 = rMaterialProperties[SHEAR_MODULUS_XY];
-
 		//double G13 = G12;	// currently handled through "shell_cross_section.cpp"
 		//double G23 = G12;	// currently handled through "shell_cross_section.cpp"
 
-		double v12 = rMaterialProperties[POISSON_RATIO_XY];
-		double v21 = v12*E2 / E1;
+		double v21 = rMaterialProperties[POISSON_RATIO_XY]*rMaterialProperties[YOUNG_MODULUS_Y] / rMaterialProperties[YOUNG_MODULUS_X];
 
-		double Q11 = E1 / (1.0 - v12*v21);
-		double Q12 = v12*E2 / (1.0 - v12*v21);
-		double Q22 = E2 / (1.0 - v12*v21);
-		double Q66 = G12;
+		double Q11 = rMaterialProperties[YOUNG_MODULUS_X] / (1.0 - rMaterialProperties[POISSON_RATIO_XY]*v21);
+		double Q12 = rMaterialProperties[POISSON_RATIO_XY]*rMaterialProperties[YOUNG_MODULUS_Y] / (1.0 - rMaterialProperties[POISSON_RATIO_XY]*v21);
+		double Q22 = rMaterialProperties[YOUNG_MODULUS_Y] / (1.0 - rMaterialProperties[POISSON_RATIO_XY]*v21);
+		double Q66 = rMaterialProperties[SHEAR_MODULUS_XY];
 		//double Q44 = G23;
 		//double Q55 = G13;
 
-		double theta = 0.0;	// rotation currently handled through "shell_cross_section.cpp" variable iPlyAngle
+		double theta = 0.0;	// rotation currently handled through 
+		// "shell_cross_section.cpp" variable iPlyAngle. Left in for clarity.
+
 		double c = cos(theta);
 		double c2 = c*c;
 		double c4 = c2 * c2;
