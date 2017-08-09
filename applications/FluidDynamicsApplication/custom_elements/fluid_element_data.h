@@ -47,7 +47,7 @@ public:
     ///@{
 
     /// Constructor, accepting the geometry of the element.
-    FluidElementData(Geometry<Node<3>>& rGeom);
+    FluidElementData(Geometry<Node<3>>& rGeometry);
 
     ///@}
     ///@name Public members
@@ -78,8 +78,26 @@ public:
     VectorDataType MomentumProjection;
 
     ///@}
+    ///@name Public operations
+    ///@{
+
+    static int Check(Element& rElement);
+
+    ///@}
 
 private:
+    ///@name Private operations
+    ///@{
+
+    static void CheckVariableKey(const Kratos::VariableData& rVar);
+
+    static void CheckVariableInNodalData(const Kratos::Variable<double>& rVar, Node<3>& rNode);
+
+    static void CheckVariableInNodalData(const Kratos::Variable< array_1d<double,3> >& rVar, Node<3>& rNode);
+
+    static void CheckDofInNode(const Kratos::VariableData& rVar, Node<3>& rNode);
+
+    ///@}
     ///@name Un accessible methods
     ///@{
 
