@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  Miguel Masó Sotomayor$
-//   Date:                $Date:              june 6 2017$
-//   Revision:            $Revision:                  1.0$
+//   Last Modified by:    Miguel Masó Sotomayor
+//   Date:                June 6th 2017
+//   Revision:            1.0
 //
 //
 
@@ -2261,7 +2261,7 @@ namespace Kratos
 
 	};
 	
-}  // namespace Kratos.
+}  // namespace Kratos
 
 #endif // KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED  defined 
 

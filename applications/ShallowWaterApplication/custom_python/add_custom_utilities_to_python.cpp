@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author:  Miguel Masó Sotomayor$
-//   Date:                $Date:                 may 2017$
-//   Revision:            $Revision:                  1.2$
+//   Last modified by:    Miguel Masó Sotomayor
+//   Date:                May 2017
+//   Revision:            1.2
 //
 //
 
@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/move_shallow_water_particle_hu_utility.h"
+#include "custom_utilities/dry_bed_utility.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -94,7 +95,7 @@ namespace Python
 			.def("CalculateDeltaVariables", &MoveShallowWaterParticleUtility<2>::CalculateDeltaVariables)
 			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
 			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
-		;
+			;
 
 		class_< MoveShallowWaterParticleHUUtility<2> > ("MoveShallowWaterParticleHUUtility", init<ModelPart& , int >())
 			.def("MountBin", &MoveShallowWaterParticleHUUtility<2>::MountBin)
@@ -109,7 +110,11 @@ namespace Python
 			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyScalarVarToPreviousTimeStep)
 			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyVectorVarToPreviousTimeStep)
 			.def("ComputeVelocity", &MoveShallowWaterParticleHUUtility<2>::ComputeVelocity)
-		;
+			;
+		
+		class_< DryBedUtility > ("DryBedUtility", init<ModelPart& >())
+			.def("CheckDryWetState", &DryBedUtility::CheckDryWetState)
+			;
 
   }
 
