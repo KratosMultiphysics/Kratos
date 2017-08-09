@@ -23,15 +23,13 @@
 namespace Kratos
 {
 	/**
-	* Defines a linear orthotropic constitutive law in 2D (Plane Stress)
+	* Defines a linear elastic orthotropic constitutive law in 2D (Plane Stress)
 	* This material law is defined by the parameters:
-	* 1) YOUNG MODULUS
-	* 2) POISSON RATIO
-	* As there are no further parameters the functionality is valid
-	* for small and large displacements elasticity.
+	* 1) ELASTIC MODULI (E1, E2, G12)
+	* 2) POISSON RATIOS (v12, v21)
+	* Valid for small strains.
 	*/
 
-	//class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticOrthotropic2DLaw : public HyperElastic3DLaw
 	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearElasticOrthotropic2DLaw : public ConstitutiveLaw
 	{
 	public:
@@ -68,12 +66,6 @@ namespace Kratos
 		LinearElasticOrthotropic2DLaw(const LinearElasticOrthotropic2DLaw& rOther);
 
 		/**
-		* Assignment operator.
-		*/
-
-		//LinearElasticOrthotropic2DLaw& operator=(const LinearElasticOrthotropic2DLaw& rOther);
-
-		/**
 		* Destructor.
 		*/
 		virtual ~LinearElasticOrthotropic2DLaw();
@@ -88,52 +80,16 @@ namespace Kratos
 		/**
 		* Voigt tensor size:
 		*/
-		SizeType GetStrainSize()
+		SizeType GetStrainSize() override
 		{
 			return 3;
 		};
-
-		void testString();
 
 		/**
 		* This function is designed to be called once to check compatibility with element
 		* @param rFeatures
 		*/
-		void GetLawFeatures(Features& rFeatures); //update this
-
-		bool Has(const Variable<double>& rThisVariable);
-		bool Has(const Variable<Vector>& rThisVariable);
-		bool Has(const Variable<Matrix>& rThisVariable);
-
-		double& GetValue(const Variable<double>& rThisVariable, double& rValue);
-		Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
-		Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
-
-		void SetValue(const Variable<double>& rVariable,
-			const double& rValue,
-			const ProcessInfo& rCurrentProcessInfo);
-		void SetValue(const Variable<Vector>& rThisVariable,
-			const Vector& rValue,
-			const ProcessInfo& rCurrentProcessInfo);
-		void SetValue(const Variable<Matrix>& rThisVariable,
-			const Matrix& rValue,
-			const ProcessInfo& rCurrentProcessInfo);
-		/**
-		* Material parameters are inizialized
-		*/
-		void InitializeMaterial(const Properties& rMaterialProperties,
-			const GeometryType& rElementGeometry,
-			const Vector& rShapeFunctionsValues);
-
-		void InitializeSolutionStep(const Properties& rMaterialProperties,
-			const GeometryType& rElementGeometry, //this is just to give the array of nodes
-			const Vector& rShapeFunctionsValues,
-			const ProcessInfo& rCurrentProcessInfo);
-
-		void FinalizeSolutionStep(const Properties& rMaterialProperties,
-			const GeometryType& rElementGeometry, //this is just to give the array of nodes
-			const Vector& rShapeFunctionsValues,
-			const ProcessInfo& rCurrentProcessInfo);
+		void GetLawFeatures(Features& rFeatures) override;
 
 		/**
 		* Computes the material response:
@@ -141,15 +97,7 @@ namespace Kratos
 		* @param rValues
 		* @see   Parameters
 		*/
-		void CalculateMaterialResponsePK2(Parameters & rValues);
-
-		/**
-		* Computes the material response:
-		* Kirchhoff stresses and algorithmic ConstitutiveMatrix
-		* @param rValues
-		* @see   Parameters
-		*/
-		//void CalculateMaterialResponseKirchhoff(Parameters & rValues);
+		void CalculateMaterialResponsePK2(Parameters & rValues) override;
 
 		/**
 		* This function is designed to be called once to perform all the checks needed
@@ -160,23 +108,7 @@ namespace Kratos
 		* @param rCurrentProcessInfo
 		* @return
 		*/
-		int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
-
-		/**
-		* Input and output
-		*/
-		/**
-		* Turn back information as a string.
-		*/
-		//virtual String Info() const;
-		/**
-		* Print information about this object.
-		*/
-		//virtual void PrintInfo(std::ostream& rOStream) const;
-		/**
-		* Print object's data.
-		*/
-		//virtual void PrintData(std::ostream& rOStream) const;
+		int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
 	protected:
 
@@ -185,11 +117,6 @@ namespace Kratos
 		///@}
 		///@name Protected member Variables
 		///@{
-		Matrix mInverseDeformationGradientF0;
-
-		double mDeterminantF0;
-
-		double mStrainEnergy;
 		///@}
 		///@name Protected Operators
 		///@{
@@ -262,17 +189,11 @@ namespace Kratos
 		virtual void save(Serializer& rSerializer) const
 		{
 			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-				rSerializer.save("mInverseDeformationGradientF0", mInverseDeformationGradientF0);
-			rSerializer.save("mDeterminantF0", mDeterminantF0);
-			rSerializer.save("mStrainEnergy", mStrainEnergy);
 		}
 
 		virtual void load(Serializer& rSerializer)
 		{
 			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-				rSerializer.load("mInverseDeformationGradientF0", mInverseDeformationGradientF0);
-			rSerializer.load("mDeterminantF0", mDeterminantF0);
-			rSerializer.load("mStrainEnergy", mStrainEnergy);
 		}
 
 		///@}
