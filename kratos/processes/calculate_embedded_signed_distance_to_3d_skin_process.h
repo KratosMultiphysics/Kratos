@@ -7,7 +7,10 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
+//  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
+//                   Daniel Baumgaertner
+//                   Johannes Wolf
 //
 
 #if !defined(KRATOS_CALCULATE_EMBEDDED_SIGNED_DISTANCE_TO_3D_SKIN_PROCESS_H_INCLUDED )

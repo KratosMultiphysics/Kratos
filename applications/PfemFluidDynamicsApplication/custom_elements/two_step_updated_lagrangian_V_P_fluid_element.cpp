@@ -452,7 +452,7 @@ namespace Kratos {
 									const double Weight)
   {
     GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
+    //const SizeType NumNodes = rGeom.PointsNumber();
 
     // for (SizeType i = 0; i < (NumNodes-1); i++)
     //   {
@@ -537,7 +537,7 @@ namespace Kratos {
 									const double Weight)
   {
     GeometryType& rGeom = this->GetGeometry(); 
-    const SizeType NumNodes = rGeom.PointsNumber();
+    //const SizeType NumNodes = rGeom.PointsNumber();
 
     // for (SizeType i = 0; i < (NumNodes-2); i++)
     //   {
@@ -613,7 +613,7 @@ namespace Kratos {
 									const double BoundRHSCoeffDev)
   {
     GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
+    //const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3>  AccA(3,0.0);
     array_1d<double, 3>  AccB(3,0.0);
 
@@ -739,7 +739,7 @@ namespace Kratos {
 									const double BoundRHSCoeffDev)
   {
     GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
+    //const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3>  AccA(3,0.0);
     array_1d<double, 3>  AccB(3,0.0);
     array_1d<double, 3>  AccC(3,0.0);
