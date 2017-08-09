@@ -95,8 +95,6 @@ private:
 
     static void CheckVariableInNodalData(const Kratos::Variable< array_1d<double,3> >& rVar, Node<3>& rNode);
 
-    static void CheckDofInNode(const Kratos::VariableData& rVar, Node<3>& rNode);
-
     ///@}
     ///@name Un accessible methods
     ///@{

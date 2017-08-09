@@ -384,6 +384,14 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
             KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
+
+        // Check that required dofs exist
+        if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
+           this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
+           this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+        if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
     }
 
     // If this is a 2D problem, check that nodes are in XY plane

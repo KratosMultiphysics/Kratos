@@ -69,12 +69,6 @@ int FluidElementData<TDim, TNumNodes>::Check(Element& rElement)
         CheckVariableInNodalData(DENSITY,rNode);
         CheckVariableInNodalData(VISCOSITY,rNode);
         CheckVariableInNodalData(DIVPROJ,rNode);
-
-        CheckDofInNode(VELOCITY_X,rNode);
-        CheckDofInNode(VELOCITY_Y,rNode);
-        if (Dim == 3)
-            CheckDofInNode(VELOCITY_Z,rNode);
-        CheckDofInNode(PRESSURE,rNode);
     }
 
     return 0;
@@ -101,13 +95,6 @@ void FluidElementData<TDim, TNumNodes>::CheckVariableInNodalData(const Kratos::V
 {
     KRATOS_ERROR_IF_NOT( rNode.SolutionStepsDataHas(rVar) ) << 
     "Missing " << rVar.Name() << " variable in solution step data for node " << rNode.Id() << "." << std::endl;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void FluidElementData<TDim, TNumNodes>::CheckDofInNode(const Kratos::VariableData& rVar, Node<3>& rNode)
-{
-    KRATOS_ERROR_IF_NOT( rNode.HasDofFor(rVar) ) << 
-    "Missing Degree of Freedom for " << rVar.Name() << " in node " << rNode.Id() << "." << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
