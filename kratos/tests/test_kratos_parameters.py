@@ -152,6 +152,22 @@ four_levels_variation = """{
     }
 }"""
 
+four_levels_wrong_variation = """{
+    "int_value": 10,
+    "double_value": "hi",
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "a":11.0,
+        "level2": {
+            "level3": {
+                "level4": {
+                }
+            }
+        } 
+    }
+}"""
+
 four_levels_defaults = """{
     "int_value": 10,
     "double_value": 2.0,
@@ -268,6 +284,7 @@ class TestParameters(KratosUnittest.TestCase):
     def test_recursive_validation_4_levels(self):
         kp = Parameters(four_levels)
         kp_variation = Parameters(four_levels_variation)
+        kp_wrong_wariation = Parameters(four_levels_wrong_variation)
         defaults_params = Parameters(four_levels_defaults)
 
         kp.RecursivelyValidateAndAssignDefaults(defaults_params)
@@ -278,7 +295,8 @@ class TestParameters(KratosUnittest.TestCase):
         
         self.assertTrue( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) )
         self.assertTrue( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-
+        self.assertFalse( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        
     def test_validation_succeds_error_on_first_level(self):
         kp = Parameters(wrong_lev2)
         defaults_params = Parameters(defaults)
