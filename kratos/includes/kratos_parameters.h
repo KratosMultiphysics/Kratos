@@ -624,7 +624,16 @@ public:
                         if ( ! subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject) ) return false;
                     }
                     else {
-                        if(itr->value.GetType() != itr_ref->value.GetType()) return false;
+                        if(itr->value.GetType() != itr_ref->value.GetType()) {
+                            /*std::stringstream msg;
+                            msg << "The item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                            msg << "The Parameters being validated are : " << std::endl;
+                            msg << this->PrettyPrintJsonString() << std::endl;
+                            msg << "Defaults against which the current parameters are validated are :" << std::endl;
+                            msg << reference.PrettyPrintJsonString() << std::endl;
+                            KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());*/
+                            return false;
+                        }                            
                     }
                     break;
                 }
