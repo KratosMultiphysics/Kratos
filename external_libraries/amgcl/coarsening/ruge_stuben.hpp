@@ -113,12 +113,12 @@ struct ruge_stuben {
         std::vector<char> cf(n, 'U');
         backend::crs<char, ptrdiff_t, ptrdiff_t> S;
 
-        TIC("C/F split");
+        AMGCL_TIC("C/F split");
         connect(A, prm.eps_strong, S, cf);
         cfsplit(A, S, cf);
-        TOC("C/F split");
+        AMGCL_TOC("C/F split");
 
-        TIC("interpolation");
+        AMGCL_TIC("interpolation");
         size_t nc = 0;
         std::vector<ptrdiff_t> cidx(n);
         for(size_t i = 0; i < n; ++i)
@@ -230,14 +230,14 @@ struct ruge_stuben {
                 Val  v = A.val[j];
 
                 if (!S.val[j] || cf[c] != 'C') continue;
-                if (prm.do_trunc && Amin[i] < v && v < Amax[i]) continue;
+                if (prm.do_trunc && Amin[i] <= v && v <= Amax[i]) continue;
 
                 P->col[row_head] = cidx[c];
                 P->val[row_head] = (v < zero ? alpha : beta) * v;
                 ++row_head;
             }
         }
-        TOC("interpolation");
+        AMGCL_TOC("interpolation");
 
         return boost::make_tuple(P, transpose(*P));
     }
@@ -286,6 +286,8 @@ struct ruge_stuben {
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+                S.ptr[i+1] = 0;
+
                 Val a_min = math::zero<Val>();
 
                 for(row_iterator a = row_begin(A, i); a; ++a)
@@ -300,8 +302,6 @@ struct ruge_stuben {
 
                 for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
                     S.val[j] = (A.col[j] != i && A.val[j] < a_min);
-
-                S.ptr[i+1] = 0;
             }
 
             // Transposition of S:
