@@ -758,7 +758,7 @@ public:
        } else if(qualityCriteria == QualityCriteria::SHORTEST_TO_LONGEST_EDGE) {
          quality = ShortestToLongestEdgeQuality();
        } else if(qualityCriteria == QualityCriteria::REGULARITY) {
-         quality = RegualrityQuiality();
+         quality = RegularityQuality();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_SURFACE_AREA) {
          quality = VolumeToSurfaceAreaQuality();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_EDGE_LENGTH) {
@@ -2283,8 +2283,8 @@ protected:
       return 0.0;
     }
 
-    /** Calculates the Regualrity quality metric.
-     * Calculates the Regualrity quality metric.
+    /** Calculates the Regularity quality metric.
+     * Calculates the Regularity quality metric.
      * This metric is bounded by the interval (-1,1) being:
      *  1 -> Optimal value
      *  0 -> Worst value
@@ -2292,10 +2292,10 @@ protected:
      *
      * \f$ \frac{4r}{H} \f$
      *
-     * @return regualirty quality.
+     * @return regularity quality.
      */
-    virtual double RegualrityQuiality() const {
-      KRATOS_ERROR << "Calling base class 'RegualrityQuiality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    virtual double RegularityQuality() const {
+      KRATOS_ERROR << "Calling base class 'RegularityQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return 0.0;
     }
 

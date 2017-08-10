@@ -40,7 +40,7 @@ class ImpactsTimeStepDataBase  // It holds the historical information gathered i
 {
     public:
 
-    ImpactsTimeStepDataBase(const double time) : mNImpacts(0), mTime(time){}
+    ImpactsTimeStepDataBase(const double time) : mNImpacts(0)/*, mTime(time)*/{}
     ~ImpactsTimeStepDataBase(){}
 
     int GetNumberOfImpacts()
@@ -79,7 +79,7 @@ class ImpactsTimeStepDataBase  // It holds the historical information gathered i
     private:
 
         int mNImpacts;
-        double mTime;
+        /*double mTime;*/
         std::vector<int> mId1;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
@@ -95,8 +95,8 @@ class ParticleHistoryDatabase // It holds the historical information gathered fo
     {
         public:
 
-        ParticleHistoryDatabase(): mNImpacts(0), mId(0){}
-        ParticleHistoryDatabase(const int id) : mNImpacts(0), mId(id){}
+        ParticleHistoryDatabase(): mNImpacts(0)/*, mId(0)*/{}
+        ParticleHistoryDatabase(const int id) : mNImpacts(0)/*, mId(id)*/{}
         ~ParticleHistoryDatabase(){}
 
         void PushBackImpacts(const double time, const int id2, const double normal_vel, const double tang_vel)
@@ -140,7 +140,7 @@ class ParticleHistoryDatabase // It holds the historical information gathered fo
     private:
 
         int mNImpacts;
-        int mId;
+        //int mId;
         std::vector<double> mTimes;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
