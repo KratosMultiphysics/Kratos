@@ -776,51 +776,6 @@ public:
             KRATOS_CATCH("")
         }
 
-    /** @brief Check if a variable is registered in Kratos.
-    *   @param rVar The variable to be checked.
-    *   Raises Kratos::Exception if the check fails.
-    */
-    static void CheckVariableKey(const Kratos::VariableData& rVar)
-    {
-        KRATOS_ERROR_IF( rVar.Key() == 0 ) << rVar.Name() << " Key is 0." << std::endl <<
-        "Check that Kratos variables have been correctly registered and all required applications have been imported." << std::endl;
-    }
-
-    /** @brief Check if a variable has been added to a node's solution step data container (regular variable version).
-    *   @param rVar The variable to be checked.
-    *   @param rNode The node to be checked.
-    *   Raises Kratos::Exception if the check fails.
-    */
-    template< class TValueType >
-    static void CheckVariableInNodalData(const Kratos::Variable<TValueType>& rVar, Node<3>& rNode)
-    {
-        KRATOS_ERROR_IF_NOT( rNode.SolutionStepsDataHas(rVar) ) << 
-        "Missing " << rVar.Name() << " variable in solution step data for node " << rNode.Id() << "." << std::endl;
-    }
-
-    /** @brief Check if a variable has been added to a node's solution step data container (variable component version).
-    *   @param rVar The variable to be checked.
-    *   @param rNode The node to be checked.
-    *   Raises Kratos::Exception if the check fails.
-    */
-    template< class TAdaptorType >
-    static void CheckVariableInNodalData(const Kratos::VariableComponent<TAdaptorType>& rVar, Node<3>& rNode)
-    {
-        KRATOS_ERROR_IF_NOT( rNode.SolutionStepsDataHas(rVar) ) << 
-        "Missing " << rVar.Name() << " variable in solution step data for node " << rNode.Id() << "." << std::endl;
-    }
-
-    /** @brief Check if a variable has been defined as Degree of Freedom for a given node.
-    *   @param rVar The variable to be checked.
-    *   @param rNode The node to be checked.
-    *   Raises Kratos::Exception if the check fails.
-    */
-    static void CheckDofInNode(const Kratos::VariableData& rVar, Node<3>& rNode)
-    {
-        KRATOS_ERROR_IF_NOT( rNode.HasDofFor(rVar) ) << 
-        "Missing Degree of Freedom for " << rVar.Name() << " in node " << rNode.Id() << "." << std::endl;
-    }
-
     /*@} */
     /**@name Acces */
     /*@{ */

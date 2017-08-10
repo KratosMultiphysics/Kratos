@@ -29,7 +29,7 @@
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "utilities/variable_utils.h"
+#include "utilities/check_utilities.h"
 #include "boost/make_shared.hpp"
 
 // Application includes
@@ -837,21 +837,21 @@ public:
         if(ErrorCode != 0) return ErrorCode;
 
         // Check that all required variables have been registered
-        VariableUtils::CheckVariableKey(VELOCITY);
-        VariableUtils::CheckVariableKey(MESH_VELOCITY);
-        VariableUtils::CheckVariableKey(ACCELERATION);
-        VariableUtils::CheckVariableKey(PRESSURE);
-        VariableUtils::CheckVariableKey(DENSITY);
-        VariableUtils::CheckVariableKey(VISCOSITY);
-        VariableUtils::CheckVariableKey(BODY_FORCE);
-        VariableUtils::CheckVariableKey(OSS_SWITCH);
-        VariableUtils::CheckVariableKey(DYNAMIC_TAU);
-        VariableUtils::CheckVariableKey(DELTA_TIME);
-        VariableUtils::CheckVariableKey(ADVPROJ);
-        VariableUtils::CheckVariableKey(DIVPROJ);
-        VariableUtils::CheckVariableKey(NODAL_AREA);
-        VariableUtils::CheckVariableKey(C_SMAGORINSKY);
-        VariableUtils::CheckVariableKey(ERROR_RATIO);
+        CheckUtilities::CheckVariableKey(VELOCITY);
+        CheckUtilities::CheckVariableKey(MESH_VELOCITY);
+        CheckUtilities::CheckVariableKey(ACCELERATION);
+        CheckUtilities::CheckVariableKey(PRESSURE);
+        CheckUtilities::CheckVariableKey(DENSITY);
+        CheckUtilities::CheckVariableKey(VISCOSITY);
+        CheckUtilities::CheckVariableKey(BODY_FORCE);
+        CheckUtilities::CheckVariableKey(OSS_SWITCH);
+        CheckUtilities::CheckVariableKey(DYNAMIC_TAU);
+        CheckUtilities::CheckVariableKey(DELTA_TIME);
+        CheckUtilities::CheckVariableKey(ADVPROJ);
+        CheckUtilities::CheckVariableKey(DIVPROJ);
+        CheckUtilities::CheckVariableKey(NODAL_AREA);
+        CheckUtilities::CheckVariableKey(C_SMAGORINSKY);
+        CheckUtilities::CheckVariableKey(ERROR_RATIO);
         // Additional variables, only required to print results:
         // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
 
@@ -861,19 +861,19 @@ public:
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             Node<3> &rNode = this->GetGeometry()[i];
-            VariableUtils::CheckVariableInNodalData(VELOCITY,rNode);
-            VariableUtils::CheckVariableInNodalData(PRESSURE,rNode);
-            VariableUtils::CheckVariableInNodalData(MESH_VELOCITY,rNode);
-            VariableUtils::CheckVariableInNodalData(ACCELERATION,rNode);
-            VariableUtils::CheckVariableInNodalData(DENSITY,rNode);
-            VariableUtils::CheckVariableInNodalData(VISCOSITY,rNode);
-            VariableUtils::CheckVariableInNodalData(BODY_FORCE,rNode);
+            CheckUtilities::CheckVariableInNodalData(VELOCITY,rNode);
+            CheckUtilities::CheckVariableInNodalData(PRESSURE,rNode);
+            CheckUtilities::CheckVariableInNodalData(MESH_VELOCITY,rNode);
+            CheckUtilities::CheckVariableInNodalData(ACCELERATION,rNode);
+            CheckUtilities::CheckVariableInNodalData(DENSITY,rNode);
+            CheckUtilities::CheckVariableInNodalData(VISCOSITY,rNode);
+            CheckUtilities::CheckVariableInNodalData(BODY_FORCE,rNode);
             // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 
-            VariableUtils::CheckDofInNode(VELOCITY_X,rNode);
-            VariableUtils::CheckDofInNode(VELOCITY_Y,rNode);
-            if (TDim == 3) VariableUtils::CheckDofInNode(VELOCITY_Z,rNode);
-            VariableUtils::CheckDofInNode(PRESSURE,rNode);
+            CheckUtilities::CheckDofInNode(VELOCITY_X,rNode);
+            CheckUtilities::CheckDofInNode(VELOCITY_Y,rNode);
+            if (TDim == 3) CheckUtilities::CheckDofInNode(VELOCITY_Z,rNode);
+            CheckUtilities::CheckDofInNode(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 

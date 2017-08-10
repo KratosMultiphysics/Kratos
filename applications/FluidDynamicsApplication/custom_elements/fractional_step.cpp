@@ -1,6 +1,6 @@
 #include "fractional_step.h"
 #include "includes/cfd_variables.h"
-#include "utilities/variable_utils.h"
+#include "utilities/check_utilities.h"
 
 namespace Kratos {
 
@@ -840,44 +840,44 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
-    VariableUtils::CheckVariableKey(VELOCITY);
-    VariableUtils::CheckVariableKey(PRESSURE);
-    VariableUtils::CheckVariableKey(BODY_FORCE);
-    VariableUtils::CheckVariableKey(DENSITY);
-    VariableUtils::CheckVariableKey(VISCOSITY);
-    VariableUtils::CheckVariableKey(MESH_VELOCITY);
-    VariableUtils::CheckVariableKey(FRACT_VEL);
-    VariableUtils::CheckVariableKey(PRESSURE_OLD_IT);
-    VariableUtils::CheckVariableKey(NODAL_AREA);
-    VariableUtils::CheckVariableKey(CONV_PROJ);
-    VariableUtils::CheckVariableKey(PRESS_PROJ);
-    VariableUtils::CheckVariableKey(DIVPROJ);
-    VariableUtils::CheckVariableKey(BDF_COEFFICIENTS);
-    VariableUtils::CheckVariableKey(DELTA_TIME);
-    VariableUtils::CheckVariableKey(DYNAMIC_TAU);
-    VariableUtils::CheckVariableKey(C_SMAGORINSKY);
+    CheckUtilities::CheckVariableKey(VELOCITY);
+    CheckUtilities::CheckVariableKey(PRESSURE);
+    CheckUtilities::CheckVariableKey(BODY_FORCE);
+    CheckUtilities::CheckVariableKey(DENSITY);
+    CheckUtilities::CheckVariableKey(VISCOSITY);
+    CheckUtilities::CheckVariableKey(MESH_VELOCITY);
+    CheckUtilities::CheckVariableKey(FRACT_VEL);
+    CheckUtilities::CheckVariableKey(PRESSURE_OLD_IT);
+    CheckUtilities::CheckVariableKey(NODAL_AREA);
+    CheckUtilities::CheckVariableKey(CONV_PROJ);
+    CheckUtilities::CheckVariableKey(PRESS_PROJ);
+    CheckUtilities::CheckVariableKey(DIVPROJ);
+    CheckUtilities::CheckVariableKey(BDF_COEFFICIENTS);
+    CheckUtilities::CheckVariableKey(DELTA_TIME);
+    CheckUtilities::CheckVariableKey(DYNAMIC_TAU);
+    CheckUtilities::CheckVariableKey(C_SMAGORINSKY);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
         Node<3> &rNode = this->GetGeometry()[i];
-        VariableUtils::CheckVariableInNodalData(VELOCITY,rNode);
-        VariableUtils::CheckVariableInNodalData(PRESSURE,rNode);
-        VariableUtils::CheckVariableInNodalData(BODY_FORCE,rNode);
-        VariableUtils::CheckVariableInNodalData(DENSITY,rNode);
-        VariableUtils::CheckVariableInNodalData(VISCOSITY,rNode);
-        VariableUtils::CheckVariableInNodalData(MESH_VELOCITY,rNode);
-        VariableUtils::CheckVariableInNodalData(FRACT_VEL,rNode);
-        VariableUtils::CheckVariableInNodalData(PRESSURE_OLD_IT,rNode);
-        VariableUtils::CheckVariableInNodalData(NODAL_AREA,rNode);
-        VariableUtils::CheckVariableInNodalData(CONV_PROJ,rNode);
-        VariableUtils::CheckVariableInNodalData(PRESS_PROJ,rNode);
-        VariableUtils::CheckVariableInNodalData(DIVPROJ,rNode);
+        CheckUtilities::CheckVariableInNodalData(VELOCITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(PRESSURE,rNode);
+        CheckUtilities::CheckVariableInNodalData(BODY_FORCE,rNode);
+        CheckUtilities::CheckVariableInNodalData(DENSITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(VISCOSITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(MESH_VELOCITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(FRACT_VEL,rNode);
+        CheckUtilities::CheckVariableInNodalData(PRESSURE_OLD_IT,rNode);
+        CheckUtilities::CheckVariableInNodalData(NODAL_AREA,rNode);
+        CheckUtilities::CheckVariableInNodalData(CONV_PROJ,rNode);
+        CheckUtilities::CheckVariableInNodalData(PRESS_PROJ,rNode);
+        CheckUtilities::CheckVariableInNodalData(DIVPROJ,rNode);
 
-        VariableUtils::CheckDofInNode(VELOCITY_X,rNode);
-        VariableUtils::CheckDofInNode(VELOCITY_Y,rNode);
-        if (TDim == 3) VariableUtils::CheckDofInNode(VELOCITY_Z,rNode);
-        VariableUtils::CheckDofInNode(PRESSURE,rNode);
+        CheckUtilities::CheckDofInNode(VELOCITY_X,rNode);
+        CheckUtilities::CheckDofInNode(VELOCITY_Y,rNode);
+        if (TDim == 3) CheckUtilities::CheckDofInNode(VELOCITY_Z,rNode);
+        CheckUtilities::CheckDofInNode(PRESSURE,rNode);
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
