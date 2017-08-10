@@ -13,6 +13,7 @@
 #include "fluid_element.h"
 #include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
+#include "utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -365,48 +366,32 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     out = TElementData::Check(*this);
 
     // Extra variables used in computing projections
-    if(ACCELERATION.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check that the application was correctly registered.","");
-    if(NODAL_AREA.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
-
-    // Output variables (for Calculate() functions)
-    if(SUBSCALE_VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"SUBSCALE_VELOCITY Key is 0. Check that the application was correctly registered.","");
-    if(SUBSCALE_PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"SUBSCALE_PRESSURE Key is 0. Check that the application was correctly registered.","");
+    CheckUtilities::CheckVariableKey(ACCELERATION);
+    CheckUtilities::CheckVariableKey(NODAL_AREA);
 
     // Elemental data
-    if(C_SMAGORINSKY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check that the application was correctly registered.","");
+    CheckUtilities::CheckVariableKey(C_SMAGORINSKY);
 
-    // Process Info data
-    // none at the moment, consider OSS_SWITCH
-
-
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(unsigned int i=0; i<TElementData::NumNodes; ++i)
     {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
+        Node<3>& rNode = this->GetGeometry()[i];
+        CheckUtilities::CheckVariableInNodalData(ACCELERATION,rNode);
+        CheckUtilities::CheckVariableInNodalData(NODAL_AREA,rNode);
 
         // Check that required dofs exist
-        if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-           this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-           this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+        CheckUtilities::CheckDofInNode(VELOCITY_X,rNode);
+        CheckUtilities::CheckDofInNode(VELOCITY_Y,rNode);
+        if (TElementData::Dim == 3) CheckUtilities::CheckDofInNode(VELOCITY_Z,rNode);
+        CheckUtilities::CheckDofInNode(PRESSURE,rNode);
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+    if ( TElementData::Dim == 2)
     {
-        for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
+        for (unsigned int i=0; i<TElementData::NumNodes; ++i)
         {
             if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
+                KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
         }
     }
 

@@ -13,6 +13,7 @@
 #include "dss.h"
 #include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
+#include "utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -69,92 +70,13 @@ Element::Pointer DSS<TElementData>::Create(IndexType NewId,GeometryType::Pointer
 template< class TElementData >
 int DSS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
-    // Generic geometry check
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
 
-    // Check that required variables are registered
-
-    // Nodal data
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check that required variables have been correctly registered.","");
-    if(PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check that required variables have been correctly registered.","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check that the application was correctly registered.","");
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
-    if(MESH_VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check that the application was correctly registered.","");
-
-    // Variables used in computing projections
-    if(ACCELERATION.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check that the application was correctly registered.","");
-    if(NODAL_AREA.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
-    if(ADVPROJ.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"ADVPROJ Key is 0. Check that the application was correctly registered.","");
-    if(DIVPROJ.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check that the application was correctly registered.","");
+    // Extra variables
 
     // Output variables (for Calculate() functions)
-    if(SUBSCALE_VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"SUBSCALE_VELOCITY Key is 0. Check that the application was correctly registered.","");
-    if(SUBSCALE_PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"SUBSCALE_PRESSURE Key is 0. Check that the application was correctly registered.","");
-
-    // Elemental data
-    if(C_SMAGORINSKY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check that the application was correctly registered.","");
-
-    // Process Info data
-    // none at the moment, consider OSS_SWITCH
-
-
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-    {
-        // Check that required nodal variables are included in SolutionStepData
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing BODY_FORCE variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-
-        if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(ADVPROJ) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing ADVPROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(DIVPROJ) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing DIVPROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
-
-        // Check that required dofs exist
-        if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-           this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-           this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
-    }
-
-    // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
-    {
-        for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
-        {
-            if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
-        }
-    }
+    CheckUtilities::CheckVariableKey(SUBSCALE_VELOCITY);
+    CheckUtilities::CheckVariableKey(SUBSCALE_PRESSURE);
 
     return out;
 }

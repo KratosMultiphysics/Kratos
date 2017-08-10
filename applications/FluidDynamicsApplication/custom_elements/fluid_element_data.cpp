@@ -12,6 +12,7 @@
 
 #include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
+#include "utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -47,54 +48,33 @@ int FluidElementData<TDim, TNumNodes>::Check(Element& rElement)
 {
     KRATOS_TRY;
 
-    CheckVariableKey(VELOCITY);
-    CheckVariableKey(MESH_VELOCITY);
-    CheckVariableKey(BODY_FORCE);
-    CheckVariableKey(ADVPROJ);
-    CheckVariableKey(PRESSURE);
-    CheckVariableKey(DENSITY);
-    CheckVariableKey(VISCOSITY);
-    CheckVariableKey(DIVPROJ);
+    CheckUtilities::CheckVariableKey(VELOCITY);
+    CheckUtilities::CheckVariableKey(MESH_VELOCITY);
+    CheckUtilities::CheckVariableKey(BODY_FORCE);
+    CheckUtilities::CheckVariableKey(ADVPROJ);
+    CheckUtilities::CheckVariableKey(PRESSURE);
+    CheckUtilities::CheckVariableKey(DENSITY);
+    CheckUtilities::CheckVariableKey(VISCOSITY);
+    CheckUtilities::CheckVariableKey(DIVPROJ);
 
     Geometry< Node<3> >& rGeometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         Node<3>& rNode = rGeometry[i];
-        CheckVariableInNodalData(VELOCITY,rNode);
-        CheckVariableInNodalData(MESH_VELOCITY,rNode);
-        CheckVariableInNodalData(BODY_FORCE,rNode);
-        CheckVariableInNodalData(ADVPROJ,rNode);
-        CheckVariableInNodalData(PRESSURE,rNode);
-        CheckVariableInNodalData(DENSITY,rNode);
-        CheckVariableInNodalData(VISCOSITY,rNode);
-        CheckVariableInNodalData(DIVPROJ,rNode);
+        CheckUtilities::CheckVariableInNodalData(VELOCITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(MESH_VELOCITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(BODY_FORCE,rNode);
+        CheckUtilities::CheckVariableInNodalData(ADVPROJ,rNode);
+        CheckUtilities::CheckVariableInNodalData(PRESSURE,rNode);
+        CheckUtilities::CheckVariableInNodalData(DENSITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(VISCOSITY,rNode);
+        CheckUtilities::CheckVariableInNodalData(DIVPROJ,rNode);
     }
 
     return 0;
     
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void FluidElementData<TDim, TNumNodes>::CheckVariableKey(const Kratos::VariableData& rVar)
-{
-    KRATOS_ERROR_IF( rVar.Key() == 0 ) << rVar.Name() << " Key is 0." << std::endl <<
-    "Check that Kratos variables have been correctly registered and all required applications have been imported." << std::endl;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void FluidElementData<TDim, TNumNodes>::CheckVariableInNodalData(const Kratos::Variable<double>& rVar, Node<3>& rNode)
-{
-    KRATOS_ERROR_IF_NOT( rNode.SolutionStepsDataHas(rVar) ) << 
-    "Missing " << rVar.Name() << " variable in solution step data for node " << rNode.Id() << "." << std::endl;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void FluidElementData<TDim, TNumNodes>::CheckVariableInNodalData(const Kratos::Variable< array_1d<double,3> >& rVar, Node<3>& rNode)
-{
-    KRATOS_ERROR_IF_NOT( rNode.SolutionStepsDataHas(rVar) ) << 
-    "Missing " << rVar.Name() << " variable in solution step data for node " << rNode.Id() << "." << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

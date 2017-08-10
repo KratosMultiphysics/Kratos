@@ -883,7 +883,8 @@ public:
             for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
                 if (this->GetGeometry()[i].Z() != 0.0)
-                    KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;            }
+                    KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
+            }
         }
 
         return 0;
