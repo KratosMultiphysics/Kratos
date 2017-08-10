@@ -114,6 +114,4 @@ typedef array_1d<double,3> Vector3;
     KRATOS_CREATE_VARIABLE(Vector, NEGATIVE_FACE_PRESSURES_VECTOR )
 
 
-    // fusseder needed for sensitivity analysis
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_NODE_COORD )
 }

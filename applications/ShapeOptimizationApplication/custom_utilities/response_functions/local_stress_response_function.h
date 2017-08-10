@@ -325,7 +325,7 @@ protected:
                                 	  const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rRHSContribution,
-                                      ProcessInfo& rProcessInfo) override
+                                      ProcessInfo& rProcessInfo) //--> auf base class anpassen
     {
       	KRATOS_TRY
 
@@ -353,7 +353,7 @@ protected:
                                           const Variable<double>& rVariable,
                                           const Matrix& rDerivativesMatrix,
                                           Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) override
+                                          ProcessInfo& rProcessInfo) //--> auf base class anpassen
     {
       	KRATOS_TRY
 
@@ -377,11 +377,11 @@ protected:
 	}
 
 	// ==============================================================================
-	virtual void CalculateSensitivityGradient(Condition& rCond,
+	void CalculateSensitivityGradient(Condition& rCond,
                                 	  const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rRHSContribution,
-                                      ProcessInfo& rProcessInfo) override
+                                      ProcessInfo& rProcessInfo)  //--> auf base class anpassen
     {
 		KRATOS_TRY;
 
@@ -391,11 +391,11 @@ protected:
 	}
 
 	// ==============================================================================
-	virtual void CalculateSensitivityGradient(Condition& rCond,
+	void CalculateSensitivityGradient(Condition& rCond,
                                           const Variable<double>& rVariable,
                                           const Matrix& rDerivativesMatrix,
                                           Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) override
+                                          ProcessInfo& rProcessInfo) //--> auf base class anpassen
     {
 		KRATOS_TRY;
 

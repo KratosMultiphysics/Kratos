@@ -52,6 +52,7 @@
         "zutil.c": "cpp",
         "gidposthdf5.c": "cpp",
         "inftree9.c": "cpp",
-        "inftrees.c": "cpp"
+        "inftrees.c": "cpp",
+        "algorithm": "cpp"
     }
 }

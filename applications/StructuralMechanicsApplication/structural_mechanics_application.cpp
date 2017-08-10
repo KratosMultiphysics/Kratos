@@ -277,8 +277,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR )
 
-    // fusseder needed for sensitivity analysis
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_NODE_COORD )
+
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N",mTrussElement3D2N)

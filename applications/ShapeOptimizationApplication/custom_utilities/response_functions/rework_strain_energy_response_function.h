@@ -138,7 +138,7 @@ public:
 	}
 
 	// ==============================================================================
-	void CalculateValue()
+	double CalculateValue(ModelPart& rModelPart) override
 	{
 		KRATOS_TRY;
 
@@ -168,6 +168,8 @@ public:
 			m_initial_value = m_current_response_value;
 			m_initial_value_defined = true;
 		}
+
+		return m_current_response_value;
 
 		KRATOS_CATCH("");
 	}
@@ -278,86 +280,93 @@ protected:
 	///@{
 	
 	// ==============================================================================
-	void CalculateSensitivityGradient(Element& rElem,
-                                	  const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rRHSContribution,
-                                      ProcessInfo& rProcessInfo) override
+	void CalculateSensitivityGradient(Element& rAdjointElem,
+                                              const Variable<array_1d<double,3>>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo) override
     {
       	KRATOS_TRY
 
-      	if (rRHSContribution.size() != rDerivativesMatrix.size1())
-          	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 
-		for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
+		for (unsigned int k = 0; k < rResponseGradient.size(); ++k)
+            rResponseGradient[k] = 0.0;
 
      	 KRATOS_CATCH("")
 	}
 
 	// ==============================================================================
-	void CalculateSensitivityGradient(Element& rElem,
-                                          const Variable<double>& rVariable,
-                                          const Matrix& rDerivativesMatrix,
-                                          Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) override
+	void CalculateSensitivityGradient(Element& rAdjointElem,
+                                              const Variable<double>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo) override
     {
       	KRATOS_TRY
 
-		if (rRHSContribution.size() != rDerivativesMatrix.size1())
-          	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+		if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 
-		for (unsigned int k = 0; k < rRHSContribution.size(); ++k)
-            rRHSContribution[k] = 0.0;
+		for (unsigned int k = 0; k < rResponseGradient.size(); ++k)
+            rResponseGradient[k] = 0.0;
 
         KRATOS_CATCH("")
 	}
 
 	// ==============================================================================
-	void CalculateSensitivityGradient(Condition& rCond,
-                                	  const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rRHSContribution,
-                                      ProcessInfo& rProcessInfo) override
+	void CalculateSensitivityGradient(Condition& rAdjointCondition,
+                                              const Variable<array_1d<double,3>>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo) override
     {
 		KRATOS_TRY;
 
 		Vector zero_adjoint_vector;
 		zero_adjoint_vector = Vector(0);
 
-		rCond.GetValuesVector(zero_adjoint_vector);
+		//Condition *help_condition = rAdjointCondition; // is there a better solution?
+
+		rAdjointCondition.GetValuesVector(zero_adjoint_vector);
+
+		//std::cout << (" size adjoint vector = ") << zero_adjoint_vector.size() << std::endl;
+		//std::cout << (" size pseudo load = ") << rDerivativesMatrix.size2() << std::endl;
 
 		if (zero_adjoint_vector.size() != rDerivativesMatrix.size2())
-			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!." << std::endl;
+			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
-		if (rRHSContribution.size() != rDerivativesMatrix.size2())
-			rRHSContribution.resize(zero_adjoint_vector.size(), false);
+		if (rResponseGradient.size() != rDerivativesMatrix.size2())
+			rResponseGradient.resize(zero_adjoint_vector.size(), false);
 	
-		noalias(rRHSContribution) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
+		noalias(rResponseGradient) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
 
 		KRATOS_CATCH("");
 	}
 
 	// ==============================================================================
-	void CalculateSensitivityGradient(Condition& rCond,
-                                          const Variable<double>& rVariable,
-                                          const Matrix& rDerivativesMatrix,
-                                          Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) override
+	void CalculateSensitivityGradient(Condition& rAdjointCondition,
+                                              const Variable<double>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo) override
     {
 		KRATOS_TRY;
 
 		Vector zero_adjoint_vector;
 
-		rCond.GetValuesVector(zero_adjoint_vector);
+		//Condition help_condition = rAdjointCondition; // is there a better solution?
+
+		rAdjointCondition.GetValuesVector(zero_adjoint_vector);
 
 		if (zero_adjoint_vector.size() != rDerivativesMatrix.size2())
-			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!." << std::endl;
+			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
-		if (rRHSContribution.size() != rDerivativesMatrix.size2())
-			rRHSContribution.resize(zero_adjoint_vector.size(), false);	
+		if (rResponseGradient.size() != rDerivativesMatrix.size2())
+			rResponseGradient.resize(zero_adjoint_vector.size(), false);	
 	
-		noalias(rRHSContribution) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
+		noalias(rResponseGradient) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
 
 		KRATOS_CATCH("");
 	}

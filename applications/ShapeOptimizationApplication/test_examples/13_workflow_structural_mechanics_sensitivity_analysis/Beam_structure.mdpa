@@ -172,28 +172,5 @@ Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart sensitivity_nodes // Group disp_z // Subtree DISPLACEMENT
-    Begin SubModelPartNodes
-        7
-        8
-        9
-        10
-        11
-        12
-    End SubModelPartNodes
-    Begin SubModelPartElements
-        1
-        2
-        3
-        4
-        5
-    End SubModelPartElements
-    Begin SubModelPartConditions
-         2
-         3
-         4
-    End SubModelPartConditions
-End SubModelPart
-
 
 

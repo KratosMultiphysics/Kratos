@@ -203,10 +203,11 @@ while(time <= end_time):
     print("END SOLVING")
 
     #SENSITIVITY ANALYSIS----------------------------------------------------------------------
+    main_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
     MyResponseFunction = ReworkStrainEnergyResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0]) 
     MyResponseFunction.Initialize()
-    MyResponseFunction.CalculateValue()
-    my_resp_value = MyResponseFunction.GetValue()
+    my_resp_value = MyResponseFunction.CalculateValue(main_model_part)
+    #my_resp_value = MyResponseFunction.GetValue()
     MyResponseFunction.UpdateSensitivities()
     print("my response function value = ", my_resp_value )
     print("I am ready with the sensitivty analysis computations")
@@ -312,16 +313,16 @@ while(time <= end_time):
 #gidIO.finalize_results()  
 
 #from gid_output import GiDOutput
-#listOfNodalResults = ["IZ_SENSITIVITY"]
+#listOfNodalResults = ["SHAPE_SENSITIVITY"]
 #resultsDirectory = ""
 #designHistoryFilename = "result_gradient"
 #designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
 #gidIO = GiDOutput( "result_gradient",
-   #                  True,
-    #                "Binary",
-    #                "Single",
-    #                 True,
-    #                 True )
+ #                    True,
+#                    "Binary",
+  #                 "Single",
+  #                   True,
+  #                   True )
 #iteratorForInitialDesign = 0
 #gidIO.initialize_results( main_model_part )
 #gidIO.write_results( 1, main_model_part, listOfNodalResults, [] )     

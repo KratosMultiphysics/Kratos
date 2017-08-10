@@ -12,6 +12,7 @@
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 
 
 
@@ -413,7 +414,7 @@ namespace Kratos
 
 		double delta = 1e-6;	//get this from outside!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-		if(rDesignVariable == ADJOINT_NODE_COORD) //---------------------------------------------------------------------------->change this
+		if(rDesignVariable == SHAPE_SENSITIVITY) //---------------------------------------------------------------------------->change this
 		{
 			const int number_of_nodes = GetGeometry().PointsNumber();
 			const int dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -1781,7 +1782,7 @@ namespace Kratos
     {
 		KRATOS_TRY;
 		
-		if(this->GetValue(rVariable) != 0)
+		if(this->Has(rVariable) == true)
 		{
 			// Get result value for output
 			double output_value = this->GetValue(rVariable);

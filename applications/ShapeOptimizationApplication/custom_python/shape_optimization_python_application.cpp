@@ -25,7 +25,9 @@
 #include "includes/define.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "shape_optimization_application.h"
+#include "custom_python/add_custom_processes_to_python.h"
+//#include "custom_python/add_custom_schemes_to_python.h"
+
  
 // ==============================================================================
 
@@ -48,6 +50,8 @@ namespace Python
 			;
 
 	AddCustomUtilitiesToPython();
+  //AddCustomSchemesToPython();
+  AddCustomProcessesToPython();
 
 	//registering variables in python
 

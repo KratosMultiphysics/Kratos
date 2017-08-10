@@ -208,7 +208,7 @@ namespace Kratos
             }
 
         }
-        else if( rDesignVariable == ADJOINT_NODE_COORD )
+        else if( rDesignVariable == SHAPE_SENSITIVITY )
         {
             rOutput.resize(MatSize , MatSize);
 
