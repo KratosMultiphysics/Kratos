@@ -78,6 +78,7 @@ void  AddKratosParametersToPython()
     .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
     .def("RecursivelyValidateAndAssignDefaults",&Parameters::RecursivelyValidateAndAssignDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
+    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)    
     //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
     .def("IsNull", &Parameters::IsNull)
     .def("IsNumber", &Parameters::IsNumber)
