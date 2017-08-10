@@ -138,13 +138,13 @@ public:
         mprm.put("precond.usolver.precond.type", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
 
         //setting pressure solver options
-        mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
-        mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
-        mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
-        mprm.put("precond.psolver.precond.coarsening.aggr.eps_strong", 0.0);
-        mprm.put("precond.psolver.precond.coarsening.aggr.block_size", 1);
-        mprm.put("precond.psolver.precond.coarse_enough",mCoarseEnough);
+        mprm.put("precond.psolver.solver.local.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
+        mprm.put("precond.psolver.solver.local.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
+        mprm.put("precond.psolver.solver.local.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
+//         mprm.put("precond.psolver.precond.local.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+//         mprm.put("precond.psolver.precond.local.coarsening.aggr.eps_strong", 0.0);
+//         mprm.put("precond.psolver.precond.local.coarsening.aggr.block_size", 1);
+//         mprm.put("precond.psolver.precond.local.coarse_enough",mCoarseEnough);
 
     }
 
@@ -184,26 +184,45 @@ public:
 
         typedef amgcl::backend::builtin<double> Backend;
         
-        typedef  amgcl::mpi::make_solver<
-            amgcl::mpi::schur_pressure_correction<
-                amgcl::mpi::make_solver<
-                    amgcl::mpi::block_preconditioner<
-                        amgcl::runtime::relaxation::as_preconditioner<Backend>
+//         typedef  amgcl::mpi::make_solver<
+//             amgcl::mpi::schur_pressure_correction<
+//                 amgcl::mpi::make_solver<
+//                     amgcl::mpi::block_preconditioner<
+//                         amgcl::runtime::relaxation::as_preconditioner<Backend>
+//                     >,
+//                     amgcl::runtime::iterative_solver
+//                 >,
+//                 amgcl::mpi::make_solver<
+//                     amgcl::mpi::subdomain_deflation<
+//                         amgcl::runtime::amg<Backend>,
+//                         amgcl::runtime::iterative_solver,
+//                         amgcl::runtime::mpi::direct_solver<double>
+//                     >,
+//                     amgcl::runtime::iterative_solver
+//                 >
+//             >,
+//             amgcl::runtime::iterative_solver
+//             > SDD;
+    typedef amgcl::mpi::make_solver<
+        amgcl::mpi::schur_pressure_correction<
+            amgcl::mpi::make_solver<
+                amgcl::mpi::block_preconditioner<
+                    amgcl::runtime::relaxation::as_preconditioner<Backend, relaxation::damped_jacobi>
                     >,
-                    amgcl::runtime::iterative_solver
+                amgcl::runtime::solver::bicgstab
                 >,
-                amgcl::mpi::make_solver<
-                    amgcl::mpi::subdomain_deflation<
-                        amgcl::runtime::amg<Backend>,
-                        amgcl::runtime::iterative_solver,
-                        amgcl::runtime::mpi::direct_solver<double>
+            amgcl::mpi::make_solver<
+                amgcl::mpi::subdomain_deflation<
+                    amg<Backend, coarsening::smoothed_aggregation, relaxation::ilu0>,
+                    amgcl::runtime::solver::bicgstab,
+                    amgcl::mpi::skyline_lu<double>
                     >,
-                    amgcl::runtime::iterative_solver
+                amgcl::runtime::solver::fgmres
                 >
             >,
-            amgcl::runtime::iterative_solver
-            > SDD;
-
+        amgcl::runtime::solver::fgmres
+        > SDD;
+        
         boost::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
         mprm.put("precond.psolver.precond.num_def_vec", 1);
         mprm.put("precond.psolver.precond.def_vec", &dv);
