@@ -49,11 +49,11 @@ namespace Kratos {
             CheckUtilities::CheckDofInNode(PRESSURE, r_node);
 
             // Expected fails: test failed unless an error is thrown
-            KRATOS_CHECK_ERROR_IS_THROWN( CheckUtilities::CheckVariableInNodalData(BODY_FORCE, r_node), "Missing BODY_FORCE variable in solution step data for node 1." );
-            KRATOS_CHECK_ERROR_IS_THROWN( CheckUtilities::CheckVariableInNodalData(BODY_FORCE_X, r_node), "Missing BODY_FORCE_X variable in solution step data for node 1." );
-            KRATOS_CHECK_ERROR_IS_THROWN( CheckUtilities::CheckVariableInNodalData(TEMPERATURE, r_node), "Missing TEMPERATURE variable in solution step data for node 1." );
-            KRATOS_CHECK_ERROR_IS_THROWN( CheckUtilities::CheckDofInNode(TEMPERATURE, r_node), "Missing Degree of Freedom for TEMPERATURE in node 1." );
-            KRATOS_CHECK_ERROR_IS_THROWN( CheckUtilities::CheckDofInNode(VELOCITY_X, r_node), "Missing Degree of Freedom for VELOCITY_X in node 1." );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN( CheckUtilities::CheckVariableInNodalData(BODY_FORCE, r_node), "Missing BODY_FORCE variable in solution step data for node 1." );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN( CheckUtilities::CheckVariableInNodalData(BODY_FORCE_X, r_node), "Missing BODY_FORCE_X variable in solution step data for node 1." );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN( CheckUtilities::CheckVariableInNodalData(TEMPERATURE, r_node), "Missing TEMPERATURE variable in solution step data for node 1." );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN( CheckUtilities::CheckDofInNode(TEMPERATURE, r_node), "Missing Degree of Freedom for TEMPERATURE in node 1." );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN( CheckUtilities::CheckDofInNode(VELOCITY_X, r_node), "Missing Degree of Freedom for VELOCITY_X in node 1." );
         }
     }
 }

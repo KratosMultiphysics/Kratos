@@ -29,8 +29,6 @@ namespace Kratos {
     typedef Tetrahedra3D4<PointType>  GeometryType;
     typedef GeometryType::Pointer     GeometryPtrType;
 
-    static bool exceptionThrown = false;
-
     /** Generates a sample Tetrahedra3D4.
      * Generates a tetrahedra defined by three random points in the space.
      * @return  Pointer to a Tetrahedra3D4
@@ -322,10 +320,10 @@ namespace Kratos {
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
 
-      KRATOS_CHECK_EXCEPTION_RAISED(geomInvLen1->Quality(criteria), Exception);
-      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen1->Quality(criteria), Exception);
-      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen2->Quality(criteria), Exception);
-      KRATOS_CHECK_EXCEPTION_RAISED(geomTriRect->Quality(criteria), Exception);
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomInvLen1->Quality(criteria), "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen1->Quality(criteria), "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen2->Quality(criteria), "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomTriRect->Quality(criteria), "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4");
     }
 
     /** Checks if the volume to surface area quality metric is correctly calculated.
@@ -345,10 +343,10 @@ namespace Kratos {
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
 
-      KRATOS_CHECK_EXCEPTION_RAISED(geomInvLen1->Quality(criteria), Exception);
-      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen1->Quality(criteria), Exception);
-      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen2->Quality(criteria), Exception);
-      KRATOS_CHECK_EXCEPTION_RAISED(geomTriRect->Quality(criteria), Exception);
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomInvLen1->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen1->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen2->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomTriRect->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
     }
 
     /** Checks if the volume to edge length quality metric is correctly calculated.
