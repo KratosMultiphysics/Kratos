@@ -105,7 +105,7 @@ os.chdir(main_path)
 spheres_mp_filename   = DEM_parameters["problem_name"].GetString() + "DEM"
 model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
-if "do_not_perform_initial_partition" in DEM_parameters and DEM_parameters["do_not_perform_initial_partition"].GetBool():
+if "do_not_perform_initial_partition" in DEM_parameters.keys() and DEM_parameters["do_not_perform_initial_partition"].GetBool():
     pass
 else:
     parallelutils.PerformInitialPartition(model_part_io_spheres)

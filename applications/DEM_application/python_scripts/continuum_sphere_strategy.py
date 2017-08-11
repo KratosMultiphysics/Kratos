@@ -14,52 +14,52 @@ class ExplicitStrategy(BaseExplicitStrategy):
         BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
         self.print_skin_sphere = 0 #TODO: check if this variable is important. There's a similar one in DEM_procedures called PostSkinSphere
-        if "PostSkinSphere" in DEM_parameters:
+        if "PostSkinSphere" in DEM_parameters.keys():
             self.print_skin_sphere = DEM_parameters["PostSkinSphere"].GetBool()
 
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-        if not "LoadingVelocityTop" in DEM_parameters:
+        if not "LoadingVelocityTop" in DEM_parameters.keys():
             self.fixed_vel_top = 0
         else:
             self.fixed_vel_top = DEM_parameters["LoadingVelocityTop"].GetDouble()
 
-        if not "LoadingVelocityBot" in DEM_parameters:
+        if not "LoadingVelocityBot" in DEM_parameters.keys():
             self.fixed_vel_bot = 0
         else:
             self.fixed_vel_bot = DEM_parameters["LoadingVelocityBot"].GetDouble()
 
-        if "DontSearchUntilFailure" in DEM_parameters: #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
+        if "DontSearchUntilFailure" in DEM_parameters.keys(): #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
             if DEM_parameters["DontSearchUntilFailure"].GetBool():
                 print ("Search is not active until a bond is broken.")
                 self.search_control = 0
                 if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
                     print ("WARNING: Search should be activated since there might contact with FEM.")
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in DEM_parameters.keys():
             self.test_type = "None"
         else:
             self.test_type = DEM_parameters["TestType"].GetString() 
 
         self.amplified_continuum_search_radius_extension = DEM_parameters["AmplifiedSearchRadiusExtension"].GetDouble()
         
-        if "MaxAmplificationRatioOfSearchRadius" in DEM_parameters:
+        if 'MaxAmplificationRatioOfSearchRadius' in DEM_parameters.keys():            
             self.max_amplification_ratio_of_search_radius = DEM_parameters["MaxAmplificationRatioOfSearchRadius"].GetDouble()
         else:
-            self.max_amplification_ratio_of_search_radius = 0.0
+            self.max_amplification_ratio_of_search_radius = 0.0                    
             
-        if not "PostPoissonRatio" in DEM_parameters:
+        if not "PostPoissonRatio" in DEM_parameters.keys():
             self.poisson_ratio_option = 0
         else:
             self.poisson_ratio_option = DEM_parameters["PostPoissonRatio"].GetBool()
             
-        if not "PoissonEffectOption" in DEM_parameters:
+        if not "PoissonEffectOption" in DEM_parameters.keys():
             self.poisson_effect_option = False
         else:
             self.poisson_effect_option = DEM_parameters["PoissonEffectOption"].GetBool()
 
-        if not "ShearStrainParallelToBondOption" in DEM_parameters:
+        if not "ShearStrainParallelToBondOption" in DEM_parameters.keys():
             self.shear_strain_parallel_to_bond_option = False
         else:
             self.shear_strain_parallel_to_bond_option = DEM_parameters["ShearStrainParallelToBondOption"].GetBool()

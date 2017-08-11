@@ -27,7 +27,7 @@ def Var_Translator(variable):
     return variable
 
 def GetBoolParameterIfItExists(set_of_parameters, parameter_key):
-    if parameter_key in set_of_parameters:
+    if parameter_key in set_of_parameters.keys():
         return set_of_parameters[parameter_key].GetBool()
     else:
         return False
@@ -251,7 +251,7 @@ class DEMEnergyCalculator(object):
         
         self.calculate_option = False
         
-        if "EnergyCalculationOption" in DEM_parameters:
+        if "EnergyCalculationOption" in DEM_parameters.keys():
             if DEM_parameters["EnergyCalculationOption"].GetBool(): 
                 self.calculate_option = True
                 self.DEM_parameters = DEM_parameters
@@ -279,7 +279,7 @@ class DEMEnergyCalculator(object):
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
-            if not "TestType" in self.DEM_parameters:
+            if not "TestType" in self.DEM_parameters.keys():
                 if (self.energy_graph_counter == self.graph_frequency):
                     self.energy_graph_counter = 0
 
@@ -333,7 +333,7 @@ class Procedures(object):
         self.automatic_bounding_box_OPTION = self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
         
         self.contact_mesh_OPTION           = False
-        if "ContactMeshOption" in self.DEM_parameters:
+        if "ContactMeshOption" in self.DEM_parameters.keys():
             self.contact_mesh_OPTION = self.DEM_parameters["ContactMeshOption"].GetBool()
 
         # SIMULATION SETTINGS
@@ -431,7 +431,7 @@ class Procedures(object):
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
         
-        if "PostSkinSphere" in self.DEM_parameters:
+        if "PostSkinSphere" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostSkinSphere"].GetBool():
                 model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
         
@@ -440,7 +440,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 
-        if "PostStressStrainOption" in self.DEM_parameters:
+        if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
                 
@@ -837,7 +837,7 @@ class DEMFEMProcedures(object):
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in DEM_parameters.keys():
             self.TestType = "None"
         # self.TestType = self.DEM_parameters["TestType"].GetString()
 
@@ -847,7 +847,7 @@ class DEMFEMProcedures(object):
         self.bounding_box_OPTION = self.DEM_parameters["BoundingBoxOption"].GetBool()
         
         self.contact_mesh_OPTION           = False #TODO: This is already in the Procedures object. why to repeat it?
-        if "ContactMeshOption" in self.DEM_parameters:
+        if "ContactMeshOption" in self.DEM_parameters.keys():
             self.contact_mesh_OPTION = self.DEM_parameters["ContactMeshOption"].GetBool()
 
         self.graphs_path = graphs_path
@@ -897,17 +897,17 @@ class DEMFEMProcedures(object):
             tangential_elastic_forces = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
             dem_pressure              = self.DEM_parameters["PostPressure"].GetBool()
             
-            if not "PostContactForces" in self.DEM_parameters:
+            if not "PostContactForces" in self.DEM_parameters.keys():
                 contact_forces = 0
             else:
                 contact_forces = self.DEM_parameters["PostContactForces"].GetBool()
             
-            if not "PostShearStress" in self.DEM_parameters:
+            if not "PostShearStress" in self.DEM_parameters.keys():
                 shear_stress = 0
             else:
                 shear_stress = self.DEM_parameters["PostShearStress"].GetBool()
             
-            if not "PostNodalArea" in self.DEM_parameters:
+            if not "PostNodalArea" in self.DEM_parameters.keys():
                 dem_nodal_area = 0
             else:
                 dem_nodal_area = self.DEM_parameters["PostNodalArea"].GetBool()
@@ -924,7 +924,7 @@ class DEMFEMProcedures(object):
 
         self.particle_graph_forces = {}                    
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in DEM_parameters.keys():
             open_graph_files(self, RigidFace_model_part)
             open_balls_graph_files(self,spheres_model_part)
 
@@ -1030,7 +1030,7 @@ class DEMFEMProcedures(object):
     
     def PrintGraph(self, time):
 
-        if not "TestType" in self.DEM_parameters:
+        if not "TestType" in self.DEM_parameters.keys():
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
 
@@ -1064,12 +1064,12 @@ class DEMFEMProcedures(object):
 
     def FinalizeGraphs(self,RigidFace_model_part):
 
-        if not "TestType" in self.DEM_parameters:
+        if not "TestType" in self.DEM_parameters.keys():
             self.close_graph_files(RigidFace_model_part)
 
     def PrintBallsGraph(self, time):
 
-        if not "TestType" in self.DEM_parameters:
+        if not "TestType" in self.DEM_parameters.keys():
             
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
@@ -1095,7 +1095,7 @@ class DEMFEMProcedures(object):
 
     def FinalizeBallsGraphs(self,spheres_model_part):
 
-        if not "TestType" in self.DEM_parameters:
+        if not "TestType" in self.DEM_parameters.keys():
             self.close_balls_graph_files(spheres_model_part)
 
 
@@ -1242,7 +1242,7 @@ class MaterialTest(object):
 
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
 
-        if not "TestType" in DEM_parameters:
+        if not "TestType" in DEM_parameters.keys():
             self.TestType = "None"
         else:
             self.TestType = DEM_parameters["TestType"].GetString()
@@ -1353,7 +1353,7 @@ class DEMIo(object):
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.VelTrapGraphExportFreq       = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
 
-        if not "PostBoundingBox" in self.DEM_parameters:
+        if not "PostBoundingBox" in self.DEM_parameters.keys():
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = self.DEM_parameters["PostBoundingBox"].GetBool()
@@ -1382,7 +1382,7 @@ class DEMIo(object):
         self.SetMultifileLists(self.multifiles)
         
         #Analytic
-        if not "PostNormalImpactVelocity" in self.DEM_parameters:
+        if not "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             PostNormalImpactVelocity = 0
             PostTangentialImpactVelocity = 0
         else:
@@ -1390,7 +1390,7 @@ class DEMIo(object):
             PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
 
         # Ice
-        if "PostVirtualSeaSurfaceX1" in self.DEM_parameters:
+        if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
             self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"]
             self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"]
             self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"]
@@ -1459,20 +1459,20 @@ class DEMIo(object):
 
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
-        if "PostRollingResistanceMoment" in self.DEM_parameters:
+        if "PostRollingResistanceMoment" in self.DEM_parameters.keys():
             if self.DEM_parameters["RotationOption"].GetBool():
                 if self.DEM_parameters["RollingFrictionOption"].GetBool():
                     self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
 
-        if "PostSkinSphere" in self.DEM_parameters:
+        if "PostSkinSphere" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostSkinSphere"].GetBool():
                 self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
 
-        if "PostNeighbourSize" in self.DEM_parameters:
+        if "PostNeighbourSize" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNeighbourSize"].GetBool():
                 self.PushPrintVar(self.PostNeighbourSize,       NEIGHBOUR_SIZE,              self.spheres_variables)
 
-        if "PostBrokenRatio" in self.DEM_parameters:
+        if "PostBrokenRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostBrokenRatio"].GetBool():
                 self.PushPrintVar(self.PostBrokenRatio,       NEIGHBOUR_RATIO,              self.spheres_variables)
 
@@ -1480,14 +1480,14 @@ class DEMIo(object):
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
-        if "PostStressStrainOption" in self.DEM_parameters:
+        if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_TENSOR,     self.spheres_variables)
                 self.PushPrintVar(1, FORCE_REACTION,        self.spheres_variables)
                 self.PushPrintVar(1, MOMENT_REACTION,       self.spheres_variables)
 
-        if "PostPoissonRatio" in self.DEM_parameters:
+        if "PostPoissonRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostPoissonRatio"].GetBool():
                 self.PushPrintVar(1, POISSON_VALUE, self.spheres_variables)
 
@@ -1662,7 +1662,7 @@ class DEMIo(object):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
                         
             # Ice. Printing a virtual sea surface
-            if "PostVirtualSeaSurfaceX1" in self.DEM_parameters:
+            if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
                 self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
                 
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI

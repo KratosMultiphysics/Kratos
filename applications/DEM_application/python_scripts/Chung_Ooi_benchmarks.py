@@ -112,7 +112,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
     model_part_io_spheres = ModelPartIO(spheres_mp_filename)
     
-    if "do_not_perform_initial_partition" in DEM_parameters and DEM_parameters["do_not_perform_initial_partition"].GetBool(): #TODO: add subIndex _option to this variable? Or the type is enough? Discuss with the team
+    if "do_not_perform_initial_partition" in DEM_parameters.keys() and DEM_parameters["do_not_perform_initial_partition"].GetBool(): #TODO: add subIndex _option to this variable? Or the type is enough? Discuss with the team
         pass
     else:
         parallelutils.PerformInitialPartition(model_part_io_spheres)

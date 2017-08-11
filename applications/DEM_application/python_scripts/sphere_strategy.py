@@ -20,18 +20,18 @@ class ExplicitStrategy:
         
         self.DEM_parameters = DEM_parameters
 
-        if not "ComputeStressTensorOption" in DEM_parameters:
+        if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
         else:
             self.compute_stress_tensor_option = DEM_parameters["ComputeStressTensorOption"].GetBool()
 
-        if "PostStressStrainOption" in DEM_parameters and DEM_parameters["PostStressStrainOption"].GetBool():
+        if "PostStressStrainOption" in DEM_parameters.keys() and DEM_parameters["PostStressStrainOption"].GetBool():
             self.compute_stress_tensor_option = 1
             self.print_stress_tensor_option = 1
         else:
             self.print_stress_tensor_option = 0
 
-        if not "AutomaticTimestep" in DEM_parameters:
+        if not "AutomaticTimestep" in DEM_parameters.keys():
             self.critical_time_option = 0
         else:
             self.critical_time_option = DEM_parameters["AutomaticTimestep"].GetBool() #TODO: add suffix option
@@ -46,7 +46,7 @@ class ExplicitStrategy:
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
         self.contact_mesh_option           = 0
-        if "ContactMeshOption" in DEM_parameters:
+        if "ContactMeshOption" in DEM_parameters.keys():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
         self.automatic_bounding_box_option = DEM_parameters["AutomaticBoundingBoxOption"].GetBool()
 
@@ -57,7 +57,7 @@ class ExplicitStrategy:
         self.case_option = 3
         self.search_control = 1
 
-        if "LocalResolutionMethod" in DEM_parameters:
+        if "LocalResolutionMethod" in DEM_parameters.keys():
             if (DEM_parameters["LocalResolutionMethod"].GetString() == "hierarchical"):
                 self.local_resolution_method = 1
             elif (DEM_parameters["LocalResolutionMethod"].GetString() == "area_distribution"):
@@ -95,12 +95,12 @@ class ExplicitStrategy:
         self.top_corner[1] = DEM_parameters["BoundingBoxMaxY"].GetDouble()
         self.top_corner[2] = DEM_parameters["BoundingBoxMaxZ"].GetDouble()
 
-        if not "BoundingBoxStartTime" in DEM_parameters:
+        if not "BoundingBoxStartTime" in DEM_parameters.keys():
             self.bounding_box_start_time  = 0.0
         else:
             self.bounding_box_start_time  = DEM_parameters["BoundingBoxStartTime"].GetDouble()
 
-        if not "BoundingBoxStopTime" in DEM_parameters:
+        if not "BoundingBoxStopTime" in DEM_parameters.keys():
             self.bounding_box_stop_time  = self.final_time
         else:
             self.bounding_box_stop_time  = DEM_parameters["BoundingBoxStopTime"].GetDouble()
@@ -119,7 +119,7 @@ class ExplicitStrategy:
 
         self.rolling_friction_option = DEM_parameters["RollingFrictionOption"].GetBool()
 
-        if not "GlobalDamping" in DEM_parameters:
+        if not "GlobalDamping" in DEM_parameters.keys():
             self.global_damping = 0.0
             print("\nGlobal Damping parameter not found! No damping will be applied...\n")
         else:
@@ -140,7 +140,7 @@ class ExplicitStrategy:
 
         # STRATEGIES
         self.search_strategy = OMP_DEMSearch()
-        if "PeriodicDomainOption" in DEM_parameters:
+        if "PeriodicDomainOption" in DEM_parameters.keys():
             if DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.search_strategy = OMP_DEMSearch(DEM_parameters["BoundingBoxMinX"].GetDouble(), 
                                                      DEM_parameters["BoundingBoxMinY"].GetDouble(), 
@@ -193,7 +193,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
         # GLOBAL PHYSICAL ASPECTS
-        if "PeriodicDomainOption" in self.DEM_parameters:
+        if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         else:

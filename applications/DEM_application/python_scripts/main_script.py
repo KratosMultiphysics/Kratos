@@ -233,7 +233,7 @@ class Solution(object):
         spheres_mp_filename   = self.DEM_parameters["problem_name"].GetString() + "DEM"
         model_part_io_spheres = model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
-        if "do_not_perform_initial_partition" in self.DEM_parameters and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
+        if "do_not_perform_initial_partition" in self.DEM_parameters.keys() and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
             pass
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
@@ -348,7 +348,7 @@ class Solution(object):
         pass
 
     def AfterSolveOperations(self):
-        if "AnalyticParticle" in self.DEM_parameters: #TODO: Change the name of AnalyticParticle to something more understandable
+        if "AnalyticParticle" in self.DEM_parameters.keys(): #TODO: Change the name of AnalyticParticle to something more understandable
             if self.DEM_parameters["AnalyticParticle"].GetBool():
                 self.particle_watcher.MakeMeasurements(self.analytic_model_part)
                 time_to_print = self.time - self.time_old_print
