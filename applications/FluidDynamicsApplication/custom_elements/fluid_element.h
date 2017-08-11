@@ -21,6 +21,8 @@
 #include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
 
+#include "custom_elements/integration_point_data.h"
+
 namespace Kratos
 {
 
@@ -351,9 +353,8 @@ protected:
      * @return Kinematic viscosity at the integration point.
      */
     virtual double EffectiveViscosity(
-        const TElementData &rData,
-        const ShapeFunctionsType &rN,
-        const ShapeFunctionDerivativesType &rDN_DX,
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIPData,
         double ElemSize,
         const ProcessInfo &rCurrentProcessInfo);
 
@@ -383,10 +384,7 @@ protected:
 
     virtual void AddSystemTerms(
         const TElementData& rData,
-        unsigned int GaussIndex,
-        double GaussWeight,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
+        const IntegrationPointData<TElementData>& rIPData,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) = 0;
@@ -394,17 +392,13 @@ protected:
 
     virtual void AddMassTerms(
         const TElementData& rData,
-        double GaussWeight,
-        const ShapeFunctionsType& rN,
+        const IntegrationPointData<TElementData>& rIPData,
         MatrixType& rMassMatrix) = 0;
 
 
     virtual void AddMassStabilization(
         const TElementData& rData,
-        unsigned int GaussIndex,
-        double GaussWeight,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
+        const IntegrationPointData<TElementData>& rIPData,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 

@@ -64,11 +64,10 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
     KRATOS_ERROR << "Attempting to Create base FluidElement<" << TElementData::Dim << "> instances, but this is an abstract element." << std::endl;
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                                                 VectorType &rRightHandSideVector,
-                                                 ProcessInfo &rCurrentProcessInfo)
+template <class TElementData>
+void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                                      VectorType& rRightHandSideVector,
+                                                      ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rLeftHandSideMatrix.size1() != TElementData::LocalSize )
@@ -81,9 +80,9 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType &rLeftHandSideM
     rRightHandSideVector = ZeroVector(TElementData::LocalSize);
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo)
+template <class TElementData>
+void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                                       ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rLeftHandSideMatrix.size1() != TElementData::LocalSize )
@@ -92,9 +91,9 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType &rLeftHandSide
     rLeftHandSideMatrix = ZeroMatrix(TElementData::LocalSize,TElementData::LocalSize);
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+template <class TElementData>
+void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                        ProcessInfo& rCurrentProcessInfo)
 {
     if( rRightHandSideVector.size() != TElementData::LocalSize )
         rRightHandSideVector.resize(TElementData::LocalSize,false);
@@ -102,9 +101,9 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType &rRightHandSi
     rRightHandSideVector = ZeroVector(TElementData::LocalSize);
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+template <class TElementData>
+void FluidElement<TElementData>::CalculateLocalVelocityContribution(
+    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rDampMatrix.size1() != TElementData::LocalSize )
@@ -124,15 +123,15 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
     const unsigned int NumGauss = GaussWeights.size();
 
     TElementData Data(this->GetGeometry());
+    IntegrationPointData<TElementData> IPData;
 
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        const double GaussWeight = GaussWeights[g];
-        const ShapeFunctionsType& rN = row(ShapeFunctions,g);
-        const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
+        IntegrationPointData<TElementData>::FillIntegrationPointData(
+            IPData, Data, g, GaussWeights, ShapeFunctions, ShapeDerivatives);
 
-        this->AddSystemTerms(Data,g,GaussWeight,rN,rDN_DX,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
+        this->AddSystemTerms(Data,IPData,rCurrentProcessInfo,rDampMatrix,rRightHandSideVector);
     }
 
     // Rewrite local contribution into residual form (A*dx = b - A*x)
@@ -149,9 +148,9 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(MatrixType &
     noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
+template <class TElementData>
+void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
+                                                     ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rMassMatrix.size1() != TElementData::LocalSize )
@@ -167,15 +166,15 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, Pr
     const unsigned int NumGauss = GaussWeights.size();
 
     TElementData Data(this->GetGeometry());
+    IntegrationPointData<TElementData> IPData;
 
     // Iterate over integration points to evaluate local contribution
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        const double GaussWeight = GaussWeights[g];
-        const ShapeFunctionsType& rN = row(ShapeFunctions,g);
-        const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
+        IntegrationPointData<TElementData>::FillIntegrationPointData(
+            IPData, Data, g, GaussWeights, ShapeFunctions, ShapeDerivatives);
 
-        this->AddMassTerms(Data,GaussWeight,rN,rMassMatrix);
+        this->AddMassTerms(Data,IPData,rMassMatrix);
 
         /* Note on OSS and full projection: Riccardo says that adding the terms provided by
          * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
@@ -185,7 +184,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType &rMassMatrix, Pr
          * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
          */
         if ( rCurrentProcessInfo[OSS_SWITCH] != 1.0 )
-            this->AddMassStabilization(Data,g,GaussWeight,rN,rDN_DX,rCurrentProcessInfo,rMassMatrix);
+            this->AddMassStabilization(Data,IPData,rCurrentProcessInfo,rMassMatrix);
     }
 }
 
@@ -681,16 +680,14 @@ void FluidElement<TElementData>::CalculateStaticTau(double Density,
 template< class TElementData >
 double FluidElement<TElementData>::EffectiveViscosity(
     const TElementData& rData,
-    const ShapeFunctionsType &rN,
-    const ShapeFunctionDerivativesType &rDN_DX,
+    const IntegrationPointData<TElementData>& rIPData,
     double ElemSize,
     const ProcessInfo &rCurrentProcessInfo)
 {
     const FluidElement* const_this = static_cast<const FluidElement*>(this);
     double Csmag = const_this->GetValue(C_SMAGORINSKY);
 
-    double KinViscosity = 0.0;
-    this->EvaluateInPoint(KinViscosity,rData.Viscosity,rN);
+    double KinViscosity = rIPData.Viscosity;
 
     if (Csmag != 0.0 )
     {
@@ -700,7 +697,7 @@ double FluidElement<TElementData>::EffectiveViscosity(
         {
             for (unsigned int i = 0; i < TElementData::Dim; ++i)
                 for (unsigned int j = 0; j < TElementData::Dim; ++j)
-                    S(i,j) += 0.5 * ( rDN_DX(n,j) * rData.Velocity(n,i) + rDN_DX(n,i) * rData.Velocity(n,j) );
+                    S(i,j) += 0.5 * ( rIPData.DN_DX(n,j) * rData.Velocity(n,i) + rIPData.DN_DX(n,i) * rData.Velocity(n,j) );
         }
 
         // Norm of symetric gradient

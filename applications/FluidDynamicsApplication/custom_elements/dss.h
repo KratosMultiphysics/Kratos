@@ -20,6 +20,7 @@
 
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
+#include "custom_elements/integration_point_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -238,81 +239,27 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-    virtual void ASGSMomentumResidual(
+    void AddSystemTerms(
         const TElementData& rData,
-        double GaussIndex,
-        const ShapeFunctionsType &rN,
-        const ShapeFunctionDerivativesType &rDN_DX,
-        array_1d<double,3>& rMomentumRes);
-
-
-    virtual void ASGSMassResidual(
-        const TElementData& rData,
-        double GaussIndex,
-        const ShapeFunctionsType &rN,
-        const ShapeFunctionDerivativesType &rDN_DX,
-        double& rMomentumRes);
-
-
-    virtual void OSSMomentumResidual(
-        const TElementData& rData,
-        double GaussIndex,
-        const ShapeFunctionsType &rN,
-        const ShapeFunctionDerivativesType &rDN_DX,
-        array_1d<double,3>& rMomentumRes);
-
-    virtual void OSSMassResidual(
-        const TElementData& rData,
-        double GaussIndex,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
-        double& rMassRes);
-
-
-    virtual void MomentumProjTerm(
-        const TElementData& rData,
-        double GaussIndex,
-        const ShapeFunctionsType &rN,
-        const ShapeFunctionDerivativesType &rDN_DX,
-        array_1d<double,3>& rMomentumRHS);
-
-
-    virtual void MassProjTerm(
-        const TElementData& rData,
-        double GaussIndex,
-        const ShapeFunctionsType &rN,
-        const ShapeFunctionDerivativesType &rDN_DX,
-        double& rMassRHS);
-
-    virtual void AddSystemTerms(
-        const TElementData& rData,
-        unsigned int GaussIndex,
-        double GaussWeight,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
+        const IntegrationPointData<TElementData>& rIP,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
-        VectorType& rRHS);
+        VectorType& rRHS) override;
 
 
-    virtual void AddMassTerms(
+    void AddMassTerms(
         const TElementData& rData,
-        double GaussWeight,
-        const ShapeFunctionsType& rN,
-        MatrixType& rMassMatrix);
+        const IntegrationPointData<TElementData>& rIP,
+        MatrixType& rMassMatrix) override;
 
 
-    virtual void AddMassStabilization(
+    void AddMassStabilization(
         const TElementData& rData,
-        unsigned int GaussIndex,
-        double GaussWeight,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
+        const IntegrationPointData<TElementData>& rIP,
         const ProcessInfo& rProcessInfo,
-        MatrixType& rMassMatrix);
+        MatrixType& rMassMatrix) override;
 
-    void CalculateProjections();
+    void CalculateProjections() override;
 
 
     void AddViscousTerm(double DynamicViscosity,
@@ -321,21 +268,50 @@ protected:
                         MatrixType& rLHS);
 
 
+    virtual void MomentumProjTerm(
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIP,
+        array_1d<double,3>& rMomentumRHS);
+
+
+    virtual void MassProjTerm(
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIP,
+        double& rMassRHS);
+
+
     virtual void SubscaleVelocity(
         const TElementData& rData,
-        unsigned int GaussIndex,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
+        const IntegrationPointData<TElementData>& rIP,
         const ProcessInfo& rProcessInfo,
         array_1d<double,3>& rVelocitySubscale);
 
     virtual void SubscalePressure(
         const TElementData& rData,
-        unsigned int GaussIndex,
-        const ShapeFunctionsType& rN,
-        const ShapeFunctionDerivativesType& rDN_DX,
+        const IntegrationPointData<TElementData>& rIP,
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale);
+
+        virtual void ASGSMomentumResidual(
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIP,
+        array_1d<double,3>& rMomentumRes);
+
+
+    virtual void ASGSMassResidual(
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIP,
+        double& rMomentumRes);
+
+    virtual void OSSMomentumResidual(
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIP,
+        array_1d<double,3>& rMomentumRes);
+
+    virtual void OSSMassResidual(
+        const TElementData& rData,
+        const IntegrationPointData<TElementData>& rIP,
+        double& rMassRes);
 
     ///@}
     ///@name Protected  Access
