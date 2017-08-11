@@ -363,6 +363,24 @@ class TestParameters(KratosUnittest.TestCase):
         
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
-
+        
+    def test_matrix_interface(self):
+        tmp = Parameters("""{
+            "matrix_value": [[1,2],[3,4],[5,6]]
+        }""")
+        
+        self.assertTrue(tmp["matrix_value"].IsMatrix())
+        
+        A = tmp["matrix_value"].GetMatrix()
+        self.assertEqual(A[0,0],1.0)
+        self.assertEqual(A[0,1],2.0)
+        self.assertEqual(A[1,0],3.0)
+        self.assertEqual(A[1,1],4.0)
+        self.assertEqual(A[2,0],5.0)
+        self.assertEqual(A[2,1],6.0)
+        
+        #TODO: check that the errors are thrown correctly
+        
+        
 if __name__ == '__main__':
     KratosUnittest.main()

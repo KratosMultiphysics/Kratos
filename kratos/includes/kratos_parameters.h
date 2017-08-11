@@ -26,6 +26,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/writer.h"
@@ -286,6 +287,50 @@ public:
     {
         if(mpvalue->IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
         return mpvalue->GetString();
+    }
+    
+    bool IsMatrix()
+    {
+        if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Matrix (a json list of lists)" ;
+        unsigned int nrows = mpvalue->Size();
+        unsigned int ncols = 0;
+        if(nrows != 0)
+            if((*mpvalue)[0].IsArray())
+                ncols = (*mpvalue)[0].Size();
+            
+            
+        KRATOS_WATCH(nrows)
+        KRATOS_WATCH(ncols)
+        if(nrows != 0 && ncols != 0)
+            return true;
+        else
+            return false;
+    }
+    
+    Matrix GetMatrix() const
+    {
+        if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Matrix (a json list of lists)" ;
+        
+        unsigned int nrows = mpvalue->Size();
+        unsigned int ncols = 0;
+        if(nrows != 0)
+            if((*mpvalue)[0].IsArray())
+                ncols = (*mpvalue)[0].Size();
+            
+        Matrix A(nrows,ncols);
+        
+        for(unsigned int i=0; i<nrows; ++i)
+        {
+            auto& row_i = (*mpvalue)[i];
+            if(row_i.IsArray() == false) KRATOS_ERROR << "not an array on row " << i << std::endl;
+            if(row_i.Size() != ncols) KRATOS_ERROR << "wrong size of row " << i << std::endl;
+            for(unsigned int j=0; j<ncols; ++j)
+            {
+                A(i,j) = (row_i)[j].GetDouble();
+            }
+        }
+        
+        return A;
     }
 
     void SetDouble(const double value)
