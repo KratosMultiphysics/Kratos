@@ -89,6 +89,47 @@ public:
                                               bool initial,
                                               ElementsContainerType& array_of_injector_elements);  
     
+    Kratos::SphericParticle* CreateSphericParticle(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const Element& r_reference_element);
+    
+    Kratos::SphericParticle* CreateSphericParticle(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const Element& r_reference_element);
+    
+    Kratos::SphericParticle* CreateSphericParticle(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_type);      
+    
+    Kratos::SphericParticle* CreateSphericParticle(ModelPart& r_modelpart,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_type);
+    
+    Kratos::SphericParticle* CreateSphericParticle(ModelPart& r_modelpart,
+                                              int r_Elem_Id,  
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_type);
+    
+    Kratos::SphericParticle* CreateSphericParticle(ModelPart& r_modelpart,
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_type);     
+    
+    
     Kratos::Cluster3D* ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                             ModelPart& r_clusters_modelpart,
                                             int r_Elem_Id,
