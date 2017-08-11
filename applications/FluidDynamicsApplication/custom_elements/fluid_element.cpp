@@ -443,41 +443,6 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
-
-template< class TElementData >
-void FluidElement<TElementData>::EvaluateInPoint(
-        double& rResult,
-        const typename TElementData::ScalarDataType& rNodalValues,
-        const ShapeFunctionsType& rShapeFunc)
-{
-    rResult = rShapeFunc[0] * rNodalValues[0];
-    
-    for(unsigned int i = 1; i < TElementData::NumNodes; i++)
-    {
-        rResult += rShapeFunc[i] * rNodalValues[i];
-    }
-}
-
-template< class TElementData >
-void FluidElement<TElementData>::EvaluateInPoint(
-        array_1d<double,3>& rResult,
-        const typename TElementData::VectorDataType& rNodalValues,
-        const ShapeFunctionsType& rShapeFunc)
-{
-    for (unsigned int d = 0; d < TElementData::Dim; d++)
-    {
-        rResult[d] = rShapeFunc[0] * rNodalValues(0,d);
-    }
-
-    for(unsigned int i = 1; i < TElementData::NumNodes; i++)
-    {
-        for (unsigned int d = 0; d < TElementData::Dim; d++)
-        {
-            rResult[d] += rShapeFunc[i] * rNodalValues(i,d);
-        }
-    }
-}
-
 /** Calculate characteristic element length.
  * @return Minimum element height
  */

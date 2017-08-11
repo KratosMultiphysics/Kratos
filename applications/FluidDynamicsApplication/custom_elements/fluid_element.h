@@ -320,16 +320,6 @@ protected:
                                        Matrix& rNContainer,
                                        ShapeFunctionDerivativesArrayType& rDN_DX);
 
-    void EvaluateInPoint(
-        double& rResult,
-        const typename TElementData::ScalarDataType& rNodalValues,
-        const ShapeFunctionsType& rShapeFunc);
-
-    void EvaluateInPoint(
-        array_1d<double,3>& rResult,
-        const typename TElementData::VectorDataType& rNodalValues,
-        const ShapeFunctionsType& rShapeFunc);
-
 
     /// Characteristic element size h to be used in stabilization parameters.
     virtual double ElementSize();
