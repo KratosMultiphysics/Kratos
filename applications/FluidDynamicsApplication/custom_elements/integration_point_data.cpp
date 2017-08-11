@@ -16,17 +16,23 @@ namespace Kratos
 {
 
 template <class TElementData>
+IntegrationPointData<TElementData>::IntegrationPointData()
+{
+}
+
+template <class TElementData>
 void IntegrationPointData<TElementData>::FillIntegrationPointData(
     IntegrationPointData& rIntegrationPointData,
     const TElementData& rElementData,
-    int GaussPointIndex,
-    const Vector& rGaussWeights,
+    int IntegrationPointIndex,
+    const Vector& rWeights,
     const Matrix& rNContainer,
     const Geometry<Node<3> >::ShapeFunctionsGradientsType& rDN_DX)
 {
-    rIntegrationPointData.IntegrationPointIndex = GaussPointIndex;
-    noalias(rIntegrationPointData.N) = row(rNContainer,GaussPointIndex);
-    noalias(rIntegrationPointData.DN_DX) = rDN_DX[GaussPointIndex];
+    rIntegrationPointData.IntegrationPointIndex = IntegrationPointIndex;
+    rIntegrationPointData.Weight = rWeights[IntegrationPointIndex];
+    noalias(rIntegrationPointData.N) = row(rNContainer,IntegrationPointIndex);
+    noalias(rIntegrationPointData.DN_DX) = rDN_DX[IntegrationPointIndex];
     
     rIntegrationPointData.EvaluateInPoint(rIntegrationPointData.Pressure,rElementData.Pressure);
     rIntegrationPointData.EvaluateInPoint(rIntegrationPointData.Density, rElementData.Density);

@@ -34,10 +34,18 @@ template <class TElementData>
 class IntegrationPointData
 {
 public:
+    ///@name Life Cycle
+    ///@{
+
+    IntegrationPointData();
+
+    ///@}
     ///@name Public members
     ///@{
 
     unsigned int IntegrationPointIndex;
+
+    double Weight;
 
     array_1d<double, TElementData::NumNodes> N;
 
@@ -67,8 +75,8 @@ public:
 
     static void FillIntegrationPointData(IntegrationPointData& rIntegrationPointData,
                                          const TElementData& rElementData,
-                                         int GaussPointIndex,
-                                         const Vector& rGaussWeights,
+                                         int IntegrationPointIndex,
+                                         const Vector& rWeights,
                                          const Matrix& rNContainer,
                                          const Geometry< Node<3> >::ShapeFunctionsGradientsType& rDN_DX);
 
