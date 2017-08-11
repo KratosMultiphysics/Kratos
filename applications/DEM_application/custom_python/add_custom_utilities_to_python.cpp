@@ -219,6 +219,11 @@ void AddCustomUtilitiesToPython() {
         .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<std::string>) 
         .def("GetIthSubModelPartNodes", &AuxiliaryUtilities::GetIthSubModelPartNodes)          
         ;
+    class_<PropertiesProxiesManager, boost::noncopyable >
+        ("PropertiesProxiesManager", init<>())
+        .def("CreatePropertiesProxies", CreatePropertiesProxies1)
+        .def("CreatePropertiesProxies", CreatePropertiesProxies2)
+        ;
 
     class_<ExcavatorUtility, boost::noncopyable >("ExcavatorUtility",
         init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
