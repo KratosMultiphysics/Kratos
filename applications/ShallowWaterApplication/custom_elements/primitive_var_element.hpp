@@ -21,6 +21,7 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h" 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -28,53 +29,72 @@ namespace Kratos
   template< unsigned int TNumNodes >
   class PrimitiveVarElement : public Element
   {
-    public:
+  public:
      
     /// Counted pointer of PrimitiveVarElement
     KRATOS_CLASS_POINTER_DEFINITION( PrimitiveVarElement );
 
+//----------------------------------------------------------------------
 
     /// Default constructor.
-    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    PrimitiveVarElement()
+	: Element()
+	{}
+	
+    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
+	: Element(NewId, pGeometry)
+	{}
+
+	PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+	: Element(NewId, pGeometry, pProperties)
+	{}
 
     /// Destructor.
-    virtual ~ PrimitiveVarElement();
+    virtual ~ PrimitiveVarElement() {};
 
+//----------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+	{
+		KRATOS_TRY
+		return Element::Pointer(new PrimitiveVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+		KRATOS_CATCH("")
+	}
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
+//----------------------------------------------------------------------
 
+  protected:
 
-    protected:
+    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
+    
+    double ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX);
+    
+    void GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, array_1d<double, TNumNodes*3>& runkn, array_1d<double, TNumNodes*3>& rproj, double& rheight);
+    
+    //~ void CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix);
 
-    void CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix);
+    //~ void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix);
 
-    void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix);
+//----------------------------------------------------------------------
 
-    private:
+  private:
 
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-    PrimitiveVarElement() : Element()
-    {
-    }
-       
-       
+
   }; // Class PrimitiveVarElement
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED  defined

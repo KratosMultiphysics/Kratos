@@ -32,11 +32,6 @@
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
 #include "custom_conditions/rain_condition.hpp"
-//~ #include "custom_elements/projected_swe.h"             // Including the file for the element
-//~ #include "custom_elements/non_conservative_dc.h"       // Inlcuding the file for the element with discontinuity capturing
-//~ #include "custom_elements/non_conservative_stab.h"     // Inlcuding the file for the element with stabilization
-//~ #include "custom_elements/conservative.h"              // Inlcuding the file for the conservative lagrangian element
-//~ #include "custom_elements/eulerian_non_conservative.h" // Inlcuding the file for the eulerian element
 
 
 namespace Kratos
@@ -197,9 +192,12 @@ namespace Kratos
 		///@name Member Variables 
 		///@{ 
 		const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
+		const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
 		const ConservedVarElement<3> mConservedVarElement2D3N;
+		const ConservedVarElement<3> mConservedVarElement2D4N;
 		
 		const RainCondition<3> mRainCondition2D3N;
+		const RainCondition<3> mRainCondition2D4N;
 		
 		//~ const ProjectedSWE mProjectedSWE;                        // Element
 		//~ const NonConservativeDC mNonConservativeDC;              // Element with discontinuty capturing
