@@ -32,7 +32,7 @@ namespace Kratos
 /** TODO: see how this can work for a generic number of stored arguments.
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-struct FluidElementData
+class FluidElementData
 {
 public:
     ///@name Type Definitions

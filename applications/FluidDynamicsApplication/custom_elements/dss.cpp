@@ -233,29 +233,24 @@ void DSS<TElementData>::GetValueOnIntegrationPoints(const Variable<double>& rVar
 	}
 }
 
-
-template< class TElementData >
-void DSS<TElementData>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                            std::vector<array_1d<double, 6 > >& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
+template <class TElementData>
+void DSS<TElementData>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6>>& rVariable,
+                                                    std::vector<array_1d<double, 6>>& rValues,
+                                                    const ProcessInfo& rCurrentProcessInfo)
 {
-
 }
 
-
-template< class TElementData >
+template <class TElementData>
 void DSS<TElementData>::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                            std::vector<Vector>& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
+                                                    std::vector<Vector>& rValues,
+                                                    const ProcessInfo& rCurrentProcessInfo)
 {
-
 }
 
-
-template< class TElementData >
+template <class TElementData>
 void DSS<TElementData>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                            std::vector<Matrix>& rValues,
-                                            const ProcessInfo& rCurrentProcessInfo)
+                                                    std::vector<Matrix>& rValues,
+                                                    const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
