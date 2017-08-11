@@ -477,6 +477,7 @@ template< class TElementData >
 void DSS<TElementData>::AddMassTerms(
     const TElementData& rData,
     const IntegrationPointData<TElementData>& rIP,
+    const ProcessInfo &rProcessInfo,
     MatrixType &rMassMatrix)
 {
     unsigned int Row = 0;
@@ -494,6 +495,16 @@ void DSS<TElementData>::AddMassTerms(
                 rMassMatrix(Row+d,Col+d) += Mij;
         }
     }
+
+    /* Note on OSS and full projection: Riccardo says that adding the terms provided by
+     * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
+     * could help reduce the non-linearity of the coupling between projection and u,p
+     * However, leaving them on gives a lot of trouble whith the Bossak scheme:
+     * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
+     * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
+     */
+    if ( rProcessInfo[OSS_SWITCH] != 1.0 )
+        this->AddMassStabilization(rData,rIP,rProcessInfo,rMassMatrix);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

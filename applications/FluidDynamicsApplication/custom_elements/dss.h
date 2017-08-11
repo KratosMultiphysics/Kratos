@@ -250,6 +250,7 @@ protected:
     void AddMassTerms(
         const TElementData& rData,
         const IntegrationPointData<TElementData>& rIP,
+        const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) override;
 
 
@@ -257,7 +258,7 @@ protected:
         const TElementData& rData,
         const IntegrationPointData<TElementData>& rIP,
         const ProcessInfo& rProcessInfo,
-        MatrixType& rMassMatrix) override;
+        MatrixType& rMassMatrix);
 
     void CalculateProjections() override;
 

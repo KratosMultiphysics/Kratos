@@ -383,12 +383,6 @@ protected:
     virtual void AddMassTerms(
         const TElementData& rData,
         const IntegrationPointData<TElementData>& rIPData,
-        MatrixType& rMassMatrix) = 0;
-
-
-    virtual void AddMassStabilization(
-        const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIPData,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 
