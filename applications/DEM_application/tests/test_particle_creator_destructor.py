@@ -43,8 +43,16 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
         radius = 0.1
         element_name = "SphericParticle3D"
         
-        self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
+        created_element = self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)            
+        created_node = created_element.GetNodes()[0]
         
+        #Direct verification with the returned pointer
+        self.assertEqual(created_element.Properties[Kratos.YOUNG_MODULUS], 3.331)
+        self.assertEqual(created_node.X, 1.0)
+        self.assertEqual(created_node.Y, 2.0)
+        self.assertEqual(created_node.Z, 3.0)
+        
+        #Indirect verification looping over the ModelPart (also verifies that the element has been added to the ModelPart
         counter = 0
         for node in self.spheres_model_part.Nodes:
             counter += 1

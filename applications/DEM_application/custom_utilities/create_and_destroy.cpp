@@ -353,7 +353,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    Kratos::SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
                                                                         Node < 3 > ::Pointer reference_node,
                                                                         Element::Pointer injector_element,
@@ -483,7 +483,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
+    SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -502,7 +502,7 @@ namespace Kratos {
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
 
-        Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
+        SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());        
@@ -524,7 +524,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
+SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -542,7 +542,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
 
-        Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
+        SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
@@ -566,7 +566,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         KRATOS_CATCH("")
     }       
     
-    Kratos::Cluster3D* ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
+    Cluster3D* ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
                                                                          ModelPart& r_clusters_modelpart,                                                                         
                                                                          int r_Elem_Id,
                                                                          Node<3>::Pointer reference_node,
@@ -608,7 +608,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
-        Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
+        Cluster3D* p_cluster = dynamic_cast<Cluster3D*> (p_new_cluster.get());
            
         if (r_sub_model_part_with_parameters[RANDOM_ORIENTATION]) {
 
@@ -682,29 +682,17 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         KRATOS_CATCH("")
     }
     
-    Kratos::SphericParticle* ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
-                                              int r_Elem_Id,
-                                              const array_1d<double, 3 >& coordinates, 
-                                              Properties::Pointer r_params,
-                                              const double radius,
-                                              const Element& r_reference_element){                
+    SphericParticle* ParticleCreatorDestructor::AddInitialDataToNewlyCreatedElementAndNode(ModelPart& r_modelpart,
+                                                Properties::Pointer r_params,
+                                                const double radius,
+                                                Node<3>::Pointer& pnew_node,
+                                                Element::Pointer& p_particle){
         
-        array_1d<double, 3 > null_vector(3, 0.0);
-
-        double bx = coordinates[0];
-        double cy = coordinates[1];
-        double dz = coordinates[2];
-        
-        Node<3>::Pointer pnew_node;
-        pnew_node = boost::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
-        #pragma omp critical
-        {
-            //pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
-            r_modelpart.Nodes().push_back(pnew_node);
-        }
 
+        array_1d<double, 3 > null_vector(3, 0.0);
+        
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = (*r_params)[PARTICLE_MATERIAL];
 
@@ -725,10 +713,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
         pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
         pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
-
-        Geometry<Node<3> >::PointsArrayType nodelist;       
-        nodelist.push_back(pnew_node);
-        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+        
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
 
         std::vector<PropertiesProxy>& vector_of_proxies = r_modelpart[VECTOR_OF_PROPERTIES_PROXIES];
@@ -741,18 +726,141 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
 
-        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
+        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
+        
+        return spheric_p_particle;
+        
+    }
+    
+    Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const Element& r_reference_element){                
+        
+        
+
+        double bx = coordinates[0];
+        double cy = coordinates[1];
+        double dz = coordinates[2];
+        
+        Node<3>::Pointer pnew_node;
+        pnew_node = boost::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
+        Geometry<Node<3> >::PointsArrayType nodelist;       
+        nodelist.push_back(pnew_node);
+        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+        
+        
+        AddInitialDataToNewlyCreatedElementAndNode(r_modelpart, r_params, radius, pnew_node, p_particle);
+                 
 
         #pragma omp critical
         {
+            r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
         }
+        
+        return p_particle;
+    
+    }
+    
+    SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const Element& r_reference_element){                
+        
+        double bx = coordinates[0];
+        double cy = coordinates[1];
+        double dz = coordinates[2];
+        
+        Node<3>::Pointer pnew_node;
+        pnew_node = boost::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
+        Geometry<Node<3> >::PointsArrayType nodelist;       
+        nodelist.push_back(pnew_node);
+        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+        
+        
+        SphericParticle* spheric_p_particle = AddInitialDataToNewlyCreatedElementAndNode(r_modelpart, r_params, radius, pnew_node, p_particle);
+                 
+
+        #pragma omp critical
+        {
+            r_modelpart.Nodes().push_back(pnew_node);
+            r_modelpart.Elements().push_back(p_particle);
+        }
+        
         
         return spheric_p_particle;
     
     }
     
-    Kratos::SphericParticle* ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
+    SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const Element& r_reference_element){ 
+        
+        array_1d<double, 3 > coordinates;
+        coordinates[0] = reference_node->X();
+        coordinates[1] = reference_node->Y();
+        coordinates[2] = reference_node->Z();
+        
+        return CreateSphericParticleRaw(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);                    
+    }
+    
+    SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+        
+        const Element& r_reference_element = KratosComponents<Element>::Get(element_name);
+        return CreateSphericParticleRaw(r_modelpart, r_Elem_Id, reference_node, r_params, radius, r_reference_element);
+    }
+    
+    SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+        
+        int r_Elem_Id = GetCurrentMaxNodeId() +1;
+        SetMaxNodeId(r_Elem_Id);
+        
+        return CreateSphericParticleRaw(r_modelpart, r_Elem_Id, reference_node, r_params, radius, element_name);
+    }
+    
+    SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
+                                              int r_Elem_Id,  
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+        
+        const Element& r_reference_element = KratosComponents<Element>::Get(element_name);
+        
+        return CreateSphericParticleRaw(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);
+    }
+    
+    SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+        
+        int r_Elem_Id = GetCurrentMaxNodeId() +1;
+        SetMaxNodeId(r_Elem_Id);
+                
+        return CreateSphericParticleRaw(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
+    }
+    
+    
+    Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
                                               Properties::Pointer r_params,
@@ -767,7 +875,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         return CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);                    
     }
     
-    Kratos::SphericParticle* ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
+    Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
                                               Properties::Pointer r_params,
@@ -778,7 +886,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         return CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, r_reference_element);
     }
     
-    Kratos::SphericParticle* ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
+    Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               Node < 3 > ::Pointer reference_node, 
                                               Properties::Pointer r_params,
                                               const double radius,
@@ -790,7 +898,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         return CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, element_name);
     }
     
-    Kratos::SphericParticle* ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
+    Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,  
                                               const array_1d<double, 3 >& coordinates, 
                                               Properties::Pointer r_params,
@@ -802,7 +910,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         return CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);
     }
     
-    Kratos::SphericParticle* ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
+    Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               const array_1d<double, 3 >& coordinates, 
                                               Properties::Pointer r_params,
                                               const double radius,
@@ -813,7 +921,6 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                 
         return CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
     }
-    
 
 
 

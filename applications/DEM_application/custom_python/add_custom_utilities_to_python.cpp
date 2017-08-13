@@ -70,7 +70,7 @@ boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& 
     return Out;
 }
 
-void CreateSphericParticle1(ParticleCreatorDestructor& r_creator_destructor,
+Element::Pointer CreateSphericParticle1(ParticleCreatorDestructor& r_creator_destructor,
                                                 ModelPart& r_modelpart,
                                                 int r_Elem_Id,
                                                 const array_1d<double, 3 >& coordinates, 
@@ -78,10 +78,10 @@ void CreateSphericParticle1(ParticleCreatorDestructor& r_creator_destructor,
                                                 const double radius,
                                                 const Element& r_reference_element) {
     
-    r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);
 }
 
-void CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
+Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
@@ -89,10 +89,10 @@ void CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
                                               const double radius,
                                               const Element& r_reference_element) {
     
-    r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, r_reference_element);
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, r_reference_element);
 }
 
-void CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
+Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
@@ -100,20 +100,20 @@ void CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
                                               const double radius,
                                               const std::string& element_name) {
     
-    r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, element_name);
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, element_name);
 }
 
-void CreateSphericParticle4(ParticleCreatorDestructor& r_creator_destructor,
+Element::Pointer CreateSphericParticle4(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               Node < 3 > ::Pointer reference_node, 
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
     
-    r_creator_destructor.CreateSphericParticle(r_modelpart, reference_node, r_params, radius, element_name);
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, reference_node, r_params, radius, element_name);
 }
 
-void CreateSphericParticle5(ParticleCreatorDestructor& r_creator_destructor,
+Element::Pointer CreateSphericParticle5(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,  
                                               const array_1d<double, 3 >& coordinates, 
@@ -121,17 +121,17 @@ void CreateSphericParticle5(ParticleCreatorDestructor& r_creator_destructor,
                                               const double radius,
                                               const std::string& element_name) {
     
-    r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
 }
 
-void CreateSphericParticle6(ParticleCreatorDestructor& r_creator_destructor,
+Element::Pointer CreateSphericParticle6(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               const array_1d<double, 3 >& coordinates, 
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
     
-    r_creator_destructor.CreateSphericParticle(r_modelpart, coordinates, r_params, radius, element_name);
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, coordinates, r_params, radius, element_name);
 }
 
 void CreatePropertiesProxies1(PropertiesProxiesManager& r_properties_proxy_manager, ModelPart& r_modelpart) {
