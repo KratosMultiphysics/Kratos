@@ -29,7 +29,7 @@ virtual ~BenchmarkUtils(){}
 
 void ComputeHydrodynamicForces(ModelPart& r_model_part)
 {
-    CreatePropertiesProxies(mFastProperties, r_model_part);
+    PropertiesProxiesManager().CreatePropertiesProxies(r_model_part);
 
     for (ModelPart::ElementIterator i_elem = r_model_part.ElementsBegin(); i_elem != r_model_part.ElementsEnd(); ++i_elem){
         Kratos::SphericParticle& particle = static_cast<Kratos::SphericParticle&>(*i_elem);
