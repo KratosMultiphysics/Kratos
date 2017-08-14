@@ -16,9 +16,11 @@ namespace Kratos {
         KRATOS_TRY
 
         const int number_of_particles = (int) rCustomListOfSphericParticles.size();
+        std::vector<PropertiesProxy>& vector_of_properties_proxies = PropertiesProxiesManager().GetPropertiesProxies(*mpDem_model_part);
+        
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
-          rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);
+          rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
         }
         return;
         KRATOS_CATCH("")
@@ -138,7 +140,7 @@ namespace Kratos {
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
-        CreatePropertiesProxies(mFastProperties, *mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
+        PropertiesProxiesManager().CreatePropertiesProxies(*mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
         RepairPointersToNormalProperties(mListOfSphericParticles); // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
         RepairPointersToNormalProperties(mListOfGhostSphericParticles);
@@ -259,6 +261,7 @@ namespace Kratos {
         const int number_of_clusters = pElements.size();
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         bool continuum_strategy = r_process_info[CONTINUUM_OPTION];
+        std::vector<PropertiesProxy>& vector_of_properties_proxies = PropertiesProxiesManager().GetPropertiesProxies(*mpDem_model_part);
 
         //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
 
@@ -272,10 +275,10 @@ namespace Kratos {
 
             PropertiesProxy* p_fast_properties = NULL;
             int general_properties_id = cluster_element.GetProperties().Id();
-            for (unsigned int i = 0; i < mFastProperties.size(); i++) {
-                int fast_properties_id = mFastProperties[i].GetId();
+            for (unsigned int i = 0; i < vector_of_properties_proxies.size(); i++) {
+                int fast_properties_id = vector_of_properties_proxies[i].GetId();
                 if (fast_properties_id == general_properties_id) {
-                    p_fast_properties = &(mFastProperties[i]);
+                    p_fast_properties = &(vector_of_properties_proxies[i]);
                     break;
                 }
             }

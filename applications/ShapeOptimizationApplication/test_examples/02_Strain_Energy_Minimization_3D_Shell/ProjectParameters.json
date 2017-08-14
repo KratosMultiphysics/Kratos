@@ -18,7 +18,7 @@
             "input_filename" : "3D_Shell"
         },
             "material_import_settings" :{
-            "materials_filename": "materials_3D.json"
+            "materials_filename": "materials_2D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -114,7 +114,7 @@
                 "identifier"    : "strain_energy",
                 "use_kratos"    : true,
                 "gradient_mode" : "semi_analytic", 
-                "step_size"     : 1e-8 
+                "step_size"     : 1e-8
         }],
         "constraints" : [],
         "design_variables" : {
