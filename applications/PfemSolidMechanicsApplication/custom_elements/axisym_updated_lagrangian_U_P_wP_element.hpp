@@ -97,7 +97,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
          /**
           * clones the selected element variables, creating a new one
@@ -106,7 +106,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
          //************* GETTING METHODS
 
@@ -116,27 +116,27 @@ namespace Kratos
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
           */
-         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rResult the ID's of the element degrees of freedom
           */
-         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rValues the nodal displacements
           */
-         void GetValuesVector(Vector& rValues, int Step = 0);
+         void GetValuesVector(Vector& rValues, int Step = 0) override;
 
          /**
           * Sets on rValues the nodal velocities
           */
-         void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+         void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
          /**
           * Sets on rValues the nodal accelerations
           */
-         void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
          //************************************************************************************
@@ -148,7 +148,7 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo);
+         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
          ///@}
          ///@name Access
@@ -188,7 +188,7 @@ namespace Kratos
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                GeneralVariables& rVariables,
-               double& rIntegrationWeight);
+               double& rIntegrationWeight) override;
 
          /**
           * Calculation and addition of the vectors of the RHS
@@ -197,12 +197,12 @@ namespace Kratos
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                GeneralVariables& rVariables,
                Vector& rVolumeForce,
-               double& rIntegrationWeight);
+               double& rIntegrationWeight) override;
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculation of the geometric terms due to the water pressure 
@@ -259,7 +259,7 @@ namespace Kratos
                GeneralVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight
-               );
+               ) override;
 
 
          /**
@@ -268,7 +268,7 @@ namespace Kratos
          virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                GeneralVariables & rVariables,
                double& rIntegrationWeight
-               );
+               ) override;
 
 
          /**
@@ -277,7 +277,7 @@ namespace Kratos
          virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
                GeneralVariables & rVariables,
                double& rIntegrationWeight
-               );
+               ) override;
 
          /**
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
@@ -285,7 +285,7 @@ namespace Kratos
          virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
                GeneralVariables & rVariables,
                double& rIntegrationWeight
-               );
+               ) override;
 
          /**
           * Calculation of the Mass Balance ( ie water pressure equation)
@@ -307,13 +307,13 @@ namespace Kratos
           */
          void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                VectorType& rRightHandSideVector,
-               Flags& rCalculationFlags);
+               Flags& rCalculationFlags) override;
 
 
          /**
           * Calculation of the Volume Change of the Element
           */
-         virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+         virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables) override;
 
 
          void GetConstants( double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);
@@ -362,9 +362,9 @@ namespace Kratos
 
          // A private default constructor necessary for serialization
 
-         virtual void save(Serializer& rSerializer) const;
+         virtual void save(Serializer& rSerializer) const override;
 
-         virtual void load(Serializer& rSerializer);
+         virtual void load(Serializer& rSerializer) override;
 
 
          ///@name Private Inquiry
