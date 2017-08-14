@@ -72,7 +72,7 @@ namespace Kratos
          };
 
          /// Clone.
-         virtual ConstitutiveModel::Pointer Clone() const
+         virtual ConstitutiveModel::Pointer Clone() const override
          {
             return ( HenckyHyperElasticModel::Pointer( new HenckyHyperElasticModel(*this)) );
          };
@@ -174,7 +174,7 @@ namespace Kratos
          ///@name Protected Operations
          ///@{
 
-         virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables)    
+         virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override
          {
             KRATOS_TRY
 

@@ -106,7 +106,7 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition)
+    virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
 
@@ -141,7 +141,7 @@ namespace Kratos
     //*************************************************************************************
     //*************************************************************************************
     // evaluation of the derivative of the yield surface respect the stresses
-    virtual VectorType& CalculateDeltaStressYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition)
+    virtual VectorType& CalculateDeltaStressYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition) override
     {
       KRATOS_TRY
 
@@ -186,7 +186,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "ModifiedCamClayYieldSurface" ;
@@ -194,13 +194,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "ModifiedCamClayYieldSurface";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "ModifiedCamClayYieldSurface Data";
     }
@@ -281,12 +281,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }

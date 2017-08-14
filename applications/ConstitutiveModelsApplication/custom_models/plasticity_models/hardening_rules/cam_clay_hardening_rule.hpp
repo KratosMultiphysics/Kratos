@@ -49,6 +49,7 @@ namespace Kratos
   protected:
 
     constexpr static std::size_t VarSize = 5;
+    
   public:
     
     typedef InternalVariables<VarSize>   InternalVariablesType;
@@ -90,13 +91,13 @@ namespace Kratos
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening);
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //no override
 
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening);
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //no override
 
 
     ///@}
@@ -145,7 +146,6 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -162,23 +162,19 @@ namespace Kratos
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 
   private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -188,11 +184,9 @@ namespace Kratos
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
