@@ -91,13 +91,13 @@ namespace Kratos
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //no override
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //no override it must hide the method
 
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //no override
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //no override it must hide the method
 
 
     ///@}
