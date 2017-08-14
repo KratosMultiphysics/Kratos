@@ -96,13 +96,13 @@ public:
     // --------------------------------------------------------------------------
     void SetIntegrationMethod( Parameters& optimizationSettings )
     {
-        std::string integration_method = optimizationSettings["design_variables"]["integration"]["integration_method"].GetString();
+        std::string integration_method = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString();
         if (integration_method.compare("area_weighted_sum") == 0)
             mAreaWeightedNodeSum = true;
         else if (integration_method.compare("gauss_integration") == 0)
         {
             mAreaWeightedNodeSum = false;
-            int number_of_gauss_points = optimizationSettings["design_variables"]["integration"]["number_of_gauss_points"].GetInt();
+            int number_of_gauss_points = optimizationSettings["design_variables"]["filter"]["integration"]["number_of_gauss_points"].GetInt();
             if (number_of_gauss_points == 1)
                 mIntegrationMethod = GeometryData::GI_GAUSS_1;
             else if (number_of_gauss_points == 2)
