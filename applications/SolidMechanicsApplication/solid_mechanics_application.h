@@ -46,6 +46,8 @@
 
 #include "custom_conditions/surface_load_condition.hpp"
 
+#include "custom_conditions/elastic_condition.hpp"
+
 //elements
 #include "custom_elements/linear_solid_element.hpp"
 

@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/point_elastic_constraint_condition.hpp"
+#include "custom_conditions/boundary_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -22,15 +22,15 @@ namespace Kratos
 /**
  * Flags related to the condition computation
  */
-KRATOS_CREATE_LOCAL_FLAG( PointElasticConstraintCondition, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( PointElasticConstraintCondition, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( PointElasticConstraintCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( PointElasticConstraintCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
+KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
+KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
 //***********************************************************************************
 //***********************************************************************************
-PointElasticConstraintCondition::PointElasticConstraintCondition()
+BoundaryCondition::BoundaryCondition()
     : Condition()
 {
   //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -39,7 +39,7 @@ PointElasticConstraintCondition::PointElasticConstraintCondition()
 
 //***********************************************************************************
 //***********************************************************************************
-PointElasticConstraintCondition::PointElasticConstraintCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+BoundaryCondition::BoundaryCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -47,50 +47,54 @@ PointElasticConstraintCondition::PointElasticConstraintCondition(IndexType NewId
 
 //***********************************************************************************
 //***********************************************************************************
-PointElasticConstraintCondition::PointElasticConstraintCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+BoundaryCondition::BoundaryCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
+
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+
     //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
 //************************************************************************************
-PointElasticConstraintCondition::PointElasticConstraintCondition( PointElasticConstraintCondition const& rOther )
+BoundaryCondition::BoundaryCondition( BoundaryCondition const& rOther )
     : Condition(rOther)
-
+    ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)      
 {
 }
 
 //***********************************************************************************
 //***********************************************************************************
-Condition::Pointer PointElasticConstraintCondition::Create(
+Condition::Pointer BoundaryCondition::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PointElasticConstraintCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new BoundaryCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Condition::Pointer PointElasticConstraintCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Condition::Pointer BoundaryCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
+  std::cout<<" Call base class BOUNDARY CONDITION Clone "<<std::endl;
   
-  PointElasticConstraintCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+  BoundaryCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
   NewCondition.SetData(this->GetData());
   NewCondition.SetFlags(this->GetFlags());
 
   
-  return Condition::Pointer( new PointElasticConstraintCondition(NewCondition) );
+  return Condition::Pointer( new BoundaryCondition(NewCondition) );
 }
 
 
 //***********************************************************************************
 //***********************************************************************************
-PointElasticConstraintCondition::~PointElasticConstraintCondition()
+BoundaryCondition::~BoundaryCondition()
 {
 }
 
@@ -99,7 +103,7 @@ PointElasticConstraintCondition::~PointElasticConstraintCondition()
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::GetDofList(DofsVectorType& rConditionDofList,
+void BoundaryCondition::GetDofList(DofsVectorType& rConditionDofList,
 				    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -123,7 +127,7 @@ void PointElasticConstraintCondition::GetDofList(DofsVectorType& rConditionDofLi
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::EquationIdVector(EquationIdVectorType& rResult,
+void BoundaryCondition::EquationIdVector(EquationIdVectorType& rResult,
 					  ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -151,7 +155,7 @@ void PointElasticConstraintCondition::EquationIdVector(EquationIdVectorType& rRe
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::GetValuesVector(Vector& rValues, int Step)
+void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -174,7 +178,7 @@ void PointElasticConstraintCondition::GetValuesVector(Vector& rValues, int Step)
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -197,7 +201,7 @@ void PointElasticConstraintCondition::GetFirstDerivativesVector( Vector& rValues
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -218,10 +222,36 @@ void PointElasticConstraintCondition::GetSecondDerivativesVector( Vector& rValue
 }
 
 
+//************************************************************************************
+//************************************************************************************
+void BoundaryCondition::InitializeExplicitContributions()
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(FORCE_RESIDUAL) ){
+	  
+	  array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+	  array_1d<double, 3 > & ResidualForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+  
+	  GetGeometry()[i].SetLock();
+	  ExternalForce.clear();
+	  ResidualForce.clear();
+	  GetGeometry()[i].UnSetLock();
+
+	}
+
+      }
+
+    KRATOS_CATCH( "" )
+}
+
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::AddExplicitContribution(const VectorType& rRHS, 
+void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS, 
 						 const Variable<VectorType>& rRHSVariable,
 						 Variable<array_1d<double,3> >& rDestinationVariable, 
 						 const ProcessInfo& rCurrentProcessInfo)
@@ -276,7 +306,7 @@ void PointElasticConstraintCondition::AddExplicitContribution(const VectorType& 
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::Initialize()
+void BoundaryCondition::Initialize()
 {
     KRATOS_TRY
 
@@ -287,9 +317,11 @@ void PointElasticConstraintCondition::Initialize()
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+
+    InitializeExplicitContributions();
  
     KRATOS_CATCH( "" )
 }
@@ -297,7 +329,7 @@ void PointElasticConstraintCondition::InitializeSolutionStep( ProcessInfo& rCurr
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -307,9 +339,9 @@ void PointElasticConstraintCondition::InitializeNonLinearIteration( ProcessInfo&
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-							       VectorType& rRightHandSideVector,
-							       Flags& rCalculationFlags)
+void BoundaryCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+						  VectorType& rRightHandSideVector,
+						  Flags& rCalculationFlags)
 
 {
 
@@ -319,7 +351,7 @@ void PointElasticConstraintCondition::InitializeSystemMatrices(MatrixType& rLeft
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension;
 
-    if ( rCalculationFlags.Is(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
@@ -329,7 +361,7 @@ void PointElasticConstraintCondition::InitializeSystemMatrices(MatrixType& rLeft
 
 
     //resizing as needed the RHS
-    if ( rCalculationFlags.Is(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
@@ -343,8 +375,9 @@ void PointElasticConstraintCondition::InitializeSystemMatrices(MatrixType& rLeft
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void BoundaryCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
@@ -359,34 +392,20 @@ void PointElasticConstraintCondition::InitializeGeneralVariables(GeneralVariable
 
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    
+    KRATOS_CATCH( "" )
 
 }
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateKinematics(GeneralVariables& rVariables,
+void BoundaryCondition::CalculateKinematics(GeneralVariables& rVariables,
 					     const double& rPointNumber)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!", "" )
-
-    KRATOS_CATCH( "" )
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
-
-Vector& PointElasticConstraintCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
-{
-    KRATOS_TRY
-
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateVectorForce method for a force load condition ... illegal operation!!", "" )
-
-
-    return rVectorForce;
+    KRATOS_ERROR << "calling the base class CalculateKinematics method for a boundary condition... " << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -395,7 +414,7 @@ Vector& PointElasticConstraintCondition::CalculateVectorForce(Vector& rVectorFor
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 						  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -406,11 +425,6 @@ void PointElasticConstraintCondition::CalculateConditionSystem(LocalSystemCompon
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-    //force terms
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector VectorStiffness(dimension);
-    noalias(VectorStiffness) = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -423,21 +437,17 @@ void PointElasticConstraintCondition::CalculateConditionSystem(LocalSystemCompon
         double IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
 	// std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
-
        
-	//calculation of the force and the pressure loads
-	VectorForce = this->CalculateVectorForce( VectorForce, Variables );
-
-        if ( rLocalSystem.CalculationFlags.Is(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
-        if ( rLocalSystem.CalculationFlags.Is(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VectorForce, IntegrationWeight );
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
     }
@@ -453,11 +463,11 @@ void PointElasticConstraintCondition::CalculateConditionSystem(LocalSystemCompon
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
   //contributions of the stiffness matrix calculated on the reference configuration
-  if( rLocalSystem.CalculationFlags.Is( PointElasticConstraintCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+  if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
       std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
       const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
@@ -474,7 +484,7 @@ void PointElasticConstraintCondition::CalculateAndAddLHS(LocalSystemComponents& 
 
 	  if(calculated == false)
 	    {
-	      KRATOS_THROW_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rLeftHandSideVariables[i] )
+	      KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
 	    }
 
 	}
@@ -495,10 +505,10 @@ void PointElasticConstraintCondition::CalculateAndAddLHS(LocalSystemComponents& 
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVectorForce, double& rIntegrationWeight)
+void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
     //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( PointElasticConstraintCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
 
       std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
@@ -508,7 +518,7 @@ void PointElasticConstraintCondition::CalculateAndAddRHS(LocalSystemComponents& 
 	  bool calculated = false;
 	  if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
 	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVectorForce, rIntegrationWeight );
+	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
 	    calculated = true;
 	  }
 
@@ -520,7 +530,7 @@ void PointElasticConstraintCondition::CalculateAndAddRHS(LocalSystemComponents& 
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_THROW_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i] )
+	      KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
 	    }
 
 	}
@@ -530,7 +540,7 @@ void PointElasticConstraintCondition::CalculateAndAddRHS(LocalSystemComponents& 
       VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
 
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVectorForce, rIntegrationWeight );
+      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
       //std::cout<<" rRightHandSideVectorPart "<<rRightHandSideVector<<std::endl;
 
@@ -543,13 +553,13 @@ void PointElasticConstraintCondition::CalculateAndAddRHS(LocalSystemComponents& 
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
@@ -570,13 +580,13 @@ void PointElasticConstraintCondition::CalculateLeftHandSide( MatrixType& rLeftHa
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -595,14 +605,14 @@ void PointElasticConstraintCondition::CalculateRightHandSide( VectorType& rRight
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -632,14 +642,14 @@ void PointElasticConstraintCondition::CalculateRightHandSide( std::vector< Vecto
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR);
 
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
@@ -651,16 +661,13 @@ void PointElasticConstraintCondition::CalculateLocalSystem( MatrixType& rLeftHan
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-    //KRATOS_WATCH( rLeftHandSideMatrix )
-    //KRATOS_WATCH( rRightHandSideVector )
-
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
+void BoundaryCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
 					       const std::vector< Variable< MatrixType > >& rLHSVariables,
 					       std::vector< VectorType >& rRightHandSideVectors,
 					       const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -670,8 +677,8 @@ void PointElasticConstraintCondition::CalculateLocalSystem( std::vector< MatrixT
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
 
     //Initialize sizes for the system components:
@@ -681,22 +688,22 @@ void PointElasticConstraintCondition::CalculateLocalSystem( std::vector< MatrixT
     if( rRHSVariables.size() != rRightHandSideVectors.size() )
       rRightHandSideVectors.resize(rRHSVariables.size());
     
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX);
     for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
       {
 	//Note: rRightHandSideVectors.size() > 0
 	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
       }
 
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX,false);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX,false);
 
     for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
       {
 	//Note: rLeftHandSideMatrices.size() > 0
     	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
       }
-    LocalSystem.CalculationFlags.Set(PointElasticConstraintCondition::COMPUTE_LHS_MATRIX,true);
+    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX,true);
 
 
     //Set Variables to Local system components
@@ -715,7 +722,7 @@ void PointElasticConstraintCondition::CalculateLocalSystem( std::vector< MatrixT
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BoundaryCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -727,7 +734,7 @@ void PointElasticConstraintCondition::CalculateMassMatrix( MatrixType& rMassMatr
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void BoundaryCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -740,7 +747,7 @@ void PointElasticConstraintCondition::CalculateDampingMatrix( MatrixType& rDampi
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 					     GeneralVariables& rVariables,
 					     double& rIntegrationWeight)
 
@@ -756,50 +763,44 @@ void PointElasticConstraintCondition::CalculateAndAddKuug(MatrixType& rLeftHandS
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-								    GeneralVariables& rVariables,
-								    Vector& rVectorStiffness,
-								    double& rIntegrationWeight)
+void BoundaryCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+						      GeneralVariables& rVariables,
+						      double& rIntegrationWeight)
 
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    KRATOS_ERROR << "calling the base class CalculateAndAddExternalForces method for a boundary condition... " << std::endl;
 
-    // Energy Calculation:
-    Vector CurrentValueVector(dimension);
-    noalias(CurrentValueVector) = ZeroVector(dimension); 
-
-    
-    Vector ForceVector(dimension);
-    noalias(ForceVector) = ZeroVector(dimension);
-    
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        int index = dimension * i;
-
-	//current displacements
-	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-	  rRightHandSideVector[index + j] += CurrentValueVector[j] * rVectorStiffness[j] * rIntegrationWeight;
-        }
-
-	ForceVector += inner_prod(CurrentValueVector, rVectorStiffness) * rIntegrationWeight;
-    }
-
-
- 
     KRATOS_CATCH( "" )
 }
 
+
+//***********************************************************************************
+//***********************************************************************************
+
+double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
+							 GeneralVariables& rVariables,
+							 double& rIntegrationWeight)
+
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling the base class CalculateAndAddExternalEnergy method for a boundary condition... " << std::endl;
+      
+    return rEnergy;
+
+    KRATOS_CATCH( "" )
+}
+
+  
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
+void BoundaryCondition::GetNodeDeltaMovements(Vector& rValues, const int& rNode)
 {
+  KRATOS_TRY
+
   unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
   if( rValues.size() != dimension )
@@ -821,41 +822,26 @@ void PointElasticConstraintCondition::GetNodalDeltaMovements(Vector& rValues, co
 
   if( dimension == 3 )
     rValues[2] = CurrentValueVector[2] - PreviousValueVector[2];
+  
+  KRATOS_CATCH( "" )
 	
-  //take imposed values away
-  // if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_X))->IsFixed() )
-  //   rValues[0] = 0;
-  // if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Y))->IsFixed() )
-  //   rValues[1] = 0;
-
-  // if( dimension == 3 )
-  //   if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Z))->IsFixed() )
-  //     rValues[2] = 0;
-
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-Vector& PointElasticConstraintCondition::GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+Vector& BoundaryCondition::GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
 {
     KRATOS_TRY
 
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    array_1d<double,3> ArrayValue;
-    ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
     
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
 
-    for( unsigned int i=0; i<dimension; i++ )
-      {
-	rValue[i] = ArrayValue[i];
-      }
-   
-
+    rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
+    
     return rValue;
 
     KRATOS_CATCH( "" )
@@ -864,24 +850,17 @@ Vector& PointElasticConstraintCondition::GetCurrentValue(const Variable<array_1d
 //************************************************************************************
 //************************************************************************************
 
-Vector& PointElasticConstraintCondition::GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+Vector& BoundaryCondition::GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
 {
     KRATOS_TRY
 
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> ArrayValue;
-    ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
-    
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
 
-    for( unsigned int i=0; i<dimension; i++ )
-      {
-	rValue[i] = ArrayValue[i];
-      }
-   
-
+    rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
+    
     return rValue;
 
     KRATOS_CATCH( "" )
@@ -890,9 +869,9 @@ Vector& PointElasticConstraintCondition::GetPreviousValue(const Variable<array_1
 //*********************************GET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-								   std::vector<double>& rValues,
-								   const ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+						      std::vector<double>& rValues,
+						      const ProcessInfo& rCurrentProcessInfo )
 { 
     this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
@@ -900,7 +879,7 @@ void PointElasticConstraintCondition::GetValueOnIntegrationPoints( const Variabl
 //************************************************************************************
 //************************************************************************************
 
-void PointElasticConstraintCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void BoundaryCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -917,12 +896,30 @@ void PointElasticConstraintCondition::CalculateOnIntegrationPoints( const Variab
 
     if ( rVariable == EXTERNAL_ENERGY )
     {
-      
+
+      //create and initialize condition variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
       //reading integration points
-      for ( unsigned int PointNumber = 0; PointNumber < integration_points; PointNumber++ )
-        {
-	  rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
+      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+      
+      double Energy = 0;
+      double IntegrationWeight = 0;
+      
+      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+	{
+	  //compute element kinematics B, F, DN_DX ...
+	  this->CalculateKinematics(Variables,PointNumber);
+
+	  IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
+
+	  Energy = 0;
+	  
+	  Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight );	  	  
+  	  rOutput[PointNumber] = Energy;
 	}
+
     }
 
     KRATOS_CATCH( "" )
@@ -933,7 +930,7 @@ void PointElasticConstraintCondition::CalculateOnIntegrationPoints( const Variab
 //***********************************************************************************
 
 
-int PointElasticConstraintCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int BoundaryCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }
@@ -941,14 +938,21 @@ int PointElasticConstraintCondition::Check( const ProcessInfo& rCurrentProcessIn
 //***********************************************************************************
 //***********************************************************************************
 
-void PointElasticConstraintCondition::save( Serializer& rSerializer ) const
+void BoundaryCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+    int IntMethod = int(mThisIntegrationMethod);
+    rSerializer.save("IntegrationMethod",IntMethod);
+
 }
 
-void PointElasticConstraintCondition::load( Serializer& rSerializer )
+void BoundaryCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+    int IntMethod;
+    rSerializer.load("IntegrationMethod",IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
+  
 }
 
 

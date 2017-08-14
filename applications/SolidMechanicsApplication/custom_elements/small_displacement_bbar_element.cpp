@@ -460,7 +460,7 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
     // reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
-    double DomainSize = 0.0;
+    double GeometrySize = 0.0;
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
       {
 	const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -472,7 +472,7 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
 	this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
 
 	double IntegrationWeight = integration_points[PointNumber].Weight() * rVariables.detJ;
-	DomainSize += IntegrationWeight;
+	GeometrySize += IntegrationWeight;
 
 	unsigned int index = 0;
 	for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -485,7 +485,7 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
 	  }
       }
 
-    rVariables.H /= DomainSize;
+    rVariables.H /= GeometrySize;
 
     KRATOS_CATCH("")
 }

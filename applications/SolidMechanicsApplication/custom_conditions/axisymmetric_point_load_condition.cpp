@@ -96,6 +96,7 @@ namespace Kratos
     
     rVariables.Jacobian = 1.0;
 
+    this->CalculateExternalLoad(rVariables);
     
     KRATOS_CATCH( "" )
   }
@@ -142,13 +143,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymmetricPointLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  void AxisymmetricPointLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
     //contribution to external forces
 
-    LoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
+    LoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 
   }
 

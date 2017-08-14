@@ -103,17 +103,17 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  Vector& PointLoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
+  void PointLoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
   {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    if( rVectorForce.size() != dimension )
-      rVectorForce.resize(dimension,false);
+    if( rVariables.ExternalVectorValue.size() != dimension )
+      rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVectorForce) = ZeroVector(dimension);
+    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
    
     //FORCE CONDITION:
     //defined on condition
@@ -122,7 +122,7 @@ namespace Kratos
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
 	}
     }
     
@@ -135,7 +135,7 @@ namespace Kratos
 	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVectorForce[k] += rVariables.N[i] * PointLoads[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoads[counter+k];
 	    }
 	  
 	}
@@ -147,12 +147,10 @@ namespace Kratos
 	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ){
 	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
  
 	}
       }
-
-     return rVectorForce;
 
     KRATOS_CATCH( "" )
   }
@@ -167,6 +165,8 @@ namespace Kratos
     KRATOS_TRY
 
     rVariables.Jacobian = 1.0;
+
+    this->CalculateExternalLoad(rVariables);
 
     KRATOS_CATCH( "" )
   }
@@ -185,12 +185,6 @@ namespace Kratos
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
     //reading integration points
-
-    //force terms
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector VectorForce(dimension);
-    noalias(VectorForce) = ZeroVector(dimension);
-
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
       {
         //compute element kinematics B, F, DN_DX ...
@@ -199,18 +193,16 @@ namespace Kratos
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = 1;
 
-        if ( rLocalSystem.CalculationFlags.Is(PointLoadCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
 	  }
 
-        if ( rLocalSystem.CalculationFlags.Is(PointLoadCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
-            //contribution to external forces
-   	    VectorForce  = this->CalculateVectorForce( VectorForce, Variables );
-	 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VectorForce, IntegrationWeight );
+ 
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 	  }
 
       }

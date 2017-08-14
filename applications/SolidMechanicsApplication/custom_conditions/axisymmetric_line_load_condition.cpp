@@ -108,9 +108,12 @@ namespace Kratos
     //Set Shape Functions Values for this integration point
     rVariables.N =row( Ncontainer, rPointNumber);
 
-    //Get domain size
-    rVariables.DomainSize = GetGeometry().Length();
+    //Get geometry size
+    rVariables.GeometrySize = GetGeometry().Length();
 
+    //Get external load
+    this->CalculateExternalLoad(rVariables);
+    
     //Calculate radius
     CalculateRadius ( rVariables.CurrentRadius,  rVariables.ReferenceRadius, rVariables.N);
     
@@ -182,13 +185,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymmetricLineLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  void AxisymmetricLineLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
     //contribution to external forces
 
-    LoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
+    LoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 
   }
 

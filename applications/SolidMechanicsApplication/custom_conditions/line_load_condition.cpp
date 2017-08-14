@@ -217,8 +217,11 @@ namespace Kratos
     //Set Shape Functions Derivatives [dN/d£] for this integration point
     rVariables.DN_De = DN_De[rPointNumber];
 
-    //Get domain size
-    rVariables.DomainSize = GetGeometry().Length();
+    //Get geometry size
+    rVariables.GeometrySize = GetGeometry().Length();
+
+    //Get external load
+    this->CalculateExternalLoad(rVariables);
     
     KRATOS_CATCH( "" )
   }
@@ -227,7 +230,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  Vector& LineLoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
+  void LineLoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
   {
 
     KRATOS_TRY
@@ -235,38 +238,38 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     
-    if( rVectorForce.size() != dimension )
-      rVectorForce.resize(dimension,false);
+    if( rVariables.ExternalVectorValue.size() != dimension )
+      rVariables.ExternalVectorValue.resize(dimension,false);
 
-    noalias(rVectorForce) = ZeroVector(dimension);
+    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
-    rVectorForce = rVariables.Normal;
-    rVariables.Pressure = 0.0;
+    rVariables.ExternalVectorValue = rVariables.Normal;
+    rVariables.ExternalScalarValue = 0.0;
 
     //defined on condition
     if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
       double& NegativeFacePressure = this->GetValue( NEGATIVE_FACE_PRESSURE );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.Pressure += rVariables.N[i] * NegativeFacePressure;
+	rVariables.ExternalScalarValue += rVariables.N[i] * NegativeFacePressure;
     }
 
     if( this->Has( POSITIVE_FACE_PRESSURE ) ){
       double& PositiveFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.Pressure -= rVariables.N[i] * PositiveFacePressure;
+	rVariables.ExternalScalarValue -= rVariables.N[i] * PositiveFacePressure;
     }
 
     //defined on condition nodes
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
-	  rVariables.Pressure += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
+	  rVariables.ExternalScalarValue += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
 	if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
-	  rVariables.Pressure -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );     
+	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );     
       }
     
-    rVectorForce *= rVariables.Pressure;
+    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
    
     //FORCE CONDITION:
     
@@ -276,7 +279,7 @@ namespace Kratos
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
 	}
     }
 
@@ -289,7 +292,7 @@ namespace Kratos
 	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVectorForce[k] += rVariables.N[i] * LineLoads[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter+k];
 	    }
 	  
 	}
@@ -301,12 +304,9 @@ namespace Kratos
 	if( GetGeometry()[i].SolutionStepsDataHas( LINE_LOAD ) ){
 	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( LINE_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
 	}
       }
-
-
-    return rVectorForce;
 
     KRATOS_CATCH( "" )
   }
@@ -325,7 +325,7 @@ namespace Kratos
 
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       
-      if( rVariables.Pressure == 0 )
+      if( rVariables.ExternalScalarValue == 0 )
 	{
 	  unsigned int size = GetGeometry().PointsNumber() * dimension;
 	  if(rLeftHandSideMatrix.size1() != size )
@@ -359,7 +359,7 @@ namespace Kratos
 		  {
 		    ColIndex = j * 2;
 		
-		    DiscretePressure = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
+		    DiscretePressure = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
 		    Kij = DiscretePressure * SkewSymmMatrix;
 		
 		    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );

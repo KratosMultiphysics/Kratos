@@ -155,13 +155,13 @@ protected:
      * Calculation of the Total Position Increment
      */
     virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-    
+
     /**
-     * Calculation of the Vector Force of the Condition
+     * Calculate the External Load of the Condition
      */
-    virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
+    virtual void CalculateExternalLoad(GeneralVariables& rVariables);
 
-
+ 
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */

@@ -157,7 +157,6 @@ protected:
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
-                                    Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
     /**

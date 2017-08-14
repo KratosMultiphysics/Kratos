@@ -152,8 +152,7 @@ protected:
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+				    double& rIntegrationWeight);
 
     /**
      * Calculation of the contidion radius (axisymmetry)

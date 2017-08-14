@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -12,15 +12,16 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/load_condition.hpp"
+#include "custom_conditions/elastic_condition.hpp"
 
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
 //***********************************************************************************
 //***********************************************************************************
-LoadCondition::LoadCondition()
+ElasticCondition::ElasticCondition()
     : BoundaryCondition()
 {
   //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -29,7 +30,7 @@ LoadCondition::LoadCondition()
 
 //***********************************************************************************
 //***********************************************************************************
-LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+ElasticCondition::ElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : BoundaryCondition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -37,90 +38,87 @@ LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
 
 //***********************************************************************************
 //***********************************************************************************
-LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+ElasticCondition::ElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BoundaryCondition(NewId, pGeometry, pProperties)
 {
-
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-
     //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
 //************************************************************************************
-LoadCondition::LoadCondition( LoadCondition const& rOther )
+ElasticCondition::ElasticCondition( ElasticCondition const& rOther )
     : BoundaryCondition(rOther)
+
 {
 }
 
 //***********************************************************************************
 //***********************************************************************************
-Condition::Pointer LoadCondition::Create(IndexType NewId,
-					 NodesArrayType const& ThisNodes,
-					 PropertiesType::Pointer pProperties) const
+Condition::Pointer ElasticCondition::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new ElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Condition::Pointer LoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Condition::Pointer ElasticCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  std::cout<<" Call base class LOAD CONDITION Clone "<<std::endl;
   
-  LoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+  ElasticCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
   NewCondition.SetData(this->GetData());
   NewCondition.SetFlags(this->GetFlags());
 
   
-  return Condition::Pointer( new LoadCondition(NewCondition) );
+  return Condition::Pointer( new ElasticCondition(NewCondition) );
 }
 
 
 //***********************************************************************************
 //***********************************************************************************
-LoadCondition::~LoadCondition()
+ElasticCondition::~ElasticCondition()
 {
 }
+
+
 
 //************* COMPUTING  METHODS
 //************************************************************************************
 //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
+//***********************************************************************************
+//***********************************************************************************
 
-void LoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void ElasticCondition::CalculateExternalStiffness(GeneralVariables& rVariables)
 {
     KRATOS_TRY
 
-    BoundaryCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
+    //const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    
+    if( rVariables.ExternalVectorValue.size() != dimension )
+      rVariables.ExternalVectorValue.resize(dimension,false);
+
+    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+
+    rVariables.ExternalScalarValue = 0.0;
+
+    // the elasticity modulus from the elastic constraint must be read.
     
     KRATOS_CATCH( "" )
 }
 
-
 //***********************************************************************************
 //***********************************************************************************
 
-void LoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
-{
-    KRATOS_TRY
-      
-    KRATOS_ERROR << "calling the base class CalculateExternalLoad method for a load condition... " << std::endl;
-    
-    KRATOS_CATCH( "" )
-}
-  
-//***********************************************************************************
-//***********************************************************************************
-
-void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						  GeneralVariables& rVariables,
-						  double& rIntegrationWeight)
+void ElasticCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+						     GeneralVariables& rVariables,
+						     double& rIntegrationWeight)
 
 {
     KRATOS_TRY
@@ -128,33 +126,37 @@ void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVect
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    Vector CurrentValueVector(dimension);
+    noalias(CurrentValueVector) = ZeroVector(dimension); 
+
     int index = 0;
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         index = dimension * i;
-	
+
+	//current displacements
+	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
+	  rRightHandSideVector[index + j] += CurrentValueVector[j] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
         }
 
     }
 
-    //std::cout<<" ExternalForces ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
-
     KRATOS_CATCH( "" )
 }
-  
+
 //***********************************************************************************
 //***********************************************************************************
 
-double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
-						     GeneralVariables& rVariables,
-						     double& rIntegrationWeight)
+double& ElasticCondition::CalculateAndAddExternalEnergy(double& rEnergy,
+							GeneralVariables& rVariables,
+							double& rIntegrationWeight)
 
 {
     KRATOS_TRY
-
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -171,32 +173,38 @@ double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
 	Displacements += rVariables.N[i] * CurrentValueVector;
       }
     //------
-
+    
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-	ForceVector += rVariables.N[i] * rVariables.ExternalVectorValue * rIntegrationWeight;
+ 	//current displacements
+	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+	
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+	  ForceVector[j] += CurrentValueVector[j] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
+        }
     }
-
+    
     rEnergy += inner_prod( ForceVector, Displacements );
-
+    
     return rEnergy;
 
     KRATOS_CATCH( "" )
 }
 
-
-
+  
 //***********************************************************************************
 //***********************************************************************************
 
-void LoadCondition::save( Serializer& rSerializer ) const
+void ElasticCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BoundaryCondition )
 }
 
-void LoadCondition::load( Serializer& rSerializer )
+void ElasticCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BoundaryCondition )
 }
