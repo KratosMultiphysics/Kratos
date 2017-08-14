@@ -46,7 +46,7 @@ def CreateMapper( designSurface, optimizationSettings ):
     }""")
 
     # overwrite the default settings with user-provided parameters
-    optimizationSettings["design_variables"].ValidateAndAssignDefaults(default_settings)
+    optimizationSettings["design_variables"].RecursivelyValidateAndAssignDefaults(default_settings)
 
     isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["filter"]["matrix_free_filtering"].GetBool()
     integrationMethod = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString()
