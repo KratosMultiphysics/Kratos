@@ -52,7 +52,7 @@ def CreateMapper( designSurface, optimizationSettings ):
     integrationMethod = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString()
     if isMatrixFreeMappingRequired:
         if optimizationSettings["design_variables"]["consistent_mapping_to_geometry_space"].GetBool():
-             raise ValueError ("Matrix free Mapper has now  consistent_mapping_to_geometry_space option yet!")
+             raise ValueError ("Matrix free Mapper has no consistent_mapping_to_geometry_space option yet!")
         if integrationMethod != "node_sum":
              raise ValueError ("Matrix free Mapper can only be combined with 'node_sum' integration method!")
         else:
