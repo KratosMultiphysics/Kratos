@@ -62,9 +62,9 @@ void  AddCustomUtilitiesToPython()
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
 
-    class_<MapperVertexMorphingIntegration, bases<Process> >("MapperVertexMorphingIntegration", init<ModelPart&, Parameters&>())
-        .def("MapToDesignSpace", &MapperVertexMorphingIntegration::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingIntegration::MapToGeometrySpace)
+    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
 
 
@@ -130,12 +130,12 @@ void  AddCustomUtilitiesToPython()
     class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &UniversalFileIO::initializeLogging)
         .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;           
-     
+        ;
+
     class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &VTKFileIO::initializeLogging)
         .def("logNodalResults", &VTKFileIO::logNodalResults)
-        ;           
+        ;
 }
 
 

@@ -59,7 +59,7 @@ def CreateMapper( designSurface, optimizationSettings ):
             return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )
     else:
         if integrationMethod in ["gauss_integration", "area_weighted_sum"]:
-            return MapperVertexMorphingIntegration( designSurface, optimizationSettings )
+            return MapperVertexMorphingImprovedIntegration( designSurface, optimizationSettings )
         elif integrationMethod == "node_sum":
             return MapperVertexMorphing( designSurface, optimizationSettings )
         else:

@@ -5,11 +5,12 @@
 //                   license: ShapeOptimizationApplication/license.txt
 //
 //  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
 
-#ifndef MAPPER_VERTEX_MORPHING_INTEGRATION_H
-#define MAPPER_VERTEX_MORPHING_INTEGRATION_H
+#ifndef MAPPER_VERTEX_MORPHING_IMPROVED_INTEGRATION_H
+#define MAPPER_VERTEX_MORPHING_IMPROVED_INTEGRATION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -56,21 +57,21 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MapperVertexMorphingIntegration : public MapperVertexMorphing
+class MapperVertexMorphingImprovedIntegration : public MapperVertexMorphing
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MapperVertexMorphingIntegration
-    KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingIntegration);
+    /// Pointer definition of MapperVertexMorphingImprovedIntegration
+    KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingImprovedIntegration);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingIntegration( ModelPart& designSurface, Parameters& optimizationSettings )
+    MapperVertexMorphingImprovedIntegration( ModelPart& designSurface, Parameters& optimizationSettings )
         : MapperVertexMorphing(designSurface, optimizationSettings)
     {
         SetIntegrationMethod(optimizationSettings);
@@ -78,7 +79,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MapperVertexMorphingIntegration()
+    virtual ~MapperVertexMorphingImprovedIntegration()
     {
     }
 
@@ -266,13 +267,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "MapperVertexMorphingIntegration";
+        return "MapperVertexMorphingImprovedIntegration";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "MapperVertexMorphingIntegration";
+        rOStream << "MapperVertexMorphingImprovedIntegration";
     }
 
     /// Print object's data.
@@ -366,15 +367,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      MapperVertexMorphingIntegration& operator=(MapperVertexMorphingIntegration const& rOther);
+//      MapperVertexMorphingImprovedIntegration& operator=(MapperVertexMorphingImprovedIntegration const& rOther);
 
     /// Copy constructor.
-//      MapperVertexMorphingIntegration(MapperVertexMorphingIntegration const& rOther);
+//      MapperVertexMorphingImprovedIntegration(MapperVertexMorphingImprovedIntegration const& rOther);
 
 
     ///@}
 
-}; // Class MapperVertexMorphingIntegration
+}; // Class MapperVertexMorphingImprovedIntegration
 
 ///@}
 
@@ -391,4 +392,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // MAPPER_VERTEX_MORPHING_INTEGRATION_H
+#endif // MAPPER_VERTEX_MORPHING_IMPROVED_INTEGRATION_H
