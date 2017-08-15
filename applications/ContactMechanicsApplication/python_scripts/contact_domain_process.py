@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics 
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -83,7 +83,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
 
         # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
+        if( self.main_model_part.ProcessInfo[KratosPfem.INITIALIZED_DOMAINS] == False ):
             import domain_utilities
             domain_utils = domain_utilities.DomainUtilities()
             domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
@@ -96,7 +96,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
-        meshing_step_performed = self.main_model_part.ProcessInfo[KratosPfemBase.MESHING_STEP_PERFORMED]
+        meshing_step_performed = self.main_model_part.ProcessInfo[KratosPfem.MESHING_STEP_PERFORMED]
         restart_performed = self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
         #if( not restart_performed ):
         if(self.IsMeshingStep() or meshing_step_performed):

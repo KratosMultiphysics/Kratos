@@ -3,12 +3,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosPfemFluidDynamicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication )
 
-if(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_BASE_APPLICATION=ON in the configure file.")
-endif(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
+if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
+    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
+endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
+
+if(NOT (${PFEM_APPLICATION} MATCHES "ON"))
+    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
+endif(NOT (${PFEM_APPLICATION} MATCHES "ON"))
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
@@ -18,7 +22,7 @@ endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3.lib/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
   include_directories( ${TETGEN_INSTALL_DIR} )
   link_directories( ${TETGEN_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
@@ -46,7 +50,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemFluidDynamicsApplication SHARED ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore)
-target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemBaseApplication)
+target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemApplication)
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )

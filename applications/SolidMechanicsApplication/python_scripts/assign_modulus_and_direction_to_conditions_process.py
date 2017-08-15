@@ -53,7 +53,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
         if( (type(self.var) != KratosMultiphysics.VectorVariable) and (type(self.var) != KratosMultiphysics.Array1DVariable3) ):
-            raise Exception("Variable type is incorrect. Must be a vector or a array_1d vector.")
+            raise Exception("Variable type is incorrect. Must be a vector or an array_1d vector.")
 
         self.model_part    = Model[self.settings["model_part_name"].GetString()]
         self.variable_name = self.settings["variable_name"].GetString()
@@ -64,8 +64,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         if( self.settings["interval"][1].IsString() ):
             if( self.settings["interval"][1].GetString() == "End" ):
                 self.interval.append(sys.float_info.max)
-            elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
-                self.interval.append(self.settings["interval"][1].GetDouble());
+        elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
+            self.interval.append(self.settings["interval"][1].GetDouble());
 
         if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])

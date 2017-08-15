@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
@@ -110,7 +110,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
     def SetRefiningParameters(self):   #no refine in the contact domain
 
         # Create RefiningParameters
-        self.RefiningParameters = KratosPfemBase.RefiningParameters()
+        self.RefiningParameters = KratosPfem.RefiningParameters()
         self.RefiningParameters.Initialize()
 
         # parameters

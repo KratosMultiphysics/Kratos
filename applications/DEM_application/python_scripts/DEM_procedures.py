@@ -34,6 +34,7 @@ class MdpaCreator(object):
         self.DEM_parameters = DEM_parameters
         self.current_path = path
 
+
         # Creating necessary directories
 
         self.post_mdpas = os.path.join(str(self.current_path), str(self.DEM_parameters.problem_name) + '_post_mdpas')
@@ -92,7 +93,7 @@ class SetOfModelParts(object):
         self.cluster_model_part    = self.Get("ClusterPart")
         self.DEM_inlet_model_part  = self.Get("DEMInletPart")
         self.mapping_model_part    = self.Get("MappingPart")
-        self.contact_model_part    = self.Get("ContactPart")
+        self.contact_model_part    = self.Get("ContactPart")        
 
     def ComputeMaxIds(self):
 
@@ -113,8 +114,12 @@ class SetOfModelParts(object):
     def Get(self, name):
         return self.model_parts[name]
 
-    def Add(self, model_part):
-        self.model_parts[model_part.Name] = model_part
+    def Add(self, model_part, name = None):
+        if name != None:
+            self.model_parts[name] = model_part
+        else:
+            self.model_parts[model_part.Name] = model_part
+            
         self.mp_list.append(model_part)
         
 class GranulometryUtils(object):
@@ -333,6 +338,7 @@ class Procedures(object):
 
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
+        self.aux = AuxiliaryUtilities()
         
     def SetScheme(self):
         if (self.DEM_parameters.IntegrationScheme == 'Forward_Euler'):
@@ -385,6 +391,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -492,8 +500,20 @@ class Procedures(object):
         if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
+
     def AddMpiVariables(self, model_part):
         pass
+
+    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part):
+        pass
+        # no fa falta inicialitzar els valors nodals
+
+        for mesh_number in range(0, spheres_model_part.NumberOfSubModelParts()):
+            mesh_nodes = self.aux.GetIthSubModelPartNodes(spheres_model_part,mesh_number)
+
+            for node in mesh_nodes:
+                node.SetSolutionStepValue(NORMAL_IMPACT_VELOCITY, 0.0)
+                node.SetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY, 0.0)
     
     def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
         spheres_model_part.SetBufferSize(spheres_b_size)
@@ -1274,12 +1294,18 @@ class MaterialTest(object):
 
 class MultifileList(object):
 
-    def __init__(self, post_path, name, step):
+    def __init__(self, post_path, name, step, which_folder):
         os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
-        self.file = open("_list_" + self.name + "_" + str(step) + ".post.lst","w")
+        self.which_folder = which_folder
+        if which_folder == "inner":
+            absolute_path_to_file = os.path.join(post_path, "_list_" + self.name + "_" + str(step) + ".post.lst")
+        else:
+            absolute_path_to_file = os.path.join(post_path, self.name + ".post.lst")
+            
+        self.file = open(absolute_path_to_file,"w")
 
 
 class DEMIo(object):
@@ -1337,6 +1363,8 @@ class DEMIo(object):
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
         self.PostNeighbourSize            = getattr(self.DEM_parameters, "PostNeighbourSize", 0)
         self.PostBrokenRatio              = getattr(self.DEM_parameters, "PostBrokenRatio", 0)
+        self.PostNormalImpactVelocity     = getattr(self.DEM_parameters, "PostNormalImpactVelocity", 0)
+        self.PostTangentialImpactVelocity = getattr(self.DEM_parameters, "PostTangentialImpactVelocity", 0)
 
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
@@ -1353,17 +1381,27 @@ class DEMIo(object):
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
         
-        self.multifiles = (
-            MultifileList(self.post_path, DEM_parameters.problem_name, 1),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 2),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 5),
-            MultifileList(self.post_path, DEM_parameters.problem_name,10),
-            MultifileList(self.post_path, DEM_parameters.problem_name,20),
-            MultifileList(self.post_path, DEM_parameters.problem_name,50),
+        one_level_up_path = os.path.join(self.post_path,"..")
+        self.multifiles = (            
+            MultifileList(one_level_up_path, DEM_parameters.problem_name, 1, "outer"),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 1, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 2, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 5, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name,10, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name,20, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name,50, "inner"),
             )
             
         self.SetMultifileLists(self.multifiles)
         
+        #Analytic
+        if not (hasattr(self.DEM_parameters, "PostNormalImpactVelocity")):
+            PostNormalImpactVelocity = 0
+            PostTangentialImpactVelocity = 0
+        else:
+            PostNormalImpactVelocity = Var_Translator(self.DEM_parameters.PostNormalImpactVelocity)
+            PostTangentialImpactVelocity = Var_Translator(self.DEM_parameters.PostTangentialImpactVelocity)
+
         # Ice
         if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
             self.SeaSurfaceX1 = self.DEM_parameters.PostVirtualSeaSurfaceX1
@@ -1409,6 +1447,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
 
+
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
@@ -1430,6 +1469,8 @@ class DEMIo(object):
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
+        self.PushPrintVar(self.PostNormalImpactVelocity,      NORMAL_IMPACT_VELOCITY,       self.spheres_variables)
+        self.PushPrintVar(self.PostTangentialImpactVelocity,      TANGENTIAL_IMPACT_VELOCITY,   self.spheres_variables)
 
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
@@ -1539,15 +1580,22 @@ class DEMIo(object):
             if mfilelist.index == mfilelist.step:
                 
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
-                    mfilelist.file.write(os.path.join(post_path,self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.bin\n"))
+                    text_to_print = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.bin\n"
+                    if mfilelist.which_folder == "outer":
+                        path_of_file = os.path.dirname(mfilelist.file.name)                    
+                        text_to_print = os.path.join(os.path.relpath(post_path, path_of_file), text_to_print)                        
+                    mfilelist.file.write(text_to_print)                    
                 else:
-                    mfilelist.file.write(os.path.join(post_path,self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.msh\n"))
-                    mfilelist.file.write(os.path.join(post_path,self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.res\n"))
+                    text_to_print1 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.msh\n"
+                    text_to_print2 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.res\n"
+                    if mfilelist.which_folder == "outer":
+                        path_of_file = os.path.dirname(mfilelist.file.name)
+                        text_to_print1 = os.path.join(os.path.relpath(post_path, path_of_file), text_to_print1)  
+                        text_to_print2 = os.path.join(os.path.relpath(post_path, path_of_file), text_to_print2) 
+                    mfilelist.file.write(text_to_print1)
+                    mfilelist.file.write(text_to_print2)
                 self.Flush(mfilelist.file)
-                mfilelist.index = 0
-                
-                if mfilelist.step == 1:                
-                    shutil.copyfile(os.path.join(post_path,mfilelist.file.name), os.path.join(post_path,"..",mfilelist.name+".post.lst"))
+                mfilelist.index = 0                                
                 
             mfilelist.index += 1
             

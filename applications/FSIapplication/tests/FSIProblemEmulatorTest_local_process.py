@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.FSIApplication as KratosFSI
 
 KratosMultiphysics.CheckForPreviousImport()
@@ -16,36 +16,36 @@ def Factory(settings, Model):
     return ApplyLocalProcess(Model, settings["Parameters"])
 
 class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
-  
+
     def __init__(self,model_part,params):
 
         self.punctual_load_submodelpart = model_part[params["model_part_name"].GetString()]
         self.params = params
         self.updater = 1.5
 
-        
+
     def ExecuteInitialize(self):
-        
+
         # Set the initial punctual load value
         for node in self.punctual_load_submodelpart.Nodes:
-            node.SetSolutionStepValue(KratosSolid.POINT_LOAD_X, 0, self.params["point_load_value"].GetDouble())
-                
-        
+            node.SetSolutionStepValue(KratosStructural.POINT_LOAD_X, 0, self.params["point_load_value"].GetDouble())
+
+
     def ExecuteBeforeSolutionLoop(self):
         pass
 
-    
+
     def ExecuteInitializeSolutionStep(self):
-                
+
         # Set the initial punctual load value
         for node in self.punctual_load_submodelpart.Nodes:
-            node.SetSolutionStepValue(KratosSolid.POINT_LOAD_X, 0, self.updater*(self.params["point_load_value"].GetDouble()))
+            node.SetSolutionStepValue(KratosStructural.POINT_LOAD_X, 0, self.updater*(self.params["point_load_value"].GetDouble()))
 
 
     def ExecuteFinalizeSolutionStep(self):
         pass
-        
-              
+
+
     def ExecuteBeforeOutputStep(self):
         pass
 
@@ -56,4 +56,3 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
     def ExecuteFinalize(self):
         pass
-

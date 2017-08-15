@@ -9,13 +9,16 @@
         "echo_level"      : 0
     },
     "structure_solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "3D_Hook"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_3D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -45,9 +48,7 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "3D_Hook"
             },
-            "time_order"                 : 2,
-            "mesh_reform_dofs_each_step" : false,
-            "mesh_compute_reactions"     : true
+            "compute_reactions"     : true
     },    
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -65,8 +66,8 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "apply_scalar_on_conditions_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_scalar_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a scalar variable value over a condition",
         "process_name"          : "ApplyScalarOnConditionsProcess",
         "Parameters"            : {

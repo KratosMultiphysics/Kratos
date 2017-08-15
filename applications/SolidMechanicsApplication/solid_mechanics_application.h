@@ -34,10 +34,10 @@
 #include "includes/constitutive_law.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-
 #include "containers/flags.h"
 
 //conditions
+#include "custom_conditions/point_moment_3D_condition.hpp"
 #include "custom_conditions/point_load_2D_condition.hpp"
 #include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "custom_conditions/point_load_3D_condition.hpp"
@@ -52,6 +52,7 @@
 #include "custom_elements/linear_solid_element.hpp"
 
 #include "custom_elements/small_displacement_element.hpp"
+#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/axisym_small_displacement_element.hpp"
 
 #include "custom_elements/total_lagrangian_element.hpp"
@@ -60,6 +61,11 @@
 
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
+
+#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
+
+#include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D3N.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
@@ -91,19 +97,6 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_orthotropic_3D_law.hpp"
-
-#include "custom_constitutive/python_outfitted_constitutive_law.hpp"
-//#include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
-//#include "custom_constitutive/linear_elastic_plastic_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
-
-//#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_axisym_2D_law.hpp"
-
-//#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
@@ -312,6 +305,9 @@ typedef array_1d<double,6> Vector6;
    const SmallDisplacementElement mSmallDisplacementElement3D20N;
    const SmallDisplacementElement mSmallDisplacementElement3D27N;
 
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D3N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D4N;
+
    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
@@ -361,26 +357,38 @@ typedef array_1d<double,6> Vector6;
    const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement2D3N;
    const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
    const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement3D4N;
-	
+
+   //beams
+   const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
+
+
+   //shells
+   const ShellThickElement3D4N              mShellThickElement3D4N;
+   const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
+   const ShellThinElement3D3N                mShellThinElement3D3N;
+   const ShellThinElement3D3N    mShellThinCorotationalElement3D3N;
+
+   
    //conditions
-   const ForceLoadCondition                  mForceLoadCondition;
+   const ForceLoadCondition                    mForceLoadCondition;
 
    const PointLoad2DCondition              mPointLoadCondition2D1N;
    const PointLoadAxisym2DCondition  mAxisymPointLoadCondition2D1N;
    const PointLoad3DCondition              mPointLoadCondition3D1N;
+   const PointMoment3DCondition          mPointMomentCondition3D1N;
+   
+   const LineLoad2DCondition                mLineLoadCondition2D2N;
+   const LineLoad2DCondition                mLineLoadCondition2D3N;
+   const LineLoadAxisym2DCondition    mAxisymLineLoadCondition2D2N;
+   const LineLoadAxisym2DCondition    mAxisymLineLoadCondition2D3N;
+   const LineLoad3DCondition                mLineLoadCondition3D2N;
+   const LineLoad3DCondition                mLineLoadCondition3D3N;
 
-   const LineLoad2DCondition              mLineLoadCondition2D2N;
-   const LineLoad2DCondition              mLineLoadCondition2D3N;
-   const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D2N;
-   const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D3N;
-   const LineLoad3DCondition              mLineLoadCondition3D2N;
-   const LineLoad3DCondition              mLineLoadCondition3D3N;
-
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D4N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D6N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D8N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D9N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D3N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D4N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D6N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D8N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D9N;
 
 
    //constitutive laws
@@ -401,23 +409,6 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
 
-   const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw;
-
-   //Linear Elastic Plastic Laws
-   //const LinearElasticPlastic3DLaw               mLinearElasticPlastic3DLaw;
-   //const LinearElasticPlasticPlaneStrain2DLaw    mLinearElasticPlasticPlaneStrain2DLaw;
-   //const LinearElasticPlasticPlaneStress2DLaw    mLinearElasticPlasticPlaneStress2DLaw;
-
-   //Hyperelastic Plastic laws
-   //const HyperElasticPlastic3DLaw                mHyperElasticPlastic3DLaw;
-   //const HyperElasticPlasticPlaneStrain2DLaw     mHyperElasticPlasticPlaneStrain2DLaw;
-   //const HyperElasticPlasticAxisym2DLaw          mHyperElasticPlasticAxisym2DLaw;    
-
-   //Hyperelastic Plastic laws U-P
-   //const HyperElasticPlasticUP3DLaw              mHyperElasticPlasticUP3DLaw;
-   //const HyperElasticPlasticUPPlaneStrain2DLaw   mHyperElasticPlasticUPPlaneStrain2DLaw;
-   //const HyperElasticPlasticUPAxisym2DLaw        mHyperElasticPlasticUPAxisym2DLaw;    
- 
    //Hyperelastic Plastic J2 specilization laws 
    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
    const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
@@ -453,6 +444,7 @@ typedef array_1d<double,6> Vector6;
    const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
    const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
 
+   
    ///@}
    ///@name Private Operators
    ///@{

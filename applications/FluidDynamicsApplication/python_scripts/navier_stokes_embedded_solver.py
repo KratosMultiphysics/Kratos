@@ -63,7 +63,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -204,12 +205,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             print("Finished divergence clearance.")
 
 
-    def SolverInitialize(self):
-        self.DivergenceClearance()
-        (self.solver).Initialize()
-
-
-    def SolverInitializeSolutionStep(self):
+    def InitializeSolutionStep(self):
         (self.bdf_process).Execute()
         (self.solver).InitializeSolutionStep()
 

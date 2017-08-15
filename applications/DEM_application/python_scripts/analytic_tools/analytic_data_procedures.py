@@ -3,7 +3,16 @@ import h5py
 import numpy as np
 import os
 
-class WatcherAnalyzer:
+class ParticleWatcherAnalyzer:
+    def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
+        self.particle_watcher = analytic_particle_watcher
+
+    # call everytime post results are generated
+    def SetNodalMaxImpactVelocities(self, analytic_model_part):
+        self.analytic_particle_watcher.SetNodalMaxImpactVelocities(analytic_model_part)
+
+
+class FaceWatcherAnalyzer:
     def __init__(self, analytic_face_watcher, path, do_clear_data = True):
         self.face_watcher = analytic_face_watcher
         self.dtype = np.float64

@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -157,37 +157,24 @@ public:
 	{
 		KRATOS_TRY;
 
-		// Working variables / vectors
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 		m_strain_energy = 0.0;
-		Vector u;
-		Vector RHS;
 
-		// Computation of strain_energy = 1/2*u*f
-		const int nconditions = static_cast<int>(mr_model_part.Conditions().size());
-		ModelPart::ConditionsContainerType::iterator cond_begin = mr_model_part.ConditionsBegin();
-		for (int k = 0; k < nconditions; k++)
+		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
 		{
-			ModelPart::ConditionsContainerType::iterator cond_i = cond_begin + k;
+			Matrix LHS;
+			Vector RHS;
+			Vector u;
 
-			// Detect if the condition is active or not. If the user did not make any choice the element
-			// Is active by default
-			bool condition_is_active = true;
-			if ((cond_i)->IsDefined(ACTIVE))
-				condition_is_active = (cond_i)->Is(ACTIVE);
+			// Get state solution relevant for energy calculation
+			elem_i->GetValuesVector(u,0);
 
-			if (condition_is_active)
-			{
-				// Get state solution relevant for energy calculation
-				cond_i->GetValuesVector(u,0);
+			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
-				// Calculate RHS
-				cond_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
-
-				// Compute strain energy
-				m_strain_energy += 0.5 * inner_prod(RHS, u);
-			}
-		}
+			// Compute strain energy
+			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+		}	
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
@@ -195,7 +182,6 @@ public:
 			m_initial_value = m_strain_energy;
 			m_initial_value_defined = true;
 		}
-
 
 		KRATOS_CATCH("");
 	}

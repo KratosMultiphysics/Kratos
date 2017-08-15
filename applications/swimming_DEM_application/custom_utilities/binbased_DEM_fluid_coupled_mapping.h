@@ -175,6 +175,12 @@ void AddDEMVariablesToImpose(const VariableData& r_variable){
     mDEMVariablesToBeImposed.Add(r_variable);
 }
 
+void AddFluidVariableToBeTimeFiltered(const VariableData& r_variable, const double time_constant){
+    mFluidVariablesToBeTimeFiltered.Add(r_variable);
+    mAlphas[r_variable] = time_constant;
+    mIsFirstTimeFiltering[r_variable] = true;
+}
+
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
 void ImposeVelocityOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
@@ -271,6 +277,9 @@ array_1d<double, 3> mGravity;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 VariablesList mDEMVariablesToBeImposed;
+VariablesList mFluidVariablesToBeTimeFiltered;
+std::map<VariableData, double> mAlphas;
+std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
 
 FluidFieldUtility mFlowField;
@@ -284,6 +293,13 @@ VectorDistanceType mVectorsOfRadii;
 
 //***************************************************************************************************************
 //***************************************************************************************************************
+void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const VariableData *r_current_variable);
+void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<double>& r_current_variable, const Variable<double>& r_previous_averaged_variable = TIME_AVERAGED_DOUBLE);
+void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_current_variable, const Variable<array_1d<double, 3> >& r_previous_averaged_variable = TIME_AVERAGED_ARRAY_3);
+void CopyValues(ModelPart& r_model_part, const VariableData *r_origin_variable);
+void CopyValues(ModelPart& r_model_part, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable = TIME_AVERAGED_DOUBLE);
+void CopyValues(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable = TIME_AVERAGED_ARRAY_3);
+void ComputeHomogenizedFluidFraction(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part);
 void InterpolateFluidFraction(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
 void InterpolateOtherFluidVariables(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
 void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
@@ -291,6 +307,7 @@ void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, Mod
 void RecalculateDistances(ModelPart& r_dem_model_part);
 bool IsDEMVariable(const VariableData& var);
 bool IsFluidVariable(const VariableData& var);
+bool IsFluidVariableToBeTimeFiltered(const VariableData& var);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const array_1d<double, TDim + 1>& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
@@ -298,7 +315,7 @@ void Project(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<
 void Project(Element::Pointer p_elem, const array_1d<double, TDim + 1> N, Node<3>::Pointer p_node, const VariableData *r_destination_variable, double alpha);
 void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
-void ComputeHomogenizedNodalVariable(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
+void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
 void CalculateFluidFraction(ModelPart& r_fluid_model_part);
 void CalculateFluidMassFraction(ModelPart& r_fluid_model_part);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable);
@@ -316,21 +333,24 @@ void TransferWithLinearWeighing(Element::Pointer p_elem, const array_1d<double,T
 void CalculateNodalFluidFractionWithConstantWeighing(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, ParticleType& particle);
 void CalculateNodalFluidFractionWithLinearWeighing(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, ParticleType& particle);
 void CalculateNodalFluidFractionByLumpedL2Projection(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node);
-void CalculateFluidFractionGradient(ModelPart& r_model_part);
-void TransferByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, Variable<array_1d<double, 3> >& r_destination_variable, Variable<array_1d<double, 3> >& r_origin_variable);
-void CalculateNodalFluidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights);
+//void CalculateFluidFractionGradient(ModelPart& r_model_part);
+void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, Variable<array_1d<double, 3> >& r_destination_variable, Variable<array_1d<double, 3> >& r_origin_variable);
+void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights);
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor);
 void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
+void Clear(ModelPart& r_model_part, const VariableData* r_variable);
+void Clear(ModelPart& r_model_part, const Variable<double>& r_variable);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData *var);
 void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const array_1d<double, TDim + 1>& N);
 void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part);
 double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
+double inline GetAlpha(const VariableData& r_variable);
 //***************************************************************************************************************
 //***************************************************************************************************************
 

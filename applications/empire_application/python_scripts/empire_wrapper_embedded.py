@@ -4,7 +4,6 @@ from ctypes import *
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.EmpireApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 
 CheckForPreviousImport()
 

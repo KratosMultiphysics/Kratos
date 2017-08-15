@@ -1,25 +1,14 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
 
 // System includes
 
@@ -50,6 +39,7 @@
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_mat_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
 #include "includes/convection_diffusion_settings.h"
@@ -64,7 +54,7 @@
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
   scope().attr(#flag) = boost::ref(flag);		    \
- 
+
 #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #endif
@@ -299,7 +289,7 @@ void  AddContainersToPython()
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, bases<VariableData>, boost::noncopyable >( "Array1DComponentVariable", no_init )
     .def( self_ns::str( self ) )
     ;
-    
+
     class_<Variable<Quaternion<double> >, boost::noncopyable >( "DoubleQuaternionVariable", no_init )
     .def( self_ns::str( self ) )
     ;
@@ -405,6 +395,7 @@ void  AddContainersToPython()
     AddDEMVariablesToPython(); //TODO: move this to the DEM application
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
     AddALEVariablesToPython(); ///@TODO: move variables to CFD application
+    AddMATVariablesToPython(); ///@TODO: move variables to CFD application
     AddLegacyStructuralAppVarsToPython();
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE )
@@ -412,7 +403,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(COMPUTE_LUMPED_MASS_MATRIX )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_EXPANSION_COEFFICIENT )
-      
+
     // These should be moved to applications
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POWER_LAW_N )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POWER_LAW_K )
@@ -438,6 +429,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( START_TIME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( END_TIME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DELTA_TIME )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PREVIOUS_DELTA_TIME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERVAL_END_TIME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRINTED_STEP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRINTED_RESTART_STEP )
@@ -446,15 +438,13 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE_OLD_IT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DENSITY )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_AIR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_WATER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERROR_RATIO )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_STEPS )    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SCALAR_LAGRANGE_MULTIPLIER )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VECTOR_LAGRANGE_MULTIPLIER )
-    
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_LAPLACIAN )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_LAPLACIAN_RATE )
@@ -478,10 +468,10 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_NORMAL )
-      
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LINEAR_MOMENTUM )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_MOMENTUM )
-      
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VOLUME_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( SEEPAGE_DRAG )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NORMAL )
@@ -518,14 +508,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSTITUTIVE_LAW )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_VARIABLES )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATERIAL_PARAMETERS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( GREEN_LAGRANGE_STRAIN_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PK2_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CAUCHY_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CAUCHY_STRESS_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DEFORMATION_GRADIENT )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( YOUNG_MODULUS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( POISSON_RATIO )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THICKNESS )
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEGATIVE_FACE_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POSITIVE_FACE_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POROSITY )
@@ -540,7 +523,7 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( FLAG_VARIABLE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DISTANCE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DISTANCE_GRADIENT )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DISTANCE_GRADIENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INERTIA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PERIODIC_PAIR_INDEX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTITION_INDEX )
@@ -587,9 +570,13 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHAPE_DERIVATIVE_MATRIX_2 )
 
     //for electric application
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTITION_MASK )
 
+    // For MeshingApplication
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_ERROR )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
+    
     //for PFEM application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_AREA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_H )
@@ -641,6 +628,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_PAUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(FACE_HEAT_FLUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(HEAT_FLUX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(REACTION_FLUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(TC)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONDUCTIVITY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(SPECIFIC_HEAT)
@@ -709,8 +697,11 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VEL_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PR_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOUND_VELOCITY )
-            
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SEARCH_RADIUS )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_WEIGHT )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
@@ -725,7 +716,7 @@ void  AddContainersToPython()
     .def("SetTransferCoefficientVariable",&ConvectionDiffusionSettings::SetTransferCoefficientVariable)
     .def("SetSpecificHeatVariable",&ConvectionDiffusionSettings::SetSpecificHeatVariable)
     .def("SetVelocityVariable",&ConvectionDiffusionSettings::SetVelocityVariable)
-
+    .def("SetReactionVariable",&ConvectionDiffusionSettings::SetReactionVariable)
 
     .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_internal_reference<>() )
     .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_internal_reference<>() )
@@ -735,9 +726,10 @@ void  AddContainersToPython()
     .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetProjectionVariable, return_internal_reference<>() )
     .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_internal_reference<>() )
     .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
+    .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, return_internal_reference<>())
     .def("GetSpecificHeatVariable",&ConvectionDiffusionSettings::GetSpecificHeatVariable, return_internal_reference<>() )
     .def("GetVelocityVariable",&ConvectionDiffusionSettings::GetVelocityVariable, return_internal_reference<>() )
-    .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, return_internal_reference<>())
+    .def("GetReactionVariable",&ConvectionDiffusionSettings::GetReactionVariable, return_internal_reference<>() )
 
     .def("IsDefinedDensityVariable",&ConvectionDiffusionSettings::IsDefinedDensityVariable)
     .def("IsDefinedDiffusionVariable",&ConvectionDiffusionSettings::IsDefinedDiffusionVariable)
@@ -750,6 +742,7 @@ void  AddContainersToPython()
     .def("IsDefinedSpecificHeatVariable",&ConvectionDiffusionSettings::IsDefinedSpecificHeatVariable)
     .def("IsDefinedVelocityVariable",&ConvectionDiffusionSettings::IsDefinedVelocityVariable)
     .def("IsDefinedTransferCoefficientVariable",&ConvectionDiffusionSettings::IsDefinedTransferCoefficientVariable)
+    .def("IsDefinedReactionVariable",&ConvectionDiffusionSettings::IsDefinedReactionVariable)
     ;
 
     class_< RadiationSettings, RadiationSettings::Pointer, boost::noncopyable >	("RadiationSettings", init<	>() )

@@ -14,11 +14,14 @@
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_utilities/modeler_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -253,11 +256,9 @@ public:
       /* unsigned int timeStep = rCurrentProcessInfo[STEP]; */
       /* if(timeStep==1){ */
       /* 	unsigned int iter=0; */
-      /* 	this->SetActiveLabel(); */
       /* 	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations); */
       /* }else if(timeStep==2){ */
       /* 	unsigned int iter=0; */
-      /* 	this->SetActiveLabel(); */
       /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
       /* }else{ */
 
@@ -266,9 +267,6 @@ public:
 	  if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 	    std::cout << "----- > iteration: " << it << std::endl;
 
-	  if(it==0){
-	    this->SetActiveLabel();
-	  }
 
 	  momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
 
@@ -311,7 +309,7 @@ public:
     }
 
     virtual void InitializeSolutionStep(){
-
+      /* this->ResetActiveToSlivers(); */
       TimeIntervalDurationControl();
     }
 
@@ -396,7 +394,7 @@ public:
       double newTimeInterval = rCurrentProcessInfo[DELTA_TIME];
       double milestoneGap=fabs(newTimeInterval-deltaTimeToNewMilestone);
       if(milestoneGap<0.49*newTimeInterval && milestoneTimeReached==false){
-	/* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to  "<<newTimeInterval<<std::endl; */
+	/* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;*/
 	newTimeInterval+=milestoneGap;
 	rCurrentProcessInfo.SetValue(DELTA_TIME,newTimeInterval);
 	milestoneTimeReached=true;
@@ -442,7 +440,7 @@ public:
 
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
-		if(itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
+		if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
 		  const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
 		  double NormVelNode=0;
 		  for (unsigned int d = 0; d < 3; ++d){
@@ -508,22 +506,31 @@ public:
 	      bool solidElement=false;
 	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		{
-		  if(itElem->GetGeometry()[i].Is(SOLID)){
+		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
 		    solidElement=true;
 		  }
+	
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
-	      
-	      Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
-	      double newArea=myGeometry.Area();
+
+	      double newArea=0;
+	      if(itElem->GetGeometry().size()==3){
+		Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
+		newArea=myGeometry.Area();
+	      }else if(itElem->GetGeometry().size()==6){
+		Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
+		newArea=myGeometry.Area();
+	      }else{
+		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+	      }
 
 	      if(solidElement==true){
 		newArea=currentElementalArea;
 	      }
 
-	      if(newArea<0.001*currentElementalArea){
+	      if(newArea<0.001*currentElementalArea && currentElementalArea>0){
 		double reducedTimeInterval=0.5*temporaryTimeInterval;
 	      
 		if(reducedTimeInterval<temporaryTimeInterval){
@@ -544,12 +551,19 @@ public:
 
 		  }
 
-		Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		newArea=myGeometry.Area();
+		if(itElem->GetGeometry().size()==3){
+		  Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  newArea=myGeometry.Area();
+		}else if(itElem->GetGeometry().size()==6){
+		  Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  newArea=myGeometry.Area();
+		}else{
+		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+		}
 
-		if(newArea<0.001*currentElementalArea){
+		if(newArea<0.001*currentElementalArea && currentElementalArea>0){
 		  increaseTimeInterval=false;
-		  /* std::cout<<"I will not reduce the time step but I will not allow to increase it"<<std::endl; */
+		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
 		}
 
 	      }
@@ -567,15 +581,23 @@ public:
 		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
-	      
-	      Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
-	      double newVolume=myGeometry.Volume();
+
+	      double newVolume=0;
+	      if(itElem->GetGeometry().size()==4){
+		Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
+		newVolume=myGeometry.Volume();
+	      }else if(itElem->GetGeometry().size()==10){
+		Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
+		newVolume=myGeometry.Volume();
+	      }else{
+		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+	      }
 
 	      if(solidElement==true){
 		newVolume=currentElementalVolume;
 	      }
 
-	      if(newVolume<0.001*currentElementalVolume){
+	      if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
 		double reducedTimeInterval=0.5*temporaryTimeInterval;
 	      
 		if(reducedTimeInterval<temporaryTimeInterval){
@@ -595,12 +617,19 @@ public:
 		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
-		Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		newVolume=myGeometry.Volume();
+		if(itElem->GetGeometry().size()==4){
+		  Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  newVolume=myGeometry.Volume();
+		}else if(itElem->GetGeometry().size()==10){
+		  Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		  newVolume=myGeometry.Volume();
+		}else{
+		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+		}
 
-		if(newVolume<0.001*currentElementalVolume){
+		if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
 		  increaseTimeInterval=false;
-		  /* std::cout<<"I will not reduce the time step but I will not allow to increase it"<<std::endl; */
+		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
 		}
 
 
@@ -735,7 +764,7 @@ public:
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
       
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
 	   i != rModelPart.NodesEnd(); ++i)
@@ -746,37 +775,20 @@ public:
 
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	  
+	  if( i->IsFixed(DISPLACEMENT_X) == false )
+	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];	  
 
-	  this->UpdateDisplacements ( CurrentDisplacement, CurrentVelocity, PreviousDisplacement, PreviousVelocity, timeInterval);
+	  if( i->IsFixed(DISPLACEMENT_Y) == false )
+	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+
+	  if( i->IsFixed(DISPLACEMENT_Z) == false )
+	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
         }
     }
 
-    inline void UpdateDisplacements(array_1d<double, 3 > & CurrentDisplacement,
-				    const array_1d<double, 3 > & CurrentVelocity,
-				    array_1d<double, 3 > & PreviousDisplacement,
-				    const array_1d<double, 3 > & PreviousVelocity,
-				    Vector& BDFcoeffs)
-    {
-      /* noalias(PreviousDisplacement)=CurrentDisplacement; */
-      noalias(CurrentDisplacement) = -(CurrentVelocity+PreviousVelocity)/BDFcoeffs[1] + PreviousDisplacement ; 
-      // std::cout<<"rBDFCoeffs[0] is "<<BDFcoeffs[0]<<std::endl;//3/(2*delta_t)
-      // std::cout<<"rBDFCoeffs[1] is "<<BDFcoeffs[1]<<std::endl;//-2/(delta_t)
-      // std::cout<<"rBDFCoeffs[2] is "<<BDFcoeffs[2]<<std::endl;//1/(2*delta_t)
-
-    }
-
-
-    inline void UpdateDisplacements(array_1d<double, 3 > & CurrentDisplacement,
-				    const array_1d<double, 3 > & CurrentVelocity,
-				    array_1d<double, 3 > & PreviousDisplacement,
-				    const array_1d<double, 3 > &PreviousVelocity,
-				    const double timeInterval)
-    {
-      noalias(CurrentDisplacement) = 0.5*timeInterval*(CurrentVelocity+PreviousVelocity) + PreviousDisplacement ; 
-    }
-
-    void SetActiveLabel()
+    void ResetActiveToSlivers()
     {
 
 #pragma omp parallel
@@ -784,8 +796,8 @@ public:
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	ModelPart::ElementIterator ElemBegin;
 	ModelPart::ElementIterator ElemEnd;
+	ModelerUtilities ModelerUtils;
 	OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
 	    double ElementalVolume =  0;
@@ -797,14 +809,18 @@ public:
 	    }else{
 	      ElementalVolume = 0;
 	    }
-	    double CriticalVolume=-10;
-	    if(ElementalVolume<CriticalVolume){
-	      (itElem)->Reset(ACTIVE);
+	    double ModelPartVolume=ModelerUtils.ComputeModelPartVolume(rModelPart);
+	    double CriticalVolume=0.01*ModelPartVolume/double(rModelPart.Elements().size());
+
+	    if(ElementalVolume<CriticalVolume && ElementalVolume>0){
+	      (itElem)->Set(ACTIVE,false);
 	      std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
 	      std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 	    }else{
-	      (itElem)->Set(ACTIVE);
+	      (itElem)->Set(ACTIVE,true);
 	    }
+	   
+
 	  }
 
       }

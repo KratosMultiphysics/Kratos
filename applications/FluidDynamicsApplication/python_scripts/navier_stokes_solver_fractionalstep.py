@@ -76,7 +76,8 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,
-            "use_slip_conditions": true
+            "use_slip_conditions": true,
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -178,10 +179,12 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        (self.solver).Initialize()
+
         print ("Initialization NavierStokesSolver_FractionalStep finished.")
 
 
-    def SolverFinalizeSolutionStep(self):
+    def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
         if(self.compute_reactions):
             (self.solver).CalculateReactions()

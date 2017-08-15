@@ -98,7 +98,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     // CharacteristicSize (for nonlocal damage it must be 1.0)
     ReturnMappingVariables.CharacteristicSize = 1.0;
 
-    if(Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)) // LOCAL QUANTITIES
+    if(Options.Is(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE)) // LOCAL QUANTITIES
     {
         if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {
@@ -194,10 +194,8 @@ void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     ReturnMappingVariables.initialize();
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
-    Matrix AuxMatrix(Dim,Dim);
-    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-    noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize
     ReturnMappingVariables.CharacteristicSize = 1.0;
@@ -221,7 +219,7 @@ void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
     }
 }
 

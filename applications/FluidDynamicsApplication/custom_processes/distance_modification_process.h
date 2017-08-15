@@ -73,16 +73,15 @@ public:
     ///@{
 
     /// Constructor.
-    DistanceModificationProcess(ModelPart& rModelPart, const bool& rCheckAtEachStep, const bool& rRecoverOriginalDistance)
+    DistanceModificationProcess(ModelPart& rModelPart, const bool& rCheckAtEachStep, const bool& rRecoverOriginalDistance): mrModelPart(rModelPart)
     {
         mFactorCoeff = 2.0;
-        mrModelPart = rModelPart;
         mrCheckAtEachStep = rCheckAtEachStep;
         mrRecoverOriginalDistance = rRecoverOriginalDistance;
     }
 
     /// Destructor.
-    virtual ~DistanceModificationProcess(){}
+    ~DistanceModificationProcess() override{}
 
     ///@}
     ///@name Operators
@@ -156,7 +155,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceModificationProcess" ;
@@ -164,10 +163,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -185,7 +184,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart                                               mrModelPart;
+    ModelPart&                                              mrModelPart;
     double                                                 mFactorCoeff;
     bool                                              mrCheckAtEachStep;
     bool                                      mrRecoverOriginalDistance;
@@ -420,13 +419,13 @@ private:
     ///@{
 
     /// Default constructor.
-    DistanceModificationProcess(){}
+    DistanceModificationProcess() = delete;
 
     /// Assignment operator.
-    DistanceModificationProcess& operator=(DistanceModificationProcess const& rOther){return *this;}
+    DistanceModificationProcess& operator=(DistanceModificationProcess const& rOther) = delete;
 
     /// Copy constructor.
-    DistanceModificationProcess(DistanceModificationProcess const& rOther){}
+    DistanceModificationProcess(DistanceModificationProcess const& rOther) = delete;
 
 
     ///@}

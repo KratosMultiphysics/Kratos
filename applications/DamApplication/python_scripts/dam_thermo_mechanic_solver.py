@@ -202,7 +202,7 @@ class DamThermoMechanicSolver(object):
     def Initialize(self):
         
         # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosSolid.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts

@@ -243,7 +243,7 @@ void  HyperElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValue
   Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
   //2.-Green-Lagrange Strain:
-  if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+  if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
       TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_Almansi, StrainMeasure_GreenLagrange);
     }
@@ -356,6 +356,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     noalias(ElasticVariables.CauchyGreenMatrix) = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
     ElasticVariables.CauchyGreenMatrix = prod(ElasticVariables.DeformationGradientF,ElasticVariables.CauchyGreenMatrix);
 
+
     //5.-Calculate trace of Left Cauchy-Green tensor b_bar
     ElasticVariables.traceCG = 0;
     for( unsigned int i=0; i<3; i++)
@@ -366,7 +367,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     ReturnMappingVariables.LameMu_bar = ElasticVariables.LameMu * ( ElasticVariables.traceCG / 3.0  );
 
     //4.-Almansi Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
@@ -464,8 +465,15 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
       mElasticLeftCauchyGreen  = ( IsochoricStressMatrix * ( 1.0 / ElasticVariables.LameMu ) );
       mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.Identity;
-    
+
     }
+
+    
+
+    // std::cout<<" StrainVector "<<StrainVector<<std::endl;
+    // std::cout<<" StressVector "<<StressVector<<std::endl;
+    // std::cout<<" ConstitutiveMatrix "<<ConstitutiveMatrix<<std::endl;
+            
 
 }
 

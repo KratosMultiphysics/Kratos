@@ -1,4 +1,4 @@
-// //    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -115,6 +115,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, START_TIME )
   KRATOS_CREATE_VARIABLE( double, END_TIME )
   KRATOS_CREATE_VARIABLE( double, DELTA_TIME )
+  KRATOS_CREATE_VARIABLE( double, PREVIOUS_DELTA_TIME )
   KRATOS_CREATE_VARIABLE( double, INTERVAL_END_TIME )
 
   KRATOS_CREATE_VARIABLE( double, RESIDUAL_NORM )
@@ -183,7 +184,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, REACTION_AIR_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, FLAG_VARIABLE )
   KRATOS_CREATE_VARIABLE( double,  DISTANCE )
-  KRATOS_CREATE_VARIABLE( Vector3, DISTANCE_GRADIENT )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DISTANCE_GRADIENT )
 
   KRATOS_CREATE_VARIABLE( double, LAGRANGE_AIR_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, LAGRANGE_WATER_PRESSURE )
@@ -213,9 +214,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_1 )
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_2 )
 
-
-  //for Electric application
-
+  // For MeshingApplication
+  KRATOS_CREATE_VARIABLE( double, NODAL_ERROR )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
 
   //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( double, NODAL_AREA )
@@ -259,6 +260,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, NODAL_MAUX )
   KRATOS_CREATE_VARIABLE( double, NODAL_PAUX )
   KRATOS_CREATE_VARIABLE( double, HEAT_FLUX )
+  KRATOS_CREATE_VARIABLE( double, REACTION_FLUX )
   KRATOS_CREATE_VARIABLE( double, TC )
   KRATOS_CREATE_VARIABLE( double, CONDUCTIVITY )
   KRATOS_CREATE_VARIABLE( double, SPECIFIC_HEAT )
@@ -463,6 +465,9 @@ namespace Kratos
 
   KRATOS_CREATE_VARIABLE( double, SEARCH_RADIUS )
 
+  KRATOS_CREATE_VARIABLE( double, INTEGRATION_WEIGHT )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
+
   //for Vulcan application
 //   Kratos::Variable<double> LAST_AIR( "LAST AIR" );
 //   Kratos::Variable<double> PRESSURES( "PRESSURES (N/m2)" );
@@ -586,6 +591,7 @@ namespace Kratos
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
       KratosApplication::RegisterALEVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
+      KratosApplication::RegisterMATVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
       // Variables that should be moved to applications (but have too many dependencies)
@@ -615,6 +621,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( START_TIME )
       KRATOS_REGISTER_VARIABLE( END_TIME )
       KRATOS_REGISTER_VARIABLE( DELTA_TIME )
+      KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME )
       KRATOS_REGISTER_VARIABLE( INTERVAL_END_TIME )
 
       KRATOS_REGISTER_VARIABLE( RESIDUAL_NORM )
@@ -791,7 +798,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( REACTION_AIR_PRESSURE )
       KRATOS_REGISTER_VARIABLE( FLAG_VARIABLE )
       KRATOS_REGISTER_VARIABLE( DISTANCE )
-      KRATOS_REGISTER_VARIABLE( DISTANCE_GRADIENT )
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISTANCE_GRADIENT )
 
       KRATOS_REGISTER_VARIABLE( LAGRANGE_AIR_PRESSURE )
       KRATOS_REGISTER_VARIABLE( LAGRANGE_WATER_PRESSURE )
@@ -857,9 +864,11 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( SHAPE_DERIVATIVE_MATRIX_1 )
       KRATOS_REGISTER_VARIABLE( SHAPE_DERIVATIVE_MATRIX_2 )
 
-      //--------------- FOTOELECTRIC Application -------------------//
-
-
+      //--------------- Meshing ApplicationApplication -------------------//
+      
+      KRATOS_REGISTER_VARIABLE( NODAL_ERROR )
+      KRATOS_REGISTER_VARIABLE( NODAL_ERROR_COMPONENTS )
+      
       //--------------- PFEM fluids Application -------------------//
 
       KRATOS_REGISTER_VARIABLE( NODAL_AREA )
@@ -931,6 +940,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( NODAL_MAUX )
       KRATOS_REGISTER_VARIABLE( NODAL_PAUX )
       KRATOS_REGISTER_VARIABLE( HEAT_FLUX )
+      KRATOS_REGISTER_VARIABLE( REACTION_FLUX )
       KRATOS_REGISTER_VARIABLE( TC )
       KRATOS_REGISTER_VARIABLE( CONDUCTIVITY )
       KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT )
@@ -1009,6 +1019,9 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURES )
 
       KRATOS_REGISTER_VARIABLE( SEARCH_RADIUS )
+
+      KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT )
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
 //       KRATOS_REGISTER_VARIABLE( LAST_AIR )
 //       KRATOS_REGISTER_VARIABLE( PRESSURES )

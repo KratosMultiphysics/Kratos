@@ -24,7 +24,7 @@ cmake .. \
 -DMESHING_APPLICATION=ON                                                                        \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
--DPFEM_BASE_APPLICATION=ON                                                                      \
+-DPFEM_APPLICATION=ON                                                                           \
 -DCONTACT_MECHANICS_APPLICATION=ON                                                              \
 -DPFEM_FLUID_DYNAMICS_APPLICATION=ON                                                            \
 -DPFEM_SOLID_MECHANICS_APPLICATION=ON                                                           \
@@ -34,7 +34,7 @@ cmake .. \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
 -DSWIMMING_DEM_APPLICATION=ON                                                                   \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
--DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=OFF                                                  \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMKL_SOLVERS_APPLICATION=OFF                                                                   \
 -DMKLSOLVER_INCLUDE_DIR=\"UNSET\"                                                               \
