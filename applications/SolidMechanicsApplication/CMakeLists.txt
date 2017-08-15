@@ -34,6 +34,11 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_beam_emc_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_beam_semc_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geometrically_exact_rod_element.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
 
@@ -155,3 +160,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SolidMechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/beam_profiles.csv" DESTINATION KratosMultiphysics )

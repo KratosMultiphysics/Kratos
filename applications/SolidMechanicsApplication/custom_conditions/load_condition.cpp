@@ -166,7 +166,7 @@ double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	//current displacements to compute energy
-	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 
 	Displacements += rVariables.N[i] * CurrentValueVector;
       }

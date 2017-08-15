@@ -40,6 +40,7 @@
 
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/line_gl_3d_2.h"
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
@@ -122,7 +123,12 @@ namespace Kratos
     mUpdatedLagrangianUPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     
     mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
-    
+    mLargeDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLargeDisplacementBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLargeDisplacementBeamEMCElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),   
+    mLargeDisplacementBeamSEMCElement3D2N( 0, Element::GeometryType::Pointer( new LineGL3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mGeometricallyExactRodElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
     mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), true ),
     mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
@@ -171,16 +177,15 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
       
     //geometrical
-    KRATOS_REGISTER_VARIABLE( AREA )
-    KRATOS_REGISTER_VARIABLE( IX )
-    KRATOS_REGISTER_VARIABLE( IY )
-    KRATOS_REGISTER_VARIABLE( IZ )
-    KRATOS_REGISTER_VARIABLE( CROSS_AREA )
-    KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
-    KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
-       
-    //cross section
+
+    //beam cross section
+    //KRATOS_REGISTER_VARIABLE( BEAM_CROSS_SECTION )
+    KRATOS_REGISTER_VARIABLE( CROSS_SECTION_AREA )
+    KRATOS_REGISTER_VARIABLE( CROSS_SECTION_RADIUS )
+    KRATOS_REGISTER_VARIABLE( CROSS_SECTION_SIDES )
+     
+    //shell cross section
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
@@ -219,7 +224,22 @@ namespace Kratos
 
     //nodal dofs
     KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )  
-     
+
+    //explicit beam
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POSITION_MOMENTUM )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_MOMENTUM )  
+
+    KRATOS_REGISTER_VARIABLE( INERTIA_DYADIC )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESIDUAL_LYAPUNOV )  
+    KRATOS_REGISTER_VARIABLE( TANGENT_MATRIX )
+    KRATOS_REGISTER_VARIABLE( TANGENT_LYAPUNOV )
+
+    KRATOS_REGISTER_VARIABLE( ALPHA_TRAPEZOIDAL_RULE )
+    KRATOS_REGISTER_VARIABLE( POSITION_UPDATE_LABEL )
+    KRATOS_REGISTER_VARIABLE( ROTATION_UPDATE_LABEL )
+    KRATOS_REGISTER_VARIABLE( MOMENTUM_UPDATE_LABEL )
+      
     //Register Elements
 
     //Register solids
@@ -298,7 +318,13 @@ namespace Kratos
 
     //Register beams
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamElement3D2N", mLargeDisplacementBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamElement3D3N", mLargeDisplacementBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamEMCElement3D2N", mLargeDisplacementBeamEMCElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamSEMCElement3D2N", mLargeDisplacementBeamSEMCElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "GeometricallyExactRodElement3D2N", mGeometricallyExactRodElement3D2N )
 
+      
     //Register shells
     KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
@@ -308,7 +334,8 @@ namespace Kratos
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "LoadCondition", mLoadCondition )
-
+    KRATOS_REGISTER_CONDITION( "ElasticCondition", mElasticCondition )
+      
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
       
     KRATOS_REGISTER_CONDITION( "PointLoadCondition3D1N", mPointLoadCondition3D1N )

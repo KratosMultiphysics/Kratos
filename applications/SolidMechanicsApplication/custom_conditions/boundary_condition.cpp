@@ -797,7 +797,7 @@ double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
 //************************************************************************************
 //************************************************************************************
 
-void BoundaryCondition::GetNodeDeltaMovements(Vector& rValues, const int& rNode)
+void BoundaryCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
 {
   KRATOS_TRY
 
@@ -810,11 +810,11 @@ void BoundaryCondition::GetNodeDeltaMovements(Vector& rValues, const int& rNode)
   
   Vector CurrentValueVector(3);
   noalias(CurrentValueVector) = ZeroVector(3);
-  CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
+  CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
 
   Vector PreviousValueVector(3);
   noalias(PreviousValueVector)= ZeroVector(3);
-  CurrentValueVector = GetPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
+  CurrentValueVector = GetNodalPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
 
 
   rValues[0] = CurrentValueVector[0] - PreviousValueVector[0];
@@ -831,7 +831,7 @@ void BoundaryCondition::GetNodeDeltaMovements(Vector& rValues, const int& rNode)
 //************************************************************************************
 //************************************************************************************
 
-Vector& BoundaryCondition::GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+Vector& BoundaryCondition::GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
 {
     KRATOS_TRY
 
@@ -850,7 +850,7 @@ Vector& BoundaryCondition::GetCurrentValue(const Variable<array_1d<double,3> >&r
 //************************************************************************************
 //************************************************************************************
 
-Vector& BoundaryCondition::GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+Vector& BoundaryCondition::GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
 {
     KRATOS_TRY
 

@@ -63,6 +63,10 @@
 #include "custom_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
+#include "custom_elements/large_displacement_beam_element.hpp"
+#include "custom_elements/large_displacement_beam_emc_element.hpp"
+#include "custom_elements/large_displacement_beam_semc_element.hpp"
+#include "custom_elements/geometrically_exact_rod_element.hpp"
 
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
@@ -360,7 +364,11 @@ typedef array_1d<double,6> Vector6;
 
    //beams
    const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
-
+   const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D2N;
+   const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D3N;
+   const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D2N;
+   const LargeDisplacementBeamSEMCElement   mLargeDisplacementBeamSEMCElement3D2N;
+   const GeometricallyExactRodElement       mGeometricallyExactRodElement3D2N;
 
    //shells
    const ShellThickElement3D4N              mShellThickElement3D4N;
@@ -371,6 +379,7 @@ typedef array_1d<double,6> Vector6;
    
    //conditions
    const LoadCondition                                  mLoadCondition;
+   const ElasticCondition                            mElasticCondition;
 
    const PointLoadCondition                    mPointLoadCondition2D1N;
    const AxisymmetricPointLoadCondition  mAxisymPointLoadCondition2D1N;

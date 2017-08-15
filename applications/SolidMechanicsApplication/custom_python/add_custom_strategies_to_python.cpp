@@ -28,9 +28,11 @@
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_strategy.hpp"
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 #include "custom_strategies/strategies/explicit_strategy.hpp" 
+#include "custom_strategies/strategies/explicit_hamilton_strategy.hpp"
 
 //builders and solvers
 #include "custom_strategies/builders_and_solvers/component_wise_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
 
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -40,6 +42,9 @@
 //schemes
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/explicit_central_differences_scheme.hpp" 
+#include "custom_strategies/schemes/residual_based_rotation_newmark_simo_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_rotation_conservative_scheme.hpp"
+#include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -55,10 +60,9 @@ namespace Kratos
 
     void  AddCustomStrategiesToPython()
     {
+      //base types
       typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
       typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-      //base types
       typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
       typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
@@ -71,83 +75,22 @@ namespace Kratos
       typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
       typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
       typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+      typedef ExplicitHamiltonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonStrategyType;
 
       //custom builder_and_solver types
       typedef ComponentWiseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseBuilderAndSolverType;
+      typedef ExplicitHamiltonBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonBuilderAndSolverType;
 
       //custom scheme types
       typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
       typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+      typedef ResidualBasedRotationNewmarkSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationNewmarkSimoSchemeType;
+      typedef ResidualBasedRotationConservativeScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationConservativeSchemeType;
+      typedef ExplicitHamiltonScheme< SparseSpaceType, LocalSpaceType >  ExplicitHamiltonSchemeType;
 
       //custom convergence criterion types
       typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
       typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
-
-
-      //********************************************************************
-      //*************************BUILDER AND SOLVER*************************
-      //********************************************************************
-
-
-      // Component Wise Builder and Solver
-      class_< ComponentWiseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
-	(
-	 "ComponentWiseBuilderAndSolver", init< LinearSolverType::Pointer > ()
-	 );
-
-
-
-      //********************************************************************
-      //*************************SHCHEME CLASSES****************************
-      //********************************************************************
-
-
-      // Component Wise Bossak Scheme Type
-      class_< ComponentWiseBossakSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ComponentWiseBossakScheme", init< double >() )
-
-	.def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-
-
-      // Explicit scheme: Central differences 
-      class_< ExplicitCentralDifferencesSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
-
-	.def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-
-
-      //********************************************************************
-      //*******************CONVERGENCE CRITERIA CLASSES*********************
-      //********************************************************************
-
-      // Displacement Convergence Criterion
-      class_< DisplacementConvergenceCriterionType,
-	      bases< ConvergenceCriteriaType >, boost::noncopyable >
-	(
-	 "DisplacementConvergenceCriterion", 
-	 init<double, double >())
-	.def(init<double, double >())
-	.def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
-	;
-
-
-      // Component Wise Residual Convergence Criterion
-      class_< ComponentWiseResidualConvergenceCriterionType,
-	      bases< ConvergenceCriteriaType >, boost::noncopyable >
-	(
-	 "ComponentWiseResidualConvergenceCriterion", 
-	 init<double, double >())
-	.def(init<double, double >())
-	.def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
-	;
-
-
 
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
@@ -217,7 +160,115 @@ namespace Kratos
 	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
 	;
 
+      // Explicit Hamilton Estrategy for Explicit Beam solution
+      class_< ExplicitHamiltonStrategyType, 
+	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	(
+	 "ExplicitHamiltonStrategy",
+	 init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool>())
+	
+	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+	.def("SetInitializePerformedFlag", &ExplicitHamiltonStrategyType::SetInitializePerformedFlag)
+	.def("GetInitializePerformedFlag", &ExplicitHamiltonStrategyType::GetInitializePerformedFlag)
+	;
 
+      
+      //********************************************************************
+      //*******************BUILDER AND SOLVER CLASSES***********************
+      //********************************************************************
+
+
+      // Component Wise Builder and Solver
+      class_< ComponentWiseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+	(
+	 "ComponentWiseBuilderAndSolver", init< LinearSolverType::Pointer > ()
+	 );
+
+
+      // Residual Based Builder and Solver
+      class_< ExplicitHamiltonBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+            (
+	     "ExplicitHamiltonBuilderAndSolver", init< LinearSolverType::Pointer > ()
+	     );
+
+      
+      //********************************************************************
+      //*************************SHCHEME CLASSES****************************
+      //********************************************************************
+
+
+      // Component Wise Bossak Scheme Type
+      class_< ComponentWiseBossakSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ComponentWiseBossakScheme", init< double >() )
+
+	.def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+
+
+      // Explicit scheme: Central differences 
+      class_< ExplicitCentralDifferencesSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
+
+	.def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+
+      // Residual Based Rotational Newmark Simo Scheme Type
+      class_< ResidualBasedRotationNewmarkSimoSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ResidualBasedRotationNewmarkSimoScheme", init< double, double >() )
+	
+	.def("Initialize", &ResidualBasedRotationNewmarkSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+
+      // Residual Based Rotational Conservative Scheme Type
+      class_< ResidualBasedRotationConservativeSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ResidualBasedRotationConservativeScheme", init< double >() )
+	
+	.def("Initialize", &ResidualBasedRotationConservativeScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+
+      // Explicit Hamilton Scheme Type
+      class_< ExplicitHamiltonSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ExplicitHamiltonScheme", init< double, double, double, bool >() )
+	
+	.def("Initialize", &ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+      
+      //********************************************************************
+      //*******************CONVERGENCE CRITERIA CLASSES*********************
+      //********************************************************************
+
+      // Displacement Convergence Criterion
+      class_< DisplacementConvergenceCriterionType,
+	      bases< ConvergenceCriteriaType >, boost::noncopyable >
+	(
+	 "DisplacementConvergenceCriterion", 
+	 init<double, double >())
+	.def(init<double, double >())
+	.def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
+	;
+
+
+      // Component Wise Residual Convergence Criterion
+      class_< ComponentWiseResidualConvergenceCriterionType,
+	      bases< ConvergenceCriteriaType >, boost::noncopyable >
+	(
+	 "ComponentWiseResidualConvergenceCriterion", 
+	 init<double, double >())
+	.def(init<double, double >())
+	.def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
+	;
+
+      
     }
 
   }  // namespace Python.

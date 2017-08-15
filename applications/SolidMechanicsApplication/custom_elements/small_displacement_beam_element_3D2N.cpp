@@ -333,11 +333,11 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
 {
     KRATOS_TRY
 
-    if( GetProperties().Has(CROSS_AREA) ){
-        mSection.Area = GetProperties()[CROSS_AREA];
+    if( GetProperties().Has(CROSS_SECTION_AREA) ){
+        mSection.Area = GetProperties()[CROSS_SECTION_AREA];
     }
     else{
-        mSection.Area = GetValue(AREA);
+        mSection.Area = GetValue(CROSS_SECTION_AREA);
     }
 
 
@@ -1480,8 +1480,8 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
      if(VOLUME_ACCELERATION.Key() == 0)
         // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-    if(CROSS_AREA.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered", "" )
+    if(CROSS_SECTION_AREA.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_SECTION_AREA has Key zero! (check if the application is correctly registered", "" )
     if(LOCAL_INERTIA_TENSOR.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered", "" )
     if(ROTATION.Key() == 0)
@@ -1497,10 +1497,10 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     }
 
     //verify that the area is given by properties
-    if (this->GetProperties().Has(CROSS_AREA)==false)
+    if (this->GetProperties().Has(CROSS_SECTION_AREA)==false)
     {
-        if( GetValue(AREA) == 0.0 )
-            KRATOS_THROW_ERROR( std::logic_error,"CROSS_AREA not provided for this element", this->Id() )
+        if( GetValue(CROSS_SECTION_AREA) == 0.0 )
+            KRATOS_THROW_ERROR( std::logic_error,"CROSS_SECTION_AREA not provided for this element", this->Id() )
     }
 
     //verify that the inertia is given by properties

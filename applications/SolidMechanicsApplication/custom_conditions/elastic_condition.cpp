@@ -136,7 +136,7 @@ void ElasticCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideV
         index = dimension * i;
 
 	//current displacements
-	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
@@ -168,7 +168,7 @@ double& ElasticCondition::CalculateAndAddExternalEnergy(double& rEnergy,
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	//current displacements to compute energy
-	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 
 	Displacements += rVariables.N[i] * CurrentValueVector;
       }
@@ -180,7 +180,7 @@ double& ElasticCondition::CalculateAndAddExternalEnergy(double& rEnergy,
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
  	//current displacements
-	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 	
         for ( unsigned int j = 0; j < dimension; j++ )
         {

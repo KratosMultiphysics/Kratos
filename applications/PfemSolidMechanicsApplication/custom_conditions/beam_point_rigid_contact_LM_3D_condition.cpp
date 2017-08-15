@@ -255,7 +255,7 @@ namespace Kratos
        SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
 
        //to perform contact with a tube radius must be set
-       BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+       BoxParameters.SetRadius(GetGeometry()[0].GetValue(CROSS_SECTION_AREA));
        
        if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
        
@@ -363,7 +363,7 @@ namespace Kratos
     SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
     //to perform contact with a tube radius must be set
-    BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+    BoxParameters.SetRadius(GetGeometry()[0].GetValue(CROSS_SECTION_AREA));
 
     if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
 
@@ -630,7 +630,7 @@ namespace Kratos
        array_1d<double, 3 > DeltaRotation               =  CurrentRotation-PreviousRotation;
 
 
-       double SectionMeanRadius = GetProperties()[MEAN_RADIUS];
+       double SectionMeanRadius = GetProperties()[CROSS_SECTION_AREA];
        array_1d<double, 3 > RadiusVector;
        for(unsigned int i = 0; i < 3; i++)
 	 {

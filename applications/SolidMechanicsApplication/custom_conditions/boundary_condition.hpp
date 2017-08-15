@@ -562,18 +562,18 @@ protected:
     /**
      * Get Node Movements for energy computation
      */
-    void GetNodeDeltaMovements(Vector& rValues, const int& rNode);
+    void GetNodalDeltaMovements(Vector& rValues, const int& rNode);
 
 
     /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue
      */    
-    Vector& GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
+    Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
    /**
      * Get Previous Value, buffer 1 with FastGetSolutionStepValue
      */    
-    Vector& GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
+    Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
 
     ///@}
