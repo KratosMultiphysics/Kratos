@@ -431,13 +431,16 @@ private:
             else{
                 for(WeakPointerVector< Node<3> >::iterator i_neighbour_nodes = i_nodes->GetValue(NEIGHBOUR_NODES).begin(); i_neighbour_nodes != i_nodes->GetValue(NEIGHBOUR_NODES).end(); i_neighbour_nodes++){
                     Vector sigma_recovered_i(3);
-                    unsigned int count_i=1;
+                    unsigned int count_i=0;
                     for(ModelPart::NodesContainerType::iterator i = rNodes.begin(); i!=rNodes.end(); i++){
-                        if (i->Id() == i_neighbour_nodes->Id() && i->GetValue(NEIGHBOUR_ELEMENTS).size()>2)
+                        if (i->Id() == i_neighbour_nodes->Id() && i->GetValue(NEIGHBOUR_ELEMENTS).size()>2){
                             CalculatePatch(i_nodes,i,neighbour_size,sigma_recovered_i);
+                            count_i ++;
+                        }
                     }
                     //average solution from different patches
-                    sigma_recovered =sigma_recovered*(count_i-1)/count_i + sigma_recovered_i/count_i;
+                    if(count_i != 0)
+                        sigma_recovered =sigma_recovered*(count_i-1)/count_i + sigma_recovered_i/count_i;
                 }
                 i_nodes->SetValue(RECOVERED_STRESS,sigma_recovered);
             }
@@ -447,6 +450,7 @@ private:
         ******************************************************************************/
         //loop over all elements: 
         double error_overall=0;
+        double energy_norm_overall=0;
         for(ModelPart::ElementsContainerType::iterator i_elements = mThisModelPart.Elements().begin() ; i_elements != mThisModelPart.Elements().end(); i_elements++) 
         {
             //compute the error estimate per element
@@ -455,20 +459,25 @@ private:
             double error_energy_norm=0;
             for(unsigned int i=0;i<error_integration_point.size();i++)
                 error_energy_norm += error_integration_point[i];
-            error_energy_norm= sqrt(error_energy_norm);
             error_overall += error_energy_norm;
+            error_energy_norm= sqrt(error_energy_norm);
             std::cout<<"element_error:"<<error_energy_norm<<std::endl;
 
 
-            /*std::vector<double> strain_energy;
+            std::vector<double> strain_energy;
             i_elements->GetValueOnIntegrationPoints(STRAIN_ENERGY,strain_energy,mThisModelPart.GetProcessInfo());
             double strainenergy=0;
             for(unsigned int i=0;i<strain_energy.size();i++)
-                strainenergy += strain_energy[i];
-            std::cout<<"element_error:"<<strainenergy<<std::endl;*/
+                strainenergy += 2*strain_energy[i];
+            energy_norm_overall += strainenergy;
+            strainenergy= sqrt(strainenergy);
+            std::cout<<"energy norm:"<<strainenergy<<std::endl;
             //distribute the error on the nodes
         }
-        std::cout<<"overall_error:"<<error_overall<<std::endl;
+        error_overall = sqrt(error_overall);
+        energy_norm_overall = sqrt(energy_norm_overall);
+        std::cout<<"overall error norm:"<<error_overall<<std::endl;
+        std::cout<<"overall energy norm:"<<energy_norm_overall<<std::endl;
     }
     //calculates the recovered stress at a node 
     // i_node: the node for which the recovered stress should be calculated
