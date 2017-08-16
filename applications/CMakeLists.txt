@@ -260,6 +260,10 @@ if(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
   add_subdirectory(incompressible_fluid_application)
 endif(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
 
+if(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+  add_subdirectory(ShallowWaterApplication)
+endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+
 if(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
   add_subdirectory(CompressiblePotentialFlowApplication)
 endif(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
