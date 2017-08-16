@@ -37,14 +37,14 @@
 #include "containers/flags.h"
 
 //conditions
-#include "custom_conditions/point_moment_condition.hpp"
 #include "custom_conditions/point_load_condition.hpp"
 #include "custom_conditions/axisymmetric_point_load_condition.hpp"
-
 #include "custom_conditions/line_load_condition.hpp"
 #include "custom_conditions/axisymmetric_line_load_condition.hpp"
-
 #include "custom_conditions/surface_load_condition.hpp"
+
+#include "custom_conditions/point_moment_condition.hpp"
+#include "custom_conditions/line_moment_condition.hpp"
 
 #include "custom_conditions/elastic_condition.hpp"
 

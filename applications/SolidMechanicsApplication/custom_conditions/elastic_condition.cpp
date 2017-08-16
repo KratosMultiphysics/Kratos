@@ -153,8 +153,8 @@ void ElasticCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideV
 
 double& ElasticCondition::CalculateAndAddExternalEnergy(double& rEnergy,
 							ConditionVariables& rVariables,
-							double& rIntegrationWeight)
-
+							double& rIntegrationWeight,
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().PointsNumber();

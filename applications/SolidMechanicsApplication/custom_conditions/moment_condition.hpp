@@ -2,13 +2,13 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:              August 2017 $
+//   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_ELASTIC_CONDITION_H_INCLUDED )
-#define  KRATOS_ELASTIC_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MOMENT_CONDITION_H_INCLUDED )
+#define  KRATOS_MOMENT_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -34,40 +34,40 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Elastic Condition for 3D and 2D geometries. (base class)
+/// Load Condition for 3D and 2D geometries. (base class)
 
 /**
- * Implements a Elastic Constraint definition for structural analysis.
+ * Implements a General Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ElasticCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) MomentCondition
     : public BoundaryCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-
-    // Counted pointer of ElasticCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ElasticCondition );
+  
+    // Counted pointer of MomentCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MomentCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    ElasticCondition();
+    MomentCondition();
   
     /// Default constructor.
-    ElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    MomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    ElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    MomentCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    ElasticCondition( ElasticCondition const& rOther);
+    MomentCondition( MomentCondition const& rOther);
 
     /// Destructor
-    virtual ~ElasticCondition();
+    virtual ~MomentCondition();
 
     ///@}
     ///@name Operators
@@ -101,6 +101,51 @@ public:
 			     NodesArrayType const& ThisNodes) const override;
 
 
+    /**
+     * Sets on rConditionDofList the degrees of freedom of the considered element geometry
+     */
+    void GetDofList(DofsVectorType& rConditionDofList,
+		    ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(EquationIdVectorType& rResult,
+			  ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(Vector& rValues,
+			 int Step = 0) override;
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues,
+				   int Step = 0) override;
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues,
+				    int Step = 0) override;
+
+    /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
+     */      
+    virtual void AddExplicitContribution(const VectorType& rRHS, 
+					 const Variable<VectorType>& rRHSVariable, 
+					 Variable<array_1d<double,3> >& rDestinationVariable, 
+					 const ProcessInfo& rCurrentProcessInfo) override;
+
+    
     ///@}
     ///@name Access
     ///@{
@@ -117,29 +162,43 @@ public:
 
 protected:
     ///@name Protected static Member Variables
-    ///@{    
+    ///@{   
     ///@}
     ///@name Protected member Variables
-    ///@{    
+    ///@{
     ///@}
     ///@name Protected Operators
-    ///@{    
+    ///@{
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * Initialize Explicit Contributions
+     */
+    void InitializeExplicitContributions();
+
+
+    /**
+     * Initialize System Matrices
+     */
+    
+    virtual unsigned int GetDofsSize() override;
+ 
 
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalStiffness(ConditionVariables& rVariables);
+    virtual void CalculateExternalMoment(ConditionVariables& rVariables);
 
-    
+
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight) override;
+
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
@@ -148,7 +207,7 @@ protected:
 						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight,
 						  const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -172,7 +231,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    ///@}
+   ///@}
     ///@name Private  Access
     ///@{
     ///@}
@@ -189,8 +248,8 @@ private:
     virtual void load(Serializer& rSerializer) override;
 
 
-}; // class ElasticCondition.
+}; // class MomentCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_MOMENT_CONDITION_H_INCLUDED defined 

@@ -142,8 +142,9 @@ void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVect
 
 double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
 						     ConditionVariables& rVariables,
-						     double& rIntegrationWeight)
-
+						     double& rIntegrationWeight,
+						     const ProcessInfo& rCurrentProcessInfo)
+  
 {
     KRATOS_TRY
 

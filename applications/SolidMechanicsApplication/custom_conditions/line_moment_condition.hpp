@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LINE_MOMENT_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_MOMENT_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/load_condition.hpp"
-
+#include "custom_conditions/moment_condition.hpp"
 
 namespace Kratos
 {
@@ -35,32 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Point Load Condition for 3D and 2D geometries. (base class)
+/// Line load condition for 3D and 2D geometries.
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) PointLoadCondition
-    : public LoadCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineMomentCondition
+  : public MomentCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of PointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoadCondition );
+    // Counted pointer of LineMomentCondition
+    KRATOS_CLASS_POINTER_DEFINITION( LineMomentCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    LineMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    PointLoadCondition( PointLoadCondition const& rOther);
+    LineMomentCondition( LineMomentCondition const& rOther);
 
     /// Destructor
-    virtual ~PointLoadCondition();
+    virtual ~LineMomentCondition();
 
     ///@}
     ///@name Operators
@@ -94,8 +93,10 @@ public:
 			     NodesArrayType const& ThisNodes) const;
 
 
-    //************************************************************************************
-    //************************************************************************************
+
+    //************* COMPUTING  METHODS
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -114,30 +115,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "Point Load Condition #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "Point Load Condition #" << Id();
-    }
-
-    /// Print object's data.
-
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
-
     ///@}
     ///@name Friends
     ///@{
@@ -149,7 +126,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointLoadCondition() {};
+    LineMomentCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
@@ -163,7 +140,6 @@ protected:
     virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
-
     /**
      * Calculate Condition Kinematics
      */
@@ -171,16 +147,27 @@ protected:
 				     const double& rPointNumber);
 
     /**
-     * Calculate the External Load of the Condition
+     * Calculation of the Position Increment
      */
-    virtual void CalculateExternalLoad(ConditionVariables& rVariables);
-
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
     /**
-     * Calculates the condition contributions
+     * Calculation of the Total Position Increment
      */
-    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  const ProcessInfo& rCurrentProcessInfo);
+    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
+
+    /**
+     * Calculate the External Load of the Condition
+     */
+    virtual void CalculateExternalMoment(ConditionVariables& rVariables);
+
+ 
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight);
 
 
     ///@}
@@ -239,8 +226,8 @@ private:
     virtual void load(Serializer& rSerializer);
 
 
-}; // class PointLoadCondition.
+}; // class LineMomentCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_MOMENT_CONDITION_H_INCLUDED defined 

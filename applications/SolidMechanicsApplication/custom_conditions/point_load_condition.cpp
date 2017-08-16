@@ -86,7 +86,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-      const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -185,28 +185,27 @@ namespace Kratos
     this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //reading integration points
-    for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
+    unsigned int PointNumber = 0;
+
+    //compute element kinematics B, F, DN_DX ...
+    this->CalculateKinematics(Variables,PointNumber);
+
+    //calculating weights for integration on the "reference configuration"
+    double IntegrationWeight = 1;
+
+    if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,PointNumber);
-
-        //calculating weights for integration on the "reference configuration"
-        double IntegrationWeight = 1;
-
-        if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-	  {
-            //contributions to stiffness matrix calculated on the reference config
-	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
-	  }
-
-        if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-	  {
- 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
-	  }
-
+	//contributions to stiffness matrix calculated on the reference config
+	this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-
+    
+    if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+      {
+	
+	this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
+      }
+    
+  
     KRATOS_CATCH( "" )
   }
 

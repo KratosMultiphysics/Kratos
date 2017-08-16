@@ -147,7 +147,7 @@ protected:
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
-					       double& rIntegrationWeight ) override;
+					       double& rIntegrationWeight) override;
 
 
     /**
@@ -155,7 +155,8 @@ protected:
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
-						  double& rIntegrationWeight ) override;
+						  double& rIntegrationWeight,
+						  const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access

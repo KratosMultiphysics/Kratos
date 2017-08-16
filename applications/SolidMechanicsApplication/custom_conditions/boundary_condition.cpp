@@ -200,7 +200,8 @@ void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size    = number_of_nodes * dimension;
 
-    if ( rValues.size() != condition_size ) rValues.resize( condition_size, false );
+    if ( rValues.size() != condition_size )
+      rValues.resize( condition_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -223,7 +224,8 @@ void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size    = number_of_nodes * dimension;
 
-    if ( rValues.size() != condition_size ) rValues.resize( condition_size, false );
+    if ( rValues.size() != condition_size )
+      rValues.resize( condition_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -362,7 +364,7 @@ void BoundaryCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix
 {
 
     //resizing as needed the LHS
-    unsigned int MatSize = GetDofsSize();
+    unsigned int MatSize = this->GetDofsSize();
 
     if ( rCalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
@@ -439,6 +441,8 @@ void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSy
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
+    double IntegrationWeight = 1;
+    
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinematics B, F, DN_DX ...
@@ -447,7 +451,7 @@ void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSy
         //calculating weights for integration on the "reference configuration" Jacobian respect to the reference configuration
 	//take in account in a linear element (Jacobian=2*Area) this is the relation
 
-        double IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
+        IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
 	// std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
        
@@ -767,7 +771,11 @@ void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
+    unsigned int MatSize = this->GetDofsSize();
+    if(rLeftHandSideMatrix.size1() != MatSize)
+      rLeftHandSideMatrix.resize(MatSize,MatSize,false);
 
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
 
     KRATOS_CATCH( "" )
 }
@@ -794,7 +802,8 @@ void BoundaryCondition::CalculateAndAddExternalForces(VectorType& rRightHandSide
 
 double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
 							 ConditionVariables& rVariables,
-							 double& rIntegrationWeight)
+							 double& rIntegrationWeight,
+							 const ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
@@ -929,7 +938,7 @@ void BoundaryCondition::CalculateOnIntegrationPoints( const Variable<double>& rV
 
 	  Energy = 0;
 	  
-	  Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight );	  	  
+	  Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight, rCurrentProcessInfo);	  	  
   	  rOutput[PointNumber] = Energy;
 	}
 

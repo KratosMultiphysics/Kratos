@@ -13,42 +13,64 @@
 
 // Project includes
 #include "custom_conditions/point_moment_condition.hpp"
-#include "solid_mechanics_application_variables.h"
 
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
-  //************************************************************************************
-  //************************************************************************************
+
+
+  //***********************************************************************************
+  //***********************************************************************************
   PointMomentCondition::PointMomentCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
+    : MomentCondition(NewId, pGeometry)
   {
-    //DO NOT ADD DOFS HERE!!!
+
   }
 
-  //************************************************************************************
-  //************************************************************************************
-  PointMomentCondition::PointMomentCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+  //***********************************************************************************
+  //***********************************************************************************
+  PointMomentCondition::PointMomentCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : MomentCondition(NewId, pGeometry, pProperties)
   {
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
   }
 
   //************************************************************************************
   //************************************************************************************
   PointMomentCondition::PointMomentCondition( PointMomentCondition const& rOther )
-    : Condition(rOther)
+    : MomentCondition(rOther)     
   {
   }
 
-  //************************************************************************************
-  //************************************************************************************
-  Condition::Pointer PointMomentCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+  //***********************************************************************************
+  //***********************************************************************************
+  Condition::Pointer PointMomentCondition::Create(
+						  IndexType NewId,
+						  NodesArrayType const& ThisNodes,
+						  PropertiesType::Pointer pProperties) const
   {
     return Condition::Pointer(new PointMomentCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
+
+  //************************************CLONE*******************************************
   //************************************************************************************
-  //************************************************************************************
+
+  Condition::Pointer PointMomentCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  {
+    PointMomentCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    NewCondition.SetData(this->GetData());
+    NewCondition.SetFlags(this->GetFlags());
+
+    //-----------//      
+    return Condition::Pointer( new PointMomentCondition(NewCondition) );
+  }
+
+
+  //***********************************************************************************
+  //***********************************************************************************
   PointMomentCondition::~PointMomentCondition()
   {
   }
@@ -56,204 +78,157 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  void PointMomentCondition::Initialize()
+
+  void PointMomentCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-
-    mEnergy = 0;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void PointMomentCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-  {
-    KRATOS_TRY
-
-    mEnergy = 0;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-  void PointMomentCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    if(rRightHandSideVector.size() != 3)
-      rRightHandSideVector.resize(3,false);
-
-    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(POINT_MOMENT);
-    rRightHandSideVector[0] = Moment[0];
-    rRightHandSideVector[1] = Moment[1];
-    rRightHandSideVector[2] = Moment[2];
-
-    //current rotations to compute energy
-    if( GetGeometry()[0].SolutionStepsDataHas(ANGULAR_VELOCITY) ){
-      array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
-      Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
       
-      mEnergy += Moment[0] * Rotation[0] + Moment[1] * Rotation[1] + Moment[2] * Rotation[2];
-    }
-        
-    KRATOS_CATCH( "" )
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-  void PointMomentCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    if(rLeftHandSideMatrix.size1() != 3)
-      rLeftHandSideMatrix.resize(3,3,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(3,3);
-
-    if(rRightHandSideVector.size() != 3)
-      rRightHandSideVector.resize(3,false);
-
-    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(POINT_MOMENT);
-    rRightHandSideVector[0] = Moment[0];
-    rRightHandSideVector[1] = Moment[1];
-    rRightHandSideVector[2] = Moment[2];
-
-
-    //current rotations to compute energy
-    array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
-    Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
-
-    mEnergy += Moment[0] * Rotation[0] + Moment[1] * Rotation[1] + Moment[2] * Rotation[2];
-    
-    KRATOS_CATCH( "" )
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-  void PointMomentCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-  {
-    int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int index = 0;
-    const unsigned int dimension = 3;
-    rResult.resize(number_of_nodes*dimension);
-
-    for (int i=0; i<number_of_nodes; i++)
-      {
-        index = i*dimension;
-        rResult[index]   = (GetGeometry()[i].GetDof(ROTATION_X).EquationId());
-        rResult[index+1] = (GetGeometry()[i].GetDof(ROTATION_Y).EquationId());
-        rResult[index+2] = (GetGeometry()[i].GetDof(ROTATION_Z).EquationId());
-      }
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-  void PointMomentCondition::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
-  {
-    const unsigned int dimension = 3;
-    ConditionalDofList.resize(GetGeometry().size()*dimension);
-    unsigned int index = 0;
-    for (unsigned int i=0; i<GetGeometry().size(); i++)
-      {
-        index = i*dimension;
-        ConditionalDofList[index]   = (GetGeometry()[i].pGetDof(ROTATION_X));
-        ConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(ROTATION_Y));
-        ConditionalDofList[index+2] = (GetGeometry()[i].pGetDof(ROTATION_Z));
-      }
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void PointMomentCondition::AddExplicitContribution(const VectorType& rRHS, 
-						     const Variable<VectorType>& rRHSVariable, 
-						     Variable<array_1d<double,3> >& rDestinationVariable, 
-						     const ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    
-    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
-      {
-
-	for(unsigned int i=0; i< number_of_nodes; i++)
-	  {
-	    int index = dimension * i;
-
-	    GetGeometry()[i].SetLock();
-
-	    array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-	    for(unsigned int j=0; j<dimension; j++)
-	      {
-		MomentResidual[j] += rRHS[index + j];
-	      }
-
-	    GetGeometry()[i].UnSetLock();
-	  }
-      }
+    rVariables.Initialize(dimension, local_dimension, number_of_nodes);
+   
+    //Only one node:
+    rVariables.N[0] = 1.0;
 
     KRATOS_CATCH( "" )
+
   }
 
-  //*********************************GET DOUBLE VALUE***********************************
-  //************************************************************************************
 
-  void PointMomentCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-							  std::vector<double>& rValues,
-							  const ProcessInfo& rCurrentProcessInfo )
-  { 
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-  }
+  //***********************************************************************************
+  //***********************************************************************************
 
-  //************************************************************************************
-  //************************************************************************************
-
-  void PointMomentCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+  void PointMomentCondition::CalculateExternalMoment(ConditionVariables& rVariables)
   {
-
     KRATOS_TRY
 
-    const unsigned int integration_points_number = 1;
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    if ( rOutput.size() != integration_points_number )
-      rOutput.resize( integration_points_number, false );
+    if( rVariables.ExternalVectorValue.size() != dimension )
+      rVariables.ExternalVectorValue.resize(dimension,false);
 
-    if ( rVariable == EXTERNAL_ENERGY )
+    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+   
+    //FORCE CONDITION:
+    //defined on condition
+    if( this->Has( POINT_MOMENT ) ){
+      array_1d<double, 3 > & PointLoad = this->GetValue( POINT_MOMENT );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
+	}
+    }
+    
+    //defined on condition nodes
+    if( this->Has( POINT_MOMENT_VECTOR ) ){
+      Vector& PointLoads = this->GetValue( POINT_MOMENT_VECTOR );
+      unsigned int counter = 0;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  counter = i*3;
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    {
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoads[counter+k];
+	    }
+	  
+	}
+    }
+    
+    //defined on condition nodes      
+    for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	//reading integration points
-	for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
-	  {
-	    rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
-	  }
+	if( GetGeometry()[i].SolutionStepsDataHas( POINT_MOMENT ) ){
+	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_MOMENT );
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
+ 
+	}
       }
 
     KRATOS_CATCH( "" )
   }
 
 
+  //*********************************COMPUTE KINEMATICS*********************************
+  //************************************************************************************
+
+  void PointMomentCondition::CalculateKinematics(ConditionVariables& rVariables,
+						 const double& rPointNumber)
+  {
+    KRATOS_TRY
+
+    rVariables.Jacobian = 1.0;
+
+    this->CalculateExternalMoment(rVariables);
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void PointMomentCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+						      const ProcessInfo& rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+    //create and initialize condition variables:
+    ConditionVariables Variables;
+    this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
+
+    //reading integration points
+    unsigned int PointNumber = 0;
+
+    //compute element kinematics B, F, DN_DX ...
+    this->CalculateKinematics(Variables,PointNumber);
+    
+    //calculating weights for integration on the "reference configuration"
+    double IntegrationWeight = 1;
+    
+    if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+      {
+	//contributions to stiffness matrix calculated on the reference config
+	this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
+      }
+    
+    if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+      {
+	
+	this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
+      }
+    
+  
+    KRATOS_CATCH( "" )
+  }
+
+
+  //************* COMPUTING  METHODS
+  //************************************************************************************
+  //************************************************************************************
+
+  int PointMomentCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  {
+    return 0;
+  }
 
   //***********************************************************************************
   //***********************************************************************************
 
   void PointMomentCondition::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MomentCondition )
   }
 
   void PointMomentCondition::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MomentCondition )
   }
 
 
-} // Namespace Kratos
 
-
+} // Namespace Kratos.

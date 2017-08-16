@@ -556,15 +556,15 @@ protected:
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
-					       double& rIntegrationWeight );
+					       double& rIntegrationWeight);
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
-						  double& rIntegrationWeight );
-
+						  double& rIntegrationWeight,
+						  const ProcessInfo& rCurrentProcessInfo);
     /**
      * Get Node Movements for energy computation
      */
