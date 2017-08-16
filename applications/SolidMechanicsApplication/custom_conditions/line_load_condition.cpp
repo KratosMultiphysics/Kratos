@@ -284,8 +284,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( LINE_LOADS_VECTOR ) ){
-      Vector& LineLoads = this->GetValue( LINE_LOADS_VECTOR );
+    if( this->Has( LINE_LOAD_VECTOR ) ){
+      Vector& LineLoads = this->GetValue( LINE_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{

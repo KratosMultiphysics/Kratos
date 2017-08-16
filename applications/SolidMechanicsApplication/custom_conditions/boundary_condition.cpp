@@ -98,8 +98,24 @@ BoundaryCondition::~BoundaryCondition()
 {
 }
 
-//************* GETTING METHODS
+//************************************************************************************
+//************************************************************************************
+  
+unsigned int BoundaryCondition::GetDofsSize()
+ {
+   KRATOS_TRY
+     
+   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+   const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+   
+   unsigned int size = number_of_nodes * dimension;
 
+   return size;
+   
+    
+   KRATOS_CATCH( "" )
+}
+  
 //***********************************************************************************
 //***********************************************************************************
 
@@ -345,11 +361,8 @@ void BoundaryCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix
 
 {
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
+    unsigned int MatSize = GetDofsSize();
 
     if ( rCalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {

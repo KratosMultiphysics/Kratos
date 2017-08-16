@@ -147,7 +147,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
 
             #function values are assigned to a vector variable :: transformation is needed
             if(type(self.var) == KratosMultiphysics.Array1DVariable3):
-                variable_name = self.settings["variable_name"].GetString() + "S_VECTOR"
+                variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
                 print(" variable name modified:", variable_name)
                 params.AddEmptyValue("variable_name")
                 params["variable_name"].SetString(variable_name)

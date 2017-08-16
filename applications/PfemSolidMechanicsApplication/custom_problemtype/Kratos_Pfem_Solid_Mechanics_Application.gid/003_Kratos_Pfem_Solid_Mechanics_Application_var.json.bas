@@ -649,7 +649,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
-            "variable_name"   : "*cond(Variable)S_VECTOR",
+            "variable_name"   : "*cond(Variable)_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
 *endif	
@@ -718,7 +718,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
-            "variable_name"   : "*cond(Variable)S_VECTOR",
+            "variable_name"   : "*cond(Variable)_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
 *endif	    

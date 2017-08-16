@@ -497,6 +497,12 @@ protected:
     /**
      * Initialize System Matrices
      */
+    
+    virtual unsigned int GetDofsSize();
+    
+    /**
+     * Initialize System Matrices
+     */
 
     virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					  VectorType& rRightHandSideVector,

@@ -294,8 +294,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_LOADS_VECTOR ) ){
-      Vector& SurfaceLoads = this->GetValue( SURFACE_LOADS_VECTOR );
+    if( this->Has( SURFACE_LOAD_VECTOR ) ){
+      Vector& SurfaceLoads = this->GetValue( SURFACE_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{

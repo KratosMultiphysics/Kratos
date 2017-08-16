@@ -36,7 +36,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             
             #function values are assigned to a vector variable :: transformation is needed
             if(type(self.var) == KratosMultiphysics.DoubleVariable):
-                variable_name = self.settings["variable_name"].GetString() + "S_VECTOR"
+                variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
                 print(" variable name modified:", variable_name)
                 params.AddEmptyValue("variable_name")
                 params["variable_name"].SetString(variable_name)

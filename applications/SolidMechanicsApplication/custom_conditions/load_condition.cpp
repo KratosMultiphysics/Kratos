@@ -23,7 +23,6 @@ namespace Kratos
 LoadCondition::LoadCondition()
     : BoundaryCondition()
 {
-  //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
 
 
@@ -32,7 +31,6 @@ LoadCondition::LoadCondition()
 LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : BoundaryCondition(NewId, pGeometry)
 {
-    //DO NOT ADD DOFS HERE!!!
 }
 
 //***********************************************************************************
@@ -40,10 +38,7 @@ LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
 LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BoundaryCondition(NewId, pGeometry, pProperties)
 {
-
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-
-    //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
@@ -86,9 +81,6 @@ LoadCondition::~LoadCondition()
 {
 }
 
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
 
 //************************************************************************************
 //************************************************************************************

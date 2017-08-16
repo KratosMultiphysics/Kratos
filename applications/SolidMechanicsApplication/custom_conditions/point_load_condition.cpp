@@ -127,8 +127,8 @@ namespace Kratos
     }
     
     //defined on condition nodes
-    if( this->Has( POINT_LOADS_VECTOR ) ){
-      Vector& PointLoads = this->GetValue( POINT_LOADS_VECTOR );
+    if( this->Has( POINT_LOAD_VECTOR ) ){
+      Vector& PointLoads = this->GetValue( POINT_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
