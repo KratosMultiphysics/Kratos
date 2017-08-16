@@ -100,9 +100,7 @@ namespace Kratos
       
       mEnergy += Moment[0] * Rotation[0] + Moment[1] * Rotation[1] + Moment[2] * Rotation[2];
     }
-    
-    std::cout<<" CalculateRightHandSide "<<rRightHandSideVector<<std::endl;
-    
+        
     KRATOS_CATCH( "" )
   }
 
@@ -130,9 +128,6 @@ namespace Kratos
     Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
 
     mEnergy += Moment[0] * Rotation[0] + Moment[1] * Rotation[1] + Moment[2] * Rotation[2];
-
-
-    std::cout<<" CalculateLocalSystem "<<rRightHandSideVector<<std::endl;
     
     KRATOS_CATCH( "" )
   }
