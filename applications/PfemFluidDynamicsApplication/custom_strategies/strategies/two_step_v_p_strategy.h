@@ -21,7 +21,7 @@
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
+/* #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h" */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -154,7 +154,8 @@ public:
 	pScheme.swap(Temp);
 
         //CONSTRUCTION OF VELOCITY
-        BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
+        /* BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver)); */
+        BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
 
         this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
@@ -269,10 +270,9 @@ public:
 
 	  momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
 
-	  this->CalculateDisplacements();
-	  BaseType::MoveMesh();
-	  BoundaryNormalsCalculationUtilities BoundaryComputation;
-	  BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, BaseType::GetEchoLevel());
+
+	  this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
+
    
 	  
 	  if( fixedTimeStep==false){
@@ -313,6 +313,20 @@ public:
     virtual void InitializeSolutionStep(){
     }
 
+
+    void UpdateTopology(ModelPart& rModelPart, unsigned int echoLevel)
+    {
+      KRATOS_TRY;
+      
+      this->CalculateDisplacements();
+      BaseType::MoveMesh();
+      BoundaryNormalsCalculationUtilities BoundaryComputation;
+      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+      
+      KRATOS_CATCH("");
+  
+    }
+    
     void CalculatePressureVelocity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
