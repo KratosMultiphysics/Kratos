@@ -150,8 +150,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH(rCurrentElement->Id())
-
         (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);

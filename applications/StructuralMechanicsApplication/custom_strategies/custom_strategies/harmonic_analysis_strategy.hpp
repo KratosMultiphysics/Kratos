@@ -128,6 +128,12 @@ public:
 
         mInitializeWasPerformed = false;
 
+        SparseVectorType* AuxForceVector = new SparseVectorType;
+        mpForceVector = boost::shared_ptr<SparseVectorType>(AuxForceVector);
+
+        mRayleighAlpha = 0.0;
+        mRayleighBeta = 0.0;
+
         // default echo level (mute)
         this->SetEchoLevel(0);
 
@@ -267,90 +273,50 @@ public:
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Exiting Initialize() of HarmonicAnalysisStrategy." << std::endl;
 
-        // const unsigned int n_dofs = rModelPart.GetProcessInfo()[EIGENVECTOR_MATRIX].size2();
-        // this->GetForceVector().resize(n_dofs);
-        // auto& forceVector = this->pGetForceVector();
-        // this->pGetBuilderAndSolver()->BuildRHS(this->pGetScheme(),rModelPart,*this->pGetForceVector());
-
-
-        SparseVectorType* AuxForceVector = new SparseVectorType;
-        mpForceVector = boost::shared_ptr<SparseVectorType>(AuxForceVector);
-
+        // set up the system
         auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        // auto& pStiffnessMatrix = this->pGetStiffnessMatrix();
-        // auto& rStiffnessMatrix = *pStiffnessMatrix;
-        auto& pForceVector = this->pGetForceVector();
-        auto& rForceVector = *pForceVector;
-        pBuilderAndSolver->SetUpSystem(rModelPart);
-        // initialize dummy vectors
-        auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto pb = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rA = *pA;
-        auto& rDx = *pDx;
-        // auto& rb = *pb;
 
         // Reset solution dofs
         boost::timer system_construction_time;
-        if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                pBuilderAndSolver->GetReshapeMatrixFlag() == true)
+        // Set up list of dofs
+        boost::timer setup_dofs_time;
+        pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
+        if (BaseType::GetEchoLevel() > 0 && rank == 0)
         {
-            // Set up list of dofs
-            boost::timer setup_dofs_time;
-            pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-            }
-
-            // Set global equation ids
-            boost::timer setup_system_time;
-            pBuilderAndSolver->SetUpSystem(rModelPart);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-            }
-
-            // Resize and initialize system matrices
-            boost::timer system_matrix_resize_time;
-            // SparseMatrixPointerType& pMassMatrix = this->pGetMassMatrix();
-
-            // Mass matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-                    pA,
-                    pDx,
-                    pForceVector,
-                    rModelPart.Elements(),
-                    rModelPart.Conditions(),
-                    rModelPart.GetProcessInfo());
-
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-            }
-        }
-        else
-        {
-            // SparseSpaceType::Resize(rb,SparseSpaceType::Size1(rStiffnessMatrix));
-            // SparseSpaceType::Set(rb,0.0);
-            SparseSpaceType::Resize(rDx,SparseSpaceType::Size(rForceVector));
-            SparseSpaceType::Set(rDx,0.0);
+            std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
         }
 
+        // Set global equation ids
+        boost::timer setup_system_time;
+        pBuilderAndSolver->SetUpSystem(rModelPart);
+        if (BaseType::GetEchoLevel() > 0 && rank == 0)
+        {
+            std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+        }
 
-
-
-
-
-        // pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-        //     pA,
-        //     pDx,
-        //     pForceVector,
-        //     rModelPart.Elements(),
-        //     rModelPart.Conditions(),
-        //     rModelPart.GetProcessInfo());
-        std::cout << "has" << std::endl;
+        // initialize the force vector; this does not change during the computation
+        auto& pForceVector = this->pGetForceVector();
+        auto& rForceVector = *pForceVector;
+        const unsigned int system_size = pBuilderAndSolver->GetEquationSystemSize();
+        
+        boost::timer force_vector_build_time;
+        if (rForceVector.size() != system_size)
+            rForceVector.resize(system_size, false);
         pBuilderAndSolver->BuildRHS(pScheme,rModelPart,rForceVector);
+        
+        if (BaseType::GetEchoLevel() > 0 && rank == 0)
+        {
+            std::cout << "force_vector_build_time : " << force_vector_build_time.elapsed() << std::endl;
+        }
+
+        // get the damping coefficients
+        auto& rProcessInfo = rModelPart.GetProcessInfo();
+        KRATOS_WATCH(rProcessInfo)
+        if( rProcessInfo.Has(RAYLEIGH_ALPHA) )
+            mRayleighAlpha = rProcessInfo[RAYLEIGH_ALPHA];
+
+        if( rProcessInfo.Has(RAYLEIGH_BETA) )
+            mRayleighBeta = rProcessInfo[RAYLEIGH_BETA];
         
         std::cout << "yeah" << std::endl;
         KRATOS_CATCH("")
@@ -361,7 +327,6 @@ public:
         KRATOS_TRY
 
         auto& rModelPart = BaseType::GetModelPart();
-        // const auto rank = rModelPart.GetCommunicator().MyPID();
 
         // operations to be done once
         if (this->GetIsInitialized() == false)
@@ -373,180 +338,43 @@ public:
         this->InitializeSolutionStep();
 
         auto excitation_frequency = rModelPart.GetProcessInfo()[TIME];
-        KRATOS_WATCH(excitation_frequency)
 
         // get eigenvalues and eigenvectors
         DenseVectorType eigenvalues = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
         DenseMatrixType eigenvectors = rModelPart.GetProcessInfo()[EIGENVECTOR_MATRIX];
-        // KRATOS_WATCH(rModelPart.GetProcessInfo())
 
-        auto& pScheme = this->pGetScheme();
         const unsigned int n_dofs = eigenvectors.size2();
         const unsigned int n_modes = eigenvalues.size();
-        // initialize rhs vector
-
-        // SparseVectorType f;
-        // SparseSpaceType::Resize(f,n_dofs);
-        // SparseSpaceType::Set(f,0.0);
-        // this->pGetBuilderAndSolver()->BuildRHS(pScheme,rModelPart,f);
+        
         auto f = this->GetForceVector();
 
-        DenseVectorType mode_weight;
+        ComplexVectorType mode_weight;
         mode_weight.resize(n_modes, false);
         mode_weight = ZeroVector( n_modes );
-        // array_1d< double, n_modes > mode_weight = ZeroVector( n_modes );
+
+        double modal_damping = 0.0;
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-            // KRATOS_WATCH(row(eigenvectors, i));
-            // KRATOS_WATCH(f)
-            // auto current_row = row( eigenvectors, i );
-            // outer_prod(current_row,current_row);
-
+            modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
             // rows are columns and vice-versa
-            double factor = eigenvalues[i] - pow(  excitation_frequency, 2.0 );
-            std::cout << "ev_i=" << eigenvalues[i] << " / exfreq=" << excitation_frequency << " / factor=" << factor << std::endl;
+            ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
             mode_weight[i] = inner_prod( row( eigenvectors, i ), f ) / factor;
-            // KRATOS_WATCH(mode_weight[i])
-            // KRATOS_WATCH(row( eigenvectors, i ))
-            // KRATOS_WATCH(f)
-            // KRATOS_WATCH(inner_prod( row( eigenvectors, i ), f ))
-            // auto tmp = prod( current_row, current_row );
-            // mode_weight[i] = tmp / (pow( eigenvalues(i), 2.0 ) - pow( excitation_frequency, 2.0 ));
         }
-        // KRATOS_WATCH(mode_weight)
 
-        DenseVectorType tmp;
-        tmp.resize(n_dofs, false);
-        tmp = ZeroVector( n_dofs );
+        ComplexVectorType modal_displacement;
+        modal_displacement.resize(n_dofs, false);
+        modal_displacement = ZeroVector( n_dofs );
 
         for( std::size_t i = 0; i < n_dofs; ++i )
         {
-            // double tmp = 0.0;
             for( std::size_t j = 0; j < n_modes; ++j)
             {
-                tmp[i] = tmp[i] + mode_weight[j] * eigenvectors(j,i);
+                modal_displacement[i] = modal_displacement[i] + mode_weight[j] * eigenvectors(j,i);
             }
-            // std::cout << "dof=" << i <<" / tmp=" << tmp << std::endl;
-            // double res = 0.0;
-            // for( std::size_t j = 0; j < n_modes; ++j )
-            // {
-            //     res += mode_weight[j] * eigenvectors(i,j);
-            // }
-            // std::cout << "i=" << i << " / res=" << res << std::endl;
         }
 
-        KRATOS_WATCH(tmp)
-
-        // for( auto itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++ )
-        // {
-        //     KRATOS_WATCH(itNode->GetId())
-        //     ModelPart::NodeType::DofsContainerType& rNodeDofs = itNode->GetDofs();
-        //     // KRATOS_WATCH(rNodeDofs)
-        //     for( auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++ )
-        //     {
-        //         KRATOS_WATCH(itDof->EquationId())
-        //         if( !itDof->IsFixed() )
-        //         {
-        //             itDof->GetSolutionStepValue(excitation_frequency) = tmp(itDof->EquationId());
-        //         }
-        //         else
-        //         {
-        //             itDof->GetSolutionStepValue(excitation_frequency) = 0.0;
-        //         }
-        //     }
-        // }
-
-        this->AssignVariables(tmp);
-
-        // pScheme->Clean();
-        // this->Clear();
-
-        // void Transfer(ModelPart& rModelPart, int iEigenMode, int step=0)
-        // {
-        //     for (auto itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
-        //     {
-        //         ModelPart::NodeType::DofsContainerType& rNodeDofs = itNode->GetDofs();
-        //         Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-        //         std::size_t j=0;
-        //         for (auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++)
-        //             itDof->GetSolutionStepValue(step) = rNodeEigenvectors(iEigenMode,j++);
-        //     }
-        // }
-
-
-
-        // // generate lhs matrix. the factor 1 is chosen to preserve
-        // // spd property
-        // rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
-        // this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
-        // this->ApplyDirichletConditions(rMassMatrix, 1.0);
-
-        // // generate rhs matrix. the factor -1 is chosen to make
-        // // eigenvalues corresponding to fixed dofs negative
-        // rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
-        // this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
-        // ApplyDirichletConditions(rStiffnessMatrix,-1.0);
-
-        // // eigenvector matrix and eigenvalue vector are initialized by the solver
-        // DenseVectorType Eigenvalues;
-        // DenseMatrixType Eigenvectors;
-
-        // // solve for eigenvalues and eigenvectors
-        // boost::timer system_solve_time;
-        // this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
-        //         rStiffnessMatrix,
-        //         rMassMatrix,
-        //         Eigenvalues,
-        //         Eigenvectors);
-        // if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        //     std::cout << "system_solve_time : " << system_solve_time.elapsed() << std::endl;
-
-        // ////////////////////////////////////////////////////////////////////77
-        // array_1d<double, 5> excitation;
-        // for ( std::size_t i = 0; i < 5; ++i)
-        // {
-        //     excitation[i] = i * 0.1;
-        // }
-        // KRATOS_WATCH(b)
-        // // KRATOS_WATCH(Eigenvectors)
-        // // KRATOS_WATCH( row(Eigenvectors, 1) )
-        // // auto moc = outer_prod( row( Eigenvectors, 1), row( Eigenvectors, 1) );
-        // // KRATOS_WATCH(moc)
-        // // auto res = prod( moc, b );
-        // // KRATOS_WATCH(res)
-        // const unsigned int n_dofs = Eigenvectors.size2();
-        // // KRATOS_WATCH(n_dofs)
-        // unsigned int n_modes = Eigenvalues.size();
-        // // const double damping_ratio = 0.0;
-        // // // array_1d< std::complex<double>, n_dofs > res = ZeroVector( n_dofs );
-        // // array_1d< double, 12 > res;
-        // DenseVectorType res;
-        // res.resize( n_dofs, false);
-        // // res = ZeroVector( n_dofs );
-        // for ( std::size_t e = 0; e < excitation.size(); ++e )
-        // {
-        //     // res.resize( n_dofs, false );
-        //     res = ZeroVector( n_dofs );
-        //     for ( std::size_t n = 0; n < n_modes; ++n )
-        //     {
-        //         // std::complex<double> factor( Eigenvalues[n] - std::pow(excitation[e],2.0), 2 * damping_ratio * std::sqrt(Eigenvalues[n]) * excitation[e] );
-        //         double factor = Eigenvalues[n] - std::pow(excitation[e],2.0);
-        //         // double moc = prod( row( Eigenvectors, n), row( Eigenvectors, n) );
-        //         auto upper = prod( outer_prod( row( Eigenvectors, n), row( Eigenvectors, n) ), b );
-        //         auto res0 = upper / factor;
-        //         res += res0;
-        //     }
-        //     KRATOS_WATCH(res)
-
-        // }
-
-
-        // //////////////////////////////////////////////////////////////////////
-
-        // this->AssignVariables(Eigenvalues,Eigenvectors);
-
-        std::cout << "hello i bims" << std::endl;
+        this->AssignVariables(modal_displacement);
         this->FinalizeSolutionStep();
 
         return 0.0;
@@ -762,6 +590,10 @@ private:
 
     SparseVectorPointerType mpForceVector;
 
+    double mRayleighAlpha;
+
+    double mRayleighBeta;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -770,94 +602,16 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// Apply Dirichlet boundary conditions without modifying dof pattern.
-    /**
-     *  The dof pattern is preserved to support algebraic multigrid solvers with
-     *  component-wise aggregation. Rows and columns of the fixed dofs are replaced
-     *  with zeros on the off-diagonal and the diagonal is scaled by factor.
-     */
-    void ApplyDirichletConditions(SparseMatrixType& rA, double Factor)
-    {
-        KRATOS_TRY
-
-        const auto rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering ApplyDirichletConditions() of HarmonicAnalysisStrategy" << std::endl;
-
-        const std::size_t SystemSize = rA.size1();
-        std::vector<double> ScalingFactors(SystemSize);
-        auto& rDofSet = this->pGetBuilderAndSolver()->GetDofSet();
-        const int NumDofs = static_cast<int>(rDofSet.size());
-
-        // NOTE: dofs are assumed to be numbered consecutively
-        #pragma omp parallel for firstprivate(NumDofs)
-        for(int k = 0; k<NumDofs; k++)
-        {
-            auto dof_iterator = std::begin(rDofSet) + k;
-            ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
-        }
-
-        double* AValues = std::begin(rA.value_data());
-        std::size_t* ARowIndices = std::begin(rA.index1_data());
-        std::size_t* AColIndices = std::begin(rA.index2_data());
-
-        // if there is a line of all zeros, put one on the diagonal
-        // #pragma omp parallel for firstprivate(SystemSize)
-        // for(int k = 0; k < static_cast<int>(SystemSize); ++k)
-        // {
-        //     std::size_t ColBegin = ARowIndices[k];
-        //     std::size_t ColEnd = ARowIndices[k+1];
-        //     bool empty = true;
-        //     for (auto j = ColBegin; j < ColEnd; ++j)
-        //         if(AValues[j] != 0.0)
-        //         {
-        //             empty = false;
-        //             break;
-        //         }
-        //     if(empty == true)
-        //         rA(k,k) = 1.0;
-        // }
-
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
-        {
-            std::size_t ColBegin = ARowIndices[k];
-            std::size_t ColEnd = ARowIndices[k+1];
-            if (ScalingFactors[k] == 0.0)
-            {
-                // row dof is fixed. zero off-diagonal columns and factor diagonal
-                for (std::size_t j = ColBegin; j < ColEnd; ++j)
-                    if (static_cast<int>(AColIndices[j]) != k)
-                        AValues[j] = 0.0;
-                    else
-                        AValues[j] *= Factor;
-            }
-            else
-            {
-                // row dof is not fixed. zero columns associated with fixed dofs
-                for (std::size_t j = ColBegin; j < ColEnd; ++j)
-                    AValues[j] *= ScalingFactors[AColIndices[j]];
-            }
-        }
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting ApplyDirichletConditions() of HarmonicAnalysisStrategy" << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    void AssignVariables(DenseVectorType& rModalDisplacement, int step=0)
+    /// Assign the modal displacement to the displacement dofs
+    void AssignVariables(ComplexVectorType& rModalDisplacement, int step=0)
     {
         auto& rModelPart = BaseType::GetModelPart();
         for( auto itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++ )
         {
-            KRATOS_WATCH(itNode->GetId())
             ModelPart::NodeType::DofsContainerType& rNodeDofs = itNode->GetDofs();
             
             for( auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++ )
             {
-                KRATOS_WATCH(itDof->EquationId())
                 if( !itDof->IsFixed() )
                 {
                     itDof->GetSolutionStepValue(step) = std::abs(rModalDisplacement(itDof->EquationId()));
@@ -867,38 +621,6 @@ private:
                     itDof->GetSolutionStepValue(step) = 0.0;
                 }
             }
-        }
-    }
-
-    /// Assign eigenvalues and eigenvectors to kratos variables.
-    void AssignVariablesOLD(DenseVectorType& rEigenvalues, DenseMatrixType& rEigenvectors)
-    {
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto NumEigenvalues = rEigenvalues.size();
-
-        // store eigenvalues in process info
-        rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
-
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
-        {
-            ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
-            const auto NumNodeDofs = NodeDofs.size();
-            Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs)
-                rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
-
-            // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
-            // the dof ordering must not change.
-            if (NodeDofs.IsSorted() == false)
-                NodeDofs.Sort();
-
-            // fill the EIGENVECTOR_MATRIX
-            for (std::size_t i = 0; i < NumEigenvalues; i++)
-                for (std::size_t j = 0; j < NumNodeDofs; j++)
-                {
-                    auto itDof = std::begin(NodeDofs) + j;
-                    rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
-                }
         }
     }
 
