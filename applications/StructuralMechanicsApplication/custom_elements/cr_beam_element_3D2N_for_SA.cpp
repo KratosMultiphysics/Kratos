@@ -45,10 +45,23 @@ namespace Kratos
 			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
 	}
 
+	// new Create(). Currently needed for the element replacement process
+	Element::Pointer CrBeamElement3D2NForSA::Create(IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties) const 
+    {
+        KRATOS_TRY
+        return Element::Pointer(
+                new CrBeamElement3D2NForSA(NewId, pGeom, pProperties, this->mIsLinearElement));
+        KRATOS_CATCH("")
+    }
+
+
+
 	CrBeamElement3D2NForSA::~CrBeamElement3D2NForSA() {}
 
 	void CrBeamElement3D2NForSA::EquationIdVector(EquationIdVectorType& rResult,
-		ProcessInfo& rCurrentProcessInfo) {
+		ProcessInfo& rCurrentProcessInfo) { 
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -59,18 +72,18 @@ namespace Kratos
 		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * number_of_nodes * dimension;
-			rResult[index] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X)
+			rResult[index] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X)
 				.EquationId();
-			rResult[index + 1] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y)
+			rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y)
 				.EquationId();
-			rResult[index + 2] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Z)
+			rResult[index + 2] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z)
 				.EquationId();
 
-			rResult[index + 3] = this->GetGeometry()[i].GetDof(ROTATION_X)
+			rResult[index + 3] = this->GetGeometry()[i].GetDof(ADJOINT_ROTATION_X)
 				.EquationId();
-			rResult[index + 4] = this->GetGeometry()[i].GetDof(ROTATION_Y)
+			rResult[index + 4] = this->GetGeometry()[i].GetDof(ADJOINT_ROTATION_Y)
 				.EquationId();
-			rResult[index + 5] = this->GetGeometry()[i].GetDof(ROTATION_Z)
+			rResult[index + 5] = this->GetGeometry()[i].GetDof(ADJOINT_ROTATION_Z)
 				.EquationId();
 		}
 
@@ -91,18 +104,18 @@ namespace Kratos
 		{
 			int index = i * number_of_nodes * dimension;
 			rElementalDofList[index] = this->GetGeometry()[i]
-				.pGetDof(DISPLACEMENT_X);
+				.pGetDof(ADJOINT_DISPLACEMENT_X);
 			rElementalDofList[index + 1] = this->GetGeometry()[i]
-				.pGetDof(DISPLACEMENT_Y);
+				.pGetDof(ADJOINT_DISPLACEMENT_Y);
 			rElementalDofList[index + 2] = this->GetGeometry()[i]
-				.pGetDof(DISPLACEMENT_Z);
+				.pGetDof(ADJOINT_DISPLACEMENT_Z);
 
 			rElementalDofList[index + 3] = this->GetGeometry()[i]
-				.pGetDof(ROTATION_X);
+				.pGetDof(ADJOINT_ROTATION_X);
 			rElementalDofList[index + 4] = this->GetGeometry()[i]
-				.pGetDof(ROTATION_Y);
+				.pGetDof(ADJOINT_ROTATION_Y);
 			rElementalDofList[index + 5] = this->GetGeometry()[i]
-				.pGetDof(ROTATION_Z);
+				.pGetDof(ADJOINT_ROTATION_Z);
 		}
 	}
 
@@ -302,11 +315,11 @@ namespace Kratos
 			int stress_location = this->GetValue( rSTRESS_LOCATION );	
 			if(stress_location == 1)
 			{
-				result[id_in_stress_vector] = 1;  
+				result[id_in_stress_vector] = -1;  
 			}
 			else if(stress_location == 2)
 			{ 			
-				result[id_in_stress_vector + 6] = -1;  
+				result[id_in_stress_vector + 6] = 1;  
 			}
 			else 
 			{
@@ -315,8 +328,8 @@ namespace Kratos
 		}
 		else if(stress_treatment == "mean")
 		{
-			result[id_in_stress_vector ] = 1; // or is it 0.5 ?????????????????????????????????????????????????????????????????
-			result[id_in_stress_vector + 6 ] = -1; 	// or is it -0.5 ?????????????????????????????????????????????????????????????????  
+			result[id_in_stress_vector ] = -0.5; // or is it 0.5 ?????????????????????????????????????????????????????????????????
+			result[id_in_stress_vector + 6 ] = 0.5; 	// or is it -0.5 ?????????????????????????????????????????????????????????????????  
 		}
 		else { KRATOS_THROW_ERROR(std::invalid_argument, "Chosen stress treatment type is not availible. Your choice: ", stress_treatment); }
 
@@ -369,14 +382,14 @@ namespace Kratos
 			Properties::Pointer pElemProp = this->pGetProperties();
 
 			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, testProcessInfo);
+			this->CalculateRightHandSide(RHS_undist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 			// disturb the design variable
 			const double current_property_value = this->GetProperties()[rDesignVariable];
 			pElemProp->SetValue(rDesignVariable, (current_property_value + delta));
 
 			// compute RHS after disturbance
-			this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 			rOutput.resize(1,RHS_dist.size());
 
@@ -423,7 +436,7 @@ namespace Kratos
 			rOutput.resize(dimension*2, local_size);
 
 			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, testProcessInfo);
+			this->CalculateRightHandSide(RHS_undist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 			for(int j = 0; j < number_of_nodes; j++)
 			{
@@ -432,7 +445,7 @@ namespace Kratos
 				this->GetGeometry()[j].X0() += delta;
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
@@ -452,7 +465,7 @@ namespace Kratos
 				this->GetGeometry()[j].Y0() += delta;
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -471,7 +484,7 @@ namespace Kratos
 				this->GetGeometry()[j].Z0() += delta;
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -1073,8 +1086,37 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2NForSA::GetValuesVector(Vector& rValues, int Step) {
+	void CrBeamElement3D2NForSA::GetValuesVector(Vector& rValues, int Step) { 
 
+		KRATOS_TRY
+			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const unsigned int element_size = number_of_nodes * dimension * 2;
+
+		if (rValues.size() != element_size) rValues.resize(element_size, false);
+
+		for (int i = 0; i < number_of_nodes; ++i)
+		{
+			int index = i * dimension * 2;
+			rValues[index] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
+			rValues[index + 1] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, Step);
+			rValues[index + 2] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, Step);
+
+			rValues[index + 3] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ADJOINT_ROTATION_X, Step);
+			rValues[index + 4] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ADJOINT_ROTATION_Y, Step);
+			rValues[index + 5] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ADJOINT_ROTATION_Z, Step);
+		}
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement3D2NForSA::GetPrimalValuesVector(Vector& rValues, int Step) 
+	{ 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -1457,7 +1499,7 @@ namespace Kratos
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
 			Vector NodalDeformation = ZeroVector(LocalSize);
-			this->GetValuesVector(NodalDeformation);
+			this->GetPrimalValuesVector(NodalDeformation);
 			rRightHandSideVector = ZeroVector(LocalSize);
 			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
 		}
@@ -2160,22 +2202,7 @@ namespace Kratos
 				"CROSS_AREA has Key zero! (check if the application is correctly registered" << ""
 				<< std::endl;
 		}
-		//verify that the dofs exist
-		for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)
-		{
-			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
-				KRATOS_ERROR <<
-					"missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id()
-					<< std::endl;
-			}
-			if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-				this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
-				this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) {
-				KRATOS_ERROR <<
-					"missing one of the dofs for the variable DISPLACEMENT on node " <<
-						GetGeometry()[i].Id() << std::endl;
-			}
-		}
+ 
 
 
 
@@ -2221,6 +2248,42 @@ namespace Kratos
 			KRATOS_ERROR << "IZ not provided for this element" << this->Id()
 				<< std::endl;
 		}
+
+		//##################################################################################################
+		// Check for specific sensitivity analysis stuff
+		//##################################################################################################
+		if (ADJOINT_DISPLACEMENT.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "ADJOINT_DISPLACEMENT Key is 0. "
+                    "Check if the application was correctly registered.","");
+
+		if (ADJOINT_ROTATION.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "ADJOINT_ROTATION Key is 0. "
+                    "Check if the application was correctly registered.","");
+
+		 // Check if the nodes have adjoint dofs.
+        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
+        {
+            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing ADJOINT_DISPLACEMENT component degree of freedom on node ",
+                        this->GetGeometry()[iNode].Id());
+
+			if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing ADJOINT_ROTATION component degree of freedom on node ",
+                        this->GetGeometry()[iNode].Id());	
+
+			if (this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing DISPLACEMENT variable on solution step data for node ",
+                        this->GetGeometry()[iNode].Id());					
+        }
 
 		return 0;
 

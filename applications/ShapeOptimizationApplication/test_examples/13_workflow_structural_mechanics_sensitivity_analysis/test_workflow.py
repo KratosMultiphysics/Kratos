@@ -40,8 +40,10 @@ class TestCase(KratosUnittest.TestCase):
             self.solve('beam_test')
             #self.solve('test_beam_sensitivities/beam_test')
             # solve adjoint
-           # test = self._create_test('test_vms_sensitivity_2d/cylinder_test_adjoint')
-            #test.Solve()
+            print("Primal solution process finished")
+            test = self._create_test('beam_test_adjoint')
+            test.Solve()
+            print("Adjoint solution process finished and sensitivities are computed")    
            # Sensitivity = [[]]
            # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
            # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))

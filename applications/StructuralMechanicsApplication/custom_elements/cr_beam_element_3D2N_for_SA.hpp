@@ -59,6 +59,11 @@ namespace Kratos
 			NodesArrayType const& rThisNodes,
 			PropertiesType::Pointer pProperties) const override;
 
+		// new create by fusseder	
+		Element::Pointer Create(IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties) const override;
+
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
 			ProcessInfo& rCurrentProcessInfo) override;
@@ -142,6 +147,11 @@ namespace Kratos
 		void GetValuesVector(
 			Vector& rValues,
 			int Step = 0) override;
+
+		// special function for sensitivity analysis to get the values of the primal solution	
+		void GetPrimalValuesVector(
+			Vector& rValues,
+			int Step = 0);	
 
 		void GetSecondDerivativesVector(
 			Vector& rValues,

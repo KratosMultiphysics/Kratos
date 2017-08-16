@@ -40,11 +40,11 @@ class MainKratos:
         self.SolidModel = Model()          
         self.SolidModel.AddModelPart(self.main_model_part)      
 
-        #from gid_output_process import GiDOutputProcess
-        #self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
-        #self.ProjectParameters["problem_data"]["problem_name"].GetString(),
-        #self.ProjectParameters["output_configuration"])
-        #self.gid_output.ExecuteInitialize()
+        from gid_output_process import GiDOutputProcess
+        self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
+        self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+        self.ProjectParameters["output_configuration"])
+        self.gid_output.ExecuteInitialize()
 
         # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
         ## Get the list of the submodel part in the object Model
@@ -63,7 +63,7 @@ class MainKratos:
 
         ##here all of the allocation of the strategies etc is done
         self.solver.Initialize()
-        self.solver.SetEchoLevel(0)
+        #self.solver.SetEchoLevel(0)
 
         ## Processes initialization
         for process in self.list_of_processes:
@@ -80,7 +80,7 @@ class MainKratos:
 
         time = self.ProjectParameters["problem_data"]["start_step"].GetDouble()
 
-        #self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteBeforeSolutionLoop()
 
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
@@ -94,7 +94,7 @@ class MainKratos:
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
 
-            #self.gid_output.ExecuteInitializeSolutionStep()
+            self.gid_output.ExecuteInitializeSolutionStep()
 
             if self.execute_solve:
                 self.solver.Solve()
@@ -102,15 +102,15 @@ class MainKratos:
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
 
-            #self.gid_output.ExecuteFinalizeSolutionStep()
+            self.gid_output.ExecuteFinalizeSolutionStep()
 
-            #if self.gid_output.IsOutputStep():
-            #    self.gid_output.PrintOutput()
+            if self.gid_output.IsOutputStep():
+                self.gid_output.PrintOutput()
 
         for process in self.list_of_processes:
-            process.ExecuteFinalize()
+            process.ExecuteFinalize()   
 
-        #self.gid_output.ExecuteFinalize()
+        self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     raise RuntimeError("This script should only be called from a test file.")

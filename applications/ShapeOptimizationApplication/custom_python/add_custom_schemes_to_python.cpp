@@ -24,7 +24,7 @@ void AddCustomSchemesToPython()
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
     class_<AdjointStructuralScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointStructuralScheme", init<Parameters&, ResponseFunction::Pointer>())
+        "AdjointStructuralScheme", init<Parameters&, StructuralResponseFunction::Pointer>())
         ;
 
 }

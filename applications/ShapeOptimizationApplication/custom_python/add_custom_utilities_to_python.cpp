@@ -148,13 +148,13 @@ void  AddCustomUtilitiesToPython()
         .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
         ;
 
-    class_<LocalStressResponseFunction, bases<Process> >("LocalStressResponseFunction", init<ModelPart&, Parameters&>())
+    /*class_<LocalStressResponseFunction, bases<Process> >("LocalStressResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &LocalStressResponseFunction::Initialize)
         .def("CalculateValue", &LocalStressResponseFunction::CalculateValue)
         .def("UpdateSensitivities", &LocalStressResponseFunction::UpdateSensitivities) 
         .def("GetValue", &LocalStressResponseFunction::GetValue)
         .def("GetInitialValue", &LocalStressResponseFunction::GetInitialValue)                             
-        ;  
+        ;  */
 
     class_<ReworkStrainEnergyResponseFunction, bases<Process> >("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &ReworkStrainEnergyResponseFunction::Initialize)
@@ -162,7 +162,25 @@ void  AddCustomUtilitiesToPython()
         .def("UpdateSensitivities", &ReworkStrainEnergyResponseFunction::UpdateSensitivities) 
         .def("GetValue", &ReworkStrainEnergyResponseFunction::GetValue)
         .def("GetInitialValue", &ReworkStrainEnergyResponseFunction::GetInitialValue)                             
-        ;           
+        ; 
+
+    class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
+        .def("Initialize", &StructuralResponseFunction::Initialize)
+        .def("InitializeSolutionStep", &StructuralResponseFunction::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep)
+        .def("Check", &StructuralResponseFunction::Check)
+        .def("Clear", &StructuralResponseFunction::Clear)
+        .def("CalculateGradient",
+             &StructuralResponseFunction::CalculateGradient)
+        .def("CalculateFirstDerivativesGradient",
+             &StructuralResponseFunction::CalculateFirstDerivativesGradient)
+        .def("CalculateSecondDerivativesGradient",
+             &StructuralResponseFunction::CalculateSecondDerivativesGradient)
+        .def("CalculateValue", &StructuralResponseFunction::CalculateValue)
+        .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);  
+
+    class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>());            
 
     // ========================================================================
     // For input / output

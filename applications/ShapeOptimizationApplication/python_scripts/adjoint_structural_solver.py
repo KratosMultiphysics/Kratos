@@ -18,12 +18,13 @@ class AdjointStructuralSolver:
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type" : "adjoint_vmsmonolithic_solver",
+            "solver_type" : "adjoint_structural_solver",
             "scheme_settings" : {
-                "scheme_type" : "bossak"
+                "scheme_type" : "structural"
             },
+          
             "response_function_settings" : {
-                "response_type" : "drag"
+                "response_type" : "unknown_name"
             },
             "model_import_settings" : {
                 "input_type"     : "mdpa",
@@ -32,10 +33,11 @@ class AdjointStructuralSolver:
             "linear_solver_settings" : {
                 "solver_type" : "AMGCL"
             },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts"  : [""],
-            "dynamic_tau" : 0.0,
-            "oss_switch"  : 0,
+            "bodies_list": [],
+            "problem_domain_sub_model_part_list": ["solid"],
+            "processes_sub_model_part_list": [""],
+            "computing_model_part_name" : "computing_domain",
+            "rotation_dofs": false,
             "echo_level"  : 0
         }""")
 
@@ -53,21 +55,18 @@ class AdjointStructuralSolver:
         return 2
 
     def AddVariables(self):
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
         
-        print("variables for the adjoint fluid solver added correctly")
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)  
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_DISPLACEMENT) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ROTATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+
+        #---> is reaction and torque necessary????????????
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_REACTION)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_TORQUE)
+        
+        print("variables for the adjoint structural solver added correctly")
 
     def ImportModelPart(self):
 
@@ -75,43 +74,43 @@ class AdjointStructuralSolver:
             # here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
 
+            #--------------------------> which aux_params are really necessary? <------------------------------------
             # here we shall check that the input read has the shape we like
             aux_params = KratosMultiphysics.Parameters("{}")
-            aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-            aux_params.AddValue("skin_parts",self.settings["skin_parts"])
+            aux_params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
+            aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+            aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+            if( self.settings.Has("bodies_list") ):
+                aux_params.AddValue("bodies_list",self.settings["bodies_list"])
+            #aux_params.AddValue("problem_model_part_name",self.settings["problem_model_part_name"])
+            #aux_params.AddValue("skin_parts",self.settings["skin_parts"])    
+           
 
             # here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name": "VMSAdjointElement3D",
-                    "condition_name": "SurfaceCondition3D3N"
+                    "element_name": "CrBeamElement3D2NForSA",
+                    "condition_name": "LineCondition2D2N" 
                     }
                     """)
+            # ---------------> the condition here is used as dummy. In this case only the 
+            # elements have to be replaced
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name": "VMSAdjointElement2D",
-                    "condition_name": "LineCondition2D2N"
-                    }
-                    """)
+                raise Exception("there is currently no 2D adjoint element")
             else:
                 raise Exception("domain size is not 2 or 3")
 
+            # TODO: the replacement function has to be reworked. Since only the elements and 
+            # not the conditions have to be replaced. Also it has to condsidered that a model can consist 
+            # out of more than one element type (e.g. model with beam shell elements). The current 
+            # replacement function replaced all elements with the same element which is chosen 
+            # by "element_name": some_element (see above)
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
-            import check_and_prepare_model_process_fluid
-            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
-
-            #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
-            for el in self.main_model_part.Elements:
-                rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-                kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
-                break
-
-            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+            import check_and_prepare_model_process_structural
+            check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -127,12 +126,17 @@ class AdjointStructuralSolver:
 
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(KratosMultiphysics.ADJOINT_PRESSURE)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_X)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Y)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Z)
+            node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_X)
+            node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_Y)
+            node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_Z)
+            if self.settings["rotation_dofs"].GetBool():
+                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_X)
+                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Y)
+                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)
 
-        print("DOFs for the VMS adjoint solver added correctly.")
+        #---> is reaction and torque necessary????????????        
+
+        print("DOFs for the structural adjoint solver added correctly.")
 
 
     def Initialize(self):
@@ -140,20 +144,21 @@ class AdjointStructuralSolver:
         self.computing_model_part = self.GetComputingModelPart()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
+        if self.settings["response_function_settings"]["response_type"].GetString() == "local_stress":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
+                raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = ShapeOptimizationApplication.LocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
-        if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
-        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyVelocityPressureScheme(self.settings["scheme_settings"], self.response_function)
+        # -------------------------------->   add here all structural response functions   <-------------------------------------------
+
+
+        if self.settings["scheme_settings"]["scheme_type"].GetString() == "structural":
+            self.time_scheme = ShapeOptimizationApplication.AdjointStructuralScheme(self.settings["scheme_settings"], self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
@@ -172,14 +177,11 @@ class AdjointStructuralSolver:
 
         self.solver.Check()
         
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-
         print ("Adjoint solver initialization finished.")
 
     def GetComputingModelPart(self):
         # get the submodelpart generated in CheckAndPrepareModelProcess
-        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def GetOutputVariables(self):
         pass

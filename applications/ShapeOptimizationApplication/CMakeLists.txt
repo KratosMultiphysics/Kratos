@@ -13,7 +13,7 @@ set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shape_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-  #${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_schemes_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_schemes_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/shape_optimization_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_analytic_sensitivity_element.cpp
 )

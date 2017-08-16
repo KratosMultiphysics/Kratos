@@ -7,10 +7,10 @@
 //   License:        BSD License
 //   Kratos default license: kratos/license.txt
 //
-//   Project Name:        $ShapeOptimizationApplication   $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         November  2016   $
-//   Revision:            $Revision:                0.0   $
+//   Project Name:        $ShapeOptimizationApplication     $
+//   Last modified by:    $Author: martin.fusseder@tum.de   $
+//   Date:                $Date:         August  2017       $
+//   Revision:            $Revision:                0.0     $
 
 // System includes
 

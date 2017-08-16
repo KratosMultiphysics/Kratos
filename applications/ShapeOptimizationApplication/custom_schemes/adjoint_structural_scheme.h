@@ -70,14 +70,14 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
+    AdjointStructuralScheme(Parameters& rParameters, StructuralResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
 
         Parameters default_params(R"(
         {
-            "scheme_type": "steady"
+            "scheme_type": "structural"
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
@@ -137,10 +137,8 @@ public:
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
             {
-                noalias(it->FastGetSolutionStepValue(ADJOINT_VELOCITY)) = ADJOINT_VELOCITY.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-                // Make sure the primal ACCELERATION is zero for the steady adjoint problem.
-                noalias(it->FastGetSolutionStepValue(ACCELERATION)) = ACCELERATION.Zero();
+                noalias(it->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
+                noalias(it->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
             }
         }
 
@@ -223,14 +221,12 @@ public:
         if (domain_size != working_space_dimension)
             KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
         
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_PRESSURE << std::endl;
-        
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ACCELERATION) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ACCELERATION << std::endl;
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) == false)
+            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
+           // ---> but what is e.g. for solid elements, where no rotation dofs exist??????????????? 
 
         return BaseType::Check(rModelPart); // check elements and conditions
         KRATOS_CATCH("");
@@ -247,20 +243,20 @@ public:
 
         int thread_id = OpenMPUtils::ThisThread();
 
-        // Calculate transposed gradient of element residual w.r.t. first derivatives.
-        pCurrentElement->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
+        // Get element stiffness matrix
+        pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
-        // Calculate transposed gradient of response function on element w.r.t. first derivatives.
-        mpResponseFunction->CalculateFirstDerivativesGradient(
+        // Calculate transposed gradient of response function on element w.r.t. primal solution
+        mpResponseFunction->CalculateGradient(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]); //-----------------> rework member function in SA-element
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -384,7 +380,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ResponseFunction::Pointer mpResponseFunction;
+    StructuralResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
 
     ///@}

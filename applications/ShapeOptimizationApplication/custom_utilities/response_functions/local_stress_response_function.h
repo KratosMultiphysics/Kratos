@@ -72,7 +72,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class LocalStressResponseFunction : StructuralResponseFunction
+class LocalStressResponseFunction : public StructuralResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -343,7 +343,7 @@ protected:
 		else
 		{
 			 noalias(rRHSContribution) = zero_adjoint_vector;
-		}	  
+		}	
 
       KRATOS_CATCH("")
 	}

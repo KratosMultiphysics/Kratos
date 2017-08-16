@@ -226,7 +226,7 @@ public:
         // Set sensitivity variables to zero.
         for (auto label : mElementSensitivityVariables)
         {
-            string output_variable_label = label + "_SENSITIVITY";
+            std::string output_variable_label = label + "_SENSITIVITY";
             if (KratosComponents<Variable<double>>::Has(output_variable_label) == true)
             {
                 const Variable<double>& r_variable =
@@ -382,7 +382,7 @@ public:
     virtual void UpdateSensitivities()
     {
         KRATOS_TRY;
-
+        
         for (auto label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
