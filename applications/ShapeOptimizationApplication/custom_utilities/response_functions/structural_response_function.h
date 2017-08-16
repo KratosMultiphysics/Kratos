@@ -382,7 +382,7 @@ public:
     virtual void UpdateSensitivities()
     {
         KRATOS_TRY;
-        
+
         for (auto label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
@@ -882,7 +882,7 @@ protected:
      * @param[out]    rResponseGradient  the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem, 
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem, //make const Element?
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -895,7 +895,7 @@ protected:
         KRATOS_CATCH("");
     }
 
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, 
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, //make const Condition?
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -917,7 +917,7 @@ protected:
      * @param[out]    rResponseGradient  the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem, 
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem, //make const Element?
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -930,7 +930,7 @@ protected:
         KRATOS_CATCH("");
     }
 
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, 
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, //make const Condition?
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,

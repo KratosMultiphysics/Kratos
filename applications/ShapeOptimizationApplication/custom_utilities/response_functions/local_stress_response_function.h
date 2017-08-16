@@ -126,8 +126,8 @@ public:
 		m_traced_pElement->SetValue(STRESS_TREATMENT, m_stress_treatment);
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
+		//m_initial_value = 0.0;
+		//m_initial_value_defined = false;
 		m_stress_value = 0.0;	
 
 	}
@@ -155,49 +155,28 @@ public:
 	}
 
 	// ==============================================================================
-	void CalculateValue()
+	double CalculateValue(ModelPart& rModelPart) override
 	{
 		KRATOS_TRY;
 
-		ModelPart& r_model_part = this->GetModelPart();
-
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
+		ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 		m_traced_pElement->Calculate(STRESS_VALUE, m_stress_value, CurrentProcessInfo);
 
-		//just for testing the computation of the adjoint load--> erase this later!!!!!!!!!!!!!!!!!
-		std::cout << ("Response Function value= ") << m_stress_value << std::endl;
-
-		Vector adjoint_load;
-		Vector zero_adjoint_load;
-		m_traced_pElement->Calculate(ADJOINT_LOAD, adjoint_load, CurrentProcessInfo);
-
-		m_traced_pElement->Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_load, CurrentProcessInfo);
-
-		int size_load = adjoint_load.size();
-
-		for(int i = 0; i < size_load; i++)
-		{
-			//std::cout << ("adjoint_load = ") << adjoint_load[i] << std::endl;	
-			std::cout << ("zero_adjoint_load = ") << zero_adjoint_load[i] << std::endl;	
-		}
-
-		this->UpdateSensitivities();
-		//-------------------------------------------------------------------------!!!!!!!!!!!!!!!!!!
-
 		// Set initial value if not done yet
-		if(!m_initial_value_defined)
+		/*if(!m_initial_value_defined)
 		{
 			m_initial_value = m_stress_value;
 			m_initial_value_defined = true;
-		}
+		}*/
 
+		return m_stress_value;
 
 		KRATOS_CATCH("");
 	}
 	// --------------------------------------------------------------------------
-	double GetInitialValue()
+	/*double GetInitialValue() old function, don't needed for sensitivity analysis
 	{
 		KRATOS_TRY;
 
@@ -210,30 +189,11 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetValue()
+	double GetValue() old function, don't needed for sensitivity analysis
 	{
 		KRATOS_TRY;
 
 		return m_stress_value;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	/*boost::python::dict get_gradient()
-	{
-		KRATOS_TRY;
-
-		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
-
-		ModelPart& r_model_part = this->GetModelPart();
-
-		// Fill dictionary with gradient information
-		for (ModelPart::NodeIterator node_i = r_model_part.NodesBegin(); node_i != r_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(LOCAL_STRESS_GRADIENT);
-
-		return dFdX;
 
 		KRATOS_CATCH("");
 	}*/
@@ -253,21 +213,21 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	/*virtual std::string Info() const            old function, don't needed for sensitivity analysis
 	{
 		return "LocalStressResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const    old function, don't needed for sensitivity analysis
 	{
 		rOStream << "LocalStressResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	virtual void PrintData(std::ostream &rOStream) const    old function, don't needed for sensitivity analysis
 	{
-	}
+	}*/
 
 	///@}
 	///@name Friends
@@ -276,31 +236,23 @@ public:
 	///@}
 
 	// ==============================================================================
-	void CalculateGradient(const Element& rElem, const Matrix& rLHS, 
-								Vector& rOutput, ProcessInfo& rProcessInfo) override
+	void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
+                                   Vector& rResponseGradient,
+                                   ProcessInfo& rProcessInfo) override
 	{
-		if(rElem.Id() == m_id_of_traced_element)
+		if(rAdjointElem.Id() == m_id_of_traced_element)
 		{
 			//computes adjoint load in global direction. Or is it in local direction required???????????????
-			m_traced_pElement->Calculate(ADJOINT_LOAD, rOutput, rProcessInfo);
+			m_traced_pElement->Calculate(ADJOINT_LOAD, rResponseGradient, rProcessInfo);
 		}
 		else
 		{
 			// There is only a contribution of the traced element to the adjoint load case
-			int num_DOFs_element = rLHS.size1();
-			rOutput.resize(num_DOFs_element);
-			for(int i = 0; i < num_DOFs_element; i++){ rOutput[i] = 0.0; }
+			int num_DOFs_element = rAdjointMatrix.size1();
+			rResponseGradient.resize(num_DOFs_element);
+			for(int i = 0; i < num_DOFs_element; i++){ rResponseGradient[i] = 0.0; }
 		}
 
-	}
-
-	void UpdateSensitivities() override
-	{
-		KRATOS_TRY;
-
-		BaseType::UpdateSensitivities();
-
-		KRATOS_CATCH("");
 	}
 
 
@@ -319,69 +271,83 @@ protected:
 	///@}
 	///@name Protected Operations
 	///@{
-	
+
 	// ==============================================================================
-	void CalculateSensitivityGradient(Element& rElem,
-                                	  const Variable<array_1d<double,3>>& rVariable,
+	void CalculateSensitivityGradient(Element& rAdjointElem, 
+                                      const Variable<double>& rVariable,
                                       const Matrix& rDerivativesMatrix,
-                                      Vector& rRHSContribution,
-                                      ProcessInfo& rProcessInfo) //--> auf base class anpassen
+                                      Vector& rResponseGradient,
+                                      ProcessInfo& rProcessInfo) override
     {
       	KRATOS_TRY
 
-      	if (rRHSContribution.size() != rDerivativesMatrix.size1())
-          	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
+      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 
 		Vector zero_adjoint_vector;	  
 		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
 
-		if(rElem.Id() == m_id_of_traced_element)
+		if(rAdjointElem.Id() == m_id_of_traced_element)
 		{
-			rElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			noalias(rRHSContribution) = prod(rDerivativesMatrix, zero_adjoint_vector);
+			rAdjointElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
+			noalias(rResponseGradient) = prod(rDerivativesMatrix, zero_adjoint_vector);
 		}
 		else
 		{
-			 noalias(rRHSContribution) = zero_adjoint_vector;
-		}	
-
-      KRATOS_CATCH("")
-	}
-
-	// ==============================================================================
-	void CalculateSensitivityGradient(Element& rElem,
-                                          const Variable<double>& rVariable,
-                                          const Matrix& rDerivativesMatrix,
-                                          Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) //--> auf base class anpassen
-    {
-      	KRATOS_TRY
-
-      	if (rRHSContribution.size() != rDerivativesMatrix.size1())
-          	rRHSContribution.resize(rDerivativesMatrix.size1(), false);
-
-		Vector zero_adjoint_vector;	  
-		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
-
-		if(rElem.Id() == m_id_of_traced_element)
-		{
-			rElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			noalias(rRHSContribution) = prod(rDerivativesMatrix, zero_adjoint_vector);;
-		}
-		else
-		{
-			 noalias(rRHSContribution) = zero_adjoint_vector;
+			 noalias(rResponseGradient) = zero_adjoint_vector;
 		}	  
 
        KRATOS_CATCH("")
 	}
 
 	// ==============================================================================
-	void CalculateSensitivityGradient(Condition& rCond,
-                                	  const Variable<array_1d<double,3>>& rVariable,
+	void CalculateSensitivityGradient(Condition& rAdjointCondition, 
+                                     const Variable<double>& rVariable,
+                                     const Matrix& rDerivativesMatrix,
+                                     Vector& rResponseGradient,
+                                     ProcessInfo& rProcessInfo) override
+	{										  
+		KRATOS_TRY;
+
+         // ----> insert code
+
+		KRATOS_CATCH("");
+	}
+
+	// ==============================================================================
+	void CalculateSensitivityGradient(Element& rAdjointElem, 
+                                      const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
-                                      Vector& rRHSContribution,
-                                      ProcessInfo& rProcessInfo)  //--> auf base class anpassen
+                                      Vector& rResponseGradient,
+                                      ProcessInfo& rProcessInfo) override
+    {
+      	KRATOS_TRY
+
+      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+
+		Vector zero_adjoint_vector;	  
+		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
+
+		if(rAdjointElem.Id() == m_id_of_traced_element)
+		{
+			rAdjointElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
+			noalias(rResponseGradient) = prod(rDerivativesMatrix, zero_adjoint_vector);
+		}
+		else
+		{
+			 noalias(rResponseGradient) = zero_adjoint_vector;
+		}	
+
+      KRATOS_CATCH("")
+	}
+
+	// ==============================================================================
+	void CalculateSensitivityGradient(Condition& rAdjointCondition, 
+                                      const Variable<array_1d<double,3>>& rVariable,
+                                      const Matrix& rDerivativesMatrix,
+                                      Vector& rResponseGradient,
+                                      ProcessInfo& rProcessInfo)
     {
 		KRATOS_TRY;
 
@@ -390,19 +356,7 @@ protected:
 		KRATOS_CATCH("");
 	}
 
-	// ==============================================================================
-	void CalculateSensitivityGradient(Condition& rCond,
-                                          const Variable<double>& rVariable,
-                                          const Matrix& rDerivativesMatrix,
-                                          Vector& rRHSContribution,
-                                          ProcessInfo& rProcessInfo) //--> auf base class anpassen
-    {
-		KRATOS_TRY;
 
-         // ----> insert code
-
-		KRATOS_CATCH("");
-	}
 
 	// ==============================================================================
 
@@ -430,8 +384,8 @@ private:
 	unsigned int mGradientMode;
 	double m_stress_value; 
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
+	//double m_initial_value;
+	//bool m_initial_value_defined;
 	unsigned int m_id_of_traced_element;
 	int m_id_of_location;
 	Element::Pointer m_traced_pElement;
