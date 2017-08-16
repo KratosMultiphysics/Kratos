@@ -82,7 +82,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void PointLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void PointLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
       
@@ -103,7 +103,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void PointLoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
+  void PointLoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
   {
     KRATOS_TRY
 
@@ -159,7 +159,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void PointLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void PointLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
 						 const double& rPointNumber)
   {
     KRATOS_TRY
@@ -181,8 +181,8 @@ namespace Kratos
     KRATOS_TRY
 
     //create and initialize condition variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    ConditionVariables Variables;
+    this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )

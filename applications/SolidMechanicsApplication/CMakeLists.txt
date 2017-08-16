@@ -20,27 +20,28 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-   
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_small_displacement_element.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_beam_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_beam_emc_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_beam_semc_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geometrically_exact_rod_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/linear_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/small_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/small_displacement_bbar_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_small_displacement_element.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/total_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element_3D2N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_emc_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_semc_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/geometrically_exact_rod_element.cpp
 	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thick_element_3D4N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thin_element_3D3N.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/boundary_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_condition.cpp

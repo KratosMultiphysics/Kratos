@@ -162,8 +162,8 @@ namespace Kratos
             voigtSize = 6; 
 
          // vale, torno a fer de les meves...
-         GeneralVariables Variables;
-         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+         ElementVariables Variables;
+         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
 
          const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod);
          //reading integration points
@@ -197,8 +197,8 @@ namespace Kratos
          const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
          // vale, torno a fer de les meves...
-         GeneralVariables Variables;
-         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+         ElementVariables Variables;
+         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
 
          //create constitutive law parameters:
          ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -227,25 +227,25 @@ namespace Kratos
             }		
 
             //set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(Variables,Values,PointNumber);
+            this->SetElementVariables(Variables,Values,PointNumber);
 
             // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double ElementalDetFT = Variables.detFT;
-            Matrix ElementalFT = Variables.FT;
+            double ElementalDetFT = Variables.detH;
+            Matrix ElementalFT = Variables.H;
 
             // AND NOW IN THE OTHER WAY
             Matrix m; double d; 
             ComputeConstitutiveVariables( Variables, m, d);
 
-            Variables.FT = m;
-            Variables.detFT = d; 
-            Values.SetDeformationGradientF( Variables.FT);
-            Values.SetDeterminantF( Variables.detFT );
+            Variables.H = m;
+            Variables.detH = d; 
+            Values.SetDeformationGradientF( Variables.H);
+            Values.SetDeterminantF( Variables.detH );
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
             Variables.FT = ElementalFT;
-            Variables.detFT = ElementalDetFT;
+            Variables.detH = ElementalDetFT;
 
 
             // 2. Do My THIngs
@@ -470,9 +470,9 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJwPElement::InitializeGeneralVariables ( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUJwPElement::InitializeElementVariables ( ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUJElement::InitializeGeneralVariables( rVariables, rCurrentProcessInfo );
+      UpdatedLagrangianUJElement::InitializeElementVariables( rVariables, rCurrentProcessInfo );
 
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
@@ -530,7 +530,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUJwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -602,7 +602,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUJwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -694,8 +694,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      GeneralVariables Variables;
-      this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+      ElementVariables Variables;
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
  
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )

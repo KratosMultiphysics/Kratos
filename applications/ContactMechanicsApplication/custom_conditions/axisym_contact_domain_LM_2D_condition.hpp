@@ -171,13 +171,13 @@ protected:
     /**
      * Initialize Variables
      */
-    void InitializeGeneralVariables (GeneralVariables& rVariables, 
+    void InitializeConditionVariables (ConditionVariables& rVariables, 
 				     const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Condition Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables, 
+    void CalculateKinematics(ConditionVariables& rVariables, 
 			     ProcessInfo& rCurrentProcessInfo, 
 			     const unsigned int& rPointNumber);
 
@@ -192,14 +192,14 @@ protected:
      * Calculate LHS
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-			    GeneralVariables& rVariables, 
+			    ConditionVariables& rVariables, 
 			    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-			    GeneralVariables& rVariables, 
+			    ConditionVariables& rVariables, 
 			    double& rIntegrationWeight);
 
 

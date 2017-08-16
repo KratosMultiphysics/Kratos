@@ -375,7 +375,7 @@ void BoundaryCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix
 //************************************************************************************
 //************************************************************************************
 
-void BoundaryCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void BoundaryCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -400,7 +400,7 @@ void BoundaryCondition::InitializeGeneralVariables(GeneralVariables& rVariables,
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-void BoundaryCondition::CalculateKinematics(GeneralVariables& rVariables,
+void BoundaryCondition::CalculateKinematics(ConditionVariables& rVariables,
 					     const double& rPointNumber)
 {
     KRATOS_TRY
@@ -420,8 +420,8 @@ void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSy
     KRATOS_TRY
 
     //create and initialize condition variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    ConditionVariables Variables;
+    this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -463,7 +463,7 @@ void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSy
 //************************************************************************************
 //************************************************************************************
 
-void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
 
   //contributions of the stiffness matrix calculated on the reference configuration
@@ -505,7 +505,7 @@ void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
 //************************************************************************************
 //************************************************************************************
 
-void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
     //contribution of the internal and external forces
     if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
@@ -748,7 +748,7 @@ void BoundaryCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, Proc
 //***********************************************************************************
 
 void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-					     GeneralVariables& rVariables,
+					     ConditionVariables& rVariables,
 					     double& rIntegrationWeight)
 
 {
@@ -764,7 +764,7 @@ void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 
 void BoundaryCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						      GeneralVariables& rVariables,
+						      ConditionVariables& rVariables,
 						      double& rIntegrationWeight)
 
 {
@@ -780,7 +780,7 @@ void BoundaryCondition::CalculateAndAddExternalForces(VectorType& rRightHandSide
 //***********************************************************************************
 
 double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
-							 GeneralVariables& rVariables,
+							 ConditionVariables& rVariables,
 							 double& rIntegrationWeight)
 
 {
@@ -898,8 +898,8 @@ void BoundaryCondition::CalculateOnIntegrationPoints( const Variable<double>& rV
     {
 
       //create and initialize condition variables:
-      GeneralVariables Variables;
-      this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+      ConditionVariables Variables;
+      this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
       //reading integration points
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );

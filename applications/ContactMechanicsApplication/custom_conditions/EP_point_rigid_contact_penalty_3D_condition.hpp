@@ -175,16 +175,16 @@ protected:
     ///@{
 
     virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
+				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
 
 
 
 
-    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
+    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
 
 
-    bool CalculateFrictionLaw( GeneralVariables & rVariables, ConstitutiveVariables & rConstitutiveVariables, Vector & rTangentForce);
+    bool CalculateFrictionLaw( ConditionVariables & rVariables, ConstitutiveVariables & rConstitutiveVariables, Vector & rTangentForce);
 
     virtual double CalculateSomeSortOfArea();
 

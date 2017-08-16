@@ -457,7 +457,7 @@ Vector& RigidBodyElement::GetNodalPreviousValue(const Variable<array_1d<double,3
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -571,8 +571,8 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
     KRATOS_TRY
 
     //create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     std::cout<<" ID "<<this->Id()<<std::endl;
     std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
@@ -662,7 +662,7 @@ Vector& RigidBodyElement::MapToInitialLocalFrame(Vector& rVariable)
 //************************************************************************************
 
 void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						     GeneralVariables& rVariables,
+						     ElementVariables& rVariables,
 						     Vector& rVolumeForce)
 {
     KRATOS_TRY
@@ -952,7 +952,7 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -1286,7 +1286,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

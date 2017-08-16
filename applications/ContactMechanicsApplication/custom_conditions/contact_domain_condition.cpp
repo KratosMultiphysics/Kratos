@@ -708,7 +708,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
+  void ContactDomainCondition::CalculateKinematics( ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
   {
     KRATOS_TRY
 
@@ -1112,7 +1112,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType & MasterGeometry = mContactVariables.GetMasterGeometry();
 
@@ -1185,7 +1185,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, PointType & TangentVelocity, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainCondition::CalculateRelativeVelocity (ConditionVariables& rVariables, PointType & TangentVelocity, ProcessInfo& rCurrentProcessInfo)
   {
     //if current tangent is not previously computed, do it here.
     rVariables.Contact.CurrentSurface.Tangent = this->CalculateCurrentTangent( rVariables.Contact.CurrentSurface.Tangent );
@@ -1242,7 +1242,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, PointType & TangentDisplacement, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainCondition::CalculateRelativeDisplacement (ConditionVariables& rVariables, PointType & TangentDisplacement, ProcessInfo& rCurrentProcessInfo)
   {
 
     // (Tangent vector previously computed)
@@ -1271,7 +1271,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVariables, const PointType & TangentVelocity)
+  void ContactDomainCondition::CalculateFrictionCoefficient (ConditionVariables& rVariables, const PointType & TangentVelocity)
   {
     //---FRICTION LAW in function of the relative sliding velocity ---//
 
@@ -1337,8 +1337,8 @@ namespace Kratos
     
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    ConditionVariables Variables;
+    this->InitializeConditionVariables(Variables, rCurrentProcessInfo);
     
     //SET TANGENT DIRECTION-RELATIVE VELOCITY AND FRICTION PARAMETERS
 
@@ -1406,7 +1406,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void ContactDomainCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     //contributions of the stiffness matrix calculated on the reference configuration
     if( rLocalSystem.CalculationFlags.Is( ContactDomainUtilities::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -1447,7 +1447,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
     //contribution of the internal and external forces
@@ -1490,7 +1490,7 @@ namespace Kratos
   //************************************************************************************
 
   inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-								   GeneralVariables &rVariables,
+								   ConditionVariables &rVariables,
 								   double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1582,7 +1582,7 @@ namespace Kratos
 
 
   void ContactDomainCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   GeneralVariables& rVariables,
+						   ConditionVariables& rVariables,
 						   double& rIntegrationWeight)
   
   { 
@@ -1690,8 +1690,8 @@ namespace Kratos
     if ( rVariable == PK2_STRESS_TENSOR )
       {
 
-        GeneralVariables Variables;
-        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+        ConditionVariables Variables;
+        this->InitializeConditionVariables(Variables, rCurrentProcessInfo);
 
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {

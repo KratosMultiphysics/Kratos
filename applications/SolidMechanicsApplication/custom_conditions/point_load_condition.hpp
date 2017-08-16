@@ -160,20 +160,20 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     const double& rPointNumber);
 
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalLoad(GeneralVariables& rVariables);
+    virtual void CalculateExternalLoad(ConditionVariables& rVariables);
 
 
     /**

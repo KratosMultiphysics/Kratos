@@ -133,20 +133,20 @@ protected:
     /**
      * Initialize General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalLoad(GeneralVariables& rVariables);
+    virtual void CalculateExternalLoad(ConditionVariables& rVariables);
 
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
-					       GeneralVariables& rVariables,
+					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight ) override;
 
 
@@ -154,7 +154,7 @@ protected:
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
-						  GeneralVariables& rVariables,
+						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight ) override;
 
     ///@}

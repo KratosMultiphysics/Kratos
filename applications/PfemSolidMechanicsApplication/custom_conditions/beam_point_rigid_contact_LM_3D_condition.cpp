@@ -250,7 +250,7 @@ namespace Kratos
       KRATOS_TRY
 
        
-       GeneralVariables ContactVariables;
+       ConditionVariables ContactVariables;
 
        SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
 
@@ -343,7 +343,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamPointRigidContactLM3DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, 
+  void BeamPointRigidContactLM3DCondition::InitializeConditionVariables (ConditionVariables& rVariables, 
 									const ProcessInfo& rCurrentProcessInfo)
   {
 
@@ -354,7 +354,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
   
-  void BeamPointRigidContactLM3DCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void BeamPointRigidContactLM3DCondition::CalculateKinematics(ConditionVariables& rVariables,
 							       const ProcessInfo& rCurrentProcessInfo,
 							       const double& rPointNumber)
   {
@@ -394,7 +394,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void BeamPointRigidContactLM3DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  void BeamPointRigidContactLM3DCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
     KRATOS_TRY
@@ -456,7 +456,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-								GeneralVariables& rVariables,
+								ConditionVariables& rVariables,
 								double& rIntegrationWeight)
 
   {
@@ -518,7 +518,7 @@ namespace Kratos
   //************* Tangent Contact Force constitutive matrix      **********************
   //***********************************************************************************
 
-   void BeamPointRigidContactLM3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void BeamPointRigidContactLM3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables, double& rIntegrationWeight)
    {
        KRATOS_TRY
 
@@ -531,7 +531,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-									 GeneralVariables& rVariables,
+									 ConditionVariables& rVariables,
 									 double& rIntegrationWeight)
 
   {
@@ -560,7 +560,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
-									      GeneralVariables& rVariables,
+									      ConditionVariables& rVariables,
 									      double& rIntegrationWeight)
   {
       
@@ -600,7 +600,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactLM3DCondition::CalculateAndAddTangentContactForce(VectorType& rRightHandSideVector,
-									       GeneralVariables& rVariables,
+									       ConditionVariables& rVariables,
 									       double& rIntegrationWeight)
   {
 
@@ -615,7 +615,7 @@ namespace Kratos
   //**************************** Calculate Tangent Force Modulus **********************
   //***********************************************************************************
 
-  double& BeamPointRigidContactLM3DCondition::CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables )
+  double& BeamPointRigidContactLM3DCondition::CalculateTangentRelativeMovement( double& rTangentRelativeMovement, ConditionVariables& rVariables )
   {
        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -695,7 +695,7 @@ namespace Kratos
   //**************************** Check Coulomb law for Tangent Contact Force **********
   //***********************************************************************************
 
-  double BeamPointRigidContactLM3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
+  double BeamPointRigidContactLM3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , ConditionVariables& rVariables)
   {
        mTangentialVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement);
 

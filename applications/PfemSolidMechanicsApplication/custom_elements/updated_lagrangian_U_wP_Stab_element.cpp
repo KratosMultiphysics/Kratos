@@ -132,12 +132,12 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUwPStabElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
+   void UpdatedLagrangianUwPStabElement::InitializeElementVariables (ElementVariables & rVariables, 
          const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
-      UpdatedLagrangianUwPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+      UpdatedLagrangianUwPElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
       //stabilization factor
       double StabilizationFactor = 1.0;
@@ -155,7 +155,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUwPStabElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUwPStabElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -212,7 +212,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUwPStabElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUwPStabElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 

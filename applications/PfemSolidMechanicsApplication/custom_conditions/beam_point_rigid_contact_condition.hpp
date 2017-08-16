@@ -117,7 +117,7 @@ protected:
       double  ReferenceRadius;
 
 
-    } GeneralVariables;
+    } ConditionVariables;
 
 
     /**
@@ -452,13 +452,13 @@ protected:
     /**
      * Initialize General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
 				     const double& rPointNumber);
 
@@ -479,14 +479,14 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ConditionVariables& rVariables,
                                     double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ConditionVariables& rVariables,
 				    double& rIntegrationWeight);
 
 
@@ -494,7 +494,7 @@ protected:
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
+				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
 
 
@@ -502,7 +502,7 @@ protected:
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
-					      GeneralVariables& rVariables,
+					      ConditionVariables& rVariables,
 					      double& rIntegrationWeight );
 
     ///@}

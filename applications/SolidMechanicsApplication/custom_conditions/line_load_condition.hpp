@@ -137,13 +137,13 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     const double& rPointNumber);
 
     /**
@@ -159,14 +159,14 @@ protected:
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalLoad(GeneralVariables& rVariables);
+    virtual void CalculateExternalLoad(ConditionVariables& rVariables);
 
  
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
+				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
 
 

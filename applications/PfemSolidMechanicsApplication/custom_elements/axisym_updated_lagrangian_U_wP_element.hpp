@@ -10,12 +10,13 @@
 #if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
 #define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
 
+
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/axisymmetric_updated_lagrangian_element.hpp"
+#include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_element.hpp"
 
 namespace Kratos
 {
@@ -192,7 +193,7 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     double& rIntegrationWeight);
 
     /**
@@ -200,14 +201,14 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
  
 

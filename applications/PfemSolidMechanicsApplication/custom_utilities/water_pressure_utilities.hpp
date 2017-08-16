@@ -19,11 +19,8 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
-
+#include "geometries/geometry.h"
 #include "includes/properties.h"
-
-#include "custom_elements/large_displacement_element.hpp" //needed??
-
 
 namespace Kratos
 {

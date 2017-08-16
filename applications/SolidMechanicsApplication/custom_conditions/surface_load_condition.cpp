@@ -76,10 +76,10 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SurfaceLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void SurfaceLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
-    LoadCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
+    LoadCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
   
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
@@ -162,7 +162,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void SurfaceLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void SurfaceLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
 						 const double& rPointNumber)
   {
     KRATOS_TRY
@@ -240,7 +240,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
+  void SurfaceLoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
   {
 
     KRATOS_TRY
@@ -326,7 +326,7 @@ namespace Kratos
   //************************************************************************************
 
   void SurfaceLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						 GeneralVariables& rVariables,
+						 ConditionVariables& rVariables,
 						 double& rIntegrationWeight)
 
   {

@@ -131,21 +131,21 @@ protected:
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalStiffness(GeneralVariables& rVariables);
+    virtual void CalculateExternalStiffness(ConditionVariables& rVariables);
 
     
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
-					       GeneralVariables& rVariables,
+					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight ) override;
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
-						  GeneralVariables& rVariables,
+						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight ) override;
 
     ///@}

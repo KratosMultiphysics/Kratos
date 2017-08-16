@@ -94,7 +94,7 @@ ElasticCondition::~ElasticCondition()
 //***********************************************************************************
 //***********************************************************************************
 
-void ElasticCondition::CalculateExternalStiffness(GeneralVariables& rVariables)
+void ElasticCondition::CalculateExternalStiffness(ConditionVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -117,7 +117,7 @@ void ElasticCondition::CalculateExternalStiffness(GeneralVariables& rVariables)
 //***********************************************************************************
 
 void ElasticCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						     GeneralVariables& rVariables,
+						     ConditionVariables& rVariables,
 						     double& rIntegrationWeight)
 
 {
@@ -152,7 +152,7 @@ void ElasticCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideV
 //***********************************************************************************
 
 double& ElasticCondition::CalculateAndAddExternalEnergy(double& rEnergy,
-							GeneralVariables& rVariables,
+							ConditionVariables& rVariables,
 							double& rIntegrationWeight)
 
 {

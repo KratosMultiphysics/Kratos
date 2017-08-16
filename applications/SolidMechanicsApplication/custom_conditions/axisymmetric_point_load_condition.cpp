@@ -87,7 +87,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void AxisymmetricPointLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void AxisymmetricPointLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
 							   const double& rPointNumber)
   {
     KRATOS_TRY
@@ -129,7 +129,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymmetricPointLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void AxisymmetricPointLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
@@ -143,7 +143,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymmetricPointLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void AxisymmetricPointLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 

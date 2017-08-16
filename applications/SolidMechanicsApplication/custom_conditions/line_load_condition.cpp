@@ -77,11 +77,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LineLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void LineLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    LoadCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
+    LoadCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
 
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
@@ -166,7 +166,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void LineLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void LineLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
 						const double& rPointNumber)
   {
     KRATOS_TRY
@@ -230,7 +230,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void LineLoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
+  void LineLoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
   {
 
     KRATOS_TRY
@@ -317,7 +317,7 @@ namespace Kratos
   //************************************************************************************
 
   void LineLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						GeneralVariables& rVariables,
+						ConditionVariables& rVariables,
 						double& rIntegrationWeight)
 
   {

@@ -87,7 +87,7 @@ AxisymContactDomainLM2DCondition::~AxisymContactDomainLM2DCondition()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainLM2DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymContactDomainLM2DCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
     GeometryType & MasterGeometry = mContactVariables.GetMasterGeometry();
@@ -177,7 +177,7 @@ void AxisymContactDomainLM2DCondition::CalculateRadius(double & rCurrentRadius,
 //************************************************************************************
 
 
-void AxisymContactDomainLM2DCondition::CalculateKinematics( GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
+void AxisymContactDomainLM2DCondition::CalculateKinematics( ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
 {
     KRATOS_TRY
 
@@ -275,7 +275,7 @@ void AxisymContactDomainLM2DCondition::CalculateKinematics( GeneralVariables& rV
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainLM2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymContactDomainLM2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
 
   ElementType&  MasterElement  = mContactVariables.GetMasterElement();
@@ -298,7 +298,7 @@ void AxisymContactDomainLM2DCondition::CalculateAndAddLHS(LocalSystemComponents&
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainLM2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymContactDomainLM2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
   
   ElementType&  MasterElement  = mContactVariables.GetMasterElement();

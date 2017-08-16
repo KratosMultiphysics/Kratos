@@ -101,11 +101,11 @@ namespace Kratos
           * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
           */
          virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-               GeneralVariables& rVariables,
+               ConditionVariables& rVariables,
                double& rIntegrationWeight);
 
          virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-               GeneralVariables& rVariables,
+               ConditionVariables& rVariables,
                double& rIntegrationWeight);
 
       private:

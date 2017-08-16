@@ -81,7 +81,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
   
-  void AxisymPointRigidContactPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void AxisymPointRigidContactPenalty2DCondition::CalculateKinematics(ConditionVariables& rVariables,
 								      const ProcessInfo& rCurrentProcessInfo,
 								      const double& rPointNumber)
   {
@@ -98,7 +98,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void AxisymPointRigidContactPenalty2DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  void AxisymPointRigidContactPenalty2DCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
     KRATOS_TRY
@@ -252,7 +252,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
@@ -271,7 +271,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 

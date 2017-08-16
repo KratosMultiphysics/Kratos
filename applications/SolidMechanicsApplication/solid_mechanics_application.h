@@ -49,27 +49,27 @@
 #include "custom_conditions/elastic_condition.hpp"
 
 //elements
-#include "custom_elements/linear_solid_element.hpp"
+#include "custom_elements/solid_elements/linear_solid_element.hpp"
 
-#include "custom_elements/small_displacement_element.hpp"
-#include "custom_elements/small_displacement_bbar_element.hpp"
-#include "custom_elements/axisymmetric_small_displacement_element.hpp"
+#include "custom_elements/solid_elements/small_displacement_element.hpp"
+#include "custom_elements/solid_elements/small_displacement_bbar_element.hpp"
+#include "custom_elements/solid_elements/axisymmetric_small_displacement_element.hpp"
 
-#include "custom_elements/total_lagrangian_element.hpp"
-#include "custom_elements/updated_lagrangian_element.hpp"
-#include "custom_elements/axisymmetric_updated_lagrangian_element.hpp"
+#include "custom_elements/solid_elements/total_lagrangian_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_element.hpp"
+#include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_element.hpp"
 
-#include "custom_elements/updated_lagrangian_U_P_element.hpp"
-#include "custom_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
-#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
-#include "custom_elements/large_displacement_beam_element.hpp"
-#include "custom_elements/large_displacement_beam_emc_element.hpp"
-#include "custom_elements/large_displacement_beam_semc_element.hpp"
-#include "custom_elements/geometrically_exact_rod_element.hpp"
+#include "custom_elements/beam_elements/small_displacement_beam_element_3D2N.hpp"
+#include "custom_elements/beam_elements/large_displacement_beam_element.hpp"
+#include "custom_elements/beam_elements/large_displacement_beam_emc_element.hpp"
+#include "custom_elements/beam_elements/large_displacement_beam_semc_element.hpp"
+#include "custom_elements/beam_elements/geometrically_exact_rod_element.hpp"
 
-#include "custom_elements/shell_thick_element_3D4N.hpp"
-#include "custom_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"

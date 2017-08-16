@@ -136,7 +136,7 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     const double& rPointNumber);
 
 
@@ -144,14 +144,14 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ConditionVariables& rVariables,
                                     double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ConditionVariables& rVariables,
 				    double& rIntegrationWeight);
 
     /**

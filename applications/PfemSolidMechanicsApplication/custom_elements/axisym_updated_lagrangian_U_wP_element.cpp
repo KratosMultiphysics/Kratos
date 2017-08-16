@@ -453,8 +453,8 @@ namespace Kratos
          const unsigned int& number_of_nodes = GetGeometry().size(); 
 
          // Get DN_DX
-         GeneralVariables Variables; 
-         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+         ElementVariables Variables; 
+         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
 
          Matrix K = ZeroMatrix( dimension, dimension);
          for (unsigned int i = 0; i < dimension; i++)
@@ -535,10 +535,10 @@ namespace Kratos
 
    // ******************** INITIALIZE GENERAL VARIABLES ****************************
    // ******************************************************************************
-   void AxisymUpdatedLagrangianUwPElement::InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUwPElement::InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
 
-      AxisymmetricUpdatedLagrangianElement::InitializeGeneralVariables( rVariables, rCurrentProcessInfo);
+      AxisymmetricUpdatedLagrangianElement::InitializeElementVariables( rVariables, rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -605,7 +605,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -662,7 +662,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 

@@ -93,11 +93,11 @@ LoadCondition::~LoadCondition()
 //************************************************************************************
 //************************************************************************************
 
-void LoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void LoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    BoundaryCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
+    BoundaryCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
     
     KRATOS_CATCH( "" )
 }
@@ -106,7 +106,7 @@ void LoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, con
 //***********************************************************************************
 //***********************************************************************************
 
-void LoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
+void LoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
 {
     KRATOS_TRY
       
@@ -119,7 +119,7 @@ void LoadCondition::CalculateExternalLoad(GeneralVariables& rVariables)
 //***********************************************************************************
 
 void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						  GeneralVariables& rVariables,
+						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight)
 
 {
@@ -149,7 +149,7 @@ void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVect
 //***********************************************************************************
 
 double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
-						     GeneralVariables& rVariables,
+						     ConditionVariables& rVariables,
 						     double& rIntegrationWeight)
 
 {
