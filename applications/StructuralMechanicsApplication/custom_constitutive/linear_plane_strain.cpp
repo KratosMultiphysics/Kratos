@@ -110,7 +110,7 @@ void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rParamet
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
+void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rParameterValues)
 {
     CalculateMaterialResponsePK2(rParameterValues);
 }
@@ -118,7 +118,7 @@ void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
+void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rParameterValues)
 {
     CalculateMaterialResponsePK2(rParameterValues);
 }

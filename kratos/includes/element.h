@@ -1099,6 +1099,7 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
+    virtual void CalculateElementSize(){}
     ///@}
     ///@name Friends
     ///@{

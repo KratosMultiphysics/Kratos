@@ -1610,6 +1610,12 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
+    void BaseSolidElement::CalculateElementSize() {
+        // triangular elements: element size is doubled circumradius of the triangle
+        if (GetGeometry().size()==3){
+            this->SetValue(ELEMENT_H,2*GetGeometry().Circumradius());
+        }
+    }
 } // Namespace Kratos
 
 

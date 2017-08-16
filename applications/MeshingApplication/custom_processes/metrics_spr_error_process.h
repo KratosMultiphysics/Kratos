@@ -449,35 +449,74 @@ private:
         --2-- calculate error estimation and new element size (for each element) --2--
         ******************************************************************************/
         //loop over all elements: 
-        double error_overall=0;
-        double energy_norm_overall=0;
+        double error_overall_squared=0;
+        double energy_norm_overall_squared=0;
+
+        //compute the error estimate per element
         for(ModelPart::ElementsContainerType::iterator i_elements = mThisModelPart.Elements().begin() ; i_elements != mThisModelPart.Elements().end(); i_elements++) 
         {
-            //compute the error estimate per element
             std::vector<double> error_integration_point;
             i_elements->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT,error_integration_point,mThisModelPart.GetProcessInfo());
             double error_energy_norm=0;
             for(unsigned int i=0;i<error_integration_point.size();i++)
                 error_energy_norm += error_integration_point[i];
-            error_overall += error_energy_norm;
+            error_overall_squared += error_energy_norm;
             error_energy_norm= sqrt(error_energy_norm);
+            i_elements->SetValue(ELEMENT_ERROR,error_energy_norm);
             std::cout<<"element_error:"<<error_energy_norm<<std::endl;
 
 
             std::vector<double> strain_energy;
             i_elements->GetValueOnIntegrationPoints(STRAIN_ENERGY,strain_energy,mThisModelPart.GetProcessInfo());
-            double strainenergy=0;
+            double energy_norm=0;
             for(unsigned int i=0;i<strain_energy.size();i++)
-                strainenergy += 2*strain_energy[i];
-            energy_norm_overall += strainenergy;
-            strainenergy= sqrt(strainenergy);
-            std::cout<<"energy norm:"<<strainenergy<<std::endl;
-            //distribute the error on the nodes
+                energy_norm += 2*strain_energy[i];
+            energy_norm_overall_squared += energy_norm;
+            energy_norm= sqrt(energy_norm);
+            std::cout<<"energy norm:"<<energy_norm<<std::endl;
         }
-        error_overall = sqrt(error_overall);
-        energy_norm_overall = sqrt(energy_norm_overall);
-        std::cout<<"overall error norm:"<<error_overall<<std::endl;
-        std::cout<<"overall energy norm:"<<energy_norm_overall<<std::endl;
+        std::cout<<"overall error norm (squared):"<<error_overall_squared<<std::endl;
+        std::cout<<"overall energy norm (squarde):"<<energy_norm_overall_squared<<std::endl;
+        
+        //compute new element size
+        for(ModelPart::ElementsContainerType::iterator i_elements = mThisModelPart.Elements().begin() ; i_elements != mThisModelPart.Elements().end(); i_elements++) 
+        {
+            //compute the current element size h
+            i_elements->CalculateElementSize();
+
+            //compute new element size
+            double new_element_size;
+            new_element_size = i_elements->GetValue(ELEMENT_H)/i_elements->GetValue(ELEMENT_ERROR);
+            new_element_size *= sqrt((energy_norm_overall_squared+error_overall_squared)/mThisModelPart.Elements().size())*0.05;
+            std::cout<<"old element size: "<<i_elements->GetValue(ELEMENT_H)<<std::endl;
+            i_elements->SetValue(ELEMENT_H,new_element_size);
+            std::cout<<"new element size: "<<i_elements->GetValue(ELEMENT_H)<<std::endl;
+        }
+
+        /******************************************************************************
+        --3-- calculate metric (for each node) --3--
+        ******************************************************************************/
+
+        for(ModelPart::NodesContainerType::iterator i_nodes = rNodes.begin(); i_nodes!=rNodes.end(); i_nodes++){
+            // get maximal element size from neighboring elements
+            double h_min=0;
+            for(WeakPointerVector< Element >::iterator i_neighbour_elements = i_nodes->GetValue(NEIGHBOUR_ELEMENTS).begin(); i_neighbour_elements != i_nodes->GetValue(NEIGHBOUR_ELEMENTS).end(); i_neighbour_elements++){
+                if(h_min==0||h_min>i_neighbour_elements->GetValue(ELEMENT_H))
+                    h_min = i_neighbour_elements->GetValue(ELEMENT_H);
+                
+            }
+            //std::cout<<"h_min: "<<h_min<<std::endl;
+            // set metric
+            Matrix metric_matrix(2,2,0);
+            metric_matrix(0,0)=1/(h_min*h_min);
+            metric_matrix(1,1)=1/(h_min*h_min);
+            // transform metric matrix to a vector
+            const Vector metric = MetricsMathUtils<TDim>::TensorToVector(metric_matrix);
+            i_nodes->SetValue(MMG_METRIC,metric);
+
+
+            std::cout<<"metric: "<<i_nodes->GetValue(MMG_METRIC)<<std::endl;
+        }
     }
     //calculates the recovered stress at a node 
     // i_node: the node for which the recovered stress should be calculated

@@ -44,6 +44,10 @@ class MmgProcess(KratosMultiphysics.Process):
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.0
             },
+            "error_parameters"              :{
+                "initial_run"                  : true,
+                "interpolation_error"          : 0.004
+            },
             "enforce_current"                  : true,
             "initial_step"                     : 1,
             "step_frequency"                   : 0,
@@ -190,12 +194,17 @@ class MmgProcess(KratosMultiphysics.Process):
             if self.step_frequency > 0:
                 if self.step >= self.step_frequency:
                     if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
-                        self._ExecuteRefinement()
-                        self.step = 0  # Reset
+                        if (self.strategy != "Error"):
+                            self._ExecuteRefinement()
+                            self.step = 0  # Reset
 
+                                
     def ExecuteFinalizeSolutionStep(self):
-        #pass
-        self._ExecuteRefinement()
+        if (self.strategy == "Error"):
+            if (self.params["error_parameters"]["initial_run"].GetBool() == True):
+                self.params["error_parameters"]["initial_run"].SetBool(False)
+                self._ExecuteRefinement()
+        
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -313,8 +322,8 @@ class MmgProcess(KratosMultiphysics.Process):
             metric_process.Execute()
 
         print("Remeshing")
-        if (self.strategy != "Error"):
-            self.MmgProcess.Execute()
+        #if (self.strategy != "Error"):
+        self.MmgProcess.Execute()
 
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
