@@ -84,12 +84,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // This constructor is called by its derived classes
-    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)
-    {
-        SetInitialValuesToMembers();
-    }
-
     InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z)   // constuct from coordinates
     {
         SetInitialValuesToMembers();
@@ -258,6 +252,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    // This constructor is called by its derived classes
+    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)
+    {
+        SetInitialValuesToMembers();
+    }
+
     void SetInitialValuesToMembers()
     {
         mMinDistanceNeighbor = std::numeric_limits<double>::max();
@@ -328,6 +328,16 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+        
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const {}
+    virtual void load(Serializer& rSerializer) {}
 
 
     ///@}
