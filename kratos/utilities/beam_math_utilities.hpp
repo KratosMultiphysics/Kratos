@@ -437,7 +437,7 @@ public:
     KRATOS_TRY
 
     MatrixType LocalToGlobalMatrix = ZeroMatrix(2,2);
-    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+    rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal2D(LocalToGlobalMatrix,rMatrix);
 
@@ -460,7 +460,7 @@ public:
     KRATOS_TRY
 
     MatrixType LocalToGlobalMatrix = ZeroMatrix(2,2);
-    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+    rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal2D(LocalToGlobalMatrix,rVector);
 
@@ -565,7 +565,7 @@ public:
     KRATOS_TRY
 
     MatrixType LocalToGlobalMatrix = ZeroMatrix(3,3);
-    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+    rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal3D(LocalToGlobalMatrix,rMatrix);
 
@@ -588,7 +588,7 @@ public:
     KRATOS_TRY
 
     MatrixType LocalToGlobalMatrix = ZeroMatrix(3,3);
-    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+    rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
   
     MapLocalToGlobal3D(LocalToGlobalMatrix,rVector);
 
