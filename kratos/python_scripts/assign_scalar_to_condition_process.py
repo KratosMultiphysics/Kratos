@@ -5,9 +5,9 @@ from math import *
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignScalarToConditionsProcess(Model, settings["Parameters"])
+    return AssignScalarToConditionProcess(Model, settings["Parameters"])
 
-class AssignScalarToConditionsProcess(KratosMultiphysics.Process):
+class AssignScalarToConditionProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
