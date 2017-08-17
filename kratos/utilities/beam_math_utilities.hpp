@@ -419,6 +419,183 @@ public:
     KRATOS_CATCH("")
   }
 
+
+
+ //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
+   * @param rMatrix: matrix to be transformed (output parameter)
+   * note the initialization of the Matrices must be done previously to the call of the method
+   * return value :  A = Q * A' * QT
+   */
+  static inline void MapLocalToGlobal2D(const QuaternionType& rLocalToGlobalQuaternion, MatrixType& rMatrix)
+  {
+
+    KRATOS_TRY
+
+    MatrixType LocalToGlobalMatrix = ZeroMatrix(2,2);
+    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+  
+    MapLocalToGlobal2D(LocalToGlobalMatrix,rMatrix);
+
+    KRATOS_CATCH( "" )
+
+  }
+  
+  //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
+   * @param rVector: vector to be transformed (output parameter)
+   * note the initialization of the Matrices must be done previously to the call of the method
+   */
+  static inline void MapLocalToGlobal2D(const QuaternionType& rLocalToGlobalQuaternion, VectorType& rVector)
+  {
+
+    KRATOS_TRY
+
+    MatrixType LocalToGlobalMatrix = ZeroMatrix(2,2);
+    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+  
+    MapLocalToGlobal2D(LocalToGlobalMatrix,rVector);
+
+    KRATOS_CATCH( "" )
+
+  }
+
+  
+  //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * @param rLocalToGlobalMatrix: transformation matrix from local to global frame
+   * @param rMatrix: matrix to be transformed (output parameter)
+   * note the initialization of the Matrices must be done previously to the call of the method
+   * return value :  A = Q * A' * QT
+   */
+  static inline void MapLocalToGlobal2D(const MatrixType& rLocalToGlobalMatrix, MatrixType& rMatrix)
+  {
+
+    KRATOS_TRY
+
+    unsigned int MatSize = rMatrix.size1();
+
+    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
+ 
+    //Building the rotation matrix for the local element matrix
+    for (unsigned int kk=0; kk < MatSize; kk += 2)
+    {
+        for (unsigned int i=0; i<2; i++)
+        {
+            for(unsigned int j=0; j<2; j++)
+            {
+	      AuxiliarRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
+            }
+        }
+    }
+
+    //Rotate Local Stiffness Matrix
+    Matrix aux_matrix   = ZeroMatrix(MatSize,MatSize);
+    noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rMatrix);
+
+    //Stiffness Matrix
+    rMatrix = ZeroMatrix(MatSize,MatSize);
+    noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
+         
+
+    KRATOS_CATCH( "" )
+
+  }
+
+  //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * @param rLocalToGlobalMatrix: transformation matrix from local to global frame
+   * @param rVector: vector to be transformed (output parameter)
+   * note the initialization of the Matrices must be done previously to the call of the method
+   */
+  static inline void MapLocalToGlobal2D(const MatrixType& rLocalToGlobalMatrix, VectorType& rVector)
+  {
+
+    KRATOS_TRY
+
+    unsigned int MatSize = rVector.size();
+
+    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
+ 
+    //Building the rotation matrix for the local element matrix
+    for (unsigned int kk=0; kk < MatSize; kk += 2)
+    {
+        for (unsigned int i=0; i<2; i++)
+        {
+            for(unsigned int j=0; j<2; j++)
+            {
+	      AuxiliarRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
+            }
+        }
+    }
+
+    rVector = prod(AuxiliarRotationMatrix, rVector);
+          
+    KRATOS_CATCH( "" )
+
+  }
+
+  //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
+   * @param rMatrix: matrix to be transformed (output parameter)
+   * note the initialization of the Matrices must be done previously to the call of the method
+   * return value :  A = Q * A' * QT
+   */
+  static inline void MapLocalToGlobal3D(const QuaternionType& rLocalToGlobalQuaternion, MatrixType& rMatrix)
+  {
+
+    KRATOS_TRY
+
+    MatrixType LocalToGlobalMatrix = ZeroMatrix(3,3);
+    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+  
+    MapLocalToGlobal3D(LocalToGlobalMatrix,rMatrix);
+
+    KRATOS_CATCH( "" )
+
+  }
+  
+  //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
+   * @param rVector: vector to be transformed (output parameter)
+   * note the initialization of the Matrices must be done previously to the call of the method
+   */
+  static inline void MapLocalToGlobal3D(const QuaternionType& rLocalToGlobalQuaternion, VectorType& rVector)
+  {
+
+    KRATOS_TRY
+
+    MatrixType LocalToGlobalMatrix = ZeroMatrix(3,3);
+    mLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
+  
+    MapLocalToGlobal3D(LocalToGlobalMatrix,rVector);
+
+    KRATOS_CATCH( "" )
+
+  }
+  
   //*****************************************************************************
   //*****************************************************************************
 
