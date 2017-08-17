@@ -8,8 +8,8 @@
 //   Kratos default license: kratos/license.txt
 //
 //   Project Name:        $StructuralMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
+//   Last modified by:    $Author: quirin.aumann@tum.de   $
+//   Date:                $Date:            August 2017   $
 //   Revision:            $Revision:                0.0   $
 
 #if !defined(KRATOS_HARMONIC_ANALYSIS_STRATEGY )
@@ -74,36 +74,19 @@ public:
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
-    typedef typename TDenseSpace::VectorPointerType DenseVectorPointerType;
-
-    typedef typename TDenseSpace::MatrixPointerType DenseMatrixPointerType;
-
     typedef typename TDenseSpace::VectorType DenseVectorType;
 
     typedef typename TDenseSpace::MatrixType DenseMatrixType;
 
     typedef TSparseSpace SparseSpaceType;
 
-    typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
-
     typedef typename TSparseSpace::VectorPointerType SparseVectorPointerType;
-
-    typedef typename TSparseSpace::MatrixType SparseMatrixType;
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
 
-
     typedef std::complex<double> ComplexType;
-    
-    typedef boost::numeric::ublas::compressed_matrix<ComplexType> ComplexSparseMatrixType;
-
-    typedef boost::numeric::ublas::matrix<ComplexType> ComplexDenseMatrixType;
 
     typedef boost::numeric::ublas::vector<ComplexType> ComplexVectorType;
-
-    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
-
-    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
 
     ///@}
     ///@name Life Cycle
@@ -137,8 +120,8 @@ public:
         // default echo level (mute)
         this->SetEchoLevel(0);
 
-        // default rebuild level (build at each solution step)
-        this->SetRebuildLevel(1);
+        // default rebuild level (build only once)
+        this->SetRebuildLevel(0);
 
         KRATOS_CATCH("")
     }
@@ -202,26 +185,6 @@ public:
     {
         return mpBuilderAndSolver;
     };
-
-    SparseMatrixType& GetMassMatrix()
-    {
-        return *mpMassMatrix;
-    }
-
-    SparseMatrixType& GetStiffnessMatrix()
-    {
-        return *mpStiffnessMatrix;
-    }
-
-    SparseMatrixPointerType& pGetMassMatrix()
-    {
-        return mpMassMatrix;
-    }
-
-    SparseMatrixPointerType& pGetStiffnessMatrix()
-    {
-        return mpStiffnessMatrix;
-    }
 
     void SetReformDofSetAtEachStepFlag(bool flag)
     {
@@ -311,14 +274,13 @@ public:
 
         // get the damping coefficients
         auto& rProcessInfo = rModelPart.GetProcessInfo();
-        KRATOS_WATCH(rProcessInfo)
+        // KRATOS_WATCH(rProcessInfo)
         if( rProcessInfo.Has(RAYLEIGH_ALPHA) )
             mRayleighAlpha = rProcessInfo[RAYLEIGH_ALPHA];
 
         if( rProcessInfo.Has(RAYLEIGH_BETA) )
             mRayleighBeta = rProcessInfo[RAYLEIGH_BETA];
         
-        std::cout << "yeah" << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -391,11 +353,8 @@ public:
         auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
         pBuilderAndSolver->GetLinearSystemSolver()->Clear();
 
-        if (this->pGetMassMatrix() != nullptr)
-            this->pGetMassMatrix() = nullptr;
-
-        if (this->pGetStiffnessMatrix() != nullptr)
-            this->pGetStiffnessMatrix() = nullptr;
+        if (this->pGetForceVector() != nullptr)
+            this->pGetForceVector() = nullptr;
 
 
         // re-setting internal flag to ensure that the dof sets are recalculated
@@ -406,6 +365,8 @@ public:
         this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
+        mRayleighAlpha = 0.0;
+        mRayleighBeta = 0.0;
 
         KRATOS_CATCH("")
     }
@@ -421,76 +382,27 @@ public:
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Entering InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
 
-        // auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        // auto& pScheme = this->pGetScheme();
-        // auto& pStiffnessMatrix = this->pGetStiffnessMatrix();
-        // auto& rStiffnessMatrix = *pStiffnessMatrix;
-        // auto& pForceVector = this->pGetForceVector();
-        // auto& rForceVector = *pForceVector;
+        auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
+        auto& pScheme = this->pGetScheme();
+        auto& pForceVector = this->pGetForceVector();
+        auto& rForceVector = *pForceVector;
 
         // // initialize dummy vectors
-        // auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto pb = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto& rDx = *pDx;
-        // auto& rb = *pb;
+        auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& rA = *pA;
+        auto& rDx = *pDx;
 
-        // // reset solution dofs
-        // boost::timer system_construction_time;
-        // if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-        //         pBuilderAndSolver->GetReshapeMatrixFlag() == true)
-        // {
-        //     // set up list of dofs
-        //     boost::timer setup_dofs_time;
-        //     pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
-        //     if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        //         std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-
-        //     // set global equation ids
-        //     boost::timer setup_system_time;
-        //     pBuilderAndSolver->SetUpSystem(rModelPart);
-        //     if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        //         std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-
-        //     // resize and initialize system matrices
-        //     boost::timer system_matrix_resize_time;
-        //     // auto& pMassMatrix = this->pGetMassMatrix();
-
-        //     // // mass matrix
-        //     // pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-        //     //         pMassMatrix,
-        //     //         pDx,
-        //     //         pb,
-        //     //         rModelPart.Elements(),
-        //     //         rModelPart.Conditions(),
-        //     //         rModelPart.GetProcessInfo());
-
-        //     // stiffness matrix
-        //     pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-        //             pStiffnessMatrix,
-        //             pDx,
-        //             pForceVector,
-        //             rModelPart.Elements(),
-        //             rModelPart.Conditions(),
-        //             rModelPart.GetProcessInfo());
-
-        //     if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        //         std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-        // }
-        // else
-        // {
-        //     SparseSpaceType::Resize(rb,SparseSpaceType::Size1(rStiffnessMatrix));
-        //     SparseSpaceType::Set(rb,0.0);
-        //     SparseSpaceType::Resize(rDx,SparseSpaceType::Size1(rStiffnessMatrix));
-        //     SparseSpaceType::Set(rDx,0.0);
-        // }
-        // if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        //     std::cout << "system_construction_time : " << system_construction_time.elapsed() << std::endl;
+        SparseSpaceType::Resize(rA,SparseSpaceType::Size(rForceVector),SparseSpaceType::Size(rForceVector));
+        SparseSpaceType::SetToZero(rA);
+        SparseSpaceType::Resize(rDx,SparseSpaceType::Size(rForceVector));
+        SparseSpaceType::Set(rDx,0.0);
 
         // initial operations ... things that are constant over the solution step
-        // pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
+        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,rForceVector);
 
         // initial operations ... things that are constant over the solution step
-        // pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
+        pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,rForceVector);
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             std::cout << "Exiting InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
@@ -581,10 +493,6 @@ private:
     SchemePointerType mpScheme;
 
     BuilderAndSolverPointerType mpBuilderAndSolver;
-
-    SparseMatrixPointerType mpMassMatrix;
-
-    SparseMatrixPointerType mpStiffnessMatrix;
 
     bool mInitializeWasPerformed;
 
