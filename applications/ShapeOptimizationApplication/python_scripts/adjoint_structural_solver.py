@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.ShapeOptimizationApplication as ShapeOptimizationApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication # needed for POINT_LOAD variable
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -61,12 +62,14 @@ class AdjointStructuralSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ROTATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POINT_LOAD_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD) #Is there a better solution for Neumann BCs? 
 
         #---> is reaction and torque necessary????????????
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_REACTION)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_TORQUE)
         
-        print("variables for the adjoint structural solver added correctly")
+        print("Variables for the adjoint structural solver added correctly")
 
     def ImportModelPart(self):
 
@@ -92,7 +95,7 @@ class AdjointStructuralSolver:
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name": "CrBeamElement3D2NForSA",
-                    "condition_name": "LineCondition2D2N" 
+                    "condition_name": "PointLoadCondition3D1NForSA" 
                     }
                     """)
             # ---------------> the condition here is used as dummy. In this case only the 
@@ -151,6 +154,13 @@ class AdjointStructuralSolver:
                 self.response_function = ShapeOptimizationApplication.LocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        elif self.settings["response_function_settings"]["response_type"].GetString() == "nodal_displacement":
+            if (domain_size == 2):
+                raise Exception("Currently only availible for 3D. Your choice is 2D")
+            elif (domain_size == 3):
+                self.response_function = ShapeOptimizationApplication.NodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))        
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 

@@ -72,6 +72,8 @@ class MainKratos:
         #TODO: think if there is a better way to do this
         self.computing_model_part = self.solver.GetComputingModelPart()
 
+        #print("MainKratos: Ready with initialize")
+
     def Solve(self):
 
         ## Stepping and time settings
@@ -95,10 +97,10 @@ class MainKratos:
                 process.ExecuteInitializeSolutionStep()
 
             self.gid_output.ExecuteInitializeSolutionStep()
-
+            #print("MainKratos: Before Solve()")
             if self.execute_solve:
                 self.solver.Solve()
-
+            #print("MainKratos: After Solve()")
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
 

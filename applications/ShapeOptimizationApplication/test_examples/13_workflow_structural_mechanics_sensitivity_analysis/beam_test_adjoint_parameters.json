@@ -24,16 +24,16 @@
                 "sensitivity_model_part_name" : "sensitivity_nodes",
                 "nodal_sensitivity_variables"  : [],
                 "element_sensitivity_variables"  : ["IZ"],
-                "condition_sensitivity_variables"  : [],
+                "condition_sensitivity_variables"  : ["POINT_LOAD_SENSITIVITY"],
                 "step_size"         : 1e-6,
                 "traced_element"    : 9,
-                "stress_type"       : "QY",
+                "stress_type"       : "MZ",
                 "stress_treatment"  : "node",
                 "stress_location"   : 1
             },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
@@ -86,7 +86,7 @@
         "Parameters"          : {
             "model_part_name" : "Structure",
             "file_name"       : "beam_test",
-            "variable_list"   : ["DISPLACEMENT","ROTATION"]
+            "variable_list"   : ["DISPLACEMENT","ROTATION", "POINT_LOAD"]
         }
      }],
     "output_configuration"     : {
@@ -104,7 +104,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["ADJOINT_DISPLACEMENT"],
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT","POINT_LOAD_SENSITIVITY"],
             "gauss_point_results" : ["IZ_SENSITIVITY"]
         },
         "point_data_configuration"  : []

@@ -281,52 +281,52 @@ public:
         KRATOS_CATCH("");
     }
 
-    // void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-    //                                             LocalSystemMatrixType& rLHS_Contribution,
-    //                                             LocalSystemVectorType& rRHS_Contribution,
-    //                                             Condition::EquationIdVectorType& rEquationId,
-    //                                             ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     KRATOS_TRY;
+    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
+                                                 LocalSystemMatrixType& rLHS_Contribution,
+                                                 LocalSystemVectorType& rRHS_Contribution,
+                                                 Condition::EquationIdVectorType& rEquationId,
+                                                 ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
 
-    //     int thread_id = OpenMPUtils::ThisThread();
+        int thread_id = OpenMPUtils::ThisThread();
+       
+        // Calculate transposed gradient of condition residual w.r.t. primal solution.
+        pCurrentCondition->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
-    //     // Calculate transposed gradient of condition residual w.r.t. first derivatives.
-    //     pCurrentCondition->CalculateFirstDerivativesLHS(rLHS_Contribution, rCurrentProcessInfo);
+        if (rRHS_Contribution.size() != rLHS_Contribution.size1())
+             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
+   
+        // Calculate transposed gradient of response function on condition w.r.t. primal solution.
+        mpResponseFunction->CalculateGradient(
+             *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-    //     if (rRHS_Contribution.size() != rLHS_Contribution.size1())
-    //         rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
+        noalias(rRHS_Contribution) = -rRHS_Contribution;
 
-    //     // Calculate transposed gradient of response function on condition w.r.t. first derivatives.
-    //     mpResponseFunction->CalculateFirstDerivativesGradient(
-    //         *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        // Calculate system contributions in residual form.
+        pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
-    //     noalias(rRHS_Contribution) = -rRHS_Contribution;
+        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-    //     // Calculate system contributions in residual form.
-    //     pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
-    //     noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        KRATOS_CATCH("");
+    }
 
-    //     pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
+    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
+                                               LocalSystemMatrixType& rLHS_Contribution,
+                                               Condition::EquationIdVectorType& rEquationId,
+                                               ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        LocalSystemVectorType RHS_Contribution;
 
-    //     KRATOS_CATCH("");
-    // }
+        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
-    // void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-    //                                           LocalSystemMatrixType& rLHS_Contribution,
-    //                                           Condition::EquationIdVectorType& rEquationId,
-    //                                           ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     KRATOS_TRY;
-    //     LocalSystemVectorType RHS_Contribution;
+        Condition_CalculateSystemContributions(
+             pCurrentCondition, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
 
-    //     RHS_Contribution.resize(rLHS_Contribution.size1(), false);
-
-    //     CalculateSystemContributions(
-    //         pCurrentCondition, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
-
-    //     KRATOS_CATCH("");
-    // }
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Access
@@ -414,8 +414,8 @@ private:
 
 ///@}
 
-///@} // Adjoint Fluid Application group
+///@} // Shape Optimization Application group
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ADJOINT_STEADY_VELOCITY_PRESSURE_SCHEME defined */
+#endif /* KRATOS_ADJOINT_STRUCTURAL_SCHEME defined */

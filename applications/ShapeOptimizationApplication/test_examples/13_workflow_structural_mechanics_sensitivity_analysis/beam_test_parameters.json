@@ -76,7 +76,7 @@
         "Parameters"          : {
             "model_part_name" : "Structure",
             "file_name"       : "beam_test",
-            "variable_list"   : ["DISPLACEMENT","ROTATION"]
+            "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
     }],
     "loads_process_list"       : [{

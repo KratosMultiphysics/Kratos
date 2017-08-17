@@ -144,7 +144,7 @@ Begin SubModelPart DISPLACEMENT_Z_support // Group disp_z // Subtree DISPLACEMEN
 End SubModelPart
 
 
-Begin Conditions PointLoadCondition3D1NForSA// GUI group identifier: load
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: load
     1 0 2
     2 0 8
     3 0 9
@@ -200,9 +200,11 @@ Begin SubModelPart sensitivity_nodes // Group disp_z // Subtree DISPLACEMENT
         16
     End SubModelPartElements
     Begin SubModelPartConditions
-         2
-         3
-         4
+        1
+        2
+        3
+        4
+        5
     End SubModelPartConditions
 End SubModelPart
 

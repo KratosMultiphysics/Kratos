@@ -83,7 +83,7 @@ public:
         {
             "model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "file_name": "PLEASE_SPECIFY_H5_FILE_NAME",
-            "variable_list": ["DISPLACEMENT", "ROTATION"]
+            "variable_list": ["DISPLACEMENT"]
         })");
 
         // try accessing parameters without defaults so that an error is thrown

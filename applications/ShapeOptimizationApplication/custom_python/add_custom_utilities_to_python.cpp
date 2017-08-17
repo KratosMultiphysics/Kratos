@@ -37,6 +37,7 @@
 #include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 #include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
 #include "custom_utilities/response_functions/local_stress_response_function.h"
+#include "custom_utilities/response_functions/nodal_displacement_response_function.h"
 #include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //fusseder rename it after finishing
 
 // ==============================================================================
@@ -47,6 +48,28 @@ namespace Kratos
 namespace Python
 {
 
+inline
+void CalculateGradient1(
+        StructuralResponseFunction& rThisUtil,
+        const Condition& rAdjointCondition,
+        const Matrix& rAdjointMatrix,
+        Vector& rResponseGradient,
+        ProcessInfo& rProcessInfo)
+{
+    rThisUtil.CalculateGradient(rAdjointCondition,rAdjointMatrix,rResponseGradient,rProcessInfo);
+}
+
+inline
+void CalculateGradient2(
+        StructuralResponseFunction& rThisUtil,
+        const Element& rAdjointElem,
+        const Matrix& rAdjointMatrix,
+        Vector& rResponseGradient,
+        ProcessInfo& rProcessInfo)
+{
+    rThisUtil.CalculateGradient(rAdjointElem,rAdjointMatrix,rResponseGradient,rProcessInfo);
+}
+   
 
 void  AddCustomUtilitiesToPython()
 {
@@ -170,8 +193,8 @@ void  AddCustomUtilitiesToPython()
         .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep)
         .def("Check", &StructuralResponseFunction::Check)
         .def("Clear", &StructuralResponseFunction::Clear)
-        .def("CalculateGradient",
-             &StructuralResponseFunction::CalculateGradient)
+        .def("CalculateGradient", CalculateGradient1)
+        .def("CalculateGradient", CalculateGradient2)
         .def("CalculateFirstDerivativesGradient",
              &StructuralResponseFunction::CalculateFirstDerivativesGradient)
         .def("CalculateSecondDerivativesGradient",
@@ -180,7 +203,10 @@ void  AddCustomUtilitiesToPython()
         .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);  
 
     class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>());            
+      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>()); 
+
+    class_<NodalDisplacementResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());                
 
     // ========================================================================
     // For input / output

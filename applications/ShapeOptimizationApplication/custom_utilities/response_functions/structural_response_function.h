@@ -130,6 +130,17 @@ public:
                 it->SetValue(UPDATE_SENSITIVITIES, true);   
                 
         }
+#pragma omp parallel
+        {
+            ModelPart::ConditionIterator conditions_begin;
+            ModelPart::ConditionIterator conditions_end;
+            OpenMPUtils::PartitionedIterators(
+                r_model_part.GetSubModelPart(mSensitivityModelPartName).Conditions(),
+                conditions_begin, conditions_end);
+            for (auto it = conditions_begin; it != conditions_end; ++it)
+                it->SetValue(UPDATE_SENSITIVITIES, true);   
+                
+        }       
 
         KRATOS_CATCH("");
     }
@@ -183,6 +194,14 @@ public:
             for (auto it = elements_begin; it != elements_end; ++it)
                 it->SetValue(UPDATE_SENSITIVITIES, false);
         }
+#pragma omp parallel
+        {
+            ModelPart::ConditionIterator conditions_begin;
+            ModelPart::ConditionIterator conditions_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), conditions_begin, conditions_end);
+            for (auto it = conditions_begin; it != conditions_end; ++it)
+                it->SetValue(UPDATE_SENSITIVITIES, false);
+        }
 
 
         // Set sensitivity variables to zero.
@@ -221,7 +240,6 @@ public:
             else
                 KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
         }
-
 
         // Set sensitivity variables to zero.
         for (auto label : mElementSensitivityVariables)
@@ -262,6 +280,55 @@ public:
                 KRATOS_ERROR << "Unsupported variable: " << output_variable_label << "." << std::endl;
         }
 
+        // Set sensitivity variables to zero.
+        for (auto label : mConditionSensitivityVariables)
+        {
+            if (KratosComponents<Variable<double>>::Has(label) == true)
+            {
+                const Variable<double>& r_variable =
+                    KratosComponents<Variable<double>>::Get(label);
+
+#pragma omp parallel
+                {
+                    ModelPart::ConditionIterator conditions_begin;
+                    ModelPart::ConditionIterator conditions_end;
+                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), 
+                                                      conditions_begin, conditions_end);
+                    for (auto it = conditions_begin; it != conditions_end; ++it)
+                    {
+                        //loop nodes
+                        const unsigned int NumberOfNodes = it->GetGeometry().size();
+                        for(unsigned int i = 0; i < NumberOfNodes; ++i)
+                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero();   
+                    }
+                        
+                }
+            }
+            else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(label) == true)
+            {
+                const Variable<array_1d<double, 3>>& r_variable =
+                    KratosComponents<Variable<array_1d<double, 3>>>::Get(label);
+
+#pragma omp parallel
+                {
+                    ModelPart::ConditionIterator conditions_begin;
+                    ModelPart::ConditionIterator conditions_end;
+                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), 
+                                                      conditions_begin, conditions_end);
+                    for (auto it = conditions_begin; it != conditions_end; ++it)
+                    {
+                        //loop nodes
+                        const unsigned int NumberOfNodes = it->GetGeometry().size();
+                        for(unsigned int i = 0; i < NumberOfNodes; ++i)
+                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero(); 
+                    }
+                }
+            }
+            else
+                KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
+        }
+        //TODO: Check if it is a good idea to write the conditional sensitivities to the nodes?!
+
         KRATOS_CATCH("");
     }
 
@@ -288,20 +355,20 @@ public:
         KRATOS_CATCH("");
     }
 
-    // virtual void CalculateGradient(const Condition& rAdjointCondition,
-    //                                const Matrix& rAdjointMatrix,
-    //                                Vector& rResponseGradient,
-    //                                ProcessInfo& rProcessInfo)
-    // {
-    //     KRATOS_TRY;
+    virtual void CalculateGradient(const Condition& rAdjointCondition,
+                                   const Matrix& rAdjointMatrix,
+                                   Vector& rResponseGradient,
+                                   ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY;
 
-    //     if (rResponseGradient.size() != rAdjointMatrix.size1())
-    //         rResponseGradient.resize(rAdjointMatrix.size1(), false);
+        if (rResponseGradient.size() != rAdjointMatrix.size1())
+            rResponseGradient.resize(rAdjointMatrix.size1(), false);
 
-    //     rResponseGradient.clear();
+        rResponseGradient.clear();
 
-    //     KRATOS_CATCH("");
-    // }
+        KRATOS_CATCH("");
+    }
 
     /// Calculate the local gradient w.r.t. first derivatives of primal solution.
     /**
@@ -826,10 +893,9 @@ protected:
 		for (int k = 0; k < nconditions; k++)
 		{
 			ModelPart::ConditionsContainerType::iterator cond_i = cond_begin + k;
-
+            
             if (cond_i->GetValue(UPDATE_SENSITIVITIES) == true)
-            {
-
+            {   
                 // Compute the pseudo load
                 cond_i->CalculateSensitivityMatrix(
                     rSensitivityVariable, sensitivity_matrix, r_process_info);
@@ -855,12 +921,12 @@ protected:
 			
 			    /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
 			    {
-					std::cout << ("SA result = ") << i << sensitivity_vector[i] << std::endl;
+					std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
 			    }*/
 
 		        Condition::GeometryType& r_geom = cond_i->GetGeometry();
                 this->AssembleNodalSensitivityContribution(
-               		        rSensitivityVariable, sensitivity_vector, r_geom); 
+               		        rSensitivityVariable, sensitivity_vector, r_geom); //----> check for correct output
 
             }
         }
@@ -901,7 +967,7 @@ protected:
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo)
     {
-          KRATOS_TRY;
+         KRATOS_TRY;
 
          KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
 
