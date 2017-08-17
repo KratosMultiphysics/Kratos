@@ -31,6 +31,7 @@
 #include "shallow_water_application_variables.h"
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
+#include "custom_elements/euler_prim_var_element.hpp"
 #include "custom_conditions/rain_condition.hpp"
 
 
@@ -187,12 +188,16 @@ namespace Kratos
 
 		///@} 
 		///@name Member Variables 
-		///@{ 
+		///@{
+		// Lagrangian elements 
 		const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
 		const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
 		const ConservedVarElement<3> mConservedVarElement2D3N;
 		const ConservedVarElement<4> mConservedVarElement2D4N;
-		
+		// Eulerian elements
+		const EulerPrimVarElement<3> mEulerPrimVarElement2D3N;
+		const EulerPrimVarElement<4> mEulerPrimVarElement2D4N;
+		// Conditions
 		const RainCondition<3> mRainCondition2D3N;
 		const RainCondition<3> mRainCondition2D4N;
 
