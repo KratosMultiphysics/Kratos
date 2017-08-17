@@ -832,7 +832,17 @@ protected:
      */
     virtual double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Calculation of the Position Increment
+     */
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
+    /**
+     * Calculation of the Total Position Increment
+     */
+    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
+
+    
     /**
      * Calculation of the Volume Change of the Element
      */

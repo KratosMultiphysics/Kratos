@@ -570,7 +570,16 @@ protected:
      */
     void GetNodalDeltaMovements(Vector& rValues, const int& rNode);
 
+    /**
+     * Calculation of the Position Increment
+     */
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
+    /**
+     * Calculation of the Total Position Increment
+     */
+    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
+    
     /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue
      */    
@@ -581,7 +590,17 @@ protected:
      */    
     Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
+    
+    /**
+     * Get Current Value, buffer 0 with FastGetSolutionStepValue
+     */    
+    double& GetNodalCurrentValue(const Variable<double>&rVariable, double& rValue, const unsigned int& rNode);
 
+   /**
+     * Get Previous Value, buffer 1 with FastGetSolutionStepValue
+     */    
+    double& GetNodalPreviousValue(const Variable<double>&rVariable, double& rValue, const unsigned int& rNode);
+    
     ///@}
     ///@name Protected  Access
     ///@{

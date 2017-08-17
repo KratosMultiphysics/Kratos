@@ -2,20 +2,21 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_POINT_ELASTIC_CONDITION_H_INCLUDED )
+#define  KRATOS_POINT_ELASTIC_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition.hpp"
+#include "custom_conditions/elastic_condition.hpp"
+
 
 namespace Kratos
 {
@@ -34,36 +35,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Load Condition for 2D axisymmetric geometries. (base class)
+/// Point Load Condition for 3D and 2D geometries. (base class)
 
-/**
- * Implements a Load definition for structural analysis.
- * This works for arbitrary geometries in 2D (base class)
- */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricLineLoadCondition
-    : public LineLoadCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) PointElasticCondition
+    : public ElasticCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of AxisymmetricLineLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricLineLoadCondition );
+    // Counted pointer of PointElasticCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PointElasticCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymmetricLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    PointElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    AxisymmetricLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    PointElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    AxisymmetricLineLoadCondition( AxisymmetricLineLoadCondition const& rOther);
+    PointElasticCondition( PointElasticCondition const& rOther);
 
     /// Destructor
-    virtual ~AxisymmetricLineLoadCondition();
+    virtual ~PointElasticCondition();
 
     ///@}
     ///@name Operators
@@ -83,7 +80,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+			      PropertiesType::Pointer pProperties) const;
 
 
     /**
@@ -97,10 +94,8 @@ public:
 			     NodesArrayType const& ThisNodes) const;
 
 
-
-    //************* COMPUTING  METHODS
-
-
+    //************************************************************************************
+    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -119,6 +114,30 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Point Elastic Condition #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Point Elastic Condition #" << Id();
+    }
+
+    /// Print object's data.
+
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -130,13 +149,19 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    AxisymmetricLineLoadCondition() {};
+    PointElasticCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -146,25 +171,17 @@ protected:
 				     const double& rPointNumber);
 
     /**
-     * Calculation and addition of the matrices of the LHS
+     * Calculate the External Stiffness of the Condition
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ConditionVariables& rVariables,
-                                    double& rIntegrationWeight);
+    virtual void CalculateExternalStiffness(ConditionVariables& rVariables);
+
 
     /**
-     * Calculation and addition of the vectors of the RHS
+     * Calculates the condition contributions
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ConditionVariables& rVariables,
-                                    double& rIntegrationWeight);
+    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+					  const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the contidion radius (axisymmetry)
-     */
-    void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius,
-			 const Vector& rN);
 
     ///@}
     ///@name Protected  Access
@@ -222,8 +239,8 @@ private:
     virtual void load(Serializer& rSerializer);
 
 
-}; // class AxisymmetricLineLoadCondition.
+}; // class PointElasticCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_POINT_ELASTIC_CONDITION_H_INCLUDED defined 

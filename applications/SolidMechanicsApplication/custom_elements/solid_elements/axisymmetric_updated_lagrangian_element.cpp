@@ -230,6 +230,8 @@ void AxisymmetricUpdatedLagrangianElement::Initialize()
 
 void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+      
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = 4;
@@ -254,12 +256,12 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
 
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-    
+    KRATOS_CATCH( "" )
 }
 
 ////************************************************************************************

@@ -216,7 +216,22 @@ namespace Kratos
 
   int PointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
+    KRATOS_TRY
+
+    LoadCondition::Check(rCurrentProcessInfo);
+      
+    //verify that nodal variables are correctly initialized
+        
+    if ( POINT_LOAD.Key() == 0 )
+      KRATOS_ERROR <<  "POINT_LOAD has Key zero! (check if the application is correctly registered)" << std::endl;
+    
+    if ( POINT_LOAD_VECTOR.Key() == 0 )
+      KRATOS_ERROR <<  "POINT_LOAD_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
+    
     return 0;
+    
+    KRATOS_CATCH( "" )   
+
   }
 
   //***********************************************************************************

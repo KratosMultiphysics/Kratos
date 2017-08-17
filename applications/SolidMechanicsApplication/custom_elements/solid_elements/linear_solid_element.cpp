@@ -448,7 +448,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //calculate delta position (here coincides with the current displacement)
     Matrix DeltaPosition( number_of_nodes , dimension);
     noalias(DeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
-    DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+    DeltaPosition = this->CalculateTotalDeltaPosition(DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     GeometryType::JacobiansType J;
@@ -662,7 +662,7 @@ void LinearSolidElement::ClearNodalForces()
 //************************************************************************************
 
 
-Matrix& LinearSolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
+Matrix& LinearSolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
@@ -1021,7 +1021,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //calculate delta position (here coincides with the current displacement)
       Matrix DeltaPosition( number_of_nodes , dimension);
       noalias(DeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
-      DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+      DeltaPosition = this->CalculateTotalDeltaPosition(DeltaPosition);
 
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       //std::cout<<" DeltaPosition "<<DeltaPosition<<std::endl;
@@ -1111,7 +1111,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //calculate delta position (here coincides with the current displacement)
       Matrix DeltaPosition( number_of_nodes , dimension);
       noalias(DeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
-      DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+      DeltaPosition = this->CalculateTotalDeltaPosition(DeltaPosition);
       
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       GeometryType::JacobiansType J;

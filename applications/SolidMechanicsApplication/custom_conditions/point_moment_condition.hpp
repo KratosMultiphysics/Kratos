@@ -171,7 +171,7 @@ protected:
 				     const double& rPointNumber);
 
     /**
-     * Calculate the External Load of the Condition
+     * Calculate the External Moment of the Condition
      */
     virtual void CalculateExternalMoment(ConditionVariables& rVariables);
 

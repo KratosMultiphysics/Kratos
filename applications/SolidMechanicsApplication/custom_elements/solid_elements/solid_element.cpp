@@ -946,7 +946,7 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
     }
 
   
-  KRATOS_CATCH( "" )
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1612,6 +1612,62 @@ void SolidElement::CalculateVelocityGradient(const Matrix& rDN_DX, Matrix& rDF )
     KRATOS_CATCH( "" )
 }
 
+//*************************COMPUTE DELTA POSITION*************************************
+//************************************************************************************
+
+
+Matrix& SolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+}
+
+//*************************COMPUTE TOTAL DELTA POSITION*******************************
+//************************************************************************************
+
+Matrix& SolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+}
+  
 
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
@@ -2409,13 +2465,13 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
 
     //verify that nodal variables are correctly initialized
+      
+    if ( DISPLACEMENT.Key() == 0 )
+      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
 
     if ( VELOCITY.Key() == 0 )
       KRATOS_ERROR <<  "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( DISPLACEMENT.Key() == 0 )
-      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
+        
     if ( ACCELERATION.Key() == 0 )
       KRATOS_ERROR <<  "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
     
@@ -2494,7 +2550,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     
     return 0;
 
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************

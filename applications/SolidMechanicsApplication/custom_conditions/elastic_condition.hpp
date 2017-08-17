@@ -100,7 +100,17 @@ public:
     Condition::Pointer Clone(IndexType NewId, 
 			     NodesArrayType const& ThisNodes) const override;
 
-
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    
     ///@}
     ///@name Access
     ///@{
@@ -133,7 +143,13 @@ protected:
      */
     virtual void CalculateExternalStiffness(ConditionVariables& rVariables);
 
-    
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight) override;
+
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
      */

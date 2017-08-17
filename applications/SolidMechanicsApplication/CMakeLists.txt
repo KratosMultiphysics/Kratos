@@ -47,17 +47,25 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_line_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_line_load_condition.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_moment_condition.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_moment_condition.cpp
 	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_elastic_condition.cpp
+	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_point_elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_line_elastic_condition.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 	
 	## Constitutive Models Application ##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION

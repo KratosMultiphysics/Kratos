@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -145,6 +145,16 @@ public:
 					 Variable<array_1d<double,3> >& rDestinationVariable, 
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
     
     ///@}
     ///@name Access

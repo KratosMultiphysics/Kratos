@@ -1,16 +1,13 @@
-//--------------------------------------------------------------------
-//    |  /           |                                               .
-//    ' /   __| _` | __|  _ \   __|                                  .
-//    . \  |   (   | |   (   |\__ \                                  .
-//   _|\_\_|  \__,_|\__|\___/ ____/                                  .
-//                 KRATOS  __|   _ \  |   |  _ \                     .
-//                       \__ \  (   | |   | | , )                    .      
-//                       |___/ \___/ ___|_| ___/ MECHANICS           .            
-//			                                             .
-//   License:(BSD)	  SolidMechanicsApplication/license.txt      .
-//   Main authors:        Josep Maria Carbonell                      .
-//                        ..                                         .
-//--------------------------------------------------------------------
+//------------------------------------------------------------------
+//           ___      _ _    _                                     .
+//   KRATOS / __| ___| (_)__| |                                    .
+//          \__ \/ _ \ | / _` |                                    .
+//          |___/\___/_|_\__,_| MECHANICS                          .
+//			                                           .
+//   License:(BSD)	  SolidMechanicsApplication/license.txt    .
+//   Main authors:        Josep Maria Carbonell                    .
+//                        ..                                       .
+//------------------------------------------------------------------
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
@@ -36,18 +33,6 @@
 #include "includes/kratos_application.h"
 #include "containers/flags.h"
 
-//conditions
-#include "custom_conditions/point_load_condition.hpp"
-#include "custom_conditions/axisymmetric_point_load_condition.hpp"
-#include "custom_conditions/line_load_condition.hpp"
-#include "custom_conditions/axisymmetric_line_load_condition.hpp"
-#include "custom_conditions/surface_load_condition.hpp"
-
-#include "custom_conditions/point_moment_condition.hpp"
-#include "custom_conditions/line_moment_condition.hpp"
-
-#include "custom_conditions/elastic_condition.hpp"
-
 //elements
 #include "custom_elements/solid_elements/linear_solid_element.hpp"
 
@@ -70,6 +55,22 @@
 
 #include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
+
+//conditions
+#include "custom_conditions/axisymmetric_point_load_condition.hpp"
+#include "custom_conditions/axisymmetric_line_load_condition.hpp"
+
+#include "custom_conditions/surface_load_condition.hpp"
+
+#include "custom_conditions/point_moment_condition.hpp"
+#include "custom_conditions/line_moment_condition.hpp"
+
+#include "custom_conditions/surface_moment_condition.hpp"
+
+#include "custom_conditions/axisymmetric_point_elastic_condition.hpp"
+#include "custom_conditions/axisymmetric_line_elastic_condition.hpp"
+
+#include "custom_conditions/surface_elastic_condition.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
@@ -378,20 +379,16 @@ typedef array_1d<double,6> Vector6;
 
    
    //conditions
-   const LoadCondition                                  mLoadCondition;
-   const ElasticCondition                            mElasticCondition;
-
+   const PointLoadCondition                    mPointLoadCondition3D1N;
    const PointLoadCondition                    mPointLoadCondition2D1N;
    const AxisymmetricPointLoadCondition  mAxisymPointLoadCondition2D1N;
-   const PointLoadCondition                    mPointLoadCondition3D1N;
-   const PointMomentCondition                mPointMomentCondition3D1N;
-   
+
+   const LineLoadCondition                      mLineLoadCondition3D2N;
+   const LineLoadCondition                      mLineLoadCondition3D3N;
    const LineLoadCondition                      mLineLoadCondition2D2N;
    const LineLoadCondition                      mLineLoadCondition2D3N;
    const AxisymmetricLineLoadCondition    mAxisymLineLoadCondition2D2N;
    const AxisymmetricLineLoadCondition    mAxisymLineLoadCondition2D3N;
-   const LineLoadCondition                      mLineLoadCondition3D2N;
-   const LineLoadCondition                      mLineLoadCondition3D3N;
 
    const SurfaceLoadCondition                mSurfaceLoadCondition3D3N;
    const SurfaceLoadCondition                mSurfaceLoadCondition3D4N;
@@ -399,7 +396,37 @@ typedef array_1d<double,6> Vector6;
    const SurfaceLoadCondition                mSurfaceLoadCondition3D8N;
    const SurfaceLoadCondition                mSurfaceLoadCondition3D9N;
 
+   const PointMomentCondition                mPointMomentCondition3D1N;
+   const PointMomentCondition                mPointMomentCondition2D1N;
+   
+   const LineMomentCondition                  mLineMomentCondition3D2N;
+   const LineMomentCondition                  mLineMomentCondition3D3N;
+   const LineMomentCondition                  mLineMomentCondition2D2N;
+   const LineMomentCondition                  mLineMomentCondition2D3N;
 
+   const SurfaceMomentCondition            mSurfaceMomentCondition3D3N;
+   const SurfaceMomentCondition            mSurfaceMomentCondition3D4N;
+   const SurfaceMomentCondition            mSurfaceMomentCondition3D6N;
+   const SurfaceMomentCondition            mSurfaceMomentCondition3D8N;
+   const SurfaceMomentCondition            mSurfaceMomentCondition3D9N;
+   
+   const PointElasticCondition                    mPointElasticCondition3D1N;
+   const PointElasticCondition                    mPointElasticCondition2D1N;
+   const AxisymmetricPointElasticCondition  mAxisymPointElasticCondition2D1N;
+
+   const LineElasticCondition                      mLineElasticCondition3D2N;
+   const LineElasticCondition                      mLineElasticCondition3D3N;
+   const LineElasticCondition                      mLineElasticCondition2D2N;
+   const LineElasticCondition                      mLineElasticCondition2D3N;
+   const AxisymmetricLineElasticCondition    mAxisymLineElasticCondition2D2N;
+   const AxisymmetricLineElasticCondition    mAxisymLineElasticCondition2D3N;
+
+   const SurfaceElasticCondition                mSurfaceElasticCondition3D3N;
+   const SurfaceElasticCondition                mSurfaceElasticCondition3D4N;
+   const SurfaceElasticCondition                mSurfaceElasticCondition3D6N;
+   const SurfaceElasticCondition                mSurfaceElasticCondition3D8N;
+   const SurfaceElasticCondition                mSurfaceElasticCondition3D9N;
+   
    //constitutive laws
     
    //Hyperelastic laws

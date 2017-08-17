@@ -236,36 +236,6 @@ void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
 }
 
 
-//*************************COMPUTE DELTA POSITION*************************************
-//************************************************************************************
-
-
-Matrix& LargeDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-        }
-    }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-}
-
-
 //************************************************************************************
 //************************************************************************************
 

@@ -19,109 +19,103 @@
 namespace Kratos
 {
 
-/**
- * Flags related to the condition computation
- */
-KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
+  /**
+   * Flags related to the condition computation
+   */
+  KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR,                 0 );
+  KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX,                 1 );
+  KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
+  KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
-//***********************************************************************************
-//***********************************************************************************
-BoundaryCondition::BoundaryCondition()
+  //***********************************************************************************
+  //***********************************************************************************
+  BoundaryCondition::BoundaryCondition()
     : Condition()
-{
-  //DO NOT CALL IT: only needed for Register and Serialization!!!
-}
+  {
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
-BoundaryCondition::BoundaryCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+  //***********************************************************************************
+  //***********************************************************************************
+  BoundaryCondition::BoundaryCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
-{
-    //DO NOT ADD DOFS HERE!!!
-}
+  {
+  }
 
-//***********************************************************************************
-//***********************************************************************************
-BoundaryCondition::BoundaryCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+  //***********************************************************************************
+  //***********************************************************************************
+  BoundaryCondition::BoundaryCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
-{
-
+  {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+  }
 
-    //DO NOT ADD DOFS HERE!!!
-}
-
-//************************************************************************************
-//************************************************************************************
-BoundaryCondition::BoundaryCondition( BoundaryCondition const& rOther )
+  //************************************************************************************
+  //************************************************************************************
+  BoundaryCondition::BoundaryCondition( BoundaryCondition const& rOther )
     : Condition(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)      
-{
-}
+  {
+  }
 
-//***********************************************************************************
-//***********************************************************************************
-Condition::Pointer BoundaryCondition::Create(
-    IndexType NewId,
-    NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const
-{
+  //***********************************************************************************
+  //***********************************************************************************
+  Condition::Pointer BoundaryCondition::Create(IndexType NewId,
+					       NodesArrayType const& ThisNodes,
+					       PropertiesType::Pointer pProperties) const
+  {
     return Condition::Pointer(new BoundaryCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
-}
+  }
 
 
-//************************************CLONE*******************************************
-//************************************************************************************
+  //************************************CLONE*******************************************
+  //************************************************************************************
 
-Condition::Pointer BoundaryCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
-{
-  std::cout<<" Call base class BOUNDARY CONDITION Clone "<<std::endl;
+  Condition::Pointer BoundaryCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  {
+    std::cout<<" Call base class BOUNDARY CONDITION Clone "<<std::endl;
   
-  BoundaryCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    BoundaryCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-  NewCondition.SetData(this->GetData());
-  NewCondition.SetFlags(this->GetFlags());
+    NewCondition.SetData(this->GetData());
+    NewCondition.SetFlags(this->GetFlags());
 
   
-  return Condition::Pointer( new BoundaryCondition(NewCondition) );
-}
+    return Condition::Pointer( new BoundaryCondition(NewCondition) );
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
-BoundaryCondition::~BoundaryCondition()
-{
-}
+  //***********************************************************************************
+  //***********************************************************************************
+  BoundaryCondition::~BoundaryCondition()
+  {
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
   
-unsigned int BoundaryCondition::GetDofsSize()
- {
-   KRATOS_TRY
+  unsigned int BoundaryCondition::GetDofsSize()
+  {
+    KRATOS_TRY
      
-   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-   const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
    
-   unsigned int size = number_of_nodes * dimension;
+    unsigned int size = number_of_nodes * dimension;
 
-   return size;
+    return size;
    
     
-   KRATOS_CATCH( "" )
-}
+    KRATOS_CATCH( "" )
+  }
   
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::GetDofList(DofsVectorType& rConditionDofList,
-				    ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::GetDofList(DofsVectorType& rConditionDofList,
+				     ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     rConditionDofList.resize(0);
@@ -129,23 +123,23 @@ void BoundaryCondition::GetDofList(DofsVectorType& rConditionDofList,
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
+      {
         rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
         rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
 	if( dimension == 3 )
 	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-    }
+      }
 
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::EquationIdVector(EquationIdVectorType& rResult,
-					  ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::EquationIdVector(EquationIdVectorType& rResult,
+					   ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -156,23 +150,23 @@ void BoundaryCondition::EquationIdVector(EquationIdVectorType& rResult,
       rResult.resize( condition_size, false );
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
+      {
         int index = i * dimension;
         rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
 	if( dimension == 3)
 	  rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-    }
+      }
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
-{
+  void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
+  {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size  = number_of_nodes * dimension;
@@ -181,21 +175,21 @@ void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
       rValues.resize( condition_size, false );
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
+      {
         unsigned int index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 
         if ( dimension == 3 )
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-    }
-}
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+      }
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
-{
+  void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+  {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size    = number_of_nodes * dimension;
@@ -204,22 +198,22 @@ void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
       rValues.resize( condition_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
+      {
         unsigned int index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
 
         if ( dimension == 3 )
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-    }
-}
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+      }
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
-{
+  void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+  {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size    = number_of_nodes * dimension;
@@ -228,22 +222,22 @@ void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
       rValues.resize( condition_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
+      {
         unsigned int index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
 
         if ( dimension == 3 )
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-    }
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+      }
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
-void BoundaryCondition::InitializeExplicitContributions()
-{
+  //************************************************************************************
+  //************************************************************************************
+  void BoundaryCondition::InitializeExplicitContributions()
+  {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -264,16 +258,16 @@ void BoundaryCondition::InitializeExplicitContributions()
       }
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS, 
-						 const Variable<VectorType>& rRHSVariable,
-						 Variable<array_1d<double,3> >& rDestinationVariable, 
-						 const ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS, 
+						  const Variable<VectorType>& rRHSVariable,
+						  Variable<array_1d<double,3> >& rDestinationVariable, 
+						  const ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -318,80 +312,80 @@ void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS,
       }
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//************* STARTING - ENDING  METHODS
-//***********************************************************************************
-//***********************************************************************************
+  //************* STARTING - ENDING  METHODS
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::Initialize()
-{
+  void BoundaryCondition::Initialize()
+  {
     KRATOS_TRY
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+  {
     KRATOS_TRY
 
     InitializeExplicitContributions();
  
     KRATOS_CATCH( "" )
-}
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  {
     KRATOS_TRY
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-						  VectorType& rRightHandSideVector,
-						  Flags& rCalculationFlags)
+  void BoundaryCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+						   VectorType& rRightHandSideVector,
+						   Flags& rCalculationFlags)
 
-{
+  {
 
     //resizing as needed the LHS
     unsigned int MatSize = this->GetDofsSize();
 
     if ( rCalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-    {
+      {
         if ( rLeftHandSideMatrix.size1() != MatSize )
-            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+	  rLeftHandSideMatrix.resize( MatSize, MatSize, false );
 
         noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
-    }
+      }
 
 
     //resizing as needed the RHS
     if ( rCalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
-    {
+      {
         if ( rRightHandSideVector.size() != MatSize )
-	    rRightHandSideVector.resize( MatSize, false );
+	  rRightHandSideVector.resize( MatSize, false );
       
 	noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
 	  
-    }
-}
+      }
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -410,28 +404,28 @@ void BoundaryCondition::InitializeConditionVariables(ConditionVariables& rVariab
     
     KRATOS_CATCH( "" )
 
-}
+  }
 
-//*********************************COMPUTE KINEMATICS*********************************
-//************************************************************************************
+  //*********************************COMPUTE KINEMATICS*********************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateKinematics(ConditionVariables& rVariables,
-					     const double& rPointNumber)
-{
+  void BoundaryCondition::CalculateKinematics(ConditionVariables& rVariables,
+					      const double& rPointNumber)
+  {
     KRATOS_TRY
 
     KRATOS_ERROR << "calling the base class CalculateKinematics method for a boundary condition... " << std::endl;
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-						  const ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+						   const ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     //create and initialize condition variables:
@@ -444,7 +438,7 @@ void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSy
     double IntegrationWeight = 1;
     
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-    {
+      {
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
@@ -456,102 +450,102 @@ void BoundaryCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSy
 	// std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
        
         if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
+	  {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
-        }
+	  }
 
         if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-        {
+	  {
             //contribution to external forces 
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
-        }
+	  }
 
-    }
+      }
 
     //VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();    
     //std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
     
     KRATOS_CATCH( "" )
-}
-
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
-{
-
-  //contributions of the stiffness matrix calculated on the reference configuration
-  if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-    {
-      std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-      const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
-
-      for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-	{
-	  bool calculated = false;
-	  
-	  if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
-	    // operation performed: add Kg to the rLefsHandSideMatrix
-	    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
-
-	  if(calculated == false)
-	    {
-	      KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-	    }
-
-	}
-    } 
-  else{
-    
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-
-    // operation performed: add Kg to the rLefsHandSideMatrix
-    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    //KRATOS_WATCH( rLeftHandSideMatrix )
   }
 
-}
 
+  //************* COMPUTING  METHODS
+  //************************************************************************************
+  //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
+  void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
+  {
 
-void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
-{
-    //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-    {
+    //contributions of the stiffness matrix calculated on the reference configuration
+    if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+      {
+	std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
+	const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
 
-      std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-      const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-      for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
-	{
-	  bool calculated = false;
-	  if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
-	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
-
-	  if( rRightHandSideVariables[i] == CONTACT_FORCES_VECTOR ){
-	    // operation performed: rRightHandSideVector += ContactForce*IntToReferenceWeight
-	    rRightHandSideVectors[i] += ZeroVector( rRightHandSideVectors[i].size() );
-	    calculated = true;
-	  }
+	for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
+	  {
+	    bool calculated = false;
 	  
-	  if(calculated == false)
-	    {
-	      KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
+	    if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
+	      // operation performed: add Kg to the rLefsHandSideMatrix
+	      this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+	      calculated = true;
 	    }
 
-	}
+	    if(calculated == false)
+	      {
+		KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
+	      }
+
+	  }
+      } 
+    else{
+    
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+
+      // operation performed: add Kg to the rLefsHandSideMatrix
+      this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+      //KRATOS_WATCH( rLeftHandSideMatrix )
     }
+
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
+  {
+    //contribution of the internal and external forces
+    if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+      {
+
+	std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
+	const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
+	for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
+	  {
+	    bool calculated = false;
+	    if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
+	      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+	      this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
+	      calculated = true;
+	    }
+
+	    if( rRightHandSideVariables[i] == CONTACT_FORCES_VECTOR ){
+	      // operation performed: rRightHandSideVector += ContactForce*IntToReferenceWeight
+	      rRightHandSideVectors[i] += ZeroVector( rRightHandSideVectors[i].size() );
+	      calculated = true;
+	    }
+	  
+	    if(calculated == false)
+	      {
+		KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
+	      }
+
+	  }
+      }
     else{
       
       VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
@@ -564,14 +558,14 @@ void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, 
     }
     
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+  {
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -592,13 +586,13 @@ void BoundaryCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, 
 
     //KRATOS_WATCH( rRightHandSideVector )
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  {
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -617,13 +611,13 @@ void BoundaryCondition::CalculateRightHandSide( VectorType& rRightHandSideVector
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+  {
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -652,15 +646,15 @@ void BoundaryCondition::CalculateRightHandSide( std::vector< VectorType >& rRigh
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 
-}
+  }
 
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  {
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -678,18 +672,18 @@ void BoundaryCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, V
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-					       const std::vector< Variable< MatrixType > >& rLHSVariables,
-					       std::vector< VectorType >& rRightHandSideVectors,
-					       const std::vector< Variable< VectorType > >& rRHSVariables,
-					       ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
+						const std::vector< Variable< MatrixType > >& rLHSVariables,
+						std::vector< VectorType >& rRightHandSideVectors,
+						const std::vector< Variable< VectorType > >& rRHSVariables,
+						ProcessInfo& rCurrentProcessInfo )
+  {
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -733,42 +727,42 @@ void BoundaryCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHa
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     rMassMatrix.resize(0, 0, false);
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
+  void BoundaryCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     rDampingMatrix.resize(0, 0, false);
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-					     ConditionVariables& rVariables,
-					     double& rIntegrationWeight)
+  void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+					      ConditionVariables& rVariables,
+					      double& rIntegrationWeight)
 
-{
+  {
     KRATOS_TRY
 
     unsigned int MatSize = this->GetDofsSize();
@@ -778,34 +772,34 @@ void BoundaryCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						      ConditionVariables& rVariables,
-						      double& rIntegrationWeight)
+  void BoundaryCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+							ConditionVariables& rVariables,
+							double& rIntegrationWeight)
 
-{
+  {
     KRATOS_TRY
 
     KRATOS_ERROR << "calling the base class CalculateAndAddExternalForces method for a boundary condition... " << std::endl;
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
-							 ConditionVariables& rVariables,
-							 double& rIntegrationWeight,
-							 const ProcessInfo& rCurrentProcessInfo)
+  double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
+							   ConditionVariables& rVariables,
+							   double& rIntegrationWeight,
+							   const ProcessInfo& rCurrentProcessInfo)
 
-{
+  {
     KRATOS_TRY
 
     KRATOS_ERROR << "calling the base class CalculateAndAddExternalEnergy method for a boundary condition... " << std::endl;
@@ -813,48 +807,106 @@ double& BoundaryCondition::CalculateAndAddExternalEnergy(double& rEnergy,
     return rEnergy;
 
     KRATOS_CATCH( "" )
-}
-
+  }
   
-//************************************************************************************
-//************************************************************************************
+  //*************************COMPUTE DELTA POSITION*************************************
+  //************************************************************************************
 
-void BoundaryCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
-{
-  KRATOS_TRY
+  Matrix& BoundaryCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
+  {
+    KRATOS_TRY
 
-  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-  if( rValues.size() != dimension )
-    rValues.resize(dimension);
+    rDeltaPosition.resize(number_of_nodes , dimension, false);
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-  noalias(rValues) = ZeroVector(dimension);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+	  {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+	  }
+      }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //*************************COMPUTE TOTAL DELTA POSITION*******************************
+  //************************************************************************************
+
+
+  Matrix& BoundaryCondition::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
+  {
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition.resize(number_of_nodes , dimension, false);
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+	  {
+            rDeltaPosition(i,j) = CurrentDisplacement[j];
+	  }
+      }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+  }
   
-  Vector CurrentValueVector(3);
-  noalias(CurrentValueVector) = ZeroVector(3);
-  CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
+  //************************************************************************************
+  //************************************************************************************
 
-  Vector PreviousValueVector(3);
-  noalias(PreviousValueVector)= ZeroVector(3);
-  CurrentValueVector = GetNodalPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
+  void BoundaryCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
+  {
+    KRATOS_TRY
 
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-  rValues[0] = CurrentValueVector[0] - PreviousValueVector[0];
-  rValues[1] = CurrentValueVector[1] - PreviousValueVector[1];
+    if( rValues.size() != dimension )
+      rValues.resize(dimension);
 
-  if( dimension == 3 )
-    rValues[2] = CurrentValueVector[2] - PreviousValueVector[2];
+    noalias(rValues) = ZeroVector(dimension);
   
-  KRATOS_CATCH( "" )
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
+
+    Vector PreviousValueVector(3);
+    noalias(PreviousValueVector)= ZeroVector(3);
+    CurrentValueVector = GetNodalPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
+
+
+    rValues[0] = CurrentValueVector[0] - PreviousValueVector[0];
+    rValues[1] = CurrentValueVector[1] - PreviousValueVector[1];
+
+    if( dimension == 3 )
+      rValues[2] = CurrentValueVector[2] - PreviousValueVector[2];
+  
+    KRATOS_CATCH( "" )
 	
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-Vector& BoundaryCondition::GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
-{
+  Vector& BoundaryCondition::GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+  {
     KRATOS_TRY
 
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -867,13 +919,13 @@ Vector& BoundaryCondition::GetNodalCurrentValue(const Variable<array_1d<double,3
     return rValue;
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-Vector& BoundaryCondition::GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
-{
+  Vector& BoundaryCondition::GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+  {
     KRATOS_TRY
 
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -886,23 +938,52 @@ Vector& BoundaryCondition::GetNodalPreviousValue(const Variable<array_1d<double,
     return rValue;
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//*********************************GET DOUBLE VALUE***********************************
-//************************************************************************************
 
-void BoundaryCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-						      std::vector<double>& rValues,
-						      const ProcessInfo& rCurrentProcessInfo )
-{ 
+  //************************************************************************************
+  //************************************************************************************
+
+  double& BoundaryCondition::GetNodalCurrentValue(const Variable<double>&rVariable, double& rValue, const unsigned int& rNode)
+  {
+    KRATOS_TRY
+
+    rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
+    
+    return rValue;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  double& BoundaryCondition::GetNodalPreviousValue(const Variable<double>&rVariable, double& rValue, const unsigned int& rNode)
+  {
+    KRATOS_TRY
+
+    rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
+    
+    return rValue;
+
+    KRATOS_CATCH( "" )
+  }
+  
+  //*********************************GET DOUBLE VALUE***********************************
+  //************************************************************************************
+
+  void BoundaryCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+						       std::vector<double>& rValues,
+						       const ProcessInfo& rCurrentProcessInfo )
+  { 
     this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void BoundaryCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
-{
+  void BoundaryCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+  {
 
     KRATOS_TRY
 
@@ -913,69 +994,69 @@ void BoundaryCondition::CalculateOnIntegrationPoints( const Variable<double>& rV
       integration_points = 1;
 
     if ( rOutput.size() != integration_points )
-        rOutput.resize( integration_points, false );
+      rOutput.resize( integration_points, false );
 
 
     if ( rVariable == EXTERNAL_ENERGY )
-    {
+      {
 
-      //create and initialize condition variables:
-      ConditionVariables Variables;
-      this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
+	//create and initialize condition variables:
+	ConditionVariables Variables;
+	this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
-      //reading integration points
-      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
       
-      double Energy = 0;
-      double IntegrationWeight = 0;
+	double Energy = 0;
+	double IntegrationWeight = 0;
       
-      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-	{
-	  //compute element kinematics B, F, DN_DX ...
-	  this->CalculateKinematics(Variables,PointNumber);
+	for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+	  {
+	    //compute element kinematics B, F, DN_DX ...
+	    this->CalculateKinematics(Variables,PointNumber);
 
-	  IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
+	    IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
-	  Energy = 0;
+	    Energy = 0;
 	  
-	  Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight, rCurrentProcessInfo);	  	  
-  	  rOutput[PointNumber] = Energy;
-	}
+	    Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight, rCurrentProcessInfo);	  	  
+	    rOutput[PointNumber] = Energy;
+	  }
 
-    }
+      }
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
 
-int BoundaryCondition::Check( const ProcessInfo& rCurrentProcessInfo )
-{
+  int BoundaryCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  {
     return 0;
-}
+  }
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void BoundaryCondition::save( Serializer& rSerializer ) const
-{
+  void BoundaryCondition::save( Serializer& rSerializer ) const
+  {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     int IntMethod = int(mThisIntegrationMethod);
     rSerializer.save("IntegrationMethod",IntMethod);
 
-}
+  }
 
-void BoundaryCondition::load( Serializer& rSerializer )
-{
+  void BoundaryCondition::load( Serializer& rSerializer )
+  {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
   
-}
+  }
 
 
 } // Namespace Kratos.

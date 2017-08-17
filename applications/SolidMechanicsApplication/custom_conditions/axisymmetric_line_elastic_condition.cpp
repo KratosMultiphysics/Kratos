@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/axisymmetric_line_load_condition.hpp"
+#include "custom_conditions/axisymmetric_line_elastic_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -21,51 +21,51 @@ namespace Kratos
 
   //***********************************************************************************
   //***********************************************************************************
-  AxisymmetricLineLoadCondition::AxisymmetricLineLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : LineLoadCondition(NewId, pGeometry)
+  AxisymmetricLineElasticCondition::AxisymmetricLineElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : LineElasticCondition(NewId, pGeometry)
   {
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  AxisymmetricLineLoadCondition::AxisymmetricLineLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineLoadCondition(NewId, pGeometry, pProperties)
+  AxisymmetricLineElasticCondition::AxisymmetricLineElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : LineElasticCondition(NewId, pGeometry, pProperties)
   {
     mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
   }
 
   //************************************************************************************
   //************************************************************************************
-  AxisymmetricLineLoadCondition::AxisymmetricLineLoadCondition( AxisymmetricLineLoadCondition const& rOther )
-    : LineLoadCondition(rOther)     
+  AxisymmetricLineElasticCondition::AxisymmetricLineElasticCondition( AxisymmetricLineElasticCondition const& rOther )
+    : LineElasticCondition(rOther)     
   {
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  Condition::Pointer AxisymmetricLineLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+  Condition::Pointer AxisymmetricLineElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new AxisymmetricLineLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new AxisymmetricLineElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
 
   //************************************CLONE*******************************************
   //************************************************************************************
-  Condition::Pointer AxisymmetricLineLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Condition::Pointer AxisymmetricLineElasticCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
-    AxisymmetricLineLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    AxisymmetricLineElasticCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//      
-    return Condition::Pointer( new AxisymmetricLineLoadCondition(NewCondition) );
+    return Condition::Pointer( new AxisymmetricLineElasticCondition(NewCondition) );
   }
 
 
   //***********************************************************************************
   //***********************************************************************************
-  AxisymmetricLineLoadCondition::~AxisymmetricLineLoadCondition()
+  AxisymmetricLineElasticCondition::~AxisymmetricLineElasticCondition()
   {
   }
 
@@ -73,7 +73,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void AxisymmetricLineLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
+  void AxisymmetricLineElasticCondition::CalculateKinematics(ConditionVariables& rVariables,
 						      const double& rPointNumber)
   {
     KRATOS_TRY
@@ -110,7 +110,7 @@ namespace Kratos
     rVariables.GeometrySize = GetGeometry().Length();
 
     //Get external load
-    this->CalculateExternalLoad(rVariables);
+    this->CalculateExternalStiffness(rVariables);
     
     //Calculate radius
     CalculateRadius ( rVariables.CurrentRadius,  rVariables.ReferenceRadius, rVariables.N);
@@ -122,7 +122,7 @@ namespace Kratos
   //*************************COMPUTE AXYSIMMETRIC RADIUS********************************
   //************************************************************************************
 
-  void AxisymmetricLineLoadCondition::CalculateRadius(double & rCurrentRadius,
+  void AxisymmetricLineElasticCondition::CalculateRadius(double & rCurrentRadius,
 						  double & rReferenceRadius,
 						  const Vector& rN)
 
@@ -168,14 +168,14 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymmetricLineLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
+  void AxisymmetricLineElasticCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
     //contributions to stiffness matrix calculated on the reference config
 
-    LoadCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
+    ElasticCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
   }
 
@@ -183,20 +183,20 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymmetricLineLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
+  void AxisymmetricLineElasticCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
     //contribution to external forces
 
-    LoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
+    ElasticCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 
   }
 
   //***********************************************************************************
   //***********************************************************************************
 
-  int AxisymmetricLineLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int AxisymmetricLineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
     return 0;
   }
@@ -205,14 +205,14 @@ namespace Kratos
   //***********************************************************************************
 
 
-  void AxisymmetricLineLoadCondition::save( Serializer& rSerializer ) const
+  void AxisymmetricLineElasticCondition::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineElasticCondition )
   }
 
-  void AxisymmetricLineLoadCondition::load( Serializer& rSerializer )
+  void AxisymmetricLineElasticCondition::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineElasticCondition )
   }
 
 

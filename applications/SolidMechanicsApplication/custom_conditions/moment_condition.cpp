@@ -233,7 +233,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	if ( dimension == 2 ){
-	  rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PLANE_ANGULAR_VELOCITY, Step );
+	  rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PLANE_ANGULAR_ACCELERATION, Step );
 	}
 	else{
 	  index = i * dimension;
@@ -335,6 +335,15 @@ namespace Kratos
       
     KRATOS_ERROR << "calling the base class CalculateExternalMoment method for a moment condition... " << std::endl;
     
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    
+    if( rVariables.ExternalVectorValue.size() != dimension )
+      rVariables.ExternalVectorValue.resize(dimension,false);
+
+    noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+
+    rVariables.ExternalScalarValue = 0.0;
+
     KRATOS_CATCH( "" )
   }
 
@@ -351,19 +360,29 @@ namespace Kratos
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    if( dimension == 2 ){
+      
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  rRightHandSideVector[i] += rVariables.N[i] * rVariables.ExternalScalarValue * rIntegrationWeight;
+ 	}
+    }
+    else{
 
-    int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        index = dimension * i;
+      int index = 0;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  index = dimension * i;
 	
-        for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-	    rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
-	  }
+	  for ( unsigned int j = 0; j < dimension; j++ )
+	    {
+	      rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
+	    }
 
-      }
-
+	}
+    }
+    
     std::cout<<" ExternalForces ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
@@ -383,45 +402,117 @@ namespace Kratos
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    // Energy Calculation:
-    Vector CurrentValueVector(dimension);
-    noalias(CurrentValueVector) = ZeroVector(dimension); 
-    Vector PreviousValueVector(dimension);
-    noalias(PreviousValueVector) = ZeroVector(dimension); 
-    Vector Rotations(dimension);
-    noalias(Rotations) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	//current rotation to compute energy
-	if( GetGeometry()[i].SolutionStepsDataHas(ANGULAR_VELOCITY) ){
-	  CurrentValueVector  = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
-	  PreviousValueVector = GetNodalPreviousValue( ANGULAR_VELOCITY, PreviousValueVector, i );
-	  CurrentValueVector += PreviousValueVector;
-	  CurrentValueVector *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+    if( dimension == 2 ){
+    
+      // Energy Calculation:
+      double CurrentValue  = 0;
+      double PreviousValue = 0;
+      double Rotation = 0;
+      
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  //current rotation to compute energy
+	  if( GetGeometry()[i].SolutionStepsDataHas(PLANE_ANGULAR_VELOCITY) ){
+	    CurrentValue  = GetNodalCurrentValue( PLANE_ANGULAR_VELOCITY, CurrentValue, i );
+	    PreviousValue = GetNodalPreviousValue( PLANE_ANGULAR_VELOCITY, PreviousValue, i );
+	    CurrentValue += PreviousValue;
+	    CurrentValue *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+	  }
+	  else{
+	    CurrentValue = GetNodalCurrentValue( PLANE_ROTATION, CurrentValue, i );
+	  }
+		
+	  Rotation += rVariables.N[i] * CurrentValue;
 	}
-	else{
-	  CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
+      //------
+
+      double Moment = 0;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  Moment += rVariables.N[i] * rVariables.ExternalScalarValue * rIntegrationWeight;
 	}
-	
-	Rotations += rVariables.N[i] * CurrentValueVector;
-      }
-    //------
 
-    Vector MomentVector(dimension);
-    noalias(MomentVector) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	MomentVector += rVariables.N[i] * rVariables.ExternalVectorValue * rIntegrationWeight;
-      }
+      rEnergy += Moment * Rotation;
 
-    rEnergy += inner_prod( MomentVector, Rotations );
+    }
+    else{
+      
+    
+      // Energy Calculation:
+      Vector CurrentValueVector(dimension);
+      noalias(CurrentValueVector) = ZeroVector(dimension); 
+      Vector PreviousValueVector(dimension);
+      noalias(PreviousValueVector) = ZeroVector(dimension); 
+      Vector Rotation(dimension);
+      noalias(Rotation) = ZeroVector(dimension);
+      
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  //current rotation to compute energy
+	  if( GetGeometry()[i].SolutionStepsDataHas(ANGULAR_VELOCITY) ){
+	    CurrentValueVector  = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
+	    PreviousValueVector = GetNodalPreviousValue( ANGULAR_VELOCITY, PreviousValueVector, i );
+	    CurrentValueVector += PreviousValueVector;
+	    CurrentValueVector *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+	  }
+	  else{
+	    CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
+	  }
+		
+	  Rotation += rVariables.N[i] * CurrentValueVector;
+	}
+      //------
 
+      Vector MomentVector(dimension);
+      noalias(MomentVector) = ZeroVector(dimension);
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  MomentVector += rVariables.N[i] * rVariables.ExternalVectorValue * rIntegrationWeight;
+	}
+
+      rEnergy += inner_prod( MomentVector, Rotation );
+
+    }
+    
     return rEnergy;
 
     KRATOS_CATCH( "" )
   }
 
+  //***********************************************************************************
+  //***********************************************************************************
 
+
+  int MomentCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+
+    BoundaryCondition::Check(rCurrentProcessInfo);
+      
+    //verify that nodal variables are correctly initialized
+    if ( ROTATION.Key() == 0 )
+      KRATOS_ERROR <<  "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
+
+    if ( PLANE_ROTATION.Key() == 0 )
+      KRATOS_ERROR <<  "PLANE_ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
+    
+    if ( ANGULAR_VELOCITY.Key() == 0 )
+      KRATOS_ERROR <<  "ANGULAR_VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
+
+    if ( PLANE_ANGULAR_VELOCITY.Key() == 0 )
+      KRATOS_ERROR <<  "PLANE_ANGULAR_VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
+
+    if ( ANGULAR_ACCELERATION.Key() == 0 )
+      KRATOS_ERROR <<  "ANGULAR_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
+
+    if ( PLANE_ANGULAR_ACCELERATION.Key() == 0 )
+      KRATOS_ERROR <<  "PLANE_ANGULAR_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
+
+    return 0;
+    
+    KRATOS_CATCH( "" )
+  }
+  
   //***********************************************************************************
   //***********************************************************************************
 

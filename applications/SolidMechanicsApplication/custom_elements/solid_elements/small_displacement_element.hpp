@@ -201,11 +201,6 @@ protected:
     virtual void InitializeElementVariables(ElementVariables & rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
 
     /**
      * Calculation of the Infinitesimal Strain Vector

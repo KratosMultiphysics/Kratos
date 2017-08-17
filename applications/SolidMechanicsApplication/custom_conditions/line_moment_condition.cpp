@@ -99,67 +99,7 @@ namespace Kratos
     KRATOS_CATCH( "" )
 	  
   }    
-
-
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-
-  Matrix& LineMomentCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
-    rDeltaPosition.resize(number_of_nodes , dimension, false);
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //*************************COMPUTE TOTAL DELTA POSITION*******************************
-  //************************************************************************************
-
-  Matrix& LineMomentCondition::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes , dimension, false);
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
  
-        for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-	  }
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
-  
   
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************

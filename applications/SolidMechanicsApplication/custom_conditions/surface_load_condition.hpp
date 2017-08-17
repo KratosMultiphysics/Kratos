@@ -140,16 +140,6 @@ protected:
     virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the Position Increment
-     */
-    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-
 
     /**
      * Calculate Condition Kinematics

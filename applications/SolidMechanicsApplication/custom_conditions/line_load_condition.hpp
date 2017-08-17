@@ -146,15 +146,6 @@ protected:
     virtual void CalculateKinematics(ConditionVariables& rVariables, 
 				     const double& rPointNumber);
 
-    /**
-     * Calculation of the Position Increment
-     */
-    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
     /**
      * Calculate the External Load of the Condition

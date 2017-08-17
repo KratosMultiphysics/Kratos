@@ -303,7 +303,7 @@ protected:
     /**
      * Calculation of the Deformation Gradient F
      */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+    Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
 
  

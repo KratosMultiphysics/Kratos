@@ -894,7 +894,7 @@ void LargeDisplacementBeamElement::InitializeElementVariables(ElementVariables& 
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );

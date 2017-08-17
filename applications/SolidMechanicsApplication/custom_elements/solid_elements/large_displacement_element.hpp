@@ -223,11 +223,6 @@ protected:
     virtual void SetElementVariables(ElementVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues,
                                      const int & rPointNumber);
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
     
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step

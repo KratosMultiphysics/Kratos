@@ -1,21 +1,18 @@
-//--------------------------------------------------------------------
-//    |  /           |                                               .
-//    ' /   __| _` | __|  _ \   __|                                  .
-//    . \  |   (   | |   (   |\__ \                                  .
-//   _|\_\_|  \__,_|\__|\___/ ____/                                  .
-//                 KRATOS  __|   _ \  |   |  _ \                     .
-//                       \__ \  (   | |   | | , )                    .      
-//                       |___/ \___/ ___|_| ___/ MECHANICS           .            
-//			                                             .
-//   License:(BSD)	  SolidMechanicsApplication/license.txt      .
-//   Main authors:        Josep Maria Carbonell                      .
-//                        ..                                         .
-//--------------------------------------------------------------------
+//------------------------------------------------------------------
+//           ___      _ _    _                                     .
+//   KRATOS / __| ___| (_)__| |                                    .
+//          \__ \/ _ \ | / _` |                                    .
+//          |___/\___/_|_\__,_| MECHANICS                          .
+//			                                           .
+//   License:(BSD)	  SolidMechanicsApplication/license.txt    .
+//   Main authors:        Josep Maria Carbonell                    .
+//                        ..                                       .
+//------------------------------------------------------------------
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            February 2016 $
+//   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -93,6 +90,9 @@ namespace Kratos
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, POINT_MOMENT )
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, LINE_MOMENT )
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, SURFACE_MOMENT )
+    
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, PLANE_POINT_MOMENT )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double ,PLANE_LINE_MOMENT )
 
   //nodal elastic variables
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, POINT_STIFFNESS )
@@ -110,6 +110,9 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, POINT_MOMENT_VECTOR )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, LINE_MOMENT_VECTOR )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, SURFACE_MOMENT_VECTOR )    
+
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, PLANE_POINT_MOMENT_VECTOR )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, PLANE_LINE_MOMENT_VECTOR )
     
   //condition elastic variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, POINT_STIFFNESS_VECTOR )

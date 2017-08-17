@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition.hpp"
+#include "custom_conditions/line_elastic_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -21,66 +21,65 @@ namespace Kratos
 
   //***********************************************************************************
   //***********************************************************************************
-  LineLoadCondition::LineLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : LoadCondition(NewId, pGeometry)
+  LineElasticCondition::LineElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : ElasticCondition(NewId, pGeometry)
   {
-    //DO NOT ADD DOFS HERE!!!
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  LineLoadCondition::LineLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LoadCondition(NewId, pGeometry, pProperties)
+  LineElasticCondition::LineElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : ElasticCondition(NewId, pGeometry, pProperties)
   {
-    //DO NOT ADD DOFS HERE!!!
   }
 
   //************************************************************************************
   //************************************************************************************
-  LineLoadCondition::LineLoadCondition( LineLoadCondition const& rOther )
-    : LoadCondition(rOther)     
+  LineElasticCondition::LineElasticCondition( LineElasticCondition const& rOther )
+    : ElasticCondition(rOther)     
   {
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  Condition::Pointer LineLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+  Condition::Pointer LineElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new LineLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new LineElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
 
   //************************************CLONE*******************************************
   //************************************************************************************
-  Condition::Pointer LineLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Condition::Pointer LineElasticCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
   
-    LineLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    LineElasticCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//      
-    return Condition::Pointer( new LineLoadCondition(NewCondition) );
+    return Condition::Pointer( new LineElasticCondition(NewCondition) );
 
   }
 
 
   //***********************************************************************************
   //***********************************************************************************
-  LineLoadCondition::~LineLoadCondition()
+  LineElasticCondition::~LineElasticCondition()
   {
   }
 
 
+
   //************************************************************************************
   //************************************************************************************
 
-  void LineLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void LineElasticCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    LoadCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
+    ElasticCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
 
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
@@ -101,11 +100,10 @@ namespace Kratos
 	  
   }    
   
-  
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void LineLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
+  void LineElasticCondition::CalculateKinematics(ConditionVariables& rVariables,
 						const double& rPointNumber)
   {
     KRATOS_TRY
@@ -160,7 +158,7 @@ namespace Kratos
     rVariables.GeometrySize = GetGeometry().Length();
 
     //Get external load
-    this->CalculateExternalLoad(rVariables);
+    this->CalculateExternalStiffness(rVariables);
     
     KRATOS_CATCH( "" )
   }
@@ -169,7 +167,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void LineLoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
+  void LineElasticCondition::CalculateExternalStiffness(ConditionVariables& rVariables)
   {
 
     KRATOS_TRY
@@ -181,57 +179,31 @@ namespace Kratos
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
+
+    rVariables.ExternalScalarValue = 0;
     
-    //PRESSURE CONDITION:
-    rVariables.ExternalVectorValue = rVariables.Normal;
-    rVariables.ExternalScalarValue = 0.0;
-
-    //defined on condition
-    if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
-      double& NegativeFacePressure = this->GetValue( NEGATIVE_FACE_PRESSURE );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.ExternalScalarValue += rVariables.N[i] * NegativeFacePressure;
-    }
-
-    if( this->Has( POSITIVE_FACE_PRESSURE ) ){
-      double& PositiveFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.ExternalScalarValue -= rVariables.N[i] * PositiveFacePressure;
-    }
-
-    //defined on condition nodes
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
-	  rVariables.ExternalScalarValue += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
-	if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
-	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );     
-      }
-    
-    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
-   
-    //FORCE CONDITION:
+    //STIFFNESS CONDITION:
     
     //defined on condition
-    if( this->Has( LINE_LOAD ) ){
-      array_1d<double, 3 > & LineLoad = this->GetValue( LINE_LOAD );
+    if( this->Has( LINE_STIFFNESS ) ){
+      array_1d<double, 3 > & LineStiffness = this->GetValue( LINE_STIFFNESS );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineStiffness[k];
 	}
     }
 
     //defined on condition nodes
-    if( this->Has( LINE_LOAD_VECTOR ) ){
-      Vector& LineLoads = this->GetValue( LINE_LOAD_VECTOR );
+    if( this->Has( LINE_STIFFNESS_VECTOR ) ){
+      Vector& LineStiffness = this->GetValue( LINE_STIFFNESS_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  counter = i*3;
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter+k];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineStiffness[counter+k];
 	    }
 	  
 	}
@@ -240,103 +212,34 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( LINE_LOAD ) ){
-	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( LINE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( LINE_STIFFNESS ) ){
+	  array_1d<double, 3 > & LineStiffness = GetGeometry()[i].FastGetSolutionStepValue( LINE_STIFFNESS );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineStiffness[k];
 	}
       }
 
     KRATOS_CATCH( "" )
   }
 
-  //************************************************************************************
-  //************************************************************************************
-
-  void LineLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						ConditionVariables& rVariables,
-						double& rIntegrationWeight)
-
-  {
-    KRATOS_TRY
-
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      
-      if( rVariables.ExternalScalarValue == 0 )
-	{
-	  unsigned int size = GetGeometry().PointsNumber() * dimension;
-	  if(rLeftHandSideMatrix.size1() != size )
-	    rLeftHandSideMatrix.resize(size,size,false);
-	  noalias(rLeftHandSideMatrix) = ZeroMatrix( size, size );
-	}
-      else
-	{
-	  if( dimension == 2 ){
-	  
-	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	
-	    Matrix Kij     ( 2, 2 );
-	    Matrix SkewSymmMatrix( 2, 2 );
-	
-	    //Compute the K sub matrix
-	    SkewSymmMatrix( 0, 0 ) =  0.0;
-	    SkewSymmMatrix( 0, 1 ) = -1.0;
-	    SkewSymmMatrix( 1, 0 ) = +1.0;
-	    SkewSymmMatrix( 1, 1 ) =  0.0;
-
-	    double DiscretePressure=0;
-	    unsigned int RowIndex = 0;
-	    unsigned int ColIndex = 0;
-        
-	    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	      {
-		RowIndex = i * 2;
-	    
-		for ( unsigned int j = 0; j < number_of_nodes; j++ )
-		  {
-		    ColIndex = j * 2;
-		
-		    DiscretePressure = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
-		    Kij = DiscretePressure * SkewSymmMatrix;
-		
-		    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
-		  }
-	      }
-
-	  }
-	  else{ //3D line pressure not considered here
-	    unsigned int size = GetGeometry().PointsNumber() * dimension;
-	    if(rLeftHandSideMatrix.size1() != size )
-	      rLeftHandSideMatrix.resize(size,size,false);
-	    noalias(rLeftHandSideMatrix) = ZeroMatrix( size, size );
-	  }
- 
-	}
-      
-    KRATOS_CATCH( "" )
-  }
-
-
+  
   //***********************************************************************************
   //***********************************************************************************
 
 
-  int LineLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
-    LoadCondition::Check(rCurrentProcessInfo);
+    ElasticCondition::Check(rCurrentProcessInfo);
       
     //verify that nodal variables are correctly initialized
+        
+    if ( LINE_STIFFNESS.Key() == 0 )
+      KRATOS_ERROR <<  "LINE_STIFFNESS has Key zero! (check if the application is correctly registered)" << std::endl;
     
-    if ( DISPLACEMENT.Key() == 0 )
-      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( LINE_LOAD.Key() == 0 )
-      KRATOS_ERROR <<  "LINE_LOAD has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( LINE_LOAD_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "LINE_LOAD_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
+    if ( LINE_STIFFNESS_VECTOR.Key() == 0 )
+      KRATOS_ERROR <<  "LINE_STIFFNESS_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
     
     return 0;
     
@@ -346,14 +249,14 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void LineLoadCondition::save( Serializer& rSerializer ) const
+  void LineElasticCondition::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LoadCondition )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticCondition )
   }
 
-  void LineLoadCondition::load( Serializer& rSerializer )
+  void LineElasticCondition::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LoadCondition )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticCondition )
   }
 
 

@@ -154,7 +154,7 @@ void SmallDisplacementElement::InitializeElementVariables (ElementVariables & rV
     //set variables including all integration points values
     
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from initial cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -210,35 +210,6 @@ void SmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables,
     //Compute infinitessimal strain
     this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
 
-
-    KRATOS_CATCH( "" )
-}
-
-
-//*************************COMPUTE DELTA POSITION*************************************
-//************************************************************************************
-
-
-Matrix& SmallDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-        }
-    }
-
-    return rDeltaPosition;
 
     KRATOS_CATCH( "" )
 }

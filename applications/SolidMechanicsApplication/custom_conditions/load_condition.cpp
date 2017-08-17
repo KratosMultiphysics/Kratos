@@ -18,134 +18,133 @@
 namespace Kratos
 {
 
-//***********************************************************************************
-//***********************************************************************************
-LoadCondition::LoadCondition()
+  //***********************************************************************************
+  //***********************************************************************************
+  LoadCondition::LoadCondition()
     : BoundaryCondition()
-{
-}
+  {
+  }
 
-
-//***********************************************************************************
-//***********************************************************************************
-LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+  //***********************************************************************************
+  //***********************************************************************************
+  LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : BoundaryCondition(NewId, pGeometry)
-{
-}
+  {
+  }
 
-//***********************************************************************************
-//***********************************************************************************
-LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+  //***********************************************************************************
+  //***********************************************************************************
+  LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BoundaryCondition(NewId, pGeometry, pProperties)
-{
+  {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
-LoadCondition::LoadCondition( LoadCondition const& rOther )
+  //************************************************************************************
+  //************************************************************************************
+  LoadCondition::LoadCondition( LoadCondition const& rOther )
     : BoundaryCondition(rOther)
-{
-}
+  {
+  }
 
-//***********************************************************************************
-//***********************************************************************************
-Condition::Pointer LoadCondition::Create(IndexType NewId,
-					 NodesArrayType const& ThisNodes,
-					 PropertiesType::Pointer pProperties) const
-{
+  //***********************************************************************************
+  //***********************************************************************************
+  Condition::Pointer LoadCondition::Create(IndexType NewId,
+					   NodesArrayType const& ThisNodes,
+					   PropertiesType::Pointer pProperties) const
+  {
     return Condition::Pointer(new LoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
-}
+  }
 
 
-//************************************CLONE*******************************************
-//************************************************************************************
+  //************************************CLONE*******************************************
+  //************************************************************************************
 
-Condition::Pointer LoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
-{
-  std::cout<<" Call base class LOAD CONDITION Clone "<<std::endl;
+  Condition::Pointer LoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  {
+    std::cout<<" Call base class LOAD CONDITION Clone "<<std::endl;
   
-  LoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    LoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-  NewCondition.SetData(this->GetData());
-  NewCondition.SetFlags(this->GetFlags());
+    NewCondition.SetData(this->GetData());
+    NewCondition.SetFlags(this->GetFlags());
 
   
-  return Condition::Pointer( new LoadCondition(NewCondition) );
-}
+    return Condition::Pointer( new LoadCondition(NewCondition) );
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
-LoadCondition::~LoadCondition()
-{
-}
+  //***********************************************************************************
+  //***********************************************************************************
+  LoadCondition::~LoadCondition()
+  {
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
+  void LoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     BoundaryCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
     
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void LoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
-{
+  void LoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
+  {
     KRATOS_TRY
       
     KRATOS_ERROR << "calling the base class CalculateExternalLoad method for a load condition... " << std::endl;
     
     KRATOS_CATCH( "" )
-}
+  }
   
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						  ConditionVariables& rVariables,
-						  double& rIntegrationWeight)
+  void LoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+						    ConditionVariables& rVariables,
+						    double& rIntegrationWeight)
 
-{
+  {
     KRATOS_TRY
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    int index = 0;
+    unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
+      {
         index = dimension * i;
 	
         for ( unsigned int j = 0; j < dimension; j++ )
-        {
-	  rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
-        }
+	  {
+	    rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
+	  }
 
-    }
+      }
 
     //std::cout<<" ExternalForces ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
-}
+  }
   
-//***********************************************************************************
-//***********************************************************************************
+  //***********************************************************************************
+  //***********************************************************************************
 
-double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
-						     ConditionVariables& rVariables,
-						     double& rIntegrationWeight,
-						     const ProcessInfo& rCurrentProcessInfo)
+  double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
+						       ConditionVariables& rVariables,
+						       double& rIntegrationWeight,
+						       const ProcessInfo& rCurrentProcessInfo)
   
-{
+  {
     KRATOS_TRY
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -168,31 +167,55 @@ double& LoadCondition::CalculateAndAddExternalEnergy(double& rEnergy,
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
+      {
 	ForceVector += rVariables.N[i] * rVariables.ExternalVectorValue * rIntegrationWeight;
-    }
+      }
 
     rEnergy += inner_prod( ForceVector, Displacements );
 
     return rEnergy;
 
     KRATOS_CATCH( "" )
-}
+  }
+
+  //***********************************************************************************
+  //***********************************************************************************
 
 
+  int LoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
 
-//***********************************************************************************
-//***********************************************************************************
+    BoundaryCondition::Check(rCurrentProcessInfo);
+      
+    //verify that nodal variables are correctly initialized
+    
+    if ( DISPLACEMENT.Key() == 0 )
+	KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
+    
+    if ( VELOCITY.Key() == 0 )
+      KRATOS_ERROR <<  "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
+        
+    if ( ACCELERATION.Key() == 0 )
+      KRATOS_ERROR <<  "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
+    
+    return 0;
+    
+    KRATOS_CATCH( "" )
+  }
 
-void LoadCondition::save( Serializer& rSerializer ) const
-{
+  //***********************************************************************************
+  //***********************************************************************************
+
+  void LoadCondition::save( Serializer& rSerializer ) const
+  {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BoundaryCondition )
-}
+  }
 
-void LoadCondition::load( Serializer& rSerializer )
-{
+  void LoadCondition::load( Serializer& rSerializer )
+  {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BoundaryCondition )
-}
+  }
 
 
 } // Namespace Kratos.

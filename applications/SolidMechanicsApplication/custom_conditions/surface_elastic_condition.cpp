@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/surface_load_condition.hpp"
+#include "custom_conditions/surface_elastic_condition.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -22,50 +22,50 @@ namespace Kratos
 
   //***********************************************************************************
   //***********************************************************************************
-  SurfaceLoadCondition::SurfaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : LoadCondition(NewId, pGeometry)
+  SurfaceElasticCondition::SurfaceElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : ElasticCondition(NewId, pGeometry)
   {
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  SurfaceLoadCondition::SurfaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LoadCondition(NewId, pGeometry, pProperties)
+  SurfaceElasticCondition::SurfaceElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : ElasticCondition(NewId, pGeometry, pProperties)
   {
   }
 
   //************************************************************************************
   //************************************************************************************
-  SurfaceLoadCondition::SurfaceLoadCondition( SurfaceLoadCondition const& rOther )
-    : LoadCondition(rOther)
+  SurfaceElasticCondition::SurfaceElasticCondition( SurfaceElasticCondition const& rOther )
+    : ElasticCondition(rOther)
   {
   }
 
   //***********************************************************************************
   //***********************************************************************************
-  Condition::Pointer SurfaceLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+  Condition::Pointer SurfaceElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new SurfaceLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new SurfaceElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
 
   //************************************CLONE*******************************************
   //************************************************************************************
-  Condition::Pointer SurfaceLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Condition::Pointer SurfaceElasticCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
-    SurfaceLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    SurfaceElasticCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//      
-    return Condition::Pointer( new SurfaceLoadCondition(NewCondition) );
+    return Condition::Pointer( new SurfaceElasticCondition(NewCondition) );
   }
 
 
   //***********************************************************************************
   //***********************************************************************************
-  SurfaceLoadCondition::~SurfaceLoadCondition()
+  SurfaceElasticCondition::~SurfaceElasticCondition()
   {
   }
 
@@ -73,11 +73,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SurfaceLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void SurfaceElasticCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
       
-    LoadCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
+    ElasticCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
   
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
@@ -101,7 +101,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void SurfaceLoadCondition::CalculateKinematics(ConditionVariables& rVariables,
+  void SurfaceElasticCondition::CalculateKinematics(ConditionVariables& rVariables,
 						 const double& rPointNumber)
   {
     KRATOS_TRY
@@ -166,8 +166,8 @@ namespace Kratos
     //Get geometry size
     rVariables.GeometrySize = GetGeometry().Area();
 
-    //Get external load
-    this->CalculateExternalLoad(rVariables);
+    //Get external stiffness
+    this->CalculateExternalStiffness(rVariables);
 
     KRATOS_CATCH( "" )
   }
@@ -176,7 +176,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
+  void SurfaceElasticCondition::CalculateExternalStiffness(ConditionVariables& rVariables)
   {
 
     KRATOS_TRY
@@ -189,55 +189,29 @@ namespace Kratos
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
     
-    //PRESSURE CONDITION:
-    rVariables.ExternalVectorValue = rVariables.Normal;
-    rVariables.ExternalScalarValue = 0.0;
-
-    //defined on condition
-    if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
-      double& NegativeFacePressure = this->GetValue( NEGATIVE_FACE_PRESSURE );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.ExternalScalarValue += rVariables.N[i] * NegativeFacePressure;
-    }
-
-    if( this->Has( POSITIVE_FACE_PRESSURE ) ){
-      double& PositiveFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	rVariables.ExternalScalarValue -= rVariables.N[i] * PositiveFacePressure;
-    }
-
-    //defined on condition nodes
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
-	  rVariables.ExternalScalarValue += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
-	if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
-	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );     
-      }
-    
-    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
+    rVariables.ExternalScalarValue = 0;
    
-    //FORCE CONDITION:
+    //STIFFNESS CONDITION:
     
     //defined on condition
-    if( this->Has( SURFACE_LOAD ) ){
-      array_1d<double, 3 > & SurfaceLoad = this->GetValue( SURFACE_LOAD );
+    if( this->Has( SURFACE_STIFFNESS ) ){
+      array_1d<double, 3 > & SurfaceStiffness = this->GetValue( SURFACE_STIFFNESS );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceStiffness[k];
 	}
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_LOAD_VECTOR ) ){
-      Vector& SurfaceLoads = this->GetValue( SURFACE_LOAD_VECTOR );
+    if( this->Has( SURFACE_STIFFNESS_VECTOR ) ){
+      Vector& SurfaceStiffnesss = this->GetValue( SURFACE_STIFFNESS_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    {
-	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoads[counter];
+	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceStiffnesss[counter];
 	      counter++;
 	    }
 	}
@@ -246,10 +220,10 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ){
-	  array_1d<double, 3 > & SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_STIFFNESS ) ){
+	  array_1d<double, 3 > & SurfaceStiffness = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_STIFFNESS );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoad[k];
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceStiffness[k];
 	}
       }
 
@@ -259,7 +233,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SurfaceLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+  void SurfaceElasticCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 						 ConditionVariables& rVariables,
 						 double& rIntegrationWeight)
 
@@ -268,14 +242,7 @@ namespace Kratos
 
       if( rVariables.ExternalScalarValue == 0 )
 	{
-
-	  unsigned int MatSize = this->GetDofsSize();
-	  if(rLeftHandSideMatrix.size1() != MatSize )
-	    rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-	  
-	  noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
-
-	}
+	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);        }
       else
 	{
 	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
@@ -317,7 +284,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M, 
+  void SurfaceElasticCondition::MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M, 
 					     Vector& U)
   {
     M(0, 0) = 0.00;
@@ -334,7 +301,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::CrossProduct(Vector & cross,
+  void SurfaceElasticCondition::CrossProduct(Vector & cross,
 					  Vector & a,
 					  Vector & b)
   {
@@ -346,7 +313,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::ExpandReducedMatrix(Matrix& Destination,
+  void SurfaceElasticCondition::ExpandReducedMatrix(Matrix& Destination,
 						 Matrix& ReducedMatrix)
   {
     KRATOS_TRY
@@ -373,7 +340,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::AddMatrix(MatrixType& Destination,
+  void SurfaceElasticCondition::AddMatrix(MatrixType& Destination,
 				       boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
 				       int InitialRow,
 				       int InitialCol)
@@ -390,7 +357,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::SubtractMatrix(MatrixType& Destination,
+  void SurfaceElasticCondition::SubtractMatrix(MatrixType& Destination,
 					    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
 					    int InitialRow,
 					    int InitialCol)
@@ -409,7 +376,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int SurfaceElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
     return 0;
   }
@@ -417,14 +384,14 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void SurfaceLoadCondition::save( Serializer& rSerializer ) const
+  void SurfaceElasticCondition::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LoadCondition )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticCondition )
   }
 
-  void SurfaceLoadCondition::load( Serializer& rSerializer )
+  void SurfaceElasticCondition::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LoadCondition )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticCondition )
   }
 
 

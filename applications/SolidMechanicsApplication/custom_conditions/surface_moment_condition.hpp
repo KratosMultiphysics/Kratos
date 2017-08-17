@@ -2,20 +2,20 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SURFACE_MOMENT_CONDITION_H_INCLUDED )
+#define  KRATOS_SURFACE_MOMENT_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition.hpp"
+#include "custom_conditions/moment_condition.hpp"
 
 namespace Kratos
 {
@@ -34,36 +34,32 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Load Condition for 2D axisymmetric geometries. (base class)
+// Surface moment condition for 3D geometries.
 
-/**
- * Implements a Load definition for structural analysis.
- * This works for arbitrary geometries in 2D (base class)
- */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricLineLoadCondition
-    : public LineLoadCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SurfaceMomentCondition
+    : public MomentCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of AxisymmetricLineLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricLineLoadCondition );
+    // Counted pointer of SurfaceMomentCondition
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceMomentCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymmetricLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    SurfaceMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    AxisymmetricLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceMomentCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
-    AxisymmetricLineLoadCondition( AxisymmetricLineLoadCondition const& rOther);
+    SurfaceMomentCondition( SurfaceMomentCondition const& rOther);
 
     /// Destructor
-    virtual ~AxisymmetricLineLoadCondition();
+    virtual ~SurfaceMomentCondition();
 
     ///@}
     ///@name Operators
@@ -130,13 +126,19 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    AxisymmetricLineLoadCondition() {};
+    SurfaceMomentCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -146,25 +148,42 @@ protected:
 				     const double& rPointNumber);
 
     /**
-     * Calculation and addition of the matrices of the LHS
+     * Calculate the External Moment of the Condition
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ConditionVariables& rVariables,
-                                    double& rIntegrationWeight);
+    virtual void CalculateExternalMoment(ConditionVariables& rVariables);
 
     /**
-     * Calculation and addition of the vectors of the RHS
+     * Calculation of the Moment Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ConditionVariables& rVariables,
-                                    double& rIntegrationWeight);
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight);
 
-    /**
-     * Calculation of the contidion radius (axisymmetry)
-     */
-    void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius,
-			 const Vector& rN);
+
+    //utilities::
+
+    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+			 Vector& U );
+
+    void CrossProduct(Vector& cross,
+		      Vector& a,
+		      Vector& b );
+
+
+    void AddMatrix(MatrixType& Destination,
+		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+		   int InitialRow,
+		   int InitialCol );
+
+    void SubtractMatrix(MatrixType& Destination,
+			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+			int InitialRow,
+			int InitialCol );
+
+
+    void ExpandReducedMatrix(Matrix& Destination,
+			     Matrix& ReducedMatrix );
+
 
     ///@}
     ///@name Protected  Access
@@ -221,9 +240,8 @@ private:
 
     virtual void load(Serializer& rSerializer);
 
-
-}; // class AxisymmetricLineLoadCondition.
+}; // class SurfaceMomentCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_AXISYMMETRIC_LINE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_SURFACE_MOMENT_CONDITION_H_INCLUDED defined 
