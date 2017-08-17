@@ -1050,9 +1050,6 @@ namespace Kratos
 
     // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
     this->CalculateAndAddInternalForces( LocalRightHandSideVector, rVariables, rIntegrationWeight );
-
-    // follower load forces (to implement)
-    this->CalculateAndAddFollowerForces( LocalRightHandSideVector, rVariables, rIntegrationWeight );
     
     // LocalToGlobalSystem for the correct assembly
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -1078,8 +1075,8 @@ namespace Kratos
 
     KRATOS_TRY
 
-      //create local system components
-      LocalSystemComponents LocalSystem;
+    //create local system components
+    LocalSystemComponents LocalSystem;
 
     //calculation flags
     LocalSystem.CalculationFlags.Set(BeamElement::COMPUTE_RHS_VECTOR);
@@ -1098,7 +1095,7 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
 
-      }
+  }
 
 
   //************************************************************************************
@@ -1108,8 +1105,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      //create local system components
-      LocalSystemComponents LocalSystem;
+    //create local system components
+    LocalSystemComponents LocalSystem;
 
     //calculation flags   
     LocalSystem.CalculationFlags.Set(BeamElement::COMPUTE_LHS_MATRIX);
@@ -1128,7 +1125,7 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
 
-      }
+  }
 
 
   //************************************************************************************
@@ -1157,7 +1154,7 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
 
-      }
+  }
 
 
   //************************************************************************************
@@ -1170,7 +1167,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     double DomainSize = rVariables.Section.Area; 
@@ -1182,95 +1179,15 @@ namespace Kratos
     unsigned int RowIndex = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-      	RowIndex = i * (dimension * 2);
+      	RowIndex = i * ( (dimension-1) * 3 );
 
         GravityLoad = rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize; 	
 	BeamMathUtilsType::AddVector(GravityLoad, rRightHandSideVector, RowIndex);
 	
       }
     
-    //---------------------
-
-    // External Energy Calculation:
-    Vector CurrentValueVector           = ZeroVector(3);
-    Vector CurrentDisplacementVector    = ZeroVector(3);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	//Current Displacement Vector
-	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
-	CurrentDisplacementVector += rVariables.N[i] * CurrentValueVector;
-      }
-
-    CurrentDisplacementVector     = MapToInitialLocalFrame( CurrentDisplacementVector, rVariables.PointNumber  );
-
-    //for more than one integration point
-    Vector PotencialForceVector = ZeroVector(3);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-    	PotencialForceVector  += rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;	  
-      }
-    
-	
-    mEnergy.External += inner_prod(PotencialForceVector,CurrentDisplacementVector);
- 
     KRATOS_CATCH( "" )
-
-      }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void BeamElement::CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-						  ElementVariables & rVariables,
-						  double& rIntegrationWeight)
-  {
-    KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    //Initialize Local Matrices
-    VectorType Fi = ZeroVector(6);
-    Vector ResultantsVector = ZeroVector(6);
-
-    //locate follower load resultants in skew-symmetric form
-    Vector FollowerLoad   = ZeroVector(dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) ) 
-	  FollowerLoad += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_LINE_LOAD );
-      }
-    
-    //Current Frame given by the frame rotation
-    FollowerLoad = prod( rVariables.CurrentRotationMatrix, FollowerLoad );
-    
-    BeamMathUtilsType::AddVector(FollowerLoad, ResultantsVector, 3);
-
-    //Initialize Local Matrices
-    MatrixType OperatorI = ZeroMatrix(6,6);
-
-    unsigned int RowIndex = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	RowIndex = i * (dimension * 2);
-
-	this->CalculateOperator( OperatorI, rVariables.N, i );
-
-    	//nodal force vector
-    	Fi  = prod( OperatorI, ResultantsVector );
-
-	Fi *= rIntegrationWeight;
-
-	BeamMathUtilsType::SubstractVector( Fi, rRightHandSideVector, RowIndex );
-
-      }
- 
-
-    KRATOS_CATCH( "" )
-
-      }
+  }
 
 
 
@@ -1283,7 +1200,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = rRightHandSideVector.size();
 
@@ -1340,7 +1257,7 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
 
-      }
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -1352,7 +1269,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( (rRHSVariable == RESIDUAL_VECTOR) ){
@@ -1402,243 +1319,7 @@ namespace Kratos
 
 
     KRATOS_CATCH( "" )
-      }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void BeamElement::CalculateOperator(MatrixType& rOperator,
-				      Vector& rN,
-				      const int& rNode)
-  {
-    KRATOS_TRY
-
-      //Initialize Local Matrices
-      if( rOperator.size1() != 6 )
-	rOperator.resize(6, 6, false);
-    
-    rOperator = ZeroMatrix(6,6);
-
-    rOperator( 0, 0 ) =  rN[rNode];
-    rOperator( 1, 1 ) =  rN[rNode];
-    rOperator( 2, 2 ) =  rN[rNode];
-    rOperator( 3, 3 ) =  rN[rNode];
-    rOperator( 4, 4 ) =  rN[rNode];
-    rOperator( 5, 5 ) =  rN[rNode];
-
-
-    KRATOS_CATCH( "" )
-
-      }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void BeamElement::CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-						  ElementVariables& rVariables,
-						  const int& rNode,
-						  double alpha)
-  {
-    KRATOS_TRY
-
-      //Differencial operator transposed
-
-      //Initialize Local Matrices
-      if( rDifferentialOperator.size1() != 6 )
-	rDifferentialOperator.resize(6, 6, false);
-    
-    rDifferentialOperator = ZeroMatrix(6,6);
-
-    rDifferentialOperator( 0, 0 ) =  rVariables.DN_DX( rNode, 0 );
-    rDifferentialOperator( 1, 1 ) =  rVariables.DN_DX( rNode, 0 );
-    rDifferentialOperator( 2, 2 ) =  rVariables.DN_DX( rNode, 0 );
-    rDifferentialOperator( 3, 3 ) =  rVariables.DN_DX( rNode, 0 );
-    rDifferentialOperator( 4, 4 ) =  rVariables.DN_DX( rNode, 0 );
-    rDifferentialOperator( 5, 5 ) =  rVariables.DN_DX( rNode, 0 );
-
-
-    //locate stress resultants in skew-symmetric "transposed" form 
-    Matrix SkewSymResultants = ZeroMatrix(3,3);
-
-    BeamMathUtilsType::VectorToSkewSymmetricTensor(rVariables.CurrentAxisPositionDerivatives, SkewSymResultants);
-
-    SkewSymResultants *= (-1) * rVariables.N[rNode]; 
-    
-    for ( unsigned int i = 0; i < 3; i++ )
-      {
-	for ( unsigned int j = 0; j < 3; j++ )
-	  {
-	    rDifferentialOperator( i+3, j ) = SkewSymResultants(i,j);
-   	  }
-      }
-
-
-    KRATOS_CATCH( "" )
-
-      }
-
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void BeamElement::CalculateDiscreteOperator(MatrixType& rDiscreteOperator,
-					      ElementVariables& rVariables,
-					      const int& rNode)
-  {
-    KRATOS_TRY
-
-      //Initialize Local Matrices
-      if( rDiscreteOperator.size1() != 6 || rDiscreteOperator.size2() != 9)
-	rDiscreteOperator.resize(6, 9, false);
-    
-    rDiscreteOperator = ZeroMatrix(6,9);
-
-    rDiscreteOperator( 0, 0 ) =  rVariables.DN_DX( rNode, 0 );
-    rDiscreteOperator( 1, 1 ) =  rVariables.DN_DX( rNode, 0 );
-    rDiscreteOperator( 2, 2 ) =  rVariables.DN_DX( rNode, 0 );
-    rDiscreteOperator( 3, 3 ) =  rVariables.DN_DX( rNode, 0 );
-    rDiscreteOperator( 4, 4 ) =  rVariables.DN_DX( rNode, 0 );
-    rDiscreteOperator( 5, 5 ) =  rVariables.DN_DX( rNode, 0 );
-
-    rDiscreteOperator( 3, 6 ) =  rVariables.N[ rNode ];
-    rDiscreteOperator( 4, 7 ) =  rVariables.N[ rNode ];
-    rDiscreteOperator( 5, 8 ) =  rVariables.N[ rNode ];
-
-
-    KRATOS_CATCH( "" )
-
-      }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  //Geometric operator
-  void BeamElement::CalculateBmatrix(MatrixType& rBmatrix,
-				     ElementVariables& rVariables)
-  {
-    KRATOS_TRY
-
-      //Initialize Local Matrices
-      if( rBmatrix.size1() != 9 )
-	rBmatrix.resize(9, 9, false);
-    
-    rBmatrix = ZeroMatrix(9,9);
-
-    Vector StressResultants = ZeroVector(3);
-    Vector StressCouples    = ZeroVector(3);
-
-
-    StressResultants[0] = rVariables.StressVector[0];
-    StressResultants[1] = rVariables.StressVector[1];
-    StressResultants[2] = rVariables.StressVector[2];
-
-    StressCouples[0] = rVariables.StressVector[3];
-    StressCouples[1] = rVariables.StressVector[4];
-    StressCouples[2] = rVariables.StressVector[5];
-
-
-    //locate stress resultants in skew-symmetric form
-    Matrix SkewSymStressResultants = ZeroMatrix(3,3);
-
-    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressResultants, SkewSymStressResultants);
-
-    for ( unsigned int i = 0; i < 3; i++ )
-      {
-	for ( unsigned int j = 0; j < 3; j++ )
-	  {
-	    rBmatrix( i+6, j ) =  SkewSymStressResultants(i,j);
-	    rBmatrix( i, j+6 ) = -SkewSymStressResultants(i,j);  
-   	  }
-      }
-
-    //locate stress couples in skew-symmetric form
-    Matrix SkewSymStressCouples = ZeroMatrix(3,3);
-    
-    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressCouples, SkewSymStressCouples);
- 
-    //locate stress couples in skew-symmetric form
-
-    for ( unsigned int i = 0; i < 3; i++ )
-      {
-	for ( unsigned int j = 0; j < 3; j++ )
-	  {
-	    rBmatrix( i+3, j+6 ) = -SkewSymStressCouples(i,j);
-	    //EXTRA :: Symmetrize the Bmatrix: (convergence performance if linear rotations)
-	    //rBmatrix( i+6, j+3 ) =  SkewSymStressCouples(i,j);
-	    //EXTRA ::
-
-   	  }
-      }
-
-
-    Matrix AxialStressMatrix = ZeroMatrix(3,3);
-
-    //axial skew-symmetric matrix (Simo-Vu-Quoc)
-    // AxialStressMatrix = outer_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives );
-    
-    // std::cout<<" StressResultants "<<StressResultants<<std::endl;
-    // std::cout<<" AxisPositionDerivatives "<<rVariables.CurrentAxisPositionDerivatives<<std::endl;
-    // std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
-
-    // double AxialStressScalar = inner_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives );
-   
-    // //EXTRA :: Symmetrize the Bmatrix: (convergence performance if linear rotations)
-    // // Matrix ExtraAxialStressMatrix = outer_prod( rVariables.CurrentAxisPositionDerivatives, StressResultants );
-    // // AxialStressMatrix += ExtraAxialStressMatrix;    
-    // //EXTRA ::
-
-    // AxialStressMatrix( 0, 0 ) -= AxialStressScalar;
-    // AxialStressMatrix( 1, 1 ) -= AxialStressScalar;
-    // AxialStressMatrix( 2, 2 ) -= AxialStressScalar;
-
-    
-    // std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
-
-    //axial skew-symmetric matrix (Crisfield)
-    Matrix AxialSkewSymMatrix = ZeroMatrix(3,3);
-    BeamMathUtilsType::VectorToSkewSymmetricTensor(rVariables.CurrentAxisPositionDerivatives, AxialSkewSymMatrix);
-    AxialStressMatrix = prod(AxialSkewSymMatrix,SkewSymStressResultants);
-
-    //std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
-
-    // EXTRA MOD ::Improve symmetry of the Bmatrix: (convergence performance if linear rotations)
-    // for ( unsigned int i = 0; i < rBmatrix.size1(); i++ )
-    //   {
-    // 	 for ( unsigned int j = 0; j < rBmatrix.size2(); j++ )
-    // 	   {
-    // 	     if(i!=j)
-    // 	       rBmatrix(i,j) = 0 ;
-    // 	   }
-    //   }
-    // EXTRA MOD ::Improve symmetry of the Bmatrix: (convergence performance if linear rotations)
-
-
-    for ( unsigned int i = 0; i < 3; i++ )
-      {
-    	for ( unsigned int j = 0; j < 3; j++ )
-    	  {
-    	    rBmatrix( i+6, j+6 ) = AxialStressMatrix(i,j);
-    	  }
-      }
-
-
-    // std::cout<<" Bmatrix : "<<std::endl;
-    // for ( unsigned int i = 0; i < rBmatrix.size1(); i++ )
-    //   {
-    // 	std::cout<<"["<<i<<"] [";
-    // 	for ( unsigned int j = 0; j < rBmatrix.size2()-1; j++ )
-    // 	  {
-    // 	    std::cout<<rBmatrix(i,j)<<", ";
-    // 	  }
-    // 	std::cout<<rBmatrix(i,rBmatrix.size2()-1)<<" ]"<<std::endl;
-	
-    //   }
-
-    KRATOS_CATCH( "" )
-
-      }
+  }
 
 
 
@@ -1651,7 +1332,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = dimension * 2;
     
@@ -1691,10 +1372,9 @@ namespace Kratos
       }
 
     //std::cout<<" Kuum "<<rLeftHandSideMatrix<<std::endl;
-
    
     KRATOS_CATCH( "" )
-      }
+  }
 
 
   //************************************************************************************
