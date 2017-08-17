@@ -173,9 +173,10 @@ void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
     if ( rResult.size() != element_size )
         rResult.resize( element_size, false );
 
+    unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        int index = i * dimension;
+        index = i * dimension;
         rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
         if( dimension == 3)
@@ -193,11 +194,13 @@ void SolidElement::GetValuesVector( Vector& rValues, int Step )
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != element_size )
+      rValues.resize( element_size, false );
 
+    unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index = i * dimension;
+        index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 
@@ -217,11 +220,13 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != element_size )
+      rValues.resize( element_size, false );
 
+    unsigned int index = 0;    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index = i * dimension;
+        index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
 
@@ -239,11 +244,13 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension;
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != element_size )
+      rValues.resize( element_size, false );
 
+    unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index = i * dimension;
+        index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
 
@@ -565,8 +572,8 @@ void SolidElement::TransformElementVariables(ElementVariables& rVariables, const
 //************************************************************************************
 
 void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        Flags& rCalculationFlags)
+					    VectorType& rRightHandSideVector,
+					    Flags& rCalculationFlags)
 
 {
 

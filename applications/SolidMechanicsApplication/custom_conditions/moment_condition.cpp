@@ -146,18 +146,21 @@ namespace Kratos
       rResult.resize( condition_size, false );
 
     unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-        if( dimension == 2 ){
+    if( dimension == 2 ){
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  rResult[i]     = GetGeometry()[i].GetDof(PLANE_ROTATION).EquationId();
 	}
-	else{
+    }
+    else{
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{	      
 	  index = i * dimension;
 	  rResult[index]     = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
 	  rResult[index + 1] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
 	  rResult[index + 2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
 	}
-      }
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -176,18 +179,22 @@ namespace Kratos
       rValues.resize( condition_size, false );
 
     unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-	if ( dimension == 2 ){
+    if ( dimension == 2 ){
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PLANE_ROTATION, Step );
 	}
-	else{
+    }
+    else{
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
 	  rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
 	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
 	}
-      }
+    }
+
   }
 
   //***********************************************************************************
@@ -203,18 +210,22 @@ namespace Kratos
       rValues.resize( condition_size, false );
     
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	if ( dimension == 2 ){
+    if ( dimension == 2 ){
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PLANE_ANGULAR_VELOCITY, Step );
 	}
-	else{
+    }
+    else{
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
 	  rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
 	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
 	}
-      }
+    }
+
   }
   
   //***********************************************************************************
@@ -230,19 +241,22 @@ namespace Kratos
       rValues.resize( condition_size, false );
       
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	if ( dimension == 2 ){
+    if ( dimension == 2 ){
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PLANE_ANGULAR_ACCELERATION, Step );
 	}
-	else{
+    }
+    else{
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
 	  rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
 	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
 	}
-	  
-      }
+    }
+
   }
 
 
