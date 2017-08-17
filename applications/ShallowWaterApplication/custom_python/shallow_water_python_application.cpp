@@ -53,9 +53,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes 
 
 #if defined(KRATOS_PYTHON)
+
 // External includes 
 #include <boost/python.hpp>
-
 
 // Project includes 
 #include "includes/define.h"
@@ -72,11 +72,9 @@ namespace Python
 
   using namespace boost::python;
 
-
   
   BOOST_PYTHON_MODULE(KratosShallowWaterApplication)
   {
-
 	  class_<KratosShallowWaterApplication, 
 			  KratosShallowWaterApplication::Pointer, 
 			  bases<KratosApplication>, boost::noncopyable >("KratosShallowWaterApplication")
@@ -98,14 +96,7 @@ namespace Python
 	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DELTA_VELOCITY);
 
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MEAN_SIZE);
-
-	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_VELOCITY_X);
-	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_VELOCITY_Y);
-	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_PROJECTED_VELOCITY_X);
-	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_PROJECTED_VELOCITY_Y);
-
   }
-  
   
 }  // namespace Python.
   

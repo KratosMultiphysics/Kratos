@@ -165,22 +165,22 @@ namespace Kratos
 		// Loop on Gauss points. In this case, number of Gauss points and number of nodes coincides
         for(unsigned int igauss = 0; igauss < TNumNodes; igauss++)
         {
-			noalias(N) = row(Ncontainer,igauss);
+			noalias(N) = row(Ncontainer, igauss);
             
             // Build shape and derivatives functions at Gauss points
             for(unsigned int nnode = 0; nnode < TNumNodes; nnode++)
             {
 				// Height gradient
-				DN_DX_height(0,2+nnode*3) = DN_DX(nnode,0);
-				DN_DX_height(1,2+nnode*3) = DN_DX(nnode,1);
-				// Velocity gradient
-				DN_DX_vel(0,  nnode*3) = DN_DX(nnode,0);
-				DN_DX_vel(0,1+nnode*3) = DN_DX(nnode,1);
+				DN_DX_height(0, 2+nnode*3) = DN_DX(nnode,0);
+				DN_DX_height(1, 2+nnode*3) = DN_DX(nnode,1);
+				// Velocity divergence
+				DN_DX_vel(0,   nnode*3) = DN_DX(nnode,0);
+				DN_DX_vel(0, 1+nnode*3) = DN_DX(nnode,1);
 				// Height shape funtions
-				N_height(0,2+nnode*3) = N[nnode];
+				N_height(0, 2+nnode*3) = N[nnode];
 				// Velocity shape functions
-				N_vel(0,  nnode*3) = N[nnode];
-				N_vel(1,1+nnode*3) = N[nnode];
+				N_vel(0,   nnode*3) = N[nnode];
+				N_vel(1, 1+nnode*3) = N[nnode];
 			}
 			
 			noalias(mass_matrix)  += prod(trans(N_vel),N_vel);
@@ -222,6 +222,7 @@ namespace Kratos
 		// Inertia terms
 		noalias(rLeftHandSideMatrix) += dt_inv * mass_matrix;           // Add <N,N> to both Eq's
 		
+        // Stabilization terms
 		noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
 		noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;  // Add art. diff. to Momentum Eq.
 		

@@ -65,11 +65,6 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(MEAN_SIZE)                             // Specific variable for PFEM2
 		KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)               // Specific variable for PFEM2
 
-		//~ KRATOS_REGISTER_VARIABLE(SCALAR_VELOCITY_X)
-		//~ KRATOS_REGISTER_VARIABLE(SCALAR_VELOCITY_Y)
-		//~ KRATOS_REGISTER_VARIABLE(SCALAR_PROJECTED_VELOCITY_X)
-		//~ KRATOS_REGISTER_VARIABLE(SCALAR_PROJECTED_VELOCITY_Y)
-
 		// Registering elements and conditions here
 		KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
 		KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
@@ -83,5 +78,3 @@ namespace Kratos
 	}
 
 }  // namespace Kratos.
-
-

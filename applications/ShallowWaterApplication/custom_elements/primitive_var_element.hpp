@@ -82,10 +82,6 @@ namespace Kratos
     
     void GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, array_1d<double, TNumNodes*3>& runkn, array_1d<double, TNumNodes*3>& rproj, double& rheight);
     
-    //~ void CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix);
-
-    //~ void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix);
-
 //----------------------------------------------------------------------
 
   private:

@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "includes/condition.h"                        // We'll also need conditions for the point heat loads
+#include "includes/condition.h"
 #include "includes/ublas_interface.h"
 
 // Shallow water includes
@@ -185,25 +185,16 @@ namespace Kratos
 		///@{ 
 
 
-
-		//       static const ApplicationCondition  msApplicationCondition; 
-
 		///@} 
 		///@name Member Variables 
 		///@{ 
 		const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
 		const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
 		const ConservedVarElement<3> mConservedVarElement2D3N;
-		const ConservedVarElement<3> mConservedVarElement2D4N;
+		const ConservedVarElement<4> mConservedVarElement2D4N;
 		
 		const RainCondition<3> mRainCondition2D3N;
 		const RainCondition<3> mRainCondition2D4N;
-		
-		//~ const ProjectedSWE mProjectedSWE;                        // Element
-		//~ const NonConservativeDC mNonConservativeDC;              // Element with discontinuty capturing
-		//~ const NonConservativeStab mNonConservativeStab;          // Element with stabilization
-		//~ const Conservative mConservative;                        // Conservative fomrulation element
-		//~ const EulerianNonConservative mEulerianNonConservative;  // Eulerian element
 
 
 		///@} 
@@ -258,5 +249,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED  defined 
-
-
