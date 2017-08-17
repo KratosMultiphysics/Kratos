@@ -299,11 +299,12 @@ public:
 
         this->InitializeSolutionStep();
 
-        auto excitation_frequency = rModelPart.GetProcessInfo()[TIME];
+        auto& rProcessInfo = rModelPart.GetProcessInfo();
+        double excitation_frequency = rProcessInfo[TIME];
 
         // get eigenvalues and eigenvectors
-        DenseVectorType eigenvalues = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
-        DenseMatrixType eigenvectors = rModelPart.GetProcessInfo()[EIGENVECTOR_MATRIX];
+        DenseVectorType eigenvalues = rProcessInfo[EIGENVALUE_VECTOR];
+        DenseMatrixType eigenvectors = rProcessInfo[EIGENVECTOR_MATRIX];
 
         const unsigned int n_dofs = eigenvectors.size2();
         const unsigned int n_modes = eigenvalues.size();
@@ -318,7 +319,15 @@ public:
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-            modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
+            if( rProcessInfo.Has(SYSTEM_DAMPING_RATIO) )
+            {
+                modal_damping = rProcessInfo[SYSTEM_DAMPING_RATIO];
+            }
+            else
+            {
+                modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
+            }
+            KRATOS_WATCH(modal_damping)
             // rows are columns and vice-versa
             ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
             mode_weight[i] = inner_prod( row( eigenvectors, i ), f ) / factor;

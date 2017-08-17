@@ -60,7 +60,7 @@ typedef array_1d<double,3> Vector3;
     KRATOS_CREATE_VARIABLE( int, SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
     KRATOS_CREATE_VARIABLE( double, SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
-    // Nodal stiffness for the nodal concentrated element
+    // Nodal stiffness and damping for the nodal concentrated element
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_STIFFNESS )
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_DAMPING_RATIO )
 
@@ -97,6 +97,9 @@ typedef array_1d<double,3> Vector3;
     // Rayleigh variables
     KRATOS_CREATE_VARIABLE(double,  RAYLEIGH_ALPHA )
     KRATOS_CREATE_VARIABLE(double,  RAYLEIGH_BETA )
+
+    // System damping
+    KRATOS_CREATE_VARIABLE(double,  SYSTEM_DAMPING_RATIO )
 
     // Nodal load variables
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
