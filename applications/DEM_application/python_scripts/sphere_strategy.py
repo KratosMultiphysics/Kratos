@@ -429,7 +429,7 @@ class ExplicitStrategy:
     def ModifyProperties(self, properties):
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
         coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
@@ -465,5 +465,5 @@ class ExplicitStrategy:
             scheme_name = self.Parameters.IntegrationScheme
             
         scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
-        scheme.SetIntegrationSchemeInProperties(properties)
+        scheme.SetIntegrationSchemeInProperties(properties, True)
         
