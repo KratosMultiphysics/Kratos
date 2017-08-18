@@ -109,21 +109,31 @@ namespace Kratos
     {
 
       KRATOS_TRY
-	// std::cout<<" Execute() in SetActiveFlagProcess"<<std::endl;
 #pragma omp parallel
 	{
 	  double tolerance=0.0000000001;
+	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+	  const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+	  const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+	  // const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
 	  ModelPart::ElementIterator ElemBegin;
 	  ModelPart::ElementIterator ElemEnd;
 	  OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
+	  double ModelPartVolume=0;
+	  if(mUnactiveSliverElements == true){
+	    ModelerUtilities ModelerUtils;
+	    ModelPartVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
+	  }
 	  for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	    {
-	      const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
-	      bool peakElementsEliminationCriteria=false;
 	      bool sliverEliminationCriteria=false;
+	      bool peakElementsEliminationCriteria=false;
+	      bool wallElementsEliminationCriteria=false;
+	      unsigned int numNodes=itElem->GetGeometry().size();
 
+	      // ELIMINATION CHECK FOR SLIVERS
 	      if(mUnactiveSliverElements == true){
-		ModelerUtilities ModelerUtils;
 		double ElementalVolume =  0;
 		if(dimension==2){
 		  ElementalVolume =  (itElem)->GetGeometry().Area();
@@ -132,7 +142,6 @@ namespace Kratos
 		}else{
 		  ElementalVolume = 0;
 		}
-		double ModelPartVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
 		double CriticalVolume=0.01*ModelPartVolume/double(mrModelPart.Elements().size());
 		if(ElementalVolume<CriticalVolume && ElementalVolume>0){
 		  sliverEliminationCriteria=true;
@@ -140,24 +149,27 @@ namespace Kratos
 		  // std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 		}
 	      }
-
+	      
+	      // ELIMINATION CHECK FOR PEAK ELEMENTS (those annoying elements created by pfem remeshing and placed bewteen the free-surface and the walls)
 	      if(mUnactivePeakElements == true && sliverEliminationCriteria==false){
-		ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-		double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 		double scalarProduct=1.0;
 		bool doNotErase=false;
-		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		unsigned int elementRigidNodes=0;
+		for(unsigned int i=0; i<numNodes; i++)
 		  {
+		    if(itElem->GetGeometry()[i].Is(RIGID)){
+		      elementRigidNodes++;
+		    }
 		    if(itElem->GetGeometry()[i].IsNot(RIGID) && itElem->GetGeometry()[i].IsNot(FREE_SURFACE)){
 		      peakElementsEliminationCriteria=false;
 		      doNotErase=true;
-		      break;
+		      // break;
 		    }else if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && doNotErase==false){
 		      peakElementsEliminationCriteria=true;
 		      const array_1d<double,3> &wallVelocity = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 		      double normWallVelocity=norm_2(wallVelocity);
 		      if(normWallVelocity==0){// up to now this is for fixed walls only
-			for(unsigned int j=0; j<itElem->GetGeometry().size(); j++)
+			for(unsigned int j=0; j<numNodes; j++)
 			  {
 
 			    if(itElem->GetGeometry()[j].IsNot(RIGID) && itElem->GetGeometry()[j].Is(FREE_SURFACE)){
@@ -205,23 +217,40 @@ namespace Kratos
 				    break;
 				  }
 				}
-
 			      }
 			    }
 			  }
 		      }
 		    }
-		    // if(peakElementsEliminationCriteria==false)
-		    //   break;
-		    // if(scalarProduct<tolerance && goAhead==true){
-		    //   peakElementsEliminationCriteria=true;
-		    //   // std::cout<<"RESET ACTIVE FOR THIS PEAK ELEMENT! \t";
-		    //   // std::cout<<"scalarProduct= "<<scalarProduct<<std::endl;
-		    // }
-		  }  
+
+		  }
+		if(elementRigidNodes==numNodes ){
+		  wallElementsEliminationCriteria=true;
+		  Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
+		  this->SetPressureToIsolatedWallNodes(wallElementNodes);
+		}
+		
+
+	      }
+	      // ELIMINATION CHECK FOR ELEMENTS FORMED BY WALL PARTICLES ONLY (this is included for computational efficiency purpose also in the previous peak element check)
+	      else if (mUnactivePeakElements == false){
+	      	unsigned int elementRigidNodes=0;
+	      	for(unsigned int i=0; i<numNodes; i++)
+	      	  {
+	      	    if(itElem->GetGeometry()[i].Is(RIGID)){
+	      	      elementRigidNodes++;
+	      	    }
+	      	  }
+		
+	      	if(elementRigidNodes==numNodes){
+	      	  wallElementsEliminationCriteria=true;
+		  Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
+		  this->SetPressureToIsolatedWallNodes(wallElementNodes);
+	      	}
+		
 	      }
 
-	      if(peakElementsEliminationCriteria==true ||  sliverEliminationCriteria==true){
+	      if(sliverEliminationCriteria==true || peakElementsEliminationCriteria==true ||  wallElementsEliminationCriteria==true){
 		(itElem)->Set(ACTIVE,false);
 	      }else{
 		(itElem)->Set(ACTIVE,true);
@@ -280,30 +309,88 @@ namespace Kratos
 	  for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	    {
 	      if((itElem)->IsNot(ACTIVE)){
-		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		unsigned int numNodes=itElem->GetGeometry().size();
+	      	for(unsigned int i=0; i<numNodes; i++)
+	      	  {
+	      	    if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].Is(FREE_SURFACE)){
+	      	      WeakPointerVector<Element >& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+	      	      bool doNotSetNullPressure=false;
+	      	      for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+	      		{
+	      		  if((ne)->Is(ACTIVE)){
+	      		    doNotSetNullPressure=true;
+	      		    break;
+	      		  }
+	      		}
+	      	      if(doNotSetNullPressure==false)
+	      		itElem->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0;
+	      	    }
+		
+	      	  }
+		unsigned int elementRigidNodes=0;
+		for(unsigned int i=0; i<numNodes; i++)
 		  {
-		    if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].Is(FREE_SURFACE)){
-		      WeakPointerVector<Element >& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
-		      bool doNotSetNullPressure=false;
-		      for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
-			{
-			  if((ne)->Is(ACTIVE)){
-			    doNotSetNullPressure=true;
-			    break;
-			  }
-			}
-		      if(doNotSetNullPressure==false)
-			itElem->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0;
+		    if(itElem->GetGeometry()[i].Is(RIGID)){
+		      elementRigidNodes++;
 		    }
 		  }
+		
+		if(elementRigidNodes==numNodes){
+		  Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
+		  this->SetPressureToIsolatedWallNodes(wallElementNodes);
+		}
+
 	      }
-	      // (itElem)->Set(ACTIVE,true);
+	      (itElem)->Set(ACTIVE,true);
 	    }
 
 
 	}
       KRATOS_CATCH(" ")    
 	}
+
+
+    
+    void SetPressureToIsolatedWallNodes(Geometry<Node<3> > & wallElementNodes)
+    {
+      KRATOS_TRY
+	unsigned int numNodes=wallElementNodes.size();
+      double currentPressureForIsolatedWall=0;
+      double previousPressureForIsolatedWall=0;
+      unsigned int isolatedWallID=0;
+      bool foundedIsolatedWall=false;
+      for(unsigned int i=0; i<numNodes; i++)
+	{
+	  WeakPointerVector<Node<3> >& rN = wallElementNodes[i].GetValue(NEIGHBOUR_NODES);
+	  bool localIsolatedWallNode=true;
+	  for(unsigned int j = 0; j < rN.size(); j++)
+	    {
+	      if(rN[j].IsNot(RIGID)){
+		localIsolatedWallNode=false;
+		break;
+	      }
+	    }
+	  if(localIsolatedWallNode==true){
+	    isolatedWallID=i;
+	    foundedIsolatedWall=true;
+	  }else{
+	    if(wallElementNodes[i].FastGetSolutionStepValue(PRESSURE,0)<currentPressureForIsolatedWall){
+	      currentPressureForIsolatedWall=wallElementNodes[i].FastGetSolutionStepValue(PRESSURE,0);
+	    }
+	    if(wallElementNodes[i].FastGetSolutionStepValue(PRESSURE,1)<previousPressureForIsolatedWall){
+	      previousPressureForIsolatedWall=wallElementNodes[i].FastGetSolutionStepValue(PRESSURE,1);
+	    }
+	  }
+	}
+      if(foundedIsolatedWall==true){
+	wallElementNodes[isolatedWallID].FastGetSolutionStepValue(PRESSURE,0)=currentPressureForIsolatedWall;
+	wallElementNodes[isolatedWallID].FastGetSolutionStepValue(PRESSURE,1)=previousPressureForIsolatedWall;
+      }
+
+      KRATOS_CATCH(" ")
+	};
+
+    
 
   protected:
     ///@name Protected static Member Variables
