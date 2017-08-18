@@ -293,7 +293,7 @@ protected:
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;
-	  DirectorsVariables = NULL;
+	  Directors = NULL;
 	}
       
     };
@@ -368,8 +368,6 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-
-  
 
     //************* GETTING METHODS
 
@@ -621,74 +619,11 @@ protected:
      */
     IntegrationMethod mThisIntegrationMethod;
 
-      /**
-     * Elemental curvature vectors for each integration point
-     */
-    std::vector<Vector>  mCurrentCurvatureVectors;
-
     /**
      * Global to Local Quaternion for Global to Local tensor transformation SPATIAL
      */
-    std::vector<QuaternionType>  mInitialLocalQuaternionsReduced;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation MATERIAL
-     */
-    std::vector<QuaternionType>  mCurrentLocalQuaternionsReduced;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation 
-     */
-    std::vector<QuaternionType>  mPreviousLocalQuaternionsReduced;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation SPATIAL
-     */
-    std::vector<QuaternionType>  mInitialLocalQuaternionsFull;
-
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation MATERIAL
-     */
-    std::vector<QuaternionType>  mCurrentLocalQuaternionsFull;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation 
-     */
-    std::vector<QuaternionType>  mPreviousLocalQuaternionsFull; 
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation
-     */
-    int  mIterationCounter;
-   
-
-    /**
-     * Container for historical total Jacobians 
-     */
-    std::vector< Vector > mInvJ0Reduced;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0Reduced;
-
-
-    /**
-     * Container for historical total Jacobians
-     */
-    std::vector< Vector > mInvJ0Full;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0Full;
-
-     /**
-     * Energy variables
-     */
-    EnergyVariables mEnergy;
-
+    QuaternionType  mInitialLocalQuaternion;
+  
     ///@}
     ///@name Protected Operators
     ///@{
@@ -698,7 +633,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
+    /**
+     * Increases the integration method in the "increment" order
+     */
+    void IncreaseIntegrationMethod(IntegrationMethod& rThisIntegrationMethod,
+				   unsigned int increment) const;
+  
+    
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -715,6 +656,10 @@ protected:
     virtual void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 					 ProcessInfo& rCurrentProcessInfo );
 
+    /**
+     * Get element size from the dofs
+     */    
+    virtual unsigned int GetDofsSize();
 
     /**
      * Initialize System Matrices
@@ -778,41 +723,11 @@ protected:
     void CalculateSectionProperties(SectionProperties & rSection);
   
 
-    /**
-     * Calculation of the Curvature derivative
-     */
-    void CalculateCurvatureUpdate(std::vector<Vector>& rCurvatureVectors, const Variable<array_1d<double, 3 > >& rVariable, const ProcessInfo& rCurrentProcessInfo);
-
-    /**   
-     * Calculate current curvature
-     */
-    virtual void CalculateCurrentCurvature(ElementVariables& rVariables, const Variable<array_1d<double, 3 > >& rVariable);
-
-
     /**   
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementVariables& rVariables,
                                      const unsigned int& rPointNumber);
-
-    /**   
-     * Calculate Element Frame
-     */
-    virtual void CalculateFrameMapping(ElementVariables& rVariables,
-				       const unsigned int& rPointNumber);
-
-
-    /**
-     * Update rotation current member variables
-     */    
-    virtual void UpdateRotationVariables(ElementVariables& rVariables, 
-					 const unsigned int& rPointNumber);
-
-    /**
-     * Update strain current member variables
-     */ 
-    virtual void UpdateStrainVariables(ElementVariables& rVariables, 
-				       const unsigned int& rPointNumber);
 
 
     /**
@@ -870,27 +785,6 @@ protected:
                                      ElementVariables& rVariables,
                                      double& rIntegrationWeight);
 
-    virtual void CalculateAndAddKuug2(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
-                                     double& rIntegrationWeight);
-
-    /**
-     * Calculation of the Follower Load Stiffness Matrix. Kuuf
-     */
-    virtual void CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
-                                     double& rIntegrationWeight);
-
-
-
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    virtual void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-					       ElementVariables& rVariables,
-					       double& rIntegrationWeight);
-
-
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
@@ -898,8 +792,6 @@ protected:
 					       ElementVariables& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight);
-
-
 
 
     /**
@@ -927,36 +819,6 @@ protected:
 
 
     /**
-     * Calculation Complementary Method : Shape Function Matrix Operator
-     */
-    void CalculateOperator(MatrixType& rOperator,
-			   Vector& rN,
-			   const int& rNode);
-
-    /**
-     * Calculation Complementary Method : Discrete Operator with Derivatives Shape Functions
-     */
-    void CalculateDiscreteOperator(MatrixType& rDiscreteOperator,
-				   ElementVariables& rVariables,
-				   const int& rNode);
-
-    /**
-     * Calculation Complementary Method : Derivative Shape Function Matrix Operator
-     */
-    virtual void CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-					       ElementVariables& rVariables,
-					       const int& rNode,
-					       double alpha = 0);
-
-
-    /**
-     * Calculation Complementary Method : B Auxiliar Matrix Calculation
-     */
-    void CalculateBmatrix(MatrixType& rBmatrix,
-			  ElementVariables& rVariables);
-
-
-    /**
      * Calculation of the Rotation tensor
      */
     void CalculateLocalAxesMatrix(Matrix& rRotationMatrix);
@@ -977,43 +839,7 @@ protected:
      */
     void CalculateInertiaDyadic(SectionProperties& rSection, Matrix& rInertiaDyadic);
 
-    /**
-     * Calculation Complementary Method : Inertial Matrix Calculation Part 1
-     */
-    virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor);
-
-
-    /**
-     * Get Node Movements for energy computation
-     */
-    void GetCurrentNodalMovements(Vector& rValues, const int& rNode, unsigned int PointNumber = 0);
-
-    /**
-     * Get Node Velocities for energy computation
-     */
-    void GetCurrentNodalVelocities(Vector& rValues, const int& rNode, unsigned int PointNumber = 0);
-
-    /**
-     * Get Element Mass/Inertia Matrix for energy computation
-     */
-    void GetKineticMatrix(Matrix& rKineticMatrix, const double& rMass, const Matrix& rInertia);
-
-
-    /**
-     * Get Element Strain/Stress for energy computation
-     */
-    virtual void CalculateStrainEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
-
-    /**
-     * Get Element Mass/Inertia Matrix for energy computation
-     */
-    virtual void CalculateKineticEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
-
-    /**
-     * Get Element Linear and Angular Momentum
-     */
-    virtual void CalculateMomentumRelations(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
-
+  
     ///@}
     ///@name Protected  Access
     ///@{

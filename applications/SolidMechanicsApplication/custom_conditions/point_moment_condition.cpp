@@ -256,9 +256,6 @@ namespace Kratos
     
     if ( ROTATION.Key() == 0 )
       KRATOS_ERROR <<  "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
-
-    if ( PLANE_ROTATION.Key() == 0 )
-      KRATOS_ERROR <<  "PLANE_ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
     
     if ( POINT_MOMENT.Key() == 0 )
       KRATOS_ERROR <<  "POINT_MOMENT has Key zero! (check if the application is correctly registered)" << std::endl;

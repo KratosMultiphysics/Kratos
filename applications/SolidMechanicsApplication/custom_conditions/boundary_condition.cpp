@@ -941,34 +941,6 @@ namespace Kratos
   }
 
 
-  //************************************************************************************
-  //************************************************************************************
-
-  double& BoundaryCondition::GetNodalCurrentValue(const Variable<double>&rVariable, double& rValue, const unsigned int& rNode)
-  {
-    KRATOS_TRY
-
-    rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
-    
-    return rValue;
-
-    KRATOS_CATCH( "" )
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  double& BoundaryCondition::GetNodalPreviousValue(const Variable<double>&rVariable, double& rValue, const unsigned int& rNode)
-  {
-    KRATOS_TRY
-
-    rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
-    
-    return rValue;
-
-    KRATOS_CATCH( "" )
-  }
-  
   //*********************************GET DOUBLE VALUE***********************************
   //************************************************************************************
 

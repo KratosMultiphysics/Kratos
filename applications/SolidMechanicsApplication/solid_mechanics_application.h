@@ -47,6 +47,7 @@
 #include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
+#include "custom_elements/beam_elements/beam_element.hpp"
 #include "custom_elements/beam_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/beam_elements/large_displacement_beam_element.hpp"
 #include "custom_elements/beam_elements/large_displacement_beam_emc_element.hpp"

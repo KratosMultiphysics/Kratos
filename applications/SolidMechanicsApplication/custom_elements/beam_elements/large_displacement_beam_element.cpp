@@ -1261,6 +1261,7 @@ void LargeDisplacementBeamElement::CalculateDynamicSystem( LocalSystemComponents
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     //full quadrature integration:
     mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    //this->IncreaseIntegrationMethod(mThisIntegrationMethod,1);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -1415,9 +1416,6 @@ void LargeDisplacementBeamElement::CalculateConstitutiveMatrix(ElementVariables&
 
     KRATOS_CATCH( "" )
 }
-
-
-
 
 //************************************************************************************
 //************************************************************************************
