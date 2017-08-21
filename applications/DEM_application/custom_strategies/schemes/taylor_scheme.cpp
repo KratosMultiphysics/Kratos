@@ -3,15 +3,10 @@
 
 namespace Kratos {
 
-    void TaylorScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning TaylorScheme to properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+   void TaylorScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+       if(verbose) std::cout << "\nAssigning TaylorScheme to properties " << pProp->Id() << std::endl;
+       pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-    
-        void TaylorScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-            if(verbose) std::cout << "\nAssigning TaylorScheme to properties " << pProp->Id() << std::endl;
-            pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
-        }
 
     void TaylorScheme::UpdateTranslationalVariables(
             int StepFlag,
