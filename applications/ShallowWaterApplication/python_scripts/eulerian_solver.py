@@ -26,8 +26,8 @@ def AddPrimitiveDofs(model_part):
 
 def AddConservedDofs(model_part):
     for node in model_part.Nodes:
-        node.AddDof(VELOCITY_X);
-        node.AddDof(VELOCITY_Y);
+        node.AddDof(MOMENTUM_X);
+        node.AddDof(MOMENTUM_Y);
         node.AddDof(HEIGHT);
     print ("variables for the SWE solver added correctly")
 

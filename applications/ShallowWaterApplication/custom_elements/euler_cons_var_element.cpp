@@ -41,14 +41,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last modified by:    Miguel Masó Sotomayor
-//   Date:                July 3rd 2017
+//   Date:                August 16th 2017
 //   Revision:            1.2
 //
 //
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/conserved_var_element.hpp"
+#include "custom_elements/euler_cons_var_element.hpp"
 #include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -59,7 +59,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void EulerConsVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         
@@ -82,7 +82,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+    void EulerConsVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         
@@ -105,7 +105,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void EulerConsVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         
@@ -118,12 +118,12 @@ namespace Kratos
             rRightHandSideVector.resize(element_size,false);
 
         // Getting gravity
-        array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
+        //~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
         double gravity = 9.8; //-v_gravity[2];
 		
         // Getting the time step (not fixed to allow variable time step)
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-        const double dt_inv = 1.0 / delta_t;
+		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
 		
 		// Compute the geometry
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2> DN_DX;
@@ -137,23 +137,27 @@ namespace Kratos
         const GeometryType& rGeom = this->GetGeometry();
         Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 		
-		// Get nodal values for current step and projected variables
+		// Get nodal values for current and previous step
 		array_1d<double, TNumNodes*3> v_depth;
 		array_1d<double, TNumNodes*3> v_unknown;
-		array_1d<double, TNumNodes*3> v_proj_unknown;
+		array_1d<double, TNumNodes*3> v_unknown_n;
 		double height;
-		double div_u;
-		GetNodalValues(v_depth,v_unknown,v_proj_unknown);
-		GetElementValues(DN_DX,v_unknown,height,div_u);
+		array_1d<double,2> velocity;
+		boost::numeric::ublas::bounded_matrix<double,2,2> grad_u;
+		GetNodalValues(v_depth,v_unknown,v_unknown_n);
+		GetElementValues(DN_DX,v_unknown,height,velocity,grad_u);
 		
         // Some auxilary definitions
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for momentum unknown)
         boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown)
-        boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> DN_DX_mom    = ZeroMatrix(1,TNumNodes*3);  // Shape functions divergence vector (for momentum unknown)
-        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradient matrix (for height unknown)
-        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> grad_mom     = ZeroMatrix(2,TNumNodes*3);  // Shaoe functions gradient vector (for momentum unknown)
+        boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> DN_DX_mom    = ZeroMatrix(1,TNumNodes*3);  // Shape functions for vector divergence (for momentum unknown)
+        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions for scalar gradient (for height unknown)
+        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> grad_mom_1   = ZeroMatrix(2,TNumNodes*3);  // Shape functions for vector gradient (for momentum unknown)
+        boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> grad_mom_2   = ZeroMatrix(2,TNumNodes*3);  // Shape functions for vector gradient (for momentum unknown)
         //
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_convect  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_non_lin  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_m  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_m_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
@@ -174,19 +178,23 @@ namespace Kratos
 				DN_DX_mom(0,   nnode*3) = DN_DX(nnode,0);
 				DN_DX_mom(0, 1+nnode*3) = DN_DX(nnode,1);
                 // Momentum gradient
-                grad_mom(0,   nnode*3) = DN_DX(nnode,0);
-                grad_mom(0, 1+nnode*3) = DN_DX(nnode,0);
-                grad_mom(1,   nnode*3) = DN_DX(nnode,1);
-                grad_mom(1, 1+nnode*3) = DN_DX(nnode,1);
+                grad_mom_1(0,   nnode*3) = DN_DX(nnode,0);
+                grad_mom_1(0, 1+nnode*3) = DN_DX(nnode,0);
+                grad_mom_2(1,   nnode*3) = DN_DX(nnode,1);
+                grad_mom_2(1, 1+nnode*3) = DN_DX(nnode,1);
 				// Height shape funtions
 				N_height(0, 2+nnode*3) = N[nnode];
 				// Momentum shape functions
 				N_mom(0,   nnode*3) = N[nnode];
 				N_mom(1, 1+nnode*3) = N[nnode];
             }
-			
 			noalias(mass_matrix)  += prod(trans(N_mom),N_mom);
 			noalias(mass_matrix)  += prod(trans(N_height),N_height);
+			
+			noalias(aux_convect)  += velocity[0] * prod(trans(N_mom),grad_mom_1);
+			noalias(aux_convect)  += velocity[1] * prod(trans(N_mom),grad_mom_2);
+			
+			noalias(aux_non_lin)  += prod(trans(N_mom),Matrix(prod(grad_u,N_mom)));
 			
 			noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom);
 			noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height);
@@ -223,14 +231,16 @@ namespace Kratos
 		}
 
 		// Build LHS
-		// Cross terms
-		noalias(rLeftHandSideMatrix)  = gravity * height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
-
 		// Inertia terms
-		noalias(rLeftHandSideMatrix) += dt_inv * mass_matrix;           // Add <N,N> to both Eq's
+		noalias(rLeftHandSideMatrix)  = BDFcoeffs[0] * mass_matrix;     // Add <N,N> to both Eq's
 
-		// Non linear terms
-		noalias(rLeftHandSideMatrix) += div_u * mass_matrix;             // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
+		// Convective and non linear terms
+		noalias(rLeftHandSideMatrix) += aux_convect;                    // Add <w,u*grad(hu)> to Momentum Eq.
+		noalias(rLeftHandSideMatrix) += aux_non_lin;                    // Add <w,drad(u)*hu> to Momentum Eq.
+		
+		// Cross terms
+		noalias(rLeftHandSideMatrix) += aux_q_div_m;                     // Add <q,div(hu)> to Mass Eq.
+		noalias(rLeftHandSideMatrix) += gravity * height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
 
         // Stabilization terms
 		noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
@@ -241,7 +251,7 @@ namespace Kratos
 		noalias(rRightHandSideVector)  = -gravity * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
 
 		// Inertia terms
-		noalias(rRightHandSideVector) += dt_inv * prod(mass_matrix, v_proj_unknown);
+		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(mass_matrix, v_unknown_n);
 
 		// Subtracting the dirichlet term (since we use a residualbased approach)
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, v_unknown);
@@ -255,7 +265,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
 	template< unsigned int TNumNodes >
-	void ConservedVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void EulerConsVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	}
@@ -263,7 +273,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
 	template< unsigned int TNumNodes >
-	void ConservedVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	void EulerConsVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
 		if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
 		{
@@ -275,7 +285,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea)
+    void EulerConsVarElement<TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea)
     {
         const GeometryType& rGeom = this->GetGeometry();
 
@@ -293,7 +303,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    double ConservedVarElement<TNumNodes>::ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX)
+    double EulerConsVarElement<TNumNodes>::ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX)
     {
         double l = 0.0;
 
@@ -313,9 +323,9 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::GetNodalValues(array_1d<double, TNumNodes*3>& rdepth,
+    void EulerConsVarElement<TNumNodes>::GetNodalValues(array_1d<double, TNumNodes*3>& rdepth,
                                                         array_1d<double, TNumNodes*3>& runkn, 
-                                                        array_1d<double, TNumNodes*3>& rproj
+                                                        array_1d<double, TNumNodes*3>& rprev
                                                        )
     {
         GeometryType& rGeom = GetGeometry();
@@ -324,17 +334,17 @@ namespace Kratos
         {
             rdepth[counter] = 0;
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X);
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_MOMENTUM_X);
+            rprev[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X,1);
             counter++;
 
             rdepth[counter] = 0;
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y);
+            rprev[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y,1);
             counter++;
 
             rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY);
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_HEIGHT);
+            rprev[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT,1);
             counter++;
         }
     }
@@ -342,30 +352,36 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
+    void EulerConsVarElement<TNumNodes>::GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
                                                           array_1d<double, TNumNodes*3>& r_nodal_var,
                                                           double& rheight,
-                                                          double& rdiv_u
+                                                          array_1d<double,2>& rvel,
+                                                          boost::numeric::ublas::bounded_matrix<double,2,2>& rgrad_u
                                                          )
     {
         double lumping_factor = 1 / double(TNumNodes);
         
         rheight = 0;
-        rdiv_u  = 0;
+        rvel    = ZeroVector(2);
+        rgrad_u = ZeroMatrix(2,2);
         
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+            rvel[0] += r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
+            rvel[1] += r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
             rheight += r_nodal_var[2 + 3*i];
-            rdiv_u  += rDN_DX(i,0) * r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
-            rdiv_u  += rDN_DX(i,1) * r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
+            rgrad_u(0,0) += rDN_DX(i,0) * r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
+            rgrad_u(0,1) += rDN_DX(i,0) * r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
+            rgrad_u(1,0) += rDN_DX(i,1) * r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
+            rgrad_u(1,1) += rDN_DX(i,1) * r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
         }
-
+        rvel    *= lumping_factor;
         rheight *= lumping_factor;
     }
 
 //----------------------------------------------------------------------
 
-template class ConservedVarElement<3>;
-template class ConservedVarElement<4>;
+template class EulerConsVarElement<3>;
+template class EulerConsVarElement<4>;
 
 } // namespace Kratos

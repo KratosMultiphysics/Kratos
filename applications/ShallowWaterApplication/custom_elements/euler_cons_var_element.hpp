@@ -1,13 +1,13 @@
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    Miguel Masó Sotomayor
-//   Date:                July 3rd 2017
+//   Date:                August 16th 2017
 //   Revision:            1.2
 //
 //
 
-#if !defined(KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED 
+#if !defined(KRATOS_EULER_CONSERVED_VAR_ELEM_H_INCLUDED)
+#define  KRATOS_EULER_CONSERVED_VAR_ELEM_H_INCLUDED 
 
 // System includes 
 
@@ -26,37 +26,37 @@ namespace Kratos
 {
 
   template< unsigned int TNumNodes >
-  class ConservedVarElement : public Element
+  class EulerConsVarElement : public Element
   {
   public:
      
-    /// Counted pointer of ConservedVarElement
-    KRATOS_CLASS_POINTER_DEFINITION( ConservedVarElement );
+    /// Counted pointer of EulerConsVarElement
+    KRATOS_CLASS_POINTER_DEFINITION( EulerConsVarElement );
 
 //----------------------------------------------------------------------
 
     /// Default constructor.
-    ConservedVarElement()
+    EulerConsVarElement()
     : Element()
     {}
     
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    EulerConsVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
     {}
     
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    EulerConsVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    virtual ~ ConservedVarElement() {};
+    virtual ~ EulerConsVarElement() {};
 
 //----------------------------------------------------------------------
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-        return Element::Pointer(new ConservedVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new EulerConsVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("")
     }
 
@@ -80,15 +80,15 @@ namespace Kratos
     
     void GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, array_1d<double, TNumNodes*3>& runkn, array_1d<double, TNumNodes*3>& rproj);
     
-    void GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight, double& rdiv_u);
+    void GetElementValues(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight, array_1d<double,2>& rvel, boost::numeric::ublas::bounded_matrix<double,2,2>& rdiv_u);
 
   private:
 
     friend class Serializer;
 
 
-  }; // Class ConservedVarElement
+  }; // Class EulerConsVarElement
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED  defined
+#endif // KRATOS_EULER_CONSERVED_VAR_ELEM_H_INCLUDED  defined
