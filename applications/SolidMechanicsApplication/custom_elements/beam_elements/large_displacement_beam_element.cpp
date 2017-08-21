@@ -946,7 +946,6 @@ void LargeDisplacementBeamElement::CalculateKinematics(ElementVariables& rVariab
 {
     KRATOS_TRY
 
-
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
 
@@ -1134,7 +1133,6 @@ void LargeDisplacementBeamElement::UpdateStrainVariables(ElementVariables& rVari
 
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************
-
 
 Matrix& LargeDisplacementBeamElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {

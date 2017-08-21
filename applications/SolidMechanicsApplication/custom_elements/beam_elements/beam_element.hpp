@@ -179,7 +179,8 @@ protected:
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
-
+      
+        Matrix  B;
         Matrix  DN_DX;
         Matrix  ConstitutiveMatrix;
         Matrix  DeltaPosition;
@@ -267,6 +268,7 @@ protected:
 	  noalias(StressVector) = ZeroVector(voigt_size);
 	  noalias(N) = ZeroVector(number_of_nodes);
 	  //matrices
+	  B.resize(voigt_size, (dimension-1) * 3 * number_of_nodes,false);
 	  DN_DX.resize(number_of_nodes, 1,false); //Local 1D
 	  ConstitutiveMatrix.resize(voigt_size, voigt_size,false);
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
@@ -672,14 +674,24 @@ protected:
     /**
      * Transform Vector Variable from Global Frame to the Spatial Local Frame
      */    
-    Vector& MapToInitialLocalFrame(Vector& rVariable,
-				   unsigned int PointNumber = 0);
+    Vector& MapToInitialLocalFrame(Vector& rVariable, unsigned int PointNumber = 0);
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
      */    
     virtual void MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable);
 
+
+    /**
+     * Transform Vector Variable form Spatial Frame to Global Frame
+     */    
+    virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable);
+
+    /**
+     * Transform Vector Variable form Spatial Frame to Global Frame
+     */    
+    virtual void MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector);
+     
 
     /**
      * Get Current Value in the integration point in the Local Reference configuration, buffer 0 with FastGetSolutionStepValue
@@ -735,6 +747,10 @@ protected:
      */
     Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
+    /**
+     * Calculation of the increment of position (step displacement)
+     */
+    Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
     /**   
      * Get Element Material Constitutive Matrix

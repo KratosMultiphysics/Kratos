@@ -134,7 +134,7 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * ( dimension * 2 );
+    unsigned int element_size          = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rResult.size() != element_size )
       rResult.resize( element_size, false );
@@ -176,7 +176,7 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    unsigned int       element_size    = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rValues.size() != element_size )
       rValues.resize( element_size, false );
@@ -217,7 +217,7 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    unsigned int       element_size    = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rValues.size() != element_size )
       rValues.resize( element_size, false );
@@ -258,7 +258,7 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    unsigned int       element_size    = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rValues.size() != element_size )
       rValues.resize( element_size, false );
@@ -450,6 +450,43 @@ namespace Kratos
 
     KRATOS_CATCH( "" )      
   }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void BeamElement::MapLocalToGlobal(ElementVariables& rVariables, MatrixType& rMatrix)
+  {
+    KRATOS_TRY
+      
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    if( dimension == 2 )
+      BeamMathUtilsType::MapLocalToGlobal2D(mInitialLocalQuaternion, rMatrix);
+    else
+      BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion, rMatrix);
+    
+    KRATOS_CATCH( "" )
+  }
+  
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void BeamElement::MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector)
+  {
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    if( dimension == 2 )
+      BeamMathUtilsType::MapLocalToGlobal2D(mInitialLocalQuaternion, rVector);
+    else
+      BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion, rVector);
+    
+    KRATOS_CATCH( "" )
+  }
+
   
   //************************************************************************************
   //************************************************************************************
@@ -559,7 +596,7 @@ namespace Kratos
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
+    const unsigned int voigt_size      = dimension * (dimension +1 ) * 0.5;
     
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
     
@@ -635,7 +672,33 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+  //*************************COMPUTE TOTAL DELTA POSITION*******************************
+  //************************************************************************************
 
+  Matrix& BeamElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
+  {
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+	  {
+            rDeltaPosition(i,j) = CurrentDisplacement[j];
+	  }
+
+      }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+  }
   //************************************************************************************
   //************************************************************************************
 
@@ -920,11 +983,7 @@ namespace Kratos
     this->CalculateAndAddKuug( LocalLeftHandSideMatrix, rVariables, rIntegrationWeight );
     
     // LocalToGlobalSystem for the correct assembly
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    if( dimension == 2 )
-      BeamMathUtilsType::MapLocalToGlobal2D(mInitialLocalQuaternion,LocalLeftHandSideMatrix);
-    else
-      BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion,LocalLeftHandSideMatrix);
+    this->MapLocalToGlobal(rVariables, LocalLeftHandSideMatrix);
     
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
     rLeftHandSideMatrix += LocalLeftHandSideMatrix;
@@ -955,11 +1014,7 @@ namespace Kratos
     this->CalculateAndAddInternalForces( LocalRightHandSideVector, rVariables, rIntegrationWeight );
     
     // LocalToGlobalSystem for the correct assembly
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    if( dimension == 2 )
-      BeamMathUtilsType::MapLocalToGlobal2D(mInitialLocalQuaternion,LocalRightHandSideVector);
-    else
-      BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion,LocalRightHandSideVector);
+    this->MapLocalToGlobal(rVariables, LocalRightHandSideVector);
 
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
     rRightHandSideVector += LocalRightHandSideVector;
@@ -1129,7 +1184,7 @@ namespace Kratos
 
 	  for(unsigned int i=0; i< number_of_nodes; i++)
 	    {
-	      int index = (dimension * 2) * i;
+	      int index = ((dimension-1) * 3) * i;
 
 	      GetGeometry()[i].SetLock();
 
@@ -1148,7 +1203,7 @@ namespace Kratos
 
 	  for(unsigned int i=0; i< number_of_nodes; i++)
 	    {
-	      int index = dimension + (dimension * 2) * i;
+	      int index = dimension + ( (dimension-1) * 3 ) * i;
 
 	      GetGeometry()[i].SetLock();
 
@@ -1205,7 +1260,7 @@ namespace Kratos
   //****************GID DEFINITION OF THE AUTOMATIC LOCAL AXES******************
   //*****************************************************************************
 
-  //Local E3 beam axis
+  //Local E1 beam axis
   void BeamElement::CalculateLocalAxesMatrix(Matrix& rRotationMatrix)
   {
 
@@ -1215,7 +1270,7 @@ namespace Kratos
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       size            = number_of_nodes * dimension;
 
-    Vector LocalZ               = ZeroVector(3);
+    Vector LocalX               = ZeroVector(3);
     Vector ReferenceCoordinates = ZeroVector(size);
 
     ReferenceCoordinates[0] = GetGeometry()[0].X();
@@ -1230,10 +1285,10 @@ namespace Kratos
    
     for( unsigned int i = 0; i < dimension; i++ )
       {
-	LocalZ[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
+	LocalX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
       }
 
-    BeamMathUtilsType::CalculateLocalAxesMatrix(LocalZ,rRotationMatrix);
+    BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,rRotationMatrix);
 
     KRATOS_CATCH( "" )
 
@@ -1405,7 +1460,7 @@ namespace Kratos
 
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+      unsigned int MatSize               = number_of_nodes * ( (dimension-1) * 3 );
 
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )

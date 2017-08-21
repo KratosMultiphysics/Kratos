@@ -337,10 +337,10 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
     
     if( dimension == 2 )
     {
-
+        unsigned int index = 0;
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = 2 * i;
+            index = 2 * i;
 
             rB( 0, index + 0 ) = rDN_DX( i, 0 );
             rB( 0, index + 1 ) = 0.0;
@@ -354,10 +354,10 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
     }
     else if( dimension == 3 )
     {
-
+      unsigned int index = 0;
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = 3 * i;
+            index = 3 * i;
 
             rB( 0, index + 0 ) = rDN_DX( i, 0 );
             rB( 1, index + 1 ) = rDN_DX( i, 1 );

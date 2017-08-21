@@ -1403,9 +1403,8 @@ void SolidElement::FinalizeStepVariables( ElementVariables & rVariables, const d
 //************************************************************************************
 
 void SolidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-        ElementVariables& rVariables,
-        double& rIntegrationWeight
-                                                  )
+				       ElementVariables& rVariables,
+				       double& rIntegrationWeight)
 {
     KRATOS_TRY
 
