@@ -681,20 +681,20 @@ public:
   //*****************************************************************************
 
   /**
-   * Deffault expression for GID local beam axes:: E3 is considered the local beam axial direction
-   * @param rLocalZ: Local Beam axis vector (input parameter)
+   * Deffault expression for GID local beam axes:: E1 is considered the local beam axial direction
+   * @param rLocalX: Local Beam axis vector (input parameter)
    * @param rRotationMatrix: transformation matrix from local to global frame (output parameter)
    */
-  static inline  void CalculateLocalAxesMatrix(const VectorType& rLocalZ, MatrixType& rRotationMatrix)
+  static inline  void CalculateLocalAxesMatrix(const VectorType& rLocalX, MatrixType& rRotationMatrix)
   {
 
     KRATOS_TRY
 
-    VectorType LocalX = ZeroVector(3);
     VectorType LocalY = ZeroVector(3);
-    VectorType LocalZ = rLocalZ;
+    VectorType LocalZ = ZeroVector(3);
+    VectorType LocalX = rLocalX;
 
-    BeamMathUtilsType::CalculateLocalAxesVectors(LocalZ,LocalX,LocalY);
+    BeamMathUtilsType::CalculateLocalAxesVectors(LocalX,LocalY,LocalZ);
         
     //Transformation matrix T = [e1_local, e2_local, e3_local] 
     if( rRotationMatrix.size1() != 3 )
@@ -703,9 +703,9 @@ public:
     //Building the rotation matrix
     for (unsigned int i=0; i<3; i++)
       {
-    	rRotationMatrix(i,0) = LocalX[i];  // column distribution
-    	rRotationMatrix(i,1) = LocalY[i];
-    	rRotationMatrix(i,2) = LocalZ[i];	
+    	rRotationMatrix(i,0) = LocalY[i];  // column distribution
+    	rRotationMatrix(i,1) = LocalZ[i];
+    	rRotationMatrix(i,2) = LocalX[i];	
       }
     
     KRATOS_CATCH( "" )
@@ -716,12 +716,12 @@ public:
   //*****************************************************************************
 
   /**
-   * Deffault expression for GID local beam axes:: E3 is considered the local beam axial direction
-   * @param rLocalZ: Local Beam axis director vector E3 (input parameter) (output parameter)
-   * @param rLocalX: Local Beam axis director vector E1 (output parameter)
+   * Deffault expression for GID local beam axes:: E1 is considered the local beam axial direction
+   * @param rLocalX: Local Beam axis director vector E1 (input parameter) (output parameter)
    * @param rLocalY: Local Beam axis director vector E2 (output parameter)
+   * @param rLocalZ: Local Beam axis director vector E3 (output parameter)
    */
-  static inline  void CalculateLocalAxesVectors(VectorType& rLocalZ, VectorType& rLocalX, VectorType& rLocalY)
+  static inline  void CalculateLocalAxesVectors(VectorType& rLocalX, VectorType& rLocalY, VectorType& rLocalZ)
   {
 
     KRATOS_TRY
@@ -733,29 +733,29 @@ public:
     GlobalZ[2]=1.0;
 
     // local z-axis (e3_local) is the beam axis
-    double VectorNorm = MathUtilsType::Norm(rLocalZ);
-    if( VectorNorm != 0)
-      rLocalZ /= VectorNorm;
-    
-    // local x-axis (e1_local)  
-    double tolerance = 1.0/64.0;
-    if(fabs(rLocalZ[0])< tolerance && fabs(rLocalZ[1])< tolerance){
-      rLocalX = MathUtilsType::CrossProduct(GlobalY, rLocalZ);
-    }
-    else{
-      rLocalX = MathUtilsType::CrossProduct(GlobalZ, rLocalZ);
-    }
-    
-    VectorNorm = MathUtilsType::Norm(rLocalX);
+    double VectorNorm = MathUtilsType::Norm(rLocalX);
     if( VectorNorm != 0)
       rLocalX /= VectorNorm;
     
-    // local y-axis (e2_local)
-    rLocalY = MathUtilsType::CrossProduct(rLocalZ,rLocalX);
+    // local x-axis (e1_local)  
+    double tolerance = 1.0/64.0;
+    if(fabs(rLocalX[0])< tolerance && fabs(rLocalX[1])< tolerance){
+      rLocalY = MathUtilsType::CrossProduct(GlobalY, rLocalX);
+    }
+    else{
+      rLocalY = MathUtilsType::CrossProduct(GlobalZ, rLocalX);
+    }
     
     VectorNorm = MathUtilsType::Norm(rLocalY);
-    if( VectorNorm != 0 )
+    if( VectorNorm != 0)
       rLocalY /= VectorNorm;
+    
+    // local y-axis (e2_local)
+    rLocalZ = MathUtilsType::CrossProduct(rLocalX,rLocalY);
+    
+    VectorNorm = MathUtilsType::Norm(rLocalZ);
+    if( VectorNorm != 0 )
+      rLocalZ /= VectorNorm;
         
     
     KRATOS_CATCH( "" )
