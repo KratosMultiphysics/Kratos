@@ -18,7 +18,7 @@ namespace Kratos {
 
         void Initialize(const ProcessInfo& r_process_info) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_D_Linear_viscous_Coulomb2D() {
         }

@@ -8,11 +8,10 @@ namespace Kratos {
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
-    /*void TaylorScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
-         DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);}
-    
-    void TaylorScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
-       DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);}*/
+        void TaylorScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+            if(verbose) std::cout << "\nAssigning TaylorScheme to properties " << pProp->Id() << std::endl;
+            pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        }
 
     void TaylorScheme::UpdateTranslationalVariables(
             int StepFlag,

@@ -43,8 +43,8 @@ namespace Kratos {
             DEMIntegrationScheme::Pointer cloned_scheme(new TaylorScheme(*this));
             return cloned_scheme;
         }
-        
-        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override;
+
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         
         /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
         void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption) override;*/

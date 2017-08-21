@@ -13,8 +13,8 @@ namespace Kratos {
     DEMIntegrationScheme::DEMIntegrationScheme(){}
     DEMIntegrationScheme::~DEMIntegrationScheme(){}
     
-    void DEMIntegrationScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-        //std::cout << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
+    void DEMIntegrationScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        //if(verbose) std::cout << "\nAssigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 

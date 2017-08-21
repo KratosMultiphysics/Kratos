@@ -2,9 +2,9 @@
 #include "symplectic_euler_scheme.h"
 
 namespace Kratos {
-
-    void SymplecticEulerScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
+    
+    void SymplecticEulerScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
