@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Import utilities
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
-import python_solvers_wrapper_structural       # Import the structural Python solvers wrapper
+import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 
 # Import kratos core and applications
 import KratosMultiphysics

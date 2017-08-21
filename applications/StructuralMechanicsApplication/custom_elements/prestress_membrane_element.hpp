@@ -121,7 +121,6 @@ namespace Kratos
 
     double mTotalDomainInitialSize;
     double mdensity;
-    double mThickness0; //thickness in the reference configuration
     double mThickness;									// thickness in actual configuration
 
     std::vector< array_1d<double, 3> > mStrainsVector;	//container of Strain
@@ -306,12 +305,10 @@ namespace Kratos
       rSerializer.save("DetJ0", mDetJ0);
       rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
       rSerializer.save("density", mdensity);
-      rSerializer.save("Thickness0", mThickness0);
       rSerializer.save("Thickness", mThickness);
       rSerializer.save("StrainsVector", mStrainsVector);
       rSerializer.save("StressesVector", mStressesVector);
       rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.save("Thickness0", mThickness0);
       rSerializer.save("V1", mV1);
       rSerializer.save("V2", mV2);
       rSerializer.save("G_Vector", mG_Vector);
@@ -325,12 +322,10 @@ namespace Kratos
       rSerializer.load("DetJ0", mDetJ0);
       rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
       rSerializer.load("density", mdensity);
-      rSerializer.load("Thickness0", mThickness0);
       rSerializer.load("Thickness", mThickness);
       rSerializer.load("StrainsVector", mStrainsVector);
       rSerializer.load("StressesVector", mStressesVector);
       rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.load("Thickness0", mThickness0);
       rSerializer.load("V1", mV1);
       rSerializer.load("V2", mV2);
       rSerializer.load("G_Vector", mG_Vector);

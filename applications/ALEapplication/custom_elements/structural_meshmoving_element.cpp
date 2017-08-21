@@ -448,32 +448,4 @@ void StructuralMeshMovingElement::CalculateRightHandSide(VectorType& rRightHandS
     }
 }
 
-// Only called in the CalculateLocalSystem Function above
-void StructuralMeshMovingElement::CalculateAndAddRHS(VectorType& rRightHandSideVector)
-{
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
-    if (rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    GeometryType& rGeom = this->GetGeometry();
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        // Note that we need to divide by the neighbours since the final RHS
-        // needs
-        // to be the desired value
-        //(the addition below is done as many times as elements we have where
-        // this node appears)
-
-        int number_neighbours = rGeom[iNode].GetValue(NEIGHBOUR_ELEMENTS).size();
-
-        rRightHandSideVector[dimension * iNode + 0] +=
-            rGeom[iNode].GetSolutionStepValue(MESH_RHS_X) / number_neighbours;
-        rRightHandSideVector[dimension * iNode + 1] +=
-            rGeom[iNode].GetSolutionStepValue(MESH_RHS_Y) / number_neighbours;
-        rRightHandSideVector[dimension * iNode + 2] +=
-            rGeom[iNode].GetSolutionStepValue(MESH_RHS_Z) / number_neighbours;
-    }
-}
 } // Namespace Kratos

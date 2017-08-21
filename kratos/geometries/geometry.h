@@ -687,13 +687,47 @@ public:
     }
     
     /**
-     * It computes the normal of the geometry, if possible
+     * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates)
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates)
     {
-        KRATOS_ERROR << "Calling base class Normal method instead of derived class one. Please check the definition of derived class." << *this << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        return ZeroVector(3);
+        const unsigned int local_space_dimension = this->LocalSpaceDimension();
+        const unsigned int dimension = this->WorkingSpaceDimension();
+        
+        if (dimension == local_space_dimension)
+        {
+            KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
+        }
+        
+        // We define the normal and tangents
+        array_1d<double,3> tangent_xi(0.0);
+        array_1d<double,3> tangent_eta(0.0);
+        
+        Matrix j_node = ZeroMatrix( dimension, local_space_dimension ); 
+        this->Jacobian( j_node, rPointLocalCoordinates);
+        
+        // Using the Jacobian tangent directions
+        if (dimension == 2)
+        {
+            tangent_eta[2] = 1.0;
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
+            {
+                tangent_xi[i_dim]  = j_node(i_dim, 0);
+            } 
+        }
+        else
+        {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
+            {
+                tangent_xi[i_dim]  = j_node(i_dim, 0);
+                tangent_eta[i_dim] = j_node(i_dim, 1);
+            } 
+        }
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal/norm_2(normal);
     }
     
     /** Calculates the quality of the geometry according to a given criteria.
@@ -724,7 +758,7 @@ public:
        } else if(qualityCriteria == QualityCriteria::SHORTEST_TO_LONGEST_EDGE) {
          quality = ShortestToLongestEdgeQuality();
        } else if(qualityCriteria == QualityCriteria::REGULARITY) {
-         quality = RegualrityQuiality();
+         quality = RegularityQuality();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_SURFACE_AREA) {
          quality = VolumeToSurfaceAreaQuality();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_EDGE_LENGTH) {
@@ -2249,8 +2283,8 @@ protected:
       return 0.0;
     }
 
-    /** Calculates the Regualrity quality metric.
-     * Calculates the Regualrity quality metric.
+    /** Calculates the Regularity quality metric.
+     * Calculates the Regularity quality metric.
      * This metric is bounded by the interval (-1,1) being:
      *  1 -> Optimal value
      *  0 -> Worst value
@@ -2258,10 +2292,10 @@ protected:
      *
      * \f$ \frac{4r}{H} \f$
      *
-     * @return regualirty quality.
+     * @return regularity quality.
      */
-    virtual double RegualrityQuiality() const {
-      KRATOS_ERROR << "Calling base class 'RegualrityQuiality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    virtual double RegularityQuality() const {
+      KRATOS_ERROR << "Calling base class 'RegularityQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return 0.0;
     }
 

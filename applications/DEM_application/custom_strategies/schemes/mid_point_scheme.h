@@ -49,8 +49,8 @@ namespace Kratos {
             return cloned_scheme;
         }
         
-        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override {
-            std::cout << "Assigning MidPointScheme to properties " << pProp->Id() << std::endl;
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override {
+            if(verbose) std::cout << "\nAssigning MidPointScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 

@@ -28,25 +28,6 @@
 namespace Kratos {
 namespace Testing {
 
-    static std::streambuf *coutbuf = std::cout.rdbuf();
-
-    // FIXME: EXCPETION -> EXCEPTION
-    // TODO: Move to 'include/checks.h' once is confirmed to work as intended
-    #define KRATOS_CHECK_EXCEPTION_RAISED(STATEMENT, EXCEPTION_TYPE)              \
-      std::cout.rdbuf(nullptr);                                                   \
-      exceptionThrown = false;                                                    \
-                                                                                  \
-      try {                                                                       \
-        STATEMENT;                                                                \
-      } catch(EXCEPTION_TYPE EXCEPTION_NAME) {                                    \
-        exceptionThrown = true;                                                   \
-      }                                                                           \
-                                                                                  \
-      std::cout.rdbuf(coutbuf);                                                   \
-                                                                                  \
-      if(!exceptionThrown) KRATOS_ERROR << "Check failed becuase " <<             \
-        #EXCEPTION_TYPE << " was not raised while executing " << #STATEMENT;      \
-
     constexpr double EPSILON = std::numeric_limits<double>::epsilon();
     constexpr double TOLERANCE = 1e-6;
 

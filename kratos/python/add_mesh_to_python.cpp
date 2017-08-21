@@ -8,7 +8,6 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //
 
 // System includes
@@ -160,6 +159,32 @@ boost::python::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
+boost::python::list CalculateOnIntegrationPointsDouble(
+        Element& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<double> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    boost::python::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
+boost::python::list CalculateOnIntegrationPointsArray1d(
+        Element& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<array_1d<double, 3>> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    boost::python::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
 boost::python::list CalculateOnIntegrationPointsVector(
         Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
 {
@@ -167,7 +192,9 @@ boost::python::list CalculateOnIntegrationPointsVector(
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
     boost::python::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
+    {
         result.append( Output[j] );
+    }
     return result;
 }
 
@@ -353,6 +380,15 @@ void ElementCalculateLocalSystem1(Element& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
+template<class TDataType>
+void ElementCalculateSensitivityMatrix(Element& dummy,
+        const Variable<TDataType>& rDesignVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
+}
+
 void ElementGetFirstDerivativesVector1(Element& dummy,
         Vector& rOutput)
 {
@@ -453,6 +489,8 @@ void  AddMeshToPython()
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
@@ -471,11 +509,15 @@ void  AddMeshToPython()
     .def("CalculateMassMatrix", &Element::CalculateMassMatrix)
     .def("CalculateDampingMatrix", &Element::CalculateDampingMatrix)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
+    .def("CalculateFirstDerivativesLHS", &Element::CalculateFirstDerivativesLHS)
+    .def("CalculateSecondDerivativesLHS", &Element::CalculateSecondDerivativesLHS)
     .def("CalculateLocalVelocityContribution", &Element::CalculateLocalVelocityContribution)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector1)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
+    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<double>)
+    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<array_1d<double,3> >)
     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)

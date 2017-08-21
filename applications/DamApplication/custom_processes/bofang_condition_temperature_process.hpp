@@ -63,7 +63,7 @@ public:
                 "Water_level_Table"                                : 0,
                 "Outer_temp"                                       : 0.0,
                 "Outer_temp_Table"                                 : 0,
-                "Month"                                            : 1,
+                "Month"                                            : 1.0,
                 "Month_Table"                                      : 0
             }  )" );
         
@@ -88,7 +88,7 @@ public:
         mday = rParameters["Day_Ambient_Temp"].GetInt();
         mwater_level = rParameters["Water_level"].GetDouble();
         mouter_temp = rParameters["Outer_temp"].GetDouble();
-        mmonth = rParameters["Month"].GetInt();
+        mmonth = rParameters["Month"].GetDouble();
         mfreq = 0.52323;
 
         mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
@@ -271,7 +271,7 @@ protected:
     double mheight;
     double mamplitude;
     int mday;    
-    int mmonth;
+    double mmonth;
     double mwater_level;
     double mouter_temp;
     double mfreq;
