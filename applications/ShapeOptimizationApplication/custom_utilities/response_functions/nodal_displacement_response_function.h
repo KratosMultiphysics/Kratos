@@ -79,7 +79,11 @@ public:
 	///@{
 
 	typedef StructuralResponseFunction BaseType;
-	typedef array_1d<double, 3> array_3d;
+	//typedef array_1d<double, 3> array_3d;
+	typedef Element::DofsVectorType DofsVectorType;
+	typedef Node<3>::Pointer PointTypePointer; //try to ensure that this response function also works for 2D
+	//typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;	
+	
 
 	
 
@@ -94,7 +98,7 @@ public:
 	NodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
-		//ModelPart& r_model_part = this->GetModelPart();
+		ModelPart& r_model_part = this->GetModelPart();
 
 		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
@@ -113,10 +117,21 @@ public:
 		//get id of node where a diplacement should be traced
 		m_id_of_traced_node = responseSettings["traced_node"].GetInt();
 
-		//corresponding dof of traced displacement
-		m_traced_dof = responseSettings["traced_dof"].GetString();
+		//get the corresponding dof to the displacement which should be traced
+		//by this response function e.g. DISPLACEMENT_X or ROTATION_X
+		m_traced_dof_label = responseSettings["traced_dof"].GetString();
+		m_traced_dof_label = "ADJOINT_" + m_traced_dof_label;
 
+		// get variable for traced DOF
+		/*if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(m_traced_dof_label) ) 
+        	m_var_component = KratosComponents< component_type >::Get(m_traced_dof_label);
+		else
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified DOF is not availible. Specified DOF: ", m_traced_dof_label);	*/
+
+		m_traced_pNode = r_model_part.pGetNode(m_id_of_traced_node); 
+	
 		m_displacement_value = 0.0;	
+		m_adjoint_load_is_set = false;
 
 	}
 
@@ -139,6 +154,31 @@ public:
 
 		BaseType::Initialize();
 
+
+		// Initialize a condition which is for this response function the adjoint load
+		/*std::string label_adjoint_load_condition;
+
+		if(m_traced_displacement_type == "DISPLACEMENT")
+			label_adjoint_load_condition = POINT_LOAD;
+		else if(m_traced_displacement_type == "ROTATION")
+			label_adjoint_load_condition = POINT_MOMENT;
+		else
+			KRATOS_ERROR << "Plaese choose between DISPLACEMENT and ROTATION. Your choice is " 
+			<< m_traced_displacement_type << "." << std::endl;
+
+		if (KratosComponents<Variable<double>>::Has(label_adjoint_load_condition) == true)
+        {
+            const Variable<double>& r_adjoint_load_variable =
+                KratosComponents<Variable<double>>::Get(label_adjoint_load_condition);
+		}	
+		m_traced_pNode.FastGetSolutionStepValue(r_adjoint_load_variable) = r_adjoint_load_variable.Zero();*/	
+	
+		
+		
+
+
+
+
 		KRATOS_CATCH("");
 	}
 
@@ -150,9 +190,14 @@ public:
 		// Working variables
 		//ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-	
+		//TODO: test this
+		m_displacement_value = m_traced_pNode->FastGetSolutionStepValue(
+								KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get(m_traced_dof_label));
+		
 
 		return m_displacement_value;
+
+		std::cout << ("current displacement value = ") << m_displacement_value << std::endl;
 
 		KRATOS_CATCH("");
 	}
@@ -221,7 +266,41 @@ public:
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
 	{
+		KRATOS_TRY;
+		       
+		if (rResponseGradient.size() != rAdjointMatrix.size1())
+            rResponseGradient.resize(rAdjointMatrix.size1(), false);
 
+        rResponseGradient.clear();
+
+		//TODO: find a more elegant solution for this
+		if(!m_adjoint_load_is_set)
+		{
+			const unsigned int NumberOfNodes = rAdjointElem.GetGeometry().size();
+            for(unsigned int i = 0; i < NumberOfNodes; ++i)
+			{
+				int current_node_id = rAdjointElem.GetGeometry()[i].Id();
+				if(current_node_id == m_id_of_traced_node)
+				{
+					DofsVectorType dofs_of_lement; 
+					ModelPart& r_model_part = this->GetModelPart();
+					Element::Pointer traced_pElement = r_model_part.pGetElement(rAdjointElem.Id());
+					traced_pElement->GetDofList(dofs_of_lement,rProcessInfo);
+					int index = 0;
+					for(unsigned int i = 0; i < dofs_of_lement.size(); ++i)
+					{
+						if(m_traced_pNode->pGetDof(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get(m_traced_dof_label)) == dofs_of_lement[i])
+						{
+							rResponseGradient[i] = -1; //TODO: Check for correct sign!
+							m_adjoint_load_is_set = true;
+						}
+						index++;
+					}// loop dofs of element
+				}// enter if one of the element nodes is the traced node
+			}// loop nodes of element  	
+		}// enter only if the adjoint load was not given by a neighboring element
+
+		KRATOS_CATCH("");
 
 	}
 
@@ -251,6 +330,12 @@ protected:
     {
       	KRATOS_TRY
 
+		if (rResponseGradient.size() != rDerivativesMatrix.size1())
+        	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+
+        rResponseGradient.clear();
+
+
         KRATOS_CATCH("")
 	}
 
@@ -263,7 +348,10 @@ protected:
 	{										  
 		KRATOS_TRY;
 
-         // ----> insert code
+        if (rResponseGradient.size() != rDerivativesMatrix.size1())
+        	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+
+        rResponseGradient.clear();
 
 		KRATOS_CATCH("");
 	}
@@ -277,6 +365,10 @@ protected:
     {
       	KRATOS_TRY
 
+		if (rResponseGradient.size() != rDerivativesMatrix.size1())
+        	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+
+        rResponseGradient.clear();
 
       	KRATOS_CATCH("")
 	}
@@ -290,7 +382,10 @@ protected:
     {
 		KRATOS_TRY;
 
-        // ----> insert code
+        if (rResponseGradient.size() != rDerivativesMatrix.size1())
+        	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+
+        rResponseGradient.clear();
 
 		KRATOS_CATCH("");
 	}
@@ -314,6 +409,7 @@ protected:
 	///@}
 
 private:
+
 	///@name Static Member Variables
 	///@{
 
@@ -323,9 +419,13 @@ private:
 	unsigned int mGradientMode;
 	double m_displacement_value; 
 	double mDelta;
-	unsigned int m_id_of_traced_node;
-	std::string m_traced_dof;
-
+	int m_id_of_traced_node;
+	std::string m_traced_dof_label;
+	bool m_adjoint_load_is_set;
+	PointTypePointer  m_traced_pNode;
+	
+	//std::string m_traced_displacement_type;
+	//std::string m_traced_direction;
 
 	///@}
 ///@name Private Operators
