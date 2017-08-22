@@ -101,7 +101,6 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
             # Solve the mesh problem as well as the fluid problem
             self._SolveMeshAndFluid()
-            self.partitioned_fsi_utilities.ComputeAndPrintFluidInterfaceNorms(self._GetFluidInterfaceSubmodelPart()) # TODO:Remove this
 
             # Solve the structure problem and computes the displacement residual
             if (self.double_faced_structure):
@@ -111,23 +110,6 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                 self._SolveStructureSingleFaced()
                 dis_residual = self._ComputeDisplacementResidualSingleFaced()
 
-                self.partitioned_fsi_utilities.ComputeAndPrintStructureInterfaceNorms(self._GetStructureInterfaceSubmodelPart()) # TODO:Remove this
-
-                px_norm = 0.0
-                py_norm = 0.0
-                pz_norm = 0.0
-
-                for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-                    px_norm += node.GetSolutionStepValue(KratosStructural.POINT_LOAD_X)**2
-                    py_norm += node.GetSolutionStepValue(KratosStructural.POINT_LOAD_Y)**2
-                    pz_norm += node.GetSolutionStepValue(KratosStructural.POINT_LOAD_Z)**2
-
-                print(" ")
-                print ("|px_norm| = ", px_norm**0.5)
-                print ("|py_norm| = ", py_norm**0.5)
-                print ("|pz_norm| = ", pz_norm**0.5)
-                print(" ")
-
             # Residual computation
             nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
             interface_dofs = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
@@ -136,7 +118,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             if nl_res_norm/math.sqrt(interface_dofs) < self.nl_tol:
                 print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
                 print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/math.sqrt(interface_dofs))
-                
+
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
@@ -147,7 +129,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                 if (nl_it == self.max_nl_it):
                     print("***********************************************************")
                     print("***********************************************************")
-                    print("         NON-LINEAR ITERATION CONVERGENCE ACHIEVED         ")
+                    print("       NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED       ")
                     print("***********************************************************")
                     print("***********************************************************")
 
