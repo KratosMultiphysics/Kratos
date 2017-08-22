@@ -564,8 +564,51 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
     if(rValues.size() != OPT_NUM_GP)
         rValues.resize(OPT_NUM_GP);
 
-    for(int i = 0; i < OPT_NUM_GP; i++)
-        mSections[i]->GetValue(rVariable, rValues[i]);
+	if (rVariable == VON_MISES_STRESS ||
+		rVariable == VON_MISES_STRESS_TOP_SURFACE ||
+		rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
+		rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
+	{
+		// Von mises calcs
+		// Initialize common calculation variables
+		CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+		data.CalculateLHS = false;
+		data.CalculateRHS = true;
+		InitializeCalculationData(data);
+
+		// Gauss Loop.
+		for (size_t i = 0; i < OPT_NUM_GP; i++)
+		{
+			// set the current integration point index
+			data.gpIndex = i;
+			ShellCrossSection::Pointer& section = mSections[i];
+
+			// calculate beta0
+			CalculateBeta0(data);
+
+			// calculate the total strain displ. matrix
+			CalculateBMatrix(data);
+
+			// compute generalized strains
+			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+
+			// calculate section response
+			CalculateSectionResponse(data);
+
+			// Compute stresses
+			CalculateStressesFromForceResultants(data.generalizedStresses,
+				section->GetThickness());
+
+			// calculate von mises stress
+			CalculateVonMisesStress(data, rVariable, rValues[i]);
+
+		} // end gauss loop
+	}
+	else
+	{
+		for (int i = 0; i < OPT_NUM_GP; i++)
+			mSections[i]->GetValue(rVariable, rValues[i]);
+	}
 
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 }
@@ -613,6 +656,157 @@ void ShellThinElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< Shel
 // Class ShellThinElement3D3N - Private methods
 //
 // =====================================================================================
+
+void ShellThinElement3D3N::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int & ijob, bool & bGlobal)
+{
+	if (rVariable == SHELL_STRAIN)
+	{
+		ijob = 1;
+	}
+	else if (rVariable == SHELL_STRAIN_GLOBAL)
+	{
+		ijob = 1;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_CURVATURE)
+	{
+		ijob = 2;
+	}
+	else if (rVariable == SHELL_CURVATURE_GLOBAL)
+	{
+		ijob = 2;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_FORCE)
+	{
+		ijob = 3;
+	}
+	else if (rVariable == SHELL_FORCE_GLOBAL)
+	{
+		ijob = 3;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_MOMENT)
+	{
+		ijob = 4;
+	}
+	else if (rVariable == SHELL_MOMENT_GLOBAL)
+	{
+		ijob = 4;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_STRESS_TOP_SURFACE)
+	{
+		ijob = 5;
+	}
+	else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL)
+	{
+		ijob = 5;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE)
+	{
+		ijob = 6;
+	}
+	else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL)
+	{
+		ijob = 6;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE)
+	{
+		ijob = 7;
+	}
+	else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL)
+	{
+		ijob = 7;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE)
+	{
+		ijob = 8;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL)
+	{
+		ijob = 8;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE)
+	{
+		ijob = 9;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL)
+	{
+		ijob = 9;
+		bGlobal = true;
+	}
+}
+
+void ShellThinElement3D3N::CalculateStressesFromForceResultants(VectorType & rstresses, const double & rthickness)
+{
+	// Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
+
+	// membrane forces -> in-plane stresses (av. across whole thickness)
+	rstresses[0] /= rthickness;
+	rstresses[1] /= rthickness;
+	rstresses[2] /= rthickness;
+
+	// bending moments -> peak in-plane stresses (@ top and bottom surface)
+	rstresses[3] *= 6.0 / (rthickness*rthickness);
+	rstresses[4] *= 6.0 / (rthickness*rthickness);
+	rstresses[5] *= 6.0 / (rthickness*rthickness);
+}
+
+void ShellThinElement3D3N::CalculateVonMisesStress(const CalculationData & data, const Variable<double>& rVariable, double & rVon_Mises_Result)
+{
+	// calc von mises stresses at top mid and bottom surfaces for
+	// thin shell
+	double von_mises_top, von_mises_mid, von_mises_bottom;
+	double sxx, syy, sxy;
+
+	// top surface: membrane and +bending contributions
+	//				(no transverse shear)
+	sxx = data.generalizedStresses[0] + data.generalizedStresses[3];
+	syy = data.generalizedStresses[1] + data.generalizedStresses[4];
+	sxy = data.generalizedStresses[2] + data.generalizedStresses[5];
+	von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+
+	// mid surface: membrane only contributions
+	//				(no bending or transverse shear)
+	sxx = data.generalizedStresses[0];
+	syy = data.generalizedStresses[1];
+	sxy = data.generalizedStresses[2];
+	von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
+		3.0*(sxy*sxy);
+
+	// bottom surface:	membrane and bending contributions
+	//					(no transverse shear)
+	sxx = data.generalizedStresses[0] - data.generalizedStresses[3];
+	syy = data.generalizedStresses[1] - data.generalizedStresses[4];
+	sxy = data.generalizedStresses[2] - data.generalizedStresses[5];
+	von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+
+	// Output requested quantity
+	if (rVariable == VON_MISES_STRESS_TOP_SURFACE)
+	{
+		rVon_Mises_Result = sqrt(von_mises_top);
+	}
+	else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
+	{
+		rVon_Mises_Result = sqrt(von_mises_mid);
+	}
+	else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
+	{
+		rVon_Mises_Result = sqrt(von_mises_bottom);
+	}
+	else if (rVariable == VON_MISES_STRESS)
+	{
+		// take the greatest value and output
+		rVon_Mises_Result =
+			sqrt(std::max(von_mises_top,
+				std::max(von_mises_mid, von_mises_bottom)));
+	}
+}
 
 void ShellThinElement3D3N::DecimalCorrection(Vector& a)
 {
@@ -1386,42 +1580,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 
     int ijob = 0;
     bool bGlobal = false;
-    if(rVariable == SHELL_STRAIN)
-    {
-        ijob = 1;
-    }
-    else if(rVariable == SHELL_STRAIN_GLOBAL)
-    {
-        ijob = 1;
-        bGlobal = true;
-    }
-    else if(rVariable == SHELL_CURVATURE)
-    {
-        ijob = 2;
-    }
-    else if(rVariable == SHELL_CURVATURE_GLOBAL)
-    {
-        ijob = 2;
-        bGlobal = true;
-    }
-    else if(rVariable == SHELL_FORCE)
-    {
-        ijob = 3;
-    }
-    else if(rVariable == SHELL_FORCE_GLOBAL)
-    {
-        ijob = 3;
-        bGlobal = true;
-    }
-    else if(rVariable == SHELL_MOMENT)
-    {
-        ijob = 4;
-    }
-    else if(rVariable == SHELL_MOMENT_GLOBAL)
-    {
-        ijob = 4;
-        bGlobal = true;
-    }
+    CheckGeneralizedStressOrStrainOutput(rVariable, ijob, bGlobal);
 
     // quick return
 
@@ -1462,7 +1621,27 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
         noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
 
         // calculate section response
-        if(ijob > 2) CalculateSectionResponse( data );
+        if (ijob > 2)
+		{
+			if (ijob > 7) // TODO: IMPLEMENT LAMINA STRAINS/STRESSES
+			{
+				//Calculate lamina stresses
+				//CalculateLaminaStrains(data);
+				//CalculateLaminaStresses(data);
+			}
+			else
+			{
+				// calculate force resultants
+				CalculateSectionResponse(data);
+
+				if (ijob > 4)
+				{
+					// Compute stresses
+					CalculateStressesFromForceResultants(data.generalizedStresses,
+						section->GetThickness());
+				}
+			}
+		}
 
         // adjust output
         DecimalCorrection( data.generalizedStrains );
@@ -1525,6 +1704,39 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
             iValue(0, 2) = iValue(2, 0) = 0.0;
             iValue(1, 2) = iValue(2, 1) = 0.0;
         }
+		else if (ijob == 5) // SHELL_STRESS_TOP_SURFACE
+		{
+			iValue(0, 0) = data.generalizedStresses(0) +
+				data.generalizedStresses(3);
+			iValue(1, 1) = data.generalizedStresses(1) +
+				data.generalizedStresses(4);
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] + 
+				data.generalizedStresses[5];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
+		else if (ijob == 6) // SHELL_STRESS_MIDDLE_SURFACE
+		{
+			iValue(0, 0) = data.generalizedStresses(0);
+			iValue(1, 1) = data.generalizedStresses(1);
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
+		else if (ijob == 7) // SHELL_STRESS_BOTTOM_SURFACE
+		{
+			iValue(0, 0) = data.generalizedStresses(0) -
+				data.generalizedStresses(3);
+			iValue(1, 1) = data.generalizedStresses(1) -
+				data.generalizedStresses(4);
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] - 
+				data.generalizedStresses[5];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
 
         // if requested, rotate the results in the global coordinate system
         if(bGlobal)
