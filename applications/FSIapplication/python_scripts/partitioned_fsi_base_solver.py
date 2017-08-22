@@ -136,7 +136,6 @@ class PartitionedFSIBaseSolver:
                 "w_0"               : 0.825
                 },
             "mesh_solver"                : "mesh_solver_structural_similarity",
-            "mesh_reform_dofs_each_step" : false,
             "structure_interfaces_list"  : [""],
             "fluid_interfaces_list"      : [""]
             },
@@ -198,7 +197,6 @@ class PartitionedFSIBaseSolver:
 
         # Construct the ALE mesh solver
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
-        mesh_solver_settings.AddValue("mesh_reform_dofs_each_step",self.settings["coupling_solver_settings"]["mesh_reform_dofs_each_step"])
 
         self.mesh_solver_module = __import__(self.settings["coupling_solver_settings"]["mesh_solver"].GetString())
         self.mesh_solver = self.mesh_solver_module.CreateSolver(self.fluid_solver.main_model_part,
