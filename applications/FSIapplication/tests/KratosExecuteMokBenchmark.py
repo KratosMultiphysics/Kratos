@@ -165,3 +165,11 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
         if (self.output_post == True):
             self.gid_output_structure.ExecuteFinalize()
             self.gid_output_fluid.ExecuteFinalize()
+
+
+if __name__ == '__main__':
+    # Get the ProjectParameters file
+    parameter_file = open("MokBenchmark/ProjectParameters.json", 'r')
+    ProjectParameters = Parameters(parameter_file.read())
+    MokBenchmark = KratosExecuteMokBenchmark(ProjectParameters)
+    MokBenchmark.Solve()

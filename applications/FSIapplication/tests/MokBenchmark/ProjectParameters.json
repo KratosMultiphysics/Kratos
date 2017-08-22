@@ -3,6 +3,7 @@
         "problem_data"             : {
             "problem_name"    : "mok_benchmark",
             "model_part_name" : "Structure",
+            "parallel_type"   : "OpenMP",
             "domain_size"     : 2,
             "time_step"       : 0.1,
             "start_time"      : 0.0,
@@ -10,11 +11,10 @@
             "echo_level"      : 0
         },
         "solver_settings"          : {
-            "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
+            "solver_type"                        : "Implicit",
             "echo_level"                         : 0,
             "solution_type"                      : "Dynamic",
-            "time_integration_method"            : "Implicit",
-            "scheme_type"                        : "Newmark",
+            "scheme_type"                        : "Bossak",
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
                 "input_filename" : "MokBenchmark/mok_benchmark_Structural"
@@ -83,7 +83,7 @@
                 "skin_output"         : false,
                 "plane_output"        : [],
                 "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
-                "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+                "gauss_point_results" : []
             },
             "point_data_configuration"  : []
         },
@@ -284,7 +284,6 @@
                 "w_0"               : 0.825
             },
             "mesh_solver"                : "mesh_solver_structural_similarity",
-            "mesh_reform_dofs_each_step" : false,
             "structure_interfaces_list"  : ["Interface2D_Structure_interface"],
             "fluid_interfaces_list"      : ["FluidNoSlipInterface2D_Interface"]
         },
