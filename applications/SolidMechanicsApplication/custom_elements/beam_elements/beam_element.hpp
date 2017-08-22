@@ -92,32 +92,6 @@ protected:
     };
 
     /**
-     * This is used to compute the energy components for this element
-     */
-    struct EnergyVariables
-    {
-    public:
-      double Kinetic;    //Kinetic Energy
-      double External;   //External Work      
-      double Internal;   //Inernarl Work
-      double Deformation; //Deformation Energy
-      
-      array_1d<double,3> LinearMomentum;
-      array_1d<double,3> AngularMomentum;
-
-      void clear()
-      {
-	Kinetic     = 0;
-	External    = 0;
-	Internal    = 0;
-	Deformation = 0;
-	LinearMomentum.clear();
-	AngularMomentum.clear();
-      }
-    };
-
-
-    /**
      * This is used to compute directions for this element
      */
     struct DirectorsVariables
@@ -279,10 +253,14 @@ protected:
 
 	  //large displacement
 	  CurrentRotationMatrix.resize(dimension, dimension,false);
+	  InitialAxisPositionDerivatives.resize(dimension,false);
 	  CurrentAxisPositionDerivatives.resize(dimension,false);
+	  PreviousAxisPositionDerivatives.resize(dimension,false);
 
 	  noalias(CurrentRotationMatrix) = ZeroMatrix(dimension, dimension);
-	  noalias(CurrentAxisPositionDerivatives) = ZeroVector(number_of_nodes);
+	  noalias(InitialAxisPositionDerivatives) = ZeroVector(dimension);
+	  noalias(CurrentAxisPositionDerivatives) = ZeroVector(dimension);
+	  noalias(PreviousAxisPositionDerivatives) = ZeroVector(dimension);
 	  
 	  //others
 	  J.resize(1,false);
@@ -677,12 +655,6 @@ protected:
     Vector& MapToInitialLocalFrame(Vector& rVariable, unsigned int PointNumber = 0);
 
     /**
-     * Transform Vector Variable form Material Frame to the Spatial Frame
-     */    
-    virtual void MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable);
-
-
-    /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
     virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable);
@@ -752,11 +724,6 @@ protected:
      */
     Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
-    /**   
-     * Get Element Material Constitutive Matrix
-     */ 
-    void GetMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementVariables& rVariables);
-
 
     /**   
      * Calculate Element Constitutive Matrix
@@ -765,9 +732,15 @@ protected:
 
 
     /**   
+     * Calculate Element Material Constitutive Matrix
+     */ 
+    void CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementVariables& rVariables);
+
+
+    /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber, double alpha = 0);
+    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber);
 
     /**
      * Calculation and addition of the matrices of the LHS

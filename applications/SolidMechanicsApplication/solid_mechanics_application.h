@@ -34,6 +34,8 @@
 #include "containers/flags.h"
 
 //elements
+
+//solid elements
 #include "custom_elements/solid_elements/linear_solid_element.hpp"
 
 #include "custom_elements/solid_elements/small_displacement_element.hpp"
@@ -47,13 +49,16 @@
 #include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
+//beam elements
 #include "custom_elements/beam_elements/beam_element.hpp"
+#include "custom_elements/beam_elements/small_displacement_beam_element.hpp"
 #include "custom_elements/beam_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/beam_elements/large_displacement_beam_element.hpp"
 #include "custom_elements/beam_elements/large_displacement_beam_emc_element.hpp"
 #include "custom_elements/beam_elements/large_displacement_beam_semc_element.hpp"
 #include "custom_elements/beam_elements/geometrically_exact_rod_element.hpp"
 
+//shell elements
 #include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 
@@ -365,7 +370,8 @@ typedef array_1d<double,6> Vector6;
    const UpdatedLagrangianUPElement                   mUpdatedLagrangianUPElement3D4N;
 
    //beams
-   const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
+   const SmallDisplacementBeamElement       mSmallDisplacementBeamElement3D2N;
+   //const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D3N;
    const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D2N;

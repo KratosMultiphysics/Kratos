@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 // 
@@ -190,7 +190,6 @@ protected:
      */
     std::vector<Vector>  mCurrentStrainResultantsVector;
 
-
     /**
      * Elemental previous strain resultant vectors for each integration point
      */
@@ -289,7 +288,7 @@ protected:
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber, double alpha) override;
+    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
 
 
     /**
@@ -351,7 +350,7 @@ protected:
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
+    virtual void CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access

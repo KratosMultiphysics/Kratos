@@ -21,6 +21,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 
+	# solid elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/linear_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_element.cpp
@@ -34,13 +35,16 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
 
+	# beam elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element_3D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_emc_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_semc_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/geometrically_exact_rod_element.cpp
-	
+
+	# shell elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thin_element_3D3N.cpp
 

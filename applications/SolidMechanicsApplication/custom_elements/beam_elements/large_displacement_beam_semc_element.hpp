@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 // 
@@ -96,7 +96,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
  
 
     //************* STARTING - ENDING  METHODS
@@ -105,12 +105,12 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
   
       /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
   
     //************************************************************************************
     //************************************************************************************
@@ -121,7 +121,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this function is designed to make the element to assemble an rRHS vector
@@ -136,9 +136,9 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled 
       * @param rCurrentProcessInfo: the current process info instance
      */
-    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo);
+    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, Variable<Matrix >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo);
+    void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, Variable<Matrix >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -150,7 +150,8 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  
     ///@}
     ///@name Access
     ///@{
@@ -162,7 +163,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam SEMC Element #" << Id();
@@ -170,13 +171,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam SEMC Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -211,7 +212,7 @@ protected:
      * Update strain current member variables
      */ 
     virtual void UpdateStrainVariables(ElementVariables& rVariables, 
-				       const unsigned int& rPointNumber);
+				       const unsigned int& rPointNumber) override;
 
     /**   
      * Calculate Element Strain Resultants
@@ -226,12 +227,12 @@ protected:
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber, double alpha);
+    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
 
     /**   
      * Calculate current curvature
      */
-    virtual void CalculateCurrentCurvature(ElementVariables& rVariables, const Variable<array_1d<double, 3 > >& rVariable);
+    virtual void CalculateCurrentCurvature(ElementVariables& rVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
 
 
     /**
@@ -240,7 +241,7 @@ protected:
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
-					   double& rIntegrationWeight);
+					   double& rIntegrationWeight) override;
 
 
     /**
@@ -249,14 +250,14 @@ protected:
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
-					   double& rIntegrationWeight);
+					   double& rIntegrationWeight) override;
 
 
 
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+    virtual void CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access
@@ -295,9 +296,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

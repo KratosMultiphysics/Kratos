@@ -13,16 +13,9 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/element.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
-#include "utilities/beam_math_utilities.hpp"
+#include "custom_elements/beam_elements/beam_element.hpp"
 
 namespace Kratos
 {
@@ -51,7 +44,7 @@ namespace Kratos
  */
 
 class LargeDisplacementBeamElement
-    :public Element
+    :public BeamElement
 {
 public:
 
@@ -74,233 +67,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementBeamElement );
 
     ///@}
-
-protected:
-
-    /**
-     * Flags related to the element computation
-     */
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
-    /**
-     * Parameters to be used to store section properties
-     */
-
-    struct SectionProperties
-    {
-      double Area;                            // Area or the beam section
-      double Inertia_z;                       // Moment of Inertia about the local z axis, Iz local
-      double Inertia_y;                       // Moment of Inertia about the local y axis, Iy local
-      double Polar_Inertia;                   // Polar Moment of Inertia, measures an object's ability to resist twisting, when acted upon by differences of torque along its length.
-
-      double Rotational_Inertia;              // Moment of Inertia about the local x axis, measures an object's resistance to changes in its rotational velocity when acted by a net resultant torque
-    };
-
-    /**
-     * This is used to compute the energy components for this element
-     */
-    struct EnergyVariables
-    {
-    public:
-      double Kinetic;    //Kinetic Energy
-      double External;   //External Work      
-      double Internal;   //Inernarl Work
-      double Deformation; //Deformation Energy
-      
-      array_1d<double,3> LinearMomentum;
-      array_1d<double,3> AngularMomentum;
-
-      void clear()
-      {
-	Kinetic     = 0;
-	External    = 0;
-	Internal    = 0;
-	Deformation = 0;
-	LinearMomentum.clear();
-	AngularMomentum.clear();
-      }
-    };
-
-
-    /**
-     * This is used to compute directions for this element
-     */
-    struct DirectorsVariables
-    {
-      //Current
-      std::vector<Vector> Current;
-      std::vector<Vector> CurrentDerivatives;
-
-      //Initial
-      std::vector<Vector> Initial;
-      std::vector<Vector> InitialDerivatives;
-
-      //Previous
-      std::vector<Vector> Previous;
-      std::vector<Vector> PreviousDerivatives;
-    
-
-      //NODAL VARIABLES 
-      std::vector<Matrix> InitialNode;
-      std::vector<Matrix> CurrentNode;       
-      std::vector<Matrix> PreviousNode;
-
-      std::vector<Matrix> CurrentNodeVelocities;        
-      std::vector<Matrix> PreviousNodeVelocities;
-    };
-
-
-    /**
-     * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
-     */
-
-    struct ElementVariables
-    {
-      private:
-
-        //variables including all integration points
-        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
-        const Matrix* pNcontainer;
-
-        //directors variables
-        DirectorsVariables* Directors;
-
-      public:
-
-        StressMeasureType StressMeasure;
-
-        //integration point
-        unsigned int PointNumber;
-
-        //section properties
-        SectionProperties Section;
- 
-        //element length
-        double  Length;
-        double  detJ;           
-
-        //equilibrium point
-        double Alpha;
-
-        //elemental variables
-        MatrixType LocalTransformationMatrix;
-   
-        //general variables for large displacement use
-        Vector  CurrentCurvatureVector;
-        Vector  PreviousCurvatureVector;
-      
-        Vector  CurrentStepRotationVector;
-
-        Vector  CurrentStrainResultantsVector;
-        Vector  PreviousStrainResultantsVector;
-
-        Vector  InitialAxisPositionDerivatives;
-        Vector  CurrentAxisPositionDerivatives;
-        Vector  PreviousAxisPositionDerivatives;
-
-        Vector  StrainVector;
-        Vector  StressVector;
-        Vector  N;
-
-        Matrix  DN_DX;
-        Matrix  ConstitutiveMatrix;
-
-
-        Matrix  AlphaRotationMatrix;
-        Matrix  AlphaRotationMatrixAsterisk;
-
-        Matrix  CurrentRotationMatrix;
-        Matrix  PreviousRotationMatrix;
- 
- 
-        //variables including all integration points
-        GeometryType::JacobiansType J;
-        GeometryType::JacobiansType j;
-        Matrix  DeltaPosition;
-
-        /**
-         * sets the value of a specified pointer variable
-         */
-        void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)
-        {
-            pDN_De=&rDN_De;
-        };
-
-        void SetShapeFunctions(const Matrix& rNcontainer)
-        {
-            pNcontainer=&rNcontainer;
-        };
-
-        
-        void SetDirectors(DirectorsVariables& rDirectors)
-        {
-            Directors=&rDirectors;
-        };
-
-        /**
-         * returns the value of a specified pointer variable
-         */
-        const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()
-        {
-            return *pDN_De;
-        };
-
-        const Matrix& GetShapeFunctions()
-        {
-            return *pNcontainer;
-        };
-
-        DirectorsVariables& GetDirectors()
-        {
-            return *Directors;
-        };
-
-    };
-
-
-    /**
-     * This struct is used in the component wise calculation only
-     * is defined here and is used to declare a member variable in the component wise elements
-     * private pointers can only be accessed by means of set and get functions
-     * this allows to set and not copy the local system variables
-     */
-
-    struct LocalSystemComponents
-    {
-    private:
-      
-      //for calculation local system with compacted LHS and RHS 
-      MatrixType *mpLeftHandSideMatrix;
-      VectorType *mpRightHandSideVector;
-
-    public:
-
-      //calculation flags
-      Flags        CalculationFlags;
-
-      /**
-       * sets the value of a specified pointer variable
-       */
-      void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-
-      void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-
-
-      /**
-       * returns the value of a specified pointer variable
-       */
-      MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-
-      VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
- 
-    };
-
-
-public:
-
     ///@name Life Cycle
     ///@{
 
@@ -331,72 +97,6 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
 
-  
-
-    //************* GETTING METHODS
-
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-
-    IntegrationMethod GetIntegrationMethod() const;
-
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0);
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
-
-    //on integration points:
-    /**
-     * Access for variables on Integration points.
-     * This gives access to variables stored in the constitutive law on each integration point.
-     * Specialisations of element.h (e.g. the TotalLagrangian) must specify the actual
-     * interface to the constitutive law!
-     * Note, that these functions expect a std::vector of values for the
-     * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
-     */
-
-    //GET:
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     */
-    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
-				      std::vector<double>& rValues, 
-				      const ProcessInfo& rCurrentProcessInfo );
-
-    /**
-     * Get on rVariable a Vector Value from the Element Constitutive Law
-     */
-    void GetValueOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
-				      std::vector< array_1d<double, 3 > >& rValues,
-				      const ProcessInfo& rCurrentProcessInfo );
-
-
-    //************* STARTING - ENDING  METHODS
-
     /**
       * Called to initialize the element.
       * Must be called before any calculation is done
@@ -424,66 +124,9 @@ public:
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
+
     //************* COMPUTING  METHODS
 
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side vector only
-     * @param rLeftHandSideVector: the elemental left hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the second derivatives contributions for the LHS and RHS 
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-						VectorType& rRightHandSideVector,
-						ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the second derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the second derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-				       ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -493,21 +136,6 @@ public:
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-
-    /**
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector: input variable containing the RHS vector to be assembled
-     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled 
-      * @param rCurrentProcessInfo: the current process info instance
-     */
-    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo);
 
     //on integration points:
     /**
@@ -536,16 +164,17 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo);
+  
     ///@}
     ///@name Access
     ///@{
-
     ///@}
     ///@name Inquiry
     ///@{
     ///@}
     ///@name Input and output
     ///@{
+  
     /// Turn back information as a string.
     virtual std::string Info() const
     {
@@ -565,6 +194,7 @@ public:
     {
       GetGeometry().PrintData(rOStream);
     }
+  
     ///@}
     ///@name Friends
     ///@{
@@ -579,19 +209,44 @@ protected:
     ///@{
 
     /**
-     * Currently selected integration methods
+     * Currently selected reduced integration method
      */
-    IntegrationMethod mThisIntegrationMethod;
+    IntegrationMethod mReducedIntegrationMethod;
 
-      /**
+    /**
+     * Currently selected full integration method
+     */
+    IntegrationMethod mFullIntegrationMethod;
+  
+    /**
+     * Iteration counter
+     */
+    int  mIterationCounter;  
+
+    /**
+     * Container for historical total Jacobians 
+     */
+    std::vector< Vector > mInvJ0Reduced;
+
+    /**
+     * Container for the total Jacobian determinants
+     */
+    Vector mDetJ0Reduced;
+
+    /**
+     * Container for historical total Jacobians
+     */
+    std::vector< Vector > mInvJ0Full;
+
+    /**
+     * Container for the total Jacobian determinants
+     */
+    Vector mDetJ0Full;
+  
+    /**
      * Elemental curvature vectors for each integration point
      */
     std::vector<Vector>  mCurrentCurvatureVectors;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation SPATIAL
-     */
-    std::vector<QuaternionType>  mInitialLocalQuaternionsReduced;
 
     /**
      * Global to Local Quaternion for Global to Local tensor transformation MATERIAL
@@ -604,12 +259,6 @@ protected:
     std::vector<QuaternionType>  mPreviousLocalQuaternionsReduced;
 
     /**
-     * Global to Local Quaternion for Global to Local tensor transformation SPATIAL
-     */
-    std::vector<QuaternionType>  mInitialLocalQuaternionsFull;
-
-
-    /**
      * Global to Local Quaternion for Global to Local tensor transformation MATERIAL
      */
     std::vector<QuaternionType>  mCurrentLocalQuaternionsFull;
@@ -618,38 +267,6 @@ protected:
      * Global to Local Quaternion for Global to Local tensor transformation 
      */
     std::vector<QuaternionType>  mPreviousLocalQuaternionsFull; 
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation
-     */
-    int  mIterationCounter;
-   
-
-    /**
-     * Container for historical total Jacobians 
-     */
-    std::vector< Vector > mInvJ0Reduced;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0Reduced;
-
-
-    /**
-     * Container for historical total Jacobians
-     */
-    std::vector< Vector > mInvJ0Full;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0Full;
-
-     /**
-     * Energy variables
-     */
-    EnergyVariables mEnergy;
 
     ///@}
     ///@name Protected Operators
@@ -660,16 +277,17 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Returns the currently selected reduced integration method
+     * @return current integration method selected
+     */
+    IntegrationMethod GetReducedIntegrationMethod() const;
 
     /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
+     * Returns the currently selected full integration method
+     * @return current integration method selected
      */
-  
-    virtual void CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-					   ProcessInfo& rCurrentProcessInfo );
-
+    IntegrationMethod GetFullIntegrationMethod() const;
 
     /**
      * Calculates the elemental dynamic contributions
@@ -677,68 +295,11 @@ protected:
     virtual void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 					 ProcessInfo& rCurrentProcessInfo );
 
-
-    /**
-     * Initialize System Matrices
-     */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-				  VectorType& rRightHandSideVector,
-				  Flags& rCalculationFlags);
-
-
-    /**
-     * Transform Vector Variable from Global Frame to the Spatial Local Frame
-     */    
-    Vector& MapToInitialLocalFrame(Vector& rVariable,
-				   unsigned int PointNumber = 0);
-
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
      */    
     virtual void MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable);
 
-
-    /**
-     * Get Current Value in the integration point in the Local Reference configuration, buffer 0 with FastGetSolutionStepValue
-     */    
-    Vector& GetLocalCurrentValue(const Variable<array_1d<double,3> >&rVariable, 
-				 Vector& rValue, 
-				 const Vector& rN);
-
-
-    /**
-     * Get Reference Value in the integration point in the Local Reference configuration, buffer 1 with FastGetSolutionStepValue
-     */    
-    Vector& GetLocalPreviousValue(const Variable<array_1d<double,3> >&rVariable, 
-				  Vector& rValue, 
-				  const Vector& rN);
-
-
-    /**
-     * Get Current Value, buffer 0 with FastGetSolutionStepValue
-     */    
-    Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, 
-				 Vector& rValue, 
-				 const unsigned int& rNode);
-
-    /**
-     * Get Reference Value, buffer 1 with FastGetSolutionStepValue
-     */    
-    Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, 
-				  Vector& rValue, 
-				  const unsigned int& rNode);
-
-    /**
-     * Initialize Element General Variables
-     */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Calculation of the Section Properties
-     */
-    void CalculateSectionProperties(SectionProperties & rSection);
-  
 
     /**
      * Calculation of the Curvature derivative
@@ -777,18 +338,6 @@ protected:
 				       const unsigned int& rPointNumber);
 
 
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-
-    /**   
-     * Get Element Material Constitutive Matrix
-     */ 
-    void GetMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementVariables& rVariables);
-
-
     /**   
      * Calculate Element Constitutive Matrix
      */ 
@@ -798,22 +347,7 @@ protected:
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber, double alpha = 0);
-
-    /**
-     * Calculation and addition of the matrices of the LHS
-     */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight);
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& VolumeForce, double& rIntegrationWeight);
-
-   /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber);
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
@@ -860,7 +394,6 @@ protected:
 					       ElementVariables& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight);
-
 
 
 
@@ -917,18 +450,6 @@ protected:
     void CalculateBmatrix(MatrixType& rBmatrix,
 			  ElementVariables& rVariables);
 
-
-    /**
-     * Calculation of the Rotation tensor
-     */
-    void CalculateLocalAxesMatrix(Matrix& rRotationMatrix);
-
-
-    /**
-     * Calculation of the Volume Force of the Element
-     */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
-
     /**
      * Calculation of Element Mass
      */ 
@@ -962,19 +483,30 @@ protected:
 
 
     /**
+     * External forces energy computation
+     */
+    virtual void CalculateExternalForcesEnergy(double& rEnergy, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight);
+
+    /**
+     * Internal forces energy computation
+     */
+    virtual void CalculateInternalForcesEnergy(double& rEnergy, ElementVariables& rVariables, double& rIntegrationWeight);
+
+  
+   /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
-
+    virtual void CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+  
     /**
      * Get Element Mass/Inertia Matrix for energy computation
      */
-    virtual void CalculateKineticEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+    virtual void CalculateKineticEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
 
     /**
      * Get Element Linear and Angular Momentum
      */
-    virtual void CalculateMomentumRelations(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+    virtual void CalculateMomentumRelations(array_1d<double,3>& LinearMomentum, array_1d<double,3>& AngularMomentum, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
 
     ///@}
     ///@name Protected  Access

@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 // 
@@ -21,68 +21,68 @@ namespace Kratos
 {
 
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
 
-LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(IndexType NewId,GeometryType::Pointer pGeometry)
+  LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(IndexType NewId,GeometryType::Pointer pGeometry)
     : LargeDisplacementBeamElement(NewId, pGeometry)
-{
-}
+  {
+  }
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
 
 
-LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+  LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : LargeDisplacementBeamElement(NewId, pGeometry, pProperties)
-{
+  {
     KRATOS_TRY
 
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+      mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
 
     KRATOS_CATCH( "" )
-}
+      }
 
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
+  //******************************COPY CONSTRUCTOR**************************************
+  //************************************************************************************
 
-LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(LargeDisplacementBeamEMCElement const& rOther)
+  LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(LargeDisplacementBeamEMCElement const& rOther)
     :LargeDisplacementBeamElement(rOther)
     ,mPreviousCurvatureVectors(rOther.mPreviousCurvatureVectors)
     ,mCurrentStrainResultantsVector(rOther.mCurrentStrainResultantsVector)
     ,mPreviousStrainResultantsVector(rOther.mPreviousStrainResultantsVector)
-{
+  {
 
-}
+  }
 
-//*********************************OPERATIONS*****************************************
-//************************************************************************************
+  //*********************************OPERATIONS*****************************************
+  //************************************************************************************
 
-Element::Pointer LargeDisplacementBeamEMCElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-{
+  Element::Pointer LargeDisplacementBeamEMCElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+  {
     return Element::Pointer(new LargeDisplacementBeamEMCElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-}
+  }
 
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
+  //*******************************DESTRUCTOR*******************************************
+  //************************************************************************************
 
-LargeDisplacementBeamEMCElement::~LargeDisplacementBeamEMCElement()
-{
-}
+  LargeDisplacementBeamEMCElement::~LargeDisplacementBeamEMCElement()
+  {
+  }
 
-//************* STARTING - ENDING  METHODS
-//************************************************************************************
-//************************************************************************************
+  //************* STARTING - ENDING  METHODS
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::Initialize()
-{
+  void LargeDisplacementBeamEMCElement::Initialize()
+  {
     KRATOS_TRY
       
     LargeDisplacementBeamElement::Initialize();
 
     //------------- REDUCED QUADRATURE INTEGRATION 
       
-    IntegrationMethod ReducedIntegrationMethod = GeometryData::GI_GAUSS_1;
+    IntegrationMethod ReducedIntegrationMethod = this->GetReducedIntegrationMethod();
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ReducedIntegrationMethod );
 
@@ -94,7 +94,8 @@ void LargeDisplacementBeamEMCElement::Initialize()
     
     for ( unsigned int i = 0; i < mPreviousCurvatureVectors.size(); i++ )
       {
-	mPreviousCurvatureVectors[i] = ZeroVector(3);
+	mPreviousCurvatureVectors[i].resize(3,false);
+	noalias(mPreviousCurvatureVectors[i]) = ZeroVector(3);
       }
 
     //Resultants Initialization
@@ -105,7 +106,8 @@ void LargeDisplacementBeamEMCElement::Initialize()
     
     for ( unsigned int i = 0; i < mCurrentStrainResultantsVector.size(); i++ )
       {
-	mCurrentStrainResultantsVector[i] = ZeroVector(3);
+	mCurrentStrainResultantsVector[i].resize(3,false);
+	noalias(mCurrentStrainResultantsVector[i]) = ZeroVector(3);
       } 
 
 
@@ -117,19 +119,19 @@ void LargeDisplacementBeamEMCElement::Initialize()
 
     for ( unsigned int i = 0; i < mPreviousStrainResultantsVector.size(); i++ )
       {
-	mPreviousStrainResultantsVector[i] = ZeroVector(3);
+	mPreviousStrainResultantsVector[i].resize(3,false);
+	noalias(mPreviousStrainResultantsVector[i]) = ZeroVector(3);
       }
-
    
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
+  void LargeDisplacementBeamEMCElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     LargeDisplacementBeamElement::InitializeSolutionStep(rCurrentProcessInfo);
@@ -145,55 +147,47 @@ void LargeDisplacementBeamEMCElement::InitializeSolutionStep(ProcessInfo& rCurre
       }
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
 
-//************************************************************************************
-//************************************************************************************
-void LargeDisplacementBeamEMCElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
+  //************************************************************************************
+  //************************************************************************************
+  void LargeDisplacementBeamEMCElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  {
     KRATOS_TRY
 
-    mEnergy.clear();
-
     KRATOS_CATCH( "" )
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-     KRATOS_TRY
+  void LargeDisplacementBeamEMCElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
     
-     mIterationCounter++;
-
-     KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementBeamEMCElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
+    mIterationCounter++;
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-//*****************************************************************************
-//*****************************************************************************
+  void LargeDisplacementBeamEMCElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  {
+    KRATOS_TRY
 
-void LargeDisplacementBeamEMCElement::MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable)
-{
+    KRATOS_CATCH( "" )
+  }
+
+  //*****************************************************************************
+  //*****************************************************************************
+
+  void LargeDisplacementBeamEMCElement::MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable)
+  {
 
     KRATOS_TRY
 
@@ -203,7 +197,8 @@ void LargeDisplacementBeamEMCElement::MapToSpatialFrame(const ElementVariables& 
 
     unsigned int MatSize = rVariable.size1();
    
-    Matrix AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
  
     //Building the rotation matrix for the local element matrix N+Alpha
     for (unsigned int i=0; i<dimension; i++)
@@ -223,42 +218,43 @@ void LargeDisplacementBeamEMCElement::MapToSpatialFrame(const ElementVariables& 
       }
     
     //Rotate Local Stiffness Matrix
-    Matrix aux_matrix   = ZeroMatrix(MatSize,MatSize);
+    Matrix aux_matrix(MatSize,MatSize);
+    noalias(aux_matrix) = ZeroMatrix(MatSize,MatSize);
     noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rVariable);
 
 
-    AuxiliarRotationMatrix = ZeroMatrix(MatSize,MatSize);
+    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
     //Building the rotation matrix for the local element matrix N+1
     for (unsigned int kk=0; kk < MatSize; kk += dimension)
-    {
+      {
         for (unsigned int i=0; i<dimension; i++)
-        {
+	  {
             for(unsigned int j=0; j<dimension; j++)
-            {
-	      AuxiliarRotationMatrix(i+kk,j+kk) = rVariables.CurrentRotationMatrix(i,j);
-            }
-        }
-    }
+	      {
+		AuxiliarRotationMatrix(i+kk,j+kk) = rVariables.CurrentRotationMatrix(i,j);
+	      }
+	  }
+      }
 
     //Transformed Matrix
-    rVariable = ZeroMatrix(MatSize,MatSize);
+    noalias(rVariable) = ZeroMatrix(MatSize,MatSize);
     noalias(rVariable) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
       
 
     KRATOS_CATCH( "" )
 
-}
-//************************************************************************************
-//************************************************************************************
+  }
+  
+  //************************************************************************************
+  //************************************************************************************
 
-
-void LargeDisplacementBeamEMCElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
+  void LargeDisplacementBeamEMCElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     LargeDisplacementBeamElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //Set equilibrium point initial:0/mid:0.5/final:1
     if( rCurrentProcessInfo.Has(EQUILIBRIUM_POINT) )
@@ -270,26 +266,20 @@ void LargeDisplacementBeamEMCElement::InitializeElementVariables(ElementVariable
     rVariables.PreviousRotationMatrix.resize( dimension, dimension );
     
     KRATOS_CATCH( "" )
-}
+  }
 
+  //*********************************COMPUTE KINEMATICS*********************************
+  //************************************************************************************
 
-
-//*********************************COMPUTE KINEMATICS*********************************
-//************************************************************************************
-
-void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementVariables& rVariables, const unsigned int& rPointNumber)
-{
+  void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  {
     KRATOS_TRY
-
 
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
 
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
-
-    //Parent to reference configuration
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //point number
     rVariables.PointNumber = rPointNumber;
@@ -301,26 +291,27 @@ void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementVariables& rVar
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
      
     //TOTAL LAGRANGIAN
-    //Compute cartesian derivatives [dN/dx_0]    
-    if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 1 ){
+    //Compute cartesian derivatives [dN/dx_0]
+    if( mThisIntegrationMethod == mReducedIntegrationMethod ){
       rVariables.DN_DX = mInvJ0Reduced[rPointNumber][0] * DN_De[rPointNumber]; 
       rVariables.detJ  = mDetJ0Reduced[rPointNumber];
     }
-    
-    if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 2 ){
+
+    if( mThisIntegrationMethod == mFullIntegrationMethod ){
       rVariables.DN_DX = mInvJ0Full[rPointNumber][0] * DN_De[rPointNumber]; 
       rVariables.detJ  = mDetJ0Full[rPointNumber];
     }
 
     //********************************************************//
 
-    rVariables.CurrentAxisPositionDerivatives = ZeroVector(dimension);
-    rVariables.PreviousAxisPositionDerivatives = ZeroVector(dimension);
+    noalias(rVariables.CurrentAxisPositionDerivatives) = ZeroVector(dimension);
+    noalias(rVariables.PreviousAxisPositionDerivatives) = ZeroVector(dimension);
 
     //compute local to global frame
     this->CalculateFrameMapping(rVariables, rPointNumber );
 	
-    Vector CurrentValueVector = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
 
     //strains due to displacements and rotations
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -345,7 +336,7 @@ void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementVariables& rVar
 	CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
 
 	//Previous Frame Axis Position derivative
-	rVariables.PreviousAxisPositionDerivatives     +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
+	rVariables.PreviousAxisPositionDerivatives +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
 
       }
     
@@ -361,16 +352,17 @@ void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementVariables& rVar
 
 
     KRATOS_CATCH( "" )
-}
+      }
 
 
-//*************************COMPUTE FRAME MAPPING*************************************
-//************************************************************************************
+  //*************************COMPUTE FRAME MAPPING*************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementVariables& rVariables,const unsigned int& rPointNumber)
-{
+  void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementVariables& rVariables,const unsigned int& rPointNumber)
+  {
 
-    Vector CurrentStepRotationVector  = ZeroVector(3);
+    Vector CurrentStepRotationVector(3);
+    noalias(CurrentStepRotationVector) = ZeroVector(3);
     this->GetLocalCurrentValue(STEP_ROTATION, CurrentStepRotationVector, rVariables.N);
 
     // const unsigned int number_of_nodes = GetGeometry().size();
@@ -386,8 +378,8 @@ void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementVariables& rV
  
     QuaternionType PreviousLocalQuaternion;
     if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 1 ){
-	PreviousLocalQuaternion = mPreviousLocalQuaternionsReduced[rPointNumber];
-	mPreviousLocalQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
+      PreviousLocalQuaternion = mPreviousLocalQuaternionsReduced[rPointNumber];
+      mPreviousLocalQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
 
     if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 2 ){
@@ -395,7 +387,8 @@ void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementVariables& rV
       mPreviousLocalQuaternionsFull[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
 
-    Matrix CayleyRotationMatrix = ZeroMatrix(3,3);      
+    Matrix CayleyRotationMatrix(3,3);
+    noalias(CayleyRotationMatrix) = ZeroMatrix(3,3);      
     BeamMathUtilsType::CayleyTransform( CurrentStepRotationVector, CayleyRotationMatrix );
     rVariables.CurrentRotationMatrix = prod(CayleyRotationMatrix, rVariables.PreviousRotationMatrix);
 
@@ -410,43 +403,29 @@ void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementVariables& rV
 
     //*------------------------------*//
 
-    //update the global to local transformation matrix with the frame rotation matrix
-    rVariables.LocalTransformationMatrix = ZeroMatrix(3,3);
-
-    QuaternionType SpatialLocalQuaternion;
-    if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 1 ){
-      SpatialLocalQuaternion = mInitialLocalQuaternionsReduced[rPointNumber];
-    }
-     
-    if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 2 ){
-      SpatialLocalQuaternion = mInitialLocalQuaternionsFull[rPointNumber];
-    }
-
-    SpatialLocalQuaternion.ToRotationMatrix(rVariables.LocalTransformationMatrix);
-
     //set variables for the initialization update
     this->UpdateRotationVariables(rVariables,rPointNumber);
 
-}
+  }
 
-//*********************************SET ROTATION VARIABLES*****************************
-//************************************************************************************
+  //*********************************SET ROTATION VARIABLES*****************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::UpdateRotationVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
-{
+  void LargeDisplacementBeamEMCElement::UpdateRotationVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  {
     KRATOS_TRY
 
     LargeDisplacementBeamElement::UpdateRotationVariables(rVariables,rPointNumber);
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//*********************************SET STRAIN VARIABLES*******************************
-//************************************************************************************
+  //*********************************SET STRAIN VARIABLES*******************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::UpdateStrainVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
-{
+  void LargeDisplacementBeamEMCElement::UpdateStrainVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  {
     KRATOS_TRY
 
     LargeDisplacementBeamElement::UpdateStrainVariables(rVariables, rPointNumber);
@@ -455,39 +434,38 @@ void LargeDisplacementBeamEMCElement::UpdateStrainVariables(ElementVariables& rV
     mCurrentCurvatureVectors[rPointNumber]       = rVariables.CurrentCurvatureVector;
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateAlphaRotationMatrix( const Matrix& rPreviousRotationMatrix,
-								     const Matrix& rCurrentRotationMatrix,
-								     Matrix& rAlphaRotationMatrix,
-								     Matrix& rAlphaRotationMatrixAsterisk,
-								     double alpha)
-{
-  KRATOS_TRY
+  void LargeDisplacementBeamEMCElement::CalculateAlphaRotationMatrix( const Matrix& rPreviousRotationMatrix,
+								      const Matrix& rCurrentRotationMatrix,
+								      Matrix& rAlphaRotationMatrix,
+								      Matrix& rAlphaRotationMatrixAsterisk,
+								      double alpha)
+  {
+    KRATOS_TRY
 
-  rAlphaRotationMatrix = (1-alpha) * (rPreviousRotationMatrix) + alpha * rCurrentRotationMatrix;
+    rAlphaRotationMatrix = (1-alpha) * (rPreviousRotationMatrix) + alpha * rCurrentRotationMatrix;
 
-  double DetRotationMatrix = 0;
-  MathUtils<double>::InvertMatrix3( rAlphaRotationMatrix, rAlphaRotationMatrixAsterisk, DetRotationMatrix);
-  rAlphaRotationMatrixAsterisk = DetRotationMatrix *  trans(rAlphaRotationMatrixAsterisk);
-    
+    double DetRotationMatrix = 0;
+    MathUtils<double>::InvertMatrix3( rAlphaRotationMatrix, rAlphaRotationMatrixAsterisk, DetRotationMatrix);
+    rAlphaRotationMatrixAsterisk = DetRotationMatrix *  trans(rAlphaRotationMatrixAsterisk);   
   
-  KRATOS_CATCH( "" )
- } 
+    KRATOS_CATCH( "" )
+  } 
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
-{
+  void LargeDisplacementBeamEMCElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
+  {
     KRATOS_TRY
 
     // Material Elastic constitutive matrix
-    this->GetMaterialConstitutiveMatrix(rVariables.ConstitutiveMatrix, rVariables);
+    this->CalculateMaterialConstitutiveMatrix(rVariables.ConstitutiveMatrix, rVariables);
     
     //Spatial Elastic constitutive matrix
     this->MapToSpatialFrame( rVariables, rVariables.ConstitutiveMatrix);
@@ -495,23 +473,24 @@ void LargeDisplacementBeamEMCElement::CalculateConstitutiveMatrix(ElementVariabl
     rVariables.ConstitutiveMatrix *= rVariables.Alpha;
 
     KRATOS_CATCH( "" )
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateStrainResultants(Vector& rStrainResultants, ElementVariables& rVariables, double alpha)
-{
+  void LargeDisplacementBeamEMCElement::CalculateStrainResultants(Vector& rStrainResultants, ElementVariables& rVariables, double alpha)
+  {
     KRATOS_TRY
 
     // current Strain Resultants  N+alpha
     if( rStrainResultants.size() != 3 )
       rStrainResultants.resize(3, false);
 
-    rStrainResultants = ZeroVector(3); 
+    noalias(rStrainResultants) = ZeroVector(3); 
 
     //OPTION ENERGY CONSERVATION START
-    Vector CurrentStrainResultantsVector = ZeroVector(3);
+    Vector CurrentStrainResultantsVector(3);
+    noalias(CurrentStrainResultantsVector) = ZeroVector(3);
     CalculateCurrentStrainResultantsVector( rVariables, CurrentStrainResultantsVector, alpha );
 
     rStrainResultants  = (1-alpha) * rVariables.PreviousStrainResultantsVector + alpha * CurrentStrainResultantsVector;
@@ -519,26 +498,27 @@ void LargeDisplacementBeamEMCElement::CalculateStrainResultants(Vector& rStrainR
 
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateStrainCouples(Vector& rStrainCouples, ElementVariables& rVariables, double alpha)
-{
+  void LargeDisplacementBeamEMCElement::CalculateStrainCouples(Vector& rStrainCouples, ElementVariables& rVariables, double alpha)
+  {
     KRATOS_TRY
 
     // current Strain Couples  N+alpha
     if( rStrainCouples.size() != 3 )
       rStrainCouples.resize(3, false);
     
-    rStrainCouples = ZeroVector(3); 
+    noalias(rStrainCouples) = ZeroVector(3); 
 
     //------------------------
 
     //OPTION ENERGY CONSERVATION START
-    Vector CurrentCurvatureVector = ZeroVector(3);
+    Vector CurrentCurvatureVector(3);
+    noalias(CurrentCurvatureVector) = ZeroVector(3);
     CalculateCurrentCurvatureVector( rVariables, CurrentCurvatureVector, alpha );
 
     rStrainCouples = (1-alpha) * rVariables.PreviousCurvatureVector + alpha * CurrentCurvatureVector;
@@ -546,25 +526,31 @@ void LargeDisplacementBeamEMCElement::CalculateStrainCouples(Vector& rStrainCoup
 
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(ElementVariables& rVariables, 
-									      Vector& rCurrentStrainResultantsVector,
-									      double Alpha)
-{
+  void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(ElementVariables& rVariables, 
+									       Vector& rCurrentStrainResultantsVector,
+									       double Alpha)
+  {
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    Vector CurrentStepDisplacementDerivativesVector = ZeroVector(3);
-    Vector CurrentStepRotationDerivativesVector     = ZeroVector(3);
-    Vector CurrentStepRotationVector                = ZeroVector(3);
-    Vector CurrentStepDisplacementVector            = ZeroVector(3);
-    Vector CurrentValueVector                       = ZeroVector(3);
+    Vector CurrentStepDisplacementDerivativesVector(3);
+    noalias(CurrentStepDisplacementDerivativesVector) = ZeroVector(3);
+    Vector CurrentStepRotationDerivativesVector(3);
+    noalias(CurrentStepRotationDerivativesVector) = ZeroVector(3);
+    Vector CurrentStepRotationVector(3);
+    noalias(CurrentStepRotationVector) = ZeroVector(3);
+    Vector CurrentStepDisplacementVector(3);
+    noalias(CurrentStepDisplacementVector) = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    
     const unsigned int number_of_nodes = GetGeometry().size();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -580,9 +566,9 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(Ele
     	//Current Step Displacement Derivatives	
 	//CurrentValueVector = GetNodalCurrentValue( STEP_DISPLACEMENT, CurrentValueVector, i );
 	for ( unsigned int j = 0; j < dimension; j++ )
-        {
-	  CurrentValueVector[j] = rVariables.DeltaPosition(i,j);
-        }
+	  {
+	    CurrentValueVector[j] = rVariables.DeltaPosition(i,j);
+	  }
 
     	CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rVariables.PointNumber );
 
@@ -594,8 +580,11 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(Ele
 
     double alpha = 0.5; //Alpha;
 
-    Matrix AlphaRotationMatrix = ZeroMatrix(3,3);
-    Matrix AlphaRotationMatrixAsterisk = ZeroMatrix(3,3);
+    Matrix AlphaRotationMatrix(3,3);
+    noalias(AlphaRotationMatrix) = ZeroMatrix(3,3);
+    Matrix AlphaRotationMatrixAsterisk(3,3);
+    noalias(AlphaRotationMatrixAsterisk) = ZeroMatrix(3,3);
+    
     CalculateAlphaRotationMatrix( rVariables.PreviousRotationMatrix, rVariables.CurrentRotationMatrix, AlphaRotationMatrix, AlphaRotationMatrixAsterisk, alpha);
   
     Vector AxisPositionDerivativesAlpha = (1-alpha) * rVariables.PreviousAxisPositionDerivatives + alpha * rVariables.CurrentAxisPositionDerivatives;
@@ -608,7 +597,8 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(Ele
     //std::cout<<" Displacement "<<CurrentStepDisplacementVector<<std::endl;
     //-----------
     // CASE A:
-    Vector CurrentStrainResultantsVectorA = ZeroVector(3);
+    Vector CurrentStrainResultantsVectorA(3);
+    noalias(CurrentStrainResultantsVectorA) = ZeroVector(3);
     CurrentStrainResultantsVectorA  = rVariables.PreviousStrainResultantsVector;
     CurrentStrainResultantsVectorA += prod( trans(AlphaRotationMatrix), AxisDisplacementDerivatives );
 
@@ -616,7 +606,8 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(Ele
 
     //-----------
     // CASE B:
-    Vector CurrentStrainResultantsVectorB = ZeroVector(3);
+    Vector CurrentStrainResultantsVectorB(3);
+    noalias(CurrentStrainResultantsVectorB) = ZeroVector(3);
     CurrentStrainResultantsVectorB = rVariables.PreviousStrainResultantsVector;
     CurrentStrainResultantsVectorB += prod( trans(AlphaRotationMatrix), CurrentStepDisplacementDerivativesVector );
     Matrix DeltaRotationMatrix = rVariables.CurrentRotationMatrix - rVariables.PreviousRotationMatrix;
@@ -626,13 +617,15 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(Ele
 
     //-----------
     // CASE C:
-    Vector CurrentStrainResultantsVectorC = ZeroVector(3);
+    Vector CurrentStrainResultantsVectorC(3);
+    noalias(CurrentStrainResultantsVectorC) = ZeroVector(3);
 
     // Axis vector in the REFERENCE initial frame
-    Vector E3 = ZeroVector(3);
-    E3[2] = 1.0;
+    Vector E1(3);
+    noalias(E1) = ZeroVector(3);
+    E1[0] = 1.0;
     
-    CurrentStrainResultantsVectorC = prod( trans(rVariables.CurrentRotationMatrix), rVariables.CurrentAxisPositionDerivatives ) - E3;
+    CurrentStrainResultantsVectorC = prod( trans(rVariables.CurrentRotationMatrix), rVariables.CurrentAxisPositionDerivatives ) - E1;
 
     //std::cout<<" StrainResultant C: "<< CurrentStrainResultantsVectorC <<std::endl;
 
@@ -647,23 +640,24 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(Ele
     //std::cout<<" CurrentStrainResultants "<<rCurrentStrainResultantsVector<<std::endl;
 
 
-
-
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateCurrentCurvatureVector(ElementVariables& rVariables, 
-								       Vector& rCurrentCurvatureVector,
-								       double Alpha)
-{
+  void LargeDisplacementBeamEMCElement::CalculateCurrentCurvatureVector(ElementVariables& rVariables, 
+									Vector& rCurrentCurvatureVector,
+									double Alpha)
+  {
     KRATOS_TRY
 
-    Vector CurrentStepRotationDerivativesVector = ZeroVector(3);
-    Vector CurrentValueVector = ZeroVector(3);
+    Vector CurrentStepRotationDerivativesVector(3);
+    noalias(CurrentStepRotationDerivativesVector) = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    
     const unsigned int number_of_nodes = GetGeometry().size();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -681,35 +675,37 @@ void LargeDisplacementBeamEMCElement::CalculateCurrentCurvatureVector(ElementVar
       alpha = rVariables.Alpha;
     
 
-    Matrix AlphaRotationMatrix         = ZeroMatrix(3,3);
-    Matrix AlphaRotationMatrixAsterisk = ZeroMatrix(3,3);
+    Matrix AlphaRotationMatrix(3,3);
+    noalias(AlphaRotationMatrix) = ZeroMatrix(3,3);
+    Matrix AlphaRotationMatrixAsterisk(3,3);
+    noalias(AlphaRotationMatrixAsterisk) = ZeroMatrix(3,3);
 
     CalculateAlphaRotationMatrix( rVariables.PreviousRotationMatrix, rVariables.CurrentRotationMatrix, AlphaRotationMatrix, AlphaRotationMatrixAsterisk, alpha);
-
 
     rCurrentCurvatureVector  = rVariables.PreviousCurvatureVector;
     rCurrentCurvatureVector += prod( trans(AlphaRotationMatrixAsterisk), CurrentStepRotationDerivativesVector );
 
-
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber, double alpha)
-{
+  void LargeDisplacementBeamEMCElement::CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  {
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
-    Vector StrainResultants = ZeroVector(3); 
-    Vector StrainCouples = ZeroVector(3); 
+    Vector StrainResultants(3);
+    noalias(StrainResultants) = ZeroVector(3); 
+    Vector StrainCouples(3);
+    noalias(StrainCouples) = ZeroVector(3); 
 
-    CalculateStrainResultants(StrainResultants, rVariables, alpha);
-    CalculateStrainCouples(StrainCouples, rVariables, alpha);
+    CalculateStrainResultants(StrainResultants, rVariables, rVariables.Alpha);
+    CalculateStrainCouples(StrainCouples, rVariables, rVariables.Alpha);
 
     //std::cout<<" CurrentAxisPositionDerivatives "<<rVariables.CurrentAxisPositionDerivatives<<std::endl;
 
@@ -721,15 +717,18 @@ void LargeDisplacementBeamEMCElement::CalculateStressResultants(ElementVariables
     
     //----------------
 
-    Matrix ConstitutiveMatrix  = ZeroMatrix(6,6);
-    this->GetMaterialConstitutiveMatrix(ConstitutiveMatrix, rVariables);
+    Matrix ConstitutiveMatrix(6,6);
+    noalias(ConstitutiveMatrix) = ZeroMatrix(6,6);
+    this->CalculateMaterialConstitutiveMatrix(ConstitutiveMatrix, rVariables);
 
     //Reference Stress Vector
     rVariables.StressVector = prod( ConstitutiveMatrix, rVariables.StrainVector );
 
 
-    Vector StressResultants = ZeroVector(dimension);
-    Vector StressCouples    = ZeroVector(dimension);
+    Vector StressResultants(3);
+    noalias(StressResultants) = ZeroVector(3);
+    Vector StressCouples(3);
+    noalias(StressCouples) = ZeroVector(3);
 
     for ( unsigned int i = 0; i < dimension; i++ )
       {
@@ -759,23 +758,25 @@ void LargeDisplacementBeamEMCElement::CalculateStressResultants(ElementVariables
 
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-//Strain Energy Calculation 
-void LargeDisplacementBeamEMCElement::CalculateStrainEnergy(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
-{
+  //Strain Energy Calculation 
+  void LargeDisplacementBeamEMCElement::CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  {
     KRATOS_TRY
 
     //Internal Energy Calculation: alpha = 1     
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
-    Vector StrainResultants = ZeroVector(3); 
-    Vector StrainCouples    = ZeroVector(3); 
+    Vector StrainResultants(3);
+    noalias(StrainResultants) = ZeroVector(3); 
+    Vector StrainCouples(3);
+    noalias(StrainCouples) = ZeroVector(3); 
 
     double Alpha = 1.0;
     CalculateStrainResultants(StrainResultants, rVariables, Alpha);
@@ -783,12 +784,14 @@ void LargeDisplacementBeamEMCElement::CalculateStrainEnergy(ElementVariables& rV
 
     //----------------
 
-    Matrix ConstitutiveMatrix  = ZeroMatrix(6,6);
-    this->GetMaterialConstitutiveMatrix(ConstitutiveMatrix, rVariables);
+    Matrix ConstitutiveMatrix(6,6);
+    noalias(ConstitutiveMatrix) = ZeroMatrix(6,6);
+    this->CalculateMaterialConstitutiveMatrix(ConstitutiveMatrix, rVariables);
 
     //----------------
 
-    Vector StrainVector = ZeroVector(6);
+    Vector StrainVector(6);
+    noalias(StrainVector) = ZeroVector(6);
     for ( unsigned int i = 0; i < dimension; i++ )
       {
     	StrainVector[i]   = StrainResultants[i];
@@ -801,38 +804,38 @@ void LargeDisplacementBeamEMCElement::CalculateStrainEnergy(ElementVariables& rV
     //std::cout<<" Strain "<<StrainVector<<" Stress "<<StressVector<<std::endl;
 
 
-    mEnergy.Deformation += 0.5 * (inner_prod(StressVector, StrainVector)) * rIntegrationWeight ;
+    rEnergy += 0.5 * (inner_prod(StressVector, StrainVector)) * rIntegrationWeight ;
     
-    //std::cout<<" mEnergy.Deformation "<<mEnergy.Deformation<<" rIntegrationWeight "<<rIntegrationWeight<<std::endl;
+    //std::cout<<" StrainEnergy "<<rEnergy<<" rIntegrationWeight "<<rIntegrationWeight<<std::endl;
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-								 ElementVariables & rVariables,
-								 double& rIntegrationWeight)
-{
+  void LargeDisplacementBeamEMCElement::CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
+								      ElementVariables & rVariables,
+								      double& rIntegrationWeight)
+  {
     KRATOS_TRY
 
 
     KRATOS_CATCH( "" )
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-								     ElementVariables& rVariables,
-								     const int& rNode,
-								     double alpha)
-{
+  void LargeDisplacementBeamEMCElement::CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
+								      ElementVariables& rVariables,
+								      const int& rNode,
+								      double alpha)
+  {
     KRATOS_TRY
 
     //Differencial operator transposed
@@ -841,7 +844,7 @@ void LargeDisplacementBeamEMCElement::CalculateDifferentialOperator(MatrixType& 
     if( rDifferentialOperator.size1() != 6 )
       rDifferentialOperator.resize(6, 6, false);
     
-    rDifferentialOperator = ZeroMatrix(6,6);
+    noalias(rDifferentialOperator) = ZeroMatrix(6,6);
 
     rDifferentialOperator( 0, 0 ) =  rVariables.DN_DX( rNode, 0 );
     rDifferentialOperator( 1, 1 ) =  rVariables.DN_DX( rNode, 0 );
@@ -852,7 +855,8 @@ void LargeDisplacementBeamEMCElement::CalculateDifferentialOperator(MatrixType& 
 
 
     //locate stress resultants in skew-symmetric "transposed" form 
-    Matrix SkewSymResultants = ZeroMatrix(3,3);
+    Matrix SkewSymResultants(3,3);
+    noalias(SkewSymResultants) = ZeroMatrix(3,3);
 
     Vector AxisPositionDerivativesAlpha = (1-alpha) * rVariables.PreviousAxisPositionDerivatives + alpha * rVariables.CurrentAxisPositionDerivatives;
 
@@ -870,17 +874,17 @@ void LargeDisplacementBeamEMCElement::CalculateDifferentialOperator(MatrixType& 
 
     KRATOS_CATCH( "" )
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-							   ElementVariables& rVariables,
-							   double& rIntegrationWeight)
-{
+  void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+							    ElementVariables& rVariables,
+							    double& rIntegrationWeight)
+  {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -890,17 +894,22 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandS
     // MatrixType Kuum = rLeftHandSideMatrix;
 
     //Initialize Local Matrices
-    MatrixType Kij        = ZeroMatrix(6,6);
-    Matrix GabK           = ZeroMatrix(3,3);
-    Matrix DiagonalMatrix = IdentityMatrix(3);   
+    MatrixType Kij(6,6);
+    noalias(Kij) = ZeroMatrix(6,6);
+    Matrix GabK(3,3);
+    noalias(GabK) = ZeroMatrix(3,3);
+    Matrix DiagonalMatrix(3,3);
+    noalias(DiagonalMatrix) = IdentityMatrix(3);   
 
-    Vector StressResultants = ZeroVector(3);
+    Vector StressResultants(3);
+    noalias(StressResultants) = ZeroVector(3);
     for ( unsigned int i = 0; i < 3; i++ )
       {
 	StressResultants[i] = rVariables.StressVector[i];
       }
 
-    Vector StressCouples = ZeroVector(3);
+    Vector StressCouples(3);
+    noalias(StressCouples) = ZeroVector(3);
     for ( unsigned int i = 0; i < 3; i++ )
       {
 	StressCouples[i] = rVariables.StressVector[i+3];
@@ -911,11 +920,13 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandS
 
 
     //Get frame step rotation
-    Vector CurrentStepRotation = ZeroVector(3);
+    Vector CurrentStepRotation(3);
+    noalias(CurrentStepRotation) = ZeroVector(3);
 
     this->GetLocalCurrentValue(STEP_ROTATION, CurrentStepRotation, rVariables.N);
 
-    Matrix SkewSymStepRotation = ZeroMatrix(3,3);
+    Matrix SkewSymStepRotation(3,3);
+    noalias(SkewSymStepRotation) = ZeroMatrix(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor(CurrentStepRotation, SkewSymStepRotation);
  
     Vector AxisPositionDerivativesAlpha = (1-rVariables.Alpha) * rVariables.PreviousAxisPositionDerivatives + rVariables.Alpha * rVariables.CurrentAxisPositionDerivatives;
@@ -928,19 +939,21 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandS
 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	  {
 
-	    Kij = ZeroMatrix(6,6);
+	    noalias(Kij) = ZeroMatrix(6,6);
 
 	    ColIndex = j * (dimension * 2);
 
 	    
 	    //term 11 -> 0
 	    //term 12
-	    GabK = ZeroMatrix(3,3);
-	    Matrix SkewSymStressResultants = ZeroMatrix(3,3);
+	    noalias(GabK) = ZeroMatrix(3,3);
+	    Matrix SkewSymStressResultants(3,3);
+	    noalias(SkewSymStressResultants) = ZeroMatrix(3,3);
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressResultants, SkewSymStressResultants);
 	    GabK = SkewSymStressResultants;   
 	    Vector CurrentValueVector = prod( SkewSymStepRotation, StressResultants );
-	    Matrix SkewSymValueVector = ZeroMatrix(3,3);
+	    Matrix SkewSymValueVector(3,3);
+	    noalias(SkewSymValueVector)= ZeroMatrix(3,3);
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(CurrentValueVector, SkewSymValueVector);
 	    GabK += (1-rVariables.Alpha) * SkewSymValueVector; 
 	    GabK *= (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]); 
@@ -949,16 +962,17 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandS
 	    MathUtils<double>::AddMatrix( Kij, GabK, 0, 3 );
 		
 	    //term 21
-	    GabK = ZeroMatrix(3,3);
+	    noalias(GabK) = ZeroMatrix(3,3);
 	    GabK = (rVariables.N[i] * rVariables.DN_DX(j, 0) ) * SkewSymStressResultants;
 	    //Building the Local Stiffness Matrix
 	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 0 );
 	
 
 	    //term 22
-	    GabK = ZeroMatrix(3,3);
+	    noalias(GabK) = ZeroMatrix(3,3);
 
-	    Matrix SkewSymStressCouples = ZeroMatrix(3,3);
+	    Matrix SkewSymStressCouples(3,3);
+	    noalias(SkewSymStressCouples) = ZeroMatrix(3,3);
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressCouples, SkewSymStressCouples);
 
 	    GabK  =  SkewSymStressCouples; 
@@ -1010,30 +1024,33 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandS
 
     //std::cout<<" Kuug "<<rLeftHandSideMatrix-Kuum<<std::endl;
 
+    // Local geometrical follower load stiffness
+    this->CalculateAndAddKuuf( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    
     KRATOS_CATCH( "" )
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-						       ElementVariables& rVariables,
-						       double& rIntegrationWeight)
-{
+  void LargeDisplacementBeamEMCElement::CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
+							    ElementVariables& rVariables,
+							    double& rIntegrationWeight)
+  {
     KRATOS_TRY
 
 
     KRATOS_CATCH( "" )
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-//Inertia in the SPATIAL configuration 
-void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
-{
+  //Inertia in the SPATIAL configuration 
+  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  {
 
     KRATOS_TRY
 
@@ -1041,10 +1058,11 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
-    if(rLeftHandSideMatrix.size1() != MatSize){
+    if(rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize (MatSize, MatSize, false);
-      rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
-    }
+    
+    noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+    
 
     SectionProperties Section;
     this->CalculateSectionProperties(Section);
@@ -1052,9 +1070,12 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
     //rCurrentProcessInfo must give it:
     double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
-    Vector CurrentValueVector = ZeroVector(3);
-    Vector CurrentAngularVelocityVector = ZeroVector(3);
-    Vector CurrentStepRotation = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    Vector CurrentAngularVelocityVector(3);
+    noalias(CurrentAngularVelocityVector) = ZeroVector(3);
+    Vector CurrentStepRotation(3);
+    noalias(CurrentStepRotation) = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -1073,17 +1094,21 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
 
     //block m(1,1) of the mass matrix
 
-    MatrixType m11 = ZeroMatrix(3,3);
+    MatrixType m11(3,3);
+    noalias(m11) = ZeroMatrix(3,3);
 
     double TotalMass = 0;
     TotalMass  = this->CalculateTotalMass( Section, TotalMass );
     
     //block m(2,2) of the mass matrix
      
-    MatrixType m22 = ZeroMatrix(3,3);
+    MatrixType m22(3,3);
+    noalias(m22) = ZeroMatrix(3,3);
 
     //2.-Get inertia dyadic
-    Matrix InertiaDyadic = ZeroMatrix(3,3);
+    Matrix InertiaDyadic(3,3);
+    noalias(InertiaDyadic) = ZeroMatrix(3,3);
+    
     this->CalculateInertiaDyadic( Section, InertiaDyadic );
 
     Matrix CurrentInertiaDyadic = prod(rVariables.CurrentRotationMatrix,InertiaDyadic);
@@ -1093,7 +1118,8 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
 
  
     // Compute Linear Part of the Step Rotation
-    Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
+    Matrix LinearPartRotationTensor(3,3);
+    noalias(LinearPartRotationTensor) = ZeroMatrix(3,3);
 
     double NormCurrentStepRotation =  norm_2(CurrentStepRotation);
     if( NormCurrentStepRotation != 0 ){
@@ -1102,16 +1128,19 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
 
     }
     else{
-      LinearPartRotationTensor = IdentityMatrix(3);
+      noalias(LinearPartRotationTensor) = IdentityMatrix(3);
     }
 
     unsigned int RowIndex = 0;
     unsigned int ColIndex = 0;
 
-    Matrix DiagonalMatrix = IdentityMatrix(3);   
+    Matrix DiagonalMatrix(3,3);
+    noalias(DiagonalMatrix) = IdentityMatrix(3);   
 
-    Matrix SkewSymAngularMomentum = ZeroMatrix(3,3);
-    Vector AngularMomentumVector = ZeroVector(3);
+    Matrix SkewSymAngularMomentum(3,3);
+    noalias(SkewSymAngularMomentum) = ZeroMatrix(3,3);
+    Vector AngularMomentumVector(3);
+    noalias(AngularMomentumVector) = ZeroVector(3);
 
     AngularMomentumVector = prod( CurrentInertiaDyadic, CurrentAngularVelocityVector );
     BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularMomentumVector, SkewSymAngularMomentum );
@@ -1119,8 +1148,8 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	m11 = ZeroMatrix(3,3);
-	m22 = ZeroMatrix(3,3);
+	noalias(m11) = ZeroMatrix(3,3);
+	noalias(m22) = ZeroMatrix(3,3);
 
 	RowIndex = i * (dimension * 2);
 
@@ -1154,26 +1183,26 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLef
   
     KRATOS_CATCH( "" )
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-//Inertia in the SPATIAL configuration 
-void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
-{
+  //Inertia in the SPATIAL configuration 
+  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
-    if(rRightHandSideVector.size() != MatSize){
+    if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
-      rRightHandSideVector = ZeroVector( MatSize );
-    }
-
+    
+    noalias(rRightHandSideVector) = ZeroVector( MatSize );
+    
     SectionProperties Section;
     this->CalculateSectionProperties(Section);
 
@@ -1183,9 +1212,12 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRig
     double TotalMass = 0;
     TotalMass = this->CalculateTotalMass( Section, TotalMass );
     
-    Vector CurrentValueVector = ZeroVector(3);
-    Vector CurrentLinearVelocityVector   = ZeroVector(3);
-    Vector PreviousLinearVelocityVector  = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    Vector CurrentLinearVelocityVector(3);
+    noalias(CurrentLinearVelocityVector) = ZeroVector(3);
+    Vector PreviousLinearVelocityVector(3);
+    noalias(PreviousLinearVelocityVector) = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -1201,14 +1233,17 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRig
       }
 
     //Compute Linear Term:
-    Vector LinearInertialForceVector = ZeroVector(3);
+    Vector LinearInertialForceVector(3);
+    noalias(LinearInertialForceVector) = ZeroVector(3);
     LinearInertialForceVector  = TotalMass * (CurrentLinearVelocityVector - PreviousLinearVelocityVector);
 
 
     //-----------------
 
-    Vector CurrentAngularVelocityVector   = ZeroVector(3);
-    Vector PreviousAngularVelocityVector  = ZeroVector(3);
+    Vector CurrentAngularVelocityVector(3);
+    noalias(CurrentAngularVelocityVector) = ZeroVector(3);
+    Vector PreviousAngularVelocityVector(3);
+    noalias(PreviousAngularVelocityVector) = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -1228,7 +1263,8 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRig
     //Compute Angular Term:
 
     //Get inertia dyadic
-    Matrix InertiaDyadic = ZeroMatrix(3,3);
+    Matrix InertiaDyadic(3,3);
+    noalias(InertiaDyadic) = ZeroMatrix(3,3);
     this->CalculateInertiaDyadic( Section, InertiaDyadic );
 
     //std::cout<<" I "<<InertiaDyadic<<std::endl;
@@ -1242,19 +1278,22 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRig
     PreviousInertiaDyadic = prod(PreviousInertiaDyadic,trans(rVariables.PreviousRotationMatrix));
 
 
-    Vector AngularInertialForceVector  = ZeroVector(3);   
+    Vector AngularInertialForceVector(3);
+    noalias(AngularInertialForceVector) = ZeroVector(3);   
     AngularInertialForceVector = prod( CurrentInertiaDyadic, CurrentAngularVelocityVector ) - prod( PreviousInertiaDyadic, PreviousAngularVelocityVector );
     
 
     // Build incremental momentum vector
-    Vector TotalInertialForceVector = ZeroVector(6);
+    Vector TotalInertialForceVector(6);
+    noalias(TotalInertialForceVector) = ZeroVector(6);
     
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
     BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
     
     //-----------------
-    VectorType Fi = ZeroVector(6);
+    VectorType Fi(6);
+    noalias(Fi) = ZeroVector(6);
 
     //Initialize Local Matrices
     unsigned int RowIndex = 0;
@@ -1264,7 +1303,7 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRig
 
 	RowIndex = i * (dimension * 2);
 
-	Fi = ZeroVector(6);
+	noalias(Fi) = ZeroVector(6);
 
 	//complete matrix
 	Fi = TotalInertialForceVector * rVariables.N[i] * rIntegrationWeight / DeltaTime;
@@ -1275,21 +1314,21 @@ void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRig
     //std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void LargeDisplacementBeamEMCElement::CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor)
+  void LargeDisplacementBeamEMCElement::CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor)
 
-{
+  {
     KRATOS_TRY
 
     if( rRotationTensor.size1() != 3 )
       rRotationTensor.resize(3, 3, false);
     
-    rRotationTensor = ZeroMatrix(3,3);
+    noalias(rRotationTensor) = ZeroMatrix(3,3);
 
     BeamMathUtilsType::VectorToSkewSymmetricTensor( rRotationVector, rRotationTensor );
 
@@ -1299,104 +1338,58 @@ void LargeDisplacementBeamEMCElement::CalculateRotationLinearPartTensor(Vector& 
     
     RotationxRotation *= 0.25;
 
-    Matrix DiagonalMatrix  = IdentityMatrix(3);
+    Matrix DiagonalMatrix(3,3);
+    noalias(DiagonalMatrix) = IdentityMatrix(3);
 
     rRotationTensor += RotationxRotation + DiagonalMatrix;
 
     KRATOS_CATCH( "" )
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-/**
- * This function provides the place to perform checks on the completeness of the input.
- * It is designed to be called only once (or anyway, not often) typically at the beginning
- * of the calculations, so to verify that nothing is missing from the input
- * or that no common error is found.
- * @param rCurrentProcessInfo
- */
-int LargeDisplacementBeamEMCElement::Check(const ProcessInfo& rCurrentProcessInfo)
-{
+  /**
+   * This function provides the place to perform checks on the completeness of the input.
+   * It is designed to be called only once (or anyway, not often) typically at the beginning
+   * of the calculations, so to verify that nothing is missing from the input
+   * or that no common error is found.
+   * @param rCurrentProcessInfo
+   */
+  int LargeDisplacementBeamEMCElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
-
-    if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size()!=2 )
-    {
-      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only in 3D and with 2 noded linear elements", "")
-    }
-
-    //verify that the variables are correctly initialized
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
-    if(DISPLACEMENT.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-    if(ACCELERATION.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
-     if(VOLUME_ACCELERATION.Key() == 0)
-        // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-    if(CROSS_SECTION_AREA.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_SECTION_AREA has Key zero! (check if the application is correctly registered", "" )
-    if(LOCAL_INERTIA_TENSOR.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered", "" )
-    if(LOCAL_CONSTITUTIVE_MATRIX.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered", "" )
-    if(ROTATION.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
-
-    //verify that the dofs exist
-    for(unsigned int i=0; i<this->GetGeometry().size(); i++)
-    {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
-        if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
-    }
-
-    //verify that the area is given by properties
-    if (this->GetProperties().Has(CROSS_SECTION_AREA)==false)
-    {
-        if( GetValue(CROSS_SECTION_AREA) == 0.0 )
-            KRATOS_THROW_ERROR( std::logic_error,"CROSS_SECTION_AREA not provided for this element", this->Id() )
-    }
-
-    //verify that the inertia is given by properties
-    if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR)==false)
-    {
-        if( GetValue(LOCAL_INERTIA_TENSOR)(0,0) == 0.0 )
-	  KRATOS_THROW_ERROR( std::logic_error,"LOCAL_INERTIA_TENSOR not provided for this element ", this->Id() )
-    }
-
+      
+    LargeDisplacementBeamElement::Check(rCurrentProcessInfo);
 
     return 0;
 
     KRATOS_CATCH( "" )
-}
+  }  
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-void LargeDisplacementBeamEMCElement::save( Serializer& rSerializer ) const
-{
+  void LargeDisplacementBeamEMCElement::save( Serializer& rSerializer ) const
+  {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementBeamElement )
     rSerializer.save("PreviousCurvatureVecors",mPreviousCurvatureVectors);
     rSerializer.save("CurrentStrainResultantsVector",mCurrentStrainResultantsVector);
     rSerializer.save("PreviousStrainResultantsVector",mPreviousStrainResultantsVector);
-}
+  }
 
-void LargeDisplacementBeamEMCElement::load( Serializer& rSerializer )
-{
+  void LargeDisplacementBeamEMCElement::load( Serializer& rSerializer )
+  {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementBeamElement )
     rSerializer.load("PreviousCurvatureVecors",mPreviousCurvatureVectors);
     rSerializer.load("CurrentStrainResultantsVector",mCurrentStrainResultantsVector);
     rSerializer.load("PreviousStrainResultantsVector",mPreviousStrainResultantsVector);
 
-}
+  }
 
 
 } // Namespace Kratos

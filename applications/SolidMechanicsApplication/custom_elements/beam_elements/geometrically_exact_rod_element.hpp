@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
+//   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -126,14 +126,6 @@ public:
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    //************* COMPUTING  METHODS
-
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
-                                       std::vector< array_1d<double, 3 > >& Output,
-                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -146,6 +138,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  
     ///@}
     ///@name Access
     ///@{
@@ -300,32 +293,11 @@ protected:
 						 Vector& rCurrentCurvatureVector,
 						 double Alpha) override;
 
-    /**   
-     * Calculate Element Strain Resultants
-     */ 
-    void CalculateStrainResultants(Vector& rStrainResultants, ElementVariables& rVariables, double alpha) override;
-
-    /**   
-     * Calculate Element Strain Couples
-     */ 
-    void CalculateStrainCouples(Vector& rStrainCouples, ElementVariables& rVariables, double alpha) override;
-
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber, double alpha) override;
-
-
-    /**
-     * Calculation and addition of the matrices of the LHS
-     */
-    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight) override;
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& VolumeForce, double& rIntegrationWeight) override;
+    void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
 
 
     /**
@@ -356,7 +328,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
+     * Calculation of the Followr Forces Vector.
      */
     void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
 				       ElementVariables& rVariables,
