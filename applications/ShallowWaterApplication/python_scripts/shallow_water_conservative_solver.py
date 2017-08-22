@@ -6,14 +6,16 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part):  #this way er only need one command to add all the variables to our problem 
-    model_part.AddNodalSolutionStepVariable(BATHYMETRY);
-    model_part.AddNodalSolutionStepVariable(RAIN);
     model_part.AddNodalSolutionStepVariable(MOMENTUM);
     model_part.AddNodalSolutionStepVariable(PROJECTED_MOMENTUM);
     model_part.AddNodalSolutionStepVariable(DELTA_MOMENTUM);
     model_part.AddNodalSolutionStepVariable(HEIGHT);
     model_part.AddNodalSolutionStepVariable(PROJECTED_HEIGHT);
     model_part.AddNodalSolutionStepVariable(DELTA_HEIGHT);
+    # Physic problem parameters
+    model_part.AddNodalSolutionStepVariable(BATHYMETRY);
+    model_part.AddNodalSolutionStepVariable(GRAVITY);
+    model_part.AddNodalSolutionStepVariable(RAIN);
     # Specific variables to convect particles
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(YP);

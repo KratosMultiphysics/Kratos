@@ -124,7 +124,7 @@ namespace Kratos
 			rRightHandSideVector.resize(element_size,false);             // False says not to preserve existing storage!!
 		
 		// Getting gravity
-		array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
+		//~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
 		double gravity = 9.8; //-v_gravity[2];
 		
 		// Getting the time step (not fixed to allow variable time step)
