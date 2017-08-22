@@ -825,24 +825,135 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
     if(rValues.size() != size)
         rValues.resize(size);
 
-    std::vector<double> temp(size);
+	// TODO: TSAI_WU_RESERVE_FACTOR
 
-    for(SizeType i = 0; i < size; i++)
-        mSections[i]->GetValue(rVariable, temp[i]);
+	if (rVariable == VON_MISES_STRESS ||
+		rVariable == VON_MISES_STRESS_TOP_SURFACE ||
+		rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
+		rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
+	{
+		// Von mises calcs
 
-    const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
-    Vector N(size);
+		// Get some references.
+		PropertiesType & props = GetProperties();
+		GeometryType & geom = GetGeometry();
+		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
+		Vector iN(shapeFunctions.size2());
 
-    for(SizeType i = 0; i < size; i++)
-    {
-        noalias(N) = row(shapeFunctions, i);
-        double& ival = rValues[i];
-        ival = 0.0;
-        for(SizeType j = 0; j < size; j++)
-        {
-            ival += N(j) * temp[j];
-        }
-    }
+		// Compute the local coordinate system.
+		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+			mpCoordinateTransformation->CreateLocalCoordinateSystem());
+
+		ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
+			mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+		// Prepare all the parameters needed for the MITC formulation.
+		// This is to be done here outside the Gauss Loop.
+		MITC4Params shearParameters(referenceCoordinateSystem);
+
+		// Instantiate the Jacobian Operator.
+		// This will store:
+		// the jacobian matrix, its inverse, its determinant
+		// and the derivatives of the shape functions in the local
+		// coordinate system
+		JacobianOperator jacOp;
+
+		// Instantiate all strain-displacement matrices.
+		Matrix B(8, 24, 0.0);
+		Vector Bdrilling(24, 0.0);
+
+		// Instantiate all section tangent matrices.
+		Matrix D(8, 8, 0.0);
+
+		// Instantiate strain and stress-resultant vectors
+		Vector generalizedStrains(8);
+		Vector generalizedStresses(8);
+
+		// Get the current displacements in global coordinate system
+		Vector globalDisplacements(24);
+		GetValuesVector(globalDisplacements, 0);
+
+		// Get the current displacements in local coordinate system
+		Vector localDisplacements(
+			mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+
+		// Instantiate the EAS Operator.
+		// This will apply the Enhanced Assumed Strain Method for the calculation
+		// of the membrane contribution.
+		EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
+
+		// Just to store the rotation matrix for visualization purposes
+		Matrix R(8, 8);
+		Matrix aux33(3, 3);
+
+		// Initialize parameters for the cross section calculation
+		ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+		parameters.SetGeneralizedStrainVector(generalizedStrains);
+		parameters.SetGeneralizedStressVector(generalizedStresses);
+		parameters.SetConstitutiveMatrix(D);
+		Flags& options = parameters.GetOptions();
+		options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+		// Gauss Loop
+		for (unsigned int i = 0; i < size; i++)
+		{
+			// get a reference of the current integration point and shape functions
+			const GeometryType::IntegrationPointType & ip = geom.IntegrationPoints()[i];
+
+			noalias(iN) = row(shapeFunctions, i);
+
+			// Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
+			// and Shape functions derivatives in the local coordinate system
+			jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
+
+			// Compute all strain-displacement matrices
+			CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
+
+			// Calculate strain vectors in local coordinate system
+			noalias(generalizedStrains) = prod(B, localDisplacements);
+
+			// Apply the EAS method to modify the membrane part of the strains computed above.
+			EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
+
+			// Calculate the response of the Cross Section
+			ShellCrossSection::Pointer & section = mSections[i];
+
+			// calculate force resultants
+			parameters.SetShapeFunctionsValues(iN);
+			parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
+			section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+
+			// Compute stresses
+			CalculateStressesFromForceResultants(generalizedStresses,
+				section->GetThickness());
+
+			// Calculate von mises results
+			CalculateVonMisesStress(generalizedStresses, rVariable, rValues[i]);
+
+		} // end gauss loop
+	}
+	else
+	{
+		std::vector<double> temp(size);
+
+		for (SizeType i = 0; i < size; i++)
+			mSections[i]->GetValue(rVariable, temp[i]);
+
+		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
+		Vector N(size);
+
+		for (SizeType i = 0; i < size; i++)
+		{
+			noalias(N) = row(shapeFunctions, i);
+			double& ival = rValues[i];
+			ival = 0.0;
+			for (SizeType j = 0; j < size; j++)
+			{
+				ival += N(j) * temp[j];
+			}
+		}
+	}
 }
 
 void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -888,6 +999,164 @@ void ShellThickElement3D4N::SetCrossSectionsOnIntegrationPoints(std::vector< She
 // Class ShellThickElement3D4N - Private methods
 //
 // =====================================================================================
+
+void ShellThickElement3D4N::CalculateStressesFromForceResultants(VectorType & rstresses, const double & rthickness)
+{
+	// Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
+
+	// membrane forces -> in-plane stresses (av. across whole thickness)
+	rstresses[0] /= rthickness;
+	rstresses[1] /= rthickness;
+	rstresses[2] /= rthickness;
+
+	// bending moments -> peak in-plane stresses (@ top and bottom surface)
+	rstresses[3] *= 6.0 / (rthickness*rthickness);
+	rstresses[4] *= 6.0 / (rthickness*rthickness);
+	rstresses[5] *= 6.0 / (rthickness*rthickness);
+
+	// shear forces -> peak shear stresses (@ midsurface)
+	rstresses[6] *= 1.5 / rthickness;
+	rstresses[7] *= 1.5 / rthickness;
+}
+
+void ShellThickElement3D4N::CalculateVonMisesStress(const Vector & generalizedStresses, const Variable<double>& rVariable, double & rVon_Mises_Result)
+{
+	// calc von mises stresses at top, mid and bottom surfaces for
+	// thick shell
+	double sxx, syy, sxy, sxz, syz;
+	double von_mises_top, von_mises_mid, von_mises_bottom;
+	// top surface: membrane and +bending contributions
+	//				(no transverse shear)
+	sxx = generalizedStresses[0] + generalizedStresses[3];
+	syy = generalizedStresses[1] + generalizedStresses[4];
+	sxy = generalizedStresses[2] + generalizedStresses[5];
+	von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+
+	// mid surface: membrane and transverse shear contributions
+	//				(no bending)
+	sxx = generalizedStresses[0];
+	syy = generalizedStresses[1];
+	sxy = generalizedStresses[2];
+	sxz = generalizedStresses[6];
+	syz = generalizedStresses[7];
+	von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
+		3.0*(sxy*sxy + sxz*sxz + syz*syz);
+
+	// bottom surface:	membrane and -bending contributions
+	//					(no transverse shear)
+	sxx = generalizedStresses[0] - generalizedStresses[3];
+	syy = generalizedStresses[1] - generalizedStresses[4];
+	sxy = generalizedStresses[2] - generalizedStresses[5];
+	von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+
+	// Output requested quantity
+	if (rVariable == VON_MISES_STRESS_TOP_SURFACE)
+	{
+		rVon_Mises_Result = sqrt(von_mises_top);
+	}
+	else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
+	{
+		rVon_Mises_Result = sqrt(von_mises_mid);
+	}
+	else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
+	{
+		rVon_Mises_Result = sqrt(von_mises_bottom);
+	}
+	else if (rVariable == VON_MISES_STRESS)
+	{
+		// take the greatest value and output
+		rVon_Mises_Result =
+			sqrt(std::max(von_mises_top,
+				std::max(von_mises_mid, von_mises_bottom)));
+	}
+}
+
+void ShellThickElement3D4N::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int & ijob, bool & bGlobal)
+{
+	if (rVariable == SHELL_STRAIN)
+	{
+		ijob = 1;
+	}
+	else if (rVariable == SHELL_STRAIN_GLOBAL)
+	{
+		ijob = 1;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_CURVATURE)
+	{
+		ijob = 2;
+	}
+	else if (rVariable == SHELL_CURVATURE_GLOBAL)
+	{
+		ijob = 2;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_FORCE)
+	{
+		ijob = 3;
+	}
+	else if (rVariable == SHELL_FORCE_GLOBAL)
+	{
+		ijob = 3;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_MOMENT)
+	{
+		ijob = 4;
+	}
+	else if (rVariable == SHELL_MOMENT_GLOBAL)
+	{
+		ijob = 4;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_STRESS_TOP_SURFACE)
+	{
+		ijob = 5;
+	}
+	else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL)
+	{
+		ijob = 5;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE)
+	{
+		ijob = 6;
+	}
+	else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL)
+	{
+		ijob = 6;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE)
+	{
+		ijob = 7;
+	}
+	else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL)
+	{
+		ijob = 7;
+		bGlobal = true;
+	}
+	/*
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE)
+	{
+		ijob = 8;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL)
+	{
+		ijob = 8;
+		bGlobal = true;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE)
+	{
+		ijob = 9;
+	}
+	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL)
+	{
+		ijob = 9;
+		bGlobal = true;
+	}
+	*/
+}
 
 void ShellThickElement3D4N::DecimalCorrection(Vector& a)
 {
@@ -1350,42 +1619,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
     int ijob = 0;
     bool bGlobal = false;
-    if(rVariable == SHELL_STRAIN)
-    {
-        ijob = 1;
-    }
-    else if(rVariable == SHELL_STRAIN_GLOBAL)
-    {
-        ijob = 1;
-        bGlobal = true;
-    }
-    else if(rVariable == SHELL_CURVATURE)
-    {
-        ijob = 2;
-    }
-    else if(rVariable == SHELL_CURVATURE_GLOBAL)
-    {
-        ijob = 2;
-        bGlobal = true;
-    }
-    else if(rVariable == SHELL_FORCE)
-    {
-        ijob = 3;
-    }
-    else if(rVariable == SHELL_FORCE_GLOBAL)
-    {
-        ijob = 3;
-        bGlobal = true;
-    }
-    else if(rVariable == SHELL_MOMENT)
-    {
-        ijob = 4;
-    }
-    else if(rVariable == SHELL_MOMENT_GLOBAL)
-    {
-        ijob = 4;
-        bGlobal = true;
-    }
+	CheckGeneralizedStressOrStrainOutput(rVariable, ijob, bGlobal);
 
     // quick return
 
@@ -1502,9 +1736,26 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
         ShellCrossSection::Pointer & section = mSections[i];
         if(ijob > 2)
         {
-            parameters.SetShapeFunctionsValues( iN );
-            parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
-            section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
+            if (ijob > 7) // TODO: LAMINA STRESSES
+			{
+				//Calculate lamina stresses
+				//CalculateLaminaStrains(data);
+				//CalculateLaminaStresses(data);
+			}
+			else
+			{
+				// calculate force resultants
+				parameters.SetShapeFunctionsValues(iN);
+				parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
+				section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+
+				if (ijob > 4)
+				{
+					// Compute stresses
+					CalculateStressesFromForceResultants(generalizedStresses,
+						section->GetThickness());
+				}
+			}
         }
 
         // save the results
@@ -1568,6 +1819,39 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
             iValue(0, 2) = iValue(2, 0) = 0.0;
             iValue(1, 2) = iValue(2, 1) = 0.0;
         }
+		else if (ijob == 5) // SHELL_STRESS_TOP_SURFACE
+		{
+			iValue(0, 0) = generalizedStresses(0) +
+				generalizedStresses(3);
+			iValue(1, 1) = generalizedStresses(1) +
+				generalizedStresses(4);
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = generalizedStresses[2] +
+				generalizedStresses[5];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
+		else if (ijob == 6) // SHELL_STRESS_MIDDLE_SURFACE
+		{
+			iValue(0, 0) = generalizedStresses(0);
+			iValue(1, 1) = generalizedStresses(1);
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = generalizedStresses[2];
+			iValue(0, 2) = iValue(2, 0) = generalizedStresses[6];
+			iValue(1, 2) = iValue(2, 1) = generalizedStresses[7];
+		}
+		else if (ijob == 7) // SHELL_STRESS_BOTTOM_SURFACE
+		{
+			iValue(0, 0) = generalizedStresses(0) -
+				generalizedStresses(3);
+			iValue(1, 1) = generalizedStresses(1) -
+				generalizedStresses(4);
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = generalizedStresses[2] -
+				generalizedStresses[5];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
 
         // if requested, rotate the results in the global coordinate system
         if(bGlobal)

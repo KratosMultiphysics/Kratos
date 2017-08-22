@@ -383,6 +383,15 @@ private:
     ///@name Private Operations
     ///@{
 
+	void CalculateStressesFromForceResultants(VectorType& rstresses,
+		const double& rthickness);
+
+	void CalculateVonMisesStress(const Vector& generalizedStresses, 
+		const Variable<double>& rVariable, double& rVon_Mises_Result);
+
+	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, 
+		int& iJob, bool& bGlobal);
+
     void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles();
