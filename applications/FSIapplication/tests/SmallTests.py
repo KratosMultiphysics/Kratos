@@ -5,8 +5,6 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosExecuteMapperTest as ExecuteMapperTest
-import KratosExecuteMapperTwoFacesTest as ExecuteMapperTwoFacesTest
 import KratosExecuteConvergenceAcceleratorTest as ExecuteConvergenceAcceleratorTest
 import KratosExecuteFSIProblemEmulatorTest as ExecuteFSIProblemEmulatorTest
 
@@ -37,48 +35,6 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class MapperTestFactory(KratosUnittest.TestCase):
-
-    def setUp(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Get the ProjectParameters file
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
-
-            # Create the test
-            self.test = ExecuteMapperTest.KratosExecuteMapperTest(ProjectParameters)
-
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
-
-    def tearDown(self):
-        pass
-
-
-class TwoFacesMapperTestFactory(KratosUnittest.TestCase):
-
-    def setUp(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Get the ProjectParameters file
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
-
-            # Create the test
-            self.test = ExecuteMapperTwoFacesTest.KratosExecuteTwoFacesMapperTest(ProjectParameters)
-
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
-
-    def tearDown(self):
-        pass
-
-
 class FSIProblemEmulatorTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -105,21 +61,6 @@ class FSIProblemEmulatorTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
-class NonConformantOneSideMap2D_test1(MapperTestFactory):
-    file_name = "NonConformantOneSideMap2D_test1/NonConformantOneSideMap2D_test1"
-
-@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
-class NonConformantOneSideMap2D_test2(MapperTestFactory):
-    file_name = "NonConformantOneSideMap2D_test2/NonConformantOneSideMap2D_test2"
-
-@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
-class NonConformantOneSideMap3D_test1(MapperTestFactory):
-    file_name = "NonConformantOneSideMap3D_test1/NonConformantOneSideMap3D_test1"
-
-@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
-class NonConformantOneSideMapTwoFaces3D_test1(TwoFacesMapperTestFactory):
-    file_name = "NonConformantOneSideMapTwoFaces3D_test1/NonConformantOneSideMapTwoFaces3D_test1"
 
 @KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
 class FSIProblemEmulatorTest(FSIProblemEmulatorTestFactory):

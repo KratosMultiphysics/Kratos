@@ -5,9 +5,9 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 1
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   2.06900E+11 
-    POISSON_RATIO   2.90000E-01 
+    DENSITY   7.85000E+03
+    YOUNG_MODULUS   2.06900E+11
+    POISSON_RATIO   2.90000E-01
 End Properties
 
 Begin Nodes
@@ -92,47 +92,47 @@ Begin Nodes
 End Nodes
 
 Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Structure
-         1          1          4          3          1          2 
-         2          1          6          5          3          4 
-         3          1          8          7          5          6 
-         4          1         10          9          7          8 
-         5          1         12         11          9         10 
-         6          1         14         13         11         12 
-         7          1         16         15         13         14 
-         8          1         18         17         15         16 
-         9          1         20         19         17         18 
-        10          1         22         21         19         20 
-        11          1         24         23         21         22 
-        12          1         26         25         23         24 
-        13          1         28         27         25         26 
-        14          1         30         29         27         28 
-        15          1         32         31         29         30 
-        16          1         34         33         31         32 
-        17          1         36         35         33         34 
-        18          1         38         37         35         36 
-        19          1         40         39         37         38 
-        20          1         42         41         39         40 
-        21          1         44         43         41         42 
-        22          1         46         45         43         44 
-        23          1         48         47         45         46 
-        24          1         50         49         47         48 
-        25          1         52         51         49         50 
-        26          1         54         53         51         52 
-        27          1         56         55         53         54 
-        28          1         58         57         55         56 
-        29          1         60         59         57         58 
-        30          1         62         61         59         60 
-        31          1         64         63         61         62 
-        32          1         66         65         63         64 
-        33          1         68         67         65         66 
-        34          1         70         69         67         68 
-        35          1         72         71         69         70 
-        36          1         74         73         71         72 
-        37          1         76         75         73         74 
-        38          1         78         77         75         76 
+         1          1          4          3          1          2
+         2          1          6          5          3          4
+         3          1          8          7          5          6
+         4          1         10          9          7          8
+         5          1         12         11          9         10
+         6          1         14         13         11         12
+         7          1         16         15         13         14
+         8          1         18         17         15         16
+         9          1         20         19         17         18
+        10          1         22         21         19         20
+        11          1         24         23         21         22
+        12          1         26         25         23         24
+        13          1         28         27         25         26
+        14          1         30         29         27         28
+        15          1         32         31         29         30
+        16          1         34         33         31         32
+        17          1         36         35         33         34
+        18          1         38         37         35         36
+        19          1         40         39         37         38
+        20          1         42         41         39         40
+        21          1         44         43         41         42
+        22          1         46         45         43         44
+        23          1         48         47         45         46
+        24          1         50         49         47         48
+        25          1         52         51         49         50
+        26          1         54         53         51         52
+        27          1         56         55         53         54
+        28          1         58         57         55         56
+        29          1         60         59         57         58
+        30          1         62         61         59         60
+        31          1         64         63         61         62
+        32          1         66         65         63         64
+        33          1         68         67         65         66
+        34          1         70         69         67         68
+        35          1         72         71         69         70
+        36          1         74         73         71         72
+        37          1         76         75         73         74
+        38          1         78         77         75         76
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: Structure_interface
+Begin Conditions Condition2D2N// GUI group identifier: Solid_interface
 1 0 2 4
 2 0 4 6
 3 0 6 8
@@ -336,7 +336,7 @@ Begin SubModelPart Parts_Solid // Group Structure // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Structure_interface // Group Structure_interface // Subtree Interface2D
+Begin SubModelPart Solid_interface // Group Solid_interface // Subtree Interface2D
     Begin SubModelPartNodes
          1
          2
