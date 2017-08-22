@@ -32,14 +32,13 @@ def CreateMapper( designSurface, optimizationSettings ):
             "filter_function_type"       : "linear",
             "filter_radius"              : 1,
             "max_nodes_in_filter_radius" : 10000,
-            "matrix_free_filtering"      : false
+            "matrix_free_filtering"      : false,
+            "integration": {
+                "integration_method": "node_sum",
+                "number_of_gauss_points": 0
+            }
         },
         "consistent_mapping_to_geometry_space": false,
-        "align_sensitivities_with_normal" : true,
-        "integration": {
-            "integration_method": "node_sum",
-            "number_of_gauss_points": 0
-        },
         "damping" : {
             "perform_damping" : false,
             "damping_regions" : []
@@ -47,12 +46,23 @@ def CreateMapper( designSurface, optimizationSettings ):
     }""")
 
     # overwrite the default settings with user-provided parameters
-    optimizationSettings["design_variables"].ValidateAndAssignDefaults(default_settings)
+    optimizationSettings["design_variables"].RecursivelyValidateAndAssignDefaults(default_settings)
 
     isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["filter"]["matrix_free_filtering"].GetBool()
+    integrationMethod = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString()
     if isMatrixFreeMappingRequired:
-        return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )
+        if optimizationSettings["design_variables"]["consistent_mapping_to_geometry_space"].GetBool():
+             raise ValueError ("Matrix free Mapper has no consistent_mapping_to_geometry_space option yet!")
+        if integrationMethod != "node_sum":
+             raise ValueError ("Matrix free Mapper can only be combined with 'node_sum' integration method!")
+        else:
+            return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )
     else:
-        return MapperVertexMorphing( designSurface, optimizationSettings )
+        if integrationMethod in ["gauss_integration", "area_weighted_sum"]:
+            return MapperVertexMorphingImprovedIntegration( designSurface, optimizationSettings )
+        elif integrationMethod == "node_sum":
+            return MapperVertexMorphing( designSurface, optimizationSettings )
+        else:
+            raise ValueError ("CreateMapper: integration_method not known!")
 
 # ==============================================================================
