@@ -62,8 +62,8 @@
             "model_part_name" : "ROTATION_support",
             "variable_name"   : "ROTATION",
             "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : false,
             "value"           : [0.0,0.0,0.0]
         }
     }
@@ -109,7 +109,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
-            "gauss_point_results" : ["FORCE","MOMENT","IZ_SENSITIVITY"]
+            "gauss_point_results" : ["FORCE","MOMENT"]
         },
         "point_data_configuration"  : []
     },

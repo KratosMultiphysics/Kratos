@@ -134,6 +134,21 @@ namespace Kratos
     {
         return 1.0;
     }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    std::string PointLoadCondition::Info() const
+    {
+        std::string condition_name = "PointLoadCondition";
+        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
+        if(dim == 2)
+            condition_name = "PointLoadCondition2D1N";
+        else if(dim == 3) 
+            condition_name = "PointLoadCondition3D1N";
+
+		return condition_name;
+    }
     
 } // Namespace Kratos
 

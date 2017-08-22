@@ -170,6 +170,8 @@ namespace Kratos
 			const Vector ForceInput, VectorType& rRightHandSideVector,
 			const double GeometryLength);
 
+		std::string Info() const override; //fusseder needed for sensitivity analysis
+
 	private:
 		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;

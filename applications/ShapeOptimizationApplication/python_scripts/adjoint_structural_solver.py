@@ -94,8 +94,8 @@ class AdjointStructuralSolver:
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name": "CrBeamElement3D2NForSA",
-                    "condition_name": "PointLoadCondition3D1NForSA" 
+                    "prefix": "",
+                    "postfix": "ForSA" 
                     }
                     """)
             # ---------------> the condition here is used as dummy. In this case only the 
@@ -110,8 +110,10 @@ class AdjointStructuralSolver:
             # out of more than one element type (e.g. model with beam shell elements). The current 
             # replacement function replaced all elements with the same element which is chosen 
             # by "element_name": some_element (see above)
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-
+            #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            print("before replacement process")
+            ShapeOptimizationApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            print("after replacement process")
             import check_and_prepare_model_process_structural
             check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 

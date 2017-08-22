@@ -1803,6 +1803,12 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	std::string CrBeamElement3D2N::Info() const
+    {
+		return "CrBeamElement3D2N";
+		//fusseder TODO: seperate between linear and nonliner case!!!!
+    }
+
 	Orientation::Orientation(array_1d<double, 3>& v1, const double theta) {
 
 		KRATOS_TRY

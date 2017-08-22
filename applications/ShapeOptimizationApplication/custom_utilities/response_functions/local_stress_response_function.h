@@ -6,7 +6,7 @@
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
-//
+//	TODO: Check that this response function  works in a correct way for all conditions
 // ==============================================================================
 
 #ifndef LOCAL_STRESS_RESPONSE_FUNCTION_H

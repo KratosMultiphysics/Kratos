@@ -6,7 +6,7 @@
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
-//
+//	TODO: include this response type into the adjoint workflow
 // ==============================================================================
 
 #ifndef REWORK_STRAIN_ENERGY_RESPONSE_FUNCTION_H

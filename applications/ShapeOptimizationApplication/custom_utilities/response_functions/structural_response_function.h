@@ -925,7 +925,7 @@ protected:
 			    }*/
 
 		        Condition::GeometryType& r_geom = cond_i->GetGeometry();
-                this->AssembleNodalSensitivityContribution(
+                this->AssembleConditionSensitivityContribution(
                		        rSensitivityVariable, sensitivity_vector, r_geom); //----> check for correct output
 
             }
@@ -1034,6 +1034,9 @@ protected:
         unsigned int index = 0;
         for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
+            //TODO: ensure that also for conditions the output will be written to the nodes.
+            //Conditions set UPDATE_SENSITIVITIES to themselve.
+            //Until now the nodes corresponding the the conditions must be part of mSensitivityModelPartName
             if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
                 double& r_sensitivity =
@@ -1054,6 +1057,9 @@ protected:
         unsigned int index = 0;
         for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
+            //TODO: ensure that also for conditions the output will be written to the nodes.
+            //Conditions set UPDATE_SENSITIVITIES to themselve.
+            //Until now the nodes corresponding the the conditions must be part of mSensitivityModelPartName
             if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
                 array_1d<double, 3>& r_sensitivity =
@@ -1083,6 +1089,37 @@ protected:
 		rElem.SetValue(rSensitivityVariable , rSensitivityVector);
 		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points	
 	}
+
+     void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
+                                              Vector const& rSensitivityVector,
+                                              Element::GeometryType& rGeom)
+    {
+        unsigned int index = 0;
+        for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+        {
+            double& r_sensitivity =
+                rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
+            rGeom[i_node].SetLock();
+            r_sensitivity += rSensitivityVector[index++];
+            rGeom[i_node].UnSetLock();
+        }
+    }
+
+    void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
+                                              Vector const& rSensitivityVector,
+                                              Element::GeometryType& rGeom)
+    {
+        unsigned int index = 0;
+        for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+        {
+            array_1d<double, 3>& r_sensitivity =
+                rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
+            rGeom[i_node].SetLock();
+            for (unsigned int d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
+                r_sensitivity[d] += rSensitivityVector[index++];
+            rGeom[i_node].UnSetLock();
+        }
+    }
 
     ///@}
 

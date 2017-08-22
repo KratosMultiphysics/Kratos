@@ -6,7 +6,8 @@
 //
 //  Main authors:    Fusseder Martin   
 //                   martin.fusseder@tum.de
-//
+// TODO: 	erase functions which are not needed and make the element clear linear and nonlinear
+// 			Especially that shape sensitivites also works for the linear case
 // ==============================================================================
 #include "custom_elements/cr_beam_element_3D2N_for_SA.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
