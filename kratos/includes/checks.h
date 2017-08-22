@@ -43,6 +43,19 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
+#define KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)                 \
+try {                                                                                   \
+    TheStatement;                                                                       \
+    KRATOS_ERROR << #TheStatement << " exited without throwing an error." << std::endl; \
+} catch (Kratos::Exception& e) {                                                        \
+    if ( std::string(e.what()).find( TheErrorMessage ) == std::string::npos )           \
+        KRATOS_ERROR                                                                    \
+            << "Test Failed: " << #TheStatement                                         \
+            << " did not throw the expected error" << std::endl                         \
+            << "Expected:" << std::endl << TheErrorMessage << std::endl                 \
+            << "Got:" << std::endl << e.what() << std::endl;                            \
+}
+
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_CHECK(IsTrue) KRATOS_CHECK(IsTrue)
 #define KRATOS_DEBUG_CHECK_IS_FALSE(IsFalse) KRATOS_CHECK_IS_FALSE(IsFalse)

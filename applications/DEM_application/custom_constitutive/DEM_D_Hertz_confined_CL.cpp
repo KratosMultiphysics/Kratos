@@ -12,7 +12,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Hertz_confined::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+    void DEM_D_Hertz_confined::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         std::cout << "\nAssigning DEM_D_Hertz_confined to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }

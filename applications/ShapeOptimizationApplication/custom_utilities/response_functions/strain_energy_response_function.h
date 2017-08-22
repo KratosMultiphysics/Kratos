@@ -34,6 +34,7 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
+#include "processes/find_nodal_neighbours_process.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -102,6 +103,8 @@ public:
 		// Throw error message in case of wrong specification
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
+
+		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
@@ -174,7 +177,7 @@ public:
 
 			// Compute strain energy
 			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
-		}	
+		}
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
@@ -234,6 +237,9 @@ public:
 			break;
 		}
 		}
+
+		if (mConsiderDiscretization)
+			this->consider_discretization();
 
 		KRATOS_CATCH("");
 	}
@@ -570,6 +576,44 @@ protected:
 		KRATOS_CATCH("");
 	}
 
+	// --------------------------------------------------------------------------
+  	virtual void consider_discretization(){
+
+
+		// Start process to identify element neighbors for every node
+		FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
+		neigbhorFinder.Execute();
+
+		std::cout<< "> Considering discretization size!" << std::endl;
+		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		{
+			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+
+			double scaling_factor = 0.0;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+
+				if( isElementOfTypeShell(element_geometry) )
+					scaling_factor += element_geometry.Area();
+				else
+					scaling_factor += element_geometry.Volume();
+			}
+
+			node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT) /= scaling_factor;
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
+	{
+		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
+			return true;
+		else
+		    return false;
+	}
+
 	// ==============================================================================
 
 	///@}
@@ -600,6 +644,7 @@ private:
 	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
+	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators
