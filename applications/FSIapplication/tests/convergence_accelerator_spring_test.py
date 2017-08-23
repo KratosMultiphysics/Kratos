@@ -12,7 +12,7 @@ import convergence_accelerator_factory
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorSpringTests/" + fileName
 
-class KratosExecuteConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
+class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
 
     def constant_force(self,model_part,guess,k,reference_z):
         f = KratosMultiphysics.Vector(3*len(model_part.Nodes))

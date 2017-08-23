@@ -7,16 +7,15 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as ConvergenceAcceleratorTest
-from KratosExecuteConvergenceAcceleratorSpringTest import KratosExecuteConvergenceAcceleratorSpringTest as ConvergenceAcceleratorSpringTest
+from convergence_accelerator_test import ConvergenceAcceleratorTest
+from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
-from variable_redistribution_test import VariableRedistributionTest
 from non_conformant_one_side_map_test import NonConformantOneSideMapTest
+from variable_redistribution_test import VariableRedistributionTest
 
 ## NIGTHLY TESTS
 
 ## VALIDATION TESTS
-from ValidationTests import MokBenchmarkTest as TMokBenchmark
 from mok_benchmark_test import MokBenchmarkTest
 
 def AssembleTestSuites():

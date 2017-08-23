@@ -7,12 +7,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from KratosExecuteConvergenceAcceleratorSpringMPITest import KratosExecuteConvergenceAcceleratorSpringMPITest as TConvergenceAcceleratorSpringTest
+from convergence_accelerator_spring_MPI_test import ConvergenceAcceleratorSpringMPITest
 
 ## NIGTHLY TESTS
 
 ## VALIDATION TESTS
-from ValidationTests import MokBenchmarkTest as TMokBenchmark
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -30,9 +29,9 @@ def AssambleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
-    smallMPISuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
-    smallMPISuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
-    smallMPISuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_ghost_nodes'))
+    smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_aitken_accelerator_constant_forces'))
+    smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_aitken_accelerator_variable_stiffness'))
+    smallMPISuite.addTest(ConvergenceAcceleratorSpringMPITest('test_aitken_accelerator_ghost_nodes'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']

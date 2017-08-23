@@ -7,6 +7,7 @@ try:
     from KratosMultiphysics.mpi import *
     import KratosMultiphysics.MetisApplication as KratosMetis
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 except ImportError:
     pass
 
@@ -21,7 +22,7 @@ def GetFilePath(fileName):
 def GetPartitionedFilePath(fileName):
     return GetFilePath( "{0}_{1}".format(fileName,mpi.rank ) )
 
-class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
+class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
     def constant_force(self,model_part,variable,k,reference_z):
         for i,node in enumerate(model_part.Nodes):
