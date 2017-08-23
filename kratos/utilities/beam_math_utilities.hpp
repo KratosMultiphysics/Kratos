@@ -40,9 +40,6 @@ public:
   typedef MathUtils<TDataType>         MathUtilsType;
   typedef BeamMathUtils<TDataType> BeamMathUtilsType; 
 
-  //typedef bounded_vector<double, 3>      PointType;
-  typedef array_1d<double, 3>              PointType;
-
   ///@}
   ///name Math Utilities for beams
   ///@{
@@ -56,7 +53,8 @@ public:
    * @param rVector: Vector to be rotated
    * the rotated vector rVector is returned. 
    */
-  static inline VectorType& MapToCurrentLocalFrame(QuaternionType& rQuaternion, VectorType& rVector)
+  template<class TVector3>
+  static inline TVector3& MapToCurrentLocalFrame(QuaternionType& rQuaternion, TVector3& rVector)  
   {
     KRATOS_TRY
 
@@ -75,34 +73,6 @@ public:
     KRATOS_CATCH( "" )
   }
 
-  //************************************************************************************
-  //************************************************************************************
-
-  /**
-   * Transform a vector from the reference to the current local frame (MATERIAL frame for a beam)
-   * @param rQuaternion: Quaternion representing the rotation from the reference to the current local frames
-   * @param rVector: Vector to be rotated
-   * the rotated vector rVector is returned. 
-   */
-  static inline PointType& MapToCurrentLocalFrame(QuaternionType& rQuaternion, PointType& rVector)
-  {
-    KRATOS_TRY
-
-    //(rQuaternion.conjugate()).RotateVector3(rVariable); 
-    // precision problems due to a rest included in the rotation
-
-    //vector value :  v' = QT * v
-
-    Matrix RotationMatrix;
-    (rQuaternion.conjugate()).ToRotationMatrix(RotationMatrix);
-    
-    rVector = prod(RotationMatrix,rVector);
-
-    return rVector;
-      
-    KRATOS_CATCH( "" )
-  }
-
 
   //************************************************************************************
   //************************************************************************************
@@ -114,7 +84,8 @@ public:
    * @param rVector: Vector to be rotated
    * the rotated vector rVariable is returned.
    */
-  static inline VectorType& MapToReferenceLocalFrame(QuaternionType& rQuaternion, VectorType& rVector)
+  template<class TVector3>
+  static inline TVector3& MapToReferenceLocalFrame(QuaternionType& rQuaternion, TVector3& rVector)
   {
     KRATOS_TRY
 
@@ -133,39 +104,6 @@ public:
     KRATOS_CATCH( "" )
 
   }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-
-  /**
-   * Transform a vector from the current to the reference local frame (SPATIAL frame for a beam)
-   * @param rQuaternion: Quaternion representing the rotation from the reference to the current local frames
-   * @param rVector: Vector to be rotated
-   * the rotated vector rVariable is returned.
-   */
-  static inline PointType& MapToReferenceLocalFrame(QuaternionType& rQuaternion, PointType& rVector)
-  {
-    KRATOS_TRY
-      
-    //rQuaternion.RotateVector3(rVariable); 
-    // precision problems due to a rest included in the rotation
-      
-    //vector value :  v = Q * v'
-
-    Matrix RotationMatrix;
-    rQuaternion.ToRotationMatrix(RotationMatrix);
-    
-    rVector = prod(RotationMatrix,rVector);
-
-    return rVector;
-    
-    KRATOS_CATCH( "" )
-
-  }
-
-  ///@}
 
 
   //************************************************************************************
@@ -176,7 +114,8 @@ public:
    * @param rVector: rotation vector (input parameter)
    * @param rExponentialTensor: rotation matrix (output parameter)
    */
-  static inline void ExponentialTransform(const VectorType& rVector, MatrixType& rExponentialTensor)
+  template<class TVector3>
+  static inline void ExponentialTransform(const TVector3& rVector, MatrixType& rExponentialTensor)
   {  
     KRATOS_TRY
 
@@ -199,7 +138,8 @@ public:
    * @param rCayleyTensor: rotation matrix (input parameter)
    * @param rVector: rotation vector (output parameter)
    */
-  static inline void InverseExponentialTransform(const MatrixType& rExponentialTensor, VectorType& rVector)
+  template<class TVector3>
+  static inline void InverseExponentialTransform(const MatrixType& rExponentialTensor, TVector3& rVector)
   {  
     KRATOS_TRY
     
@@ -221,7 +161,8 @@ public:
    * @param rVector: rotation vector (input parameter)
    * @param rCayleyTensor: rotation matrix (output parameter)
    */
-  static inline void CayleyTransform(const VectorType& rVector, MatrixType& rCayleyTensor)
+  template<class TVector3>
+  static inline void CayleyTransform(const TVector3& rVector, MatrixType& rCayleyTensor)
   {  
     KRATOS_TRY
 
@@ -254,7 +195,8 @@ public:
    * @param rCayleyTensor: rotation matrix (input parameter)
    * @param rVector: rotation vector (output parameter)
    */
-  static inline void InverseCayleyTransform(const MatrixType& rCayleyTensor, VectorType& rVector)
+  template<class TVector3>
+  static inline void InverseCayleyTransform(const MatrixType& rCayleyTensor, TVector3& rVector)
   {  
     KRATOS_TRY
     
@@ -285,7 +227,8 @@ public:
    * @param rVector: rotation vector (input parameter)
    * @param rSkewSymmetricTensor: skew symmetric matrix (output parameter)
    */
-  static inline void VectorToSkewSymmetricTensor(const VectorType& rVector, MatrixType& rSkewSymmetricTensor)
+  template<class TVector3>
+  static inline void VectorToSkewSymmetricTensor(const TVector3& rVector, MatrixType& rSkewSymmetricTensor)
   {
     KRATOS_TRY
 
@@ -315,7 +258,8 @@ public:
    * @param rSkewSymmetricTensor: skew symmetric matrix (input parameter)
    * @param rVector: rotation vector (output parameter)
    */
-  static inline void SkewSymmetricTensorToVector(const MatrixType& rSkewSymmetricTensor, VectorType& rVector)
+  template<class TVector3>
+  static inline void SkewSymmetricTensorToVector(const MatrixType& rSkewSymmetricTensor, TVector3& rVector)
   { 
     KRATOS_TRY
 
@@ -453,7 +397,7 @@ public:
    * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
    * @param rVector: vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
-   */
+   */  
   static inline void MapLocalToGlobal2D(const QuaternionType& rLocalToGlobalQuaternion, VectorType& rVector)
   {
 
@@ -685,14 +629,15 @@ public:
    * @param rLocalX: Local Beam axis vector (input parameter)
    * @param rRotationMatrix: transformation matrix from local to global frame (output parameter)
    */
-  static inline  void CalculateLocalAxesMatrix(const VectorType& rLocalX, MatrixType& rRotationMatrix)
+  template<class TVector3>
+  static inline  void CalculateLocalAxesMatrix(const TVector3& rLocalX, MatrixType& rRotationMatrix)
   {
 
     KRATOS_TRY
 
-    VectorType LocalY = ZeroVector(3);
-    VectorType LocalZ = ZeroVector(3);
-    VectorType LocalX = rLocalX;
+    TVector3 LocalY = ZeroVector(3);
+    TVector3 LocalZ = ZeroVector(3);
+    TVector3 LocalX = rLocalX;
 
     BeamMathUtilsType::CalculateLocalAxesVectors(LocalX,LocalY,LocalZ);
         
@@ -721,15 +666,16 @@ public:
    * @param rLocalY: Local Beam axis director vector E2 (output parameter)
    * @param rLocalZ: Local Beam axis director vector E3 (output parameter)
    */
-  static inline  void CalculateLocalAxesVectors(VectorType& rLocalX, VectorType& rLocalY, VectorType& rLocalZ)
+  template<class TVector3>
+  static inline  void CalculateLocalAxesVectors(TVector3& rLocalX, TVector3& rLocalY, TVector3& rLocalZ)
   {
 
     KRATOS_TRY
 
-    VectorType GlobalY = ZeroVector(3);
+    TVector3 GlobalY = ZeroVector(3);
     GlobalY[1]=1.0;
 
-    VectorType GlobalZ = ZeroVector(3);
+    TVector3 GlobalZ = ZeroVector(3);
     GlobalZ[2]=1.0;
 
     // local z-axis (e3_local) is the beam axis
