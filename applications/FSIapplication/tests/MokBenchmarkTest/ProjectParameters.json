@@ -17,10 +17,10 @@
             "scheme_type"                        : "Bossak",
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "MokBenchmark/mok_benchmark_Structural"
+                "input_filename" : "mok_benchmark_Structural"
             },
             "material_import_settings" :{
-                "materials_filename": "MokBenchmark/materials_Mok.json"
+                "materials_filename": "materials_Mok.json"
             },
             "line_search"                        : false,
             "convergence_criterion"              : "Residual_criterion",
@@ -137,7 +137,7 @@
             "solver_type"                   : "Monolithic",
             "model_import_settings"         : {
                 "input_type"     : "mdpa",
-                "input_filename" : "MokBenchmark/mok_benchmark_Fluid"
+                "input_filename" : "mok_benchmark_Fluid"
             },
             "maximum_iterations"            : 10,
             "dynamic_tau"                   : 0.001,
@@ -252,7 +252,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables" : ["MESH_DISPLACEMENT_X"],
-                "input_file_name" : "MokBenchmark/mok_benchmark_results.json",
+                "input_file_name" : "mok_benchmark_results.json",
                 "model_part_name" : "Control_Nodes",
                 "tolerance"       : 1e-3,
                 "time_frequency"  : 0.1

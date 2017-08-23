@@ -17,6 +17,7 @@ from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 
 ## VALIDATION TESTS
 from ValidationTests import MokBenchmarkTest as TMokBenchmark
+from mok_benchmark_test import MokBenchmarkTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -59,7 +60,7 @@ def AssembleTestSuites():
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTest(TMokBenchmark('test_execution'))
+    validationSuite.addTest(MokBenchmarkTest('testMokBenchmark'))
 
     # Create a test suit that contains all the tests
     allSuite = suites['all']
