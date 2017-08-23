@@ -110,23 +110,6 @@ public:
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-
 
     //************************************************************************************
     //************************************************************************************
@@ -268,7 +251,7 @@ protected:
      * Update rotation current member variables
      */    
     void UpdateRotationVariables(ElementVariables& rVariables, 
-				 const unsigned int& rPointNumber) override;
+				 const unsigned int& rPointNumber);
 
     /**   
      * Calculate Directors to Rotations Mapping

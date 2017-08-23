@@ -99,22 +99,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
  
 
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
-  
-      /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-  
-    //************************************************************************************
-    //************************************************************************************
-
+ 
     /**
      * this is called during the assembling process in order
      * to calculate the elemental mass matrix
@@ -193,12 +178,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    /**
-     * Elemental previous curvature vectors for each integration point
-     */
-    std::vector<Vector>  mPreviousCurvatureVectors;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -208,12 +187,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Update strain current member variables
-     */ 
-    virtual void UpdateStrainVariables(ElementVariables& rVariables, 
-				       const unsigned int& rPointNumber) override;
-
+ 
     /**   
      * Calculate Element Strain Resultants
      */ 

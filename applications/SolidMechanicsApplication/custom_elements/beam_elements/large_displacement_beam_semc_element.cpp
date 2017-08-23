@@ -43,7 +43,6 @@ namespace Kratos
 
   LargeDisplacementBeamSEMCElement::LargeDisplacementBeamSEMCElement(LargeDisplacementBeamSEMCElement const& rOther)
     :LargeDisplacementBeamElement(rOther)
-    ,mPreviousCurvatureVectors(rOther.mPreviousCurvatureVectors)
   {
   }
 
@@ -62,56 +61,7 @@ namespace Kratos
   {
   }
 
-  //************* STARTING - ENDING  METHODS
-  //************************************************************************************
-  //************************************************************************************
 
-  void LargeDisplacementBeamSEMCElement::Initialize()
-  {
-    KRATOS_TRY
-      
-    LargeDisplacementBeamElement::Initialize();
-
-    //------------- REDUCED QUADRATURE INTEGRATION 
-      
-    IntegrationMethod ReducedIntegrationMethod = this->GetReducedIntegrationMethod();
-    
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ReducedIntegrationMethod );
-
-    //Curvature Initialization
-    if ( mPreviousCurvatureVectors.size() != integration_points.size() )
-      {
-        mPreviousCurvatureVectors.resize( integration_points.size() );
-      }
-    
-    for ( unsigned int i = 0; i < mPreviousCurvatureVectors.size(); i++ )
-      {
-	mPreviousCurvatureVectors[i].resize(3,false);
-	noalias(mPreviousCurvatureVectors[i]) = ZeroVector(3);
-      }
-  
-
-    KRATOS_CATCH( "" )
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void LargeDisplacementBeamSEMCElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    LargeDisplacementBeamElement::InitializeSolutionStep(rCurrentProcessInfo);
-
-    for ( unsigned int i = 0; i < mCurrentCurvatureVectors.size(); i++ )
-      {
-	mPreviousCurvatureVectors[i] = mCurrentCurvatureVectors[i] ;
-      }
-
-    KRATOS_CATCH( "" )
-  }
-
- 
   //************************************************************************************
   //************************************************************************************
 
@@ -187,21 +137,6 @@ namespace Kratos
     // Vector CurrentStepRotation = ZeroVector(3);
     // this->GetLocalCurrentValue(STEP_ROTATION, CurrentStepRotation, rVariables.N);
     // std::cout<<" StepRotation "<<CurrentStepRotation<<std::endl;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //*********************************SET STRAIN VARIABLES*******************************
-  //************************************************************************************
-
-  void LargeDisplacementBeamSEMCElement::UpdateStrainVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
-  {
-    KRATOS_TRY
-
-    LargeDisplacementBeamElement::UpdateStrainVariables(rVariables, rPointNumber);
-
-    mCurrentCurvatureVectors[rPointNumber] = rVariables.CurrentCurvatureVector;
 
     KRATOS_CATCH( "" )
   }
@@ -402,7 +337,7 @@ namespace Kratos
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
 	
-	  Variables.detJ = mDetJ0Full[PointNumber];
+	  Variables.detJ = 1.0/mInvJ0;
  
 	  double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
@@ -872,15 +807,11 @@ namespace Kratos
   void LargeDisplacementBeamSEMCElement::save( Serializer& rSerializer ) const
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementBeamElement )
-    rSerializer.save("PreviousCurvatureVecors",mPreviousCurvatureVectors);
-
   }
 
   void LargeDisplacementBeamSEMCElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementBeamElement )
-    rSerializer.load("PreviousCurvatureVecors",mPreviousCurvatureVectors);
-
   }
 
 

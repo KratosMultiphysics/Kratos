@@ -111,22 +111,6 @@ public:
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
 
     //************************************************************************************
     //************************************************************************************
@@ -180,10 +164,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * Elemental previous curvature vectors for each integration point
-     */
-    std::vector<Vector>  mPreviousCurvatureVectors;
 
     /**
      * Elemental previous strain resultant vectors for each integration point
@@ -231,12 +211,6 @@ protected:
     virtual void CalculateFrameMapping(ElementVariables& rVariables,
 				       const unsigned int& rPointNumber) override;
 
-
-    /**
-     * Update rotation current member variables
-     */    
-    virtual void UpdateRotationVariables(ElementVariables& rVariables, 
-					 const unsigned int& rPointNumber) override;
 
     /**
      * Update strain current member variables

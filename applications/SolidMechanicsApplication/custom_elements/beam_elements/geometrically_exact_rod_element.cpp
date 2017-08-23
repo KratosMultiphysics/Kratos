@@ -167,40 +167,6 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  
-  void GeometricallyExactRodElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-  {
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void GeometricallyExactRodElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-  {
-    KRATOS_TRY
-    
-    mIterationCounter++;
- 
-    KRATOS_CATCH( "" )
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void GeometricallyExactRodElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-      
-    KRATOS_CATCH( "" )  
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
 
   void GeometricallyExactRodElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
@@ -288,13 +254,13 @@ namespace Kratos
     //TOTAL LAGRANGIAN (spatial coordinates)
     //Compute cartesian derivatives [dN/dx_0]
     if( mThisIntegrationMethod == mReducedIntegrationMethod ){
-      rVariables.DN_DX = mInvJ0Reduced[rPointNumber][0] * DN_De[rPointNumber]; 
-      rVariables.detJ  = mDetJ0Reduced[rPointNumber];
+      rVariables.DN_DX = mInvJ0 * DN_De[rPointNumber]; 
+      rVariables.detJ  = 1.0/mInvJ0;
     }
 
     if( mThisIntegrationMethod == mFullIntegrationMethod ){
-      rVariables.DN_DX = mInvJ0Full[rPointNumber][0] * DN_De[rPointNumber]; 
-      rVariables.detJ  = mDetJ0Full[rPointNumber];
+      rVariables.DN_DX = mInvJ0 * DN_De[rPointNumber]; 
+      rVariables.detJ  = 1.0/mInvJ0;
     }
 
     
@@ -487,7 +453,7 @@ namespace Kratos
     //*------------------------------*//
 
     //set variables for the initialization update
-    this->UpdateRotationVariables(rVariables,rPointNumber);
+    UpdateRotationVariables(rVariables,rPointNumber);
 
     KRATOS_CATCH( "" )
   }
@@ -498,8 +464,6 @@ namespace Kratos
   void GeometricallyExactRodElement::UpdateRotationVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
-
-    LargeDisplacementBeamEMCElement::UpdateRotationVariables(rVariables,rPointNumber);
 
     DirectorsVariables& Directors = rVariables.GetDirectors();
 
@@ -820,7 +784,7 @@ namespace Kratos
 	
 
 	//TOTAL LAGRANGIAN (spatial coordinates)
-	Variables.detJ = mDetJ0Full[PointNumber];
+	Variables.detJ = 1.0/mInvJ0;
  
 	double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );

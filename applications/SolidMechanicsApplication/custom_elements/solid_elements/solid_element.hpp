@@ -640,12 +640,6 @@ protected:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
-
 	
     ///@}
     ///@name Protected Operators

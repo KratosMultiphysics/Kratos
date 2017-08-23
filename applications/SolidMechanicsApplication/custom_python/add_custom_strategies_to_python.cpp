@@ -42,8 +42,9 @@
 //schemes
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/explicit_central_differences_scheme.hpp" 
-#include "custom_strategies/schemes/residual_based_rotation_newmark_simo_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_rotation_conservative_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_rotation_newmark_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_rotation_simo_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_rotation_emc_scheme.hpp"
 #include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
 
 //linear solvers
@@ -84,8 +85,9 @@ namespace Kratos
       //custom scheme types
       typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
       typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-      typedef ResidualBasedRotationNewmarkSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationNewmarkSimoSchemeType;
-      typedef ResidualBasedRotationConservativeScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationConservativeSchemeType;
+      typedef ResidualBasedRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationNewmarkSchemeType;
+      typedef ResidualBasedRotationSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationSimoSchemeType;
+      typedef ResidualBasedRotationEMCScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationEMCSchemeType;
       typedef ExplicitHamiltonScheme< SparseSpaceType, LocalSpaceType >  ExplicitHamiltonSchemeType;
 
       //custom convergence criterion types
@@ -216,22 +218,31 @@ namespace Kratos
 	.def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
 
-      // Residual Based Rotational Newmark Simo Scheme Type
-      class_< ResidualBasedRotationNewmarkSimoSchemeType,
+      // Residual Based Rotational Newmark Scheme Type
+      class_< ResidualBasedRotationNewmarkSchemeType,
 	      bases< BaseSchemeType >,  boost::noncopyable >
 	(
-	 "ResidualBasedRotationNewmarkSimoScheme", init< double, double >() )
+	 "ResidualBasedRotationNewmarkScheme", init< double, double >() )
 	
-	.def("Initialize", &ResidualBasedRotationNewmarkSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	.def("Initialize", &ResidualBasedRotationNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
 
-      // Residual Based Rotational Conservative Scheme Type
-      class_< ResidualBasedRotationConservativeSchemeType,
+      // Residual Based Rotational Simo Scheme Type
+      class_< ResidualBasedRotationSimoSchemeType,
 	      bases< BaseSchemeType >,  boost::noncopyable >
 	(
-	 "ResidualBasedRotationConservativeScheme", init< double >() )
+	 "ResidualBasedRotationSimoScheme", init< double, double >() )
 	
-	.def("Initialize", &ResidualBasedRotationConservativeScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	.def("Initialize", &ResidualBasedRotationSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+
+      // Residual Based Rotational EMC Scheme Type
+      class_< ResidualBasedRotationEMCSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ResidualBasedRotationEMCScheme", init< double >() )
+	
+	.def("Initialize", &ResidualBasedRotationEMCScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
 
       // Explicit Hamilton Scheme Type

@@ -44,6 +44,8 @@ namespace Kratos
   LargeDisplacementBeamElement::LargeDisplacementBeamElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BeamElement(NewId, pGeometry, pProperties)
   {
+    mFinalizedStep = true; // the creation is out of the time step, it must be true
+    
     mReducedIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     mFullIntegrationMethod = mReducedIntegrationMethod;
     this->IncreaseIntegrationMethod(mFullIntegrationMethod,1);
@@ -54,18 +56,15 @@ namespace Kratos
 
   LargeDisplacementBeamElement::LargeDisplacementBeamElement(LargeDisplacementBeamElement const& rOther)
     :BeamElement(rOther)
+    ,mFinalizedStep(rOther.mFinalizedStep)
     ,mReducedIntegrationMethod(rOther.mReducedIntegrationMethod)
     ,mFullIntegrationMethod(rOther.mFullIntegrationMethod)
     ,mIterationCounter(rOther.mIterationCounter)
-    ,mInvJ0Reduced(rOther.mInvJ0Reduced)
-    ,mDetJ0Reduced(rOther.mDetJ0Reduced)
-    ,mInvJ0Full(rOther.mInvJ0Full)
-    ,mDetJ0Full(rOther.mDetJ0Full)
+    ,mInvJ0(rOther.mInvJ0)
     ,mCurrentCurvatureVectors(rOther.mCurrentCurvatureVectors)
-    ,mCurrentLocalQuaternionsReduced(rOther.mCurrentLocalQuaternionsReduced)
-    ,mPreviousLocalQuaternionsReduced(rOther.mPreviousLocalQuaternionsReduced)
-    ,mCurrentLocalQuaternionsFull(rOther.mCurrentLocalQuaternionsFull)
-    ,mPreviousLocalQuaternionsFull(rOther.mPreviousLocalQuaternionsFull)
+    ,mPreviousCurvatureVectors(rOther.mPreviousCurvatureVectors)
+    ,mFrameQuaternionsReduced(rOther.mFrameQuaternionsReduced)
+    ,mFrameQuaternionsFull(rOther.mFrameQuaternionsFull)
   {
   }
 
@@ -128,7 +127,18 @@ namespace Kratos
 	mCurrentCurvatureVectors[i].resize(3,false);
 	noalias(mCurrentCurvatureVectors[i]) = ZeroVector(3);
       }
+    
 
+    if ( mPreviousCurvatureVectors.size() != integration_points.size() )
+      {
+        mPreviousCurvatureVectors.resize( integration_points.size() );
+      }
+    
+    for ( unsigned int i = 0; i < mPreviousCurvatureVectors.size(); i++ )
+      {
+	mPreviousCurvatureVectors[i].resize(3,false);
+	noalias(mPreviousCurvatureVectors[i]) = ZeroVector(3);
+      }
 
     //-------------
 
@@ -138,63 +148,37 @@ namespace Kratos
     noalias(Identity) = IdentityMatrix(dimension);
    
     //Local Quaternions Initialization
-    if ( mCurrentLocalQuaternionsReduced.size() != integration_points.size() )
+    if ( mFrameQuaternionsReduced.size() != integration_points.size() )
       {
-        mCurrentLocalQuaternionsReduced.resize( integration_points.size() );
-      }
-
-    if ( mPreviousLocalQuaternionsReduced.size() != integration_points.size() )
-      {
-        mPreviousLocalQuaternionsReduced.resize( integration_points.size() );
+        mFrameQuaternionsReduced.resize( integration_points.size() );
       }
 
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
-	mCurrentLocalQuaternionsReduced[PointNumber]  = QuaternionType::FromRotationMatrix( Identity );
-	mPreviousLocalQuaternionsReduced[PointNumber] = QuaternionType::FromRotationMatrix( Identity ); 
+	mFrameQuaternionsReduced[PointNumber]  = QuaternionType::FromRotationMatrix( Identity );
       }
 
 
     //-------------
 
-    //Resizing jacobian inverses container
-    mInvJ0Reduced.resize( integration_points.size() );
-    mDetJ0Reduced.resize( integration_points.size(), false );
 
     //Compute jacobian inverses and set the domain initial size:
     GeometryType::JacobiansType J0;
     J0 = GetGeometry().Jacobian( J0, ReducedIntegrationMethod );
-
-    //calculating the inverse J0
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-      {
-	Vector Jacobian(3);
-	noalias(Jacobian) = ZeroVector(3);
     
-	//Calculating the jacobian [dx_0/d£]
-	for( unsigned int i=0; i<dimension; i++)
-	  {
-	    Jacobian[i] = J0[PointNumber](i,0);
-	  }
-
-
-	mDetJ0Reduced[PointNumber] = norm_2(Jacobian); 
-
-	//Calculating the inverse of the jacobian and the parameters needed [d£/dx_0]
-	double InverseJacobian = 1.0/ mDetJ0Reduced[PointNumber]; 
-
-      	mInvJ0Reduced[PointNumber].resize(dimension,false);
-	noalias(mInvJ0Reduced[PointNumber]) = ZeroVector(dimension);
-      
-	for( unsigned int i=0; i<dimension; i++)
-	  {
-	    mInvJ0Reduced[PointNumber][i] = InverseJacobian;
-	  }
-
-				     
+    //calculating the inverse J0
+    Vector Jacobian(3);
+    noalias(Jacobian) = ZeroVector(3);
+    
+    //Calculating the jacobian [dx_0/d£]
+    for( unsigned int i=0; i<dimension; i++)
+      {
+	Jacobian[i] = J0[0](i,0);
       }
-
+    
+    mInvJ0 = 1.0/norm_2(Jacobian); 
+    
 
     //------------- FULL QUADRATURE INTEGRATION 
 
@@ -204,58 +188,14 @@ namespace Kratos
 
    
     //Local Quaternions Initialization
-    if ( mCurrentLocalQuaternionsFull.size() != integration_points_full.size() )
+    if ( mFrameQuaternionsFull.size() != integration_points_full.size() )
       {
-        mCurrentLocalQuaternionsFull.resize( integration_points_full.size() );
+        mFrameQuaternionsFull.resize( integration_points_full.size() );
       }
    
-    if ( mPreviousLocalQuaternionsFull.size() != integration_points_full.size() )
-      {
-        mPreviousLocalQuaternionsFull.resize( integration_points_full.size() );
-      }
-
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_full.size(); PointNumber++ )
       {
-       	mCurrentLocalQuaternionsFull[PointNumber]  = QuaternionType::FromRotationMatrix( Identity );
-	mPreviousLocalQuaternionsFull[PointNumber] = QuaternionType::FromRotationMatrix( Identity );
-      }
-
-
-    //-------------
-
-    //Resizing jacobian inverses container
-    mInvJ0Full.resize( integration_points_full.size() );
-    mDetJ0Full.resize( integration_points_full.size(), false );
-
-    //Compute jacobian inverses and set the domain initial size:
-    J0 = GetGeometry().Jacobian( J0, FullIntegrationMethod );
-
-    //calculating the inverse J0
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points_full.size(); PointNumber++ )
-      {
-	Vector Jacobian(3);
-	noalias(Jacobian) = ZeroVector(3);
-    
-	//Calculating the jacobian [dx_0/d£]
-	for( unsigned int i=0; i<dimension; i++)
-	  {
-	    Jacobian[i] = J0[PointNumber](i,0);
-	  }
-
-
-	mDetJ0Full[PointNumber] = norm_2(Jacobian); 
-
-	//Calculating the inverse of the jacobian and the parameters needed [d£/dx_0]
-	double InverseJacobian = 1.0/ mDetJ0Full[PointNumber]; 
-
-	mInvJ0Full[PointNumber].resize(dimension,false);
-	noalias(mInvJ0Full[PointNumber]) = ZeroVector(dimension);
-      
-	for( unsigned int i=0; i<dimension; i++)
-	  {
-	    mInvJ0Full[PointNumber][i] = InverseJacobian;
-	  }
-			     
+       	mFrameQuaternionsFull[PointNumber]  = QuaternionType::FromRotationMatrix( Identity );
       }
 
     KRATOS_CATCH( "" )
@@ -269,17 +209,68 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    mIterationCounter = 0;
+    mFinalizedStep = false;
+      
+    //predict is done after initialize solution step -- perform this operations in initialize to write results correctly --
+        
 
-    for ( unsigned int i = 0; i < mPreviousLocalQuaternionsReduced.size(); i++ )
+    // Update Frame Quaternions:
+    
+    //create and initialize element variables:
+    ElementVariables Variables;
+
+    IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
+    
+    //reduced quadrature integration:
+    mThisIntegrationMethod = mReducedIntegrationMethod;
+
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+    //reading shape functions
+    Variables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+    
+    //get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = Variables.GetShapeFunctions();
+
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
-	mPreviousLocalQuaternionsReduced[i] =  mCurrentLocalQuaternionsReduced[i];
+	//set shape functions values for this integration point
+	Variables.N=row( Ncontainer, PointNumber);
+
+	//compute local to global frame
+	this->CalculateFrameMapping( Variables, PointNumber );
+
+	//update frame quaternion
+	mFrameQuaternionsReduced[PointNumber] = QuaternionType::FromRotationMatrix(Variables.CurrentRotationMatrix);
       }
 
-    for ( unsigned int i = 0; i < mPreviousLocalQuaternionsFull.size(); i++ )
+    
+    //full quadrature integration:
+    mThisIntegrationMethod = mFullIntegrationMethod;
+
+    const GeometryType::IntegrationPointsArrayType& full_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+    //reading shape functions
+    Variables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+    
+    //get the shape functions for the order of the integration method [N]
+    const Matrix& NFcontainer = Variables.GetShapeFunctions();
+
+    for ( unsigned int PointNumber = 0; PointNumber < full_integration_points.size(); PointNumber++ )
       {
-	mPreviousLocalQuaternionsFull[i] =  mCurrentLocalQuaternionsFull[i];
+	//set shape functions values for this integration point
+	Variables.N=row( NFcontainer, PointNumber);
+
+	//compute local to global frame
+	this->CalculateFrameMapping( Variables, PointNumber );
+
+	//update frame quaternion
+	mFrameQuaternionsFull[PointNumber] = QuaternionType::FromRotationMatrix(Variables.CurrentRotationMatrix);
       }
+
+    mThisIntegrationMethod = ThisIntegrationMethod;
+      
+    mIterationCounter = 0;   
 
     KRATOS_CATCH( "" )
   }
@@ -291,10 +282,6 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //Curvature Update
-    if( mIterationCounter == 0 ){ //predict is done after initialize solution step
-      this->CalculateCurvatureUpdate( mCurrentCurvatureVectors, STEP_ROTATION, rCurrentProcessInfo ); 
-    }
     
     KRATOS_CATCH( "" )
   }
@@ -305,9 +292,6 @@ namespace Kratos
   void LargeDisplacementBeamElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-    
-    //Curvature Update (on 14/07/2016 the FinalizeNonLinearIteration changed in solver, it is done after movemesh...problems¿?)
-    this->CalculateCurvatureUpdate( mCurrentCurvatureVectors, DELTA_ROTATION, rCurrentProcessInfo ); 
 
     mIterationCounter++;
 
@@ -321,39 +305,21 @@ namespace Kratos
   void LargeDisplacementBeamElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-    KRATOS_CATCH( "" )
-  }
 
-  //************************************************************************************
-  //************************************************************************************
-
-
-  void LargeDisplacementBeamElement::CalculateCurvatureUpdate(std::vector<Vector>& rCurvatureVectors, const Variable<array_1d<double, 3 > >& rVariable, const ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-    //(in fact is the two nodes beam element, only one integration point)
-    for ( unsigned int PointNumber = 0; PointNumber < rCurvatureVectors.size(); PointNumber++ )
+    // Update Curvature Vectors:
+      
+    for ( unsigned int i = 0; i < mCurrentCurvatureVectors.size(); i++ )
       {
-	//compute element kinematics  ...
-	this->CalculateKinematics(Variables,PointNumber);
-	
-	Variables.PreviousCurvatureVector = rCurvatureVectors[PointNumber];
-
-	this->CalculateCurrentCurvature(Variables,rVariable);
-
-	rCurvatureVectors[PointNumber] = Variables.CurrentCurvatureVector;
+	mPreviousCurvatureVectors[i] = mCurrentCurvatureVectors[i] ;
       }
 
-    
+    mFinalizedStep = true;
+      
     KRATOS_CATCH( "" )
   }
 
 
-  ///************************************************************************************
+  //************************************************************************************
   //************************************************************************************
 
   void LargeDisplacementBeamElement::CalculateCurrentCurvature(ElementVariables& rVariables, const Variable<array_1d<double, 3 > >& rVariable)
@@ -506,52 +472,90 @@ namespace Kratos
 
     //TOTAL LAGRANGIAN
     //Compute cartesian derivatives [dN/dx_0]    
-    if( mThisIntegrationMethod == mReducedIntegrationMethod ){
-      rVariables.DN_DX = mInvJ0Reduced[rPointNumber][0] * DN_De[rPointNumber]; 
-      rVariables.detJ  = mDetJ0Reduced[rPointNumber];
-    }
-    
-    if( mThisIntegrationMethod == mFullIntegrationMethod ){
-      rVariables.DN_DX = mInvJ0Full[rPointNumber][0] * DN_De[rPointNumber]; 
-      rVariables.detJ  = mDetJ0Full[rPointNumber];
-    }
-
-    //Compute centroid displacement derivatives:
-    Vector CurrentDisplacements(dimension);
-    noalias(CurrentDisplacements) = ZeroVector(dimension);
-    Vector DeltaDisplacements(dimension);
-    noalias(DeltaDisplacements) = ZeroVector(dimension);
-
-    noalias(rVariables.CurrentAxisPositionDerivatives) = ZeroVector(dimension);
-   
+    rVariables.DN_DX = mInvJ0 * DN_De[rPointNumber]; 
+    rVariables.detJ  = 1.0/mInvJ0;
+  
     //compute local to global frame
     this->CalculateFrameMapping(rVariables,rPointNumber);
+    
+    //Compute current centroid DISPLACEMENT DERIVATIVES:
+    noalias(rVariables.CurrentAxisPositionDerivatives) = ZeroVector(dimension);
 
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
 
-    //strains due to displacements and rotations
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	//A: Current Nodes Position
-	CurrentValueVector = GetGeometry()[i].Coordinates();
-	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
 
-	//Current Frame Axis Position derivative
-	for( unsigned int j = 0; j < dimension; j++ )
-	  {
-	    rVariables.CurrentAxisPositionDerivatives[j] +=  rVariables.DN_DX(i,0) * ( CurrentValueVector[j] );
-	  }
-      }
+    if( mFinalizedStep == true ){
+
+      rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+      
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  //A: Current Nodes Position
+	  CurrentValueVector = GetGeometry()[i].Coordinates();
+
+	  for ( unsigned int j = 0; j < dimension; j++ )
+	    {	  
+	      CurrentValueVector[j] -= rVariables.DeltaPosition(i,j);
+	    }
+	  
+	  CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+
+	  //Current Frame Axis Position derivative
+	  for( unsigned int j = 0; j < dimension; j++ )
+	    {
+	      rVariables.CurrentAxisPositionDerivatives[j] +=  rVariables.DN_DX(i,0) * ( CurrentValueVector[j] );
+	    }
+	}
+    }
+    else{
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  //A: Current Nodes Position
+	  CurrentValueVector = GetGeometry()[i].Coordinates();
+	  CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+
+	  //Current Frame Axis Position derivative
+	  for( unsigned int j = 0; j < dimension; j++ )
+	    {
+	      rVariables.CurrentAxisPositionDerivatives[j] +=  rVariables.DN_DX(i,0) * ( CurrentValueVector[j] );
+	    }
+	}
+    }
+
     
-    //set current CURVATURES
-    rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+    //Compute current CURVATURES
+    if( mFinalizedStep == true ){
+      
+      rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      
+    }
+    else{
+     
+      if( mIterationCounter == 0 ){
 
+	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
+      	rVariables.CurrentCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
+	
+	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);      
+      
+      }
+      else{
+
+	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      
+	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
+      }
+     
+    }
+    
     KRATOS_CATCH( "" )
   }
+ 
 
-
-  //*************************COMPUTE DELTA POSITION*************************************
+  //*************************COMPUTE FRAME MAPPING POSITION*****************************
   //************************************************************************************
 
   void LargeDisplacementBeamElement::CalculateFrameMapping(ElementVariables& rVariables,const unsigned int& rPointNumber)
@@ -583,15 +587,12 @@ namespace Kratos
       }
 
 
-    QuaternionType PreviousLocalQuaternion;
     if( mThisIntegrationMethod == mReducedIntegrationMethod ){
-      PreviousLocalQuaternion = mPreviousLocalQuaternionsReduced[rPointNumber];
-      mPreviousLocalQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
+      mFrameQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
 
     if( mThisIntegrationMethod == mFullIntegrationMethod ){
-      PreviousLocalQuaternion = mPreviousLocalQuaternionsFull[rPointNumber];
-      mPreviousLocalQuaternionsFull[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
+      mFrameQuaternionsFull[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
 
     //option frame 1:
@@ -623,31 +624,10 @@ namespace Kratos
     // // Current Rotation Matrix
     // QuaternionValue.ToRotationMatrix(rVariables.CurrentRotationMatrix);
 
-    //*------------------------------*//
-
-    //set variables for the initialization update
-    this->UpdateRotationVariables(rVariables,rPointNumber);
 
     KRATOS_CATCH( "" )
   }
 
-  //*********************************SET ROTATION VARIABLES*****************************
-  //************************************************************************************
-
-  void LargeDisplacementBeamElement::UpdateRotationVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
-  {
-    KRATOS_TRY
-
-    if( mThisIntegrationMethod == mReducedIntegrationMethod ){
-      mCurrentLocalQuaternionsReduced[rPointNumber] = QuaternionType::FromRotationMatrix(rVariables.CurrentRotationMatrix);
-    }
-
-    if( mThisIntegrationMethod == mFullIntegrationMethod ){
-      mCurrentLocalQuaternionsFull[rPointNumber] = QuaternionType::FromRotationMatrix(rVariables.CurrentRotationMatrix);
-    }
-    
-    KRATOS_CATCH( "" )
-  }
 
   //*********************************SET STRAIN VARIABLES*******************************
   //************************************************************************************
@@ -656,6 +636,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    mCurrentCurvatureVectors[rPointNumber] = rVariables.CurrentCurvatureVector;
+    
     KRATOS_CATCH( "" )
   }
 
@@ -715,7 +697,7 @@ namespace Kratos
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
 	
-	Variables.detJ = mDetJ0Full[PointNumber];
+	Variables.detJ = 1.0/mInvJ0;
  
 	double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
@@ -2616,7 +2598,7 @@ namespace Kratos
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
 	
-	  Variables.detJ = mDetJ0Full[PointNumber];
+	  Variables.detJ = 1.0/mInvJ0;
 	    
 	  IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
@@ -2775,8 +2757,8 @@ namespace Kratos
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
-	
-	  Variables.detJ = mDetJ0Full[PointNumber];
+
+	  Variables.detJ = 1.0/mInvJ0;
 	    
 	  IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
@@ -2829,40 +2811,32 @@ namespace Kratos
   void LargeDisplacementBeamElement::save( Serializer& rSerializer ) const
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BeamElement )
+    rSerializer.save("FinalizedStep",mFinalizedStep);
     int IntMethod = int(mReducedIntegrationMethod);
     rSerializer.save("ReducedIntegrationMethod",IntMethod);
     IntMethod = int(mFullIntegrationMethod);
     rSerializer.save("FullIntegrationMethod",IntMethod);
     rSerializer.save("IterationCounter",mIterationCounter);
-    rSerializer.save("InvJ0Reduced",mInvJ0Reduced);
-    rSerializer.save("DetJ0Reduced",mDetJ0Reduced);
-    rSerializer.save("InvJ0Full",mInvJ0Full);
-    rSerializer.save("DetJ0Full",mDetJ0Full);
+    rSerializer.save("InvJ0",mInvJ0);
     rSerializer.save("CurrentCurvatureVectors",mCurrentCurvatureVectors);
-    rSerializer.save("CurrentLocalQuaternionsReduced",mCurrentLocalQuaternionsReduced);
-    rSerializer.save("PreviousLocalQuaternionsReduced",mPreviousLocalQuaternionsReduced);
-    rSerializer.save("CurrentLocalQuaternionsFull",mCurrentLocalQuaternionsFull);
-    rSerializer.save("PreviousLocalQuaternionsFull",mPreviousLocalQuaternionsFull);
+    rSerializer.save("FrameQuaternionsReduced",mFrameQuaternionsReduced);
+    rSerializer.save("FrameQuaternionsFull",mFrameQuaternionsFull);
   }
 
   void LargeDisplacementBeamElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BeamElement )
+    rSerializer.load("FinalizedStep",mFinalizedStep);  
     int IntMethod;
     rSerializer.load("ReducedIntegrationMethod",IntMethod);
     mReducedIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("FullIntegrationMethod",IntMethod);
     mFullIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("IterationCounter",mIterationCounter);
-    rSerializer.load("InvJ0Reduced",mInvJ0Reduced);
-    rSerializer.load("DetJ0Reduced",mDetJ0Reduced);
-    rSerializer.load("InvJ0Full",mInvJ0Full);
-    rSerializer.load("DetJ0Full",mDetJ0Full);
+    rSerializer.load("InvJ0",mInvJ0);
     rSerializer.load("CurrentCurvatureVectors",mCurrentCurvatureVectors);
-    rSerializer.load("CurrentLocalQuaternionsReduced",mCurrentLocalQuaternionsReduced);
-    rSerializer.load("PreviousLocalQuaternionsReduced",mPreviousLocalQuaternionsReduced);
-    rSerializer.load("CurrentLocalQuaternionsFull",mCurrentLocalQuaternionsFull);
-    rSerializer.load("PreviousLocalQuaternionsFull",mPreviousLocalQuaternionsFull);
+    rSerializer.load("FrameQuaternionsReduced",mFrameQuaternionsReduced);
+    rSerializer.load("FrameQuaternionsFull",mFrameQuaternionsFull);
   }
 
 

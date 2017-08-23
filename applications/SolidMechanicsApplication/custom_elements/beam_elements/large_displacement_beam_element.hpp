@@ -208,6 +208,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+
+    /**
+     * Finalize and Initialize label
+     */
+    bool mFinalizedStep;
+  
     /**
      * Currently selected reduced integration method
      */
@@ -226,47 +232,28 @@ protected:
     /**
      * Container for historical total Jacobians 
      */
-    std::vector< Vector > mInvJ0Reduced;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0Reduced;
-
-    /**
-     * Container for historical total Jacobians
-     */
-    std::vector< Vector > mInvJ0Full;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0Full;
+    double mInvJ0;
   
     /**
-     * Elemental curvature vectors for each integration point
+     * Elemental current curvature vectors for each integration point
      */
     std::vector<Vector>  mCurrentCurvatureVectors;
+  
+    /**
+     * Elemental previous curvature vectors for each integration point
+     */
+    std::vector<Vector>  mPreviousCurvatureVectors;
+  
+    /**
+     *  Quaternion of the frame for reduced integration points
+     */
+    std::vector<QuaternionType>  mFrameQuaternionsReduced;
 
     /**
-     * Global to Local Quaternion for Global to Local tensor transformation MATERIAL
+     *  Quaternion of the frame for full integration points
      */
-    std::vector<QuaternionType>  mCurrentLocalQuaternionsReduced;
+    std::vector<QuaternionType>  mFrameQuaternionsFull;
 
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation 
-     */
-    std::vector<QuaternionType>  mPreviousLocalQuaternionsReduced;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation MATERIAL
-     */
-    std::vector<QuaternionType>  mCurrentLocalQuaternionsFull;
-
-    /**
-     * Global to Local Quaternion for Global to Local tensor transformation 
-     */
-    std::vector<QuaternionType>  mPreviousLocalQuaternionsFull; 
 
     ///@}
     ///@name Protected Operators
@@ -301,11 +288,6 @@ protected:
     virtual void MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable);
 
 
-    /**
-     * Calculation of the Curvature derivative
-     */
-    void CalculateCurvatureUpdate(std::vector<Vector>& rCurvatureVectors, const Variable<array_1d<double, 3 > >& rVariable, const ProcessInfo& rCurrentProcessInfo);
-
     /**   
      * Calculate current curvature
      */
@@ -324,12 +306,6 @@ protected:
     virtual void CalculateFrameMapping(ElementVariables& rVariables,
 				       const unsigned int& rPointNumber);
 
-
-    /**
-     * Update rotation current member variables
-     */    
-    virtual void UpdateRotationVariables(ElementVariables& rVariables, 
-					 const unsigned int& rPointNumber);
 
     /**
      * Update strain current member variables

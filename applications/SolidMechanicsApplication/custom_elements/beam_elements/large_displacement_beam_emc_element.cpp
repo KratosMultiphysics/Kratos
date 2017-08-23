@@ -48,7 +48,6 @@ namespace Kratos
 
   LargeDisplacementBeamEMCElement::LargeDisplacementBeamEMCElement(LargeDisplacementBeamEMCElement const& rOther)
     :LargeDisplacementBeamElement(rOther)
-    ,mPreviousCurvatureVectors(rOther.mPreviousCurvatureVectors)
     ,mCurrentStrainResultantsVector(rOther.mCurrentStrainResultantsVector)
     ,mPreviousStrainResultantsVector(rOther.mPreviousStrainResultantsVector)
   {
@@ -86,17 +85,6 @@ namespace Kratos
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ReducedIntegrationMethod );
 
-    //Curvature Initialization
-    if ( mPreviousCurvatureVectors.size() != integration_points.size() )
-      {
-        mPreviousCurvatureVectors.resize( integration_points.size() );
-      }
-    
-    for ( unsigned int i = 0; i < mPreviousCurvatureVectors.size(); i++ )
-      {
-	mPreviousCurvatureVectors[i].resize(3,false);
-	noalias(mPreviousCurvatureVectors[i]) = ZeroVector(3);
-      }
 
     //Resultants Initialization
     if ( mCurrentStrainResultantsVector.size() != integration_points.size() )
@@ -136,11 +124,6 @@ namespace Kratos
 
     LargeDisplacementBeamElement::InitializeSolutionStep(rCurrentProcessInfo);
 
-    for ( unsigned int i = 0; i < mCurrentCurvatureVectors.size(); i++ )
-      {
-	mPreviousCurvatureVectors[i] = mCurrentCurvatureVectors[i] ;
-      }
-
     for ( unsigned int i = 0; i < mPreviousStrainResultantsVector.size(); i++ )
       {
 	mPreviousStrainResultantsVector[i] = mCurrentStrainResultantsVector[i] ;
@@ -149,39 +132,6 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-
-
-  //************************************************************************************
-  //************************************************************************************
-  void LargeDisplacementBeamEMCElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-  {
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void LargeDisplacementBeamEMCElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-  {
-    KRATOS_TRY
-    
-    mIterationCounter++;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void LargeDisplacementBeamEMCElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )
-  }
 
   //*****************************************************************************
   //*****************************************************************************
@@ -292,18 +242,15 @@ namespace Kratos
      
     //TOTAL LAGRANGIAN
     //Compute cartesian derivatives [dN/dx_0]
-    if( mThisIntegrationMethod == mReducedIntegrationMethod ){
-      rVariables.DN_DX = mInvJ0Reduced[rPointNumber][0] * DN_De[rPointNumber]; 
-      rVariables.detJ  = mDetJ0Reduced[rPointNumber];
-    }
+    rVariables.DN_DX = mInvJ0 * DN_De[rPointNumber]; 
+    rVariables.detJ  = 1.0/mInvJ0;
 
-    if( mThisIntegrationMethod == mFullIntegrationMethod ){
-      rVariables.DN_DX = mInvJ0Full[rPointNumber][0] * DN_De[rPointNumber]; 
-      rVariables.detJ  = mDetJ0Full[rPointNumber];
-    }
+    if(rVariables.CurrentAxisPositionDerivatives.size() != dimension)
+      rVariables.CurrentAxisPositionDerivatives.resize(dimension,false);
 
-    //********************************************************//
-
+    if(rVariables.PreviousAxisPositionDerivatives.size() != dimension)
+      rVariables.PreviousAxisPositionDerivatives.resize(dimension,false);
+	
     noalias(rVariables.CurrentAxisPositionDerivatives) = ZeroVector(dimension);
     noalias(rVariables.PreviousAxisPositionDerivatives) = ZeroVector(dimension);
 
@@ -352,7 +299,7 @@ namespace Kratos
 
 
     KRATOS_CATCH( "" )
-      }
+  }
 
 
   //*************************COMPUTE FRAME MAPPING*************************************
@@ -376,15 +323,12 @@ namespace Kratos
 
     //*------------------------------*//
  
-    QuaternionType PreviousLocalQuaternion;
     if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 1 ){
-      PreviousLocalQuaternion = mPreviousLocalQuaternionsReduced[rPointNumber];
-      mPreviousLocalQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
+      mFrameQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
 
     if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 2 ){
-      PreviousLocalQuaternion = mPreviousLocalQuaternionsFull[rPointNumber];
-      mPreviousLocalQuaternionsFull[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
+      mFrameQuaternionsFull[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
 
     Matrix CayleyRotationMatrix(3,3);
@@ -402,25 +346,10 @@ namespace Kratos
     CalculateAlphaRotationMatrix( rVariables.PreviousRotationMatrix, rVariables.CurrentRotationMatrix, rVariables.AlphaRotationMatrix, rVariables.AlphaRotationMatrixAsterisk, rVariables.Alpha);
 
     //*------------------------------*//
-
-    //set variables for the initialization update
-    this->UpdateRotationVariables(rVariables,rPointNumber);
-
+  
   }
 
-  //*********************************SET ROTATION VARIABLES*****************************
-  //************************************************************************************
-
-  void LargeDisplacementBeamEMCElement::UpdateRotationVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
-  {
-    KRATOS_TRY
-
-    LargeDisplacementBeamElement::UpdateRotationVariables(rVariables,rPointNumber);
-
-    KRATOS_CATCH( "" )
-  }
-
-
+ 
   //*********************************SET STRAIN VARIABLES*******************************
   //************************************************************************************
 
@@ -431,7 +360,6 @@ namespace Kratos
     LargeDisplacementBeamElement::UpdateStrainVariables(rVariables, rPointNumber);
 
     mCurrentStrainResultantsVector[rPointNumber] = rVariables.CurrentStrainResultantsVector;
-    mCurrentCurvatureVectors[rPointNumber]       = rVariables.CurrentCurvatureVector;
 
     KRATOS_CATCH( "" )
   }
@@ -1377,7 +1305,6 @@ namespace Kratos
   void LargeDisplacementBeamEMCElement::save( Serializer& rSerializer ) const
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementBeamElement )
-    rSerializer.save("PreviousCurvatureVecors",mPreviousCurvatureVectors);
     rSerializer.save("CurrentStrainResultantsVector",mCurrentStrainResultantsVector);
     rSerializer.save("PreviousStrainResultantsVector",mPreviousStrainResultantsVector);
   }
@@ -1385,7 +1312,6 @@ namespace Kratos
   void LargeDisplacementBeamEMCElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementBeamElement )
-    rSerializer.load("PreviousCurvatureVecors",mPreviousCurvatureVectors);
     rSerializer.load("CurrentStrainResultantsVector",mCurrentStrainResultantsVector);
     rSerializer.load("PreviousStrainResultantsVector",mPreviousStrainResultantsVector);
 
