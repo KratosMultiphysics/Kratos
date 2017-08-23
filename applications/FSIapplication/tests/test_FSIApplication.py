@@ -7,9 +7,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from SmallTests import FSIProblemEmulatorTest as TFSIProblemEmulatorTest
-from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as TConvergenceAcceleratorTest
-from KratosExecuteConvergenceAcceleratorSpringTest import KratosExecuteConvergenceAcceleratorSpringTest as TConvergenceAcceleratorSpringTest
+from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as ConvergenceAcceleratorTest
+from KratosExecuteConvergenceAcceleratorSpringTest import KratosExecuteConvergenceAcceleratorSpringTest as ConvergenceAcceleratorSpringTest
+from FSI_problem_emulator_test import FSIProblemEmulatorTest
 from variable_redistribution_test import VariableRedistributionTest
 from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 
@@ -34,13 +34,15 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_aitken_accelerator'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_accelerator'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
-    smallSuite.addTest(TFSIProblemEmulatorTest('test_execution'))
-    smallSuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
-    smallSuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_aitken_accelerator'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_accelerator'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithAitken'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQN'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQNRecursive'))
+    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
+    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
     smallSuite.addTest(NonConformantOneSideMapTest('test2D_1'))
     smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
     smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))
