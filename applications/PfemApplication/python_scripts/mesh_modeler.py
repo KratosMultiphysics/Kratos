@@ -25,14 +25,14 @@ class MeshModeler(object):
         print("::[Mesh_Modeler]::")
         
     #
-    def Initialize(self, domain_size):
+    def Initialize(self, dimension):
         
-        self.domain_size   =  domain_size
+        self.dimension   =  dimension
 
         # set mesh modeler
-        if(self.domain_size == 2):
+        if(self.dimension == 2):
             self.mesher = KratosPfem.TriangularMesh2DModeler()
-        elif(self.domain_size == 3):
+        elif(self.dimension == 3):
             self.mesher = KratosPfem.TetrahedralMesh3DModeler()
 
         self.mesher.SetEchoLevel(self.echo_level)
@@ -66,7 +66,7 @@ class MeshModeler(object):
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
         # set modeler flags: to set options for the mesher (triangle 2D, tetgen 3D)
-        if( self.domain_size == 2 ):
+        if( self.dimension == 2 ):
             pass
             #REFINE
             #ADD NODES
@@ -98,7 +98,7 @@ class MeshModeler(object):
             #to get conectivities, boundaries and neighbours only
             #modeler_flags = "ncEBQ" 
             
-        if( self.domain_size == 3 ):
+        if( self.dimension == 3 ):
             #other flags
             pass
             

@@ -112,15 +112,15 @@ class MeshingDomain(object):
 
         print("::[Meshing Domain]:: -START-")
         
-        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.mesh_id     = self.settings["mesh_id"].GetInt()
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
+        self.mesh_id   = self.settings["mesh_id"].GetInt()
 
         # Set MeshingParameters
         self.SetMeshingParameters()
         
         # Meshing Stratety
         self.MeshingStrategy.SetEchoLevel(self.echo_level)
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
         
         print("::[Meshing Domain]:: -END- ")
 
@@ -158,7 +158,7 @@ class MeshingDomain(object):
         self.SetMeshSizeValues()
            
         # set mesh refinement in box
-        size = self.domain_size
+        size = self.dimension
         refining_box = self.settings["refining_parameters"]["refining_box"]
         if(refining_box["refine_in_box_only"].GetBool()):               
             radius   = refining_box["radius"].GetDouble()

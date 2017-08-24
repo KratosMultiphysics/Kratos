@@ -70,12 +70,12 @@ class DomainUtilities(object):
 
         mesh_id = 0
         
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
         # set search options:
         number_of_avg_elems = 10
          
         # define search utility
-        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(model_part, domain_size, echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(model_part, dimension, echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:
         elemental_neighbour_search.Execute()
