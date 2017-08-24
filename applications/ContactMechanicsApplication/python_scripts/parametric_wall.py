@@ -183,7 +183,7 @@ class ParametricWall(object):
     # 
     def GetUpperPoint(self, model_part):
         
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
 
         max_x = sys.float_info.min
         max_y = sys.float_info.min
@@ -197,7 +197,7 @@ class ParametricWall(object):
             if( node.Z > max_z ):
                 max_z = node.Z
 
-        if( domain_size == 2 ):
+        if( dimension == 2 ):
             return [max_x, max_y, 0]
         else:
             return [max_x, max_y, max_z]
@@ -205,7 +205,7 @@ class ParametricWall(object):
     # 
     def GetLowerPoint(self, model_part):
 
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        dimension = model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
 
         min_x = sys.float_info.max
         min_y = sys.float_info.max
@@ -219,7 +219,7 @@ class ParametricWall(object):
             if( node.Z < min_z ):
                 min_z = node.Z
                 
-        if( domain_size == 2 ):
+        if( dimension == 2 ):
             return [min_x, min_y, 0]
         else:
             return [min_x, min_y, min_z]

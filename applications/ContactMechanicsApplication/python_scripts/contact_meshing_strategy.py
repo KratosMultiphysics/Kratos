@@ -51,7 +51,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         #print("::[Contact_Modeler_Strategy]:: Construction of Meshing Strategy finished")
         
     #
-    def Initialize(self,meshing_parameters,domain_size):
+    def Initialize(self,meshing_parameters,dimension):
 
         #parameters
         self.mesh_id = meshing_parameters.GetMeshId()
@@ -116,7 +116,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         self.SetMeshModelers();
         
         for mesher in self.mesh_modelers:
-            mesher.Initialize(domain_size)
+            mesher.Initialize(dimension)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0

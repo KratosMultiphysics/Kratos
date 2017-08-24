@@ -38,7 +38,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False

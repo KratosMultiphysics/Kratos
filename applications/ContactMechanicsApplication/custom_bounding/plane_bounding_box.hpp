@@ -395,7 +395,7 @@ public:
       double alpha = 0;
       QuaternionType Quaternion;      
 
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 )
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DIMENSION]==2 )
 	angular_partitions = 2;
       else
 	angular_partitions = 4;
@@ -432,7 +432,7 @@ public:
 	}
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 ){
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DIMENSION]==2 ){
 	std::cout<<" CREATE a LINE mesh "<<std::endl;
 	this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
       }
