@@ -115,6 +115,8 @@ public:
                         GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
                     }                    
                 }
+				// Set first entry to NaN for test below
+				ValuesOnIntPoint[0] = std::numeric_limits<double>::quiet_NaN();
             }
             if( mMeshConditions.size() != 0 )
             {
@@ -123,6 +125,13 @@ public:
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                      r_model_part.GetProcessInfo() );
+
+					if (isnan(ValuesOnIntPoint[0]))
+					{
+						// we aren't getting any new results, break
+						break;
+					}
+
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
