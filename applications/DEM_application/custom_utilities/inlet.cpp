@@ -95,7 +95,8 @@ namespace Kratos {
         
         mStrategyForContinuum = using_strategy_for_continuum;
         unsigned int& max_Id=creator.mMaxNodeId;
-        CreatePropertiesProxies(mFastProperties, mInletModelPart);      
+        //CreatePropertiesProxies(mFastProperties, mInletModelPart); 
+        mFastProperties = PropertiesProxiesManager().GetPropertiesProxies(r_modelpart);
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         
         if (r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY)) mBallsModelPartHasSphericity = true;        

@@ -271,7 +271,6 @@ namespace Kratos {
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
         vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
-        std::vector<PropertiesProxy> mFastProperties;
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
 
     protected:

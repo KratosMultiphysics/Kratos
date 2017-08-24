@@ -22,8 +22,8 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::Initialize(const ProcessInfo& r_process_info) {
     }
 
-    void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        //std::cout << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
+    void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        //if (verbose) std::cout << "\nAssigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
     
