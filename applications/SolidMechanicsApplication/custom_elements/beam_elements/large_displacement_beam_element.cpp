@@ -1816,23 +1816,23 @@ namespace Kratos
 
 	//Current Step Rotation Vector 
 	CurrentValueVector = GetNodalCurrentValue( STEP_ROTATION, CurrentValueVector, i );
-	CurrentStepRotationVector       += rVariables.N[i] * CurrentValueVector;
+	noalias(CurrentStepRotationVector) += rVariables.N[i] * CurrentValueVector;
 
 	//Previous Step Rotation Vector 
 	PreviousValueVector = GetNodalPreviousValue( STEP_ROTATION, PreviousValueVector, i );
-	PreviousStepRotationVector      += rVariables.N[i] * PreviousValueVector;
+	noalias(PreviousStepRotationVector) += rVariables.N[i] * PreviousValueVector;
 
 	//Angular Velocity Vector
 	CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
-	AngularVelocityVector           += rVariables.N[i] * CurrentValueVector;
+	noalias(AngularVelocityVector) += rVariables.N[i] * CurrentValueVector;
 
 	//Current Angular Acceleration Vector
 	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	CurrentAngularAccelerationVector       += rVariables.N[i] * CurrentValueVector;
+	noalias(CurrentAngularAccelerationVector) += rVariables.N[i] * CurrentValueVector;
         
         //Previous Angular Acceleration Vector
 	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	PreviousAngularAccelerationVector       += rVariables.N[i] * CurrentValueVector;
+	noalias(PreviousAngularAccelerationVector) += rVariables.N[i] * CurrentValueVector;
 	
       }
      

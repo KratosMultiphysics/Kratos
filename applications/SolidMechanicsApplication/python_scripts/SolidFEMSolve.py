@@ -154,7 +154,6 @@ computing_model_part = solver.GetComputingModelPart()
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
-#solver.InitializeStrategy()
 solver.SetEchoLevel(echo_level)
 
 #### Output settings start ####

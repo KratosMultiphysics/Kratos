@@ -312,17 +312,7 @@ namespace Kratos
     noalias(CurrentStepRotationVector) = ZeroVector(3);
     this->GetLocalCurrentValue(STEP_ROTATION, CurrentStepRotationVector, rVariables.N);
 
-    // const unsigned int number_of_nodes = GetGeometry().size();
-    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    //   {
-    // 	std::cout<<" DISPLACEMENT "<<GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
-    // 	std::cout<<" STEP_ROTATION "<<GetGeometry()[i].FastGetSolutionStepValue(STEP_ROTATION)<<std::endl;
-    //   }
 
-    // std::cout<<" STEP_ROTATION "<<CurrentStepRotationVector<<std::endl;
-
-    //*------------------------------*//
- 
     if( GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod) == 1 ){
       mFrameQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }

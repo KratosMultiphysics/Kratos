@@ -1559,6 +1559,7 @@ void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
 	    for(unsigned int j=0; j<dimension; j++)
 	      {
 		ForceResidual[j] += rRHSVector[index + j];

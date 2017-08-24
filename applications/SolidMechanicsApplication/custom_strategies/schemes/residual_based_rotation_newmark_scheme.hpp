@@ -20,8 +20,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "includes/element.h"
 #include "utilities/beam_math_utilities.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -136,13 +134,13 @@ namespace Kratos
 
       mDynamic.static_dynamic= rDynamic;
 
-      //For Bossak Scheme
+      // For Bossak Scheme
       mAlpha = rAlpha; //0.0 to -0.3
 
-      //std::cout << " MECHANICAL SCHEME: The Rotation Newmark Time Integration Scheme [ beta= "<<mDynamic.beta<<" gamma= "<<mDynamic.gamma<<"]"<<std::endl;
+      // std::cout << " MECHANICAL SCHEME: The Rotation Newmark Time Integration Scheme [ beta= "<<mDynamic.beta<<" gamma= "<<mDynamic.gamma<<"]"<<std::endl;
 
 
-      //Allocate auxiliary memory
+      // Allocate auxiliary memory
       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
       mMatrix.M.resize(NumThreads);
@@ -273,136 +271,6 @@ namespace Kratos
     }
 
 
-    // this must be implemented in the ContactMechanicsApplication
-
-    void SlaveNodesUpdate(ModelPart& rModelPart)
-    {
-      KRATOS_TRY
-
-	// Matrix SkewSymVariable = ZeroMatrix(3,3);
-        // Vector RadiusVector    = ZeroVector(3);
-	// Vector Variable        = ZeroVector(3);
-	// Vector AngularVariable = ZeroVector(3);
-	// array_1d<double,3>     VariableArray;
-
-        // array_1d<double,3> Radius;
-
-	// for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
-	//      i != rModelPart.NodesEnd(); ++i)
-	//   {
-	//     if( (i)->Is(SLAVE) && i->IsNot(RIGID) ){
-
-	//       Element& MasterElement = (i)->GetValue(MASTER_ELEMENTS).back();
-
-	//       Node<3>& rCenterOfGravity = MasterElement.GetGeometry()[0];
-
-	//       array_1d<double, 3 >&  Center              = rCenterOfGravity.GetInitialPosition();
-	//       array_1d<double, 3 >&  Displacement        = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
-	//       array_1d<double, 3 >&  Rotation            = rCenterOfGravity.FastGetSolutionStepValue(ROTATION);
-	//       array_1d<double, 3 >&  StepRotation        = rCenterOfGravity.FastGetSolutionStepValue(STEP_ROTATION);
-	//       array_1d<double, 3 >&  DeltaRotation       = rCenterOfGravity.FastGetSolutionStepValue(DELTA_ROTATION);
-
-	//       array_1d<double, 3 >&  Velocity            = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
-	//       array_1d<double, 3 >&  Acceleration        = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
-	//       array_1d<double, 3 >&  AngularVelocity     = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-	//       array_1d<double, 3 >&  AngularAcceleration = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-
-	//       //std::cout<<" [  MasterElement "<<MasterElement.Id() ];
-	//       //std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
-	//       //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
-
-	//       //Get rotation matrix
-	//       QuaternionType TotalQuaternion = QuaternionType::FromRotationVector<array_1d<double,3> >(Rotation);
-
-	//       Radius = (i)->GetInitialPosition() - Center;
-
-	//       Matrix RotationMatrix;
-	//       TotalQuaternion.ToRotationMatrix(RotationMatrix);
-	      
-	//       for(int j=0; j<3; j++)
-	// 	RadiusVector[j] = Radius[j];
-	      
-	//       RadiusVector = prod( RotationMatrix, RadiusVector );
-
-	//       for(int j=0; j<3; j++)
-	// 	Radius[j] = RadiusVector[j];
-
-	//       //TotalQuaternion.RotateVector3<array_1d<double,3> >(Radius);
-        
-	//       array_1d<double, 3 >&  NodeDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-	//       array_1d<double, 3 >&  NodeRotation      = (i)->FastGetSolutionStepValue(ROTATION);
-	//       array_1d<double, 3 >&  NodeStepRotation  = (i)->FastGetSolutionStepValue(STEP_ROTATION);
-	//       array_1d<double, 3 >&  NodeDeltaRotation = (i)->FastGetSolutionStepValue(DELTA_ROTATION);
-
-	//       noalias(NodeDisplacement)  = ( (Center + Displacement)  + Radius ) - (i)->GetInitialPosition();
-	//       noalias(NodeRotation)      = Rotation;
-	//       noalias(NodeStepRotation)  = StepRotation;
-	//       noalias(NodeDeltaRotation) = DeltaRotation;    
-     
-
-	//       for(int j=0; j<3; j++)
-	// 	RadiusVector[j] = Radius[j];
-
-	//       //********************
-	//       for(int j=0; j<3; j++)
-	// 	Variable[j] = AngularVelocity[j];
-
-	//       //compute the skewsymmmetric tensor of the angular velocity
-	//       BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
-	      
-	//       //compute the contribution of the angular velocity to the velocity v = Wxr
-	//       Variable = prod(SkewSymVariable,RadiusVector);
-     
-	//       for(int j=0; j<3; j++)
-	// 	VariableArray[j] = Variable[j];
-
-	//       (i)->FastGetSolutionStepValue(VELOCITY)               = Velocity + VariableArray;
-
-
-	//       //********************
-	      
-	//       //centripetal acceleration:
-	//       for(int j=0; j<3; j++)
-	// 	AngularVariable[j] = AngularVelocity[j];
-		
-	//       //compute the skewsymmmetric tensor of the angular velocity
-	//       BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVariable, SkewSymVariable);
-
-	//       AngularVariable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
-
-
-	//       for(int j=0; j<3; j++)
-	// 	Variable[j] = AngularAcceleration[j];
-
-	//       //compute the skewsymmmetric tensor of the angular acceleration
-	//       BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
-	      
-	//       //compute the contribution of the angular velocity to the velocity a = Axr
-	//       Variable = prod(SkewSymVariable,RadiusVector);
-
-     	//       for(int j=0; j<3; j++)
-	// 	VariableArray[j] = Variable[j] + AngularVariable[j];
-
-	//       (i)->FastGetSolutionStepValue(ACCELERATION)           = Acceleration + VariableArray;
-
-
-	//       //********************
-	//       (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)       = AngularVelocity;
-	//       (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)   = AngularAcceleration;
-    
-	//       // 	std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
-	//       // 	std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;  
-	//       // 	std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;  
-
-     
-	//     }
-	    
-	//   }
-
-	KRATOS_CATCH( "" )
-    }
-
-
     /**
      * Performing the prediction of the solution
      * It predicts the solution for the current step: x = xold + vold * Dt
@@ -529,11 +397,11 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ProcessInfo CurrentProcessInfo= rModelPart.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
 
         Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+        double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime < 1.0e-24)
         {
@@ -552,10 +420,10 @@ namespace Kratos
 		
 	//Set Newmark coefficients
 	if( mDynamic.static_dynamic != 0 ){
-	  CurrentProcessInfo[NEWMARK_BETA]  = mDynamic.beta;
-	  CurrentProcessInfo[NEWMARK_GAMMA] = mDynamic.gamma;
-	  CurrentProcessInfo[BOSSAK_ALPHA]  = mAlpha;
-	  CurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;  
+	  rCurrentProcessInfo[NEWMARK_BETA]  = mDynamic.beta;
+	  rCurrentProcessInfo[NEWMARK_GAMMA] = mDynamic.gamma;
+	  rCurrentProcessInfo[BOSSAK_ALPHA]  = mAlpha;
+	  rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;  
 	}
 
 	//Initializing Newmark constants
@@ -596,7 +464,7 @@ namespace Kratos
 
         // Finalizes solution step for all of the elements
         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
@@ -610,7 +478,7 @@ namespace Kratos
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
 
-            itElem->FinalizeSolutionStep(CurrentProcessInfo);
+            itElem->FinalizeSolutionStep(rCurrentProcessInfo);
         }
 
         ConditionsArrayType& rConditions = rModelPart.Conditions();
@@ -626,7 +494,7 @@ namespace Kratos
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
 
-            itCond->FinalizeSolutionStep(CurrentProcessInfo);
+            itCond->FinalizeSolutionStep(rCurrentProcessInfo);
         }
 
         KRATOS_CATCH( "" );
@@ -652,7 +520,7 @@ namespace Kratos
 
         // Initializes the non-linear iteration for all the elements
         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
@@ -667,7 +535,7 @@ namespace Kratos
 
             for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
             {
-                itElem->InitializeNonLinearIteration(CurrentProcessInfo);
+                itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
             }
         }
         
@@ -686,7 +554,7 @@ namespace Kratos
 
             for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
             {
-                itCond->InitializeNonLinearIteration(CurrentProcessInfo);
+                itCond->InitializeNonLinearIteration(rCurrentProcessInfo);
             }
         }
 
@@ -941,8 +809,6 @@ namespace Kratos
       rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
 
-    //***************************************************************************
-    //***************************************************************************
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -1568,7 +1434,7 @@ namespace Kratos
         }
     }
 
-     /**
+    /**
      * It adds the dynamic RHS contribution of the condition: b - M*a - D*v
      * @param rCurrentCondition: The condition to compute
      * @param RHS_Contribution: The dynamic contribution for the RHS
@@ -1600,7 +1466,6 @@ namespace Kratos
         }
 
         // Adding damping contribution
-        // Damping contribution
         if (D.size1() != 0)
         {
             rCurrentCondition->GetFirstDerivativesVector(mVector.v[thread], 0);
@@ -1610,6 +1475,137 @@ namespace Kratos
 
     }
 
+
+    // this must be implemented in the ContactMechanicsApplication
+
+    void SlaveNodesUpdate(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+	// Matrix SkewSymVariable = ZeroMatrix(3,3);
+        // Vector RadiusVector    = ZeroVector(3);
+	// Vector Variable        = ZeroVector(3);
+	// Vector AngularVariable = ZeroVector(3);
+	// array_1d<double,3>     VariableArray;
+
+        // array_1d<double,3> Radius;
+
+	// for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+	//      i != rModelPart.NodesEnd(); ++i)
+	//   {
+	//     if( (i)->Is(SLAVE) && i->IsNot(RIGID) ){
+
+	//       Element& MasterElement = (i)->GetValue(MASTER_ELEMENTS).back();
+
+	//       Node<3>& rCenterOfGravity = MasterElement.GetGeometry()[0];
+
+	//       array_1d<double, 3 >&  Center              = rCenterOfGravity.GetInitialPosition();
+	//       array_1d<double, 3 >&  Displacement        = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
+	//       array_1d<double, 3 >&  Rotation            = rCenterOfGravity.FastGetSolutionStepValue(ROTATION);
+	//       array_1d<double, 3 >&  StepRotation        = rCenterOfGravity.FastGetSolutionStepValue(STEP_ROTATION);
+	//       array_1d<double, 3 >&  DeltaRotation       = rCenterOfGravity.FastGetSolutionStepValue(DELTA_ROTATION);
+
+	//       array_1d<double, 3 >&  Velocity            = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
+	//       array_1d<double, 3 >&  Acceleration        = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
+	//       array_1d<double, 3 >&  AngularVelocity     = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+	//       array_1d<double, 3 >&  AngularAcceleration = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+	//       //std::cout<<" [  MasterElement "<<MasterElement.Id() ];
+	//       //std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
+	//       //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
+
+	//       //Get rotation matrix
+	//       QuaternionType TotalQuaternion = QuaternionType::FromRotationVector<array_1d<double,3> >(Rotation);
+
+	//       Radius = (i)->GetInitialPosition() - Center;
+
+	//       Matrix RotationMatrix;
+	//       TotalQuaternion.ToRotationMatrix(RotationMatrix);
+	      
+	//       for(int j=0; j<3; j++)
+	// 	RadiusVector[j] = Radius[j];
+	      
+	//       RadiusVector = prod( RotationMatrix, RadiusVector );
+
+	//       for(int j=0; j<3; j++)
+	// 	Radius[j] = RadiusVector[j];
+
+	//       //TotalQuaternion.RotateVector3<array_1d<double,3> >(Radius);
+        
+	//       array_1d<double, 3 >&  NodeDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+	//       array_1d<double, 3 >&  NodeRotation      = (i)->FastGetSolutionStepValue(ROTATION);
+	//       array_1d<double, 3 >&  NodeStepRotation  = (i)->FastGetSolutionStepValue(STEP_ROTATION);
+	//       array_1d<double, 3 >&  NodeDeltaRotation = (i)->FastGetSolutionStepValue(DELTA_ROTATION);
+
+	//       noalias(NodeDisplacement)  = ( (Center + Displacement)  + Radius ) - (i)->GetInitialPosition();
+	//       noalias(NodeRotation)      = Rotation;
+	//       noalias(NodeStepRotation)  = StepRotation;
+	//       noalias(NodeDeltaRotation) = DeltaRotation;    
+     
+
+	//       for(int j=0; j<3; j++)
+	// 	RadiusVector[j] = Radius[j];
+
+	//       //********************
+	//       for(int j=0; j<3; j++)
+	// 	Variable[j] = AngularVelocity[j];
+
+	//       //compute the skewsymmmetric tensor of the angular velocity
+	//       BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
+	      
+	//       //compute the contribution of the angular velocity to the velocity v = Wxr
+	//       Variable = prod(SkewSymVariable,RadiusVector);
+     
+	//       for(int j=0; j<3; j++)
+	// 	VariableArray[j] = Variable[j];
+
+	//       (i)->FastGetSolutionStepValue(VELOCITY)               = Velocity + VariableArray;
+
+
+	//       //********************
+	      
+	//       //centripetal acceleration:
+	//       for(int j=0; j<3; j++)
+	// 	AngularVariable[j] = AngularVelocity[j];
+		
+	//       //compute the skewsymmmetric tensor of the angular velocity
+	//       BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVariable, SkewSymVariable);
+
+	//       AngularVariable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
+
+
+	//       for(int j=0; j<3; j++)
+	// 	Variable[j] = AngularAcceleration[j];
+
+	//       //compute the skewsymmmetric tensor of the angular acceleration
+	//       BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
+	      
+	//       //compute the contribution of the angular velocity to the velocity a = Axr
+	//       Variable = prod(SkewSymVariable,RadiusVector);
+
+     	//       for(int j=0; j<3; j++)
+	// 	VariableArray[j] = Variable[j] + AngularVariable[j];
+
+	//       (i)->FastGetSolutionStepValue(ACCELERATION)           = Acceleration + VariableArray;
+
+
+	//       //********************
+	//       (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)       = AngularVelocity;
+	//       (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)   = AngularAcceleration;
+    
+	//       // 	std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
+	//       // 	std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;  
+	//       // 	std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;  
+
+     
+	//     }
+	    
+	//   }
+
+	KRATOS_CATCH( "" )
+    }
+
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1621,11 +1617,10 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    ///@{
+    ///@}
 
  private:
-
-        ///@name Static Member Variables
+    ///@name Static Member Variables
     ///@{
     ///@}
     ///@name Member Variables

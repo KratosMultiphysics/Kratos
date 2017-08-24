@@ -169,7 +169,6 @@ class Solution(object):
         
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        #self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
 
         
