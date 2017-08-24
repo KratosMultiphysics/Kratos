@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "Shell_T3_Thin__DrillingRollUp_test",
         "model_part_name" : "SolidDomain",
-        "domain_size"     : 3,
+        "dimension"       : 3,
         "time_step"       : 0.1,
         "start_time"      : 0.001,
         "end_time"        : 1.00,

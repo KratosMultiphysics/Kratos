@@ -44,7 +44,6 @@ class MechanicalSolver(object):
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
-            "analysis_type": "Non-Linear",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
             "model_import_settings": {
@@ -58,10 +57,14 @@ class MechanicalSolver(object):
             "rotation_dofs": false,
             "pressure_dofs": false,
             "contact_dofs": false,
+            "water_pressure_dofs": false,
+            "jacobian_dofs": false,
+            "thermal_dofs":false, 
             "stabilization_factor": null,
             "reform_dofs_at_each_step": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "axisymmetric": false,
             "block_builder": true,
             "move_mesh_flag": true,
             "clear_storage": false,
@@ -109,7 +112,7 @@ class MechanicalSolver(object):
         self.dof_reactions = self.dof_reactions + ['REACTION'] 
         
         # Add dynamic variables
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
+        if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
             self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
         
@@ -126,13 +129,13 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['TORQUE']
-            if(self.settings["solution_type"].GetString() == "Dynamic"):
+            if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
                 self.dof_variables = self.dof_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
                 self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
             # Add specific variables for the problem conditions
             self.nodal_variables = self.nodal_variables + ['POINT_MOMENT']
             # Add large rotation variables
-            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT,STEP_ROTATION,DELTA_ROTATION']
+            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
 
             
         # Add pressure variables
@@ -333,7 +336,7 @@ class MechanicalSolver(object):
         # Constitutive law import
         import constitutive_law_python_utility as constitutive_law_utils
         constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
+                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]);
         constitutive_law.Initialize();
                                                     
         return True

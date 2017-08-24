@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "patch_test_3D8N_tension",
         "model_part_name" : "Structure",
-        "domain_size"     : 3,
+        "dimension"       : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
@@ -13,7 +13,7 @@
         "solver_type"                        : "solid_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+	"scheme_type"                        : "Non-Linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "element_tests/updated_lagrangian_elements/patch_test_3D8N_tension",

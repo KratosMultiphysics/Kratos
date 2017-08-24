@@ -31,9 +31,9 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         """)
         self._validate_and_transfer_matching_settings(custom_settings, static_settings)
         # Validate the remaining settings in the base class.
-        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
-            custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("Static")
+        if not custom_settings.Has("solution_type"): 
+            custom_settings.AddEmptyValue("solution_type")
+            custom_settings["solution_type"].SetString("Static") # Override defaults in the base class.
 
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
@@ -43,18 +43,26 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
     #### Solver internal methods ####
         
     def _create_solution_scheme (self):
-        analysis_type = self.settings["analysis_type"].GetString()
-        
-        if(analysis_type == "Linear"):
-            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()            
-        elif(analysis_type == "Non-Linear" ):           
+        scheme_type = self.settings["scheme_type"].GetString()
+        if(scheme_type == "Linear"):
+            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        elif(scheme_type == "Non-Linear" ):
             if(self.settings["component_wise"].GetBool() == True):
                 dynamic_factor = 0.0
                 damp_factor_m  = 0.0
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
             else:
                 mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-                
+        elif(scheme_type == "RotationStatic"):
+            dynamic_factor = 0.0 
+            damp_factor_m  = 0.0
+            mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
+        elif(scheme_type == "RotationEMC"):
+            dynamic_factor = 0.0       
+            mechanical_scheme = KratosSolid.ResidualBasedRotationEMCScheme(dynamic_factor)
+        else:
+            raise Exception("Unsupported scheme_type: " + scheme_type)
+     
         return mechanical_scheme
 
     def _create_mechanical_solver(self):
@@ -66,7 +74,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             else:
                 mechanical_solver = self._create_line_search_strategy()
         else:
-            if(self.settings["analysis_type"].GetString() == "Linear"):
+            if(self.settings["scheme_type"].GetString() == "Linear"):
                 mechanical_solver = self._create_linear_strategy()
             else:
                 mechanical_solver = self._create_newton_raphson_strategy()

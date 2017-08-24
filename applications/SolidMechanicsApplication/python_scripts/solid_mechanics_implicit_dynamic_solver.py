@@ -68,6 +68,17 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         elif(scheme_type == "Bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+        elif(scheme_type == "RotationNewmark"):
+            dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1 
+            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
+            mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
+        elif(scheme_type == "RotationSimo"):
+            dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1       
+            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
+            mechanical_scheme = KratosSolid.ResidualBasedRotationSimoScheme(dynamic_factor, damp_factor_m)
+        elif(scheme_type == "RotationEMC"):
+            dynamic_factor = self.dynamic_settings["dynamic_factor"].GetDouble() # 0,1       
+            mechanical_scheme = KratosSolid.ResidualBasedRotationEMCScheme(dynamic_factor)
         else:
             raise Exception("Unsupported scheme_type: " + scheme_type)
                     
