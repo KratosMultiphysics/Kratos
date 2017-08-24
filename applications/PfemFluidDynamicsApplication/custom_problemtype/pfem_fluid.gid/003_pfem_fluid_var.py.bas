@@ -1,4 +1,4 @@
-domain_size = *GenData(DOMAIN_SIZE)
+dimension = *GenData(DIMENSION)
 
 *format "%10.5e"
 Dt = *GenData(Time_step)

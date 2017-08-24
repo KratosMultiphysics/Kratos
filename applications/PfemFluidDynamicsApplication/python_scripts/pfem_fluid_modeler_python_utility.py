@@ -10,11 +10,11 @@ KratosMultiphysics.CheckForPreviousImport()
 class ModelerUtility:
     #
 
-    def __init__(self, model_part, domain_size, remesh_domains):
+    def __init__(self, model_part, dimension, remesh_domains):
 
         self.echo_level = 1        
         self.model_part = model_part
-        self.domain_size = domain_size
+        self.dimension = dimension
 
         # set remesh flags
         self.modeler_active = False
@@ -95,7 +95,7 @@ class ModelerUtility:
         mesh_id = 0
          
         # define search utility
-        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -125,7 +125,7 @@ class ModelerUtility:
         mesh_id = 0
 
         # define building utility
-        # skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
+        # skin_build = BuildMeshBoundary(self.model_part, self.dimension, self.echo_level, mesh_id)
         skin_build = KratosPfem.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
 
         # execute building:
@@ -203,7 +203,7 @@ class ModelerUtility:
         for parameters in configuration.mesh_conditions:
 
             # set mesh modeler
-            # if(self.domain_size == 2):
+            # if(self.dimension == 2):
             mesh_modeler = TriangularMesh2DModeler()
             # else:
             # mesh_modeler = TetrahedronMesh3DModeler()
@@ -276,10 +276,10 @@ class ModelerUtility:
             if(box_refinement_only):
 
                 radius_box = parameters["BoxRadius"] * configuration.size_scale
-                center_box = Vector(self.domain_size)
-                velocity_box = Vector(self.domain_size)
+                center_box = Vector(self.dimension)
+                velocity_box = Vector(self.dimension)
 
-                for size in range(0, self.domain_size):
+                for size in range(0, self.dimension):
                     center_box[size] = parameters["BoxCenter"][size] * configuration.size_scale
                     velocity_box[size] = parameters["BoxVelocity"][size] * configuration.size_scale
 

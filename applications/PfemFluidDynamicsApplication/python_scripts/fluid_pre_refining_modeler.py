@@ -62,7 +62,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             
         modeler_flags = ""
         modeler_info  = "Prepare domain for refinement"
-        if( self.domain_size == 2 ):
+        if( self.dimension == 2 ):
            
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pnBYYQ"  
@@ -70,7 +70,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
                 modeler_flags = "nQP"
 
             
-        elif( self.domain_size == 3 ):
+        elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pnBJFMYYQ"

@@ -110,7 +110,7 @@ proc BeforeMeshGeneration {elementsize} {
     
     # Set the domain_size variable
     if { [GiD_AccessValue get gendata Let_GiD_determine_domain_size] == 1 } {
-	GiD_AccessValue set gendata DOMAIN_SIZE [domainsize]
+	GiD_AccessValue set gendata DIMENSION [domainsize]
     }
     # Assign Materials
     if { [GiD_AccessValue get gendata Transfer_materials_to_lower_entities] == 1 } {
@@ -225,10 +225,10 @@ proc BeforeWriteCalcFileGIDProject { file } {
 	# Before Write Calc File
 	# Set the domain_size variable again (in case was General Data changed after meshing)
 	if { [GiD_AccessValue get gendata Let_GiD_determine_domain_size] == 1 } {
-		GiD_AccessValue set gendata DOMAIN_SIZE [domainsize]
+		GiD_AccessValue set gendata DIMENSION [domainsize]
 	}
-	#set D [GiD_AccessValue get gendata DOMAIN_SIZE]
-	#WarnWinText "ProblemData's DOMAIN_SIZE is $D"
+	#set D [GiD_AccessValue get gendata DIMENSION]
+	#WarnWinText "ProblemData's DIMENSION is $D"
 	return 0 
 }
 
