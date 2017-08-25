@@ -66,8 +66,10 @@ struct CandidateManager
     std::unordered_map<int, std::vector<int> > mMatchingInformation;
 };
 
-/// Short class definition.
-/** Detail class definition.
+/// BaseClass for managing the InterfaceObjects
+/** This class is the interface between the Searching objects and the InterfaceObjects. It is responsible
+* for filling buffers, reconstructing things from buffers and the construction of the InterfaceObjects
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceObjectManagerBase
 {
@@ -132,7 +134,7 @@ public:
 
         for (auto& interface_obj : mInterfaceObjects)
         {
-            if (!interface_obj->NeighborOrApproximationFound())   // TODO this prevents from printing warnings in case only an approx is found
+            if (!interface_obj->NeighborOrApproximationFound())
             {
                 all_neighbors_found = 0;
             }
@@ -149,16 +151,16 @@ public:
         for (auto& interface_obj : mInterfaceObjects)
         {
             const int pairing_status = interface_obj->GetPairingStatus();
-            if (pairing_status == InterfaceObject::PairingStatus::NoNeighbor)   // TODO
+            if (pairing_status == InterfaceObject::PairingStatus::NoNeighbor)
             {
                 std::cout << "MAPPER WARNING, Rank " << mCommRank
                           << "\tPoint [ "
                           << interface_obj->X() << " | "
                           << interface_obj->Y() << " | "
                           << interface_obj->Z() << " ] "
-                          << "has not found a neighbor" << std::endl;
+                          << "has not found a neighbor!" << std::endl;
             }
-            else if (pairing_status == InterfaceObject::PairingStatus::Approximation)     // TODO
+            else if (pairing_status == InterfaceObject::PairingStatus::Approximation)
             {
                 std::cout << "MAPPER WARNING, Rank " << mCommRank
                           << "\tPoint [ "
@@ -549,7 +551,7 @@ private:
         int i = 0;
         for (auto &local_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
         {
-            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node) );
+            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node, mEchoLevel) );
             ++i;
         }
     }
@@ -586,23 +588,27 @@ private:
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                             ApproximationTolerance,
+                                            mEchoLevel, 
                                             0) ));
             }
             for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
                                             ApproximationTolerance,
+                                            mEchoLevel,
                                             0) ));
             }
         }
         else     // construct with condition gauss points
         {
+            KRATOS_ERROR << "This is not implemented at the moment" << std::endl;
             for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
             {
                 for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
                 {
                     mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                                 ApproximationTolerance,
+                                                mEchoLevel,
                                                 g, IntegrationMethod) ));
                 }
             }
@@ -612,6 +618,7 @@ private:
                 {
                     mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
                                                 ApproximationTolerance,
+                                                mEchoLevel,
                                                 g, IntegrationMethod) ));
                 }
             }

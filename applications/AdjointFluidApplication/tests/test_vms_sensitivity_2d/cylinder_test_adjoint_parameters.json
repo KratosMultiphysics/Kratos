@@ -34,15 +34,16 @@
         "solver_type"                  : "adjoint_vmsmonolithic_solver",
         "scheme_settings" : {
             "scheme_type"              : "bossak",
-            "boundary_model_part_name" : "NoSlip2D_Cylinder",
-            "alpha_bossak"             :-0.3,
-            "adjoint_start_time"       : 0.0,
-            "adjoint_end_time"         : 0.100000001
+            "alpha_bossak"             :-0.3
         },
-        "objective_settings" : {
-            "objective_type"            : "drag",
-            "structure_model_part_name" : "NoSlip2D_Cylinder",
-            "drag_direction"            : [1.0, 0.0, 0.0]
+        "response_function_settings" : {
+            "response_type"            : "drag",
+            "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
+            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
+            "custom_settings" : {
+                "structure_model_part_name" : "NoSlip2D_Cylinder",
+                "drag_direction"            : [1.0, 0.0, 0.0]
+            }
         },
         "dynamic_tau"                  : 1.0,
         "oss_switch"                   : 0,
@@ -193,7 +194,7 @@
         "Parameters" :{
             "file_name_1"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3.dat",
             "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3_ref.dat",
-	    "decimal_places" : 9
+	    "decimal_places" : 10
         }
     }]
 }
