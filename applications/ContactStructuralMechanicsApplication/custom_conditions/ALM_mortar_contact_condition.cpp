@@ -1522,12 +1522,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 //         const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(GetGeometry(), i_slave);
         for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
         {
-//             row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_slave) = trans(column(delta_normal, i_dof)); 
-            
-            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-            {
-                row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); // TODO: Check this!!!!
-            }
+            row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_slave) = trans(column(delta_normal, i_dof)); 
         }
     }
 }
@@ -1547,12 +1542,7 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2,false>::CalculateDeltaN
         const bounded_matrix<double, 2, 2> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
         for (unsigned i_dof = 0; i_dof < 2; i_dof++) 
         {
-//             row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_master) = trans(column(delta_normal, i_dof));
-            
-            for (unsigned int i_node = 0; i_node < 2; i_node++)
-            {
-                row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
-            }
+            row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_master) = trans(column(delta_normal, i_dof));
         }
     }
 }
@@ -1572,12 +1562,7 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2,true>::CalculateDeltaNo
         const bounded_matrix<double, 2, 2> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
         for (unsigned i_dof = 0; i_dof < 2; i_dof++) 
         {
-//             row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_master) = trans(column(delta_normal, i_dof));
-            
-            for (unsigned int i_node = 0; i_node < 2; i_node++)
-            {
-                row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
-            }
+            row(rDerivativeData.DeltaNormalMaster[i_master * 2 + i_dof], i_master) = trans(column(delta_normal, i_dof));
         }
     }
 }
