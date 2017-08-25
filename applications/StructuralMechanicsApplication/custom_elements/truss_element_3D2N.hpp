@@ -91,7 +91,7 @@ namespace Kratos
 
 		void Initialize() override;
 
-		MatrixType CreateElementStiffnessMatrix();
+		MatrixType CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
@@ -171,6 +171,11 @@ namespace Kratos
 
 		bool ReturnIfIsCable();
 
+		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
+		void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
 
 
 	private:
