@@ -82,6 +82,7 @@ namespace Kratos
       typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
       typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
       typedef ExplicitHamiltonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonStrategyType;
+      typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
 
 
       //custom builder_and_solver types
@@ -185,8 +186,9 @@ namespace Kratos
       class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
 	      bases< BaseSchemeType >, boost::noncopyable >
 	(
+	 "EigensolverDynamicScheme",
+	 init<>())
 	;
-	 "EigensolverDynamicScheme", init<>() )
 
       
       //********************************************************************
@@ -203,9 +205,9 @@ namespace Kratos
 
       // Residual Based Builder and Solver
       class_< ExplicitHamiltonBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
-            (
-	     "ExplicitHamiltonBuilderAndSolver", init< LinearSolverType::Pointer > ()
-	     );
+	(
+	 "ExplicitHamiltonBuilderAndSolver", init< LinearSolverType::Pointer > ()
+	 );
 
       
       //********************************************************************
