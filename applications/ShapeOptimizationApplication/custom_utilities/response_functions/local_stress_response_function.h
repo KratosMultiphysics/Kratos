@@ -297,7 +297,7 @@ protected:
 		{
 			if (rResponseGradient.size() != rDerivativesMatrix.size1())
           			rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-			rResponseGradient.Clear();
+			rResponseGradient.clear();
 		}
 		
       /*	if (rResponseGradient.size() != rDerivativesMatrix.size1())
@@ -331,7 +331,7 @@ protected:
 		//TODO: Rework this. Maybe not always zero vetor.
 		if (rResponseGradient.size() != rDerivativesMatrix.size1())
           		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-		rResponseGradient.Clear();	
+		rResponseGradient.clear();	
 
 		KRATOS_CATCH("");
 	}
@@ -359,7 +359,7 @@ protected:
 		{
 			if (rResponseGradient.size() != rDerivativesMatrix.size1())
           		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-			rResponseGradient.Clear();	  
+			rResponseGradient.clear();	  
 		}	
 
       KRATOS_CATCH("")

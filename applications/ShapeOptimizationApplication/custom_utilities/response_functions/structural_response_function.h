@@ -1168,11 +1168,11 @@ protected:
                 // Compute derivative w.r.t. z-component of variable
 
                 //std::cout << ("Undisturbed value = ") << 
-                    rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) << std::endl;
+                //rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) << std::endl;
                 rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) += dist_measure;   
 
                 //std::cout << ("Disturbed value = ") << 
-                    rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) << std::endl;
+                //rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) << std::endl;
 
                 disturbed_resp_func_value = this->CalculateValue(mrModelPart);
 
