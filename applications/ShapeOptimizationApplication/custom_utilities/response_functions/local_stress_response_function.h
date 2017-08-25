@@ -237,6 +237,12 @@ public:
 	///@}
 
 	// ==============================================================================
+	double GetDisturbanceMeasure() const override
+	{ 
+		return mDelta; 
+	}
+
+	// ==============================================================================
 	void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
@@ -282,9 +288,21 @@ protected:
     {
       	KRATOS_TRY
 
-      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 
+		if(rAdjointElem.Id() == m_id_of_traced_element)
+		{
+			BaseType::CalculateSensitivityGradient(rAdjointElem, rVariable, rDerivativesMatrix, rResponseGradient, rProcessInfo);
+		}
+		else
+		{
+			if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          			rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+			rResponseGradient.Clear();
+		}
+		
+      /*	if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+		
 		Vector zero_adjoint_vector;	  
 		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
 
@@ -296,7 +314,7 @@ protected:
 		else
 		{
 			 noalias(rResponseGradient) = zero_adjoint_vector;
-		}	  
+		}*/
 
        KRATOS_CATCH("")
 	}
@@ -310,14 +328,10 @@ protected:
 	{										  
 		KRATOS_TRY;
 
-		//TODO: Rework this. A zero vector is not the general case. It is valid for e.g. point loads
-		unsigned int VecSize =  rDerivativesMatrix.size1();
-        if ( rResponseGradient.size() != VecSize )
-        {
-            rResponseGradient.resize( VecSize,  false );
-        }
-
-        noalias( rResponseGradient ) = ZeroVector( VecSize );
+		//TODO: Rework this. Maybe not always zero vetor.
+		if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+		rResponseGradient.Clear();	
 
 		KRATOS_CATCH("");
 	}
@@ -331,20 +345,21 @@ protected:
     {
       	KRATOS_TRY
 
-      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+		//Vector zero_adjoint_vector;	  
+		//zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
 
-		Vector zero_adjoint_vector;	  
-		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
-
-		if(rAdjointElem.Id() == m_id_of_traced_element)
+		// Do it only for traced element in order to prevent e.g. double disturbance if DV are the nodal coordinates
+		if(rAdjointElem.Id() == m_id_of_traced_element) 
 		{
-			rAdjointElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			noalias(rResponseGradient) = prod(rDerivativesMatrix, zero_adjoint_vector);
+			BaseType::CalculateSensitivityGradient(rAdjointElem, rVariable, rDerivativesMatrix, rResponseGradient, rProcessInfo);
+			//rAdjointElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
+			//noalias(rResponseGradient) = prod(rDerivativesMatrix, zero_adjoint_vector);
 		}
 		else
 		{
-			 noalias(rResponseGradient) = zero_adjoint_vector;
+			if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+			rResponseGradient.Clear();	  
 		}	
 
       KRATOS_CATCH("")
@@ -358,15 +373,12 @@ protected:
                                       ProcessInfo& rProcessInfo)
     {
 		KRATOS_TRY;
-
+		BaseType::CalculateSensitivityGradient(rAdjointCondition, rVariable, rDerivativesMatrix, rResponseGradient, rProcessInfo);
         //TODO: Rework this. A zero vector is not the general case. It is valid for e.g. point loads
-		unsigned int VecSize =  rDerivativesMatrix.size1();
-        if ( rResponseGradient.size() != VecSize )
-        {
-            rResponseGradient.resize( VecSize,  false );
-        }
-
-        noalias( rResponseGradient ) = ZeroVector( VecSize );
+		/*
+			if (rResponseGradient.size() != rDerivativesMatrix.size1())
+          		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+			rResponseGradient.Clear();*/
 
 		KRATOS_CATCH("");
 	}

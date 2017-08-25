@@ -82,7 +82,7 @@ public:
 	//typedef array_1d<double, 3> array_3d;
 	typedef Element::DofsVectorType DofsVectorType;
 	typedef Node<3>::Pointer PointTypePointer; //try to ensure that this response function also works for 2D
-	//typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;	
+	typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 	
 
 	
@@ -121,21 +121,35 @@ public:
 		// By this response function e.g. DISPLACEMENT_X, ROTATION_X,...
 		m_traced_dof_label = responseSettings["traced_dof"].GetString();
 
+
 		// Get pointer to traced node
 		m_traced_pNode = r_model_part.pGetNode(m_id_of_traced_node); 
 
-		// Check if variable for traced DOF is availible
+		// Check if variable for traced dof is valid
 		if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(m_traced_dof_label)) ) 
+		{
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified traced DOF is not availible. Specified DOF: ", m_traced_dof_label);
-		// Check if variable for traced adjoint DOF is availible
+		}	
+		else
+		{
+			const VariableComponentType& rTRACED_DOF =
+            	KratosComponents<VariableComponentType>::Get(m_traced_dof_label);	
+			if (m_traced_pNode->SolutionStepsDataHas(rTRACED_DOF) == false)
+				KRATOS_THROW_ERROR(std::invalid_argument, "Specified DOF is not availible at traced node.", "");		
+		}		
+
+		// Check if variable for traced adjoint dof is valid
 		if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + m_traced_dof_label)) ) 
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified traced adjoint DOF is not availible.", "");	
-		// Check if traced DOF is availible at traced node	
-		if (m_traced_pNode->SolutionStepsDataHas(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get(m_traced_dof_label)) == false)	
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified DOF is not availible at traced node.", "");	
-		// Check if traced adjointDOF is availible at traced node	
-		if (m_traced_pNode->SolutionStepsDataHas(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get(std::string("ADJOINT_") + m_traced_dof_label)) == false)	
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified adjoint DOF is not availible at traced node.", "");	
+		{
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified traced adjoint DOF is not availible.", "");
+		}
+		else
+		{
+			const VariableComponentType& rTRACED_ADJOINT_DOF =
+            	KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + m_traced_dof_label);		
+			if (m_traced_pNode->SolutionStepsDataHas(rTRACED_ADJOINT_DOF) == false)	
+				KRATOS_THROW_ERROR(std::invalid_argument, "Specified adjoint DOF is not availible at traced node.", "");		
+		}
 		
 		m_displacement_value = 0.0;	
 		this->GetNeighboringElementPointer();
@@ -221,10 +235,10 @@ public:
 	{
 		KRATOS_TRY;
 
-		typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        component_type var_traced_dof = KratosComponents< component_type >::Get(m_traced_dof_label);
+		const VariableComponentType& rTRACED_DOF =
+            KratosComponents<VariableComponentType>::Get(m_traced_dof_label);	
 
-		m_displacement_value = m_traced_pNode->FastGetSolutionStepValue(var_traced_dof);
+		m_displacement_value = m_traced_pNode->FastGetSolutionStepValue(rTRACED_DOF);
 		
 		return m_displacement_value;
 
@@ -291,6 +305,11 @@ public:
 	///@{
 
 	///@}
+	// ==============================================================================
+	double GetDisturbanceMeasure() const override
+	{ 
+		return mDelta; 
+	}
 
 	// ==============================================================================
 	void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
@@ -308,13 +327,12 @@ public:
 		{
 			DofsVectorType dofs_of_lement; 
 			m_neighboring_pElement->GetDofList(dofs_of_lement,rProcessInfo);
-			typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        	component_type var_traced_dof = KratosComponents< component_type >::Get(std::string("ADJOINT_") + m_traced_dof_label);
-
+			const VariableComponentType& rTRACED_ADJOINT_DOF =
+            	KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + m_traced_dof_label);	
 			int index = 0;
 			for(unsigned int i = 0; i < dofs_of_lement.size(); ++i)
 			{
-				if(m_traced_pNode->pGetDof(var_traced_dof) == dofs_of_lement[i])
+				if(m_traced_pNode->pGetDof(rTRACED_ADJOINT_DOF) == dofs_of_lement[i])
 				{
 					rResponseGradient[i] = -1; //TODO: Check for correct sign!
 				}

@@ -105,15 +105,9 @@ class AdjointStructuralSolver:
             else:
                 raise Exception("domain size is not 2 or 3")
 
-            # TODO: the replacement function has to be reworked. Since only the elements and 
-            # not the conditions have to be replaced. Also it has to condsidered that a model can consist 
-            # out of more than one element type (e.g. model with beam shell elements). The current 
-            # replacement function replaced all elements with the same element which is chosen 
-            # by "element_name": some_element (see above)
+            
             #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-            print("before replacement process")
             ShapeOptimizationApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-            print("after replacement process")
             import check_and_prepare_model_process_structural
             check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
@@ -137,9 +131,7 @@ class AdjointStructuralSolver:
             if self.settings["rotation_dofs"].GetBool():
                 node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_X)
                 node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Y)
-                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)
-
-        #---> is reaction and torque necessary????????????        
+                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)     
 
         print("DOFs for the structural adjoint solver added correctly.")
 

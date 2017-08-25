@@ -287,7 +287,7 @@ namespace Kratos
         const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int MatSize = NumberOfNodes * Dimension;
 
-        if( rDesignVariable == POINT_LOAD_SENSITIVITY )
+        if( rDesignVariable == POINT_LOAD)
         {
             Vector RHS;
             Matrix dummy_LHS;  

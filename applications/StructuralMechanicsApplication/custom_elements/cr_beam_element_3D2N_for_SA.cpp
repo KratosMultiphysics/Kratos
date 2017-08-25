@@ -161,17 +161,18 @@ namespace Kratos
 		if (this->mIsLinearElement == true)
 		{
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-			LeftHandSideMatrix = this->mLHS;
+			ProcessInfo testProcessInfo = rCurrentProcessInfo;
+			this->CalculateLeftHandSide(LeftHandSideMatrix, testProcessInfo); //--->compute it every time bacause it can change when finite differencing
 
 			Vector NodalDeformation = ZeroVector(LocalSize);
-			this->GetValuesVector(NodalDeformation);
+			this->GetPrimalValuesVector(NodalDeformation); // ---> here the primal solution is necessary
 			Stress = ZeroVector(LocalSize);
 			Stress = prod(LeftHandSideMatrix, NodalDeformation);
 			Matrix TransformationMatrix = ZeroMatrix(LocalSize);
-			TransformationMatrix = this->mRotationMatrix;
+			TransformationMatrix = this->mRotationMatrix; //------------> Is this the correct rotation matrix!
 			Stress = prod(Matrix(trans(TransformationMatrix)), Stress);
 
-			for(int i = 0; i < dofs_per_node; i++){Stress[i] *= -1.0;}
+			for(int i = 0; i < dofs_per_node; i++){Stress[i] *= -1.0;} 
 		}
 		else{ KRATOS_THROW_ERROR(std::invalid_argument, "Sensitivity Analysis is currtently only provided for linear elements ",""); }
 
@@ -192,12 +193,6 @@ namespace Kratos
 			
 		Output = result;
 		this->SetValue(rVariable , result); 
-
-		//just for testing. remove it!!---------------------------------------------------
-		/*Matrix test_se_ma;
-		double delta_test = 1e-6;
-		this->CalculateSensitivityMatrix(IZ, test_se_ma, delta_test, rCurrentProcessInfo);*/
-		//just for testing. remove it!!---------------------------------------------------
 
 		KRATOS_CATCH("")
 	}
@@ -222,8 +217,6 @@ namespace Kratos
 		}
 		else {KRATOS_THROW_ERROR(std::invalid_argument, "I am wrong here. This is for computing the adjoint load cases", "");}
 
-		//this->SetValue(rVariable , Output); 
-	
 		KRATOS_CATCH("")
 	}
 
@@ -242,8 +235,8 @@ namespace Kratos
 		Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		LeftHandSideMatrix = this->mLHS; //element stiffness matrix in global direction
 
-		for( int i = 0; i < dofs_per_node; i++ )
-			for( int j = 0; j < LocalSize; j++ ) { LeftHandSideMatrix(i,j) *= -1.0; }
+		for( int i = dofs_per_node; i < LocalSize; i++ )
+			for( int j = 0; j < LocalSize; j++ ) { LeftHandSideMatrix(i,j) *= -1.0; } //--> TODO: check for correct sign!
 	
 
 		const VariableIntType& rSTRESS_LOCATION =
@@ -316,11 +309,11 @@ namespace Kratos
 			int stress_location = this->GetValue( rSTRESS_LOCATION );	
 			if(stress_location == 1)
 			{
-				result[id_in_stress_vector] = -1;  
+				result[id_in_stress_vector] = 1;  
 			}
 			else if(stress_location == 2)
 			{ 			
-				result[id_in_stress_vector + 6] = 1;  
+				result[id_in_stress_vector + 6] = -1;  
 			}
 			else 
 			{
@@ -329,8 +322,8 @@ namespace Kratos
 		}
 		else if(stress_treatment == "mean")
 		{
-			result[id_in_stress_vector ] = -0.5; // or is it 0.5 ?????????????????????????????????????????????????????????????????
-			result[id_in_stress_vector + 6 ] = 0.5; 	// or is it -0.5 ?????????????????????????????????????????????????????????????????  
+			result[id_in_stress_vector ] = 0.5; 
+			result[id_in_stress_vector + 6 ] = -0.5; 	
 		}
 		else { KRATOS_THROW_ERROR(std::invalid_argument, "Chosen stress treatment type is not availible. Your choice: ", stress_treatment); }
 
@@ -406,7 +399,7 @@ namespace Kratos
 			// undisturb design variable
 			pElemProp->SetValue(rDesignVariable, (current_property_value));
 
-			std::cout << ("") << std::endl;
+			
 		}
 		else
 		{
@@ -427,8 +420,8 @@ namespace Kratos
 		ProcessInfo testProcessInfo = rCurrentProcessInfo;
 
 		double delta = 1e-6;	//get this from outside!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-		if(rDesignVariable == SHAPE_SENSITIVITY) //---------------------------------------------------------------------------->change this
+		//std::cout << ("Computation of pseudo loads of element #") << this->Id() << std::endl;
+		if(rDesignVariable == SHAPE_SENSITIVITY) 
 		{
 			const int number_of_nodes = GetGeometry().PointsNumber();
 			const int dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -444,6 +437,7 @@ namespace Kratos
 				//begin: derive w.r.t. x-coordinate---------------------------------------------------
 				// disturb the design variable
 				this->GetGeometry()[j].X0() += delta;
+				this->CalculateInitialLocalCS(); // Update CS and transformation matrix after geometry change
 
 				// compute RHS after disturbance
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
@@ -452,7 +446,9 @@ namespace Kratos
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) { rOutput( (0 + j*dimension), i) = RHS_dist[i]; }
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) { 
+					//std::cout << ("Pseudo Load x: ") << RHS_dist[i] << std::endl;
+					rOutput( (0 + j*dimension), i) = RHS_dist[i]; }
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -464,6 +460,7 @@ namespace Kratos
 				//begin: derive w.r.t. y-coordinate---------------------------------------------------
 				// disturb the design variable
 				this->GetGeometry()[j].Y0() += delta;
+				this->CalculateInitialLocalCS(); // Update CS and transformation matrix after geometry change
 
 				// compute RHS after disturbance
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
@@ -471,7 +468,10 @@ namespace Kratos
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) { rOutput((1 + j*dimension),i) = RHS_dist[i]; }
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+				{
+					//std::cout << ("Pseudo Load y: ") << RHS_dist[i] << std::endl;
+					 rOutput((1 + j*dimension),i) = RHS_dist[i]; }
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -483,6 +483,7 @@ namespace Kratos
 				//begin: derive w.r.t. z-coordinate---------------------------------------------------
 				// disturb the design variable
 				this->GetGeometry()[j].Z0() += delta;
+				this->CalculateInitialLocalCS(); // Update CS and transformation matrix after geometry change
 
 				// compute RHS after disturbance
 				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
@@ -490,7 +491,9 @@ namespace Kratos
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) { rOutput((2 + j*dimension),i) = RHS_dist[i]; }
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) { 
+					//std::cout << ("Pseudo Load z: ") << RHS_dist[i] << std::endl;
+					rOutput((2 + j*dimension),i) = RHS_dist[i]; }
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -1500,7 +1503,7 @@ namespace Kratos
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
 			Vector NodalDeformation = ZeroVector(LocalSize);
-			this->GetPrimalValuesVector(NodalDeformation);
+			this->GetPrimalValuesVector(NodalDeformation);//--------------------->Changed for computing pseudo loads
 			rRightHandSideVector = ZeroVector(LocalSize);
 			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
 		}
