@@ -222,6 +222,7 @@ public:
     * other variables contain info only on the currently-calculated GP
     */
     Matrix jSlave;
+    Matrix jMaster;
         
     ///@}
     ///@name Operators
@@ -244,7 +245,8 @@ public:
         DNDeSlave  = ZeroMatrix(TNumNodes, TDim - 1);
         
         // Jacobians on all integration points
-        jSlave = ZeroMatrix(TDim, TDim - 1);
+        jSlave  = ZeroMatrix(TDim, TDim - 1);
+        jMaster = ZeroMatrix(TDim, TDim - 1);
     }
     
     /**

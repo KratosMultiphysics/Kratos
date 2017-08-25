@@ -727,8 +727,10 @@ protected:
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
         GeometryType& MasterGeometry,
+        const array_1d<double, 3> MasterNormal,
         const DecompositionType& DecompGeom,
-        const PointType& LocalPointDecomp
+        const PointType& LocalPointDecomp,
+        const PointType& LocalPointParent
         );
     
     /**
@@ -804,13 +806,24 @@ protected:
     
     /**
      * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian reference (current) configuration
-     * @return DeltaPosition: The matrix with the increment of displacements 
+     * @param DeltaPosition: The matrix with the increment of displacements 
      * @param LocalCoordinates: The array containing the local coordinates of the exact integration segment
      */
     
-    Matrix CalculateDeltaPosition(
+    Matrix& CalculateDeltaPosition(
         Matrix& DeltaPosition,
         const ConditionArrayType& LocalCoordinates
+        );
+    
+    /**
+     * Returns a matrix with the increment of displacements
+     * @param DeltaPosition: The matrix with the increment of displacements 
+     * @param ThisGeometry: The geometry considered 
+     */
+    
+    Matrix& CalculateDeltaPosition(
+        Matrix& DeltaPosition,
+        GeometryType& ThisGeometry
         );
     
     /**
