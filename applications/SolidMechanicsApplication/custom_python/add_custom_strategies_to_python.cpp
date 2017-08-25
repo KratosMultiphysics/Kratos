@@ -28,6 +28,7 @@
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_strategy.hpp"
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 #include "custom_strategies/strategies/explicit_strategy.hpp" 
+#include "custom_strategies/strategies/eigensolver_strategy.hpp" 
 #include "custom_strategies/strategies/explicit_hamilton_strategy.hpp"
 
 //builders and solvers
@@ -41,6 +42,8 @@
 
 //schemes
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
+#include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
+ 
 #include "custom_strategies/schemes/explicit_central_differences_scheme.hpp" 
 #include "custom_strategies/schemes/residual_based_rotation_newmark_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_rotation_simo_scheme.hpp"
@@ -69,6 +72,8 @@ namespace Kratos
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+      typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
+
 
       //custom strategy types
       typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
@@ -77,6 +82,7 @@ namespace Kratos
       typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
       typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
       typedef ExplicitHamiltonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonStrategyType;
+
 
       //custom builder_and_solver types
       typedef ComponentWiseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseBuilderAndSolverType;
@@ -89,12 +95,20 @@ namespace Kratos
       typedef ResidualBasedRotationSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationSimoSchemeType;
       typedef ResidualBasedRotationEMCScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationEMCSchemeType;
       typedef ExplicitHamiltonScheme< SparseSpaceType, LocalSpaceType >  ExplicitHamiltonSchemeType;
+      typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
 
       //custom convergence criterion types
       typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
       typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
 
       //********************************************************************
+      // Eigensolver Scheme Type
+      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
+	      bases< BaseSchemeType >, boost::noncopyable >
+	(
+	;
+	 "EigensolverDynamicScheme", init<>() )
+
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
 
@@ -280,6 +294,13 @@ namespace Kratos
 	;
 
       
+      // Eigensolver Strategy
+      class_< EigensolverStrategyType,
+	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	(
+	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+	;
+
     }
 
   }  // namespace Python.

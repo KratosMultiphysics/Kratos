@@ -46,6 +46,7 @@ class MechanicalSolver(object):
             "solution_type": "Dynamic",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
+	    "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
