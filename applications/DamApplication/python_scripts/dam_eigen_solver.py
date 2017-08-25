@@ -4,7 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as KratosExternal
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.DamApplication as KratosDam
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -32,7 +31,13 @@ class DamEigenSolver():
                 "input_file_label": 0
             },
             "eigensolver_settings":{
-                "solver_type": "FEAST"
+                "solver_type": "FEAST",
+                "print_feast_output"          : true,
+                "perform_stochastic_estimate" : false,
+                "solve_eigenvalue_problem"    : true,
+                "lambda_min"                  : 0.0,
+                "lambda_max"                  : 500.0,
+                "search_dimension"            : 4
             },
             "problem_domain_sub_model_part_list": ["solid_model_part"],
             "processes_sub_model_part_list": [""]
@@ -103,13 +108,13 @@ class DamEigenSolver():
             raise Exception("solver_type is not yet implemented.")
 
         if solution_type == "Dynamic":
-            self.scheme = KratosStructural.EigensolverDynamicScheme()
+            self.scheme = KratosSolid.SolidEigensolverDynamicScheme()
         else:
             raise Exception("solution_type is not yet implemented.")
 
         self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosStructural.EigensolverStrategy(
+        self.solver = KratosSolid.SolidEigensolverStrategy(
             self.main_model_part,
             self.scheme,
             self.builder_and_solver)
