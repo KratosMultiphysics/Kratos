@@ -102,13 +102,6 @@ namespace Kratos
       typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
 
       //********************************************************************
-      // Eigensolver Scheme Type
-      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	;
-	 "EigensolverDynamicScheme", init<>() )
-
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
 
@@ -187,6 +180,13 @@ namespace Kratos
 	.def("SetInitializePerformedFlag", &ExplicitHamiltonStrategyType::SetInitializePerformedFlag)
 	.def("GetInitializePerformedFlag", &ExplicitHamiltonStrategyType::GetInitializePerformedFlag)
 	;
+
+      // Eigensolver Scheme Type
+      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
+	      bases< BaseSchemeType >, boost::noncopyable >
+	(
+	;
+	 "EigensolverDynamicScheme", init<>() )
 
       
       //********************************************************************
