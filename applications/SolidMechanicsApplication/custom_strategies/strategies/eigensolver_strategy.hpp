@@ -1,19 +1,14 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Created by:          $Author:   michael.andre@tum.de $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:           September 2016 $
+//   Revision:            $Revision:                  0.0 $
 //
-//   Project Name:        $SolidMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
-//   Revision:            $Revision:                0.0   $
+//
 
-#if !defined(KRATOS_SOLID_EIGENSOLVER_STRATEGY )
-#define  KRATOS_SOLID_EIGENSOLVER_STRATEGY
+#if !defined(KRATOS_EIGENSOLVER_STRATEGY )
+#define  KRATOS_EIGENSOLVER_STRATEGY
 
 // System includes
 #include<iostream>
@@ -59,14 +54,14 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver
          >
-class SolidEigensolverStrategy
+class EigensolverStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SolidEigensolverStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(EigensolverStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -97,7 +92,7 @@ public:
     ///@{
 
     /// Constructor.
-    SolidEigensolverStrategy(
+    EigensolverStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver
@@ -130,10 +125,10 @@ public:
     }
 
     /// Deleted copy constructor.
-    SolidEigensolverStrategy(const SolidEigensolverStrategy& Other) = delete;
+    EigensolverStrategy(const EigensolverStrategy& Other) = delete;
 
     /// Destructor.
-    ~SolidEigensolverStrategy() override
+    ~EigensolverStrategy() override
     {
         // Clear() controls order of deallocation to avoid invalid memory access
         // in some special cases.
@@ -250,7 +245,7 @@ public:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Entering Initialize() of SolidEigensolverStrategy." << std::endl;
+            std::cout << "Entering Initialize() of EigensolverStrategy." << std::endl;
         }
 
         this->Check();
@@ -274,7 +269,7 @@ public:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Exiting Initialize() of SolidEigensolverStrategy." << std::endl;
+            std::cout << "Exiting Initialize() of EigensolverStrategy." << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -397,7 +392,7 @@ public:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Entering InitializeSolutionStep() of SolidEigensolverStrategy" << std::endl;
+            std::cout << "Entering InitializeSolutionStep() of EigensolverStrategy" << std::endl;
         }
 
         BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
@@ -480,7 +475,7 @@ public:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Exiting InitializeSolutionStep() of SolidEigensolverStrategy" << std::endl;
+            std::cout << "Exiting InitializeSolutionStep() of EigensolverStrategy" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -499,7 +494,7 @@ public:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Entering Check() of SolidEigensolverStrategy" << std::endl;
+            std::cout << "Entering Check() of EigensolverStrategy" << std::endl;
         }
 
         // check the model part
@@ -513,7 +508,7 @@ public:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Exiting Check() of SolidEigensolverStrategy" << std::endl;
+            std::cout << "Exiting Check() of EigensolverStrategy" << std::endl;
         }
 
         return 0;
@@ -608,7 +603,7 @@ private:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Entering ApplyDirichletConditions() of SolidEigensolverStrategy" << std::endl;
+            std::cout << "Entering ApplyDirichletConditions() of EigensolverStrategy" << std::endl;
         }
 
         const std::size_t SystemSize = rA.size1();
@@ -677,7 +672,7 @@ private:
 
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
         {
-            std::cout << "Exiting ApplyDirichletConditions() of SolidEigensolverStrategy" << std::endl;
+            std::cout << "Exiting ApplyDirichletConditions() of EigensolverStrategy" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -773,7 +768,7 @@ private:
 
     ///@}
 
-}; /* Class SolidEigensolverStrategy */
+}; /* Class EigensolverStrategy */
 
 ///@}
 
@@ -785,5 +780,5 @@ private:
 
 } /* namespace Kratos */
 
-#endif /* KRATOS_SOLID_EIGENSOLVER_STRATEGY  defined */
+#endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */
 

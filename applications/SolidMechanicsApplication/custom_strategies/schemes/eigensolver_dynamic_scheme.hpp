@@ -1,19 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Created by:          $Author:   michael.andre@tum.de $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:           September 2016 $
+//   Revision:            $Revision:                  0.0 $
 //
-//   Project Name:        $SolidMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
-//   Revision:            $Revision:                0.0   $
+//
 
-#if !defined(KRATOS_SOLID_EIGENSOLVER_DYNAMIC_SCHEME )
-#define  KRATOS_SOLID_EIGENSOLVER_DYNAMIC_SCHEME
+
+#if !defined(KRATOS_EIGENSOLVER_DYNAMIC_SCHEME )
+#define  KRATOS_EIGENSOLVER_DYNAMIC_SCHEME
 
 
 // System includes
@@ -58,13 +54,13 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class SolidEigensolverDynamicScheme : public Scheme<TSparseSpace,TDenseSpace>
+class EigensolverDynamicScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( SolidEigensolverDynamicScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( EigensolverDynamicScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
@@ -77,10 +73,10 @@ public:
     ///@{
 
     /// Constructor.
-    SolidEigensolverDynamicScheme() : Scheme<TSparseSpace,TDenseSpace>() {}
+    EigensolverDynamicScheme() : Scheme<TSparseSpace,TDenseSpace>() {}
 
     /// Destructor.
-    ~SolidEigensolverDynamicScheme() override {}
+    ~EigensolverDynamicScheme() override {}
 
     ///@}
     ///@name Operators
@@ -280,5 +276,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_SOLID_EIGENSOLVER_DYNAMIC_SCHEME  defined */
+#endif /* KRATOS_EIGENSOLVER_DYNAMIC_SCHEME  defined */
 

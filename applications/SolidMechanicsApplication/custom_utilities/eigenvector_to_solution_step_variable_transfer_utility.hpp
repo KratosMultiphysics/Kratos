@@ -1,21 +1,14 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
-//
-//   Project Name:        $SolidMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
-//   Revision:            $Revision:                0.0   $
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Created by:          $Author:   michael.andre@tum.de $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:           September 2016 $
+//   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_SOLID_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY)
-#define  KRATOS_SOLID_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY
+#if !defined(KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY)
+#define  KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY
 
 // System includes
 #include <iterator>
@@ -59,20 +52,20 @@ namespace Kratos {
  *   EigenvectorToSolutionStepVariableTransferUtility().Transfer(main_model_part,step,0)
  *   gid_output.PrintOutput()
  */
-class SolidEigenvectorToSolutionStepVariableTransferUtility {
+class EigenvectorToSolutionStepVariableTransferUtility {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( SolidEigenvectorToSolutionStepVariableTransferUtility );
+    KRATOS_CLASS_POINTER_DEFINITION( EigenvectorToSolutionStepVariableTransferUtility );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    SolidEigenvectorToSolutionStepVariableTransferUtility() {}
+    EigenvectorToSolutionStepVariableTransferUtility() {}
 
-    virtual ~SolidEigenvectorToSolutionStepVariableTransferUtility() {}
+    virtual ~EigenvectorToSolutionStepVariableTransferUtility() {}
 
     ///@}
     ///@name Operators
@@ -168,7 +161,7 @@ private:
 
     ///@}
 
-}; // class SolidEigenvectorToSolutionStepVariableTransferUtility
+}; // class EigenvectorToSolutionStepVariableTransferUtility
 
 ///@}
 
@@ -179,4 +172,4 @@ private:
 
 }
  // namespace Kratos
-#endif  // KRATOS_SOLID_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY defined
+#endif  // KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY defined

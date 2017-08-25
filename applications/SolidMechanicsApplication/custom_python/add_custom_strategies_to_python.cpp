@@ -28,7 +28,7 @@
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_strategy.hpp"
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 #include "custom_strategies/strategies/explicit_strategy.hpp" 
-#include "custom_strategies/strategies/solid_eigensolver_strategy.hpp" 
+#include "custom_strategies/strategies/eigensolver_strategy.hpp" 
 
 //builders and solvers
 #include "custom_strategies/builders_and_solvers/component_wise_builder_and_solver.hpp"
@@ -41,7 +41,7 @@
 //schemes
 #include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/schemes/explicit_central_differences_scheme.hpp"
-#include "custom_strategies/schemes/solid_eigensolver_dynamic_scheme.hpp" 
+#include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
  
 
 //linear solvers
@@ -67,7 +67,7 @@ namespace Kratos
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-	  typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
+      typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
 
 
       //custom strategy types
@@ -76,7 +76,7 @@ namespace Kratos
       typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
       typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
       typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
-      typedef SolidEigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolidEigensolverStrategyType;
+      typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
 
 
       //custom builder_and_solver types
@@ -85,7 +85,7 @@ namespace Kratos
       //custom scheme types
       typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
       typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-	  typedef SolidEigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > SolidEigensolverDynamicSchemeType;
+      typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
 
       //custom convergence criterion types
       typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
@@ -115,7 +115,6 @@ namespace Kratos
 	      bases< BaseSchemeType >,  boost::noncopyable >
 	(
 	 "ComponentWiseBossakScheme", init< double >() )
-
 	.def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
 
@@ -129,12 +128,12 @@ namespace Kratos
 	.def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
 
-    // Eigensolver Scheme Type
-    class_< SolidEigensolverDynamicSchemeType,
-            SolidEigensolverDynamicSchemeType::Pointer, bases< BaseSchemeType >, boost::noncopyable >
-            (
-                "SolidEigensolverDynamicScheme", init<>() )
-            ;
+      // Eigensolver Scheme Type
+      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
+	      bases< BaseSchemeType >, boost::noncopyable >
+	(
+	 "EigensolverDynamicScheme", init<>() )
+	;
 
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
@@ -232,11 +231,12 @@ namespace Kratos
 	;
 
 
-    // Eigensolver Strategy
-    class_< SolidEigensolverStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-            (
-                "SolidEigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
-            ;
+      // Eigensolver Strategy
+      class_< EigensolverStrategyType,
+	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	(
+	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+	;
 
     }
 

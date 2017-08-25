@@ -108,13 +108,13 @@ class DamEigenSolver():
             raise Exception("solver_type is not yet implemented.")
 
         if solution_type == "Dynamic":
-            self.scheme = KratosSolid.SolidEigensolverDynamicScheme()
+            self.scheme = KratosSolid.EigensolverDynamicScheme()
         else:
             raise Exception("solution_type is not yet implemented.")
 
         self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosSolid.SolidEigensolverStrategy(
+        self.solver = KratosSolid.EigensolverStrategy(
             self.main_model_part,
             self.scheme,
             self.builder_and_solver)
