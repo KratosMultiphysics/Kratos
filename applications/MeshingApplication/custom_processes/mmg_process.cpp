@@ -2167,59 +2167,27 @@ void MmgProcess<TDim>::ComputeColors(
             // Iterate in the elements
             ElementsArrayType& elements_array = r_sub_model_part.Elements();
             const SizeType num_elements = elements_array.end() - elements_array.begin();
+
+            /* Nodes */
+            for(SizeType i = 0; i < num_nodes; i++) 
+            {
+                auto it_node = nodes_array.begin() + i;
+                aux_nodes_colors[it_node->Id()].insert(color);
+            }
             
-//             // Creating a buffer for parallel vector fill
-//             const unsigned int num_threads = omp_get_max_threads();
-//             std::vector<std::unordered_map<int,std::set<int>>> aux_nodes_colors_partial(num_threads), aux_cond_colors_partial(num_threads), aux_elem_colors_partial(num_threads);
+            /* Conditions */
+            for(SizeType i = 0; i < num_conditions; i++) 
+            {
+                auto it_cond = conditions_array.begin() + i;
+                aux_cond_colors[it_cond->Id()].insert(color);
+            }
             
-//             #pragma omp parallel
-//             {
-//                 const unsigned int Id = omp_get_thread_num();
-            
-                /* Nodes */
-//                 #pragma omp for 
-                for(SizeType i = 0; i < num_nodes; i++) 
-                {
-                    auto it_node = nodes_array.begin() + i;
-                    aux_nodes_colors[it_node->Id()].insert(color);
-//                     aux_nodes_colors_partial[Id][it_node->Id()].insert(color);
-                }
-                
-                /* Conditions */
-//                 #pragma omp for 
-                for(SizeType i = 0; i < num_conditions; i++) 
-                {
-                    auto it_cond = conditions_array.begin() + i;
-                    aux_cond_colors[it_cond->Id()].insert(color);
-//                     aux_cond_colors_partial[Id][it_cond->Id()].insert(color);
-                }
-                
-                /* Elements */
-//                 #pragma omp for 
-                for(SizeType i = 0; i < num_elements; i++) 
-                {
-                    auto it_elem = elements_array.begin() + i;
-                    aux_elem_colors[it_elem->Id()].insert(color);
-//                     aux_elem_colors_partial[Id][it_elem->Id()].insert(color);
-                }
-                
-//                 // Combine buffers together
-//                 #pragma omp single
-//                 {
-//                     for( auto& aux_nodes_colors_part : aux_nodes_colors_partial)
-//                     {
-//                         aux_nodes_colors.insert(aux_nodes_colors_part.begin(), aux_nodes_colors_part.end());
-//                     }
-//                     for( auto& aux_cond_colors_part : aux_cond_colors_partial)
-//                     {
-//                         aux_cond_colors.insert(aux_cond_colors_part.begin(), aux_cond_colors_part.end());
-//                     }
-//                     for( auto& aux_elem_colors_part : aux_elem_colors_partial)
-//                     {
-//                         aux_elem_colors.insert(aux_elem_colors_part.begin(), aux_elem_colors_part.end());
-//                     }
-//                 }
-//             }
+            /* Elements */
+            for(SizeType i = 0; i < num_elements; i++) 
+            {
+                auto it_elem = elements_array.begin() + i;
+                aux_elem_colors[it_elem->Id()].insert(color);
+            }
         }
         
         color += 1;
