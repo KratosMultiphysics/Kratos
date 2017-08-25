@@ -43,7 +43,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
     #### Solver internal methods ####
         
     def _create_solution_scheme (self):
-        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type = self.settings["analysis_type"].GetString()
         if(scheme_type == "Linear"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         elif(scheme_type == "Non-Linear" ):

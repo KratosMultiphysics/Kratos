@@ -46,7 +46,7 @@ class MechanicalSolver(object):
             "solution_type": "Dynamic",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
-	    "analysis_type": Non-Linear,
+	    "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
@@ -337,7 +337,7 @@ class MechanicalSolver(object):
         # Constitutive law import
         import constitutive_law_python_utility as constitutive_law_utils
         constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]);
+                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
         constitutive_law.Initialize();
                                                     
         return True

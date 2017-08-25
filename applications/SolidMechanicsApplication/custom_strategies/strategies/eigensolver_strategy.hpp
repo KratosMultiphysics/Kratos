@@ -308,13 +308,13 @@ public:
 
         // Generate lhs matrix. the factor 1 is chosen to preserve
         // SPD property
-        rModelPart.GetProcessInfo()[SOLID_BUILD_LEVEL] = 1;
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
         // Generate rhs matrix. the factor -1 is chosen to make
         // Eigenvalues corresponding to fixed dofs negative
-        rModelPart.GetProcessInfo()[SOLID_BUILD_LEVEL] = 2;
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
 
@@ -685,26 +685,26 @@ private:
         const std::size_t NumEigenvalues = rEigenvalues.size();
 
         // store eigenvalues in process info
-        rModelPart.GetProcessInfo()[SOLID_EIGENVALUE_VECTOR] = rEigenvalues;
+        rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
 
         for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
         {
             ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
             const std::size_t NumNodeDofs = NodeDofs.size();
-            Matrix& rNodeEigenvectors = itNode->GetValue(SOLID_EIGENVECTOR_MATRIX);
+            Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
             if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs)
             {
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
 
-            // the jth column index of SOLID_EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
+            // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
             // the dof ordering must not change.
             if (NodeDofs.IsSorted() == false)
             {
                 NodeDofs.Sort();
             }
 
-            // fill the SOLID_EIGENVECTOR_MATRIX
+            // fill the EIGENVECTOR_MATRIX
             for (std::size_t i = 0; i < NumEigenvalues; i++)
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {

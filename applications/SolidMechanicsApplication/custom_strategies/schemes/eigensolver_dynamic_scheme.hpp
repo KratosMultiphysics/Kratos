@@ -96,7 +96,7 @@ public:
     {
         KRATOS_TRY
 
-        if (CurrentProcessInfo[SOLID_BUILD_LEVEL] == 1)
+        if (CurrentProcessInfo[BUILD_LEVEL] == 1)
         { // mass matrix
             pCurrentElement->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
@@ -104,13 +104,13 @@ public:
                 RHS_Contribution.resize(LocalSize,false);
             noalias(RHS_Contribution) = ZeroVector(LocalSize);
         }
-        else if (CurrentProcessInfo[SOLID_BUILD_LEVEL] == 2) // stiffness matrix
+        else if (CurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
         {
             pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         }
         else
         {
-            KRATOS_ERROR <<"Invalid SOLID_BUILD_LEVEL" << std::endl;
+            KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
         }
 
         pCurrentElement->EquationIdVector(EquationId,CurrentProcessInfo);
@@ -147,7 +147,7 @@ public:
     {
         KRATOS_TRY
 
-        if (CurrentProcessInfo[SOLID_BUILD_LEVEL] == 1)
+        if (CurrentProcessInfo[BUILD_LEVEL] == 1)
         { // mass matrix
             pCurrentCondition->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
@@ -157,13 +157,13 @@ public:
             }
             noalias(RHS_Contribution) = ZeroVector(LocalSize);
         }
-        else if (CurrentProcessInfo[SOLID_BUILD_LEVEL] == 2) // stiffness matrix
+        else if (CurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
         {
             pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         }
         else
         {
-            KRATOS_ERROR <<"Invalid SOLID_BUILD_LEVEL" << std::endl;
+            KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
         }
 
         pCurrentCondition->EquationIdVector(EquationId,CurrentProcessInfo);

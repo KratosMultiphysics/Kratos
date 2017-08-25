@@ -46,7 +46,7 @@ namespace Kratos {
 /// Transfer eigenvectors to solution step variables for GiD output or solution initialization.
 /**
  * Example Python Code:
- * # Eigenvectors are first computed and stored in the nodal variable SOLID_EIGENVECTOR_MATRIX.
+ * # Eigenvectors are first computed and stored in the nodal variable EIGENVECTOR_MATRIX.
  * for step in range(NumEigenvalues):
  *   main_model_part.ProcessInfo[TIME] = float(step+1)
  *   EigenvectorToSolutionStepVariableTransferUtility().Transfer(main_model_part,step,0)
@@ -80,7 +80,7 @@ public:
         for (auto itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
         {
             ModelPart::NodeType::DofsContainerType& rNodeDofs = itNode->GetDofs();
-            Matrix& rNodeEigenvectors = itNode->GetValue(SOLID_EIGENVECTOR_MATRIX);
+            Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
             std::size_t j=0;
             for (auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++)
                 itDof->GetSolutionStepValue(step) = rNodeEigenvectors(iEigenMode,j++);

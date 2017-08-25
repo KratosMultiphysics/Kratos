@@ -99,4 +99,12 @@ class Thin_Shell3D3N_BendingRollUpTest(TF.TestFactory):
 class Thin_Shell3D3M_DrillingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/Shell_T3_Thin__DrillingRollUp_test"
 
+# Eigen modal analysis tests
+class EigenQ4Thick2x2PlateTests(TF.TestFactory):
+    file_name = "eigen_tests/Eigen_Q4_Thick_2x2_Plate_test"
 
+class EigenTL3D8NCubeTests(TF.TestFactory):
+    file_name = "eigen_tests/Eigen_TL_3D8N_Cube_test"
+    
+class Eigen3D3NThinCircleTests(TF.TestFactory):
+    file_name = "eigen_tests/Eigen_3D3N_Thin_Circle_test"
