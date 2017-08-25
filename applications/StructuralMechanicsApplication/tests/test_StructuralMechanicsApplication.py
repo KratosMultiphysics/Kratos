@@ -69,6 +69,13 @@ from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCabl
 from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+# 1DELEMENT tests
+from SmallTests import Simple3D2NTrussTest as T3D2NTrussTest
+from SmallTests import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
+from SmallTests import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
+from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
+from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
+from SmallTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
@@ -162,6 +169,14 @@ def AssambleTestSuites():
     smallSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
+    # 1D element tests
+    smallSuite.addTest(T3D2NTrussDynamicTest('test_execution')) 
+    smallSuite.addTest(T3D2NTrussLinearTest('test_execution'))  
+    smallSuite.addTest(T3D2NTrussTest('test_execution'))  
+    smallSuite.addTest(T3D2NBeamCrTest('test_execution'))    
+    smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))  
+    smallSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))  
+
 
     if (missing_external_dependencies == False):
         if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
@@ -238,6 +253,12 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+            T3D2NTrussTest,
+            T3D2NTrussLinearTest,
+            T3D2NTrussDynamicTest,
+            T3D2NBeamCrTest,
+            T3D2NBeamCrLinearTest,
+            T3D2NBeamCrDynamicTest,
             ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ###TSprismPanTests # FIXME: Needs get up to date
         ])
