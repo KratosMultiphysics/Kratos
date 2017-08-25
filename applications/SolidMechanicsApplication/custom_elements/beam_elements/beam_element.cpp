@@ -1132,7 +1132,9 @@ namespace Kratos
     noalias(E1) = ZeroVector(3);
     E1[2] = 1.0;
    
-      
+    //material frame to spatial frame (rVolumeForce reference is the spatial frame)
+    E1 = prod( rVariables.CurrentRotationMatrix, E1 );
+    
     unsigned int RowIndex = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -1141,6 +1143,7 @@ namespace Kratos
         GravityForce  = rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;
 	BeamMathUtilsType::VectorToSkewSymmetricTensor(GravityForce,SkewSymMatrix); // m = f x r = skewF · r
         GravityCouple = prod(SkewSymMatrix,E1);
+
 
 	if( dimension == 2 ){
 	  GravityForce[2] = GravityCouple[2];
