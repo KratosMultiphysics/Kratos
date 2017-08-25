@@ -635,9 +635,9 @@ public:
 
     KRATOS_TRY
 
+    TVector3 LocalX = rLocalX;
     TVector3 LocalY = ZeroVector(3);
     TVector3 LocalZ = ZeroVector(3);
-    TVector3 LocalX = rLocalX;
 
     BeamMathUtilsType::CalculateLocalAxesVectors(LocalX,LocalY,LocalZ);
         
@@ -648,9 +648,9 @@ public:
     //Building the rotation matrix
     for (unsigned int i=0; i<3; i++)
       {
-    	rRotationMatrix(i,0) = LocalY[i];  // column distribution
-    	rRotationMatrix(i,1) = LocalZ[i];
-    	rRotationMatrix(i,2) = LocalX[i];	
+	rRotationMatrix(i,0) = LocalX[i];  // column distribution	
+    	rRotationMatrix(i,1) = LocalY[i];
+    	rRotationMatrix(i,2) = LocalZ[i];
       }
     
     KRATOS_CATCH( "" )
@@ -678,12 +678,12 @@ public:
     TVector3 GlobalZ = ZeroVector(3);
     GlobalZ[2]=1.0;
 
-    // local z-axis (e3_local) is the beam axis
+    // local x-axis (e1_local) is the beam axis
     double VectorNorm = MathUtilsType::Norm(rLocalX);
     if( VectorNorm != 0)
       rLocalX /= VectorNorm;
     
-    // local x-axis (e1_local)  
+    // local y-axis (e2_local)  
     double tolerance = 1.0/64.0;
     if(fabs(rLocalX[0])< tolerance && fabs(rLocalX[1])< tolerance){
       rLocalY = MathUtilsType::CrossProduct(GlobalY, rLocalX);
@@ -696,7 +696,7 @@ public:
     if( VectorNorm != 0)
       rLocalY /= VectorNorm;
     
-    // local y-axis (e2_local)
+    // local z-axis (e3_local)
     rLocalZ = MathUtilsType::CrossProduct(rLocalX,rLocalY);
     
     VectorNorm = MathUtilsType::Norm(rLocalZ);

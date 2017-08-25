@@ -146,9 +146,6 @@ protected:
         //equilibrium point
         double Alpha;
 
-        //elemental variables
-        MatrixType LocalTransformationMatrix;
-
         //general variables 
         Vector  StrainVector;
         Vector  StressVector;
