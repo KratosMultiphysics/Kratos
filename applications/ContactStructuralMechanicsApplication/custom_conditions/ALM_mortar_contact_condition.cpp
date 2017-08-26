@@ -1678,9 +1678,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 const VectorType aux_delta_coords1 = prod(inv_LHS1, aux_RHS1);
                 const VectorType aux_delta_coords2 = prod(inv_LHS2, aux_RHS2);
                 
-                // Now we can compute the delta shape functions
-                rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1);
-                rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1);
+                // Now we can compute the delta shape functions // FIXME: Not improving converence (check this)
+//                 rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1);
+//                 rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1);
             }
         }
     }
