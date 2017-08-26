@@ -1656,22 +1656,51 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 VectorType aux_RHS1 = ZeroVector(3);
                 VectorType aux_RHS2 = ZeroVector(3);
             
-                VectorType delta_position;
-                CalculateDeltaPosition(delta_position, MasterGeometry, i_node, i_dof);
+                // Local contribution
+                VectorType delta_position_vector;
+                CalculateDeltaPosition(delta_position_vector, MasterGeometry, i_node, i_dof); // TODO: Check the consistency of this!!!! (consider the delta or not)
+                
                 if (i_node < TNumNodes)
                 {
-                    aux_RHS1 -= N1[i_node] * delta_position;
+                    aux_RHS1 -= N1[i_node] * delta_position_vector;
                 }
                 else
                 {
-                    aux_RHS2 -= N2[i_node - TNumNodes] * delta_position;
+                    aux_RHS2 -= N2[i_node - TNumNodes] * delta_position_vector;
                 }
             
-                for(unsigned int i_belong = 0; i_belong < 3; i_belong++)
+                // The vertex cell contribution
+                if (i_node < TNumNodes) // TODO: Check the consistency of this!!!! (consider the delta or not)
                 {
-                    const VectorType aux_vector = N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
-                    aux_RHS1 += aux_vector;
-                    aux_RHS2 += aux_vector;
+                    Matrix delta_position_matrix;
+                    delta_position_matrix = CalculateDeltaPosition(delta_position_matrix, GetGeometry());
+                    
+                    Vector auxiliar_delta_position = ZeroVector(3);
+                    for (unsigned int j_node; j_node < TNumNodes; j_node++)
+                    {
+                        auxiliar_delta_position += row(delta_position_matrix, j_node) * N1[j_node];
+                    }
+                    
+                    for(unsigned int i_belong = 0; i_belong < 3; i_belong++)
+                    {
+                        aux_RHS1 += auxiliar_delta_position[i_dof] * N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
+                    }
+                }
+                else
+                {
+                    Matrix delta_position_matrix;
+                    delta_position_matrix = CalculateDeltaPosition(delta_position_matrix, MasterGeometry);
+                    
+                    Vector auxiliar_delta_position = ZeroVector(3);
+                    for (unsigned int j_node; j_node < TNumNodes; j_node++)
+                    {
+                        auxiliar_delta_position += row(delta_position_matrix, j_node) * N2[j_node];
+                    }
+                    
+                    for(unsigned int i_belong = 0; i_belong < 3; i_belong++)
+                    {
+                        aux_RHS2 += auxiliar_delta_position[i_dof] * N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
+                    }
                 }
                 
                 // We compute the delta coordinates 
@@ -1679,8 +1708,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 const VectorType aux_delta_coords2 = prod(inv_LHS2, aux_RHS2);
                 
                 // Now we can compute the delta shape functions // FIXME: Not improving converence (check this)
-//                 rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1);
-//                 rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1);
+                rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1);
+                rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1);
             }
         }
     }
