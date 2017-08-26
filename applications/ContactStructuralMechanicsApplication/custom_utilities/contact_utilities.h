@@ -343,19 +343,11 @@ public:
     template<class TPointType>
     static inline void ScaleNode(
         TPointType& PointToScale,
-        const PointType& Center,
-        const double& ScaleFactor
+        const array_1d<double, 3>& Normal,
+        const double& LengthSearch
         )
-    {
-        // We calculate the new distance
-        const double distance = ScaleFactor * DistancePoints(PointToScale.Coordinates(), Center.Coordinates());
-        
-        // Now the vector between nodes
-        array_1d<double, 3> vector_points = PointToScale.Coordinates() - Center.Coordinates();
-        vector_points /= norm_2(vector_points);
-        
-        // Finally we rescale
-        PointToScale.Coordinates() = Center.Coordinates() + vector_points * distance;
+    {        
+        PointToScale.Coordinates() = PointToScale.Coordinates() + Normal * LengthSearch;
     }
     
     /**

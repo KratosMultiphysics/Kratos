@@ -399,11 +399,27 @@ public:
                     }
                     else if (mSearchTreeType == KdtreeInBox)
                     {
-                        const Point<3> center = it_cond->GetGeometry().Center();
+                        // Auxiliar values
+                        const double length_search = mSearchFactor * it_cond->GetGeometry().Length();
+                        
+                        // Compute max/min points
                         Node<3> min_point, max_point;
                         it_cond->GetGeometry().BoundingBox(min_point, max_point);
-                        ContactUtilities::ScaleNode<Node<3>>(min_point, center, mSearchFactor);
-                        ContactUtilities::ScaleNode<Node<3>>(max_point, center, mSearchFactor);
+                        
+                        // Get the normal in the extrema points
+                        Vector N_min, N_max;
+                        GeometryType::CoordinatesArrayType local_point_min, local_point_max;
+                        it_cond->GetGeometry().PointLocalCoordinates( local_point_min, min_point.Coordinates( ) ) ;
+                        it_cond->GetGeometry().PointLocalCoordinates( local_point_max, max_point.Coordinates( ) ) ;
+                        it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
+                        it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
+                    
+                        const array_1d<double,3> normal_min = ContactUtilities::GaussPointNormal(N_min, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_max = ContactUtilities::GaussPointNormal(N_max, it_cond->GetGeometry());
+                        
+                        ContactUtilities::ScaleNode<Node<3>>(min_point, normal_min, length_search);
+                        ContactUtilities::ScaleNode<Node<3>>(max_point, normal_max, length_search);
+                        
                         number_points_found = tree_points.SearchInBox(min_point, max_point, points_found.begin(), mAllocationSize);
                     }
                     else
