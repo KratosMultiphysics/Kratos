@@ -1296,7 +1296,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     // The corresponding part to the nodal coordinates
     if (BelongIndex < TNumNodes) // SLAVE
     {
-        const array_1d<double, 3> aux_der(1.0);
+        array_1d<double, 3> aux_der(0.0);
+        aux_der[iDoF] = 1.0;
         DeltaVertexMatrix += Coeff * aux_der * N1[BelongIndex]; 
     }
     
@@ -1306,17 +1307,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     if (BelongIndex < TNumNodes) // SLAVE
     {
         const double factor_belong = - N1[BelongIndex]/static_cast<double>(TNumNodes) + N1[BelongIndex];   
-        const array_1d<double, 3> factors_belong(factor_belong);
-        
-        const double deltacoordsxnormal = inner_prod(factors_belong, Normal);
+        const double deltacoordsxnormal =  factor_belong * Normal[iDoF];
         
         DeltaVertexMatrix += - Coeff * Normal * (deltacoordsxnormal + coordsxdeltanormal);
     }
     else // MASTER
-    {
-        const array_1d<double, 3> factors_belong(N2[BelongIndex - TNumNodes]);
-        
-        const double deltacoordsxnormal = inner_prod(factors_belong, Normal);
+    { 
+        const double deltacoordsxnormal = N2[BelongIndex - TNumNodes] * Normal[iDoF];
         
         DeltaVertexMatrix += - Coeff * Normal * deltacoordsxnormal;
     }
@@ -1657,49 +1654,28 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 VectorType aux_RHS2 = ZeroVector(3);
             
                 // Local contribution
-                VectorType delta_position_vector;
-                CalculateDeltaPosition(delta_position_vector, MasterGeometry, i_node, i_dof); // TODO: Check the consistency of this!!!! (consider the delta or not)
-                
                 if (i_node < TNumNodes)
                 {
-                    aux_RHS1 -= N1[i_node] * delta_position_vector;
+                    aux_RHS1[i_dof] -= N1[i_node];
                 }
                 else
                 {
-                    aux_RHS2 -= N2[i_node - TNumNodes] * delta_position_vector;
+                    aux_RHS2[i_dof] -= N2[i_node - TNumNodes];
                 }
             
                 // The vertex cell contribution
-                if (i_node < TNumNodes) // TODO: Check the consistency of this!!!! (consider the delta or not)
+                if (i_node < TNumNodes)
                 {
-                    Matrix delta_position_matrix;
-                    delta_position_matrix = CalculateDeltaPosition(delta_position_matrix, GetGeometry());
-                    
-                    Vector auxiliar_delta_position = ZeroVector(3);
-                    for (unsigned int j_node; j_node < TNumNodes; j_node++)
-                    {
-                        auxiliar_delta_position += row(delta_position_matrix, j_node) * N1[j_node];
-                    }
-                    
                     for(unsigned int i_belong = 0; i_belong < 3; i_belong++)
                     {
-                        aux_RHS1 += auxiliar_delta_position[i_dof] * N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
+                        aux_RHS1 += N1[i_node] * N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
                     }
                 }
                 else
-                {
-                    Matrix delta_position_matrix;
-                    delta_position_matrix = CalculateDeltaPosition(delta_position_matrix, MasterGeometry);
-                    
-                    Vector auxiliar_delta_position = ZeroVector(3);
-                    for (unsigned int j_node; j_node < TNumNodes; j_node++)
-                    {
-                        auxiliar_delta_position += row(delta_position_matrix, j_node) * N2[j_node];
-                    }
-                    
+                {           
                     for(unsigned int i_belong = 0; i_belong < 3; i_belong++)
                     {
-                        aux_RHS2 += auxiliar_delta_position[i_dof] * N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
+                        aux_RHS2 += N2[i_node - TNumNodes] * N_decomp[i_belong] * row(rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof], i_belong);
                     }
                 }
                 
@@ -1708,8 +1684,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 const VectorType aux_delta_coords2 = prod(inv_LHS2, aux_RHS2);
                 
                 // Now we can compute the delta shape functions // FIXME: Not improving converence (check this)
-                rDerivativeData.DeltaN1[i_node * TDim + i_dof] = aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1);
-                rDerivativeData.DeltaN2[i_node * TDim + i_dof] = aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1);
+                double delta_position = 1.0; // TODO: Check the consistency of this!!!! (consider the delta or not)
+                CalculateDeltaPosition(delta_position, MasterGeometry, i_node, i_dof);
+                
+                rDerivativeData.DeltaN1[i_node * TDim + i_dof] = delta_position * (aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
+                rDerivativeData.DeltaN2[i_node * TDim + i_dof] = delta_position * (aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1));
             }
         }
     }
@@ -1960,6 +1939,31 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     else
     {
         DeltaPosition[iDoF] = (MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+    }
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition(
+        double& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode,
+        const unsigned int& iDoF
+        )
+{
+    KRATOS_TRY;
+    
+    if (IndexNode < TNumNodes)
+    {
+        DeltaPosition = (GetGeometry()[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+    }
+    else
+    {
+        DeltaPosition = (MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[IndexNode - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
     }
 
     KRATOS_CATCH( "" );

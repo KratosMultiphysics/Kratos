@@ -848,6 +848,17 @@ protected:
         );
     
     /**
+     * Returns a vector with the increment of displacements
+     */
+    
+    void CalculateDeltaPosition(
+        double& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode,
+        const unsigned int& iDoF
+        );
+    
+    /**
      * This functions computes the integration weight to consider
      * @param ThisIntegrationMethod: The array containing the integration points
      * @param PointNumber: The id of the integration point considered
