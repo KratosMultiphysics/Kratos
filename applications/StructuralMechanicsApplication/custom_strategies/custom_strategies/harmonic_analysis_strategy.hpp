@@ -325,7 +325,7 @@ public:
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-            if( rProcessInfo.Has(SYSTEM_DAMPING_RATIO) )
+            if( rProcessInfo.Has(SYSTEM_DAMPING_RATIO) && rProcessInfo[SYSTEM_DAMPING_RATIO] != 0.0 )
             {
                 modal_damping = rProcessInfo[SYSTEM_DAMPING_RATIO];
             }
@@ -551,23 +551,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// Retrieve the eigenvectors from the nodes and store them in a matrix
-    // void RetrieveEigenvectors(DenseMatrixType& rEigenvectors, std::size_t n_eigenvalues)
-    // {
-    //     auto& rModelPart = BaseType::GetModelPart();
-    //     const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
-    //     if( rEigenvectors.size1() != nEigenvalues || rEigenvectors.size2() != n_dofs )
-    //     {
-    //         rEigenvectors.resize(n_dofs, system_size, false);
-    //     }
-
-    //     for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd() )
-    //     {
-    //         DenseMatrixType& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-    //     }
-    // }
-
-    /// Assign the modal displacement to the displacement dofs
+    /// Assign the modal displacement to the dofs and the phase angle to the reaction
     void AssignVariables(ComplexVectorType& rModalDisplacement, int step=0)
     {
         auto& rModelPart = BaseType::GetModelPart();
@@ -580,6 +564,7 @@ private:
                 if( !itDof->IsFixed() )
                 {
                     itDof->GetSolutionStepValue(step) = std::abs(rModalDisplacement(itDof->EquationId()));
+                    itDof->GetSolutionStepReactionValue(step) = std::abs(std::arg(rModalDisplacement(itDof->EquationId())));
                 }
                 else
                 {
