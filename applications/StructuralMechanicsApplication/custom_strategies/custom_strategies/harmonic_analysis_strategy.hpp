@@ -265,6 +265,7 @@ public:
         boost::timer force_vector_build_time;
         if (rForceVector.size() != system_size)
             rForceVector.resize(system_size, false);
+        rForceVector = ZeroVector( system_size );
         pBuilderAndSolver->BuildRHS(pScheme,rModelPart,rForceVector);
         
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -327,7 +328,7 @@ public:
             {
                 modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
             }
-            KRATOS_WATCH(modal_damping)
+
             // rows are columns and vice-versa
             ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
             mode_weight[i] = inner_prod( row( eigenvectors, i ), f ) / factor;
