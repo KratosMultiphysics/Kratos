@@ -1123,17 +1123,17 @@ namespace Kratos
     Vector GravityForce(3);
     noalias(GravityForce) = ZeroVector(3);
 
-    Vector GravityCouple(3);
-    noalias(GravityCouple) = ZeroVector(3);
-    
-    Matrix SkewSymMatrix(3,3);
-    noalias(SkewSymMatrix) = ZeroMatrix(3,3);
-    Vector E1(3);
-    noalias(E1) = ZeroVector(3);
-    E1[2] = 1.0;
+    // No external moment in volume forces or distributed forces
+    // Vector GravityCouple(3);
+    // noalias(GravityCouple) = ZeroVector(3);    
+    // Matrix SkewSymMatrix(3,3);
+    // noalias(SkewSymMatrix) = ZeroMatrix(3,3);
+    // Vector E1(3);
+    // noalias(E1) = ZeroVector(3);
+    // E1[0] = 1.0;
    
-    //material frame to spatial frame (rVolumeForce reference is the spatial frame)
-    E1 = prod( rVariables.CurrentRotationMatrix, E1 );
+    // //material frame to spatial frame (rVolumeForce reference is the spatial frame)
+    // E1 = prod( rVariables.CurrentRotationMatrix, E1 );
     
     unsigned int RowIndex = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1141,17 +1141,18 @@ namespace Kratos
       	RowIndex = i * ( (dimension-1) * 3 );
 
         GravityForce  = rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;
-	BeamMathUtilsType::VectorToSkewSymmetricTensor(GravityForce,SkewSymMatrix); // m = f x r = skewF · r
-        GravityCouple = prod(SkewSymMatrix,E1);
+
+	//BeamMathUtilsType::VectorToSkewSymmetricTensor(GravityForce,SkewSymMatrix); // m = f x r = skewF · r	
+        //GravityCouple = prod(SkewSymMatrix,E1);
 
 
 	if( dimension == 2 ){
-	  GravityForce[2] = GravityCouple[2];
 	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);
+	  //GravityForce[2] = GravityCouple[2];
 	}
 	else{
 	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);
-	  BeamMathUtilsType::AddVector(GravityCouple, rRightHandSideVector, RowIndex+dimension);
+	  //BeamMathUtilsType::AddVector(GravityCouple, rRightHandSideVector, RowIndex+dimension);
 	}
       }
     
@@ -1631,15 +1632,6 @@ namespace Kratos
     if ( VOLUME_ACCELERATION.Key() == 0 )
       KRATOS_ERROR <<  "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;   
 
-    if ( CROSS_SECTION_AREA.Key() == 0)
-      KRATOS_ERROR <<  "CROSS_SECTION_AREA has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( LOCAL_CONSTITUTIVE_MATRIX.Key() == 0)
-      KRATOS_ERROR <<  "LOCAL_CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered)" << std::endl;
-	  
-    if ( LOCAL_INERTIA_TENSOR.Key() == 0)
-      KRATOS_ERROR <<  "LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered)" << std::endl;
-
     if ( ROTATION.Key() == 0)
       KRATOS_ERROR <<  "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
 
@@ -1668,14 +1660,18 @@ namespace Kratos
     //verify that the area is given by properties
     if ( this->GetProperties().Has(CROSS_SECTION_AREA) == false )
       {
-        if( GetValue(CROSS_SECTION_AREA) == 0.0 )
+        if( this->GetProperties()[CROSS_SECTION_AREA] == 0.0 )
 	  KRATOS_ERROR << "CROSS_SECTION_AREA not provided for this element " << this->Id() << std::endl;
       }
 
     if ( this->GetProperties().Has(LOCAL_INERTIA_TENSOR) == false )
       {
-        if( GetValue(LOCAL_INERTIA_TENSOR)(1,1) == 0.0 )
+        if( this->GetProperties()[LOCAL_INERTIA_TENSOR](1,1) == 0.0 )
 	  KRATOS_ERROR << "LOCAL_INERTIA_TENSOR not provided for this element " << this->Id() << std::endl;
+		  
+	// if ( LOCAL_CONSTITUTIVE_MATRIX.Key() == 0)
+	//   KRATOS_ERROR <<  "LOCAL_CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered)" << std::endl;
+
       }
 
     return 0;
