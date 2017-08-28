@@ -13,8 +13,8 @@ class Kratos_Execute_Test:
         self.ProjectParameters = ProjectParameters
 
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
 
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 

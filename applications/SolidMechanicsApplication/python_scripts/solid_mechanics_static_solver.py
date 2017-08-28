@@ -34,6 +34,9 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
         if not custom_settings.Has("solution_type"): 
             custom_settings.AddEmptyValue("solution_type")
             custom_settings["solution_type"].SetString("Static") # Override defaults in the base class.
+        if not custom_settings.Has("scheme_type"): 
+            custom_settings.AddEmptyValue("scheme_type")
+            custom_settings["scheme_type"].SetString("Non-Linear") # Override defaults in the base class.
 
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)

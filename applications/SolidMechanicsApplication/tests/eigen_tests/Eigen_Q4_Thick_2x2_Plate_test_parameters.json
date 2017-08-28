@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
         "model_part_name" : "Structure",
-        "domain_size"     : 3,
+        "dimension"       : 3,
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,

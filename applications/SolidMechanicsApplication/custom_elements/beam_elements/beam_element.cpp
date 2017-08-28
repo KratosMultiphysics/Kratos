@@ -1123,17 +1123,20 @@ namespace Kratos
     Vector GravityForce(3);
     noalias(GravityForce) = ZeroVector(3);
 
-    // No external moment in volume forces or distributed forces
-    // Vector GravityCouple(3);
-    // noalias(GravityCouple) = ZeroVector(3);    
-    // Matrix SkewSymMatrix(3,3);
-    // noalias(SkewSymMatrix) = ZeroMatrix(3,3);
-    // Vector E1(3);
-    // noalias(E1) = ZeroVector(3);
-    // E1[0] = 1.0;
-   
-    // //material frame to spatial frame (rVolumeForce reference is the spatial frame)
-    // E1 = prod( rVariables.CurrentRotationMatrix, E1 );
+    Vector GravityCouple(3);
+    noalias(GravityCouple) = ZeroVector(3);    
+    Matrix SkewSymMatrix(3,3);
+    noalias(SkewSymMatrix) = ZeroMatrix(3,3);  
+    Vector IntegrationPointPosition(3);
+    noalias(IntegrationPointPosition) = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	CurrentValueVector = GetGeometry()[i].Coordinates();
+	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rVariables.PointNumber );
+	IntegrationPointPosition += rVariables.N[i] * CurrentValueVector;
+      }
     
     unsigned int RowIndex = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1142,19 +1145,23 @@ namespace Kratos
 
         GravityForce  = rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;
 
-	//BeamMathUtilsType::VectorToSkewSymmetricTensor(GravityForce,SkewSymMatrix); // m = f x r = skewF · r	
-        //GravityCouple = prod(SkewSymMatrix,E1);
-
-
+	//integration for the moment force vector
+	BeamMathUtilsType::VectorToSkewSymmetricTensor(GravityForce,SkewSymMatrix); // m = f x r = skewF · r
+	CurrentValueVector = GetGeometry()[i].Coordinates();
+	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rVariables.PointNumber );
+	CurrentValueVector -= IntegrationPointPosition;
+        GravityCouple = prod(SkewSymMatrix,CurrentValueVector);	
+	
 	if( dimension == 2 ){
 	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);
-	  //GravityForce[2] = GravityCouple[2];
+	  GravityForce[2] = GravityCouple[2];
 	}
 	else{
 	  BeamMathUtilsType::AddVector(GravityForce,  rRightHandSideVector, RowIndex);
-	  //BeamMathUtilsType::AddVector(GravityCouple, rRightHandSideVector, RowIndex+dimension);
+	  BeamMathUtilsType::AddVector(GravityCouple, rRightHandSideVector, RowIndex+dimension);
 	}
       }
+
     
     KRATOS_CATCH( "" )
   }

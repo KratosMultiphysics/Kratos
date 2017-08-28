@@ -407,7 +407,7 @@ namespace Kratos
 	}
     }
     
-    std::cout<<" ExternalForces ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
+    //std::cout<<" ExternalForces ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
   }  
