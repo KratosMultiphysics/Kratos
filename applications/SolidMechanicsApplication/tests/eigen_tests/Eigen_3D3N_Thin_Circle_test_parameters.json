@@ -55,8 +55,9 @@
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "ROTATION_support",
-            "variable_name"   : "ROTATION",
+            "variable_name"   : "ROTATION",	    
             "value"           : [0.0,0.0,0.0],
+	    "constrained"     : false,
             "interval"        : [0.0,"End"] 
         }
     }],
