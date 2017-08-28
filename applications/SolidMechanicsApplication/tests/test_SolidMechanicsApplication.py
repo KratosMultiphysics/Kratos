@@ -135,8 +135,6 @@ def AssambleTestSuites():
             smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
             smallSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
             smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
-            # Element damping test
-            smallSuite.addTest(TSpringDamperElementTests('test_execution'))
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
     
