@@ -689,7 +689,6 @@ private:
 
         // store eigenvalues in process info
         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
-        rModelPart.GetProcessInfo()[EIGENVECTOR_MATRIX] = rEigenvectors;
 
         for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
         {

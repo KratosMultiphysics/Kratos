@@ -303,18 +303,23 @@ public:
         auto& rProcessInfo = rModelPart.GetProcessInfo();
         double excitation_frequency = rProcessInfo[TIME];
 
-        // get eigenvalues and eigenvectors
+        // get eigenvalues
         DenseVectorType eigenvalues = rProcessInfo[EIGENVALUE_VECTOR];
-        DenseMatrixType eigenvectors = rProcessInfo[EIGENVECTOR_MATRIX];
+        const std::size_t n_modes = eigenvalues.size();
 
-        const unsigned int n_dofs = eigenvectors.size2();
-        const unsigned int n_modes = eigenvalues.size();
+        DenseMatrixType eigenvectors;
+        const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
+        if( eigenvectors.size1() != n_modes || eigenvectors.size2() != n_dofs )
+        {
+            eigenvectors.resize(n_modes, n_dofs, false);
+        }
         
         auto f = this->GetForceVector();
 
-        ComplexVectorType mode_weight;
-        mode_weight.resize(n_modes, false);
-        mode_weight = ZeroVector( n_modes );
+        ComplexType mode_weight;
+        ComplexVectorType modal_displacement;
+        modal_displacement.resize(n_dofs, false);
+        modal_displacement = ZeroVector( n_dofs );
 
         double modal_damping = 0.0;
 
@@ -329,20 +334,46 @@ public:
                 modal_damping = mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
             }
 
-            // rows are columns and vice-versa
-            ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
-            mode_weight[i] = inner_prod( row( eigenvectors, i ), f ) / factor;
-        }
-
-        ComplexVectorType modal_displacement;
-        modal_displacement.resize(n_dofs, false);
-        modal_displacement = ZeroVector( n_dofs );
-
-        for( std::size_t i = 0; i < n_dofs; ++i )
-        {
-            for( std::size_t j = 0; j < n_modes; ++j)
+            // compute the modal weight
+            DenseVectorType node_eigenvector = ZeroVector( n_dofs );
+            for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++ )
             {
-                modal_displacement[i] = modal_displacement[i] + mode_weight[j] * eigenvectors(j,i);
+                ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
+                const std::size_t n_node_dofs = node_dofs.size();
+                Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+
+                if (node_dofs.IsSorted() == false)
+                {
+                    node_dofs.Sort();
+                }
+
+                for (std::size_t j = 0; j < n_node_dofs; j++)
+                {
+                    auto itDof = std::begin(node_dofs) + j;
+                    node_eigenvector[itDof->EquationId()] = rNodeEigenvectors(i,j);
+                }
+            }
+
+            ComplexType factor( eigenvalues[i] - pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
+            mode_weight = inner_prod( node_eigenvector, f ) / factor;
+
+            // compute the modal displacement as a superposition of modal_weight * eigenvector
+            for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++ )
+            {
+                ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
+                const std::size_t n_node_dofs = node_dofs.size();
+                Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+
+                if (node_dofs.IsSorted() == false)
+                {
+                    node_dofs.Sort();
+                }
+
+                for (std::size_t j = 0; j < n_node_dofs; j++)
+                {
+                    auto itDof = std::begin(node_dofs) + j;
+                    modal_displacement[itDof->EquationId()] = modal_displacement[itDof->EquationId()] + mode_weight * rNodeEigenvectors(i,j);
+                }
             }
         }
 
@@ -519,6 +550,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Retrieve the eigenvectors from the nodes and store them in a matrix
+    // void RetrieveEigenvectors(DenseMatrixType& rEigenvectors, std::size_t n_eigenvalues)
+    // {
+    //     auto& rModelPart = BaseType::GetModelPart();
+    //     const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
+    //     if( rEigenvectors.size1() != nEigenvalues || rEigenvectors.size2() != n_dofs )
+    //     {
+    //         rEigenvectors.resize(n_dofs, system_size, false);
+    //     }
+
+    //     for( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd() )
+    //     {
+    //         DenseMatrixType& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+    //     }
+    // }
 
     /// Assign the modal displacement to the displacement dofs
     void AssignVariables(ComplexVectorType& rModalDisplacement, int step=0)
