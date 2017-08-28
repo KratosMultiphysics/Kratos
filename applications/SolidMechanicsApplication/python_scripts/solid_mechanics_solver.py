@@ -388,13 +388,13 @@ class MechanicalSolver(object):
                         elif dest_value[i].IsString() and orig_value[i].IsString():
                             dest_value[i].SetString(orig_value[i].GetString())
                         elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
-                            self.validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
+                            self._validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
                             if len(orig_value[i].items()) != 0:
                                 raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
                         else:
                             raise Exception('Unsupported parameter type.')
                 elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
-                    self.validate_and_transfer_matching_settings(orig_value, dest_value)
+                    self._validate_and_transfer_matching_settings(orig_value, dest_value)
                     if len(orig_value.items()) != 0:
                         raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
                 else:
