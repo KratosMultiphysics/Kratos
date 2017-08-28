@@ -65,9 +65,15 @@ class ShallowWaterSolver:
         maximum_number_of_particles= 8*self.domain_size
         self.moveparticles = MoveShallowWaterParticleUtility(self.model_part,maximum_number_of_particles)  
         self.moveparticles.MountBin()
+        
+        # Initialize dry/wet state utility
+        self.drybedutility = DryBedUtility(self.model_part)
 
     #######################################################################   
     def Solve(self):
+        # Check dry bed
+        (self.drybedutility).CheckConservedVariables(self.model_part.Nodes)
+        
         # Move particles
         (self.moveparticles).CalculateVelOverElemSize();
         (self.moveparticles).MoveParticles();

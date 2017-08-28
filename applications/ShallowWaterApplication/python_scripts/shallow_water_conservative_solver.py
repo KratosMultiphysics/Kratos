@@ -5,7 +5,7 @@ from KratosMultiphysics.ShallowWaterApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):  #this way er only need one command to add all the variables to our problem 
+def AddVariables(model_part):  #this way er only need one command to add all the variables to our problem
     model_part.AddNodalSolutionStepVariable(MOMENTUM);
     model_part.AddNodalSolutionStepVariable(PROJECTED_MOMENTUM);
     model_part.AddNodalSolutionStepVariable(DELTA_MOMENTUM);
@@ -28,18 +28,18 @@ def AddDofs(model_part):
         node.AddDof(HEIGHT);
     print ("variables for the SWE solver added correctly")
 
-class ShallowWaterConservativeSolver:
+class ShallowWaterSolver:
     #######################################################################
-    def __init__(self,model_part,domain_size):  # Constructor of the class 
+    def __init__(self,model_part,domain_size):  # Constructor of the class
         self.model_part = model_part
         self.domain_size = domain_size
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         # Definition of the mesh stage solver
-        self.swe_linear_solver =  SkylineLUFactorizationSolver()  # We set the type of solver that we want 
+        self.swe_linear_solver =  SkylineLUFactorizationSolver()  # We set the type of solver that we want
         
         # definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(1e-6,1e-9)  # Tolerance for the solver 
+        self.conv_criteria = DisplacementCriteria(1e-6,1e-9)  # Tolerance for the solver
         
         # For the pfem2
         number_of_avg_elems = 10
@@ -64,42 +64,39 @@ class ShallowWaterConservativeSolver:
         # Creating the solution strategy for the particle stage
         self.VariableUtils = VariableUtils()
         maximum_number_of_particles= 8*self.domain_size
-        self.moveparticles = MoveShallowWaterParticleHUUtility(self.model_part,maximum_number_of_particles)  
+        self.moveparticles = MoveShallowWaterParticleHUUtility(self.model_part,maximum_number_of_particles)
         self.moveparticles.MountBin()
         
         # Initialize dry/wet state utility
         self.drybedutility = DryBedUtility(self.model_part)
 
-    #######################################################################   
+    #######################################################################
     def Solve(self):
         # Move particles
         (self.moveparticles).ComputeVelocity(self.model_part.Nodes)
         (self.moveparticles).CalculateVelOverElemSize();
         (self.moveparticles).MoveParticles();
         pre_minimum_number_of_particles=self.domain_size;
-        (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
+        (self.moveparticles).PreReseed(pre_minimum_number_of_particles);
         (self.moveparticles).TransferLagrangianToEulerian();
         (self.VariableUtils).CopyScalarVar(PROJECTED_HEIGHT,HEIGHT,self.model_part.Nodes)
         (self.VariableUtils).CopyVectorVar(PROJECTED_MOMENTUM,MOMENTUM,self.model_part.Nodes)
         (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
         (self.moveparticles).ResetBoundaryConditions()
-        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(PROJECTED_HEIGHT,self.model_part.Nodes)
-        #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_MOMENTUM,self.model_part.Nodes)
-        #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_VELOCITY,self.model_part.Nodes)
         
         # Check dry bed
-        (self.drybedutility).CheckDryWetState(self.model_part.Nodes)
+        (self.drybedutility).CheckConservedVariables(self.model_part.Nodes)
         
         # Solve equations on mesh
         (self.mesh_solver).Solve()
         
         # Update particles
-        (self.moveparticles).CalculateDeltaVariables();        
+        (self.moveparticles).CalculateDeltaVariables();
         (self.moveparticles).CorrectParticlesWithoutMovingUsingDeltaVariables();
         post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles); 
+        (self.moveparticles).PostReseed(post_minimum_number_of_particles);
 
-    #######################################################################   
+    #######################################################################
     def SetEchoLevel(self,level):
         (self.mesh_solver).SetEchoLevel(level)
 
