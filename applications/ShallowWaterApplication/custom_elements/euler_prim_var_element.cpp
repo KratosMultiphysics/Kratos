@@ -210,13 +210,12 @@ namespace Kratos
 		// Copmute stabilization parameters
 		bool stabilization = true;
 		double Ctau = 0.01;
-		double tau_u, tau_h = 0;
-		if (stabilization)
-		{
-			if (height > 1e-6)
-				tau_u = Ctau/elem_length*pow(gravity/height,0.5);
-			tau_h = Ctau/elem_length*pow(height/gravity,0.5);
-		}
+		double tau_u = 0, tau_h = 0;
+		if (stabilization && height > 1e-6)
+        {
+            tau_u = Ctau/elem_length*pow(gravity/height,0.5);
+            tau_h = Ctau/elem_length*pow(height/gravity,0.5);
+        }
 		// Compute discontinuity capturing parameters
 		bool discontinuity_capturing = true;
 		double gradient_threshold = 1e-6;

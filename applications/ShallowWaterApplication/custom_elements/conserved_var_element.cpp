@@ -199,13 +199,12 @@ namespace Kratos
 		bool stabilization = true;
         double height_threshold = 1e-6;
 		double Ctau = 0.01;       // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
-		double tau_h, tau_m = 0;
-		if (stabilization)
+		double tau_h = 0, tau_m = 0;
+		if (stabilization && height > height_threshold)
         {
-			if (height > height_threshold)
-                tau_m = Ctau/elem_length*pow(gravity/height,0.5);
-            tau_h = Ctau/elem_length*pow(gravity/height,0.5);
-		}
+            tau_m = Ctau/elem_length*pow(gravity/height,0.5);
+            tau_h = Ctau/elem_length*pow(height/gravity,0.5);
+        }
 		// Compute discontinuity capturing parameters
 		bool discontinuity_capturing = true;
 		double gradient_threshold = 1e-6;    // Shock capturing parameters
