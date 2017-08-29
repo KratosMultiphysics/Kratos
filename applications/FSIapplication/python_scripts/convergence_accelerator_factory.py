@@ -68,6 +68,13 @@ def CreateTrilinosConvergenceAccelerator(configuration):
         if (configuration["acceleration_type"].GetString() == "Aitken"):
             convergence_accelerator = KratosTrilinos.TrilinosAitkenConvergenceAccelerator(configuration["w_0"].GetDouble())
 
+    elif(convergence_accelerator_type == "MVQN_recursive"):
+
+        configuration.ValidateAndAssignDefaults(_mvqn_defaults_recursive)
+
+        convergence_accelerator = KratosTrilinos.MVQNRecursiveJacobianConvergenceAccelerator(configuration["w_0"].GetDouble(),
+                                                                                             configuration["buffer_size"].GetInt())
+
     else:
         raise Exception("Trilinos convergence accelerator not found. Asking for : " + convergence_accelerator_type)
 

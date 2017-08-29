@@ -34,9 +34,11 @@
 #include "custom_utilities/gather_modelpart_utility.h"
 #include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
+#include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
+#include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
+#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -192,6 +194,7 @@ void  AddCustomUtilitiesToPython()
     // Convergence accelerators (from FSIApplication)
     typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
     typedef AitkenConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosAitkenAccelerator;
+    typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosMVQNRecursiveAccelerator;
 
     // Convergence accelerator base class
     class_< TrilinosConvergenceAccelerator, boost::noncopyable > ("TrilinosConvergenceAccelerator", init < >())
@@ -205,6 +208,8 @@ void  AddCustomUtilitiesToPython()
             ;
 
     class_< TrilinosAitkenAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosAitkenConvergenceAccelerator",init<double>());
+
+    class_< TrilinosMVQNRecursiveAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosMVQNRecursiveJacobianConvergenceAccelerator",init<double>());
 
 }
 }  // namespace Python.

@@ -8,8 +8,8 @@
 //  Original author:  Ruben Zorrilla
 //
 
-#if !defined(KRATOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR)
-#define  KRATOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR
+#if !defined(KRATOS_TRILINOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR)
+#define  KRATOS_TRILINOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR
 
 /* System includes */
 
@@ -19,9 +19,8 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
-#include "convergence_accelerator.hpp"
 
-#include "../FSIapplication/custom_utilities/qr_utility.h"            //QR decomposition utility used in matrix inversion.
+#include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -47,19 +46,19 @@ namespace Kratos
 /** @brief Jacobian emulator
  */
 template<class TSpace>
-class JacobianEmulator
+class TrilinosJacobianEmulator
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    typedef typename std::unique_ptr< JacobianEmulator<TSpace> >        Pointer;
+    typedef typename std::unique_ptr< TrilinosJacobianEmulator<TSpace> >         Pointer;
 
-    typedef typename TSpace::VectorType                              VectorType;
-    typedef typename TSpace::VectorPointerType                VectorPointerType;
+    typedef typename TSpace::VectorType                                       VectorType;
+    typedef typename TSpace::VectorPointerType                         VectorPointerType;
 
-    typedef typename TSpace::MatrixType                              MatrixType;
-    typedef typename TSpace::MatrixPointerType                MatrixPointerType;
+    typedef typename TSpace::MatrixType                                       MatrixType;
+    typedef typename TSpace::MatrixPointerType                         MatrixPointerType;
 
 
     ///@}
@@ -75,23 +74,24 @@ public:
      * Old Jacobian pointer constructor.
      * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer )
-    {
-        mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
+    TrilinosJacobianEmulator( Pointer&& OldJacobianEmulatorPointer )
+    {   
+        mpOldJacobianEmulator = std::unique_ptr<TrilinosJacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
     }
 
     /**
      * Old Jacobian pointer constructor with recursive previous Jacobian deleting.
      * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer, const unsigned int EmulatorBufferSize )
+    TrilinosJacobianEmulator( Pointer&& OldJacobianEmulatorPointer, 
+                              const unsigned int EmulatorBufferSize )
     {
-        mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
+        mpOldJacobianEmulator = std::unique_ptr<TrilinosJacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
 
         // Get the last pointer out of buffer
         if(EmulatorBufferSize > 1)
         {
-            JacobianEmulator* p = (mpOldJacobianEmulator->mpOldJacobianEmulator).get();
+            TrilinosJacobianEmulator* p = (mpOldJacobianEmulator->mpOldJacobianEmulator).get();
 
             for(unsigned int i = 1; i < (EmulatorBufferSize); i++)
             {
@@ -117,14 +117,13 @@ public:
      * Empty constructor.
      * The Jacobian emulator will consider minus the identity matrix as previous Jacobian
      */
-    JacobianEmulator( )
-    {
-    }
+    TrilinosJacobianEmulator()
+    {}
 
     /**
      * Copy Constructor.
      */
-    JacobianEmulator( const JacobianEmulator& rOther )
+    TrilinosJacobianEmulator( const TrilinosJacobianEmulator& rOther )
     {
         mpOldJacobianEmulator = rOther.mpOldJacobianEmulator;
     }
@@ -132,7 +131,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~JacobianEmulator
+    virtual ~TrilinosJacobianEmulator
     () {}
 
     ///@}
@@ -169,7 +168,7 @@ public:
      * @param rProjectedVector: Projected vector output
      */
     void ApplyJacobian(const VectorPointerType pWorkVector,
-                       VectorPointerType pProjectedVector)
+                       VectorPointerType pProjectedVector) 
     {
         KRATOS_TRY;
 
@@ -190,30 +189,43 @@ public:
             const unsigned int previous_iterations = mJacobianObsMatrixV.size();
             const unsigned int residual_size = TSpace::Size(mJacobianObsMatrixV[0]);
 
-            VectorPointerType pY(new VectorType(residual_size));
-            VectorPointerType pW(new VectorType(residual_size));
-            VectorPointerType pzQR(new VectorType(previous_iterations));
-            MatrixPointerType pAuxMatQR(new MatrixType(residual_size, previous_iterations));
+            // TODO: These two should be Epetra_FEVector
+            Epetra_SerialDenseVector* pY(new Epetra_SerialDenseVector(residual_size));
+            Epetra_SerialDenseVector* pW(new Epetra_SerialDenseVector(residual_size));
 
             // Loop to store a std::vector<VectorType> type as Matrix type
-            for (unsigned int i = 0; i < residual_size; ++i)
+            Epetra_SerialDenseMatrix Vtrans_V(previous_iterations, previous_iterations);
+
+            for (unsigned int i=0; i<previous_iterations; ++i)
             {
-                for (unsigned int j = 0; j < previous_iterations; ++j)
+                Vtrans_V(i,i) = TSpace::Dot(mJacobianObsMatrixV[i], mJacobianObsMatrixV[i]);
+
+                for (unsigned int j=i+1; j<previous_iterations; ++j)
                 {
-                    (*pAuxMatQR)(i,j) = mJacobianObsMatrixV[j](i);
+                    Vtrans_V(i,j) = TSpace::Dot(mJacobianObsMatrixV[i], mJacobianObsMatrixV[j]);
+                    Vtrans_V(j,i) = Vtrans_V(i,j);
                 }
             }
 
-            VectorPointerType pWorkVectorCopy(new VectorType(*pWorkVector));
+            Epetra_SerialDenseVector Vtrans_r(previous_iterations);
+            Epetra_SerialDenseVector zSystemSol(previous_iterations);
 
-            // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
-            mQR_decomposition.compute(residual_size, previous_iterations, &(*pAuxMatQR)(0,0));
-            mQR_decomposition.solve(&(*pWorkVectorCopy)(0), &(*pzQR)(0));
+            for (unsigned int i=0; i<previous_iterations; ++i)
+            {
+                Vtrans_r(i) = TSpace::Dot(mJacobianObsMatrixV[i], (*pWorkVector));
+            }
+
+            Epetra_SerialDenseSolver EpetraSystemSolver;
+            EpetraSystemSolver.SetMatrix(Vtrans_V);
+            EpetraSystemSolver.SetVectors(zSystemSol,Vtrans_r);
+            EpetraSystemSolver.Solve();
+
+            // TODO: zSystemSolve has to be converted to an Epetra_FEVector --> Create a MAP
 
             TSpace::SetToZero(*pY);
             for (unsigned int j = 0; j < previous_iterations; ++j)
             {
-                TSpace::UnaliasedAdd(*pY, (*pzQR)(j), mJacobianObsMatrixV[j]);
+                TSpace::UnaliasedAdd(*pY, zSystemSol(j), mJacobianObsMatrixV[j]);
             }
 
             TSpace::UnaliasedAdd(*pY, -1.0, *pWorkVector);
@@ -233,7 +245,7 @@ public:
             TSpace::SetToZero(*pW);
             for (unsigned int j = 0; j < previous_iterations; ++j)
             {
-                TSpace::UnaliasedAdd(*pW, (*pzQR)(j), mJacobianObsMatrixW[j]);
+                TSpace::UnaliasedAdd(*pW, zSystemSol(j), mJacobianObsMatrixW[j]);
             }
 
             TSpace::UnaliasedAdd(*pProjectedVector, 1.0, *pW);
@@ -335,12 +347,12 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    QR<double, row_major>                 mQR_decomposition;        // QR decomposition object
 
     Pointer                           mpOldJacobianEmulator;        // Pointer to the old Jacobian
 
     std::vector<VectorType>             mJacobianObsMatrixV;        // Residual increment observation matrix
     std::vector<VectorType>             mJacobianObsMatrixW;        // Solution increment observation matrix
+
     ///@}
 
     ///@name Protected Operators
@@ -396,23 +408,23 @@ private:
     ///@{
     ///@}
 
-}; /* Class JacobianEmulator */
+}; /* Class TrilinosJacobianEmulator */
 
 
 /** @brief MVQN (MultiVectorQuasiNewton method) acceleration scheme
  */
 template<class TSpace>
-class MVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
+class TrilinosMVQNRecursiveJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( MVQNRecursiveJacobianConvergenceAccelerator );
+    KRATOS_CLASS_POINTER_DEFINITION( TrilinosMVQNRecursiveJacobianConvergenceAccelerator );
 
     typedef ConvergenceAccelerator<TSpace>                                             BaseType;
     typedef typename BaseType::Pointer                                          BaseTypePointer;
 
-    typedef typename JacobianEmulator<TSpace>::Pointer              JacobianEmulatorPointerType;
+    typedef typename TrilinosJacobianEmulator<TSpace>::Pointer      JacobianEmulatorPointerType;
 
     typedef typename BaseType::VectorType                                            VectorType;
     typedef typename BaseType::VectorPointerType                              VectorPointerType;
@@ -428,10 +440,11 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 10 )
+    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( double OmegaInitial = 0.825, 
+                                                         unsigned int JacobianBufferSize = 7 )
     {
-        mOmega_0 = rOmegaInitial;
-        mJacobianBufferSize = rJacobianBufferSize;
+        mOmega_0 = OmegaInitial;
+        mJacobianBufferSize = JacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
@@ -440,7 +453,7 @@ public:
     /**
      * Copy Constructor.
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( const MVQNRecursiveJacobianConvergenceAccelerator& rOther )
+    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( const TrilinosMVQNRecursiveJacobianConvergenceAccelerator& rOther )
     {
         mOmega_0 = rOther.mOmega_0;
         mJacobianBufferSize = rOther.mJacobianBufferSize;
@@ -452,7 +465,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~MVQNRecursiveJacobianConvergenceAccelerator
+    virtual ~TrilinosMVQNRecursiveJacobianConvergenceAccelerator
     () {}
 
     ///@}
@@ -464,14 +477,14 @@ public:
     ///@name Operations
     ///@{
 
-    //~ /**
-     //~ * Construct the initial inverse Jacobian emulator
-     //~ */
+    /**
+     * Construct the initial inverse Jacobian emulator
+     */
     void Initialize() override
     {
         KRATOS_TRY;
 
-        mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator <TSpace> > (new JacobianEmulator<TSpace>());
+        mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator <TSpace> > (new TrilinosJacobianEmulator<TSpace>());
 
         KRATOS_CATCH( "" );
     }
@@ -490,12 +503,12 @@ public:
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize)
         {
             // Construct the inverse Jacobian emulator
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer)));
+            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (new TrilinosJacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer)));
         }
         else
         {
             // Construct the inverse Jacobian emulator considering the recursive elimination
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize));
+            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (new TrilinosJacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize));
         }
 
         KRATOS_CATCH( "" );
@@ -691,7 +704,7 @@ private:
     ///@{
     ///@}
 
-}; /* Class MVQNRecursiveJacobianConvergenceAccelerator */
+}; /* Class TrilinosMVQNRecursiveJacobianConvergenceAccelerator */
 
 ///@}
 
@@ -708,4 +721,4 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR defined */
+#endif /* KRATOS_TRILINOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR defined */
