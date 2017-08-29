@@ -196,12 +196,13 @@ namespace Kratos
         
         // Compute stabilization parameters
         bool stabilization = true;
-        double Ctau = 0.01;
+        double Ctau = 0.002;
         double tau_u = 0, tau_h = 0;
-        if (stabilization && height > 1e-6)
+        double fheight = fabs(height);
+        if (stabilization && fheight > 1e-6)
         {
-            tau_u = Ctau/elem_length*pow(gravity/height,0.5);
-            tau_h = Ctau/elem_length*pow(height/gravity,0.5);
+            tau_u = Ctau/elem_length*pow(gravity/fheight,0.5);
+            tau_h = Ctau/elem_length*pow(fheight/gravity,0.5);
         }
         // Compute discontinuity capturing parameters
         bool discontinuity_capturing = true;

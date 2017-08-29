@@ -69,15 +69,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-	
   void  AddCustomUtilitiesToPython()
   {
 	using namespace boost::python;
-
 
 		//~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 		//~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -113,7 +111,8 @@ namespace Python
 			;
 		
 		class_< DryBedUtility > ("DryBedUtility", init<ModelPart& >())
-			.def("CheckDryWetState", &DryBedUtility::CheckDryWetState)
+			.def("CheckConservedVariables", &DryBedUtility::CheckConservedVariables)
+			.def("CheckPrimitiveVariables", &DryBedUtility::CheckPrimitiveVariables)
 			;
 
   }
@@ -122,4 +121,3 @@ namespace Python
 }  // namespace Python.
 
 } // Namespace Kratos
-

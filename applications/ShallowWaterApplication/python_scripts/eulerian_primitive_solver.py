@@ -45,12 +45,12 @@ class ShallowWaterSolver:
                                             self.conv_criteria, CalculateReactionFlag,
                                             ReformDofSetAtEachStep, MoveMeshFlag)
         # Initialize dry/wet state utility
-        self.drybedutility = DryBedUtility(self.model_part)
+        #~ self.drybedutility = DryBedUtility(self.model_part)
 
     #######################################################################
     def Solve(self):        
         # Check dry bed
-        (self.drybedutility).CheckPrimitiveVariables(self.model_part.Nodes)
+        #~ (self.drybedutility).CheckPrimitiveVariables(self.model_part.Nodes)
         # Solve equations on mesh
         (self.mesh_solver).Solve()
         

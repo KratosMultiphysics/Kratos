@@ -67,12 +67,12 @@ class ShallowWaterSolver:
         self.moveparticles.MountBin()
         
         # Initialize dry/wet state utility
-        self.drybedutility = DryBedUtility(self.model_part)
+        #~ self.drybedutility = DryBedUtility(self.model_part)
 
     #######################################################################   
     def Solve(self):
         # Check dry bed
-        (self.drybedutility).CheckConservedVariables(self.model_part.Nodes)
+        #~ (self.drybedutility).CheckConservedVariables(self.model_part.Nodes)
         
         # Move particles
         (self.moveparticles).CalculateVelOverElemSize();

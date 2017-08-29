@@ -63,61 +63,92 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	class DryBedUtility
-	{
-	public:
-		
-		KRATOS_CLASS_POINTER_DEFINITION(DryBedUtility);
-		
-		DryBedUtility(ModelPart& model_part)
-			: mr_model_part(model_part)  
-		{
-			KRATOS_TRY	
-			std::cout << "Initializing dry/wet state utility" << std::endl; 
-			KRATOS_CATCH("")	
-		}
-		
-		~DryBedUtility()
-		{}
-		
-		void CheckDryWetState(ModelPart::NodesContainerType& rNodes)
-		{
-			KRATOS_TRY
-			ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-			vector<unsigned int> node_partition;
-			#ifdef _OPENMP
-				int number_of_threads = omp_get_max_threads();
-			#else
-				int number_of_threads = 1;
-			#endif
-			OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
-			
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
-			{
-				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-				{
-					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-					if (inode->FastGetSolutionStepValue(HEIGHT) < 1e-3)
-					{
-						inode->GetSolutionStepValue(HEIGHT)     = 1e-8;
-						inode->GetSolutionStepValue(MOMENTUM_X) = 0;
-						inode->GetSolutionStepValue(MOMENTUM_Y) = 0;
-					}
-				    
-				}
-			}
-			
-			KRATOS_CATCH("")
-		}
-		
-	protected:
-	
-	private:
-	
-		ModelPart& mr_model_part;
-		
-	}; // class DryBedUtility
+    class DryBedUtility
+    {
+    public:
+        
+        KRATOS_CLASS_POINTER_DEFINITION(DryBedUtility);
+        
+        DryBedUtility(ModelPart& model_part)
+            : mr_model_part(model_part)  
+        {
+            KRATOS_TRY
+            std::cout << "Initializing dry/wet state utility" << std::endl; 
+            KRATOS_CATCH("")
+        }
+        
+        ~DryBedUtility()
+        {}
+        
+        void CheckConservedVariables(ModelPart::NodesContainerType& rNodes)
+        {
+            KRATOS_TRY
+            ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+            vector<unsigned int> node_partition;
+            #ifdef _OPENMP
+                int number_of_threads = omp_get_max_threads();
+            #else
+                int number_of_threads = 1;
+            #endif
+            OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+            
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+                {
+                    ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+                    if (inode->FastGetSolutionStepValue(HEIGHT) < 1e-3)
+                    {
+                        inode->GetSolutionStepValue(HEIGHT)     = 1e-3;
+                        inode->GetSolutionStepValue(MOMENTUM_X) = 0;
+                        inode->GetSolutionStepValue(MOMENTUM_Y) = 0;
+                    }
+                    
+                }
+            }
+            
+            KRATOS_CATCH("")
+        }
+        
+        void CheckPrimitiveVariables(ModelPart::NodesContainerType& rNodes)
+        {
+            KRATOS_TRY
+            ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+            vector<unsigned int> node_partition;
+            #ifdef _OPENMP
+                int number_of_threads = omp_get_max_threads();
+            #else
+                int number_of_threads = 1;
+            #endif
+            OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+            
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+                {
+                    ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+                    if (inode->FastGetSolutionStepValue(HEIGHT) < 1e-6)
+                    {
+                        inode->GetSolutionStepValue(HEIGHT)     = 1e-3;
+                        inode->GetSolutionStepValue(VELOCITY_X) = 0;
+                        inode->GetSolutionStepValue(VELOCITY_Y) = 0;
+                    }
+                    
+                }
+            }
+            
+            KRATOS_CATCH("")
+        }
+        
+    protected:
+    
+    private:
+    
+        ModelPart& mr_model_part;
+        
+    }; // class DryBedUtility
 
 }  // namespace Kratos
 
