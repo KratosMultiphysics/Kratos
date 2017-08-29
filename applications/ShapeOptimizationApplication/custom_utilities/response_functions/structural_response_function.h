@@ -774,7 +774,7 @@ protected:
                 response_gradient, r_process_info);
 
 			// Get the adjoint displacement field
-			this->GetAdjointVariables(*it, adjoint_vector);	
+			this->GetAdjointVariables(*it, adjoint_vector);	// TODO: Maybe work again here with GetValuesVector
             //it->GetValuesVector(adjoint_vector);
 
             if (sensitivity_vector.size() != sensitivity_matrix.size1())
@@ -863,7 +863,7 @@ protected:
     	Vector response_gradient;
         Vector adjoint_vector;
         Matrix sensitivity_matrix;
-
+        //std::cout << ("I compute now element sensitivities") << std::endl;
 		for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
         {
             if (it->GetValue(UPDATE_SENSITIVITIES) == true)
@@ -871,12 +871,12 @@ protected:
                 // Compute the pseudo load
                 it->CalculateSensitivityMatrix(
             	    rSensitivityVariable, sensitivity_matrix, r_process_info);
-
+                
                 // This part of the sensitivity is computed from the objective
                 // with primal variables treated as constant.
                 this->CalculateSensitivityGradient(
                      *it, rSensitivityVariable, sensitivity_matrix,
-                        response_gradient, r_process_info);
+                        response_gradient, r_process_info);      
 	
 			    // Get the adjoint displacement field
 			    this->GetAdjointVariables(*it, adjoint_vector);			
@@ -891,7 +891,6 @@ protected:
                 				(prod(sensitivity_matrix, adjoint_vector) +
                                  response_gradient);
 
-			
 			    //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
 
                 this->AssembleElementSensitivityContribution(

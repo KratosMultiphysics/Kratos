@@ -178,22 +178,6 @@ void  AddCustomUtilitiesToPython()
         .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
         ;
 
-    /*class_<LocalStressResponseFunction, bases<Process> >("LocalStressResponseFunction", init<ModelPart&, Parameters&>())
-        .def("Initialize", &LocalStressResponseFunction::Initialize)
-        .def("CalculateValue", &LocalStressResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &LocalStressResponseFunction::UpdateSensitivities) 
-        .def("GetValue", &LocalStressResponseFunction::GetValue)
-        .def("GetInitialValue", &LocalStressResponseFunction::GetInitialValue)                             
-        ;  */
-
-    class_<ReworkStrainEnergyResponseFunction, bases<Process> >("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
-        .def("Initialize", &ReworkStrainEnergyResponseFunction::Initialize)
-        .def("CalculateValue", &ReworkStrainEnergyResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &ReworkStrainEnergyResponseFunction::UpdateSensitivities) 
-        .def("GetValue", &ReworkStrainEnergyResponseFunction::GetValue)
-        .def("GetInitialValue", &ReworkStrainEnergyResponseFunction::GetInitialValue)                             
-        ; 
-
     class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &StructuralResponseFunction::Initialize)
         .def("InitializeSolutionStep", &StructuralResponseFunction::InitializeSolutionStep)
@@ -213,7 +197,10 @@ void  AddCustomUtilitiesToPython()
       ("LocalStressResponseFunction", init<ModelPart&, Parameters&>()); 
 
     class_<NodalDisplacementResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());                
+      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());    
+
+    class_<ReworkStrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());            
 
     // ========================================================================
     // For input / output

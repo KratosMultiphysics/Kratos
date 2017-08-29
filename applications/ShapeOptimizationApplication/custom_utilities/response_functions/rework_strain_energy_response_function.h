@@ -72,7 +72,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class ReworkStrainEnergyResponseFunction : StructuralResponseFunction
+class ReworkStrainEnergyResponseFunction : public StructuralResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -151,16 +151,19 @@ public:
 		{
 			Matrix LHS;
 			Vector RHS;
-			Vector u;
+			Vector adjoint_variables;
 
 			// Get state solution relevant for energy calculation
-			elem_i->GetValuesVector(u,0);
+			elem_i->GetValuesVector(adjoint_variables,0);
 
 			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
 			// Compute strain energy
-			m_current_response_value += 0.5 * inner_prod(u,prod(LHS,u));
-		}	
+			m_current_response_value += 2.0 * inner_prod(adjoint_variables,prod(LHS,adjoint_variables)); 
+			// the multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector delivers
+			// the adjoint displacements and NOT the primal solution. In Detail here is 
+			// S = 2.0 * (0.5*u)^T * 0.5*f = 0.5 * (u)^T * f computed.
+ 		}	
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
@@ -174,7 +177,7 @@ public:
 		KRATOS_CATCH("");
 	}
 	// --------------------------------------------------------------------------
-	double GetInitialValue()
+	/*double GetInitialValue()
 	{
 		KRATOS_TRY;
 
@@ -194,7 +197,7 @@ public:
 		return m_current_response_value;
 
 		KRATOS_CATCH("");
-	}
+	}*/
 
 	// --------------------------------------------------------------------------
 	/*boost::python::dict get_gradient()
@@ -252,6 +255,8 @@ public:
 
 	///@}
 
+
+
 	// =============================================================================
 	void UpdateSensitivities() override
 	{
@@ -278,7 +283,13 @@ protected:
 	///@}
 	///@name Protected Operations
 	///@{
-	
+
+	// ==============================================================================
+	double GetDisturbanceMeasure() const override
+	{ 
+		return mDelta; 
+	}	
+
 	// ==============================================================================
 	void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
@@ -290,9 +301,7 @@ protected:
 
       	if (rResponseGradient.size() != rDerivativesMatrix.size1())
           	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-		for (unsigned int k = 0; k < rResponseGradient.size(); ++k)
-            rResponseGradient[k] = 0.0;
+		rResponseGradient.clear();	  
 
      	 KRATOS_CATCH("")
 	}
@@ -308,9 +317,7 @@ protected:
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size1())
           	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-		for (unsigned int k = 0; k < rResponseGradient.size(); ++k)
-            rResponseGradient[k] = 0.0;
+		rResponseGradient.clear();	
 
         KRATOS_CATCH("")
 	}
@@ -324,23 +331,17 @@ protected:
     {
 		KRATOS_TRY;
 
-		Vector zero_adjoint_vector;
-		zero_adjoint_vector = Vector(0);
+		Vector adjoint_variables;
 
-		//Condition *help_condition = rAdjointCondition; // is there a better solution?
+		rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
-		rAdjointCondition.GetValuesVector(zero_adjoint_vector);
-
-		//std::cout << (" size adjoint vector = ") << zero_adjoint_vector.size() << std::endl;
-		//std::cout << (" size pseudo load = ") << rDerivativesMatrix.size2() << std::endl;
-
-		if (zero_adjoint_vector.size() != rDerivativesMatrix.size2())
+		if (adjoint_variables.size() != rDerivativesMatrix.size2())
 			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size2())
-			rResponseGradient.resize(zero_adjoint_vector.size(), false);
+			rResponseGradient.resize(adjoint_variables.size(), false);
 	
-		noalias(rResponseGradient) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
+		noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
 
 		KRATOS_CATCH("");
 	}
@@ -354,41 +355,17 @@ protected:
     {
 		KRATOS_TRY;
 
-		Vector zero_adjoint_vector;
+		Vector adjoint_variables;
 
-		//Condition help_condition = rAdjointCondition; // is there a better solution?
+		rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
-		rAdjointCondition.GetValuesVector(zero_adjoint_vector);
-
-		if (zero_adjoint_vector.size() != rDerivativesMatrix.size2())
+		if (adjoint_variables.size() != rDerivativesMatrix.size2())
 			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size2())
-			rResponseGradient.resize(zero_adjoint_vector.size(), false);	
+			rResponseGradient.resize(adjoint_variables.size(), false);	
 	
-		noalias(rResponseGradient) = prod(rDerivativesMatrix, 0.5 * zero_adjoint_vector);
-
-		KRATOS_CATCH("");
-	}
-
-	// ==============================================================================
-	void GetAdjointVariables(Element& rElem, Vector& rValues) override
-    {
-		KRATOS_TRY;
-
-		rElem.GetValuesVector(rValues);
-		rValues *= 0.5;
-
-		KRATOS_CATCH("");
-	}
-
-	// ==============================================================================
-	void GetAdjointVariables(Condition& rCond, Vector& rValues) override
-    {
-		KRATOS_TRY;
-
-		rCond.GetValuesVector(rValues);
-		rValues *= 0.5;
+		noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
 
 		KRATOS_CATCH("");
 	}

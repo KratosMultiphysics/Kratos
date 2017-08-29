@@ -56,11 +56,12 @@ class AdjointStructuralSolver:
         return 2
 
     def AddVariables(self):
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)  
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_DISPLACEMENT) 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ROTATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POINT_LOAD_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD) #Is there a better solution for Neumann BCs? 
@@ -154,7 +155,14 @@ class AdjointStructuralSolver:
             elif (domain_size == 3):
                 self.response_function = ShapeOptimizationApplication.NodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))        
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))   
+        elif self.settings["response_function_settings"]["response_type"].GetString() == "rework_strain_energy":
+            if (domain_size == 2):
+                raise Exception("Currently only availible for 3D. Your choice is 2D")
+            elif (domain_size == 3):
+                self.response_function = ShapeOptimizationApplication.ReworkStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))       
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
@@ -200,7 +208,7 @@ class AdjointStructuralSolver:
         pass
         
     def SolverInitialize(self):
-        self.solver.Initialize()
+        self.solver.Initialize()  
 
     def SolverInitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
@@ -212,10 +220,13 @@ class AdjointStructuralSolver:
         self.solver.SolveSolutionStep()
 
     def SolverFinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
+            self.solver.FinalizeSolutionStep()    
 
     def Solve(self):
-        self.solver.Solve()
+        if self.settings["response_function_settings"]["response_type"].GetString() == "rework_strain_energy":
+            self.__SolveSpecialStrainEnergy()
+        else:
+            self.solver.Solve()
 
     def SetEchoLevel(self, level):
         self.solver.SetEchoLevel(level)
@@ -225,3 +236,25 @@ class AdjointStructuralSolver:
 
     def Check(self):
         self.solver.Check()
+
+    def __SolveSpecialStrainEnergy(self):
+
+        self.response_function.Initialize()
+
+        for node in self.main_model_part.Nodes:
+            disp_x = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
+            disp_y = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
+            disp_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
+            node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
+            node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
+            node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
+            if self.settings["rotation_dofs"].GetBool():
+                rot_x = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0)
+                rot_y = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0)
+                rot_z = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0)
+                node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_X,0,rot_x * 0.5)
+                node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
+                node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
+                
+        self.response_function.FinalizeSolutionStep()         
+            

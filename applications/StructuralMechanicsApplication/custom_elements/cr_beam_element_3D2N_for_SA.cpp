@@ -372,17 +372,20 @@ namespace Kratos
 
 		if (this->GetProperties().Has(rDesignVariable) == true) 
 		{
+			//std::cout << ("I compute now element pseudo loads") << std::endl;
 			// get property vector of element
 			Properties::Pointer pElemProp = this->pGetProperties();
 
 			// compute RHS before disturbing
+			//std::cout << ("I compute undist RHS") << std::endl;
 			this->CalculateRightHandSide(RHS_undist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
-
+			//std::cout << ("I computed undist RHS") << std::endl;
 			// disturb the design variable
 			const double current_property_value = this->GetProperties()[rDesignVariable];
 			pElemProp->SetValue(rDesignVariable, (current_property_value + delta));
 
 			// compute RHS after disturbance
+			//std::cout << ("I compute dist RHS") << std::endl;
 			this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
 
 			rOutput.resize(1,RHS_dist.size());
@@ -393,7 +396,7 @@ namespace Kratos
 			for(unsigned int i = 0; i < RHS_dist.size(); i++)
 			{
 				 rOutput(0, i) = RHS_dist[i];
-				 //std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
+				 std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
 			}
 
 			// undisturb design variable
@@ -1093,7 +1096,7 @@ namespace Kratos
 	void CrBeamElement3D2NForSA::GetValuesVector(Vector& rValues, int Step) { 
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const unsigned int element_size = number_of_nodes * dimension * 2;
 
@@ -1323,9 +1326,8 @@ namespace Kratos
 		//calculating equivalent line load
 		for (int i = 0; i < number_of_nodes; ++i)
 		{
-			EquivalentLineLoad += A * rho*
-				this->GetGeometry()[i].
-				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
+			EquivalentLineLoad += A * rho * this->GetGeometry()[i].
+			FastGetSolutionStepValue(VOLUME_ACCELERATION) * Ncontainer(0, i);
 		}
 
 
