@@ -70,7 +70,7 @@ try {                                                                           
         << std::endl;
 
 #define KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)                     \
-    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))                             \
+    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))                    \
         << "Missing Degree of Freedom for " << #TheVariable << " in node " \
         << TheNode.Id() << "." << std::endl;
 
