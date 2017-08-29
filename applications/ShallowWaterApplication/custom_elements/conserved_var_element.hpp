@@ -82,6 +82,8 @@ namespace Kratos
     
     void GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight, double& rdiv_u);
 
+    void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
+
   private:
 
     friend class Serializer;

@@ -120,12 +120,12 @@ namespace Kratos
         // Getting gravity
         //~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
         double gravity = 9.8; //-v_gravity[2];
-		
+        
         // Getting the time step (not fixed to allow variable time step)
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
-		
-		// Compute the geometry
+        double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
+        
+        // Compute the geometry
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2> DN_DX;
         array_1d<double,TNumNodes> N;
         double Area;
@@ -136,17 +136,17 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
         const GeometryType& rGeom = this->GetGeometry();
         Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
-		
-		// Get nodal values for current and previous step
-		array_1d<double, TNumNodes*3> v_depth;
-		array_1d<double, TNumNodes*3> v_unknown;
-		array_1d<double, TNumNodes*3> v_unknown_n;
-		double height;
-		array_1d<double,2> velocity;
-		boost::numeric::ublas::bounded_matrix<double,2,2> grad_u;
-		GetNodalValues(v_depth,v_unknown,v_unknown_n);
-		GetElementValues(DN_DX,v_unknown,height,velocity,grad_u);
-		
+        
+        // Get nodal values for current and previous step
+        array_1d<double, TNumNodes*3> v_depth;
+        array_1d<double, TNumNodes*3> v_unknown;
+        array_1d<double, TNumNodes*3> v_unknown_n;
+        double height;
+        array_1d<double,2> velocity;
+        boost::numeric::ublas::bounded_matrix<double,2,2> grad_u;
+        GetNodalValues(v_depth,v_unknown,v_unknown_n);
+        GetElementValues(DN_DX,v_unknown,height,velocity,grad_u);
+        
         // Some auxilary definitions
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for momentum unknown)
         boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown)
@@ -173,112 +173,114 @@ namespace Kratos
             {
                 // Height gradient
                 DN_DX_height(0, 2+nnode*3) = DN_DX(nnode,0);
-				DN_DX_height(1, 2+nnode*3) = DN_DX(nnode,1);
-				// Momentum divergence
-				DN_DX_mom(0,   nnode*3) = DN_DX(nnode,0);
-				DN_DX_mom(0, 1+nnode*3) = DN_DX(nnode,1);
+                DN_DX_height(1, 2+nnode*3) = DN_DX(nnode,1);
+                // Momentum divergence
+                DN_DX_mom(0,   nnode*3) = DN_DX(nnode,0);
+                DN_DX_mom(0, 1+nnode*3) = DN_DX(nnode,1);
                 // Momentum gradient
                 grad_mom_1(0,   nnode*3) = DN_DX(nnode,0);
                 grad_mom_1(0, 1+nnode*3) = DN_DX(nnode,0);
                 grad_mom_2(1,   nnode*3) = DN_DX(nnode,1);
                 grad_mom_2(1, 1+nnode*3) = DN_DX(nnode,1);
-				// Height shape funtions
-				N_height(0, 2+nnode*3) = N[nnode];
-				// Momentum shape functions
-				N_mom(0,   nnode*3) = N[nnode];
-				N_mom(1, 1+nnode*3) = N[nnode];
+                // Height shape funtions
+                N_height(0, 2+nnode*3) = N[nnode];
+                // Momentum shape functions
+                N_mom(0,   nnode*3) = N[nnode];
+                N_mom(1, 1+nnode*3) = N[nnode];
             }
-			noalias(mass_matrix)  += prod(trans(N_mom),N_mom);
-			noalias(mass_matrix)  += prod(trans(N_height),N_height);
-			
-			noalias(aux_convect)  += velocity[0] * prod(trans(N_mom),grad_mom_1);
-			noalias(aux_convect)  += velocity[1] * prod(trans(N_mom),grad_mom_2);
-			
-			noalias(aux_non_lin)  += prod(trans(N_mom),Matrix(prod(grad_u,N_mom)));
-			
-			noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom);
-			noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height);
-			
-			noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom);
-			noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
+            noalias(mass_matrix)  += prod(trans(N_mom),N_mom);
+            noalias(mass_matrix)  += prod(trans(N_height),N_height);
+            
+            noalias(aux_convect)  += velocity[0] * prod(trans(N_mom),grad_mom_1);
+            noalias(aux_convect)  += velocity[1] * prod(trans(N_mom),grad_mom_2);
+            
+            noalias(aux_non_lin)  += prod(trans(N_mom),Matrix(prod(grad_u,N_mom)));
+            
+            noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom);
+            noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height);
+            
+            noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom);
+            noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
         }
 
+        //~ CalculateLumpedMassMatrix(mass_matrix);
+
         // Copmute stabilization parameters
-		bool stabilization = true;
+        bool stabilization = true;
         double height_threshold = 1e-6;
-		double Ctau = 0.01;       // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
-		double tau_h = 0, tau_m = 0;
-		if (stabilization && height > height_threshold)
+        double Ctau = 0.01;       // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
+        double tau_h = 0, tau_m = 0;
+        if (stabilization && height > height_threshold)
         {
             tau_m = Ctau/elem_length*pow(gravity/height,0.5);
             tau_h = Ctau/elem_length*pow(height/gravity,0.5);
         }
-		// Compute discontinuity capturing parameters
-		bool discontinuity_capturing = true;
-		double gradient_threshold = 1e-6;    // Shock capturing parameters
-		//~ double residual = norm_1(prod(msN_height,ms_unknown)) * norm_1(prod(msDN_DX_mom,ms_unknown)) + dt_inv*norm_1(prod(msN_height, (ms_unknown - ms_proj_unknown)));
-		double height_grad_norm = norm_2(prod(DN_DX_height,v_unknown));
-		double k_dc = 0;
-		if (discontinuity_capturing && height_grad_norm > gradient_threshold)
+        // Compute discontinuity capturing parameters
+        bool discontinuity_capturing = true;
+        double gradient_threshold = 1e-6;    // Shock capturing parameters
+        //~ double residual = norm_1(prod(msN_height,ms_unknown)) * norm_1(prod(msDN_DX_mom,ms_unknown)) + dt_inv*norm_1(prod(msN_height, (ms_unknown - ms_proj_unknown)));
+        double height_grad_norm = norm_2(prod(DN_DX_height,v_unknown));
+        double k_dc = 0;
+        if (discontinuity_capturing && height_grad_norm > gradient_threshold)
         {
             // Residual formulation
-			k_dc = 0.5*0.4*elem_length*height_grad_norm;
-			// Print values on Gauss points
-			//~ this->SetValue(RESIDUAL_NORM,residual);
-			this->SetValue(MIU,height_grad_norm);
-			this->SetValue(PR_ART_VISC,k_dc);
-		}
+            k_dc = 0.5*0.4*elem_length*height_grad_norm;
+            // Print values on Gauss points
+            //~ this->SetValue(RESIDUAL_NORM,residual);
+            this->SetValue(MIU,height_grad_norm);
+            this->SetValue(PR_ART_VISC,k_dc);
+        }
 
-		// Build LHS
-		// Inertia terms
-		noalias(rLeftHandSideMatrix)  = BDFcoeffs[0] * mass_matrix;     // Add <N,N> to both Eq's
+        // Build LHS
+        // Inertia terms
+        noalias(rLeftHandSideMatrix)  = BDFcoeffs[0] * mass_matrix;     // Add <N,N> to both Eq's
 
-		// Convective and non linear terms
-		noalias(rLeftHandSideMatrix) += aux_convect;                    // Add <w,u*grad(hu)> to Momentum Eq.
-		noalias(rLeftHandSideMatrix) += aux_non_lin;                    // Add <w,drad(u)*hu> to Momentum Eq.
-		
-		// Cross terms
-		noalias(rLeftHandSideMatrix) += aux_q_div_m;                     // Add <q,div(hu)> to Mass Eq.
-		noalias(rLeftHandSideMatrix) += gravity * height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
+        // Convective and non linear terms
+        noalias(rLeftHandSideMatrix) += aux_convect;                    // Add <w,u*grad(hu)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += aux_non_lin;                    // Add <w,drad(u)*hu> to Momentum Eq.
+        
+        // Cross terms
+        noalias(rLeftHandSideMatrix) += aux_q_div_m;                     // Add <q,div(hu)> to Mass Eq.
+        noalias(rLeftHandSideMatrix) += gravity * height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
 
         // Stabilization terms
-		noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
-		noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
+        noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq.
         
-		// Build RHS
-		// Source terms (bathymetry contribution)
-		noalias(rRightHandSideVector)  = -gravity * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+        // Build RHS
+        // Source terms (bathymetry contribution)
+        noalias(rRightHandSideVector)  = -gravity * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
 
-		// Inertia terms
-		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(mass_matrix, v_unknown_n);
+        // Inertia terms
+        noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(mass_matrix, v_unknown_n);
 
-		// Subtracting the dirichlet term (since we use a residualbased approach)
-		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, v_unknown);
+        // Subtracting the dirichlet term (since we use a residualbased approach)
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, v_unknown);
 
-		rRightHandSideVector *= Area / static_cast<double>(TNumNodes);
-		rLeftHandSideMatrix *= Area  / static_cast<double>(TNumNodes);
+        rRightHandSideVector *= Area / static_cast<double>(TNumNodes);
+        rLeftHandSideMatrix *= Area  / static_cast<double>(TNumNodes);
 
-		KRATOS_CATCH("");
-	}
-
-//----------------------------------------------------------------------
-
-	template< unsigned int TNumNodes >
-	void EulerConsVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
-	}
+        KRATOS_CATCH("");
+    }
 
 //----------------------------------------------------------------------
 
-	template< unsigned int TNumNodes >
-	void EulerConsVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-	{
-		if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
-		{
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-				rValues[PointNumber] = double(this->GetValue(rVariable));
-		}
+    template< unsigned int TNumNodes >
+    void EulerConsVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void EulerConsVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
+        {
+            for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
+                rValues[PointNumber] = double(this->GetValue(rVariable));
+        }
     }
 
 //----------------------------------------------------------------------
@@ -376,6 +378,16 @@ namespace Kratos
         }
         rvel    *= lumping_factor;
         rheight *= lumping_factor;
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void EulerConsVarElement<TNumNodes>::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix) 
+    {
+        const unsigned int element_size = 3*TNumNodes;
+        rMassMatrix  = IdentityMatrix(element_size, element_size);
+        rMassMatrix /= static_cast<double>(TNumNodes);
     }
 
 //----------------------------------------------------------------------
