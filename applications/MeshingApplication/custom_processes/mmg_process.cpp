@@ -193,8 +193,8 @@ void MmgProcess<TDim>::InitializeMeshData()
     const SizeType num_elements = elements_array.end() - elements_array.begin();
     
     /* Manually set of the mesh */
-    array_1d<int, TDim - 1> num_array_elements;
-    array_1d<int, TDim - 1> num_array_conditions;
+    array_1d<SizeType, TDim - 1> num_array_elements;
+    array_1d<SizeType, TDim - 1> num_array_conditions;
     if (TDim == 2)
     {
         num_array_conditions[0] = num_conditions;
@@ -211,7 +211,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         
         /* Elements */
         #pragma omp parallel for
-        for(int i = 0; i < num_elements; i++) 
+        for(SizeType i = 0; i < num_elements; i++) 
         {
             auto it_elem = elements_array.begin() + i;
             
@@ -238,7 +238,7 @@ void MmgProcess<TDim>::InitializeMeshData()
         
         /* Conditions */
         #pragma omp parallel for
-        for(int i = 0; i < num_conditions; i++) 
+        for(SizeType i = 0; i < num_conditions; i++) 
         {
             auto it_cond = conditions_array.begin() + i;
             
@@ -617,6 +617,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     counter_elem_0 += 1;
                 }
             }
+            
             ElementType::Pointer p_element = CreateElement0(elem_id, prop_id, is_required, skip_creation);
             
             if (p_element != nullptr)
@@ -642,6 +643,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     counter_elem_1 += 1;
                 }
             }
+            
             ElementType::Pointer p_element = CreateElement1(elem_id, prop_id, is_required,skip_creation);
             
             if (p_element != nullptr)
@@ -659,6 +661,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     for (auto & color_list : mColors)
     {
         const int key = color_list.first;
+        
         if (key != 0) // NOTE: key == 0 is the MainModelPart
         {
             for (auto sub_model_part_name : color_list.second)
@@ -807,6 +810,9 @@ std::vector<unsigned int> MmgProcess<TDim>::CheckNodes()
     
     return nodes_to_remove_ids;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>  
 std::vector<unsigned int> MmgProcess<2>::CheckConditions0()
@@ -2147,7 +2153,7 @@ void MmgProcess<TDim>::ComputeColors(
         mColors[i_sub_model_part].push_back(model_part_names[i_sub_model_part]);
         
         if (color > 0)
-        {
+        {            
             ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(model_part_names[i_sub_model_part]);
             
             // Iterate in the nodes
@@ -2161,41 +2167,26 @@ void MmgProcess<TDim>::ComputeColors(
             // Iterate in the elements
             ElementsArrayType& elements_array = r_sub_model_part.Elements();
             const SizeType num_elements = elements_array.end() - elements_array.begin();
-            
-            #pragma omp parallel
+
+            /* Nodes */
+            for(SizeType i = 0; i < num_nodes; i++) 
             {
-                std::unordered_map<int,std::set<int>> aux_nodes_colors_partial, aux_cond_colors_partial, aux_elem_colors_partial;
+                auto it_node = nodes_array.begin() + i;
+                aux_nodes_colors[it_node->Id()].insert(color);
+            }
             
-                /* Nodes */
-                #pragma omp for 
-                for(SizeType i = 0; i < num_nodes; i++) 
-                {
-                    auto it_node = nodes_array.begin() + i;
-                    aux_nodes_colors_partial[it_node->Id()].insert(color);
-                }
-                
-                /* Conditions */
-                #pragma omp for 
-                for(SizeType i = 0; i < num_conditions; i++) 
-                {
-                    auto it_cond = conditions_array.begin() + i;
-                    aux_cond_colors_partial[it_cond->Id()].insert(color);
-                }
-                
-                /* Elements */
-                #pragma omp for 
-                for(SizeType i = 0; i < num_elements; i++) 
-                {
-                    auto it_elem = elements_array.begin() + i;
-                    aux_elem_colors_partial[it_elem->Id()].insert(color);
-                }
-                
-                #pragma omp critical
-                aux_nodes_colors.insert(aux_nodes_colors_partial.begin(), aux_nodes_colors_partial.end());
-                #pragma omp critical
-                aux_cond_colors.insert(aux_cond_colors_partial.begin(), aux_cond_colors_partial.end());
-                #pragma omp critical
-                aux_elem_colors.insert(aux_elem_colors_partial.begin(), aux_elem_colors_partial.end());
+            /* Conditions */
+            for(SizeType i = 0; i < num_conditions; i++) 
+            {
+                auto it_cond = conditions_array.begin() + i;
+                aux_cond_colors[it_cond->Id()].insert(color);
+            }
+            
+            /* Elements */
+            for(SizeType i = 0; i < num_elements; i++) 
+            {
+                auto it_elem = elements_array.begin() + i;
+                aux_elem_colors[it_elem->Id()].insert(color);
             }
         }
         
@@ -2210,10 +2201,7 @@ void MmgProcess<TDim>::ComputeColors(
     {
         const std::set<int> value = aux_nodes_color.second;
         
-        if (value.size() > 1)
-        {
-            combinations[value] = -1;
-        }
+        if (value.size() > 1) combinations[value] = -1;
     }
     
     /* Conditions */
@@ -2221,10 +2209,7 @@ void MmgProcess<TDim>::ComputeColors(
     {
         const std::set<int> value = aux_cond_color.second;
         
-        if (value.size() > 1)
-        {
-            combinations[value] = -1;
-        }
+        if (value.size() > 1) combinations[value] = -1;
     }
 
     /* Elements */
@@ -2232,10 +2217,7 @@ void MmgProcess<TDim>::ComputeColors(
     {
         const std::set<int> value = aux_elem_color.second;
         
-        if (value.size() > 1)
-        {
-            combinations[value] = -1;
-        }
+        if (value.size() > 1) combinations[value] = -1;
     }
     
     /* Combinations */
