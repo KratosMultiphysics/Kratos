@@ -86,7 +86,9 @@ class ReadMaterialsProcess(Process):
                 },
                 "Variables" : {
                     "YOUNG_MODULUS" : 200e9,
-                    "POISSION_RATIO" : 0.3
+                    "POISSION_RATIO" : 0.3,
+                    "RESIDUAL_VECTOR" : [1.5,0.3,-2.58]
+                    "LOCAL_INERTIA_TENSOR" : [[0.27,0.0],[0.0,0.27]]
                 },
                 "Tables" : {}
             }
