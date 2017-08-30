@@ -51,12 +51,18 @@ class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
 
 class ShellQ4ThickDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
+    
+class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
 
 class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 
 class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+    
+class ShellT3ThinOrthotropicLaminateLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test"
 
 class ShellT3IsotropicScordelisTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"

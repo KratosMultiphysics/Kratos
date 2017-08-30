@@ -79,9 +79,12 @@ from test_spring_damper_element import SpringDamperElementTests as TSpringDamper
 # Shell test
 from NightlyTests import ShellQ4ThickBendingRollUpTests    as TShellQ4ThickBendingRollUpTests
 from NightlyTests import ShellQ4ThickDrillingRollUpTests   as TShellQ4ThickDrillingRollUpTests
+from NightlyTests import ShellQ4ThickOrthotropicLaminateLinearStaticTests      as TShellQ4ThickOrthotropicLaminateLinearStaticTests
+
 from NightlyTests import ShellT3ThinBendingRollUpTests     as TShellT3ThinBendingRollUpTests
 from NightlyTests import ShellT3ThinDrillingRollUpTests    as TShellT3ThinDrillingRollUpTests
 from NightlyTests import ShellT3IsotropicScordelisTests    as TShellT3IsotropicScordelisTests
+from NightlyTests import ShellT3ThinOrthotropicLaminateLinearStaticTests      as TShellT3ThinOrthotropicLaminateLinearStaticTests
 
 from NightlyTests import ShellT3ThickLinearStaticTests     as TShellT3ThickLinearStaticTests
 from NightlyTests import ShellT3ThickNonLinearStaticTests  as TShellT3ThickNonLinearStaticTests
@@ -195,9 +198,12 @@ def AssambleTestSuites():
     # Shell tests
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
     # nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution')) # FIXME: Needs get up to date
+    nightSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
+
     nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     nightSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
+    nightSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
@@ -263,9 +269,11 @@ def AssambleTestSuites():
             TMembraneQ4TrussPointLoadTests,
             TShellQ4ThickBendingRollUpTests,
             # TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
+            TShellQ4ThickOrthotropicLaminateLinearStaticTests,
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+            TShellT3ThinOrthotropicLaminateLinearStaticTests,
             TShellT3ThickLinearStaticTests,
             TShellT3ThickNonLinearStaticTests,
             TShellT3ThickLinearDynamicTests,

@@ -13,6 +13,8 @@
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+
 #include "geometries/triangle_3d_3.h"
 
 #include <string>
@@ -196,7 +198,7 @@ void ShellThinElement3D3N::Initialize()
     KRATOS_TRY
 
     const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
+    PropertiesType & props = GetProperties();
 
     if(geom.PointsNumber() != OPT_NUM_NODES)
         KRATOS_THROW_ERROR(std::logic_error, "ShellThinElement3D3N Element - Wrong number of nodes", geom.PointsNumber());
@@ -214,7 +216,21 @@ void ShellThinElement3D3N::Initialize()
         {
             theSection = props[SHELL_CROSS_SECTION];
         }
-        else
+		else if (theSection->CheckIsOrthotropic(props))
+		{
+			// make new instance of shell cross section
+			theSection =
+				ShellCrossSection::Pointer(new ShellCrossSection());
+
+			// Assign orthotropic material law for entire element
+			LinearElasticOrthotropic2DLaw OrthoLaw;
+			props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
+
+			// Parse material properties for each layer
+			Element* thisElement = this;
+			theSection->ParseOrthotropicPropertyMatrix(props, thisElement);
+		}
+		else
         {
             theSection = ShellCrossSection::Pointer(new ShellCrossSection());
             theSection->BeginStack();
@@ -350,6 +366,10 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 
         section->Check(props, geom, rCurrentProcessInfo);
     }
+	else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+	{
+		// perform orthotropic check later in shell_cross_section
+	}
     else // ... allow the automatic creation of a homogeneous section from a material and a thickness
     {
         if(!props.Has(CONSTITUTIVE_LAW))
@@ -617,6 +637,63 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
+	if (rVariable == LOCAL_AXIS_VECTOR_1)
+	{
+		// LOCAL_AXIS_VECTOR_1 output DOES NOT include the effect of section
+		// orientation, which rotates the entrire element section in-plane
+		// and is used in element stiffness calculation.
+
+		rValues.resize(OPT_NUM_GP);
+		for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
+		// Initialize common calculation variables
+		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+		for (size_t GP = 0; GP < 1; GP++)
+		{
+			rValues[GP] = localCoordinateSystem.Vx();
+		}
+	}
+	else if (rVariable == ORTHOTROPIC_FIBER_ORIENTATION_1)
+	{
+		// ORTHOTROPIC_FIBER_ORIENTATION_1 output DOES include the effect of 
+		// section orientation, which rotates the entrire element section 
+		// in-plane and is used in the element stiffness calculation.
+
+		// Resize output
+		rValues.resize(OPT_NUM_GP);
+		for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
+
+		// Initialize common calculation variables
+		// Compute the local coordinate system.
+		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+		// Get local axis 1 in flattened LCS space
+		Vector3 localAxis1 = localCoordinateSystem.P2() - localCoordinateSystem.P1();
+
+		// Perform rotation of local axis 1 to fiber1 in flattened LCS space
+		Matrix localToFiberRotation = Matrix(3, 3, 0.0);
+		double fiberSectionRotation = mSections[0]->GetOrientationAngle();
+		double c = std::cos(fiberSectionRotation);
+		double s = std::sin(fiberSectionRotation);
+		localToFiberRotation(0, 0) = c;
+		localToFiberRotation(0, 1) = -s;
+		localToFiberRotation(1, 0) = s;
+		localToFiberRotation(1, 1) = c;
+		localToFiberRotation(2, 2) = 1.0;
+
+		Vector3 temp = prod(localToFiberRotation, localAxis1);
+
+		// Transform result back to global cartesian coords and normalize
+		Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
+		Vector3 fiberAxis1 = prod(trans(localToGlobalSmall), temp);
+		fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
+
+		//write results
+		for (size_t dir = 0; dir < 1; dir++)
+		{
+			rValues[dir] = fiberAxis1;
+		}
+	}
 }
 
 void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,

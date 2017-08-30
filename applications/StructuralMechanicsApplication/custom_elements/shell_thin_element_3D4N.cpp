@@ -1160,22 +1160,8 @@ namespace Kratos
 
 			Vector3 temp = prod(localToFiberRotation, localAxis1);
 
-			// Transform result back to global cartesian coords
-				// Includes warpage correction
-					/*
-					Matrix localToGlobalLarge;
-					localCoordinateSystem.ComputeLocalToGlobalTransformationMatrix(localToGlobalLarge);
-					Matrix localToGlobalSmall = Matrix(3, 3, 0.0);
-					for (size_t i = 0; i < 3; i++)
-					{
-						for (size_t j = 0; j < 3; j++)
-						{
-							localToGlobalSmall(i, j) = localToGlobalLarge(i, j);
-						}
-					}
-					*/
-				// Basic rotation without warpage correction
-					Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
+			// Basic rotation without warpage correction
+			Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
 
 			Vector3 fiberAxis1 = prod(trans(localToGlobalSmall), temp);
 			fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
