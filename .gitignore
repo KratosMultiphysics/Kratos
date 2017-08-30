@@ -55,3 +55,4 @@ kratos/includes/kratos_version.h
 *.mesh
 *.o.sol
 *.o.mesh
+applications/StructuralMechanicsApplication/tests/RUNGithub.bat

@@ -75,7 +75,7 @@ from test_nodal_damping import NodalDampingTests           as TNodalDampingTests
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
-## NIGTHLY TESTS
+## NIGHTLY TESTS
 # Shell test
 from NightlyTests import ShellQ4ThickBendingRollUpTests    as TShellQ4ThickBendingRollUpTests
 from NightlyTests import ShellQ4ThickDrillingRollUpTests   as TShellQ4ThickDrillingRollUpTests
@@ -92,6 +92,7 @@ from NightlyTests import ShellQ4ThinLinearStaticTests      as TShellQ4ThinLinear
 from NightlyTests import ShellQ4ThinNonLinearStaticTests   as TShellQ4ThinNonLinearStaticTests
 from NightlyTests import ShellQ4ThinLinearDynamicTests     as TShellQ4ThinLinearDynamicTests
 from NightlyTests import ShellQ4ThinNonLinearDynamicTests  as TShellQ4ThinNonLinearDynamicTests
+from NightlyTests import ShellQ4ThinOrthotropicLaminateLinearStaticTests      as TShellQ4ThinOrthotropicLaminateLinearStaticTests
 
 
 
@@ -206,6 +207,8 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
+    nightSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+	
     # CL tests
     ##nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution'))
     
@@ -269,6 +272,7 @@ def AssambleTestSuites():
             TShellQ4ThinNonLinearStaticTests,
             TShellQ4ThinLinearDynamicTests,
             TShellQ4ThinNonLinearDynamicTests,
+			TShellQ4ThinOrthotropicLaminateLinearStaticTests,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ####TSprismPanTests # FIXME: Needs get up to date
         ])
