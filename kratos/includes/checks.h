@@ -91,6 +91,16 @@ try {                                                                           
 #define KRATOS_DEBUG_CHECK_GREATER_EQUAL(a,b) KRATOS_CHECK_GREATER_EQUAL(a,b)
 
 #define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
+
+#define KRATOS_DEBUG_CHECK_NEAR(a,b, tolerance) KRATOS_CHECK_NEAR(a,b, tolerance)
+#define KRATOS_DEBUG_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_DOUBLE_EQUAL(a,b)
+
+#define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+
+#define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
+#define KRATOS_DEBUG_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)
+#define KRATOS_DEBUG_CHECK_DOF_IN_NODE(TheVariable, TheNode) KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)
+
 #else
 #define KRATOS_DEBUG_CHECK(IsTrue) if(false) KRATOS_CHECK(IsTrue)
 #define KRATOS_DEBUG_CHECK_IS_FALSE(IsFalse) if(false) KRATOS_CHECK_IS_FALSE(IsFalse)
@@ -108,6 +118,15 @@ try {                                                                           
 #define KRATOS_DEBUG_CHECK_GREATER_EQUAL(a,b) if(false) KRATOS_CHECK_GREATER_EQUAL(a,b)
 
 #define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if(false) KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
+
+#define KRATOS_DEBUG_CHECK_NEAR(a,b, tolerance) if(false) KRATOS_CHECK_NEAR(a,b, tolerance)
+#define KRATOS_DEBUG_CHECK_DOUBLE_EQUAL(a,b) if(false) KRATOS_CHECK_DOUBLE_EQUAL(a,b)
+
+#define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) if(false) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+
+#define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) if(false) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
+#define KRATOS_DEBUG_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) if(false) KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)
+#define KRATOS_DEBUG_CHECK_DOF_IN_NODE(TheVariable, TheNode) if(false) KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)
 #endif
 ///@}
 
