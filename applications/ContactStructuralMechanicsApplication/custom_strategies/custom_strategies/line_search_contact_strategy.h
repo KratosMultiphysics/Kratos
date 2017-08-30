@@ -36,7 +36,8 @@
 
 // TODO: Extend the descriptions
 
-namespace Kratos {
+namespace Kratos 
+{
 
 ///@name Kratos Globals
 ///@{

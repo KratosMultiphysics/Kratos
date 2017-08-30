@@ -42,6 +42,9 @@
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 
 // Builders and solvers
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/residualbased_block_contact_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/residualbased_elimination_contact_builder_and_solver.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -85,6 +88,8 @@ void  AddCustomStrategiesToPython()
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     
     // Custom builder and solvers types
+    typedef ResidualBasedEliminationContactBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationContactBuilderAndSolverType;
+    typedef ResidualBasedBlockContactBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockContactBuilderAndSolverType;
     
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
@@ -194,6 +199,13 @@ void  AddCustomStrategiesToPython()
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
 
+    // Elimination builder and solver
+    class_< ResidualBasedEliminationContactBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+        ("ResidualBasedEliminationContactBuilderAndSolver", init< LinearSolverType::Pointer > ());
+    
+    // Block builder and solver
+    class_< ResidualBasedBlockContactBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+        ("ResidualBasedBlockContactBuilderAndSolver", init< LinearSolverType::Pointer > ());
 }
 
 }  // namespace Python.

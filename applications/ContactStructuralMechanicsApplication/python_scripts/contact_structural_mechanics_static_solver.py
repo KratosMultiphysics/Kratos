@@ -225,6 +225,14 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             
             return convergence_criterion.mechanical_convergence_criterion
         
+    def _create_builder_and_solver(self):
+        linear_solver = self.get_linear_solver()
+        if(self.settings["block_builder"].GetBool() == True):
+            builder_and_solver = ContactStructuralMechanicsApplication.ResidualBasedBlockContactBuilderAndSolver(linear_solver)
+        else:
+            builder_and_solver = ContactStructuralMechanicsApplication.ResidualBasedEliminationContactBuilderAndSolver(linear_solver)
+        return builder_and_solver
+        
     def _create_mechanical_solver(self):
         if(self.settings["line_search"].GetBool()):
             mechanical_solver = self._create_line_search_strategy()
