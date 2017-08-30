@@ -386,6 +386,10 @@ private:
 	void CalculateStressesFromForceResultants(VectorType& rstresses,
 		const double& rthickness);
 
+	void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
+
+	void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
+
 	void CalculateVonMisesStress(const Vector& generalizedStresses, 
 		const Variable<double>& rVariable, double& rVon_Mises_Result);
 

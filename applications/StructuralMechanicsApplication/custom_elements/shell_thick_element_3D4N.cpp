@@ -1102,6 +1102,99 @@ void ShellThickElement3D4N::CalculateStressesFromForceResultants(VectorType & rs
 	rstresses[7] *= 1.5 / rthickness;
 }
 
+void ShellThickElement3D4N::CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector & generalizedStrains, std::vector<VectorType>& rlaminateStrains)
+{
+	// Get laminate properties
+	double thickness = section->GetThickness();
+	double z_current = thickness / -2.0; // start from the top of the 1st layer
+
+	// Establish current strains at the midplane
+	// (element coordinate system)
+	double e_x = generalizedStrains[0];
+	double e_y = generalizedStrains[1];
+	double e_xy = generalizedStrains[2];	//this is still engineering
+											//strain (2xtensorial shear)
+	double kap_x = generalizedStrains[3];
+	double kap_y = generalizedStrains[4];
+	double kap_xy = generalizedStrains[5];	//this is still engineering
+
+	// Get ply thicknesses
+	Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
+	section->GetPlyThicknesses(ply_thicknesses);
+
+	// Resize output vector. 2 Surfaces for each ply
+	rlaminateStrains.resize(2 * section->NumberOfPlies());
+	for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++)
+	{
+		rlaminateStrains[i].resize(8, false);
+		rlaminateStrains[i].clear();
+	}
+
+	// Loop over all plies - start from bottom ply, bottom surface
+	for (unsigned int plyNumber = 0;
+		plyNumber < section->NumberOfPlies(); ++plyNumber)
+	{
+		// Calculate strains at top surface, arranged in columns.
+		// (element coordinate system)
+		rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
+		rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
+		rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
+
+		// constant transverse shear strain dist
+		rlaminateStrains[2 * plyNumber][6] = generalizedStrains[6];
+		rlaminateStrains[2 * plyNumber][7] = generalizedStrains[7];
+
+		// Move to bottom surface of current layer
+		z_current += ply_thicknesses[plyNumber];
+
+		// Calculate strains at bottom surface, arranged in columns
+		// (element coordinate system)
+		rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
+		rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
+		rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
+
+		// constant transverse shear strain dist
+		rlaminateStrains[2 * plyNumber + 1][6] = generalizedStrains[6];
+		rlaminateStrains[2 * plyNumber + 1][7] = generalizedStrains[7];
+	}
+}
+
+void ShellThickElement3D4N::CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses)
+{
+	// Setup flag to compute ply constitutive matrices
+	// (units [Pa] and rotated to element orientation)
+	section->SetupGetPlyConstitutiveMatrices();
+	Flags& options = parameters.GetOptions();
+	options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,true);
+	section->CalculateSectionResponse(parameters,
+		ConstitutiveLaw::StressMeasure_PK2);
+
+	// Resize output vector. 2 Surfaces for each ply
+	rlaminateStresses.resize(2 * section->NumberOfPlies());
+	for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++)
+	{
+		rlaminateStresses[i].resize(8, false);
+		rlaminateStresses[i].clear();
+	}
+
+	// Loop over all plies - start from top ply, top surface
+	for (unsigned int plyNumber = 0;
+		plyNumber < section->NumberOfPlies(); ++plyNumber)
+	{
+		// determine stresses at currrent ply, top surface
+		// (element coordinate system)
+		rlaminateStresses[2 * plyNumber] = prod(
+			section->GetPlyConstitutiveMatrix(plyNumber),
+			rlaminateStrains[2 * plyNumber]);
+
+		// determine stresses at currrent ply, bottom surface
+		// (element coordinate system)
+		rlaminateStresses[2 * plyNumber + 1] = prod(
+			section->GetPlyConstitutiveMatrix(plyNumber),
+			rlaminateStrains[2 * plyNumber + 1]);
+	}
+}
+
 void ShellThickElement3D4N::CalculateVonMisesStress(const Vector & generalizedStresses, const Variable<double>& rVariable, double & rVon_Mises_Result)
 {
 	// calc von mises stresses at top, mid and bottom surfaces for
@@ -1219,7 +1312,6 @@ void ShellThickElement3D4N::CheckGeneralizedStressOrStrainOutput(const Variable<
 		ijob = 7;
 		bGlobal = true;
 	}
-	/*
 	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE)
 	{
 		ijob = 8;
@@ -1238,7 +1330,6 @@ void ShellThickElement3D4N::CheckGeneralizedStressOrStrainOutput(const Variable<
 		ijob = 9;
 		bGlobal = true;
 	}
-	*/
 }
 
 void ShellThickElement3D4N::DecimalCorrection(Vector& a)
@@ -1755,6 +1846,8 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
     Vector generalizedStrains(8);
     Vector generalizedStresses(8);
+	std::vector<VectorType> rlaminateStrains;
+	std::vector<VectorType> rlaminateStresses;
 
     // Get the current displacements in global coordinate system
 
@@ -1819,11 +1912,11 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
         ShellCrossSection::Pointer & section = mSections[i];
         if(ijob > 2)
         {
-            if (ijob > 7) // TODO: LAMINA STRESSES
+            if (ijob > 7)
 			{
 				//Calculate lamina stresses
-				//CalculateLaminaStrains(data);
-				//CalculateLaminaStresses(data);
+				CalculateLaminaStrains(section,generalizedStrains,rlaminateStrains);
+				CalculateLaminaStresses(section,parameters,rlaminateStrains,rlaminateStresses);
 			}
 			else
 			{
@@ -1850,7 +1943,21 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
         // if necessary, rotate the results in the section (local) coordinate system
         if(section->GetOrientationAngle() != 0.0 && !bGlobal)
         {
-            if (ijob > 2)
+			if (ijob > 7)
+			{
+				section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
+				for (unsigned int i = 0; i < rlaminateStresses.size(); i++)
+				{
+					rlaminateStresses[i] = prod(R, rlaminateStresses[i]);
+				}
+
+				section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
+				for (unsigned int i = 0; i < rlaminateStrains.size(); i++)
+				{
+					rlaminateStrains[i] = prod(R, rlaminateStrains[i]);
+				}
+			}
+			else if (ijob > 2)
             {
                 section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
                 generalizedStresses = prod( R, generalizedStresses );
@@ -1934,6 +2041,27 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 				generalizedStresses[5];
 			iValue(0, 2) = iValue(2, 0) = 0.0;
 			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
+		else if (ijob == 8) // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
+		{
+			iValue(0, 0) =
+				rlaminateStresses[rlaminateStresses.size() - 1][0];
+			iValue(1, 1) =
+				rlaminateStresses[rlaminateStresses.size() - 1][1];
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) =
+				rlaminateStresses[rlaminateStresses.size() - 1][2];
+			iValue(0, 2) = iValue(2, 0) = rlaminateStresses[rlaminateStresses.size() - 1][6];
+			iValue(1, 2) = iValue(2, 1) = rlaminateStresses[rlaminateStresses.size() - 1][7];
+		}
+		else if (ijob == 9) // SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE
+		{
+			iValue(0, 0) = rlaminateStresses[0][0];
+			iValue(1, 1) = rlaminateStresses[0][1];
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = rlaminateStresses[0][2];
+			iValue(0, 2) = iValue(2, 0) = rlaminateStresses[0][6];
+			iValue(1, 2) = iValue(2, 1) = rlaminateStresses[0][7];
 		}
 
         // if requested, rotate the results in the global coordinate system
