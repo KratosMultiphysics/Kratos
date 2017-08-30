@@ -1,4 +1,3 @@
-//
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -8,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )

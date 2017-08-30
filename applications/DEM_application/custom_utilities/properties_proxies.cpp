@@ -138,7 +138,7 @@ namespace Kratos {
         rSerializer.load("mParticleMaterial",mParticleMaterial);*/        
     }
       
-    void AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,
+    void PropertiesProxiesManager::AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,
                                                                       ModelPart& rModelPart,
                                                                       int& properties_counter) {
         
@@ -213,36 +213,46 @@ namespace Kratos {
         }      
     }    
     
-    void CreatePropertiesProxies(std::vector<PropertiesProxy>& vector_of_proxies,
+    void PropertiesProxiesManager::CreatePropertiesProxies(
                                                   ModelPart& balls_mp,
                                                   ModelPart& inlet_mp,
                                                   ModelPart& clusters_mp) {
         KRATOS_TRY
-          
+        
+        balls_mp[VECTOR_OF_PROPERTIES_PROXIES] = std::vector<PropertiesProxy>();
+        
+        std::vector<PropertiesProxy>& vector_of_proxies = balls_mp[VECTOR_OF_PROPERTIES_PROXIES];          
         vector_of_proxies.clear();    
         vector_of_proxies.resize( balls_mp.NumberOfProperties() + inlet_mp.NumberOfProperties() + clusters_mp.NumberOfProperties() );
         int properties_counter = 0;
         AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, balls_mp,    properties_counter);          
         AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, inlet_mp,    properties_counter);           
         AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, clusters_mp, properties_counter);                    
-          
+                  
         return;          
 
         KRATOS_CATCH("")
     }
     
-    void CreatePropertiesProxies(std::vector<PropertiesProxy>& vector_of_proxies, ModelPart& r_model_part) {
+    void PropertiesProxiesManager::CreatePropertiesProxies(ModelPart& r_model_part) {
 
         KRATOS_TRY
-          
+        
+        r_model_part[VECTOR_OF_PROPERTIES_PROXIES] = std::vector<PropertiesProxy>();
+        
+        std::vector<PropertiesProxy>& vector_of_proxies = r_model_part[VECTOR_OF_PROPERTIES_PROXIES];
         vector_of_proxies.clear();    
         vector_of_proxies.resize( r_model_part.NumberOfProperties() );
         int properties_counter = 0;
-        AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, r_model_part, properties_counter);          
+        AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, r_model_part, properties_counter);           
           
         return;          
     
         KRATOS_CATCH("")
+    }
+    
+    std::vector<PropertiesProxy>& PropertiesProxiesManager::GetPropertiesProxies(ModelPart& r_model_part) {
+        return r_model_part[VECTOR_OF_PROPERTIES_PROXIES];
     }
     
 } // Namespace Kratos

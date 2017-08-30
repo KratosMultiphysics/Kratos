@@ -790,7 +790,9 @@ public:
         const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
         
-        return MathUtils<double>::UnitCrossProduct( tangent_eta, tangent_xi );
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal/norm_2(normal);
     }
 
     /**
