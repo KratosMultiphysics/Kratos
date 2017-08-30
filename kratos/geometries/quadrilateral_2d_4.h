@@ -445,14 +445,11 @@ public:
         boxhalfsize[2] = 0.00;
 
         std::size_t size = geom_1.size();
-        std::vector<Point<3, double> > quadverts;
-        quadverts.resize(size);
+        std::vector<Point<3, double> > quadverts(size);
         for(unsigned int i = 0; i< size; i++ )
             quadverts[i] =  geom_1.GetPoint(i);
 
-        bool result = false;
-        result      = QuadBoxOverlap(boxcenter, boxhalfsize, quadverts);
-        return result;
+        return QuadBoxOverlap(boxcenter, boxhalfsize, quadverts);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -1096,30 +1093,30 @@ private:
         
         /* Bullet 3:  */
         /* test the 12 tests first (this was faster) */
-        fex = fabs(e0[0]);
-        fey = fabs(e0[1]);
-        fez = fabs(e0[2]);
+        fex = std::abs(e0[0]);
+        fey = std::abs(e0[1]);
+        fez = std::abs(e0[2]);
         if (!AxisTest_X(e0[1],e0[2],fey,fez,v0,v2,v3,boxhalfsize)) return false;
         if (!AxisTest_Y(e0[0],e0[2],fex,fez,v0,v2,v3,boxhalfsize)) return false;
       //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v0,v2,v3,boxhalfsize)) return false;
         
-        fex = fabs(e1[0]);
-        fey = fabs(e1[1]);
-        fez = fabs(e1[2]);
+        fex = std::abs(e1[0]);
+        fey = std::abs(e1[1]);
+        fez = std::abs(e1[2]);
         if (!AxisTest_X(e1[1],e1[2],fey,fez,v1,v3,v0,boxhalfsize)) return false;
         if (!AxisTest_Y(e1[0],e1[2],fex,fez,v1,v3,v0,boxhalfsize)) return false;
       //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v1,v3,v0,boxhalfsize)) return false;
         
-        fex = fabs(e2[0]);
-        fey = fabs(e2[1]);
-        fez = fabs(e2[2]);
+        fex = std::abs(e2[0]);
+        fey = std::abs(e2[1]);
+        fez = std::abs(e2[2]);
         if (!AxisTest_X(e2[1],e2[2],fey,fez,v2,v0,v1,boxhalfsize)) return false;
         if (!AxisTest_Y(e2[0],e2[2],fex,fez,v2,v0,v1,boxhalfsize)) return false;
       //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v2,v0,v1,boxhalfsize)) return false;
         
-        fex = fabs(e3[0]);
-        fey = fabs(e3[1]);
-        fez = fabs(e3[2]);
+        fex = std::abs(e3[0]);
+        fey = std::abs(e3[1]);
+        fez = std::abs(e3[2]);
         if (!AxisTest_X(e3[1],e3[2],fey,fez,v3,v1,v2,boxhalfsize)) return false;
         if (!AxisTest_Y(e3[0],e3[2],fex,fez,v3,v1,v2,boxhalfsize)) return false;
       //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v3,v1,v2,boxhalfsize)) return false;
@@ -1168,12 +1165,12 @@ private:
     {
         min = max = x0;
         if(x1<min) min=x1;
-        if(x1>max) max=x1;
-        if(x2<min) min=x2;
-        if(x2>max) max=x2;
+        else       max=x1;
+        if(x2<min)      min=x2;
+        else if(x2>max) max=x2;
     }
-	
-	
+
+
     void FindMinMax(const double& x0,
                     const double& x1,
                     const double& x2,
@@ -1183,11 +1180,11 @@ private:
     {
         min = max = x0;
         if(x1<min) min=x1;
-        if(x1>max) max=x1;
-        if(x2<min) min=x2;
-        if(x2>max) max=x2;
-        if(x3<min) min=x3;
-        if(x3>max) max=x3;
+        else       max=x1;
+        if(x2<min)      min=x2;
+        else if(x2>max) max=x2;
+        if(x3<min)      min=x3;
+        else if(x3>max) max=x3;
     }
   
     
