@@ -87,6 +87,7 @@ from NightlyTests import ShellT3ThickLinearStaticTests     as TShellT3ThickLinea
 from NightlyTests import ShellT3ThickNonLinearStaticTests  as TShellT3ThickNonLinearStaticTests
 from NightlyTests import ShellT3ThickLinearDynamicTests    as TShellT3ThickLinearDynamicTests
 from NightlyTests import ShellT3ThickNonLinearDynamicTests as TShellT3ThickNonLinearDynamicTests
+from NightlyTests import ShellT3ThickOrthotropicLaminateLinearStaticTests      as TShellT3ThickOrthotropicLaminateLinearStaticTests
 
 from NightlyTests import ShellQ4ThinLinearStaticTests      as TShellQ4ThinLinearStaticTests
 from NightlyTests import ShellQ4ThinNonLinearStaticTests   as TShellQ4ThinNonLinearStaticTests
@@ -202,6 +203,7 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
+    nightSuite.addTest(TShellT3ThickOrthotropicLaminateLinearStaticTests('test_execution'))
 
     nightSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
@@ -268,11 +270,12 @@ def AssambleTestSuites():
             TShellT3ThickNonLinearStaticTests,
             TShellT3ThickLinearDynamicTests,
             TShellT3ThickNonLinearDynamicTests,
+            TShellT3ThickOrthotropicLaminateLinearStaticTests,
             TShellQ4ThinLinearStaticTests,
             TShellQ4ThinNonLinearStaticTests,
             TShellQ4ThinLinearDynamicTests,
             TShellQ4ThinNonLinearDynamicTests,
-			TShellQ4ThinOrthotropicLaminateLinearStaticTests,
+            TShellQ4ThinOrthotropicLaminateLinearStaticTests,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ####TSprismPanTests # FIXME: Needs get up to date
         ])

@@ -72,6 +72,9 @@ class ShellT3ThickLinearDynamicTests(StructuralMechanichsTestFactory):
 
 class ShellT3ThickNonLinearDynamicTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_nonlinear_dynamic_test"
+    
+class ShellT3ThickOrthotropicLaminateLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test"
 
 class ShellQ4ThinLinearStaticTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_linear_static_test"
