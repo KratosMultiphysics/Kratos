@@ -910,6 +910,17 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
     {
         offset = 9;
     }
+	else
+	{
+		KRATOS_ERROR <<
+			"The laminate material data has not been properly defined!\n" 
+			<< "Make sure you have included material strengths.\n"
+			<< "Material strengths consider (T)ension, (C)ompression and (S)hear "
+			<< "strengths along local (1,2,3) lamina material coordinates.\n\n"
+			<< "For each lamina, following material properties, they are ordered as:\n"
+			<< "T1, C1, T2, C2, S12, S13, S23"
+			<< std::endl;
+	}
 
     // Loop over all plies
     for(unsigned int currentPly = 0; currentPly < plies; currentPly++)

@@ -953,6 +953,145 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 
 		} // end gauss loop
 	}
+	else if (rVariable == TSAI_WU_RESERVE_FACTOR)
+	{
+		// resize output
+		size_t size = 4;
+		if (rValues.size() != size)
+			rValues.resize(size);
+
+		// Get some references.
+		PropertiesType & props = GetProperties();
+		GeometryType & geom = GetGeometry();
+		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
+		Vector iN(shapeFunctions.size2());
+
+		// Compute the local coordinate system.
+		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+			mpCoordinateTransformation->CreateLocalCoordinateSystem());
+		ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
+			mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+		// Prepare all the parameters needed for the MITC formulation.
+		// This is to be done here outside the Gauss Loop.
+		MITC4Params shearParameters(referenceCoordinateSystem);
+
+		// Instantiate the Jacobian Operator.
+		JacobianOperator jacOp;
+
+		// Instantiate all strain-displacement matrices.
+		Matrix B(8, 24, 0.0);
+		Vector Bdrilling(24, 0.0);
+
+		// Instantiate all section tangent matrices.
+		Matrix D(8, 8, 0.0);
+
+		// Instantiate strain and stress-resultant vectors
+		Vector generalizedStrains(8);
+		Vector generalizedStresses(8);
+		std::vector<VectorType> rlaminateStrains;
+		std::vector<VectorType> rlaminateStresses;
+
+		// Get the current displacements in global coordinate system
+		Vector globalDisplacements(24);
+		GetValuesVector(globalDisplacements, 0);
+
+		// Get the current displacements in local coordinate system
+		Vector localDisplacements(
+			mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+
+		// Instantiate the EAS Operator.
+		EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
+
+		// Initialize parameters for the cross section calculation
+		ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+		parameters.SetGeneralizedStrainVector(generalizedStrains);
+		parameters.SetGeneralizedStressVector(generalizedStresses);
+		parameters.SetConstitutiveMatrix(D);
+		Flags& options = parameters.GetOptions();
+		options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+		// Get all laminae strengths
+		ShellCrossSection::Pointer & section = mSections[0];
+		std::vector<Matrix> Laminae_Strengths =
+			std::vector<Matrix>(section->NumberOfPlies());
+		for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
+		{
+			Laminae_Strengths[ply].resize(3, 3, 0.0);
+			Laminae_Strengths[ply].clear();
+		}
+		section->GetLaminaeStrengths(Laminae_Strengths, props);
+
+		// Define variables
+		Matrix R(8, 8);
+		double total_rotation = 0.0;
+
+		// Gauss Loop
+		for (unsigned int i = 0; i < size; i++)
+		{
+			// get a reference of the current integration point and shape functions
+			const GeometryType::IntegrationPointType & ip = geom.IntegrationPoints()[i];
+			noalias(iN) = row(shapeFunctions, i);
+
+			// Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
+			// and Shape functions derivatives in the local coordinate system
+			jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
+
+			// Compute all strain-displacement matrices
+			CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
+
+			// Calculate strain vectors in local coordinate system
+			noalias(generalizedStrains) = prod(B, localDisplacements);
+
+			// Apply the EAS method to modify the membrane part of the strains computed above.
+			EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
+
+			// Calculate the response of the Cross Section
+			ShellCrossSection::Pointer & section = mSections[i];
+
+			//Calculate lamina stresses
+			CalculateLaminaStrains(section, generalizedStrains, rlaminateStrains);
+			CalculateLaminaStresses(section, parameters, rlaminateStrains, rlaminateStresses);
+
+			// Retrieve ply orientations
+			section = mSections[i];
+			Vector ply_orientation(section->NumberOfPlies());
+			section->GetLaminaeOrientation(ply_orientation);
+
+			// Rotate lamina stress from element CS to section CS, and then
+			// to lamina angle to lamina material principal directions
+			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
+			{
+				total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
+				section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
+				//top surface of current ply
+				rlaminateStresses[2 * ply] = prod(R, rlaminateStresses[2 * ply]);
+				//bottom surface of current ply
+				rlaminateStresses[2 * ply + 1] = prod(R, rlaminateStresses[2 * ply + 1]);
+			}
+
+			// Calculate Tsai-Wu criterion for each ply, take min of all plies
+			double min_tsai_wu = 0.0;
+			double temp_tsai_wu = 0.0;
+			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
+			{
+				temp_tsai_wu = CalculateTsaiWuPlaneStress(rlaminateStresses, Laminae_Strengths[ply], ply);
+				if (ply == 0)
+				{
+					min_tsai_wu = temp_tsai_wu;
+				}
+				else if (temp_tsai_wu < min_tsai_wu)
+				{
+					min_tsai_wu = temp_tsai_wu;
+				}
+			}
+
+			// Output min Tsai-Wu result
+			rValues[i] = min_tsai_wu;
+
+		}//Gauss loop
+	}
 	else
 	{
 		std::vector<double> temp(size);
@@ -1193,6 +1332,83 @@ void ShellThickElement3D4N::CalculateLaminaStresses(ShellCrossSection::Pointer &
 			section->GetPlyConstitutiveMatrix(plyNumber),
 			rlaminateStrains[2 * plyNumber + 1]);
 	}
+}
+
+double ShellThickElement3D4N::CalculateTsaiWuPlaneStress(const std::vector<VectorType>& rlaminateStresses, const Matrix & rLamina_Strengths, const unsigned int & rPly)
+{
+	// Incoming lamina strengths are organized as follows:
+	// Refer to 'shell_cross_section.cpp' for details.
+	//
+	//	|	T1,		C1,		T2	|
+	//	|	C2,		S12,	S13	|
+	//	|   S23		0		0	|
+
+	// Convert raw lamina strengths into tsai strengths F_i and F_ij.
+	// Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
+	// All F_i3 components ignored - thin shell theory.
+	//
+
+	// Controls F_12
+	// Should be FALSE unless testing against other programs that ignore it.
+	bool disable_in_plane_interaction = false;
+
+	// First, F_i
+	Vector F_i = Vector(3, 0.0);
+	F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
+	F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
+	F_i[2] = 0.0;
+
+	// Second, F_ij
+	Matrix F_ij = Matrix(5, 5, 0.0);
+	F_ij.clear();
+	F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
+	F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
+	F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
+	F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
+
+	if (disable_in_plane_interaction)
+	{
+		F_ij(0, 1) = F_ij(1, 0) = 0.0;
+	}
+
+	// Third, addditional transverse shear terms
+	F_ij(3, 3) = 1.0 / rLamina_Strengths(1, 2) / rLamina_Strengths(1, 2);	// 13
+	F_ij(4, 4) = 1.0 / rLamina_Strengths(2, 0) / rLamina_Strengths(2, 0);	// 23
+
+																			// Evaluate Tsai-Wu @ top surface of current layer
+	double var_a = 0.0;
+	double var_b = 0.0;
+	for (size_t i = 0; i < 3; i++)
+	{
+		var_b += F_i[i] * rlaminateStresses[2 * rPly][i];
+		for (size_t j = 0; j < 3; j++)
+		{
+			var_a += F_ij(i, j)*rlaminateStresses[2 * rPly][i] * rlaminateStresses[2 * rPly][j];
+		}
+	}
+	var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly][6] * rlaminateStresses[2 * rPly][6]; // Transverse shear 13
+	var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly][7] * rlaminateStresses[2 * rPly][7]; // Transverse shear 23
+
+	double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+
+	// Evaluate Tsai-Wu @ bottom surface of current layer
+	var_a = 0.0;
+	var_b = 0.0;
+	for (size_t i = 0; i < 3; i++)
+	{
+		var_b += F_i[i] * rlaminateStresses[2 * rPly + 1][i];
+		for (size_t j = 0; j < 3; j++)
+		{
+			var_a += F_ij(i, j)*rlaminateStresses[2 * rPly + 1][i] * rlaminateStresses[2 * rPly + 1][j];
+		}
+	}
+	var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly + 1][6] * rlaminateStresses[2 * rPly + 1][6]; // Transverse shear 13
+	var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly + 1][7] * rlaminateStresses[2 * rPly + 1][7]; // Transverse shear 23
+
+	double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+
+	// Return min of both surfaces as the result for the whole ply
+	return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
 }
 
 void ShellThickElement3D4N::CalculateVonMisesStress(const Vector & generalizedStresses, const Variable<double>& rVariable, double & rVon_Mises_Result)
