@@ -101,11 +101,12 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             raise Exception("The MPI convergence accelerator tests must be run with 2 processes.")
 
         self.print_gid_output = False
-        self.aitken_tolelance = 1e-10
-        self.aitken_iterations = 50
+        self.accelerator_tolelance = 1e-10
+        self.accelerator_iterations = 50
         self.assert_delta = 1e-7
 
         self.model_part = self.ReadModelPart(GetPartitionedFilePath("box_fluid"))
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
 
         self.space = KratosTrilinos.TrilinosSparseSpace()
         self.epetra_comm = KratosTrilinos.CreateCommunicator()
@@ -148,10 +149,10 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         print("")
         print("Testing accelerator: ",accelerator_settings["solver_type"].GetString())
 
-        # Construct the accelerator strategy
-        coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(accelerator_settings)
-
         top_part = self.model_part.GetSubModelPart("Top")
+
+        # Construct the accelerator strategy
+        coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(top_part, self.epetra_comm, accelerator_settings)
 
         coupling_utility.Initialize()
 
@@ -165,11 +166,11 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         residual = self.ComputeResidual(top_part,x_guess,force1,force2)
         res_norm = self.ComputeResidualNorm(residual)
 
-        while (nl_it <= self.aitken_iterations):
+        while (nl_it <= self.accelerator_iterations):
 
             print(mpi.rank,": Iteration: ", nl_it," residual norm: ", res_norm, file=sys.stderr)
 
-            if res_norm > self.aitken_tolelance:
+            if res_norm > self.accelerator_tolelance:
                 coupling_utility.InitializeNonLinearIteration()
                 coupling_utility.UpdateSolution(residual.GetReference(), x_guess.GetReference())
                 self.partitioned_utilities.UpdateInterfaceValues(top_part,KratosMultiphysics.DISPLACEMENT,x_guess.GetReference())
@@ -268,8 +269,8 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         self.print_gid_output = False
 
         # relax tolerance requirements to force differences between processors
-        self.aitken_tolelance = 1e-2
-        self.aitken_iterations = 10
+        self.accelerator_tolelance = 1e-2
+        self.accelerator_iterations = 10
         self.assert_delta = 1e-3
 
         k1 = 100

@@ -74,7 +74,11 @@ public:
      * Old Jacobian pointer constructor.
      * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    TrilinosJacobianEmulator( Pointer&& OldJacobianEmulatorPointer )
+    TrilinosJacobianEmulator( ModelPart& rInterfaceModelPart,
+                              const Epetra_MpiComm& rEpetraCommunicator,
+                              Pointer&& OldJacobianEmulatorPointer ) :
+        mrInterfaceModelPart(rInterfaceModelPart),
+        mrEpetraCommunicator(rEpetraCommunicator)
     {   
         mpOldJacobianEmulator = std::unique_ptr<TrilinosJacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
     }
@@ -83,8 +87,12 @@ public:
      * Old Jacobian pointer constructor with recursive previous Jacobian deleting.
      * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    TrilinosJacobianEmulator( Pointer&& OldJacobianEmulatorPointer, 
-                              const unsigned int EmulatorBufferSize )
+    TrilinosJacobianEmulator( ModelPart &rInterfaceModelPart,
+                              const Epetra_MpiComm &rEpetraCommunicator,
+                              Pointer &&OldJacobianEmulatorPointer,
+                              const unsigned int EmulatorBufferSize) :
+        mrInterfaceModelPart(rInterfaceModelPart),
+        mrEpetraCommunicator(rEpetraCommunicator)
     {
         mpOldJacobianEmulator = std::unique_ptr<TrilinosJacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
 
@@ -117,14 +125,18 @@ public:
      * Empty constructor.
      * The Jacobian emulator will consider minus the identity matrix as previous Jacobian
      */
-    TrilinosJacobianEmulator()
-    {}
+    TrilinosJacobianEmulator( ModelPart &rInterfaceModelPart,
+                              const Epetra_MpiComm &rEpetraCommunicator) :
+        mrInterfaceModelPart(rInterfaceModelPart),
+        mrEpetraCommunicator(rEpetraCommunicator) {}
 
     /**
      * Copy Constructor.
      */
     TrilinosJacobianEmulator( const TrilinosJacobianEmulator& rOther )
     {
+        mrInterfaceModelPart = rOther.mrInterfaceModelPart;
+        mrEpetraCommunicator = rOther.mrEpetraCommunicator;
         mpOldJacobianEmulator = rOther.mpOldJacobianEmulator;
     }
 
@@ -172,8 +184,10 @@ public:
     {
         KRATOS_TRY;
 
+        const unsigned int previous_iterations = mJacobianObsMatrixV.size();
+
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
-        if (mJacobianObsMatrixV.size() == 0)
+        if (previous_iterations == 0)
         {
             if (mpOldJacobianEmulator != nullptr) // If it is available, consider the previous step Jacobian
             {
@@ -186,12 +200,21 @@ public:
         }
         else
         {
-            const unsigned int previous_iterations = mJacobianObsMatrixV.size();
             const unsigned int residual_size = TSpace::Size(mJacobianObsMatrixV[0]);
 
-            // TODO: These two should be Epetra_FEVector
-            Epetra_SerialDenseVector* pY(new Epetra_SerialDenseVector(residual_size));
-            Epetra_SerialDenseVector* pW(new Epetra_SerialDenseVector(residual_size));
+            // Get the domain size
+            unsigned int n_dim = mrInterfaceModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+            // Construct the interface map
+            int NumLocalInterfaceDofs = mrInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * n_dim;
+            int NumGlobalInterfaceDofs = NumLocalInterfaceDofs;
+            mrInterfaceModelPart.GetCommunicator().SumAll(NumGlobalInterfaceDofs);
+            int IndexBase = 0; // 0 for C-style vectors, 1 for Fortran numbering
+            Epetra_Map InterfaceMap(NumGlobalInterfaceDofs, NumLocalInterfaceDofs, IndexBase, mrEpetraCommunicator);
+
+            // Create new vector using given map
+            VectorPointerType pY(new Epetra_FEVector(InterfaceMap));
+            VectorPointerType pW(new Epetra_FEVector(InterfaceMap));
 
             // Loop to store a std::vector<VectorType> type as Matrix type
             Epetra_SerialDenseMatrix Vtrans_V(previous_iterations, previous_iterations);
@@ -227,6 +250,8 @@ public:
             {
                 TSpace::UnaliasedAdd(*pY, zSystemSol(j), mJacobianObsMatrixV[j]);
             }
+
+            KRATOS_WATCH(TSpace::TwoNorm(*pY))
 
             TSpace::UnaliasedAdd(*pY, -1.0, *pWorkVector);
 
@@ -347,6 +372,8 @@ protected:
 
     ///@name Protected member Variables
     ///@{
+    ModelPart&                   mrInterfaceModelPart;        // Interface model part
+    const Epetra_MpiComm&              mrEpetraCommunicator;        // Epetra communicator
 
     Pointer                           mpOldJacobianEmulator;        // Pointer to the old Jacobian
 
@@ -440,11 +467,15 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( double OmegaInitial = 0.825, 
-                                                         unsigned int JacobianBufferSize = 7 )
+    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( ModelPart& rInterfaceModelPart,
+                                                         const Epetra_MpiComm& rEpetraCommunicator,
+                                                         const double OmegaInitial = 0.825, 
+                                                         const unsigned int JacobianBufferSize = 7 ):
+        mrInterfaceModelPart(rInterfaceModelPart),
+        mrEpetraCommunicator(rEpetraCommunicator),
+        mOmega_0(OmegaInitial),
+        mJacobianBufferSize(JacobianBufferSize)
     {
-        mOmega_0 = OmegaInitial;
-        mJacobianBufferSize = JacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
@@ -455,6 +486,8 @@ public:
      */
     TrilinosMVQNRecursiveJacobianConvergenceAccelerator( const TrilinosMVQNRecursiveJacobianConvergenceAccelerator& rOther )
     {
+        mrInterfaceModelPart = rOther.mrInterfaceModelPart;
+        mrEpetraCommunicator = rOther.mrEpetraCommunicator;
         mOmega_0 = rOther.mOmega_0;
         mJacobianBufferSize = rOther.mJacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
@@ -484,7 +517,8 @@ public:
     {
         KRATOS_TRY;
 
-        mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator <TSpace> > (new TrilinosJacobianEmulator<TSpace>());
+        mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator <TSpace> > (
+            new TrilinosJacobianEmulator<TSpace>( mrInterfaceModelPart, mrEpetraCommunicator ));
 
         KRATOS_CATCH( "" );
     }
@@ -503,12 +537,14 @@ public:
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize)
         {
             // Construct the inverse Jacobian emulator
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (new TrilinosJacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer)));
+            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (
+                new TrilinosJacobianEmulator<TSpace>( mrInterfaceModelPart, mrEpetraCommunicator, std::move(mpCurrentJacobianEmulatorPointer )));
         }
         else
         {
             // Construct the inverse Jacobian emulator considering the recursive elimination
-            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (new TrilinosJacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize));
+            mpCurrentJacobianEmulatorPointer = std::unique_ptr< TrilinosJacobianEmulator<TSpace> > (
+                new TrilinosJacobianEmulator<TSpace>( mrInterfaceModelPart, mrEpetraCommunicator, std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize ));
         }
 
         KRATOS_CATCH( "" );
@@ -633,10 +669,12 @@ protected:
 
     ///@name Protected member Variables
     ///@{
+    ModelPart& mrInterfaceModelPart;                                    // Interface model part
+    const Epetra_MpiComm& mrEpetraCommunicator;                         // Epetra communicator
+    const double mOmega_0;                                              // Relaxation factor for the initial fixed point iteration
+    const unsigned int mJacobianBufferSize;                             // User-defined Jacobian buffer-size
 
-    double mOmega_0;                                                    // Relaxation factor for the initial fixed point iteration
     unsigned int mProblemSize;                                          // Residual to minimize size
-    unsigned int mJacobianBufferSize;                                   // User-defined Jacobian buffer-size
     unsigned int mCurrentJacobianBufferSize;                            // Current Jacobian buffer-size (expected to be less or equal to the user-defined one)
     unsigned int mConvergenceAcceleratorStep;                           // Convergence accelerator steps counter
     unsigned int mConvergenceAcceleratorIteration;                      // Convergence accelerator iteration counter

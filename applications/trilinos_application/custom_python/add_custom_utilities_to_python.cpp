@@ -198,18 +198,19 @@ void  AddCustomUtilitiesToPython()
 
     // Convergence accelerator base class
     class_< TrilinosConvergenceAccelerator, boost::noncopyable > ("TrilinosConvergenceAccelerator", init < >())
-            .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
-            .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
-            .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
-            .def("UpdateSolution", &TrilinosConvergenceAccelerator::UpdateSolution)
-            .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
-            .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
-            .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
-            ;
+        .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
+        .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
+        .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
+        .def("UpdateSolution", &TrilinosConvergenceAccelerator::UpdateSolution)
+        .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
+        .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
+    ;       
 
-    class_< TrilinosAitkenAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosAitkenConvergenceAccelerator",init<double>());
+    class_< TrilinosAitkenAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosAitkenConvergenceAccelerator",init< double >());
 
-    class_< TrilinosMVQNRecursiveAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosMVQNRecursiveJacobianConvergenceAccelerator",init<double>());
+    class_< TrilinosMVQNRecursiveAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosMVQNRecursiveJacobianConvergenceAccelerator",
+        init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >());
 
 }
 }  // namespace Python.
