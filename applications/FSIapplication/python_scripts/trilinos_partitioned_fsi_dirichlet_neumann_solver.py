@@ -18,8 +18,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-## Import base class file
-import trilinos_partitioned_fsi_base_solver
+## Python files import 
+import convergence_accelerator_factory          # Convergence accelerator factory
+import trilinos_partitioned_fsi_base_solver     # Base class file
 
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -43,6 +44,12 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         # Set the Epetra communicator
         self.epetra_communicator = KratosTrilinos.CreateCommunicator()
+
+        # Construct the coupling partitioned strategy
+        coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
+        self.coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(self._GetFluidInterfaceSubmodelPart(),
+                                                                                                     self.epetra_communicator, 
+                                                                                                     coupling_utility_parameters)
 
         # Get the domain size
         self.domain_size = self._GetDomainSize()

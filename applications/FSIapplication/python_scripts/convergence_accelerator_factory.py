@@ -51,13 +51,16 @@ def CreateConvergenceAccelerator(configuration):
 
     return convergence_accelerator
 
-def CreateTrilinosConvergenceAccelerator(configuration):
-
-    if(type(configuration) != KratosMultiphysics.Parameters):
-        raise Exception("Input is expected to be provided as a Kratos Parameters object.")
+def CreateTrilinosConvergenceAccelerator(interface_model_part, epetra_communicator, configuration):
 
     if not have_trilinos:
         raise Exception("Trying to create a Trilinos convergence accelerator, but TrilinosApplication could not be found.")
+
+    if (type(interface_model_part) != KratosMultiphysics.ModelPart):
+        raise Exception("First input in Trilinos convergence accelerator factory is expceted to be provided as a Kratos ModelPart object.")
+
+    if(type(configuration) != KratosMultiphysics.Parameters):
+        raise Exception("Third input in Trilinos convergence accelerator factory is expected to be provided as a Kratos Parameters object.")
 
     convergence_accelerator_type = configuration["solver_type"].GetString()
     
@@ -72,8 +75,10 @@ def CreateTrilinosConvergenceAccelerator(configuration):
 
         configuration.ValidateAndAssignDefaults(_mvqn_defaults_recursive)
 
-        convergence_accelerator = KratosTrilinos.MVQNRecursiveJacobianConvergenceAccelerator(configuration["w_0"].GetDouble(),
-                                                                                             configuration["buffer_size"].GetInt())
+        convergence_accelerator = KratosTrilinos.TrilinosMVQNRecursiveJacobianConvergenceAccelerator(interface_model_part,
+                                                                                                     epetra_communicator,
+                                                                                                     configuration["w_0"].GetDouble(),
+                                                                                                     configuration["buffer_size"].GetInt())
 
     else:
         raise Exception("Trilinos convergence accelerator not found. Asking for : " + convergence_accelerator_type)

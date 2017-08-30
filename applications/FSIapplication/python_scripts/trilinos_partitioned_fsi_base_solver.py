@@ -136,7 +136,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                 "w_0"               : 0.825
             },
             "mesh_solver"                : "trilinos_mesh_solver_structural_similarity",
-            "mesh_reform_dofs_each_step" : false,
             "structure_interfaces_list"  : [""],
             "fluid_interfaces_list"      : [""]
             },
@@ -179,7 +178,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.coupling_algorithm = self.settings["coupling_solver_settings"]["coupling_scheme"].GetString()
         self.fluid_interface_submodelpart_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][0].GetString()
         self.structure_interface_submodelpart_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][0].GetString()
-        coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
 
         # Construct the structure solver
         self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part,
@@ -191,15 +189,8 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                                                                       project_parameters["fluid_solver_settings"])
         if (KratosMPI.mpi.rank == 0) : print("* Fluid solver constructed.")
 
-        # Construct the coupling partitioned strategy
-        import convergence_accelerator_factory
-        self.coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(coupling_utility_parameters)
-        if (KratosMPI.mpi.rank == 0) : print("* Coupling strategy constructed.")
-
         # Construct the ALE mesh solver
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
-        mesh_solver_settings.AddValue("mesh_reform_dofs_each_step",self.settings["coupling_solver_settings"]["mesh_reform_dofs_each_step"])
-
         self.mesh_solver_module = __import__(self.settings["coupling_solver_settings"]["mesh_solver"].GetString())
         self.mesh_solver = self.mesh_solver_module.CreateSolver(self.fluid_solver.main_model_part,
                                                                 mesh_solver_settings)
