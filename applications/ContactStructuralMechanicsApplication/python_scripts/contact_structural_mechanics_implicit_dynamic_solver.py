@@ -287,5 +287,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                                self.settings["compute_reactions"].GetBool(), 
                                                                                                self.settings["reform_dofs_at_each_step"].GetBool(), 
                                                                                                self.settings["move_mesh_flag"].GetBool(),
-                                                                                               newton_parameters
+                                                                                               newton_parameters,
+                                                                                               self.processes_list
                                                                                                )
