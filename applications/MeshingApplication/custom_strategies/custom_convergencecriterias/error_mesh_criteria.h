@@ -23,6 +23,7 @@
 #include "meshing_application.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_utilities/process_factory_utility.h"
 // Processes
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
@@ -71,23 +72,25 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ErrorMeshCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  BaseType;
 
-    typedef TSparseSpace                              SparseSpaceType;
+    typedef TSparseSpace                               SparseSpaceType;
 
-    typedef typename BaseType::TDataType                    TDataType;
+    typedef typename BaseType::TDataType                     TDataType;
 
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
+    typedef typename BaseType::DofsArrayType             DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType     TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType     TSystemVectorType;
     
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType     ConditionsArrayType;
     
-    typedef ModelPart::NodesContainerType              NodesArrayType;
+    typedef ModelPart::NodesContainerType               NodesArrayType;
     
-    typedef std::size_t KeyType;
+    typedef std::size_t                                        KeyType;
+    
+    typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
 
     ///@}
     ///@name Life Cycle
@@ -96,13 +99,15 @@ public:
     /// Default constructors
     ErrorMeshCriteria(
         ModelPart& rThisModelPart,
-        Parameters ThisParameters = Parameters(R"({})")
+        Parameters ThisParameters = Parameters(R"({})"),
+        ProcessesListType pMyProcesses = nullptr
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisModelPart(rThisModelPart),
           mDimension(rThisModelPart.GetProcessInfo()[DOMAIN_SIZE]),
           mThisParameters(ThisParameters),
-          mFindNodalH(FindNodalHProcess(mThisModelPart))
+          mFindNodalH(FindNodalHProcess(mThisModelPart)),
+          mpMyProcesses(pMyProcesses)
     {
         Parameters DefaultParameters = Parameters(R"(
         {
@@ -318,6 +323,15 @@ public:
             }
             
             mFindNodalH.Execute();
+            
+            // NOTE: Look how to re-initialize the solver
+            
+            // Processes initialization
+            mpMyProcesses.ExecuteInitialize();
+            // Processes before the loop
+            mpMyProcesses.ExecuteBeforeSolutionLoop();
+            // Processes of initialize the solution step
+            mpMyProcesses.ExecuteInitializeSolutionStep();
         }
         
         return ConvergedError;
@@ -414,6 +428,8 @@ private:
     
     double mErrorTolerance;                 // The error tolerance considered
     double mConstantError;                  // The constant considered in the remeshing process
+    
+    ProcessesListType mpMyProcesses;        // The processes list
     
     ///@}
     ///@name Private Operators

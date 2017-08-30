@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
+#include "custom_utilities/process_factory_utility.h"
 
 // Strategies
 
@@ -45,6 +46,8 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
+    typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -81,6 +84,7 @@ void  AddCustomStrategiesToPython()
                 (
                 "ErrorMeshCriteria", 
                 init<ModelPart&, Parameters>())
+                .def(init<ModelPart&, Parameters, ProcessesListType>())
                 .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
                 ;
     #endif         
