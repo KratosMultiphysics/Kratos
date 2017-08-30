@@ -20,6 +20,7 @@
 
 #include "custom_utilities/projection.h"
 #include "custom_utilities/binbased_projection.h"
+#include "custom_utilities/process_factory_utility.h"
 
 //#include "custom_utilities/GenerateModelPartUtilities.h"
 
@@ -64,6 +65,21 @@ void AddCustomUtilitiesToPython()
 
     using namespace boost::python;
 
+    // Process Factory utility
+    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
+    .def(init< >())
+    .def("AddProcess",&ProcessFactoryUtility::AddProcess)
+    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
+    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
+    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
+    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)
+    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep)
+    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep)
+    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
+    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
+    .def("Clear",&ProcessFactoryUtility::Clear)
+    ;
+    
     class_<MeshTransfer < 2 > >("MeshTransfer2D", init< >())
     .def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
     .def("DirectScalarVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation<double>)
