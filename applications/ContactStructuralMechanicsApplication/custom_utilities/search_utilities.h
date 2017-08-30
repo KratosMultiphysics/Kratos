@@ -222,7 +222,7 @@ public:
                         /// SLAVE CONDITION ///
                         SlaveGeometry.ShapeFunctionsValues( rVariables.NSlave, local_point.Coordinates() );
                         rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
-                        rVariables.DetjSlave = SlaveGeometry.DeterminantOfJacobian( local_point );
+                        rVariables.DetjSlave = 1.0; // NOTE: Using unitary area (we try to compute the gap, not the weighted gap) SlaveGeometry.DeterminantOfJacobian( local_point );
                         
                         /// MASTER CONDITION ///
                         PointType projected_gp_global;
@@ -274,7 +274,7 @@ public:
                                 const double nodal_gap = inner_prod(aux_array, - aux_slave_normal); 
                                 
                                 if ((nodal_gap < ActiveCheckLength) && (moving_gap_direction == true))
-                                {
+                                {                                    
                                     SlaveGeometry[i_node].Set(ACTIVE, true);
                                     condition_is_active = true;
                                 }

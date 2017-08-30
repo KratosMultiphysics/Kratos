@@ -156,7 +156,7 @@
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-3,
+            "active_check_factor"         : 1.0e-2,
             "normal_variation"            : false,
             "dual_search_check"           : false,
             "stiffness_factor"            : 10.0,

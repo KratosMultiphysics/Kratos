@@ -99,7 +99,7 @@
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-1,
+            "active_check_factor"         : 3.0e-1,
             "normal_variation"            : true,
             "dual_search_check"           : true,
             "stiffness_factor"            : 10.0,
