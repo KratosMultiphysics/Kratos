@@ -14,14 +14,13 @@
 #define  KRATOS_MORTAR_CLASSES
 
 // System includes
-#include <unordered_map>
 
 // External includes
 
 // Project includes
-#include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/mortar_utilities.h"
+#include "includes/mapping_variables.h"
 
 namespace Kratos 
 {
@@ -40,32 +39,154 @@ namespace Kratos
     // Type definition for integration methods
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
     
-    #if !defined(SHARED_POINTER_HASHER)
-    #define SHARED_POINTER_HASHER
-    template<class TSharedPointer>
-    struct SharedPointerHasher
-    {
-        size_t operator()(const TSharedPointer& pCond) const
-        {
-            return reinterpret_cast<size_t>(pCond.get());
-        }
-    };
-    #endif
-    #if !defined(SHARED_POINTER_COMPARATOR)
-    #define SHARED_POINTER_COMPARATOR
-    template<class TSharedPointer>
-    struct SharedPointerComparator
-    {
-        bool operator()(const TSharedPointer& first, const TSharedPointer& second) const
-        {
-            return first.get() == second.get();
-        }
-    };
-    #endif
-    
 ///@}
 ///@name  Enum's
 ///@{
+    
+#if !defined(POINT_BELONGS)
+#define POINT_BELONGS
+    
+    enum PointBelongs 
+    {
+        Master       = 0, 
+        Slave        = 1, 
+        Intersection = 2
+    };
+    
+    enum PointBelongsLine2D2N 
+    {
+        MasterLine2D2N0      = 0, 
+        MasterLine2D2N1      = 1, 
+        SlaveLine2D2N0       = 2, 
+        SlaveLine2D2N1       = 3, 
+        IntersectionLine2D2N = 4
+    };
+    
+    enum PointBelongsTriangle3D3N 
+    {
+        MasterTriangle3D3N0          = 0, 
+        MasterTriangle3D3N1          = 1, 
+        MasterTriangle3D3N2          = 2, 
+        SlaveTriangle3D3N0           = 3, 
+        SlaveTriangle3D3N1           = 4, 
+        SlaveTriangle3D3N2           = 5, 
+        IntersectionTriangle3D3N     = 6,
+        IntersectionTriangle3D3N0101 = 10106,
+        IntersectionTriangle3D3N1001 = 10016,
+        IntersectionTriangle3D3N1201 = 10216,
+        IntersectionTriangle3D3N2101 = 10126,
+        IntersectionTriangle3D3N0201 = 10206,
+        IntersectionTriangle3D3N2001 = 10026,
+        IntersectionTriangle3D3N0110 = 1106,
+        IntersectionTriangle3D3N1010 = 1016,
+        IntersectionTriangle3D3N1210 = 1216,
+        IntersectionTriangle3D3N2110 = 1126,
+        IntersectionTriangle3D3N0210 = 1206,
+        IntersectionTriangle3D3N2010 = 1026,
+        IntersectionTriangle3D3N0112 = 21106,
+        IntersectionTriangle3D3N1012 = 21016,
+        IntersectionTriangle3D3N1212 = 21216,
+        IntersectionTriangle3D3N2112 = 21126,
+        IntersectionTriangle3D3N0212 = 21206,
+        IntersectionTriangle3D3N2012 = 21026,
+        IntersectionTriangle3D3N0121 = 12106,
+        IntersectionTriangle3D3N1021 = 12016,
+        IntersectionTriangle3D3N1221 = 12216,
+        IntersectionTriangle3D3N2121 = 12126,
+        IntersectionTriangle3D3N0221 = 12206,
+        IntersectionTriangle3D3N2021 = 12026,
+        IntersectionTriangle3D3N0102 = 20106,
+        IntersectionTriangle3D3N1002 = 20016,
+        IntersectionTriangle3D3N1202 = 20216,
+        IntersectionTriangle3D3N2102 = 20126,
+        IntersectionTriangle3D3N0202 = 20206,
+        IntersectionTriangle3D3N2002 = 20026,
+        IntersectionTriangle3D3N0120 = 2106,
+        IntersectionTriangle3D3N1020 = 2016,
+        IntersectionTriangle3D3N1220 = 2216,
+        IntersectionTriangle3D3N2120 = 2126,
+        IntersectionTriangle3D3N0220 = 2206,
+        IntersectionTriangle3D3N2020 = 2026
+    };
+    
+    enum PointBelongsQuadrilateral3D4N 
+    {
+        MasterQuadrilateral3D4N0          = 0, 
+        MasterQuadrilateral3D4N1          = 1, 
+        MasterQuadrilateral3D4N2          = 2, 
+        MasterQuadrilateral3D4N3          = 3, 
+        SlaveQuadrilateral3D4N0           = 4, 
+        SlaveQuadrilateral3D4N1           = 5, 
+        SlaveQuadrilateral3D4N2           = 6, 
+        SlaveQuadrilateral3D4N3           = 7, 
+        IntersectionQuadrilateral3D4N     = 8,
+        IntersectionQuadrilateral3D4N0101 = 10108,
+        IntersectionQuadrilateral3D4N1001 = 10018,
+        IntersectionQuadrilateral3D4N1201 = 10218,
+        IntersectionQuadrilateral3D4N2101 = 10128,
+        IntersectionQuadrilateral3D4N2301 = 10328,
+        IntersectionQuadrilateral3D4N3201 = 10238,
+        IntersectionQuadrilateral3D4N3001 = 10038,
+        IntersectionQuadrilateral3D4N0301 = 10308,
+        IntersectionQuadrilateral3D4N0110 = 1108,
+        IntersectionQuadrilateral3D4N1010 = 1018,
+        IntersectionQuadrilateral3D4N1210 = 1218,
+        IntersectionQuadrilateral3D4N2110 = 1128,
+        IntersectionQuadrilateral3D4N2310 = 1328,
+        IntersectionQuadrilateral3D4N3210 = 1238,
+        IntersectionQuadrilateral3D4N3010 = 1038,
+        IntersectionQuadrilateral3D4N0310 = 1308,
+        IntersectionQuadrilateral3D4N0112 = 21108,
+        IntersectionQuadrilateral3D4N1012 = 21018,
+        IntersectionQuadrilateral3D4N1212 = 21218,
+        IntersectionQuadrilateral3D4N2112 = 21128,
+        IntersectionQuadrilateral3D4N2312 = 21328,
+        IntersectionQuadrilateral3D4N3212 = 21238,
+        IntersectionQuadrilateral3D4N3012 = 21038,
+        IntersectionQuadrilateral3D4N0312 = 21308,
+        IntersectionQuadrilateral3D4N0121 = 12108,
+        IntersectionQuadrilateral3D4N1021 = 12018,
+        IntersectionQuadrilateral3D4N1221 = 12218,
+        IntersectionQuadrilateral3D4N2121 = 12128,
+        IntersectionQuadrilateral3D4N2321 = 12328,
+        IntersectionQuadrilateral3D4N3221 = 12238,
+        IntersectionQuadrilateral3D4N3021 = 12038,
+        IntersectionQuadrilateral3D4N0321 = 12308,
+        IntersectionQuadrilateral3D4N0123 = 32108,
+        IntersectionQuadrilateral3D4N1023 = 32018,
+        IntersectionQuadrilateral3D4N1223 = 32218,
+        IntersectionQuadrilateral3D4N2123 = 32128,
+        IntersectionQuadrilateral3D4N2323 = 32328,
+        IntersectionQuadrilateral3D4N3223 = 32238,
+        IntersectionQuadrilateral3D4N3023 = 32038,
+        IntersectionQuadrilateral3D4N0323 = 32308,
+        IntersectionQuadrilateral3D4N0132 = 23108,
+        IntersectionQuadrilateral3D4N1032 = 23018,
+        IntersectionQuadrilateral3D4N1232 = 23218,
+        IntersectionQuadrilateral3D4N2132 = 23128,
+        IntersectionQuadrilateral3D4N2332 = 23328,
+        IntersectionQuadrilateral3D4N3232 = 23238,
+        IntersectionQuadrilateral3D4N3032 = 23038,
+        IntersectionQuadrilateral3D4N0332 = 23308,
+        IntersectionQuadrilateral3D4N0130 = 3108,
+        IntersectionQuadrilateral3D4N1030 = 3018,
+        IntersectionQuadrilateral3D4N1230 = 3218,
+        IntersectionQuadrilateral3D4N2130 = 3128,
+        IntersectionQuadrilateral3D4N2330 = 3328,
+        IntersectionQuadrilateral3D4N3230 = 3238,
+        IntersectionQuadrilateral3D4N3030 = 3038,
+        IntersectionQuadrilateral3D4N0330 = 3308,
+        IntersectionQuadrilateral3D4N0103 = 30108,
+        IntersectionQuadrilateral3D4N1003 = 30018,
+        IntersectionQuadrilateral3D4N1203 = 30218,
+        IntersectionQuadrilateral3D4N2103 = 30128,
+        IntersectionQuadrilateral3D4N2303 = 30328,
+        IntersectionQuadrilateral3D4N3203 = 30238,
+        IntersectionQuadrilateral3D4N3003 = 30038,
+        IntersectionQuadrilateral3D4N0303 = 30308
+    };
+    
+#endif
     
 ///@}
 ///@name  Functions
@@ -232,9 +353,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarKinematicVariablesWithDerivatives(){}
+    MortarKinematicVariablesWithDerivatives()= default;
     
-    ~MortarKinematicVariablesWithDerivatives() override{}
+    ~MortarKinematicVariablesWithDerivatives() override= default;
   
     // Shape functions local derivatives for contact pair
     Matrix DNDeMaster, DNDeSlave;
@@ -245,6 +366,7 @@ public:
     * other variables contain info only on the currently-calculated GP
     */
     Matrix jSlave;
+    Matrix jMaster;
         
     ///@}
     ///@name Operators
@@ -267,7 +389,8 @@ public:
         DNDeSlave  = ZeroMatrix(TNumNodes, TDim - 1);
         
         // Jacobians on all integration points
-        jSlave = ZeroMatrix(TDim, TDim - 1);
+        jSlave  = ZeroMatrix(TDim, TDim - 1);
+        jMaster = ZeroMatrix(TDim, TDim - 1);
     }
     
     /**
@@ -360,7 +483,7 @@ private:
 /** \brief DerivativeData
  * This data will be used to compute the derivatives
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+template< unsigned int TDim, unsigned int TNumNodes>
 class DerivativeData
 {
 public:
@@ -368,10 +491,10 @@ public:
     ///@{
     
     // Auxiliar types
-//     typedef int zero[0]; // NOTE: Problems in Windows
-    typedef array_1d<double, TNumNodes> type_1;
-    typedef bounded_matrix<double, TNumNodes, TDim> type_2;
+    typedef array_1d<double, TNumNodes>                  type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
     typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef bounded_matrix<double, 3, 3>                 type_4;
     
     // Auxiliar sizes
     static const unsigned int size_1 =     (TNumNodes * TDim);
@@ -381,15 +504,13 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DerivativeData(){}
+    DerivativeData()= default;
     
-    virtual ~DerivativeData(){}
+    virtual ~DerivativeData()= default;
     
     // The ALM parameters
     array_1d<double, TNumNodes> PenaltyParameter;
     double ScaleFactor;
-    
-    typename std::conditional< TFrictional,double,int >::type TangentFactor;
     
     // The normals of the nodes
     type_2 NormalMaster, NormalSlave;
@@ -397,13 +518,12 @@ public:
     // Displacements and velocities
     type_2 X1, X2, u1, u2;
     
-    typename std::conditional< TFrictional,type_2,int >::type u1old, u2old;
-    
     // Derivatives    
     array_1d<double, size_1> DeltaDetjSlave;
     array_1d<type_1, size_1> DeltaPhi;
     array_1d<type_1, size_2> DeltaN1, DeltaN2;
     array_1d<type_2, size_1> DeltaNormalSlave, DeltaNormalMaster;
+    array_1d<type_4, size_2> DeltaCellVertex;
     
     // Ae
     type_3 Ae;
@@ -426,7 +546,7 @@ public:
      * @param rCurrentProcessInfo: The process info from the system
      */
     
-    void Initialize(
+    virtual void Initialize(
         const GeometryType& SlaveGeometry,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -440,10 +560,8 @@ public:
         X1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
         
         // We get the ALM variables
-//         const double penalty_parameter = rCurrentProcessInfo[PENALTY];
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-//             PenaltyParameter[i] = penalty_parameter;
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(PENALTY);
         }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
@@ -456,14 +574,16 @@ public:
             DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaN2[i] = ZeroVector(TNumNodes);
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
+            DeltaNormalSlave[i] = ZeroMatrix(TNumNodes, TDim);
         }
-        
-        #if (TFrictional == true)
-            TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
-            u1old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
-                  - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
-        #endif
+    
+        if (TDim == 3)
+        {
+            for (unsigned int i = 0; i < 2 * TNumNodes * TDim; i++)
+            {
+                DeltaCellVertex[i] = ZeroMatrix(3, 3);
+            }
+        }
     }
     
     /**
@@ -499,15 +619,13 @@ public:
         X2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
 
         // Derivative of master's normal
-        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+        if (TDim == 2)
         {
-            DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
+            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+            {
+                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
+            }
         }
-        
-        #if (TFrictional == true)
-            u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
-                  - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
-        #endif
     }
     
     ///@}
@@ -588,6 +706,163 @@ private:
     ///@}
     
 };  // Class DerivativeData
+
+/** \brief DerivativeDataFrictional
+ * This data will be used to compute the derivatives
+ */
+template< unsigned int TDim, unsigned int TNumNodes>
+class DerivativeDataFrictional : public DerivativeData<TDim, TNumNodes>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+    
+    // Auxiliar types
+    typedef DerivativeData<TDim, TNumNodes>           BaseClass;
+    typedef array_1d<double, TNumNodes>                  type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim>      type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
+    typedef bounded_matrix<double, 3, 3>                 type_4;
+    
+    // Auxiliar sizes
+    static const unsigned int size_1 =     (TNumNodes * TDim);
+    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    DerivativeDataFrictional()= default;
+    
+    virtual ~DerivativeDataFrictional()= default;
+    
+    // The ALM parameters
+    double TangentFactor;
+    
+    // Displacements and velocities
+    type_2 u1old, u2old;
+    
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+     * Initializer method 
+     * @param SlaveGeometry: The geometry of the slave 
+     * @param rCurrentProcessInfo: The process info from the system
+     */
+    
+    void Initialize(
+        const GeometryType& SlaveGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {        
+        BaseClass::Initialize(SlaveGeometry, rCurrentProcessInfo);
+        
+        TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
+        
+        u1old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
+              - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
+    }
+    
+    /**
+     * Updating the Master pair
+     * @param  pCond: The pointer of the current master
+     */
+    
+    void UpdateMasterPair(const Condition::Pointer& pCond) override
+    {
+        BaseClass::UpdateMasterPair(pCond);
+        
+        GeometryType MasterGeometry = pCond->GetGeometry();
+        
+        u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
+              - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
+    }
+    
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+    
+};  // Class DerivativeDataFrictional
 
 /** \brief MortarOperator
  * This is the definition of the mortar operator
@@ -773,11 +1048,15 @@ public:
     ///@name Type Definitions
     ///@{
         
-    typedef MortarOperator<TNumNodes>                         BaseClassType;
+    typedef MortarOperator<TNumNodes>                                BaseClassType;
     
-    typedef MortarKinematicVariables<TNumNodes>          KinematicVariables;
+    typedef MortarKinematicVariables<TNumNodes>                 KinematicVariables;
     
-    typedef DerivativeData<TDim, TNumNodes, TFrictional> DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes> DerivativeDataFrictionalType;
+    
+    typedef DerivativeData<TDim, TNumNodes>         DerivativeFrictionalessDataType;
+    
+    typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
     /// Counted pointer of MortarOperatorWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperatorWithDerivatives );
@@ -1189,7 +1468,11 @@ public:
     
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> KinematicVariables;
     
-    typedef DerivativeData<TDim, TNumNodes, TFrictional> DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes> DerivativeDataFrictionalType;
+    
+    typedef DerivativeData<TDim, TNumNodes>        DerivativeFrictionalessDataType;
+    
+    typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
     
     /// Counted pointer of DualLagrangeMultiplierOperatorsWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDerivatives );
@@ -1392,30 +1675,43 @@ private:
     ///@}
 
 }; // Class DualLagrangeMultiplierOperatorsWithDerivatives
-    
+
 /** @brief Custom Point container to be used by the mapper
  */
-class ConditionMap : public std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
+
+template<unsigned int TNumNodes>
+class PointBelong : public Point<3>
 {
 public:
-
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of ConditionMap
-    KRATOS_CLASS_POINTER_DEFINITION( ConditionMap );
-
-    typedef std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
     
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    
+    /// Counted pointer of PointBelong
+    KRATOS_CLASS_POINTER_DEFINITION( PointBelong );
+
     ///@}
     ///@name Life Cycle
     ///@{
-
+    
     /// Default constructors
-    ConditionMap(){}
+    PointBelong():
+        Point<3>()
+    {}
 
-    /// Destructor
-    virtual ~ConditionMap(){}
-
+    PointBelong(const array_1d<double, 3> Coords):
+        Point<3>(Coords)
+    {}
+    
+    PointBelong(const array_1d<double, 3> Coords, const BelongType& ThisBelongs):
+        Point<3>(Coords),
+        mBelongs(ThisBelongs)
+    {}
+    
+    /// Destructor.
+    ~PointBelong() override= default;
+    
     ///@}
     ///@name Operators
     ///@{
@@ -1425,108 +1721,19 @@ public:
     ///@{
 
     /**
-     * It removes one particular condition from the map
-     * @param pCond: The condition to remove
-     */     
-    void RemoveCondition(Condition::Pointer pCond)
+     * This method allows to set where the point belongs
+     */
+    void SetBelong(BelongType ThisBelongs)
     {
-        BaseType::iterator set = find(pCond);
-        if(set != end())
-        {
-            erase(set);
-        }
+        mBelongs = ThisBelongs;
     }
     
     /**
-     * It adds one new condition
-     * @param pCond: The condition to set
+     * This method recovers where the point belongs
      */
-    void AddNewCondition(Condition::Pointer pCond)
+    BelongType GetBelong() const
     {
-        insert({pCond, true}); // True by default when adding a new one
-    }
-    
-    /**
-     * It adds one new condition, as active
-     * @param pCond: The condition to set
-     */
-    void AddNewActiveCondition(Condition::Pointer pCond)
-    {
-        insert({pCond, true});
-    }
-    
-    /**
-     * It adds one new condition, as inactive
-     * @param pCond: The condition to set
-     */
-    void AddNewInactiveCondition(Condition::Pointer pCond)
-    {
-        insert({pCond, false});
-    }
-    
-    /**
-     * It sets one particular condition as active or not
-     * @param pCond: The condition to set
-     * @param Active: The flag, true if active, false otherwise
-     */
-    void SetActive(Condition::Pointer pCond, const bool Active = true)
-    {
-        BaseType::iterator set = find(pCond);
-        if(set != end())
-        {
-            set->second = Active;
-        }
-    }
-    
-    /**
-     * It checks if one particular condition is active
-     * @param pCond: The condition to check
-     * @return True if it is active, false otherwise
-     */
-    bool IsActive(Condition::Pointer pCond) const 
-    {
-        BaseType::const_iterator set = find(pCond);
-        return (set->second);
-    }
-    
-    /**
-     * It checks if at least one pair is active
-     * @return True if at least one pair is active, false otherwise
-     */
-    bool AtLeastOnePairActive()
-    {
-        for ( auto it = begin(); it != end(); ++it )
-        {
-            if (it->second == true)
-            {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Print the map information
-     */
-    void print()
-    {
-        for ( auto it = begin(); it != end(); ++it )
-        {
-            std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
-            
-            KRATOS_WATCH((it->first)->GetGeometry());
-        }
-    }
-
-    void save( Serializer& rSerializer ) const
-    {
-        // TODO: Fill if necessary
-    }
-
-    void load( Serializer& rSerializer )
-    {
-        // TODO: Fill if necessary
+        return mBelongs;
     }
     
 protected:
@@ -1566,7 +1773,7 @@ private:
     ///@name Member Variables
     ///@{
 
-         
+    BelongType mBelongs; // To know if the point belongs to the master/slave/intersection (just 3D) side          
 
     ///@}
     ///@name Private Operators
@@ -1592,7 +1799,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-}; // Class ConditionMap 
+}; // Class PointBelong 
 
 ///@}
 

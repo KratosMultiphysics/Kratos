@@ -29,7 +29,7 @@ namespace Python
 
     void  AddMappingVariablesToPython()
     {
-
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENT_FACTOR)
     }
 }  // namespace Python.
 } // Namespace Kratos

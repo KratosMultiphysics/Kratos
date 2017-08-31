@@ -21,11 +21,11 @@
 // Project includes
 #include <math.h> 
 
-/* Includes */
 #include "includes/mortar_classes.h"
-#include "includes/mapping_variables.h"
 
 // The geometry of the triangle for the "tessellation"
+/* LINES */
+#include "geometries/line_2d_2.h"
 /* TRIANGLES */
 #include "geometries/triangle_3d_3.h"
 /* QUADRILATERALS */
@@ -36,8 +36,8 @@
 #include "integration/triangle_gauss_legendre_integration_points.h"
 
 /* Utilities */
-#include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
+#include "utilities/mortar_utilities.h"
 
 namespace Kratos
 {
@@ -69,18 +69,36 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
+    
 /** \brief ExactMortarIntegrationUtility 
  * This utility calculates the exact integration necessary for the Mortar Conditions
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TBelong = false>
 class ExactMortarIntegrationUtility
 {
 public:
     ///@name Type Definitions
     ///@{
     
-    typedef std::vector<array_1d<PointType,TDim>>                          ConditionArrayListType;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    
+    typedef std::vector<array_1d<PointBelong<TNumNodes>,TDim>>                           AuxType1;
+    
+    typedef std::vector<array_1d<PointType,TDim>>                                        AuxType2;
+    
+    typedef typename std::conditional<TBelong, AuxType1, AuxType2>::type   ConditionArrayListType;
+    
+    typedef std::vector<PointBelong<TNumNodes>>                                          AuxType3;
+    
+    typedef std::vector<PointType>                                                       AuxType4;
+    
+    typedef typename std::conditional<TBelong, AuxType3, AuxType4>::type            PointListType;
+    
+    typedef array_1d<PointBelong<TNumNodes>, 3>                                          AuxType5;
+    
+    typedef array_1d<PointType, 3>                                                       AuxType6;
+    
+    typedef typename std::conditional<TBelong, AuxType5, AuxType6>::type        ArrayTriangleType;
     
     typedef Line2D2<Point<3>>                                                            LineType;
     
@@ -113,7 +131,7 @@ public:
     }
     
     /// Destructor.
-    virtual ~ExactMortarIntegrationUtility() {}
+    virtual ~ExactMortarIntegrationUtility() = default;
     
     ///@}
     ///@name Operators
@@ -417,10 +435,10 @@ protected:
     
     static inline bool Clipping2D(
         PointType& PointIntersection, 
-        const PointType PointOrig1,
-        const PointType PointOrig2,
-        const PointType PointDest1,
-        const PointType PointDest2
+        const PointType& PointOrig1,
+        const PointType& PointOrig2,
+        const PointType& PointDest1,
+        const PointType& PointDest2
         )
     {
         const double s_orig1_orig2_x = PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1);
@@ -526,7 +544,7 @@ protected:
      * @return The DetJ
      */
     
-    static inline double FasTriagleCheck2D(
+    static inline double FastTriagleCheck2D(
         const PointType PointOrig1,
         const PointType PointOrig2,
         const PointType PointOrig3
@@ -540,44 +558,12 @@ protected:
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
-        //J=|	        |=	|	      |
+        //J=|	            |=	|	          |
         //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
         
         return x10 * y20 - y10 * x20;
     }
     
-    /**
-     * This functions calculates the determinant of a 3D triangle (using points) to check if invert the order
-     * @param PointOrig1: First point
-     * @param PointOrig2: Second point
-     * @param PointOrig3: Third point
-     * @return The DetJ
-     */
-    
-    static inline double FastTriangleCheck(
-        const PointType PointOrig1,
-        const PointType PointOrig2,
-        const PointType PointOrig3
-        )
-    {
-        Matrix jacobian( 3, 2 );
-        jacobian( 0, 0 ) = -( PointOrig1.X() ) + ( PointOrig2.X() ); //on the Gauss points (J is constant at each element)
-        jacobian( 1, 0 ) = -( PointOrig1.Y() ) + ( PointOrig2.Y() );
-        jacobian( 2, 0 ) = -( PointOrig1.Z() ) + ( PointOrig2.Z() );
-        jacobian( 0, 1 ) = -( PointOrig1.X() ) + ( PointOrig3.X() );
-        jacobian( 1, 1 ) = -( PointOrig1.Y() ) + ( PointOrig3.Y() );
-        jacobian( 2, 1 ) = -( PointOrig1.Z() ) + ( PointOrig3.Z() );
-        
-        const double det_j = MathUtils<double>::GeneralizedDet(jacobian);
-        
-//         if (std::abs(det_j) < std::numeric_limits<double>::epsilon())
-//         {
-//             KRATOS_ERROR << "WARNING:: Your triangle has zero area!!!!!" << std::endl; 
-//         }
-        
-        return det_j;
-    }
-
     /**
      * This function push backs the points that are inside
      * @param PointList: The intersection points
@@ -586,7 +572,7 @@ protected:
      */
     
     inline void PushBackPoints(
-        std::vector<PointType>& PointList,
+        AuxType4& PointList,
         const array_1d<bool, TNumNodes>& AllInside,
         GeometryPointType& ThisGeometry
         )
@@ -608,6 +594,44 @@ protected:
                 if (add_point == true) 
                 {
                     PointList.push_back(ThisGeometry[i_node]);
+                }
+            }
+        }
+    }
+    
+    /**
+     * This function push backs the points that are inside
+     * @param PointList: The intersection points
+     * @param AllInside: The nodes that are already known as inside the other geometry
+     * @param ThisGeometry: The geometry considered
+     */
+    
+    inline void PushBackPoints(
+        AuxType3& PointList,
+        const array_1d<bool, TNumNodes>& AllInside,
+        GeometryPointType& ThisGeometry,
+        const PointBelongs& ThisBelongs
+        )
+    {
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        {
+            if (AllInside[i_node] == true)
+            {
+                // We check if the node already exists
+                bool add_point = true;
+                for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                {
+                    if (CheckPoints(ThisGeometry[i_node], PointList[iter]) == true)
+                    {
+                        add_point = false;
+                    }
+                }
+                        
+                if (add_point == true) 
+                {
+                    unsigned int initial_index = 0;
+                    if (ThisBelongs == Master) initial_index = TNumNodes;
+                    PointList.push_back(PointBelong<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node )));
                 }
             }
         }
@@ -636,6 +660,103 @@ protected:
     }
     
     /**
+     * This function computes the angles indexes
+     * @param PointList: The intersection points
+     */
+    
+    inline std::vector<std::size_t> ComputeAnglesIndexes(PointListType& PointList) const
+    {
+        const unsigned int list_size = PointList.size();
+        
+        // We reorder the nodes according with the angle they form with the first node
+        std::vector<double> angles (list_size - 1);
+        array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+        v /= norm_2(v);
+        array_1d<double, 3> n = GetNormalVector2D(v);
+        
+        for (unsigned int elem = 1; elem < list_size; elem++)
+        {
+            angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
+            if (angles[elem - 1] < 0.0)
+            {
+                v = PointList[elem].Coordinates() - PointList[0].Coordinates();
+                v /= norm_2(v);
+                n = GetNormalVector2D(v);
+                for (unsigned int aux_elem = 0; aux_elem <= (elem - 1); aux_elem++)
+                {
+                    angles[aux_elem] -= angles[elem - 1];
+                }
+            }
+        }
+        
+        return MortarUtilities::SortIndexes<double>(angles);
+    }
+    
+    /**
+     * This function computes the angles indexes
+     * @param PointList: The intersection points
+     * @param Geometry1/Geometry2: The geometries studied (projected)
+     * @param RefCenter: The reference point to rotate
+     */
+    
+    inline void ComputeClippingIntersections(
+        PointListType& PointList,
+        GeometryPointType& Geometry1,
+        GeometryPointType& Geometry2,
+        const PointType& RefCenter
+        )
+    {
+        // We consider the Z coordinate constant
+        const double z_ref = RefCenter.Coordinate(3);
+        
+        // We find the intersection in each side
+        for (unsigned int i_edge = 0; i_edge < TNumNodes; i_edge++)
+        {  
+            const unsigned int ip_edge = (i_edge == (TNumNodes - 1)) ? 0 : i_edge + 1;
+            for (unsigned int j_edge = 0; j_edge < TNumNodes; j_edge++)
+            {
+                const unsigned int jp_edge = (j_edge == (TNumNodes - 1)) ? 0 : j_edge + 1;
+                
+                PointType intersected_point;
+                const bool intersected = Clipping2D(
+                    intersected_point,
+                    Geometry1[i_edge],
+                    Geometry1[ip_edge],
+                    Geometry2[j_edge],
+                    Geometry2[jp_edge]
+                    );
+                
+                if (intersected == true)
+                {
+                    // Set the coordinate
+                    intersected_point.Coordinate(3) = z_ref;
+                    
+                    // Ititialize the check
+                    bool add_point = true;
+                    for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                    {
+                        if (CheckPoints(intersected_point, PointList[iter]) == true)
+                        {
+                            add_point = false;
+                            break;
+                        }
+                    }
+                    
+                    if (add_point == true) 
+                    {
+                        if (TBelong == true) // NOTE: We do some kind of strange hash to know the intersected edges
+                        {
+                            const unsigned int hash = 2 * TNumNodes + 10 * i_edge + 100 * ip_edge + 1000 * j_edge + 10000 * jp_edge;
+                            PointList.push_back(PointBelong<TNumNodes>(intersected_point.Coordinates(), static_cast<BelongType>(hash))); 
+                        }
+                        else PointList.push_back(intersected_point);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
      * This function calculates the triangles intersections (this is a module, that can be used directly in the respective function)
      * @param ConditionsPointsSlave: The final solution vector, containing all the nodes
      * @param PointList: The intersection points
@@ -648,9 +769,8 @@ protected:
     
     inline bool TriangleIntersections(
         ConditionArrayListType& ConditionsPointsSlave,
-        std::vector<PointType>& PointList,
+        PointListType& PointList,
         GeometryNodeType& OriginalSlaveGeometry,
-        GeometryNodeType& OriginalMasterGeometry,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
         const array_1d<double, 3>& SlaveTangentXi,
@@ -659,141 +779,35 @@ protected:
         const bool IsAllInside = false
         )
     {   
-//         if (mDebugGeometries == true)
-//         { 
-//             if (TNumNodes == 3)
-//             {
-//                 // Debug
-//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y() << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "}}]}],";// << std::endl;
-//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "}}]}],";// << std::endl;
-//             }
-//             else if (TNumNodes == 4)
-//             {
-//                 // Debug
-//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{" << Geometry1[0].X() << "," << Geometry1[0].Y() << "},{" << Geometry1[1].X() << "," << Geometry1[1].Y()  << "},{" << Geometry1[2].X() << "," << Geometry1[2].Y() << "},{" << Geometry1[3].X() << "," << Geometry1[3].Y() << "}}]}],";// << std::endl;
-//                 std::cout << "\nGraphics[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{" << Geometry2[0].X() << "," << Geometry2[0].Y() << "},{" << Geometry2[1].X() << "," << Geometry2[1].Y() << "},{" << Geometry2[2].X() << "," << Geometry2[2].Y() << "},{" << Geometry2[3].X() << "," << Geometry2[3].Y() << "}}]}],";// << std::endl;
-//             }
-//         }
-        
-        if (IsAllInside == false)
-        {
-            // We consider the Z coordinate constant
-            const double z_ref = RefCenter.Coordinate(3);
-            
-            // We find the intersection in each side
-            for (unsigned int i_edge = 0; i_edge < TNumNodes; i_edge++)
-            {  
-                const unsigned int ip_edge = (i_edge == (TNumNodes - 1)) ? 0 : i_edge + 1;
-                for (unsigned int j_edge = 0; j_edge < TNumNodes; j_edge++)
-                {
-                    const unsigned int jp_edge = (j_edge == (TNumNodes - 1)) ? 0 : j_edge + 1;
-                    
-                    PointType intersected_point;
-                    const bool intersected = Clipping2D(
-                        intersected_point,
-                        Geometry1[i_edge],
-                        Geometry1[ip_edge],
-                        Geometry2[j_edge],
-                        Geometry2[jp_edge]
-                        );
-                    
-                    if (intersected == true)
-                    {
-                        // Set the coordinate
-                        intersected_point.Coordinate(3) = z_ref;
-                        
-                        // Ititialize the check
-                        bool add_point = true;
-                        for (unsigned int iter = 0; iter < PointList.size(); iter++)
-                        {
-                            if (CheckPoints(intersected_point, PointList[iter]) == true)
-                            {
-                                add_point = false;
-                                break;
-                            }
-                        }
-                        
-                        if (add_point == true) 
-                        {
-                            PointList.push_back(intersected_point);
-                        }
-                    }
-                }
-            }
-        }
-        
+        // We do the clipping
+        if (IsAllInside == false) ComputeClippingIntersections(PointList, Geometry1, Geometry2, RefCenter);
+
         // We compose the triangles 
         const unsigned int list_size = PointList.size();
         if (list_size > 2) // Technically the minimum is three, just in case I consider 2
         {
-            // We reorder the nodes according with the angle they form with the first node
-            std::vector<double> angles (list_size - 1);
-            array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
-            v /= norm_2(v);
-            array_1d<double, 3> n = GetNormalVector2D(v);
-            
-            for (unsigned int elem = 1; elem < list_size; elem++)
-            {
-                angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
-                if (angles[elem - 1] < 0.0)
-                {
-                    v = PointList[elem].Coordinates() - PointList[0].Coordinates();
-                    v /= norm_2(v);
-                    n = GetNormalVector2D(v);
-                    for (unsigned int aux_elem = 0; aux_elem <= (elem - 1); aux_elem++)
-                    {
-                        angles[aux_elem] -= angles[elem - 1];
-                    }
-                }
-            }
-            
-            const std::vector<std::size_t> index_vector = MortarUtilities::SortIndexes<double>(angles);
+            const std::vector<std::size_t> index_vector = ComputeAnglesIndexes(PointList);
 
             ConditionsPointsSlave.resize((list_size - 2));
             
-//             if (mDebugGeometries == true)
-//             {                    
-//                 for (unsigned int elem = 0; elem < list_size - 2; elem++)
-//                 { 
-//                     std::cout << "\nGraphics[{Opacity[.3],Triangle[{{" << PointList[0].X() << "," << PointList[0].Y() << "},{" << PointList[index_vector[elem + 0] + 1].X() << "," << PointList[index_vector[elem + 0] + 1].Y() << "},{" << PointList[index_vector[elem + 1] + 1].X() << "," << PointList[index_vector[elem + 1] + 1].Y() << "}}]}],Graphics[{PointSize[Large],Point[{{" << PointList[0].X() << "," << PointList[0].Y() << "},{" << PointList[index_vector[elem + 0] + 1].X() << "," << PointList[index_vector[elem + 0] + 1].Y() << "},{" << PointList[index_vector[elem + 1] + 1].X() << "," << PointList[index_vector[elem + 1] + 1].Y() << "}}]}],";// << std::endl;
-//                 }
-//             }
-            
-            // We recover this point to the triangle plane
+            // We recover this point to the triangle plane and compute the local coordinates
             for (unsigned int i_point_list = 0; i_point_list < PointList.size(); i_point_list++)
             {
                 MortarUtilities::RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
+                PointType local_point;
+                OriginalSlaveGeometry.PointLocalCoordinates(local_point, PointList[i_point_list].Coordinates());
+                PointList[i_point_list].Coordinates() = local_point.Coordinates();
             }
             
             for (unsigned int elem = 0; elem < list_size - 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
-                array_1d<PointType, 3> points_locals;
-                    
-                // Now we project to the slave surface
-                PointType point_local;
+                ArrayTriangleType points_locals;
                 
-                if (FastTriangleCheck(PointList[0], PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) > 0.0)
-                {
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[0]);
-                    points_locals[0] = point_local;
-                    
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
-                    points_locals[1] = point_local;
-                    
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
-                    points_locals[2] = point_local;
-                }
-                else
-                {
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 1] + 1]);
-                    points_locals[0] = point_local;
-
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[index_vector[elem + 0] + 1]);
-                    points_locals[1] = point_local;
-
-                    OriginalSlaveGeometry.PointLocalCoordinates(point_local, PointList[0]);
-                    points_locals[2] = point_local;
-                }
+                const bool inverted_triangle = (FastTriagleCheck2D(PointList[0], PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) < 0.0);
+                
+                points_locals[(inverted_triangle == false) ? 0 : 2] = PointList[0];
+                points_locals[1] = PointList[index_vector[elem + 0] + 1];
+                points_locals[(inverted_triangle == true) ? 0 : 2] = PointList[index_vector[elem + 1] + 1];
                 
                 ConditionsPointsSlave[elem] = points_locals;
             }
@@ -807,69 +821,6 @@ protected:
                 return false;
             }
         }
-//         else if(list_size == 1 || list_size == 2) // NOTE: Activate in case of unknown behaviour
-//         {
-//             unsigned int aux_sum = 0;
-//             for (unsigned int isum = 0; isum < AllInside.size(); isum++)
-//             {
-//                 aux_sum += AllInside[isum];
-//             }
-//             
-//             if (aux_sum == list_size) // NOTE: One or two can be due to concident nodes on the edges
-//             {
-//                 ConditionsPointsSlave.clear();
-//                 return false;
-//             }
-//             else
-//             {
-//                 if (mDebugGeometries == true)
-//                 {
-//                     // Debug
-//                     KRATOS_WATCH(Geometry1);
-//                     KRATOS_WATCH(Geometry2);
-//                     for (unsigned int ipoint = 0; ipoint < list_size; ipoint++)
-//                     {
-//                         KRATOS_WATCH(PointList[ipoint]);
-//                     }
-//                     
-//                     // Debug (Mathematica plot!!!)
-//                     for (unsigned int isum = 0; isum < AllInside.size(); isum++)
-//                     {
-//                         KRATOS_WATCH(AllInside[isum]);
-//                     }
-//                     
-//                     PointType aux1;
-//                     aux1.Coordinates() = Geometry1[0].Coordinates();
-//                     
-//                     PointType aux2;
-//                     aux2.Coordinates() = Geometry1[1].Coordinates();
-//                     
-//                     PointType aux3;
-//                     aux3.Coordinates() = Geometry1[2].Coordinates();
-//                     
-//                     PointType aux4;
-//                     aux4.Coordinates() = Geometry2[0].Coordinates();
-//                     
-//                     PointType aux5;
-//                     aux5.Coordinates() = Geometry2[1].Coordinates();
-//                     
-//                     PointType aux6;
-//                     aux6.Coordinates() = Geometry2[2].Coordinates();
-//                     
-//                     std::cout << "Show[Graphics[{EdgeForm[Thick], Red ,Triangle[{{" << aux1.X() << "," << aux1.Y() << "},{" << aux2.X() << "," << aux2.Y() << "},{" << aux3.X() << "," << aux3.Y() << "}}]}],Graphics[{EdgeForm[Thick], Blue ,Triangle[{{" << aux4.X() << "," << aux4.Y() << "},{" << aux5.X() << "," << aux5.Y() << "},{" << aux6.X() << "," << aux6.Y() << "}}]}]";
-//                     
-//                     for (unsigned int ipoint = 0; ipoint < list_size; ipoint++)
-//                     {
-//                         std::cout << ",Graphics[{PointSize[Large],Point[{" << PointList[ipoint].X() << "," << PointList[ipoint].Y() << "}]}]";
-//                     }
-//                         
-//                     std::cout << "]" << std::endl;
-//                     
-//                     std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN (check if it is the edge)" << std::endl; 
-//     //                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
-//                 }
-//             }
-//         }
         else // No intersection
         {
             ConditionsPointsSlave.clear();
@@ -936,7 +887,7 @@ private:
 ///@{
 
     template<>  
-    inline bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
+    inline bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(         
         GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
@@ -957,7 +908,7 @@ private:
         // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
         for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
         {
-            const array_1d<double, 3> normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
+            const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
             
             MortarUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
             
@@ -1083,8 +1034,8 @@ private:
     /***********************************************************************************/
     /***********************************************************************************/
 
-    template<>  
-    inline bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
+    template<>
+    inline bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(    
         GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
@@ -1129,7 +1080,7 @@ private:
         CheckInside(all_inside, slave_geometry, master_geometry, tolerance);
         
         // We create the pointlist
-        std::vector<PointType> point_list;
+        PointListType point_list;
         
         // All the points inside
         if ((all_inside[0] == true) &&
@@ -1158,7 +1109,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
@@ -1168,8 +1119,8 @@ private:
     /***********************************************************************************/
     /***********************************************************************************/
 
-    template<>  
-    inline bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
+    template<>
+    inline bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(   
         GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
@@ -1214,18 +1165,18 @@ private:
         CheckInside(all_inside, slave_geometry, master_geometry, tolerance);
         
         // We create the pointlist
-        std::vector<PointType> point_list;
+        PointListType point_list;
         
         // All the points inside
         if ((all_inside[0] == true) &&
-                 (all_inside[1] == true) &&
-                 (all_inside[2] == true) &&
-                 (all_inside[3] == true))
+            (all_inside[1] == true) &&
+            (all_inside[2] == true) &&
+            (all_inside[3] == true))
         {
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
         }
         else
         {
@@ -1238,7 +1189,337 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, OriginalMasterGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        }
+        
+        ConditionsPointsSlave.clear();
+        return false;
+    }
+
+    // NOTE: The following are "hardcopies" of the previous ones, this is because C++ doesn't allow yet the partial specialization (CHECK THE ERROR TWICE!!!!!)
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    inline bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(         
+        GeometryNodeType& OriginalSlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
+        GeometryNodeType& OriginalMasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
+        ConditionArrayListType& ConditionsPointsSlave
+        )
+    {
+        // We take the geometry GP from the core 
+        const double tolerance = 1.0e-6; // std::numeric_limits<double>::epsilon();
+        
+        double total_weight = 0.0;
+        array_1d<double,2> auxiliar_coordinates = ZeroVector(2);
+        array_1d<PointBelongsLine2D2N,2> auxiliar_belong;
+        
+        // Declaring auxiliar values
+        PointType projected_gp_global;
+        GeometryNodeType::CoordinatesArrayType projected_gp_local;
+        
+        // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
+        for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
+        {
+            const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
+            
+            MortarUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
+            
+            const bool is_inside = OriginalMasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, tolerance );
+            
+            if (is_inside == true) 
+            {
+                if (i_slave == 0)
+                {
+                    auxiliar_coordinates[0] = - 1.0;
+                    auxiliar_belong[0] = SlaveLine2D2N0;
+                }
+                else if (i_slave == 1)
+                {
+                    auxiliar_coordinates[1] =   1.0;
+                    auxiliar_belong[1] = SlaveLine2D2N1;
+                }
+            }
+        }
+        
+        if ((auxiliar_coordinates[0] == - 1.0 && auxiliar_coordinates[1] == 1.0) == true)
+        {
+            total_weight = 2.0;
+        }
+        else
+        {
+            std::vector<double> auxiliar_xi;
+            std::vector<PointBelongsLine2D2N> auxiliar_master_belong;
+            for (unsigned int i_master = 0; i_master < 2; i_master++)
+            {
+                projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
+                double delta_xi = (i_master == 0) ? 0.5 : -0.5;
+                const bool is_inside = MortarUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, SlaveNormal, tolerance, delta_xi);
+                
+                if (is_inside == true)
+                {
+                    auxiliar_xi.push_back(projected_gp_local[0]);
+                    auxiliar_master_belong.push_back(static_cast<PointBelongsLine2D2N>(2 + i_master));
+                }
+            }
+            
+            if (auxiliar_xi.size() == 1 && ((auxiliar_coordinates[0] == - 1.0 || auxiliar_coordinates[1] == 1.0)))
+            {
+                if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
+                {
+                    auxiliar_coordinates[1] = auxiliar_xi[0];
+                    auxiliar_belong[1] = auxiliar_master_belong[0];
+                }
+                else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0
+                {
+                    auxiliar_coordinates[0] = auxiliar_xi[0];
+                    auxiliar_belong[0] = auxiliar_master_belong[0];
+                }
+                else
+                {
+                    KRATOS_WATCH(auxiliar_xi[0]);
+                    KRATOS_WATCH(auxiliar_coordinates[0]);
+                    KRATOS_WATCH(auxiliar_coordinates[1]);
+                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 0)" << std::endl;
+                }
+            }
+            else  if (auxiliar_xi.size() == 2)
+            {
+                if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
+                {
+                    auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0];
+                    auxiliar_belong[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_master_belong[1] : auxiliar_master_belong[0];
+                }
+                else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0
+                {
+                    auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1];
+                    auxiliar_belong[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_master_belong[0] : auxiliar_master_belong[1];
+                }
+                else
+                {
+                    if (auxiliar_xi[0] < auxiliar_xi[1])
+                    {
+                        auxiliar_coordinates[0] = auxiliar_xi[0];
+                        auxiliar_coordinates[1] = auxiliar_xi[1];
+                        auxiliar_belong[0] = auxiliar_master_belong[0];
+                        auxiliar_belong[1] = auxiliar_master_belong[1];
+                    }
+                    else
+                    {
+                        auxiliar_coordinates[1] = auxiliar_xi[0];
+                        auxiliar_coordinates[0] = auxiliar_xi[1];
+                        auxiliar_belong[1] = auxiliar_master_belong[0];
+                        auxiliar_belong[0] = auxiliar_master_belong[1];
+                    }
+                }
+            }
+            else
+            {
+                if (mDebugGeometries == true)
+                {
+                    KRATOS_WATCH(OriginalSlaveGeometry);
+                    KRATOS_WATCH(OriginalMasterGeometry);
+                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
+                }
+                return false; // NOTE: Giving problems
+            }
+            
+            total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
+        }
+        
+        if(total_weight < 0.0)
+        {
+            KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
+        }
+        else if(total_weight > 2.0)
+        {
+            KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
+        }
+        
+        if (total_weight > std::numeric_limits<double>::epsilon())
+        {
+            ConditionsPointsSlave.resize(1);
+            array_1d<PointBelong<2>, 2> list_points;
+            list_points[0].Coordinate(1) = auxiliar_coordinates[0];
+            list_points[0].SetBelong(auxiliar_belong[0]);
+            list_points[1].Coordinate(1) = auxiliar_coordinates[1];
+            list_points[1].SetBelong(auxiliar_belong[1]);
+            ConditionsPointsSlave[0] = list_points;
+            
+            return true;
+        }
+        else
+        {
+            ConditionsPointsSlave.clear();
+            return false;
+        }
+    
+        ConditionsPointsSlave.clear();
+        return false;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>
+    inline bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(    
+        GeometryNodeType& OriginalSlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
+        GeometryNodeType& OriginalMasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
+        ConditionArrayListType& ConditionsPointsSlave
+        )
+    {
+        // Firt we create an auxiliar plane based in the condition center and its normal
+        const PointType slave_center = OriginalSlaveGeometry.Center();
+        
+        // We define the condition tangents
+        const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[1].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
+        array_1d<double, 3> slave_tangent_eta;
+        MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
+        
+        // We define the tolerance
+        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        
+        // We define the auxiliar geometry
+        std::vector<PointType::Pointer> points_array_slave  (3);
+        std::vector<PointType::Pointer> points_array_master (3);
+        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        {
+            PointType aux_point;
+            
+            aux_point.Coordinates() = OriginalSlaveGeometry[i_node].Coordinates(); // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
+            MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+            
+            aux_point = MortarUtilities::FastProject(slave_center, OriginalMasterGeometry[i_node], SlaveNormal);
+            MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+        }
+        
+        Triangle3D3 <PointType> slave_geometry(  points_array_slave  );
+        Triangle3D3 <PointType> master_geometry( points_array_master );
+        
+        // No we project both nodes from the slave side and the master side
+        array_1d<bool, 3> all_inside;
+        
+        // We check if the nodes are inside
+        CheckInside(all_inside, slave_geometry, master_geometry, tolerance);
+        
+        // We create the pointlist
+        PointListType point_list;
+        
+        // All the points inside
+        if ((all_inside[0] == true) &&
+            (all_inside[1] == true) &&
+            (all_inside[2] == true))
+        {
+            ConditionsPointsSlave.resize(1);
+            
+            for (unsigned int i_node = 0; i_node < 3; i_node++)
+            {
+                PointType point;
+                OriginalSlaveGeometry.PointLocalCoordinates(point, OriginalMasterGeometry[i_node]);
+                ConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node));
+            }
+            
+            return true;
+        }
+        else
+        {       
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, master_geometry, Master);
+            
+            // We check if the nodes are inside
+            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+            
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, slave_geometry, Slave);
+            
+            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        }
+        
+        ConditionsPointsSlave.clear();
+        return false;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>
+    inline bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(   
+        GeometryNodeType& OriginalSlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
+        GeometryNodeType& OriginalMasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
+        ConditionArrayListType& ConditionsPointsSlave
+        )
+    {        
+        // We define the tolerance
+        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        
+        // Firt we create an auxiliar plane based in the condition center and its normal
+        const PointType slave_center = OriginalSlaveGeometry.Center();
+        
+        // We define the condition tangents
+        const array_1d<double, 3> slave_tangent_xi  = (OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates())/norm_2(OriginalSlaveGeometry[2].Coordinates() - OriginalSlaveGeometry[0].Coordinates());
+        array_1d<double, 3> slave_tangent_eta;
+        MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
+        
+        // We define the auxiliar geometry
+        std::vector<PointType::Pointer> points_array_slave  (4);
+        std::vector<PointType::Pointer> points_array_master (4);
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            PointType aux_point;
+            
+            aux_point = MortarUtilities::FastProject( slave_center,  OriginalSlaveGeometry[i_node], SlaveNormal);
+            MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
+            
+            aux_point = MortarUtilities::FastProject( slave_center,  OriginalMasterGeometry[i_node], SlaveNormal);
+            MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
+            points_array_master[i_node] = boost::make_shared<PointType>(aux_point);
+        }
+        
+        Quadrilateral3D4 <PointType> slave_geometry(  points_array_slave  );
+        Quadrilateral3D4 <PointType> master_geometry( points_array_master );
+        
+        // No we project both nodes from the slave side and the master side
+        array_1d<bool, 4> all_inside;
+        
+        // We check if the nodes are inside
+        CheckInside(all_inside, slave_geometry, master_geometry, tolerance);
+        
+        // We create the pointlist
+        PointListType point_list;
+        
+        // All the points inside
+        if ((all_inside[0] == true) &&
+            (all_inside[1] == true) &&
+            (all_inside[2] == true) &&
+            (all_inside[3] == true))
+        {
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, master_geometry, Master);
+            
+            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+        }
+        else
+        {
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, master_geometry, Master);
+            
+            // We check if the nodes are inside
+            CheckInside(all_inside, master_geometry, slave_geometry, tolerance);
+            
+            // We add the internal nodes
+            PushBackPoints(point_list, all_inside, slave_geometry, Slave);
+            
+            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
