@@ -173,20 +173,30 @@ public:
     {
         KRATOS_TRY;
 
+        // std::cout << std::endl;
+        // std::cout << "ENTERING ApplyJacobian" << std::endl;
+
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
         if (mJacobianObsMatrixV.size() == 0)
         {
+            // std::cout << "ENTERING ApplyJacobian with mJacobianObsMatrixV.size() == 0" << std::endl;
             if (mpOldJacobianEmulator != nullptr) // If it is available, consider the previous step Jacobian
             {
+                // std::cout << "mpOldJacobianEmulator != nullptr" << std::endl;
+                // std::cout << std::endl;
                 mpOldJacobianEmulator->ApplyJacobian(pWorkVector, pProjectedVector);
             }
             else // When the JacobianEmulator has no PreviousJacobianEmulator consider minus the identity matrix as inverse Jacobian
             {
+                // std::cout << "mpOldJacobianEmulator is NULL" << std::endl;
+                // std::cout << std::endl;
                 TSpace::Assign(*pProjectedVector, -1.0, *pWorkVector);
             }
         }
         else
         {
+            // std::cout << "ENTERING ApplyJacobian with mJacobianObsMatrixV.size() != 0" << std::endl;
+            // std::cout << std::endl;
             const unsigned int previous_iterations = mJacobianObsMatrixV.size();
             const unsigned int residual_size = TSpace::Size(mJacobianObsMatrixV[0]);
 
@@ -531,7 +541,7 @@ public:
             else
             {
                 //~ std::cout << "First step correction" << std::endl;
-                VectorPointerType pInitialCorrection(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
+                VectorPointerType pInitialCorrection(new VectorType(rResidualVector));
 
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
                 mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mpResidualVector_1, pInitialCorrection);
@@ -544,11 +554,11 @@ public:
             //~ std::cout << "Gathering information" << std::endl;
 
             // Gather the new observation matrices column information
-            VectorPointerType pNewColV(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
-            VectorPointerType pNewColW(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
+            VectorPointerType pNewColV(new VectorType(*mpResidualVector_1));
+            VectorPointerType pNewColW(new VectorType(*mpIterationValue_1));
 
-            TSpace::ScaleAndAdd(1.0, *mpResidualVector_1, -1.0, *mpResidualVector_0, *pNewColV);
-            TSpace::ScaleAndAdd(1.0, *mpIterationValue_1, -1.0, *mpIterationValue_0, *pNewColW);
+            TSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
+            TSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
 
             // Observation matrices information filling
             if (mConvergenceAcceleratorIteration <= mProblemSize)
@@ -570,9 +580,9 @@ public:
             //~ std::cout << "Jacobian approximation computation starts..." << std::endl;
 
             // Apply the current step inverse Jacobian emulator to the residual vector
-            VectorPointerType pIterationCorrection(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
+            VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pIterationCorrection);
-
+            
             TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }
 
