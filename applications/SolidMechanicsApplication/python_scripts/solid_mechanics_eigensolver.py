@@ -48,6 +48,9 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
             custom_settings.AddEmptyValue("scheme_type")
             custom_settings["scheme_type"].SetString("Dynamic")
+
+        self.compute_modal_contribution = self.eigensolver_settings["compute_modal_contribution"].GetBool()
+        self.eigensolver_settings.RemoveValue("compute_modal_contribution")
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
@@ -72,7 +75,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
-        """
+        """        
         if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
             if feast_system_solver_settings["solver_type"].GetString() == "skyline_lu":
@@ -95,4 +98,4 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         return KratosSolid.EigensolverStrategy(computing_model_part,
                                                eigen_scheme,
                                                builder_and_solver,
-                                               self.settings["compute_modal_contribution"].GetBool())
+                                               self.compute_modal_contribution)
