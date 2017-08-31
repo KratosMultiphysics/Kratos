@@ -350,3 +350,78 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
         self.test_mvqn_recursive_accelerator(force1,force2,solution)
+
+    def test_mvqn_recursive_accelerator_variable_stiffness(self):
+
+        k1 = 100
+        k2 = 500
+        z_equilibrium_1 = 0.5
+        z_equilibrium_2 = 1.5
+
+        def forceA(model_part,variable):
+            return self.constant_force(model_part,variable,k1,z_equilibrium_1)
+
+        def forceB(model_part,variable):
+            return self.variable_stiffness(model_part,variable,k2,z_equilibrium_2)
+
+        def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
+            s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+            dtot = z_equilibrium_2 - z_equilibrium_1
+            for i,node in enumerate(model_part.Nodes):
+                k2_variable = k2 * ( 1 + node.X*node.Y )
+                z_solution = dtot * k2_variable / (k1+k2_variable) + z_equilibrium_1
+                j = 3*i
+                s[j]   = 0.0
+                s[j+1] = 0.0
+                s[j+2] = z_solution - node.Z
+
+            return s
+
+        def solution(model_part):
+            return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
+
+        self.test_mvqn_recursive_accelerator(forceA,forceB,solution)
+
+    def test_mvqn_recursive_accelerator_ghost_nodes(self):
+        self.print_gid_output = False
+
+        # relax tolerance requirements to force differences between processors
+        self.accelerator_tolelance = 1e-2
+        self.accelerator_iterations = 15
+        self.assert_delta = 1e-3
+
+        k1 = 100
+        k2 = 500
+        z_equilibrium_1 = 0.5
+        z_equilibrium_2 = 1.5
+
+        def forceA(model_part,variable):
+            return self.constant_force(model_part,variable,k1,z_equilibrium_1)
+
+        def forceB(model_part,variable):
+            return self.variable_stiffness(model_part,variable,k2,z_equilibrium_2)
+
+        def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
+            s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+            dtot = z_equilibrium_2 - z_equilibrium_1
+            for i,node in enumerate(model_part.Nodes):
+                k2_variable = k2 * ( 1 + node.X*node.Y )
+                z_solution = dtot * k2_variable / (k1+k2_variable) + z_equilibrium_1
+                j = 3*i
+                s[j]   = 0.0
+                s[j+1] = 0.0
+                s[j+2] = z_solution - node.Z
+
+            return s
+
+        def solution(model_part):
+            return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
+
+        self.test_mvqn_recursive_accelerator(forceA,forceB,solution)
+
+        ghost_displacements = [ node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) for node in self.model_part.GetCommunicator().GhostMesh(0).Nodes ]
+        self.model_part.GetCommunicator().SynchronizeNodalSolutionStepsData()
+        owner_displacements = [ node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) for node in self.model_part.GetCommunicator().GhostMesh(0).Nodes ]
+
+        for vold,vnew in zip(ghost_displacements,owner_displacements):
+            self.assertAlmostEqual(vold,vnew,delta=1e-7)
