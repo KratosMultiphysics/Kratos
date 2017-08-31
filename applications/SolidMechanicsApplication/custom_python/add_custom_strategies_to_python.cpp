@@ -300,7 +300,7 @@ namespace Kratos
       class_< EigensolverStrategyType,
 	      bases< BaseSolvingStrategyType >, boost::noncopyable >
 	(
-	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
 	;
 
     }

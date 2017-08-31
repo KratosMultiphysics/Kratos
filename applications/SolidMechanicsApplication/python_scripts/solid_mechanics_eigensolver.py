@@ -32,6 +32,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
                 "print_feast_output": true,
                 "perform_stochastic_estimate": true,
                 "solve_eigenvalue_problem": true,
+                "compute_modal_contribution": false,
                 "lambda_min": 0.0,
                 "lambda_max": 1.0,
                 "search_dimension": 10,
@@ -93,4 +94,5 @@ class EigenSolver(BaseSolver.MechanicalSolver):
 
         return KratosSolid.EigensolverStrategy(computing_model_part,
                                                eigen_scheme,
-                                               builder_and_solver)
+                                               builder_and_solver,
+                                               self.settings["compute_modal_contribution"].GetBool())
