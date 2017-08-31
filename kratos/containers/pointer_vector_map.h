@@ -65,7 +65,7 @@ namespace Kratos
 template<class TKeyType,class TDataType,
 
          class TCompareType = std::less<TKeyType>,
-         class TPointerType = boost::shared_ptr<TDataType>,
+         class TPointerType = std::shared_ptr<TDataType>,
          class TContainerType = std::vector<std::pair<TKeyType, TPointerType> > >
 class PointerVectorMap
 {

@@ -141,7 +141,7 @@ private:
 
     typename BaseType::reference dereference() const
     {
-        return *(boost::shared_ptr<TDataType>(*(this->base())));
+        return *(std::shared_ptr<TDataType>(*(this->base())));
     }
 
     ///@}

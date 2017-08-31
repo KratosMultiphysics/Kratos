@@ -70,9 +70,9 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef boost::weak_ptr<TNodeType> NodeWeakPointer;
+    typedef std::weak_ptr<TNodeType> NodeWeakPointer;
 
-    typedef boost::weak_ptr<TElementType> ElementWeakPointer;
+    typedef std::weak_ptr<TElementType> ElementWeakPointer;
 
     /** An array of pointers to elements. */
     typedef WeakPointerVector<TElementType> NeighbourElementsArrayType;

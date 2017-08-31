@@ -26,7 +26,7 @@ namespace Kratos
       , mFilename(Filename + ".mdpa")
       , mOptions(Options)
     {
-        boost::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
+        std::shared_ptr<std::fstream> pFile = std::make_shared<std::fstream>();
         std::fstream::openmode OpenMode;
 
         // Set the mode
@@ -63,15 +63,15 @@ namespace Kratos
     }
 
     /// Constructor with stream
-    ModelPartIO::ModelPartIO(boost::shared_ptr<std::iostream> Stream)
+    ModelPartIO::ModelPartIO(std::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
     {
-        // nullptr test can be confusing with boost::shared_ptr. Commented until we move to std::shared_ptr
+        // nullptr test can be confusing with std::shared_ptr. Commented until we move to std::shared_ptr
         // if (Stream == nullptr)
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-        // if (Stream == NULL || Stream == boost::shared_ptr<std::iostream>(NULL))
+        // if (Stream == NULL || Stream == std::shared_ptr<std::iostream>(NULL))
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
@@ -726,7 +726,7 @@ namespace Kratos
     }
 
     void ModelPartIO::DivideInputToPartitions(
-        boost::shared_ptr<std::iostream> * Streams,
+        std::shared_ptr<std::iostream> * Streams,
         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
         PartitionIndicesType const& NodesPartitions,
         PartitionIndicesType const& ElementsPartitions,
@@ -1144,7 +1144,7 @@ namespace Kratos
             ExtractValue(word, y);
             ReadWord(word);
             ExtractValue(word, z);
-            NodeType::Pointer temp_node = boost::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            NodeType::Pointer temp_node = std::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
             temp_node->X0() = temp_node->X();
             temp_node->Y0() = temp_node->Y();
             temp_node->Z0() = temp_node->Z();
@@ -1330,7 +1330,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = std::make_shared<Properties>();
         Properties& temp_properties = *props;
         //Properties temp_properties;
 
@@ -2710,7 +2710,7 @@ namespace Kratos
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
         for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
-            rModelPart.GetMeshes().push_back(boost::make_shared<MeshType>(empty_mesh.Clone()));
+            rModelPart.GetMeshes().push_back(std::make_shared<MeshType>(empty_mesh.Clone()));
 
         MeshType& mesh = rModelPart.GetMesh(mesh_id);
 
@@ -2916,7 +2916,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = std::make_shared<Properties>();
         Properties& temp_properties = *props;
 //         Properties temp_properties;
 
@@ -4695,7 +4695,7 @@ namespace Kratos
         mNumberOfLines = 1;
     }
 
-    void ModelPartIO::SwapStreamSource(boost::shared_ptr<std::iostream> newStream)
+    void ModelPartIO::SwapStreamSource(std::shared_ptr<std::iostream> newStream)
     {
         mpStream.swap(newStream);
     }

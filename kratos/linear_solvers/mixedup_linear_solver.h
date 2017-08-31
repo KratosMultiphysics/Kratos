@@ -1013,7 +1013,7 @@ private:
             #pragma omp parallel
             if ( OpenMPUtils::ThisThread() == k)
             {
-//                 boost::shared_ptr< IndexVector > pNext( new IndexVector(rL.size1() ) );
+//                 std::shared_ptr< IndexVector > pNext( new IndexVector(rL.size1() ) );
 //                 IndexVector& Next = *pNext; // Keeps track of which columns were filled
                 IndexVector Next(rL.size1());
                 for (unsigned int m = 0; m < rL.size1(); m++) Next[m] = -1;

@@ -173,24 +173,24 @@ namespace Kratos
             return dummy.CreateEmptyVectorPointer();
         }
 
-        // 	boost::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
+        // 	std::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
         // 	{
-        // 		boost::shared_ptr<CompressedMatrix> pNewMat = boost::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
+        // 		std::shared_ptr<CompressedMatrix> pNewMat = std::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
         // 		return pNewMat;
         // 	}
         //
-        // 	boost::shared_ptr< Vector > CreateEmptyVectorPointer()
+        // 	std::shared_ptr< Vector > CreateEmptyVectorPointer()
         // 	{
-        // 		boost::shared_ptr<Vector > pNewVec = boost::shared_ptr<Vector >(new Vector() );
+        // 		std::shared_ptr<Vector > pNewVec = std::shared_ptr<Vector >(new Vector() );
         // 		return pNewVec;
         // 	}
 
-        CompressedMatrix& GetMatRef(boost::shared_ptr<CompressedMatrix>& dummy)
+        CompressedMatrix& GetMatRef(std::shared_ptr<CompressedMatrix>& dummy)
         {
             return *dummy;
         }
 
-        Vector& GetVecRef(boost::shared_ptr<Vector>& dummy)
+        Vector& GetVecRef(std::shared_ptr<Vector>& dummy)
         {
             return *dummy;
         }
@@ -203,7 +203,7 @@ namespace Kratos
             // 			def("CreateEmptyMatrixPointer",CreateEmptyMatrixPointer);
             // 			def("CreateEmptyVectorPointer",CreateEmptyVectorPointer);
 
-            class_< boost::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<boost::shared_ptr<CompressedMatrix> >())
+            class_< std::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<std::shared_ptr<CompressedMatrix> >())
                     .def("GetReference", GetMatRef, return_value_policy<reference_existing_object > ())
                     //    				.def("GetReference", GetRef, return_internal_reference<1>() )
                     ;
@@ -211,7 +211,7 @@ namespace Kratos
             // // // 			class_< CompressedMatrix , boost::noncopyable >("CompressedMatrix", init< >() );
 
 
-            class_< boost::shared_ptr<Vector> >("VectorPointer", init< boost::shared_ptr<Vector> >())
+            class_< std::shared_ptr<Vector> >("VectorPointer", init< std::shared_ptr<Vector> >())
                     .def("GetReference", GetVecRef, return_value_policy<reference_existing_object > ())
                     ;
             // // // 			class_< Vector , boost::noncopyable >("Vector", init< >() );

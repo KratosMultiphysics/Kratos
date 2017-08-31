@@ -42,7 +42,7 @@ ModelPart::ModelPart()
 {
     mName = "Default";
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(std::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -60,7 +60,7 @@ ModelPart::ModelPart(std::string const& NewName)
 {
     mName = NewName;
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(std::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -78,7 +78,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
 {
     mName = NewName;
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(std::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -336,7 +336,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z );
+    NodeType::Pointer p_new_node = std::make_shared< NodeType >( Id, x, y, z );
 
     // Giving model part's variables list to the node
     p_new_node->SetSolutionStepVariablesList(pNewVariablesList);
@@ -382,7 +382,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
+    NodeType::Pointer p_new_node = std::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
     //add the new node to the list of nodes
     GetMesh(ThisIndex).AddNode(p_new_node);
 

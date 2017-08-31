@@ -217,7 +217,7 @@ public:
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
-    virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    virtual void DivideInputToPartitions(std::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,

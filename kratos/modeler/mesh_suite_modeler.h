@@ -519,7 +519,7 @@ public:
             for(int j = 0; j<numb_of_neighb; j++)
             {
                 int ii = nn[i][j]+1;
-                //neighbours.push_back(boost::weak_ptr< Node<3> >( r_model_nodes(ii) ) );
+                //neighbours.push_back(std::weak_ptr< Node<3> >( r_model_nodes(ii) ) );
                 neighbours.push_back( r_model_nodes(ii)  );
             }
         }

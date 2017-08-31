@@ -31,13 +31,13 @@
 
 
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
-typedef boost::shared_ptr<a > SharedPointer; \
-typedef boost::weak_ptr<a > WeakPointer
+#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef std::shared_ptr<a > Pointer; \
+typedef std::shared_ptr<a > SharedPointer; \
+typedef std::weak_ptr<a > WeakPointer
 
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
-typedef typename boost::shared_ptr<a > SharedPointer; \
-typedef typename boost::weak_ptr<a > WeakPointer
+#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef std::shared_ptr<a > Pointer; \
+typedef typename std::shared_ptr<a > SharedPointer; \
+typedef typename std::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //

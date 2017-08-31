@@ -128,7 +128,7 @@ public:
         mMaxIterationsNumber(NewMaxIterationsNumber) {}
 
     IterativeSolver(Parameters settings,
-                    typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()
+                    typename TPreconditionerType::Pointer pNewPreconditioner = std::make_shared<TPreconditionerType>()
                    ):
         mResidualNorm(0),
         mIterationsNumber(0),

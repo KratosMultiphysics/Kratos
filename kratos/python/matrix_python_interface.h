@@ -193,7 +193,7 @@ public:
         fill_row(ThisMatrix, i, Value, TFunctorType());
     }
 
-// 			static class_<TMatrixType, boost::shared_ptr<TMatrixType> > CreateInterface(std::string const& Name)
+// 			static class_<TMatrixType, std::shared_ptr<TMatrixType> > CreateInterface(std::string const& Name)
     static class_<TMatrixType > CreateInterface(std::string const& Name)
     {
 // 				boost::python::converter::registry::push_back(
@@ -201,7 +201,7 @@ public:
 // 					&construct1,
 // 					boost::python::type_id<TMatrixType>());
 
-//  				return class_<TMatrixType, boost::shared_ptr<TMatrixType> >(Name.c_str())
+//  				return class_<TMatrixType, std::shared_ptr<TMatrixType> >(Name.c_str())
         return class_<TMatrixType >(Name.c_str())
                .def(init<TMatrixType>())
                /* 					.def("Resize", &BaseType::resize1) */
