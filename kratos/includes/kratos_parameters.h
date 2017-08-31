@@ -66,7 +66,7 @@ private:
 		value_iterator mValueIterator;
     std::unique_ptr<Parameters> mpParameters;
 	public:
-		iterator_adaptor(value_iterator it, boost::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(&it->value, pdoc)) {}
+		iterator_adaptor(value_iterator it, std::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(&it->value, pdoc)) {}
 		iterator_adaptor(const iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
 		iterator_adaptor& operator++() { mValueIterator++; return *this; }
 		iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
@@ -85,7 +85,7 @@ private:
 		value_iterator mValueIterator;
     std::unique_ptr<Parameters> mpParameters;
 	public:
-		const_iterator_adaptor(value_iterator it, boost::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(const_cast<rapidjson::Value*>(&it->value), pdoc)) {}
+		const_iterator_adaptor(value_iterator it, std::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(const_cast<rapidjson::Value*>(&it->value), pdoc)) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
 		const_iterator_adaptor& operator++() { mValueIterator++; return *this; }
 		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
@@ -109,7 +109,7 @@ public:
     Parameters(const std::string json_string)
     {
 
-        mpdoc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
+        mpdoc =  std::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
         rapidjson::ParseResult ok = mpdoc->Parse<0>(json_string.c_str());
 
         if( !ok )
@@ -143,7 +143,7 @@ public:
     //generates a clone of the current document
     Parameters Clone()
     {
-        boost::shared_ptr<rapidjson::Document> pnew_cloned_doc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
+        std::shared_ptr<rapidjson::Document> pnew_cloned_doc =  std::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
         rapidjson::ParseResult ok = pnew_cloned_doc->Parse<0>(this->WriteJsonString().c_str());
         if( !ok )
         {
@@ -570,12 +570,12 @@ public:
 
 private:
   //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-  Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
+  Parameters(rapidjson::Value* pvalue, std::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
   {
   }
 
     rapidjson::Value* mpvalue;
-    boost::shared_ptr<rapidjson::Document> mpdoc;
+    std::shared_ptr<rapidjson::Document> mpdoc;
 
     //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
     rapidjson::Value* GetUnderlyingStorage() const

@@ -64,7 +64,7 @@ namespace Kratos
 template<class TDataType,
          class THashType = boost::hash<TDataType>,
          class TGetKeyType = SetIdentityFunction<TDataType>,
-         class TPointerType = boost::shared_ptr<TDataType> >
+         class TPointerType = std::shared_ptr<TDataType> >
 class PointerHashMapSet
 {
 

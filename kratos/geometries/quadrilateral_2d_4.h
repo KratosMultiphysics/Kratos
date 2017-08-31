@@ -325,7 +325,7 @@ public:
         //making a copy of the nodes TO POINTS (not Nodes!!!)
         for ( IndexType i = 0 ; i < this->size() ; i++ )
         {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+                NewPoints.push_back(std::make_shared< Point<3> >(( *this )[i]));
         }   
         
         //creating a geometry with the new points
@@ -504,10 +504,10 @@ public:
     GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( std::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( std::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( std::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( std::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 

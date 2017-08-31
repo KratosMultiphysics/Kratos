@@ -86,7 +86,7 @@ public:
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
-    ModelPartIO(boost::shared_ptr<std::iostream> Stream);
+    ModelPartIO(std::shared_ptr<std::iostream> Stream);
 
 
     /// Constructor with filenames.
@@ -174,7 +174,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    void DivideInputToPartitions(std::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
@@ -183,7 +183,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void SwapStreamSource(boost::shared_ptr<std::iostream> newStream);
+    void SwapStreamSource(std::shared_ptr<std::iostream> newStream);
 
 
     ///@}
@@ -281,7 +281,7 @@ protected:
     std::string mFilename;
     Flags mOptions;
 
-    boost::shared_ptr<std::iostream> mpStream;
+    std::shared_ptr<std::iostream> mpStream;
 
 
     ///@}

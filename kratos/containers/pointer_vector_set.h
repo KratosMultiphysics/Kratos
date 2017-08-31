@@ -70,7 +70,7 @@ template<class TDataType,
          class TGetKeyType = SetIdentityFunction<TDataType>,
          class TCompareType = std::less<typename TGetKeyType::result_type>,
          class TEqualType = std::equal_to<typename TGetKeyType::result_type>,
-         class TPointerType = boost::shared_ptr<TDataType>,
+         class TPointerType = std::shared_ptr<TDataType>,
          class TContainerType = std::vector<TPointerType> >
 class PointerVectorSet
 {

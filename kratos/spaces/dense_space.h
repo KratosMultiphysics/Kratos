@@ -74,8 +74,8 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename std::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename std::shared_ptr< TVectorType > VectorPointerType;
 
     ///@}
     ///@name Life Cycle

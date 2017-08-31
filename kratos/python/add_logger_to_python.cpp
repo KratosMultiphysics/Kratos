@@ -63,7 +63,7 @@ object print(tuple args, dict kwargs) {
 void  AddLoggerToPython() {
 	using namespace boost::python;
 
-  class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
+  class_<Logger, std::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
   .def("Print", raw_function(print,1))
   .staticmethod("Print");
 }

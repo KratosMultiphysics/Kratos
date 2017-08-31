@@ -245,7 +245,7 @@ public:
       is in charge of storing pointers correctly.
     */
     template<class TDataType>
-    void push_back(boost::shared_ptr<TDataType> const& rValue)
+    void push_back(std::shared_ptr<TDataType> const& rValue)
     {
         KRATOS_THROW_ERROR(std::logic_error, "You cannot store a pointer in the buffer try the Serializer instead", "" );
     }

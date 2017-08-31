@@ -69,7 +69,7 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     // adding necessary meshes to the model part.
     ModelPart::MeshType empty_mesh;
     for(ModelPart::IndexType i = number_of_meshes ; i < MeshIndex + 1 ; i++)
-        rModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
+        rModelPart.GetMeshes().push_back(std::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
 
     return rModelPart.pGetMesh(MeshIndex);
 }
