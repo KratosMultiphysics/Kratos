@@ -51,7 +51,7 @@ try {                                                                           
     if ( std::string(e.what()).find( TheErrorMessage ) == std::string::npos )           \
         KRATOS_ERROR                                                                    \
             << "Test Failed: " << #TheStatement                                         \
-            << " did not throw the expected error" << std::endl                         \
+            << " did not throw the expected error." << std::endl                         \
             << "Expected:" << std::endl << TheErrorMessage << std::endl                 \
             << "Got:" << std::endl << e.what() << std::endl;                            \
 }
