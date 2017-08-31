@@ -314,7 +314,7 @@ public:
                         MmgRemesh.Execute();
                     }
                 #else 
-                    KRATOS_ERROR << "Please compile with MMG to use this utility << std::endl;
+                    KRATOS_ERROR << "Please compile with MMG to use this utility" << std::endl;
                 #endif
             }
             else
@@ -327,11 +327,11 @@ public:
             // NOTE: Look how to re-initialize the solver
             
             // Processes initialization
-            mpMyProcesses.ExecuteInitialize();
+            mpMyProcesses->ExecuteInitialize();
             // Processes before the loop
-            mpMyProcesses.ExecuteBeforeSolutionLoop();
+            mpMyProcesses->ExecuteBeforeSolutionLoop();
             // Processes of initialize the solution step
-            mpMyProcesses.ExecuteInitializeSolutionStep();
+            mpMyProcesses->ExecuteInitializeSolutionStep();
         }
         
         return ConvergedError;
