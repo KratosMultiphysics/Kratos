@@ -22,6 +22,8 @@
 #include "includes/model_part.h"
 #include "meshing_application.h"
 #include "includes/kratos_parameters.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_utilities/process_factory_utility.h"
 // Processes
@@ -43,7 +45,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -72,25 +74,33 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ErrorMeshCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >       BaseType;
 
-    typedef TSparseSpace                               SparseSpaceType;
+    typedef TSparseSpace                                    SparseSpaceType;
 
-    typedef typename BaseType::TDataType                     TDataType;
+    typedef typename BaseType::TDataType                          TDataType;
 
-    typedef typename BaseType::DofsArrayType             DofsArrayType;
+    typedef typename BaseType::DofsArrayType                  DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType     TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType          TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType     TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType          TSystemVectorType;
     
-    typedef ModelPart::ConditionsContainerType     ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
     
-    typedef ModelPart::NodesContainerType               NodesArrayType;
+    typedef ModelPart::NodesContainerType                    NodesArrayType;
     
-    typedef std::size_t                                        KeyType;
+    typedef std::size_t                                             KeyType;
     
-    typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
+    typedef boost::shared_ptr<ProcessFactoryUtility>      ProcessesListType;
+    
+    typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
+
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    
+    typedef boost::shared_ptr<BaseSolvingStrategyType> PointerBaseSolvingStrategyType;
 
     ///@}
     ///@name Life Cycle
@@ -100,14 +110,16 @@ public:
     ErrorMeshCriteria(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})"),
-        ProcessesListType pMyProcesses = nullptr
+        ProcessesListType pMyProcesses = nullptr,
+        PointerBaseSolvingStrategyType pMySolver = nullptr
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisModelPart(rThisModelPart),
           mDimension(rThisModelPart.GetProcessInfo()[DOMAIN_SIZE]),
           mThisParameters(ThisParameters),
           mFindNodalH(FindNodalHProcess(mThisModelPart)),
-          mpMyProcesses(pMyProcesses)
+          mpMyProcesses(pMyProcesses),
+          mpMySolver(pMySolver)
     {
         Parameters DefaultParameters = Parameters(R"(
         {
@@ -324,7 +336,9 @@ public:
             
             mFindNodalH.Execute();
             
-            // NOTE: Look how to re-initialize the solver
+            // Reinitialize the solver
+            mpMySolver->Clear();
+            mpMySolver->Initialize();
             
             // Processes initialization
             mpMyProcesses->ExecuteInitialize();
@@ -419,17 +433,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mThisModelPart;              // The model part where the refinement is computed
-    const unsigned int mDimension;          // The dimension of the problem
-    Parameters mThisParameters;             // The parameters
+    ModelPart& mThisModelPart;                 // The model part where the refinement is computed
+    const unsigned int mDimension;             // The dimension of the problem
+    Parameters mThisParameters;                // The parameters
     
-    FindNodalHProcess mFindNodalH;          // The process to copmpute NODAL_H
-    RemeshingUtilities mRemeshingUtilities; // The remeshing utilities to use
+    FindNodalHProcess mFindNodalH;             // The process to copmpute NODAL_H
+    RemeshingUtilities mRemeshingUtilities;    // The remeshing utilities to use
     
-    double mErrorTolerance;                 // The error tolerance considered
-    double mConstantError;                  // The constant considered in the remeshing process
+    double mErrorTolerance;                    // The error tolerance considered
+    double mConstantError;                     // The constant considered in the remeshing process
     
-    ProcessesListType mpMyProcesses;        // The processes list
+    ProcessesListType mpMyProcesses;           // The processes list
+    PointerBaseSolvingStrategyType mpMySolver; // The solver pointer
     
     ///@}
     ///@name Private Operators

@@ -50,9 +50,12 @@ void  AddCustomStrategiesToPython()
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
+    
     // Base types
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef boost::shared_ptr<BaseSolvingStrategyType> PointerBaseSolvingStrategyType;
         
     // Custom strategy types
     
@@ -85,6 +88,7 @@ void  AddCustomStrategiesToPython()
                 "ErrorMeshCriteria", 
                 init<ModelPart&, Parameters>())
                 .def(init<ModelPart&, Parameters, ProcessesListType>())
+                .def(init<ModelPart&, Parameters, ProcessesListType, PointerBaseSolvingStrategyType>())
                 .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
                 ;
     #endif         
