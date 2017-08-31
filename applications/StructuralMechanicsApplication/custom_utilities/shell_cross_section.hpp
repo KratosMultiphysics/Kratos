@@ -1142,6 +1142,8 @@ public:
     */
     void SetupGetPlyConstitutiveMatrices(const double shear_stabilization = 1.0)
     {
+		// This function must be called before requesting un-integrated
+		// constitutive matrices for each ply!
     	mStorePlyConstitutiveMatrices = true;
     	mPlyConstitutiveMatrices = std::vector<Matrix>(this->NumberOfPlies());
     

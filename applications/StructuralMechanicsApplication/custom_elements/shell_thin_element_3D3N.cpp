@@ -624,6 +624,90 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 
 		} // end gauss loop
 	}
+	else if (rVariable == TSAI_WU_RESERVE_FACTOR)
+	{
+		// resize output
+		if (rValues.size() != OPT_NUM_GP)
+			rValues.resize(OPT_NUM_GP);
+
+		// Just to store the rotation matrix for visualization purposes
+		Matrix R(OPT_STRAIN_SIZE, OPT_STRAIN_SIZE);
+
+		// Initialize common calculation variables
+		CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+		data.CalculateLHS = false;
+		data.CalculateRHS = true;
+		InitializeCalculationData(data);
+
+		// Get all laminae strengths
+		PropertiesType & props = GetProperties();
+		ShellCrossSection::Pointer & section = mSections[0];
+		std::vector<Matrix> Laminae_Strengths =
+			std::vector<Matrix>(section->NumberOfPlies());
+		for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
+		{
+			Laminae_Strengths[ply].resize(3, 3, 0.0);
+			Laminae_Strengths[ply].clear();
+		}
+		section->GetLaminaeStrengths(Laminae_Strengths, props);
+
+		// Retrieve ply orientations
+		Vector ply_orientation(section->NumberOfPlies());
+		section->GetLaminaeOrientation(ply_orientation);
+		double total_rotation = 0.0;
+
+		// Gauss Loop.
+		for (size_t i = 0; i < OPT_NUM_GP; i++)
+		{
+			// set the current integration point index
+			data.gpIndex = i;
+			ShellCrossSection::Pointer& section = mSections[i];
+
+			// calculate beta0
+			CalculateBeta0(data);
+
+			// calculate the total strain displ. matrix
+			CalculateBMatrix(data);
+
+			// compute generalized strains
+			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+
+			//Calculate lamina stresses
+			CalculateLaminaStrains(data);
+			CalculateLaminaStresses(data);
+
+			// Rotate lamina stress to lamina material principal directions
+			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
+			{
+				total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
+				section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
+				//top surface of current ply
+				data.rlaminateStresses[2 * ply] = prod(R, data.rlaminateStresses[2 * ply]);
+				//bottom surface of current ply
+				data.rlaminateStresses[2 * ply + 1] = prod(R, data.rlaminateStresses[2 * ply + 1]);
+			}
+
+			// Calculate Tsai-Wu criterion for each ply, take min of all plies
+			double min_tsai_wu = 0.0;
+			double temp_tsai_wu = 0.0;
+			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
+			{
+				temp_tsai_wu = CalculateTsaiWuPlaneStress(data, Laminae_Strengths[ply], ply);
+				if (ply == 0)
+				{
+					min_tsai_wu = temp_tsai_wu;
+				}
+				else if (temp_tsai_wu < min_tsai_wu)
+				{
+					min_tsai_wu = temp_tsai_wu;
+				}
+			}
+
+			// Output min Tsai-Wu result
+			rValues[i] = min_tsai_wu;
+
+		}// Gauss loop
+	}
 	else
 	{
 		for (int i = 0; i < OPT_NUM_GP; i++)
@@ -832,6 +916,163 @@ void ShellThinElement3D3N::CalculateStressesFromForceResultants(VectorType & rst
 	rstresses[3] *= 6.0 / (rthickness*rthickness);
 	rstresses[4] *= 6.0 / (rthickness*rthickness);
 	rstresses[5] *= 6.0 / (rthickness*rthickness);
+}
+
+void ShellThinElement3D3N::CalculateLaminaStrains(CalculationData & data)
+{
+	ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+
+	// Get laminate properties
+	double thickness = section->GetThickness();
+	double z_current = thickness / -2.0; // start from the top of the 1st layer
+
+										 // Establish current strains at the midplane
+										 // (element coordinate system)
+	double e_x = data.generalizedStrains[0];
+	double e_y = data.generalizedStrains[1];
+	double e_xy = data.generalizedStrains[2];	//this is still engineering
+												//strain (2xtensorial shear)
+	double kap_x = data.generalizedStrains[3];
+	double kap_y = data.generalizedStrains[4];
+	double kap_xy = data.generalizedStrains[5];	//this is still engineering
+
+												// Get ply thicknesses
+	Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
+	section->GetPlyThicknesses(ply_thicknesses);
+
+	// Resize output vector. 2 Surfaces for each ply
+	data.rlaminateStrains.resize(2 * section->NumberOfPlies());
+	for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++)
+	{
+		data.rlaminateStrains[i].resize(6, false);
+		data.rlaminateStrains[i].clear();
+	}
+
+	// Loop over all plies - start from bottom ply, bottom surface
+	for (unsigned int plyNumber = 0;
+		plyNumber < section->NumberOfPlies(); ++plyNumber)
+	{
+		// Calculate strains at top surface, arranged in columns.
+		// (element coordinate system)
+		data.rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
+		data.rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
+		data.rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
+
+		// Move to bottom surface of current layer
+		z_current += ply_thicknesses[plyNumber];
+
+		// Calculate strains at bottom surface, arranged in columns
+		// (element coordinate system)
+		data.rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
+		data.rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
+		data.rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
+	}
+}
+
+void ShellThinElement3D3N::CalculateLaminaStresses(CalculationData & data)
+{
+	ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+
+	// Setup flag to compute ply constitutive matrices
+	// (units [Pa] and rotated to element orientation)
+	section->SetupGetPlyConstitutiveMatrices();
+	Flags& options = data.SectionParameters.GetOptions();
+	options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+	section->CalculateSectionResponse(data.SectionParameters,
+		ConstitutiveLaw::StressMeasure_PK2);
+	CalculateSectionResponse(data);
+
+	// Resize output vector. 2 Surfaces for each ply
+	data.rlaminateStresses.resize(2 * section->NumberOfPlies());
+	for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++)
+	{
+		data.rlaminateStresses[i].resize(6, false);
+		data.rlaminateStresses[i].clear();
+	}
+
+	// Loop over all plies - start from top ply, top surface
+	for (unsigned int plyNumber = 0;
+		plyNumber < section->NumberOfPlies(); ++plyNumber)
+	{
+		// determine stresses at currrent ply, top surface
+		// (element coordinate system)
+		data.rlaminateStresses[2 * plyNumber] = prod(
+			section->GetPlyConstitutiveMatrix(plyNumber),
+			data.rlaminateStrains[2 * plyNumber]);
+
+		// determine stresses at currrent ply, bottom surface
+		// (element coordinate system)
+		data.rlaminateStresses[2 * plyNumber + 1] = prod(
+			section->GetPlyConstitutiveMatrix(plyNumber),
+			data.rlaminateStrains[2 * plyNumber + 1]);
+	}
+}
+
+double ShellThinElement3D3N::CalculateTsaiWuPlaneStress(const CalculationData & data, const Matrix & rLamina_Strengths, const unsigned int & rPly)
+{
+	// Incoming lamina strengths are organized as follows:
+	// Refer to 'shell_cross_section.cpp' for details.
+	//
+	//	|	T1,		C1,		T2	|
+	//	|	C2,		S12,	S13	|
+	//	|   S23		0		0	|
+
+	// Convert raw lamina strengths into tsai strengths F_i and F_ij.
+	// Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
+	// All F_i3 components ignored - thin shell theory.
+	//
+
+	// Should be FALSE unless testing against other programs that ignore it.
+	bool disable_in_plane_interaction = false;
+
+	// First, F_i
+	Vector F_i = Vector(3, 0.0);
+	F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
+	F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
+	F_i[2] = 0.0;
+
+	// Second, F_ij
+	Matrix F_ij = Matrix(3, 3, 0.0);
+	F_ij.clear();
+	F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
+	F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
+	F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
+	F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
+
+	if (disable_in_plane_interaction)
+	{
+		F_ij(0, 1) = F_ij(1, 0) = 0.0;
+	}
+
+
+	// Evaluate Tsai-Wu @ top surface of current layer
+	double var_a = 0.0;
+	double var_b = 0.0;
+	for (size_t i = 0; i < 3; i++)
+	{
+		var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
+		for (size_t j = 0; j < 3; j++)
+		{
+			var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
+		}
+	}
+	double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+
+	// Evaluate Tsai-Wu @ bottom surface of current layer
+	var_a = 0.0;
+	var_b = 0.0;
+	for (size_t i = 0; i < 3; i++)
+	{
+		var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
+		for (size_t j = 0; j < 3; j++)
+		{
+			var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
+		}
+	}
+	double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+
+	// Return min of both surfaces as the result for the whole ply
+	return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
 }
 
 void ShellThinElement3D3N::CalculateVonMisesStress(const CalculationData & data, const Variable<double>& rVariable, double & rVon_Mises_Result)
@@ -1700,11 +1941,11 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
         // calculate section response
         if (ijob > 2)
 		{
-			if (ijob > 7) // TODO: IMPLEMENT LAMINA STRAINS/STRESSES
+			if (ijob > 7)
 			{
 				//Calculate lamina stresses
-				//CalculateLaminaStrains(data);
-				//CalculateLaminaStresses(data);
+				CalculateLaminaStrains(data);
+				CalculateLaminaStresses(data);
 			}
 			else
 			{
@@ -1728,7 +1969,21 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
         // we want to visualize the results in that system not in the element one!
         if(section->GetOrientationAngle() != 0.0 && !bGlobal)
         {
-            if (ijob > 2)
+			if (ijob > 7)
+			{
+				section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
+				for (unsigned int i = 0; i < data.rlaminateStresses.size(); i++)
+				{
+					data.rlaminateStresses[i] = prod(R, data.rlaminateStresses[i]);
+				}
+
+				section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
+				for (unsigned int i = 0; i < data.rlaminateStrains.size(); i++)
+				{
+					data.rlaminateStrains[i] = prod(R, data.rlaminateStrains[i]);
+				}
+			}
+			else if (ijob > 2)
             {
                 section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
                 data.generalizedStresses = prod( R, data.generalizedStresses );
@@ -1811,6 +2066,27 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 			iValue(2, 2) = 0.0;
 			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] - 
 				data.generalizedStresses[5];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
+		else if (ijob == 8) // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
+		{
+			iValue(0, 0) =
+				data.rlaminateStresses[data.rlaminateStresses.size() - 1][0];
+			iValue(1, 1) =
+				data.rlaminateStresses[data.rlaminateStresses.size() - 1][1];
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) =
+				data.rlaminateStresses[data.rlaminateStresses.size() - 1][2];
+			iValue(0, 2) = iValue(2, 0) = 0.0;
+			iValue(1, 2) = iValue(2, 1) = 0.0;
+		}
+		else if (ijob == 9) // SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE
+		{
+			iValue(0, 0) = data.rlaminateStresses[0][0];
+			iValue(1, 1) = data.rlaminateStresses[0][1];
+			iValue(2, 2) = 0.0;
+			iValue(0, 1) = iValue(1, 0) = data.rlaminateStresses[0][2];
 			iValue(0, 2) = iValue(2, 0) = 0.0;
 			iValue(1, 2) = iValue(2, 1) = 0.0;
 		}

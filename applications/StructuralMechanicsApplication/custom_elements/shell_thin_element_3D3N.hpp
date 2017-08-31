@@ -253,6 +253,8 @@ private:
 
         VectorType generalizedStrains;  /*!< generalized strain vector at the current integration point */
         VectorType generalizedStresses; /*!< generalized stress vector at the current integration point */
+		std::vector<VectorType> rlaminateStrains;	/*!< laminate strain vector at all surfaces at the current integration point */
+		std::vector<VectorType> rlaminateStresses;	/*!< laminate stress vector at all surfaces at the current integration point */
 
         VectorType N; /*!< shape function vector at the current integration point */
 
@@ -290,6 +292,12 @@ private:
 
 	void CalculateStressesFromForceResultants(VectorType& rstresses,
 		const double& rthickness);
+
+	void CalculateLaminaStrains(CalculationData& data);
+
+	void CalculateLaminaStresses(CalculationData& data);
+
+	double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
 	void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
 
