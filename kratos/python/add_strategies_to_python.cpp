@@ -60,7 +60,6 @@
 #include "linear_solvers/linear_solver.h"
 
 // Utilities
-#include "utilities/bprinter_utility.h"
 #include "python/pointer_vector_set_python_interface.h"
 
 namespace Kratos

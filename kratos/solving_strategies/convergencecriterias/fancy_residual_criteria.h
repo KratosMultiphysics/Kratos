@@ -276,23 +276,27 @@ public:
             }
             else
             {
-                criterion_result = false;
-                if (mpTable != nullptr)
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    auto& Table = mpTable->GetTable();
-                    if (mPrintingOutput == false)
+                    if (mpTable != nullptr)
                     {
-                    #if !defined(_WIN32)
-                        Table << BOLDFONT(FRED("   Not achieved"));
-                    #else
-                        Table << "Not achieved";
-                    #endif
-                    }
-                    else
-                    {
-                        Table << "Not achieved";
+                        auto& Table = mpTable->GetTable();
+                        if (mPrintingOutput == false)
+                        {
+                        #if !defined(_WIN32)
+                            Table << BOLDFONT(FRED("   Not achieved"));
+                        #else
+                            Table << "Not achieved";
+                        #endif
+                        }
+                        else
+                        {
+                            Table << "Not achieved";
+                        }
                     }
                 }
+                
+                criterion_result = false;
             }
         }
         else

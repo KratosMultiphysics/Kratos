@@ -40,6 +40,7 @@
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
+#include "custom_strategies/convergence_criteria/fancy_vel_pr_criteria.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -120,12 +121,23 @@ void  AddCustomStrategiesToPython()
             .def(init< Process::Pointer >()) // constructor passing a turbulence model
             ;
 
-	// Convergence criteria
+    // Convergence criteria
     class_< VelPrCriteria< SparseSpaceType, LocalSpaceType >,
             bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
             boost::noncopyable >
             ("VelPrCriteria", init< double, double, double, double>())
-            .def("SetEchoLevel",&VelPrCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
+            ;
+            
+    // Fancy convergence criteria
+    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+            
+    class_< FancyVelPrCriteria< SparseSpaceType, LocalSpaceType >,
+            bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+            boost::noncopyable >
+            ("FancyVelPrCriteria", init< double, double, double, double>())
+            .def(init<double, double, double, double , TablePrinterPointerType>())
+            .def(init<double, double, double, double , TablePrinterPointerType, bool >())
+            .def(init<double, double, double, double , TablePrinterPointerType, bool, bool >())
             ;
 }
 

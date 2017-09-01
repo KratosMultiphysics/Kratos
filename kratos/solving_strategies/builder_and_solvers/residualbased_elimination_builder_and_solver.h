@@ -280,14 +280,16 @@ public:
                     }
                 }
 
-		double stop_build = OpenMPUtils::GetCurrentTime();
-		if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
-			std::cout << "build time: " << stop_build - start_build << std::endl;
+                double stop_build = OpenMPUtils::GetCurrentTime();
+                if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
+                {
+                        std::cout << "build time: " << stop_build - start_build << std::endl;
+                }
 
-		if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-		{
-			KRATOS_WATCH("finished building");
-		}
+                if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+                {
+                        KRATOS_WATCH("finished building");
+                }
 
 
         KRATOS_CATCH("")

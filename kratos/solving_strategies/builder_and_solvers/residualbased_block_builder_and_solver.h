@@ -285,8 +285,10 @@ public:
         // KRATOS_THROW_ERROR(std::logic_error,"i want to stop here :-D","")
 
         double stop_build = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)
+        if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
             std::cout << "build time: " << stop_build - start_build << std::endl;
+        }
 
         //for (int i = 0; i < A_size; i++)
         //    omp_destroy_lock(&lock_array[i]);
@@ -294,9 +296,6 @@ public:
         {
             KRATOS_WATCH("finished parallel building");
         }
-
-
-
 
         KRATOS_CATCH("")
 
@@ -447,8 +446,10 @@ public:
 
         Timer::Stop("Solve");
         double stop_solve = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
+        if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
             std::cout << "system solve time: " << stop_solve - start_solve << std::endl;
+        }
 
         if (this->GetEchoLevel() == 3)
         {
