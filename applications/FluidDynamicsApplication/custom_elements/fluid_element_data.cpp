@@ -12,7 +12,7 @@
 
 #include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
-#include "utilities/check_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -48,28 +48,28 @@ int FluidElementData<TDim, TNumNodes>::Check(Element& rElement)
 {
     KRATOS_TRY;
 
-    CheckUtilities::CheckVariableKey(VELOCITY);
-    CheckUtilities::CheckVariableKey(MESH_VELOCITY);
-    CheckUtilities::CheckVariableKey(BODY_FORCE);
-    CheckUtilities::CheckVariableKey(ADVPROJ);
-    CheckUtilities::CheckVariableKey(PRESSURE);
-    CheckUtilities::CheckVariableKey(DENSITY);
-    CheckUtilities::CheckVariableKey(VISCOSITY);
-    CheckUtilities::CheckVariableKey(DIVPROJ);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
+    KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
+    KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
 
     Geometry< Node<3> >& rGeometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         Node<3>& rNode = rGeometry[i];
-        CheckUtilities::CheckVariableInNodalData(VELOCITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(MESH_VELOCITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(BODY_FORCE,rNode);
-        CheckUtilities::CheckVariableInNodalData(ADVPROJ,rNode);
-        CheckUtilities::CheckVariableInNodalData(PRESSURE,rNode);
-        CheckUtilities::CheckVariableInNodalData(DENSITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(VISCOSITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(DIVPROJ,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ,rNode);
     }
 
     return 0;

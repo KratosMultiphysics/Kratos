@@ -13,7 +13,7 @@
 #include "dss.h"
 #include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
-#include "utilities/check_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -75,8 +75,8 @@ int DSS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Extra variables
 
     // Output variables (for Calculate() functions)
-    CheckUtilities::CheckVariableKey(SUBSCALE_VELOCITY);
-    CheckUtilities::CheckVariableKey(SUBSCALE_PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
 
     return out;
 }

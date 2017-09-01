@@ -13,7 +13,7 @@
 #include "fluid_element.h"
 #include "fluid_element_data.h"
 #include "includes/cfd_variables.h"
-#include "utilities/check_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -355,23 +355,23 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     out = TElementData::Check(*this);
 
     // Extra variables used in computing projections
-    CheckUtilities::CheckVariableKey(ACCELERATION);
-    CheckUtilities::CheckVariableKey(NODAL_AREA);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
 
     // Elemental data
-    CheckUtilities::CheckVariableKey(C_SMAGORINSKY);
+    KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
 
     for(unsigned int i=0; i<TElementData::NumNodes; ++i)
     {
         Node<3>& rNode = this->GetGeometry()[i];
-        CheckUtilities::CheckVariableInNodalData(ACCELERATION,rNode);
-        CheckUtilities::CheckVariableInNodalData(NODAL_AREA,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
 
         // Check that required dofs exist
-        CheckUtilities::CheckDofInNode(VELOCITY_X,rNode);
-        CheckUtilities::CheckDofInNode(VELOCITY_Y,rNode);
-        if (TElementData::Dim == 3) CheckUtilities::CheckDofInNode(VELOCITY_Z,rNode);
-        CheckUtilities::CheckDofInNode(PRESSURE,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+        if (TElementData::Dim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
