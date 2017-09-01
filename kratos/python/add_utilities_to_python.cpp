@@ -49,6 +49,7 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/bprinter_utility.h"
 
 namespace Kratos
 {
@@ -314,6 +315,11 @@ void AddUtilitiesToPython()
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Adding table from bprinter to python
+    class_<BprinterUtility>("BprinterUtility", init<>())
+    .def(init< bool >())
     ;
 }
 

@@ -275,6 +275,22 @@ public:
             else
             {
                 criterion_result = false;
+                if (mpTable != nullptr)
+                {
+                    auto& Table = mpTable->GetTable();
+                    if (mPrintingOutput == false)
+                    {
+                    #if !defined(_WIN32)
+                        Table << BOLDFONT(FRED("   Not achieved"));
+                    #else
+                        Table << "Not achieved";
+                    #endif
+                    }
+                    else
+                    {
+                        Table << "Not achieved";
+                    }
+                }
             }
         }
         else

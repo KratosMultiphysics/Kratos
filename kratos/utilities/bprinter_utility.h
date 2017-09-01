@@ -55,7 +55,7 @@ public:
      * The default constructor
      */
     
-    BprinterUtility(const bool UseBoldFont):
+    BprinterUtility(const bool UseBoldFont = true):
         mTable(&std::cout, "|", UseBoldFont)
     {
     }

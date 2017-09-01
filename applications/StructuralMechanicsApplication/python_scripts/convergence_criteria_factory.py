@@ -13,6 +13,8 @@ class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
         # Note that all the convergence settings are introduced via a Kratos parameters object.
         
+        output_type = convergence_criterion_parameters["convergence_criterion_output"].GetString()
+        
         D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
         D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
         R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
@@ -29,7 +31,7 @@ class convergence_criterion:
                 rotation_dofs = True
         
         # Convergence criteria if there are rotation DOFs in the problem
-        if(rotation_dofs == True):
+        if(rotation_dofs == True): # TODO: Create fancy output for rotations
             if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
                 self.mechanical_convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
@@ -54,26 +56,54 @@ class convergence_criterion:
             
         # Convergence criteria without rotation DOFs        
         else:
-            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
-                self.mechanical_convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
-                
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
-                self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+            if (output_type == "Standard"):
+                if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
+                    self.mechanical_convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+                    self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
                     
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
-                Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-                Displacement.SetEchoLevel(echo_level)
-                Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                Residual.SetEchoLevel(echo_level)
-                self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+                elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
+                    self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                    self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                        
+                elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
+                    Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+                    Displacement.SetEchoLevel(echo_level)
+                    Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                    Residual.SetEchoLevel(echo_level)
+                    self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+                    
+                elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
+                    Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+                    Displacement.SetEchoLevel(echo_level)
+                    Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                    Residual.SetEchoLevel(echo_level)
+                    self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+            else:
+                table = KratosMultiphysics.BprinterUtility()
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
-                Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-                Displacement.SetEchoLevel(echo_level)
-                Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                Residual.SetEchoLevel(echo_level)
-                self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-        
-
+                if (output_type == "FancyWriting"):
+                    writing = True
+                else:
+                    writing = False
+                
+                if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
+                    self.mechanical_convergence_criterion = KratosMultiphysics.FancyDisplacementCriteria(D_RT, D_AT, table, True, writing)
+                    self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                    
+                elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
+                    self.mechanical_convergence_criterion = KratosMultiphysics.FancyResidualCriteria(R_RT, R_AT, table, True, writing)
+                    self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                        
+                elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
+                    Displacement = KratosMultiphysics.FancyDisplacementCriteria(D_RT, D_AT, table, False, writing)
+                    Displacement.SetEchoLevel(echo_level)
+                    Residual = KratosMultiphysics.FancyResidualCriteria(R_RT, R_AT, table, False, writing)
+                    Residual.SetEchoLevel(echo_level)
+                    self.mechanical_convergence_criterion = KratosMultiphysics.FancyAndCriteria(Residual, Displacement, table, writing)
+                    
+                elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
+                    Displacement = KratosMultiphysics.FancyDisplacementCriteria(D_RT, D_AT, table, False, writing)
+                    Displacement.SetEchoLevel(echo_level)
+                    Residual = KratosMultiphysics.FancyResidualCriteria(R_RT, R_AT, table, False, writing)
+                    Residual.SetEchoLevel(echo_level)
+                    self.mechanical_convergence_criterion = KratosMultiphysics.FancyOrCriteria(Residual, Displacement, table, writing)

@@ -65,6 +65,7 @@ class MechanicalSolver(object):
             "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
+            "convergence_criterion_output": "Fancy",
             "convergence_criterion": "Residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -390,6 +391,7 @@ class MechanicalSolver(object):
     def _create_convergence_criterion(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
+        conv_params.AddValue("convergence_criterion_output",self.settings["convergence_criterion_output"])
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
