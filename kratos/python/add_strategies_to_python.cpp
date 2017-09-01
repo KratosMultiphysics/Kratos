@@ -395,39 +395,39 @@ namespace Kratos
                     ;
                     
             // Fancy convergence criteria
-//             typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
-//                     
-//             class_< FancyDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
-//                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-//                     boost::noncopyable >
-//                     ("FancyDisplacementCriteria", init< double, double>())
-//                     .def(init< double, double >())
-//                     .def(init< double, double, TablePrinterPointerType >())
-//                     .def(init< double, double, TablePrinterPointerType, bool >())
-//                     ;
-// 
-//             class_<FancyResidualCriteria<SparseSpaceType, LocalSpaceType >,
-//                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-//                     boost::noncopyable >
-//                     ("FancyResidualCriteria", init< double, double>())
-//                     .def(init< double, double >())
-//                     .def(init< double, double, TablePrinterPointerType >())
-//                     .def(init< double, double, TablePrinterPointerType, bool >())
-//                     ;
-// 
-//             class_<FancyAndConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
-//                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-//                     boost::noncopyable >
-//                     ("FancyAndConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-//                     .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
-//                     ;
-// 
-//             class_<FancyOrConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
-//                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-//                     boost::noncopyable >
-//                     ("FancyOrConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-//                     .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
-//                     ;
+            typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+                    
+            class_< FancyDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyDisplacementCriteria", init< double, double>())
+                    .def(init< double, double >())
+                    .def(init< double, double, TablePrinterPointerType >())
+                    .def(init< double, double, TablePrinterPointerType, bool >())
+                    ;
+
+            class_<FancyResidualCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyResidualCriteria", init< double, double>())
+                    .def(init< double, double >())
+                    .def(init< double, double, TablePrinterPointerType >())
+                    .def(init< double, double, TablePrinterPointerType, bool >())
+                    ;
+
+            class_<FancyAndConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyAndConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
+                    ;
+
+            class_<FancyOrConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyOrConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
+                    ;
 
             //********************************************************************
             //********************************************************************

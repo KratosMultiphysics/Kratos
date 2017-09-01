@@ -302,6 +302,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 # include subdirectories
 add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
+add_subdirectory(external_libraries/bprinter)
 add_subdirectory(kratos)
 add_subdirectory(applications)
 
