@@ -119,6 +119,7 @@ public:
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mpTable(pTable),
           mStandaloneTable(StandaloneTable),
+          mPrintingOutput(PrintingOutput),
           mTableIsInitialized(false)
     {
         mResRatioTolerance = NewRatioTolerance;
@@ -138,6 +139,7 @@ public:
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
       ,mpTable(rOther.mpTable)
       ,mStandaloneTable(rOther.mStandaloneTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }

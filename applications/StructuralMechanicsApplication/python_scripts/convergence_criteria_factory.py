@@ -78,14 +78,14 @@ class convergence_criterion:
                     Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                     Residual.SetEchoLevel(echo_level)
                     self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            else:
-                table = KratosMultiphysics.BprinterUtility()
-                
+            else:                
                 if (output_type == "FancyWriting"):
                     writing = True
                 else:
                     writing = False
                 
+                table = KratosMultiphysics.BprinterUtility(not writing)
+                                
                 if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
                     self.mechanical_convergence_criterion = KratosMultiphysics.FancyDisplacementCriteria(D_RT, D_AT, table, True, writing)
                     self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
