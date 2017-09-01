@@ -5,7 +5,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.DamApplication import *
 
-class GlobalJoinStresstUtility:
+class GlobalJoinStressUtility:
 
     def __init__(self,model_part):
 
