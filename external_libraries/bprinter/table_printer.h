@@ -35,7 +35,7 @@ class endl{};
   */
 class TablePrinter{
 public:
-  TablePrinter(std::ostream * output, const std::string & separator = "|");
+  TablePrinter(std::ostream * output, const std::string & separator = "|", const bool use_bool_font = true);
   ~TablePrinter();
 
   unsigned int get_num_columns() const;
@@ -207,6 +207,7 @@ private:
 
     unsigned int table_width_;
     bool flush_left_;
+    bool bold_font_;
 };
 
 }

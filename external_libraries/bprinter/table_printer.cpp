@@ -5,7 +5,7 @@
 
 namespace bprinter 
 {
-    TablePrinter::TablePrinter(std::ostream * output, const std::string & separator)
+    TablePrinter::TablePrinter(std::ostream * output, const std::string & separator, const bool use_bool_font)
     {
         out_stream_ = output;
         i_ = 0;
@@ -13,6 +13,7 @@ namespace bprinter
         separator_ = separator;
         table_width_ = 0;
         flush_left_ = false;
+        bold_font_ = use_bool_font;
     }
 
     TablePrinter::~TablePrinter()= default;
@@ -75,13 +76,16 @@ namespace bprinter
     void TablePrinter::PrintHeader()
     {
         PrintHorizontalLine();
-		
-		#if !defined(_WIN32)
-			*out_stream_ << "\e[1m";
-		#endif
+        
+        if (bold_font_ == true)
+        {
+        #if !defined(_WIN32)
+            *out_stream_ << "\e[1m";
+        #endif
+        }
 
-		*out_stream_ << "|";
-		
+        *out_stream_ << "|";
+            
         for (unsigned int i = 0; i < get_num_columns(); ++i)
         {
             if(flush_left_)
@@ -101,14 +105,17 @@ namespace bprinter
             }
         }
 
-		*out_stream_ << "|";
+        *out_stream_ << "|";
 
-		#if !defined(_WIN32)
-			*out_stream_ << "\e[0m";
-		#endif
+        if (bold_font_ == true)
+        {
+        #if !defined(_WIN32)
+            *out_stream_ << "\e[0m";
+        #endif
+        }
 
-		*out_stream_ << "\n";
-		
+        *out_stream_ << "\n";
+            
         PrintHorizontalLine();
     }
 

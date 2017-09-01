@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "external_libraries/bprinter/table_printer.h"
+#include "../external_libraries/bprinter/table_printer.h"
 
 namespace Kratos
 {
@@ -55,10 +55,12 @@ public:
      * The default constructor
      */
     
-    BprinterUtility()
-    = default;
+    BprinterUtility(const bool UseBoldFont)
+    {
+//         mTable = bprinter::TablePrinter(&std::cout, "|", UseBoldFont);
+    }
     
-    virtual ~BprinterUtility()= default;;
+    virtual ~BprinterUtility()= default;
     
     ///@}
     ///@name Access
