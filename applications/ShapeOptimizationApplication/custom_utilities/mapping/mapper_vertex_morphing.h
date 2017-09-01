@@ -94,7 +94,7 @@ public:
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;    
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of MapperVertexMorphing
     KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphing);
@@ -109,20 +109,19 @@ public:
           mNumberOfDesignVariables(designSurface.Nodes().size()),
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() )
+          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() ),
+          mConsistentBackwardMapping (optimizationSettings["design_variables"]["consistent_mapping_to_geometry_space"].GetBool() )
     {
         CreateListOfNodesOfDesignSurface();
         CreateFilterFunction();
         InitializeMappingVariables();
-        AssignMappingIds();        
-        ComputeMappingMatrix();
+        AssignMappingIds();
     }
 
     /// Destructor.
     virtual ~MapperVertexMorphing()
     {
     }
-
 
     ///@}
     ///@name Operators
@@ -144,18 +143,18 @@ public:
             mListOfNodesOfDesignSurface[counter++] = pnode;
         }
     }
-    
+
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
         mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
-    }     
+    }
 
     // --------------------------------------------------------------------------
     void InitializeMappingVariables()
     {
         mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables);
-        mMappingMatrix.clear();                
+        mMappingMatrix.clear();
 
         x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
         y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
@@ -172,16 +171,16 @@ public:
         unsigned int i = 0;
         for(auto& node_i : mrDesignSurface.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
-    }        
+    }
 
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        boost::timer timer;        
+        boost::timer timer;
         std::cout << "> Computing mapping matrix to perform mapping..." << std::endl;
 
         CreateSearchTreeWithAllNodesOnDesignSurface();
-        ComputeEntriesOfMappingMatrix(); 
+        ComputeEntriesOfMappingMatrix();
 
         std::cout << "> Mapping matrix computed in: " << timer.elapsed() << " s" << std::endl;
     }
@@ -190,7 +189,7 @@ public:
     void CreateSearchTreeWithAllNodesOnDesignSurface()
     {
         mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-    }   
+    }
 
     // --------------------------------------------------------------------------
     void ComputeEntriesOfMappingMatrix()
@@ -200,15 +199,15 @@ public:
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius, 
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(), 
+                                                                             resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );                                                                               
+            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
@@ -222,10 +221,10 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node, 
-                                        NodeVector& neighbor_nodes, 
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
+                                        NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights, 
+                                        std::vector<double>& list_of_weights,
                                         double& sum_of_weights )
     {
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
@@ -239,10 +238,10 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& design_node, 
-                                        NodeVector& neighbor_nodes, 
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& design_node,
+                                        NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights, 
+                                        std::vector<double>& list_of_weights,
                                         double& sum_of_weights )
     {
         unsigned int row_id = design_node.GetValue(MAPPING_ID);
@@ -253,7 +252,7 @@ public:
 
             double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             mMappingMatrix.push_back(row_id,collumn_id,weight);
-        }        
+        }
     }
 
     // --------------------------------------------------------------------------
@@ -264,7 +263,10 @@ public:
 
         RecomputeMappingMatrixIfGeometryHasChanged();
         PrepareVectorsForMappingToDesignSpace( rNodalVariable );
-        MultiplyVectorsWithTransposeMappingMatrix();
+        if (mConsistentBackwardMapping)
+            MultiplyVectorsWithConsistentBackwardMappingMatrix();
+        else
+            MultiplyVectorsWithTransposeMappingMatrix();
         AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
 
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
@@ -302,7 +304,7 @@ public:
         z_variables_in_design_space.clear();
         x_variables_in_geometry_space.clear();
         y_variables_in_geometry_space.clear();
-        z_variables_in_geometry_space.clear();   
+        z_variables_in_geometry_space.clear();
 
         for(auto& node_i : mrDesignSurface.Nodes())
         {
@@ -322,7 +324,7 @@ public:
         z_variables_in_design_space.clear();
         x_variables_in_geometry_space.clear();
         y_variables_in_geometry_space.clear();
-        z_variables_in_geometry_space.clear();        
+        z_variables_in_geometry_space.clear();
 
         for(auto& node_i : mrDesignSurface.Nodes())
         {
@@ -333,7 +335,7 @@ public:
             z_variables_in_design_space[i] = nodal_variable[2];
         }
     }
- 
+
     // --------------------------------------------------------------------------
     void MultiplyVectorsWithTransposeMappingMatrix()
     {
@@ -343,12 +345,21 @@ public:
     }
 
     // --------------------------------------------------------------------------
+    void MultiplyVectorsWithConsistentBackwardMappingMatrix()
+    {
+        // for the case of matching grids in geometry and design space, use the forward mapping matrix
+        noalias(x_variables_in_design_space) = prod(mMappingMatrix,x_variables_in_geometry_space);
+        noalias(y_variables_in_design_space) = prod(mMappingMatrix,y_variables_in_geometry_space);
+        noalias(z_variables_in_design_space) = prod(mMappingMatrix,z_variables_in_geometry_space);
+    }
+
+    // --------------------------------------------------------------------------
     void MultiplyVectorsWithMappingMatrix()
     {
         noalias(x_variables_in_geometry_space) = prod(mMappingMatrix,x_variables_in_design_space);
         noalias(y_variables_in_geometry_space) = prod(mMappingMatrix,y_variables_in_design_space);
         noalias(z_variables_in_geometry_space) = prod(mMappingMatrix,z_variables_in_design_space);
-    } 
+    }
 
     // --------------------------------------------------------------------------
     void AssignResultingDesignVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
@@ -390,36 +401,21 @@ public:
             sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
         }
 
-        if(IsFirstMappingOperation())
-        {
-            mControlSum = sumOfAllCoordinates;
+        if (mControlSum == sumOfAllCoordinates)
             return false;
-        }
-        else if (mControlSum == sumOfAllCoordinates)
-            return false;
-        else 
+        else
         {
             mControlSum = sumOfAllCoordinates;
             return true;
         }
-    } 
+    }
 
     // --------------------------------------------------------------------------
-    void InitializeComputationOfMappingMatrix()
+    virtual void InitializeComputationOfMappingMatrix()
     {
-        mpSearchTree.reset();        
-        mMappingMatrix.clear();                
-    }  
-
-
-    // --------------------------------------------------------------------------
-    bool IsFirstMappingOperation()
-    {
-        if(mControlSum == 0.0)
-            return true;
-        else 
-             return false;
-    }      
+        mpSearchTree.reset();
+        mMappingMatrix.clear();
+    }
 
     // ==============================================================================
 
@@ -471,6 +467,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // // ==============================================================================
+    // // Initialized by class constructor
+    // // ==============================================================================
+    ModelPart& mrDesignSurface;
+    FilterFunction::Pointer mpFilterFunction;
 
     ///@}
     ///@name Protected Operators
@@ -511,12 +512,11 @@ private:
     // // ==============================================================================
     // // Initialized by class constructor
     // // ==============================================================================
-    ModelPart& mrDesignSurface;
     const unsigned int mNumberOfDesignVariables;
     std::string mFilterType;
     double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;            
-    FilterFunction::Pointer mpFilterFunction;
+    unsigned int mMaxNumberOfNeighbors;
+    bool mConsistentBackwardMapping;
 
     // ==============================================================================
     // Variables for spatial search
@@ -529,9 +529,9 @@ private:
     // Variables for mapping
     // ==============================================================================
     SparseMatrixType mMappingMatrix;
-    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
+    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
     Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = 0.0;    
+    double mControlSum = 0.0;
 
     ///@}
     ///@name Private Operators

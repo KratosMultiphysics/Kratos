@@ -24,12 +24,12 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "utilities/check_utilities.h"
 #include "boost/make_shared.hpp"
 
 // Application includes
@@ -837,21 +837,21 @@ public:
         if(ErrorCode != 0) return ErrorCode;
 
         // Check that all required variables have been registered
-        CheckUtilities::CheckVariableKey(VELOCITY);
-        CheckUtilities::CheckVariableKey(MESH_VELOCITY);
-        CheckUtilities::CheckVariableKey(ACCELERATION);
-        CheckUtilities::CheckVariableKey(PRESSURE);
-        CheckUtilities::CheckVariableKey(DENSITY);
-        CheckUtilities::CheckVariableKey(VISCOSITY);
-        CheckUtilities::CheckVariableKey(BODY_FORCE);
-        CheckUtilities::CheckVariableKey(OSS_SWITCH);
-        CheckUtilities::CheckVariableKey(DYNAMIC_TAU);
-        CheckUtilities::CheckVariableKey(DELTA_TIME);
-        CheckUtilities::CheckVariableKey(ADVPROJ);
-        CheckUtilities::CheckVariableKey(DIVPROJ);
-        CheckUtilities::CheckVariableKey(NODAL_AREA);
-        CheckUtilities::CheckVariableKey(C_SMAGORINSKY);
-        CheckUtilities::CheckVariableKey(ERROR_RATIO);
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+        KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
+        KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
+        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
+        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
+        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
+        KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
+        KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
+        KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
+        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
+        KRATOS_CHECK_VARIABLE_KEY(ERROR_RATIO);
         // Additional variables, only required to print results:
         // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
 
@@ -861,19 +861,19 @@ public:
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             Node<3> &rNode = this->GetGeometry()[i];
-            CheckUtilities::CheckVariableInNodalData(VELOCITY,rNode);
-            CheckUtilities::CheckVariableInNodalData(PRESSURE,rNode);
-            CheckUtilities::CheckVariableInNodalData(MESH_VELOCITY,rNode);
-            CheckUtilities::CheckVariableInNodalData(ACCELERATION,rNode);
-            CheckUtilities::CheckVariableInNodalData(DENSITY,rNode);
-            CheckUtilities::CheckVariableInNodalData(VISCOSITY,rNode);
-            CheckUtilities::CheckVariableInNodalData(BODY_FORCE,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
             // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 
-            CheckUtilities::CheckDofInNode(VELOCITY_X,rNode);
-            CheckUtilities::CheckDofInNode(VELOCITY_Y,rNode);
-            if (TDim == 3) CheckUtilities::CheckDofInNode(VELOCITY_Z,rNode);
-            CheckUtilities::CheckDofInNode(PRESSURE,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 
