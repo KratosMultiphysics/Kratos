@@ -404,6 +404,7 @@ namespace Kratos
                     .def(init< double, double >())
                     .def(init< double, double, TablePrinterPointerType >())
                     .def(init< double, double, TablePrinterPointerType, bool >())
+                    .def(init< double, double, TablePrinterPointerType, bool, bool >())
                     ;
 
             class_<FancyResidualCriteria<SparseSpaceType, LocalSpaceType >,
@@ -413,6 +414,7 @@ namespace Kratos
                     .def(init< double, double >())
                     .def(init< double, double, TablePrinterPointerType >())
                     .def(init< double, double, TablePrinterPointerType, bool >())
+                    .def(init< double, double, TablePrinterPointerType, bool, bool >())
                     ;
 
             class_<FancyAndConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
@@ -420,6 +422,7 @@ namespace Kratos
                     boost::noncopyable >
                     ("FancyAndConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
                     .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType, bool >())
                     ;
 
             class_<FancyOrConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
@@ -427,6 +430,7 @@ namespace Kratos
                     boost::noncopyable >
                     ("FancyOrConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
                     .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType, bool >())
                     ;
 
             //********************************************************************

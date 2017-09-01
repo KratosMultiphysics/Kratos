@@ -55,9 +55,9 @@ public:
      * The default constructor
      */
     
-    BprinterUtility(const bool UseBoldFont)
+    BprinterUtility(const bool UseBoldFont):
+        mTable(&std::cout, "|", UseBoldFont)
     {
-//         mTable = bprinter::TablePrinter(&std::cout, "|", UseBoldFont);
     }
     
     virtual ~BprinterUtility()= default;
@@ -168,7 +168,7 @@ private:
     ///@name Member Variables
     ///@{      
     
-    TablePrinterType mTable{&std::cout, "|"};
+    TablePrinterType mTable;//{&std::cout, "|"};
     
     ///@}
     ///@name Private Operators

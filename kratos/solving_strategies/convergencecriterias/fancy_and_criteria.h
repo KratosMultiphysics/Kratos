@@ -107,10 +107,12 @@ public:
     FancyAndConvergenceCriteria(
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr, 
+        const bool PrintingOutput = false 
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
         mpTable(pTable),
+        mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
@@ -124,6 +126,7 @@ public:
          BaseType::mpFirstCriterion  = rOther.mpFirstCriterion;
          BaseType::mpSecondCriterion = rOther.mpSecondCriterion;
          mpTable = rOther.mpTable;
+         mPrintingOutput = rOther.mPrintingOutput;
          mTableIsInitialized = rOther.mTableIsInitialized;
      }
 
@@ -212,11 +215,18 @@ public:
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             std::cout.precision(4);
-        #if !defined(_WIN32)
-            std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-        #else
-            std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-        #endif
+            if (mPrintingOutput == false)
+            {
+            #if !defined(_WIN32)
+                std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            #else
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            #endif
+            }
+            else
+            {
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            }
                 
             if (mpTable != nullptr)
             {
@@ -305,6 +315,8 @@ private:
     ///@{
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    
+    bool mPrintingOutput;            // If the colors and bold are printed
     
     bool mTableIsInitialized;        // If the table is already initialized
     

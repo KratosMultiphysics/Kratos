@@ -113,7 +113,8 @@ public:
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm,
         TablePrinterPointerType pTable = nullptr,
-        const bool StandaloneTable = true
+        const bool StandaloneTable = true,
+        const bool PrintingOutput = false 
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mpTable(pTable),
@@ -211,13 +212,21 @@ public:
                 else
                 {
                     std::cout.precision(4);
-                #if !defined(_WIN32)
-                    std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                    std::cout << BOLDFONT("\tRESIDUAL: RATIO = ") << res_ratio << BOLDFONT(" EXP.RATIO = ") << mResRatioTolerance << BOLDFONT(" ABS = ") << res_abs << BOLDFONT(" EXP.ABS = ") << mResAbsTolerance << std::endl;
-                #else
-                    std::cout << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                    std::cout << "\tRESIDUAL: RATIO = " << res_ratio << " EXP.RATIO = " << mResRatioTolerance << " ABS = " << res_abs << " EXP.ABS = " << mResAbsTolerance << std::endl;
-                #endif
+                    if (mPrintingOutput == false)
+                    {
+                    #if !defined(_WIN32)
+                        std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                        std::cout << BOLDFONT("\tRESIDUAL: RATIO = ") << res_ratio << BOLDFONT(" EXP.RATIO = ") << mResRatioTolerance << BOLDFONT(" ABS = ") << res_abs << BOLDFONT(" EXP.ABS = ") << mResAbsTolerance << std::endl;
+                    #else
+                        std::cout << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                        std::cout << "\tRESIDUAL: RATIO = " << res_ratio << " EXP.RATIO = " << mResRatioTolerance << " ABS = " << res_abs << " EXP.ABS = " << mResAbsTolerance << std::endl;
+                    #endif
+                    }
+                    else
+                    {
+                        std::cout << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                        std::cout << "\tRESIDUAL: RATIO = " << res_ratio << " EXP.RATIO = " << mResRatioTolerance << " ABS = " << res_abs << " EXP.ABS = " << mResAbsTolerance << std::endl;
+                    }
                 }
             }
 
@@ -231,19 +240,33 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                    #if !defined(_WIN32)
-                        Table << BOLDFONT(FGRN("       Achieved"));
-                    #else
-                        Table << "Achieved";
-                    #endif
+                        if (mPrintingOutput == false)
+                        {
+                        #if !defined(_WIN32)
+                            Table << BOLDFONT(FGRN("       Achieved"));
+                        #else
+                            Table << "Achieved";
+                        #endif
+                        }
+                        else
+                        {
+                            Table << "Achieved";
+                        }
                     }
                     else
                     {
-                    #if !defined(_WIN32)
-                        std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tResidual convergence is achieved" << std::endl;
-                    #endif
+                        if (mPrintingOutput == false)
+                        {
+                        #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        #else
+                            std::cout << "\tResidual convergence is achieved" << std::endl;
+                        #endif
+                        }
+                        else
+                        {
+                            std::cout << "\tResidual convergence is achieved" << std::endl;
+                        }
                     }
                 }
                 
@@ -314,11 +337,18 @@ public:
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0 && mStandaloneTable == true)
         {
             std::cout.precision(4);
-        #if !defined(_WIN32)
-            std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-        #else
-            std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-        #endif
+            if (mPrintingOutput == false)
+            {
+            #if !defined(_WIN32)
+                std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            #else
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            #endif
+            }
+            else
+            {
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            }
                 
             if (mpTable != nullptr)
             {
@@ -431,6 +461,8 @@ private:
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
     
     bool mStandaloneTable;           // If the table is not appended to any other table
+    
+    bool mPrintingOutput;            // If the colors and bold are printed
     
     bool mTableIsInitialized;        // If the table is already initialized 
     

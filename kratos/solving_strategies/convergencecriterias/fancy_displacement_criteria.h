@@ -108,11 +108,13 @@ public:
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm,
         TablePrinterPointerType pTable = nullptr,
-        const bool StandaloneTable = true 
+        const bool StandaloneTable = true, 
+        const bool PrintingOutput = false 
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mpTable(pTable),
           mStandaloneTable(StandaloneTable),
+          mPrintingOutput(PrintingOutput),
           mTableIsInitialized(false)
     {
         mDispRatioTolerance = NewRatioTolerance;
@@ -128,6 +130,7 @@ public:
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
       ,mpTable(rOther.mpTable)
       ,mStandaloneTable(rOther.mStandaloneTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
@@ -207,13 +210,21 @@ public:
                 else
                 {
                     std::cout.precision(4);
-                #if !defined(_WIN32)
-                    std::cout << BOLDFONT("DISPLACEMENT CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                    std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                #else
-                    std::cout << "DISPLACEMENT CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                    std::cout << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-                #endif
+                    if (mPrintingOutput == false)
+                    {
+                    #if !defined(_WIN32)
+                        std::cout << BOLDFONT("DISPLACEMENT CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                        std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                    #else
+                        std::cout << "DISPLACEMENT CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                        std::cout << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                    #endif
+                    }
+                    else
+                    {
+                        std::cout << "DISPLACEMENT CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                        std::cout << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                    }
                 }
             }
 
@@ -227,19 +238,33 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                    #if !defined(_WIN32)
-                        Table << BOLDFONT(FGRN("       Achieved"));
-                    #else
-                        Table << "Achieved";
-                    #endif
+                        if (mPrintingOutput == false)
+                        {
+                        #if !defined(_WIN32)
+                            Table << BOLDFONT(FGRN("       Achieved"));
+                        #else
+                            Table << "Achieved";
+                        #endif
+                        }
+                        else
+                        {
+                            Table << "Achieved";
+                        }
                     }
                     else
                     {
-                    #if !defined(_WIN32)
-                        std::cout << BOLDFONT("\tDisplacement") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tDisplacement convergence is achieved" << std::endl;
-                    #endif
+                        if (mPrintingOutput == false)
+                        {
+                        #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tDisplacement") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        #else
+                            std::cout << "\tDisplacement convergence is achieved" << std::endl;
+                        #endif
+                        }
+                        else
+                        {
+                            std::cout << "\tDisplacement convergence is achieved" << std::endl;
+                        }
                     }
                 }
 
@@ -404,6 +429,8 @@ private:
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
     
     bool mStandaloneTable;           // If the table is not appended to any other table
+    
+    bool mPrintingOutput;            // If the colors and bold are printed
     
     bool mTableIsInitialized;        // If the table is already initialized
 
