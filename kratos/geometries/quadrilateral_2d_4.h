@@ -428,6 +428,29 @@ public:
         //return fabs(DeterminantOfJacobian(PointType())) * 0.5;
     }
 
+    /// detect if quadrilateral and box are intersected
+    bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint ) override {
+        
+        const BaseType& geom_1 = *this;
+
+        Point<3, double> boxcenter;
+        Point<3, double> boxhalfsize;
+
+        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+        boxcenter[2]   = 0.00;
+
+        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
+        boxhalfsize[2] = 0.00;
+
+        std::size_t size = geom_1.size();
+        std::vector<Point<3, double> > quadverts(size);
+        for(unsigned int i = 0; i< size; i++ )
+            quadverts[i] =  geom_1.GetPoint(i);
+
+        return QuadBoxOverlap(boxcenter, boxhalfsize, quadverts);
+    }
 
     /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
@@ -1039,6 +1062,210 @@ private:
         };
         return shape_functions_local_gradients;
     }
+
+
+    inline bool QuadBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& quadverts)
+    {
+        /*    use separating axis theorem to test overlap between quadrilateral and box  */
+        /*    need to test for overlap in these directions:                              */
+        /*    1) the {x,y,z}-directions                                                  */
+        /*    2) normal of the quadrilateral                                             */
+        /*    3) crossproduct(edge from quad, {x,y,z}-directin)                          */
+        /*       this gives 4x3=12 more tests                                            */
+        
+        double min,max,d,fex,fey,fez;
+        array_1d<double,3 > v0,v1,v2,v3;
+        array_1d<double,3 > axis;
+        array_1d<double,3 > normal,e0,e1,e2,e3;
+        
+        /* This is the fastest branch on Sun */
+        /* move everything so that the boxcenter is in (0,0,0) */
+        noalias(v0) = quadverts[0] - boxcenter;
+        noalias(v1) = quadverts[1] - boxcenter;
+        noalias(v2) = quadverts[2] - boxcenter;
+        noalias(v3) = quadverts[3] - boxcenter;
+        
+        /* compute quadrilateral edges */
+        noalias(e0) = v1 - v0;         /* quad edge 0 */
+        noalias(e1) = v2 - v1;         /* quad edge 1 */
+        noalias(e2) = v3 - v2;         /* quad edge 2 */
+        noalias(e3) = v0 - v3;         /* quad edge 3 */
+        
+        /* Bullet 3:  */
+        /* test the 12 tests first (this was faster) */
+        fex = std::abs(e0[0]);
+        fey = std::abs(e0[1]);
+        fez = std::abs(e0[2]);
+        if (!AxisTest_X(e0[1],e0[2],fey,fez,v0,v2,v3,boxhalfsize)) return false;
+        if (!AxisTest_Y(e0[0],e0[2],fex,fez,v0,v2,v3,boxhalfsize)) return false;
+      //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v0,v2,v3,boxhalfsize)) return false;
+        
+        fex = std::abs(e1[0]);
+        fey = std::abs(e1[1]);
+        fez = std::abs(e1[2]);
+        if (!AxisTest_X(e1[1],e1[2],fey,fez,v1,v3,v0,boxhalfsize)) return false;
+        if (!AxisTest_Y(e1[0],e1[2],fex,fez,v1,v3,v0,boxhalfsize)) return false;
+      //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v1,v3,v0,boxhalfsize)) return false;
+        
+        fex = std::abs(e2[0]);
+        fey = std::abs(e2[1]);
+        fez = std::abs(e2[2]);
+        if (!AxisTest_X(e2[1],e2[2],fey,fez,v2,v0,v1,boxhalfsize)) return false;
+        if (!AxisTest_Y(e2[0],e2[2],fex,fez,v2,v0,v1,boxhalfsize)) return false;
+      //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v2,v0,v1,boxhalfsize)) return false;
+        
+        fex = std::abs(e3[0]);
+        fey = std::abs(e3[1]);
+        fez = std::abs(e3[2]);
+        if (!AxisTest_X(e3[1],e3[2],fey,fez,v3,v1,v2,boxhalfsize)) return false;
+        if (!AxisTest_Y(e3[0],e3[2],fex,fez,v3,v1,v2,boxhalfsize)) return false;
+      //if (!AxisTest_Z(e0[1],e0[0],fey,fez,v3,v1,v2,boxhalfsize)) return false;
+        
+        
+        /* Bullet 1:  */
+        /*  first test overlap in the {x,y,z}-directions */
+        /*  find min, max of the quadrilateral for each direction, and test for  */
+        /*  overlap in that direction -- this is equivalent to testing a minimal */
+        /*  AABB around the triangle against the AABB */
+
+        /* test in X-direction */
+        FindMinMax(v0[0],v1[0],v2[0],v3[0],min,max);
+        if(min>boxhalfsize[0] || max<-boxhalfsize[0]) return false;
+        
+        /* test in Y-direction */
+        FindMinMax(v0[1],v1[1],v2[1],v3[1],min,max);
+        if(min>boxhalfsize[1] || max<-boxhalfsize[1]) return false;
+        
+        /* test in Z-direction */
+        FindMinMax(v0[2],v1[2],v2[2],v3[2],min,max);
+        if(min>boxhalfsize[2] || max<-boxhalfsize[2]) return false;
+        
+
+        /* Bullet 2: */
+        /*  test if the box intersects the plane of the triangle */
+        /*  compute plane equation of quadrilateral: normal*x+d=0 */
+        MathUtils<double>::CrossProduct(normal, e0, e1);
+        d =- inner_prod(normal,v0);  /* plane eq: normal*x+d=0 */
+        if(!PlaneBoxOverlap(normal,d,boxhalfsize)) return false;
+        
+        return true;  /* box and triangle overlaps */
+    }
+    
+    
+
+//*************************************************************************************
+//*************************************************************************************
+
+
+    void FindMinMax(const double& x0,
+                    const double& x1,
+                    const double& x2,
+                    double& min,
+                    double& max)
+    {
+        min = max = x0;
+        if(x1<min) min=x1;
+        else       max=x1;
+        if(x2<min)      min=x2;
+        else if(x2>max) max=x2;
+    }
+
+
+    void FindMinMax(const double& x0,
+                    const double& x1,
+                    const double& x2,
+                    const double& x3,
+                    double& min,
+                    double& max)
+    {
+        min = max = x0;
+        if(x1<min) min=x1;
+        else       max=x1;
+        if(x2<min)      min=x2;
+        else if(x2>max) max=x2;
+        if(x3<min)      min=x3;
+        else if(x3>max) max=x3;
+    }
+  
+    
+    bool PlaneBoxOverlap(const array_1d<double,3>& normal, const double& d, const array_1d<double,3>& maxbox)
+    {
+        int q;
+        array_1d<double,3> vmin, vmax;
+        for(q = 0; q <= 2; q++)
+        {
+            if(normal[q] > 0.00)
+            {
+                vmin[q] = -maxbox[q];
+                vmax[q] =  maxbox[q];
+            }
+            else
+            {
+                vmin[q] =  maxbox[q];
+                vmax[q] = -maxbox[q];
+            }
+        }
+        if(inner_prod(normal,vmin)+d >  0.00) return false;
+        if(inner_prod(normal,vmax)+d >= 0.00) return true;
+        
+        return false;
+    }
+    
+    
+    /*========================= X-tests ========================*/
+    bool AxisTest_X(double& ey, double& ez, 
+                    double& fey, double& fez,
+                    array_1d<double,3>& va, 
+                    array_1d<double,3>& vc, 
+                    array_1d<double,3>& vd,
+                    Point<3,double>& boxhalfsize)
+    {
+        /*  x-i test:                                           */
+        /*    ey, ez: i-edge coordinates                        */
+        /*    fey, fez: i-edge fabs coordinates                 */
+        /*    va: i vertex                                      */
+        /*    vc: i+2 vertex                                    */
+        /*    vd: i+3 vertex                                    */
+        double pa, pc, pd, min, max, rad;
+        pa = ey*va[2] - ez*va[1];
+        pc = ey*vc[2] - ez*vc[1];
+        pd = ey*vd[2] - ez*vd[1];
+        FindMinMax(pa,pc,pd,min,max);
+        
+        rad = fey*boxhalfsize[1] + fez*boxhalfsize[2];
+        
+        if(min>rad || max<-rad) return false;
+        else return true;
+    }
+    
+    
+    /*========================= Y-tests ========================*/
+    bool AxisTest_Y(double& ex, double& ez, 
+                    double& fex, double& fez,
+                    array_1d<double,3>& va, 
+                    array_1d<double,3>& vc, 
+                    array_1d<double,3>& vd,
+                    Point<3,double>& boxhalfsize)
+    {
+        /*  y-i test:                                           */
+        /*    ex, ez: i-edge coordinates                        */
+        /*    fex, fez: i-edge fabs coordinates                 */
+        /*    va: i vertex                                      */
+        /*    vc: i+2 vertex                                    */
+        /*    vd: i+3 vertex                                    */
+        double pa, pc, pd, min, max, rad;
+        pa = ez*va[0] - ex*va[2];
+        pc = ez*vc[0] - ex*vc[2];
+        pd = ez*vd[0] - ex*vd[2];
+        FindMinMax(pa,pc,pd,min,max);
+        
+        rad = fex*boxhalfsize[0] + fez*boxhalfsize[2];
+        
+        if(min>rad || max<-rad) return false;
+        else return true;
+    }
+    
+    
 
     ///@}
     ///@name Private  Access
