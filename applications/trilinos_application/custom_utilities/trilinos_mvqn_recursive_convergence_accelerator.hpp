@@ -79,7 +79,7 @@ public:
                               Pointer&& OldJacobianEmulatorPointer ) :
         mrInterfaceModelPart(rInterfaceModelPart),
         mrEpetraCommunicator(rEpetraCommunicator)
-    {   
+    {
         mpOldJacobianEmulator = std::unique_ptr<TrilinosJacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
     }
 
@@ -106,7 +106,6 @@ public:
                 if(i == EmulatorBufferSize-1)
                 {
                     (p->mpOldJacobianEmulator).reset();
-                    //~ std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
                 }
                 else
                 {
@@ -117,7 +116,6 @@ public:
         else // If Jacobian buffer size equals 1 directly destroy the previous one
         {
             (mpOldJacobianEmulator->mpOldJacobianEmulator).reset();
-            //~ std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
         }
     }
 
@@ -180,38 +178,26 @@ public:
      * @param rProjectedVector: Projected vector output
      */
     void ApplyJacobian(const VectorPointerType pWorkVector,
-                       VectorPointerType pProjectedVector) 
+                       VectorPointerType pProjectedVector)
     {
         KRATOS_TRY;
-
-        // std::cout << std::endl;
-        // std::cout << "ENTERING ApplyJacobian" << std::endl;
 
         const unsigned int previous_iterations = mJacobianObsMatrixV.size();
 
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
         if (previous_iterations == 0)
         {
-            // std::cout << "ENTERING ApplyJacobian with mJacobianObsMatrixV.size() == 0" << std::endl;
             if (mpOldJacobianEmulator != nullptr) // If it is available, consider the previous step Jacobian
             {
-                // std::cout << "mpOldJacobianEmulator != nullptr" << std::endl;
-                // std::cout << std::endl;
                 mpOldJacobianEmulator->ApplyJacobian(pWorkVector, pProjectedVector);
             }
             else // When the JacobianEmulator has no PreviousJacobianEmulator consider minus the identity matrix as inverse Jacobian
             {
-                // std::cout << "mpOldJacobianEmulator is NULL" << std::endl;
-                // std::cout << std::endl;
                 TSpace::Assign(*pProjectedVector, -1.0, *pWorkVector);
             }
         }
         else
         {
-            // std::cout << "ENTERING ApplyJacobian with mJacobianObsMatrixV.size() != 0" << std::endl;
-            // std::cout << std::endl;
-            const unsigned int residual_size = TSpace::Size(mJacobianObsMatrixV[0]);
-
             // Get the domain size
             unsigned int n_dim = mrInterfaceModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
@@ -252,8 +238,6 @@ public:
             EpetraSystemSolver.SetMatrix(Vtrans_V);
             EpetraSystemSolver.SetVectors(zSystemSol,Vtrans_r);
             EpetraSystemSolver.Solve();
-
-            // TODO: zSystemSolve has to be converted to an Epetra_FEVector --> Create a MAP
 
             TSpace::SetToZero(*pY);
             for (unsigned int j = 0; j < previous_iterations; ++j)
@@ -477,7 +461,7 @@ public:
      */
     TrilinosMVQNRecursiveJacobianConvergenceAccelerator( ModelPart& rInterfaceModelPart,
                                                          const Epetra_MpiComm& rEpetraCommunicator,
-                                                         const double OmegaInitial = 0.825, 
+                                                         const double OmegaInitial = 0.825,
                                                          const unsigned int JacobianBufferSize = 7 ):
         mrInterfaceModelPart(rInterfaceModelPart),
         mrEpetraCommunicator(rEpetraCommunicator),
@@ -587,7 +571,6 @@ public:
             }
             else
             {
-                //~ std::cout << "First step correction" << std::endl;
                 VectorPointerType pInitialCorrection(new VectorType(rResidualVector));
 
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
@@ -598,8 +581,6 @@ public:
         }
         else
         {
-            //~ std::cout << "Gathering information" << std::endl;
-
             // Gather the new observation matrices column information
             VectorPointerType pNewColV(new VectorType(*mpResidualVector_1));
             VectorPointerType pNewColW(new VectorType(*mpIterationValue_1));
@@ -613,18 +594,12 @@ public:
                 // Append the new information to the existent observation matrices
                 (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
                 (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
-
-                //~ std::cout << "Observation matrices new information appended" << std::endl;
             }
             else
             {
                 (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(*pNewColV);
                 (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(*pNewColW);
-
-                //~ std::cout << "Observation matrices size is kept (oldest column is dropped)" << std::endl;
             }
-
-            //~ std::cout << "Jacobian approximation computation starts..." << std::endl;
 
             // Apply the current step inverse Jacobian emulator to the residual vector
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
