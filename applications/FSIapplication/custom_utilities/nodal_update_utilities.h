@@ -286,7 +286,7 @@ public:
             const array_1d<double, 3>& vmesh_n = it_node->FastGetSolutionStepValue(MESH_VELOCITY, 1);      // Previous step mesh velocity
             const array_1d<double, 3>& amesh_n = it_node->FastGetSolutionStepValue(MESH_ACCELERATION, 1);  // Previous step mesh acceleration
 
-            const array_1d<double, 3>& umesh_n1 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1); // Current step mesh displacement
+            const array_1d<double, 3>& umesh_n1 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);    // Current step mesh displacement
             array_1d<double, 3>& vmesh_n1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);              // Current step mesh velocity (to be updated)
             array_1d<double, 3>& amesh_n1 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION);          // Current step mesh acceleration (to be updated)
 
