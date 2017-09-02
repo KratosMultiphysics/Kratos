@@ -355,10 +355,11 @@ public:
         for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
+            const array_1d<double, 3>& disp = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            ux_norm += std::pow(it_node->FastGetSolutionStepValue(DISPLACEMENT_X), 2);
-            uy_norm += std::pow(it_node->FastGetSolutionStepValue(DISPLACEMENT_Y), 2);
-            uz_norm += std::pow(it_node->FastGetSolutionStepValue(DISPLACEMENT_Z), 2);
+            ux_norm += std::pow(disp[0], 2);
+            uy_norm += std::pow(disp[1], 2);
+            uz_norm += std::pow(disp[2], 2);
         }
 
         rInterfaceModelPart.GetCommunicator().SumAll(ux_norm);
@@ -387,7 +388,7 @@ public:
         for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
-            const array_1d<double, 3> disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+            const array_1d<double, 3>& disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
 
             if (std::fabs(it_node->X() - (it_node->X0() + disp[0])) > tolerance)
             {
@@ -416,7 +417,7 @@ public:
         for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
-            const array_1d<double, 3> disp = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& disp = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             if (std::fabs(it_node->X() - (it_node->X0() + disp[0])) > tolerance)
             {
