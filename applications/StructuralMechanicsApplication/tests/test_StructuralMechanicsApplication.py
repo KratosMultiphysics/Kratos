@@ -14,6 +14,16 @@ except ImportError as e:
     # extract name of the missing application from the error message
     import re
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
+    
+try:
+  import KratosMultiphysics.MeshingApplication as MeshingApplication
+  missing_meshing_dependencies = False
+  missing_application = ''
+except ImportError as e:
+    missing_meshing_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS

@@ -51,20 +51,17 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     
     // Base types
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef boost::shared_ptr<BaseSolvingStrategyType> PointerBaseSolvingStrategyType;
         
     // Custom strategy types
     
     // Custom scheme types
 
     // Custom convergence criterion types
-    #ifdef INCLUDE_MMG
-        typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
-    #endif
-    
+#ifdef INCLUDE_MMG
+    typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+#endif
+
     // Custom builder and solvers types
     
     //********************************************************************
@@ -79,18 +76,18 @@ void  AddCustomStrategiesToPython()
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-    #ifdef INCLUDE_MMG
-        // Displacement Convergence Criterion
-        class_< ErrorMeshCriteriaType,
-                bases< ConvergenceCriteriaType >, boost::noncopyable >
-                (
-                "ErrorMeshCriteria", 
-                init<ModelPart&, Parameters>())
-                .def(init<ModelPart&, Parameters, ProcessesListType>())
-                .def(init<ModelPart&, Parameters, ProcessesListType, PointerBaseSolvingStrategyType>())
-                .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
-                ;
-    #endif         
+#ifdef INCLUDE_MMG
+    // Displacement Convergence Criterion
+    class_< ErrorMeshCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "ErrorMeshCriteria", 
+            init<ModelPart&, Parameters>())
+            .def(init<ModelPart&, Parameters, ProcessesListType>())
+            .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
+            ;
+#endif         
+            
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
