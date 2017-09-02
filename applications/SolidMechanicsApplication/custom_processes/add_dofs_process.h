@@ -292,9 +292,9 @@ public:
 
 	int number_of_nodes = mr_model_part.NumberOfNodes();
 	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
-
 	
-	//generating the dofs for the initial node
+	/*
+	//1nd way: (fastest) generating the dofs for the initial node and add to others (still fails if a variable or a dof is set when mdpa is read)
 	AddNodalDofs(nodes_begin);
 	ModelPart::NodeType::DofsContainerType& reference_dofs = nodes_begin->GetDofs();
         #pragma omp parallel for
@@ -307,19 +307,19 @@ public:
 		it->pAddDof( *iii );
 	      }
 	  }
+	*/
 	
-	/*
-	//2nd way:  (faster-)
+	//2nd way:  (faster)
         #pragma omp parallel for
 	for (int k=0; k<number_of_nodes; k++)
 	  {
 	    ModelPart::NodeConstantIterator it = nodes_begin + k;
 	    AddNodalDofs(it);
 	  }
-	*/
+	
 
 	/*
-	//3rt way: add dofs in the standard way one by one to all nodes  (faster--)
+	//3rt way: add dofs in the standard way one by one to all nodes  (slower)
 	AddNodalDofs();
 	*/
 		

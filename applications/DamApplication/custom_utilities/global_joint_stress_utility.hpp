@@ -33,7 +33,7 @@
 //
 // Example of use from python:
 // import global_joint_stress_utility
-// global_joint_stress_utility.GlobalJoinStresstUtility(main_model_part.GetSubModelPart("Parts_Parts_Auto3")).ComputingGlobalStress()
+// global_joint_stress_utility.GlobalJoinStressUtility(main_model_part.GetSubModelPart("Parts_Parts_Auto3")).ComputingGlobalStress()
 //
 // The input plane must be introduce in the global_joint_stress_utility.py
 
