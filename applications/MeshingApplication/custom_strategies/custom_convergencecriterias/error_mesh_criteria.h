@@ -25,7 +25,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_utilities/process_factory_utility.h"
+#include "utilities/process_factory_utility.h"
 // Processes
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
