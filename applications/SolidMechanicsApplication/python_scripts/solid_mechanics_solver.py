@@ -12,41 +12,60 @@ def CreateSolver(main_model_part, custom_settings):
 
 #Base class to develop other solvers
 class MechanicalSolver(object):
-    
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which 
-    ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
-        ##settings string in json format
+    """The base class for solid mechanics solvers.
+
+    This class provides functions for importing and exporting models,
+    adding nodal variables and dofs and solving each solution step.
+
+    Derived classes must override the function _create_mechanical_solver which
+    constructs and returns a valid solving strategy. Depending on the type of
+    solver, derived classes may also need to override the following functions:
+
+    _create_solution_scheme
+    _create_convergence_criterion
+    _create_linear_solver
+    _create_builder_and_solver
+    _create_mechanical_solver
+
+    The mechanical_solver, builder_and_solver, etc. should alway be retrieved
+    using the getter functions _get_mechanical_solver, _get_builder_and_solver,
+    etc. from this base class.
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    settings -- Kratos parameters containing solver settings.
+    main_model_part -- the model part used to construct the solver.
+    """
+    def __init__(self, main_model_part, custom_settings):         
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "solid_mechanics_solver",
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
-            "analysis_type": "Non-Linear",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
+	    "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "stabilization_factor": null,
-            "reform_dofs_at_each_step": false,
+            "computing_model_part_name" : "computing_domain",
             "line_search": false,
             "implex": false,
+            "rotation_dofs": false,
+            "pressure_dofs": false,
+            "contact_dofs": false,
+            "water_pressure_dofs": false,
+            "jacobian_dofs": false,
+            "thermal_dofs":false, 
+            "stabilization_factor": null,
+            "reform_dofs_at_each_step": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "axisymmetric": false,
             "block_builder": true,
             "move_mesh_flag": true,
             "clear_storage": false,
@@ -70,17 +89,19 @@ class MechanicalSolver(object):
         }
         """)
         
-        ##overwrite the default settings with user-provided parameters
+        # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        #construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        
-        print("Warning: Construction of Base Mechanical Solver finished")
 
-    
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
+        self.main_model_part = main_model_part    
+        
+        print("::[Solid Mechanical Solver]:: Constructed")
+
+        
+    def GetMinimumBufferSize(self):
+        return 2;
+
     def SetVariables(self):
         
         self.nodal_variables = []
@@ -92,7 +113,7 @@ class MechanicalSolver(object):
         self.dof_reactions = self.dof_reactions + ['REACTION'] 
         
         # Add dynamic variables
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
+        if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
             self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
         
@@ -100,26 +121,39 @@ class MechanicalSolver(object):
         self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
         
         # Add nodal force variables for component wise calculation
-        if self.settings["component_wise"].GetBool():
-            self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
+        if( self.settings.Has("component_wise") ):
+            if self.settings["component_wise"].GetBool():
+                self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
  
         # Add rotational variables
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['TORQUE']
-            if(self.settings["solution_type"].GetString() == "Dynamic"):
+            if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
                 self.dof_variables = self.dof_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
                 self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
             # Add specific variables for the problem conditions
             self.nodal_variables = self.nodal_variables + ['POINT_MOMENT']
+            # Add large rotation variables
+            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
 
+            
         # Add pressure variables
         if self.settings["pressure_dofs"].GetBool():
             # Add specific variables for the problem (pressure dofs)
             self.dof_variables = self.dof_variables + ['PRESSURE']
             self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
-                
+            if not self.settings["stabilization_factor"].IsNull():
+                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
+
+        # Add contat variables
+        if self.settings["contact_dofs"].GetBool():
+            # Add specific variables for the problem (contact dofs)
+            self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
+            self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
+        
+        
         
     def AddVariables(self):
 
@@ -129,76 +163,61 @@ class MechanicalSolver(object):
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
 
-        for variable in self.nodal_variables:
+        for variable in self.nodal_variables:            
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
-        print("::[Mechanical Solver]:: Variables ADDED")
+            #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
+            
+        print("::[Mechanical Solver]:: General Variables ADDED")
                                                               
-    
-    def GetMinimumBufferSize(self):
-        return 2;
-
-    
+        
     def AddDofs(self):
-
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
                 
         print("::[Mechanical Solver]:: DOF's ADDED")
         
     def ImportModelPart(self):
+
+        print("::[MechanicalSolver]:: Importing model part.")
+        problem_path = os.getcwd()
+        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
         
-        print("::[Mechanical Solver]:: Model reading starts.")
-
-        self.computing_model_part_name = "computing_domain" #this submodelpart will be labeled with KratosMultiphysics.ACTIVE flag, you can recover it checking the flag.
-        
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):            
+            # Import model part from mdpa file.
+            print("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            print("    Finished reading model part from mdpa file.")
+            # Check and prepare computing model part and import constitutive laws.
+            self._execute_after_reading()
+            self._set_and_fill_buffer()
             
-            # Model part reading
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-            print("    Import input model part.")
-            
-            # Check and prepare model process and construct constitutive law
-            self._ExecuteAfterReading()
-
-            # Set and fill buffer
-            self._SetAndFillBuffer()
-
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
-
-            problem_path = os.getcwd()
+            # Import model part from restart file.
             restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
-
             if(os.path.exists(restart_path+".rest") == False):
-                print("    rest file does not exist , check the restart step selected ")
-
-            print("    Load Restart file: ", self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString())
+                raise Exception("Restart file not found: " + restart_path + ".rest")
+            print("    Loading Restart file: ", restart_path + ".rest")
             # set serializer flag
-            self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
+            serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
+            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
+            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
-
+            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
             serializer.Load(self.main_model_part.Name, self.main_model_part)
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
             #I use it to rebuild the contact conditions.
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-
-            print(self.main_model_part)
+            print("    Finished loading model part from restart file.")            
 
         else:
             raise Exception("Other input options are not yet implemented.")
 
 
-        if self.settings["pressure_dofs"].GetBool():
-            if not self.settings["stabilization_factor"].IsNull():
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
-        
-        print ("::[Mechanical Solver]:: Model reading finished.")
- 
-    
+        print(self.main_model_part)
+        print ("::[MechanicalSolver]:: Finished importing model part.")
+            
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
@@ -207,10 +226,26 @@ class MechanicalSolver(object):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
     
     def Initialize(self):
-        raise Exception("please implement the Custom Initialization of your solver")
+        """Perform initialization after adding nodal variables and dofs to the main model part. """
+        print("::[MechanicalSolver]:: -START-")
+        
+        # The mechanical solver is created here if it does not already exist.
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+        mechanical_solver = self._get_mechanical_solver()
+        mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+            mechanical_solver.Initialize()
+        else:
+            # SetInitializePerformedFlag is not a member of SolvingStrategy but
+            # is used by ResidualBasedNewtonRaphsonStrategy.
+            if hasattr(mechanical_solver, SetInitializePerformedFlag):
+                mechanical_solver.SetInitializePerformedFlag(True)
+        self.Check()
+        print("::[MechanicalSolver]:: -END-")        
         
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
         
     def GetOutputVariables(self):
         pass
@@ -224,47 +259,59 @@ class MechanicalSolver(object):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-            
-        self.mechanical_solver.Solve()
-
-    # solve :: sequencial calls
+        self._get_mechanical_solver().Solve()
     
-    def InitializeStrategy(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            self.mechanical_solver.Initialize()
-        else:
-            self.mechanical_solver.SetInitializePerformedFlag(True)
-
     def InitializeSolutionStep(self):
-        self.mechanical_solver.InitializeSolutionStep()
+        self._get_mechanical_solver().InitializeSolutionStep()
 
     def Predict(self):
-        self.mechanical_solver.Predict()
-
+        self._get_mechanical_solver().Predict()                                            
     def SolveSolutionStep(self):
-        self.mechanical_solver.SolveSolutionStep()
+        is_converged = self._get_mechanical_solver().SolveSolutionStep()
+        return is_converged
 
     def FinalizeSolutionStep(self):
-        self.mechanical_solver.FinalizeSolutionStep()
-
-    # solve :: sequencial calls
-
+        self._get_mechanical_solver().FinalizeSolutionStep()
+                                                    
     def SetEchoLevel(self, level):
-        self.mechanical_solver.SetEchoLevel(level)
+        self._get_mechanical_solver().SetEchoLevel(level)
 
     def Clear(self):
-        self.mechanical_solver.Clear()
-        
+        self._get_mechanical_solver().Clear()
+
     def Check(self):
-        self.mechanical_solver.Check()
-        
-    #### Specific internal functions ####
-    
-    def _ExecuteAfterReading(self):
-        self.computing_model_part_name = "computing_domain" #this submodelpart will be labeled with KratosMultiphysics.ACTIVE flag, you can recover it checking the flag.
+        self._get_mechanical_solver().Check()
+                                                    
+    #### Solver internal methods ####
+                                                    
+    def _get_solution_scheme(self):
+        if not hasattr(self, '_solution_scheme'):
+            self._solution_scheme = self._create_solution_scheme()
+        return self._solution_scheme
+
+    def _get_convergence_criterion(self):
+        if not hasattr(self, '_convergence_criterion'):
+            self._convergence_criterion = self._create_convergence_criterion()
+        return self._convergence_criterion
+
+    def _get_linear_solver(self):
+        if not hasattr(self, '_linear_solver'):
+            self._linear_solver = self._create_linear_solver()
+        return self._linear_solver
+
+    def _get_builder_and_solver(self):
+        if not hasattr(self, '_builder_and_solver'):
+            self._builder_and_solver = self._create_builder_and_solver()
+        return self._builder_and_solver
+
+    def _get_mechanical_solver(self):
+        if not hasattr(self, '_mechanical_solver'):
+            self._mechanical_solver = self._create_mechanical_solver()
+        return self._mechanical_solver
+                                                    
+    def _execute_after_reading(self):
+        # The computing_model_part is labeled 'KratosMultiphysics.ACTIVE' flag (in order to recover it)
+        self.computing_model_part_name = "computing_domain" 
 
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
@@ -275,45 +322,111 @@ class MechanicalSolver(object):
         if( self.settings.Has("bodies_list") ):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
-        # CheckAndPrepareModelProcess creates the solid_computational model part
+        # CheckAndPrepareModelProcess creates the computating_model_part
         import check_and_prepare_model_process_solid
         check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
+        # Import constitutive laws
+        materials_imported = self._import_constitutive_laws()
+        if materials_imported:
+            print("    Constitutive law was successfully imported.")
+        else:
+            print("    Constitutive law was not imported.")
+
+    def _import_constitutive_laws(self):
         # Constitutive law import
         import constitutive_law_python_utility as constitutive_law_utils
         constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                          self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
         constitutive_law.Initialize();
-        print("    Constitutive law initialized.")
+                                                    
+        return True
 
-    def _SetAndFillBuffer(self):
-        # Set buffer size
-        self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
+    def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        """Transfer matching settings from origin to destination.
 
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            current_buffer_size = self.GetMinimumBufferSize()
+        If a name in origin matches a name in destination, then the setting is
+        validated against the destination.
 
-        self.main_model_part.SetBufferSize( current_buffer_size )
+        The typical use is for validating and extracting settings in derived classes:
 
-        # Fill buffer
+        class A:
+            def __init__(self, model_part, a_settings):
+                default_a_settings = Parameters('''{
+                    ...
+                }''')
+                a_settings.ValidateAndAssignDefaults(default_a_settings)
+        class B(A):
+            def __init__(self, model_part, custom_settings):
+                b_settings = Parameters('''{
+                    ...
+                }''') # Here the settings contain default values.
+                self.validate_and_transfer_matching_settings(custom_settings, b_settings)
+                super().__init__(model_part, custom_settings)
+        """
+        for name, dest_value in destination_settings.items():
+            if origin_settings.Has(name): # Validate and transfer value.
+                orig_value = origin_settings[name]
+                if dest_value.IsDouble() and orig_value.IsDouble():
+                    destination_settings[name].SetDouble(origin_settings[name].GetDouble())
+                elif dest_value.IsInt() and orig_value.IsInt():
+                    destination_settings[name].SetInt(origin_settings[name].GetInt())
+                elif dest_value.IsBool() and orig_value.IsBool():
+                    destination_settings[name].SetBool(origin_settings[name].GetBool())
+                elif dest_value.IsString() and orig_value.IsString():
+                    destination_settings[name].SetString(origin_settings[name].GetString())
+                elif dest_value.IsArray() and orig_value.IsArray():
+                    if dest_value.size() != orig_value.size():
+                        raise Exception('len("' + name + '") != ' + str(dest_value.size()))
+                    for i in range(dest_value.size()):
+                        if dest_value[i].IsDouble() and orig_value[i].IsDouble():
+                            dest_value[i].SetDouble(orig_value[i].GetDouble())
+                        elif dest_value[i].IsInt() and orig_value[i].IsInt():
+                            dest_value[i].SetInt(orig_value[i].GetInt())
+                        elif dest_value[i].IsBool() and orig_value[i].IsBool():
+                            dest_value[i].SetBool(orig_value[i].GetBool())
+                        elif dest_value[i].IsString() and orig_value[i].IsString():
+                            dest_value[i].SetString(orig_value[i].GetString())
+                        elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
+                            self._validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
+                            if len(orig_value[i].items()) != 0:
+                                raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
+                        else:
+                            raise Exception('Unsupported parameter type.')
+                elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
+                    self._validate_and_transfer_matching_settings(orig_value, dest_value)
+                    if len(orig_value.items()) != 0:
+                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
+                else:
+                    raise Exception('Unsupported parameter type.')
+                origin_settings.RemoveValue(name)
+        
+    def _set_and_fill_buffer(self):
+        """Prepare nodal solution step data containers and time step information. """
+        # Set the buffer size for the nodal solution steps data. Existing nodal
+        # solution step data may be lost.
+        buffer_size = self.settings["buffer_size"].GetInt()
+        if buffer_size < self.GetMinimumBufferSize():
+            buffer_size = self.GetMinimumBufferSize()
+        self.main_model_part.SetBufferSize(buffer_size)
+        # Cycle the buffer. This sets all historical nodal solution step data to
+        # the current value and initializes the time stepping in the process info.
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        time = time - delta_time * (current_buffer_size)
+        step =-buffer_size
+        time = time - delta_time * buffer_size
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for size in range(0, current_buffer_size):
-            step = size - (current_buffer_size -1)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+        for i in range(0, buffer_size):
+            step = step + 1
             time = time + delta_time
-            #delta_time is computed from previous time in process_info
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
-
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-
-    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
-        raise Exception("please implement the Custom Choice of your Scheme (_GetSolutionScheme) in your solver")
+        
+    def _create_solution_scheme(self):
+        raise Exception("please implement the Custom Choice of your Scheme (_create_solution_scheme) in your solver")
     
-    def _GetConvergenceCriterion(self):
+    def _create_convergence_criterion(self):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
@@ -331,18 +444,23 @@ class MechanicalSolver(object):
         
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _GetBuilderAndSolver(self, component_wise, block_builder):
-        # Creating the builder and solver
-        if(component_wise):
-            builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(self.linear_solver)
+    def _create_linear_solver(self):
+        import linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        return linear_solver
+    
+    def _create_builder_and_solver(self):
+        linear_solver = self._get_linear_solver()
+        if(self.settings["component_wise"].GetBool() == True):
+            builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(linear_solver)
         else:
-            if(block_builder):
+            if(self.settings["block_builder"].GetBool() == True):
                 # To keep matrix blocks in builder
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-        
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+                
         return builder_and_solver
-        
-    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
-        raise Exception("please implement the Custom Choice of your Mechanical Solver (_GetMechanicalSolver) in your solver")
+
+    def _create_mechanical_solver(self):
+        raise Exception("please implement the Custom Choice of your Mechanical Solver (_create_mechanical_solver) in your solver")
