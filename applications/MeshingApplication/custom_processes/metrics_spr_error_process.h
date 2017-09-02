@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Anna Rehr
 //
 
 #if !defined(KRATOS_SPR_ERROR_METRICS_PROCESS)
@@ -20,9 +20,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "meshing_application.h"
-#include "processes/compute_nodal_gradient_process.h" // TODO: Not prism or quadrilaterals implemented yet
 #include "processes/find_nodal_neighbours_process.h"
-
 
 namespace Kratos
 {

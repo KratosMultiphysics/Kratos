@@ -28,7 +28,8 @@
 // Processes
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
-#include "custom_processes/metrics_error_process.h"
+#include "custom_processes/metrics_spr_error_process.h"
+// #include "custom_processes/metrics_error_process.h" // DEPRECATED
 #ifdef INCLUDE_MMG
     #include "custom_processes/mmg_process.h"
 #endif
@@ -289,15 +290,17 @@ public:
             {
                 MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
                 MetricInit.Execute();
-                ComputeErrorSolMetricProcess<2> ComputeMetric = ComputeErrorSolMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
-                ComputeMetric.Execute();
+//                 ComputeErrorSolMetricProcess<2> ComputeMetric = ComputeErrorSolMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]); // DEPRECATED
+//                 ComputeSPRErrorSolMetricProcess<2> ComputeMetric = ComputeSPRErrorSolMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
+//                 ComputeMetric.Execute();
             }
             else
             {
                 MetricFastInit<3> MetricInit = MetricFastInit<3>(mThisModelPart);
                 MetricInit.Execute();
-                ComputeErrorSolMetricProcess<3> ComputeMetric = ComputeErrorSolMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
-                ComputeMetric.Execute();
+//                 ComputeErrorSolMetricProcess<3> ComputeMetric = ComputeErrorSolMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]); // DEPRECATED
+//                 ComputeSPRErrorSolMetricProcess<3> ComputeMetric = ComputeSPRErrorSolMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
+//                 ComputeMetric.Execute();
             }
             
             // Remeshing
