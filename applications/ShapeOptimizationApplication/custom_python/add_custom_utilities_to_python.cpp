@@ -28,6 +28,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
@@ -60,14 +61,20 @@ void  AddCustomUtilitiesToPython()
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
-    
+
+    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
+        ;
+
+
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
     class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
- 
+
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
@@ -103,32 +110,32 @@ void  AddCustomUtilitiesToPython()
     class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &StrainEnergyResponseFunction::initialize)
         .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
+        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)
         .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
-        ; 
+        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)
+        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)
+        ;
     class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &MassResponseFunction::initialize)
         .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
+        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)
         .def("get_value", &MassResponseFunction::get_value)
-        .def("get_initial_value", &MassResponseFunction::get_initial_value) 
-        .def("get_gradient", &MassResponseFunction::get_gradient)                              
-        ;                     
+        .def("get_initial_value", &MassResponseFunction::get_initial_value)
+        .def("get_gradient", &MassResponseFunction::get_gradient)
+        ;
 
     // ========================================================================
     // For input / output
-    // ======================================================================== 
+    // ========================================================================
     class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &UniversalFileIO::initializeLogging)
         .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;           
-     
+        ;
+
     class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &VTKFileIO::initializeLogging)
         .def("logNodalResults", &VTKFileIO::logNodalResults)
-        ;           
+        ;
 }
 
 
