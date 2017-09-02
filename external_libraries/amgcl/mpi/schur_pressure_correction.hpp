@@ -481,6 +481,7 @@ class schur_pressure_correction {
 
                         u2x->col[u2x_head] = j;
                         u2x->val[u2x_head] = math::identity<value_type>();
+                        ++u2x_head;
                     }
                 }
             }
