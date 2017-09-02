@@ -130,14 +130,18 @@ void  AddProcessesToPython()
         
         //SPR_ERROR
         // SPR_ERROR DOUBLE
-        class_<ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&, Variable<Vector>&>())
-        .def(init<ModelPart&, Variable<Vector>&, Parameters>())
-        .def("Execute",&ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>::Execute)
+        //class_<ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&, Variable<Vector>&>())
+        //.def(init<ModelPart&, Variable<Vector>&, Parameters>())
+        //.def("Execute",&ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>::Execute)
+        //;
+        class_<ComputeSPRErrorSolMetricProcess<2>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<2>::Execute)
         ;
    
-        class_<ComputeSPRErrorSolMetricProcess<3, Variable<Vector>>, bases<Process> >("ComputeSPRErrorSolMetricProcess3D", init<ModelPart&, Variable<Vector>&>())
-        .def(init<ModelPart&, Variable<Vector>&, Parameters>())
-        .def("Execute",&ComputeSPRErrorSolMetricProcess<3, Variable<Vector>>::Execute)
+        class_<ComputeSPRErrorSolMetricProcess<3>, bases<Process> >("ComputeSPRErrorSolMetricProcess3D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<3>::Execute)
         ;
         
         // SPR_ERROR ARRAY 1D
