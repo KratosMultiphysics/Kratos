@@ -6,7 +6,7 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_CONTACT_CRITERIA_H)
@@ -23,7 +23,7 @@
 #include "custom_utilities/bprinter_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #if !defined(_WIN32)
-	#include "custom_utilities/color_utilities.h"
+    #include "custom_utilities/color_utilities.h"
 #endif
 
 namespace Kratos
@@ -90,18 +90,18 @@ public:
 
     /// Constructor.
     /**
-     * @param DispRatioTolerance: Relative tolerance for displacement error
-     * @param DispAbsTolerance: Absolute tolerance for displacement error
-     * @param LMRatioTolerance: Relative tolerance for lagrange multiplier error
-     * @param LMAbsTolerance: Absolute tolerance for lagrange multiplier error
+     * @param disp_ratioTolerance: Relative tolerance for displacement error
+     * @param disp_absTolerance: Absolute tolerance for displacement error
+     * @param lm_ratioTolerance: Relative tolerance for lagrange multiplier error
+     * @param lm_absTolerance: Absolute tolerance for lagrange multiplier error
      * @param EnsureContact: To check if the contact is lost
      */
     
     DisplacementLagrangeMultiplierContactCriteria(  
-        TDataType DispRatioTolerance,
-        TDataType DispAbsTolerance,
-        TDataType LMRatioTolerance,
-        TDataType LMAbsTolerance,
+        TDataType disp_ratioTolerance,
+        TDataType disp_absTolerance,
+        TDataType lm_ratioTolerance,
+        TDataType lm_absTolerance,
         bool EnsureContact = false,
         TablePrinterPointerType pTable = nullptr
         )
@@ -110,11 +110,11 @@ public:
         mpTable(pTable),
         mTableIsInitialized(false)
     {
-        mDispRatioTolerance = DispRatioTolerance;
-        mDispAbsTolerance = DispAbsTolerance;
+        mDispRatioTolerance = disp_ratioTolerance;
+        mDispAbsTolerance = disp_absTolerance;
 
-        mLMRatioTolerance = LMRatioTolerance;
-        mLMAbsTolerance = LMAbsTolerance;
+        mLMRatioTolerance = lm_ratioTolerance;
+        mLMAbsTolerance = lm_absTolerance;
     }
 
     //* Copy constructor.
@@ -156,72 +156,72 @@ public:
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
             // Initialize
-            TDataType DispSolutionNorm = 0.0;
-            TDataType LMSolutionNorm = 0.0;
-            TDataType DispIncreaseNorm = 0.0;
-            TDataType LMIncreaseNorm = 0.0;
-            unsigned int DispDofNum(0),LMDofNum(0);
+            TDataType disp_solution_norm = 0.0;
+            TDataType lm_solution_norm = 0.0;
+            TDataType disp_increase_norm = 0.0;
+            TDataType lm_increase_norm = 0.0;
+            unsigned int disp_dof_num(0),lm_dof_num(0);
 
             // Set a partition for OpenMP
-            int NumDofs = rDofSet.size();
+            const int num_dofs = rDofSet.size();
             PartitionVector DofPartition;
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::DivideInPartitions(NumDofs,NumThreads,DofPartition);
+            const int num_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::DivideInPartitions(num_dofs,num_threads,DofPartition);
 
             // Loop over Dofs
-            #pragma omp parallel reduction(+:DispSolutionNorm,LMSolutionNorm,DispIncreaseNorm,LMIncreaseNorm,DispDofNum,LMDofNum)
+            #pragma omp parallel reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
             {
-                int k = OpenMPUtils::ThisThread();
-                typename DofsArrayType::iterator DofBegin = rDofSet.begin() + DofPartition[k];
-                typename DofsArrayType::iterator DofEnd = rDofSet.begin() + DofPartition[k+1];
+                const int k = OpenMPUtils::ThisThread();
+                typename DofsArrayType::iterator dof_begin = rDofSet.begin() + DofPartition[k];
+                typename DofsArrayType::iterator dof_end   = rDofSet.begin() + DofPartition[k + 1];
 
-                std::size_t DofId;
-                TDataType DofValue;
-                TDataType DofIncr;
+                std::size_t dof_id;
+                TDataType dof_value;
+                TDataType dof_incr;
 
-                for (typename DofsArrayType::iterator itDof = DofBegin; itDof != DofEnd; ++itDof)
+                for (typename DofsArrayType::iterator it_dof = dof_begin; it_dof != dof_end; ++it_dof)
                 {
-                    if (itDof->IsFree())
+                    if (it_dof->IsFree())
                     {
-                        DofId = itDof->EquationId();
-                        DofValue = itDof->GetSolutionStepValue(0);
-                        DofIncr = Dx[DofId];
+                        dof_id = it_dof->EquationId();
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = Dx[dof_id];
 
-                        KeyType CurrVar = itDof->GetVariable().Key();
-                        if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
+                        const KeyType curr_var = it_dof->GetVariable().Key();
+                        if ((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))
                         {
-                            DispSolutionNorm += DofValue * DofValue;
-                            DispIncreaseNorm += DofIncr * DofIncr;
-                            ++DispDofNum;
+                            disp_solution_norm += dof_value * dof_value;
+                            disp_increase_norm += dof_incr * dof_incr;
+                            ++disp_dof_num;
                         }
                         else
                         {
-                            LMSolutionNorm += DofValue * DofValue;
-                            LMIncreaseNorm += DofIncr * DofIncr;
-                            ++LMDofNum;
+                            lm_solution_norm += dof_value * dof_value;
+                            lm_increase_norm += dof_incr * dof_incr;
+                            ++lm_dof_num;
                         }
                     }
                 }
             }
 
-            if(DispIncreaseNorm == 0.0) DispIncreaseNorm = 1.0;
-            if(LMIncreaseNorm == 0.0) LMIncreaseNorm = 1.0;
-            if(DispSolutionNorm == 0.0) DispSolutionNorm = 1.0;
+            if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
+            if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
+            if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
 
-            if(LMSolutionNorm == 0.0)
+            if(lm_solution_norm == 0.0)
             {
-                LMSolutionNorm = 1.0;
+                lm_solution_norm = 1.0;
                 if (mEnsureContact == true)
                 {
                     KRATOS_ERROR << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
                 }
             }
             
-            TDataType DispRatio = std::sqrt(DispIncreaseNorm/DispSolutionNorm);
-            TDataType LMRatio = std::sqrt(LMIncreaseNorm/LMSolutionNorm);
+            TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
+            TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
 
-            TDataType DispAbs = std::sqrt(DispIncreaseNorm)/ static_cast<TDataType>(DispDofNum);
-            TDataType LMAbs = std::sqrt(LMIncreaseNorm)/ static_cast<TDataType>(LMDofNum);
+            TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
+            TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
 
             // We print the results
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
@@ -230,44 +230,44 @@ public:
                 {
                     std::cout.precision(4);
                     auto& Table = mpTable->GetTable();
-                    Table  << DispRatio  << mDispRatioTolerance  << DispAbs  << mDispAbsTolerance  << LMRatio  << mLMRatioTolerance  << LMAbs  << mLMAbsTolerance;
+                    Table  << disp_ratio  << mDispRatioTolerance  << disp_abs  << mDispAbsTolerance  << lm_ratio  << mLMRatioTolerance  << lm_abs  << mLMAbsTolerance;
                 }
                 else
                 {
                     std::cout.precision(4);
-                    #if !defined(_WIN32)
-                        std::cout << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                        std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << DispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << DispAbs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                        std::cout << BOLDFONT(" LAGRANGE MUL:\tRATIO = ") << LMRatio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << LMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
-                    #else
-                        std::cout << "DoF ONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                        std::cout << "\tDISPLACEMENT: RATIO = " << DispRatio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << DispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-                        std::cout << " LAGRANGE MUL:\tRATIO = " << LMRatio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << LMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
-                    #endif
+                #if !defined(_WIN32)
+                    std::cout << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                    std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                    std::cout << BOLDFONT(" LAGRANGE MUL:\tRATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                #else
+                    std::cout << "DoF ONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+                    std::cout << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                    std::cout << " LAGRANGE MUL:\tRATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+                #endif
                 }
             }
 
-            if ((DispRatio <= mDispRatioTolerance || DispAbs <= mDispAbsTolerance) &&
-                    (LMRatio <= mLMRatioTolerance || LMAbs <= mLMAbsTolerance) )
+            if ((disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance) &&
+                    (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance) )
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                        #if !defined(_WIN32)
-                            Table << BOLDFONT(FGRN("       Achieved"));
-                        #else
-                            Table << "Achieved";
-                        #endif
+                    #if !defined(_WIN32)
+                        Table << BOLDFONT(FGRN("       Achieved"));
+                    #else
+                        Table << "Achieved";
+                    #endif
                     }
                     else
                     {
-                        #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                        #else
-                            std::cout << "\tDoF convergence is achieved" << std::endl;
-                        #endif
+                    #if !defined(_WIN32)
+                        std::cout << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                    #else
+                        std::cout << "\tDoF convergence is achieved" << std::endl;
+                    #endif
                     }
                 }
                 return true;
@@ -279,19 +279,19 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                        #if !defined(_WIN32)
-                            Table << BOLDFONT(FRED("   Not achieved"));
-                        #else
-                            Table << "Not achieved";
-                        #endif
+                    #if !defined(_WIN32)
+                        Table << BOLDFONT(FRED("   Not achieved"));
+                    #else
+                        Table << "Not achieved";
+                    #endif
                     }
                     else
                     {
-                        #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
-                        #else
-                            std::cout << "\tDoF convergence is not achieved" << std::endl;
-                        #endif
+                    #if !defined(_WIN32)
+                        std::cout << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                    #else
+                        std::cout << "\tDoF convergence is not achieved" << std::endl;
+                    #endif
                     }
                 }
                 return false;

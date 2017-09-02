@@ -7,7 +7,7 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrándiz
+//  Main authors:  Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MORTAR_KINEMATIC_VARIABLES )

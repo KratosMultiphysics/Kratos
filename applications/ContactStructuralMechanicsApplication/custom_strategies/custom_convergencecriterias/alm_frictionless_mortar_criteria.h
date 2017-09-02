@@ -6,7 +6,7 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_ALM_FRICTIONLESS_MORTAR_CRITERIA_H)
@@ -21,9 +21,9 @@
 #include "custom_utilities/bprinter_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #if !defined(_WIN32)
-	#include "custom_utilities/color_utilities.h"
+    #include "custom_utilities/color_utilities.h"
 //#else
-//	#include "custom_external_libraries/colorwin/colorwin.hpp"
+//     #include "custom_external_libraries/colorwin/colorwin.hpp"
 #endif
 
 namespace Kratos

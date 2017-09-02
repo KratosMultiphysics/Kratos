@@ -6,7 +6,7 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MORTAR_AND_CRITERIA_H)
@@ -22,7 +22,7 @@
 #include "custom_utilities/bprinter_utility.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #if !defined(_WIN32)
-	#include "custom_utilities/color_utilities.h"
+    #include "custom_utilities/color_utilities.h"
 #endif
 
 namespace Kratos
@@ -159,9 +159,9 @@ public:
             }
         }
         
-        bool CriterionResult = BaseType::PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        bool criterion_result = BaseType::PostCriteria(rModelPart,rDofSet,A,Dx,b);
         
-        if (CriterionResult == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+        if (criterion_result == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             if (mpTable != nullptr)
             {
@@ -169,7 +169,7 @@ public:
             }
         }
         
-        return CriterionResult;
+        return criterion_result;
     }
 
     /**
