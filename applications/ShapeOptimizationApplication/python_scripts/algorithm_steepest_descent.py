@@ -38,7 +38,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
-        self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
+        self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
@@ -58,9 +58,9 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.__finalizeOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __initializeOptimizationLoop( self ):   
+    def __initializeOptimizationLoop( self ):
         self.timer.startTimer()
-        self.dataLogger.initializeDataLogging() 
+        self.dataLogger.initializeDataLogging()
 
     # --------------------------------------------------------------------------
     def __startOptimizationLoop( self ):
@@ -73,7 +73,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.__callCommunicatorToRequestNewAnalyses()
 
             self.__callAnalyzerToPerformRequestedAnalyses( optimizationIteration )
-         
+
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
             self.__alignSensitivitiesToLocalSurfaceNormal()
@@ -93,17 +93,17 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.__timeOptimizationStep()
 
             if self.__isAlgorithmConverged( optimizationIteration ):
-                break            
+                break
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
-        self.dataLogger.finalizeDataLogging() 
+        self.dataLogger.finalizeDataLogging()
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
         self.communicator.initializeCommunication()
         self.communicator.requestFunctionValueOf( self.onlyObjective )
-        self.communicator.requestGradientOf( self.onlyObjective )    
+        self.communicator.requestGradientOf( self.onlyObjective )
 
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
@@ -120,7 +120,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             gradient = Vector(3)
             gradient[0] = givenGradient[nodeId][0]
             gradient[1] = givenGradient[nodeId][1]
-            gradient[2] = givenGradient[nodeId][2]           
+            gradient[2] = givenGradient[nodeId][2]
             self.designSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
     # --------------------------------------------------------------------------
@@ -137,7 +137,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.__mapSensitivitiesToDesignSpace()
         self.optimizationTools.compute_search_direction_steepest_descent()
         self.optimizationTools.compute_design_update()
-        self.__mapDesignUpdateToGeometrySpace() 
+        self.__mapDesignUpdateToGeometrySpace()
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
@@ -145,7 +145,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):
-        self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE ) 
+        self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
@@ -175,7 +175,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
                 return True
 
             relativeChangeOfObjectiveValue = self.dataLogger.getValue( "RELATIVE_CHANGE_OF_OBJECTIVE_VALUE" )
-            
+
             # Check for relative tolerance
             relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
             if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
@@ -185,6 +185,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             # Check if value of objective increases
             if relativeChangeOfObjectiveValue > 0:
                 print("\n> Value of objective function increased!")
-                return False            
-                        
+                return False
+
 # ==============================================================================

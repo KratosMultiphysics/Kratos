@@ -30,7 +30,7 @@ namespace Kratos {
         r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
         for (int i = 0; i < mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
 
-        CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *mpInlet_model_part, *mpCluster_model_part);
+        PropertiesProxiesManager().CreatePropertiesProxies(r_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
         BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
         BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);
