@@ -20,7 +20,7 @@
 // Project includes 
 #include "includes/model_part.h"
 #include "includes/define.h"
-#include "utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #if !defined(_WIN32)
 	#include "utilities/color_utilities.h"
@@ -86,21 +86,21 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( FancyResidualCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >    BaseType;
 
-    typedef TSparseSpace                               SparseSpaceType;
+    typedef TSparseSpace                                 SparseSpaceType;
 
-    typedef typename BaseType::TDataType                     TDataType;
+    typedef typename BaseType::TDataType                       TDataType;
 
-    typedef typename BaseType::DofsArrayType             DofsArrayType;
+    typedef typename BaseType::DofsArrayType               DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType     TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType       TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType     TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType       TSystemVectorType;
     
-    typedef std::size_t                                        KeyType;
+    typedef std::size_t                                          KeyType;
     
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TableStreamPointerType;
 
     ///@} 
     ///@name Life Cycle
@@ -112,7 +112,7 @@ public:
     FancyResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm,
-        TablePrinterPointerType pTable = nullptr,
+        TableStreamPointerType pTable = nullptr,
         const bool StandaloneTable = true,
         const bool PrintingOutput = false 
         )
@@ -480,7 +480,7 @@ private:
 
     TDataType mReferenceDispNorm;    // The reference displacement norm
 
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    TableStreamPointerType mpTable; // Pointer to the fancy table 
     
     bool mStandaloneTable;           // If the table is not appended to any other table
     

@@ -20,7 +20,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
 #if !defined(_WIN32)
     #include "utilities/color_utilities.h"
@@ -95,7 +95,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType     TSystemVectorType;
 
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TableStreamPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -107,7 +107,7 @@ public:
     FancyOrConvergenceCriteria(
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
-        TablePrinterPointerType pTable = nullptr, 
+        TableStreamPointerType pTable = nullptr, 
         const bool PrintingOutput = false 
         )
         :Or_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
@@ -314,7 +314,7 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    TableStreamPointerType mpTable; // Pointer to the fancy table 
     
     bool mPrintingOutput;            // If the colors and bold are printed
     

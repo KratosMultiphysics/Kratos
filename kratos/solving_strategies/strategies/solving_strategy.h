@@ -328,7 +328,7 @@ public:
             noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
         }
 
-        if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() > 1 && GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout<<" MESH MOVED "<<std::endl;
         }

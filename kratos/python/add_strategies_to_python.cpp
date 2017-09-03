@@ -394,16 +394,16 @@ namespace Kratos
                     ;
                     
             // Fancy convergence criteria
-            typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+            typedef boost::shared_ptr<TableStreamUtility> TableStreamPointerType;
                     
             class_< FancyDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("FancyDisplacementCriteria", init< double, double>())
                     .def(init< double, double >())
-                    .def(init< double, double, TablePrinterPointerType >())
-                    .def(init< double, double, TablePrinterPointerType, bool >())
-                    .def(init< double, double, TablePrinterPointerType, bool, bool >())
+                    .def(init< double, double, TableStreamPointerType >())
+                    .def(init< double, double, TableStreamPointerType, bool >())
+                    .def(init< double, double, TableStreamPointerType, bool, bool >())
                     ;
 
             class_<FancyResidualCriteria<SparseSpaceType, LocalSpaceType >,
@@ -411,25 +411,25 @@ namespace Kratos
                     boost::noncopyable >
                     ("FancyResidualCriteria", init< double, double>())
                     .def(init< double, double >())
-                    .def(init< double, double, TablePrinterPointerType >())
-                    .def(init< double, double, TablePrinterPointerType, bool >())
-                    .def(init< double, double, TablePrinterPointerType, bool, bool >())
+                    .def(init< double, double, TableStreamPointerType >())
+                    .def(init< double, double, TableStreamPointerType, bool >())
+                    .def(init< double, double, TableStreamPointerType, bool, bool >())
                     ;
 
             class_<FancyAndConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("FancyAndConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
-                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType, bool >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType, bool >())
                     ;
 
             class_<FancyOrConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("FancyOrConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType >())
-                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TablePrinterPointerType, bool >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType, bool >())
                     ;
 
             //********************************************************************

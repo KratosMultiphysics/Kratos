@@ -134,7 +134,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             else:
                 writing = False
             
-            table = KratosMultiphysics.BprinterUtility(not writing)
+            table = KratosMultiphysics.TableStreamUtility(not writing)
                 
             self.conv_criteria = KratosCFD.FancyVelPrCriteria(V_RT,V_AT,P_RT,P_AT, table, True, writing)
 

@@ -11,15 +11,15 @@
 //                    
 //
 
-#if !defined(KRATOS_BPRINTER_UTILITY)
-#define KRATOS_BPRINTER_UTILITY
+#if !defined(KRATOS_TABLE_STREAM_UTILITY)
+#define KRATOS_TABLE_STREAM_UTILITY
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "../external_libraries/bprinter/table_printer.h"
+#include "includes/table_stream.h"
 
 namespace Kratos
 {
@@ -30,7 +30,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef bprinter::TablePrinter TablePrinterType;
+    typedef TableStream TableStreamType;
     
 ///@}
 ///@name  Enum's
@@ -40,7 +40,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-class BprinterUtility
+class TableStreamUtility
 {
 public:
     ///@name Type Definitions
@@ -55,12 +55,12 @@ public:
      * The default constructor
      */
     
-    BprinterUtility(const bool UseBoldFont = true):
+    TableStreamUtility(const bool UseBoldFont = true):
         mTable(&std::cout, "|", UseBoldFont)
     {
     }
     
-    virtual ~BprinterUtility()= default;
+    virtual ~TableStreamUtility()= default;
     
     ///@}
     ///@name Access
@@ -123,10 +123,10 @@ public:
     
     /**
      * It returns the table of BPrinter
-     * @return mTable: The bprinter table
+     * @return mTable: The table stream table
      */
         
-    TablePrinterType& GetTable()
+    TableStreamType& GetTable()
     {
         return mTable;
     }
@@ -168,7 +168,7 @@ private:
     ///@name Member Variables
     ///@{      
     
-    TablePrinterType mTable;//{&std::cout, "|"};
+    TableStreamType mTable;
     
     ///@}
     ///@name Private Operators
@@ -194,7 +194,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-};// class BprinterUtility
+};// class TableStreamUtility
 
 ///@}
 ///@name Type Definitions
@@ -208,4 +208,4 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_BPRINTER_UTILITY defined */
+#endif /* KRATOS_TABLE_STREAM_UTILITY defined */

@@ -49,7 +49,7 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
-#include "utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 
 namespace Kratos
 {
@@ -317,8 +317,8 @@ void AddUtilitiesToPython()
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
     
-    // Adding table from bprinter to python
-    class_<BprinterUtility>("BprinterUtility", init<>())
+    // Adding table from table stream to python
+    class_<TableStreamUtility>("TableStreamUtility", init<>())
     .def(init< bool >())
     ;
 }

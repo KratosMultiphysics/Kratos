@@ -129,15 +129,15 @@ void  AddCustomStrategiesToPython()
             ;
             
     // Fancy convergence criteria
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TableStreamPointerType;
             
     class_< FancyVelPrCriteria< SparseSpaceType, LocalSpaceType >,
             bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
             boost::noncopyable >
             ("FancyVelPrCriteria", init< double, double, double, double>())
-            .def(init<double, double, double, double , TablePrinterPointerType>())
-            .def(init<double, double, double, double , TablePrinterPointerType, bool >())
-            .def(init<double, double, double, double , TablePrinterPointerType, bool, bool >())
+            .def(init<double, double, double, double , TableStreamPointerType>())
+            .def(init<double, double, double, double , TableStreamPointerType, bool >())
+            .def(init<double, double, double, double , TableStreamPointerType, bool, bool >())
             ;
 }
 

@@ -84,7 +84,7 @@ class convergence_criterion:
                 else:
                     writing = False
                 
-                table = KratosMultiphysics.BprinterUtility(not writing)
+                table = KratosMultiphysics.TableStreamUtility(not writing)
                                 
                 if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
                     self.mechanical_convergence_criterion = KratosMultiphysics.FancyDisplacementCriteria(D_RT, D_AT, table, True, writing)
