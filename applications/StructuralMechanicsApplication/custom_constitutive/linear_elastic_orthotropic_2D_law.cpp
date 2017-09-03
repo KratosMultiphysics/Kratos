@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/properties.h"
+#include "includes/checks.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
 #include "structural_mechanics_application_variables.h"
@@ -225,18 +226,18 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-		if (YOUNG_MODULUS_X.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_X))
-			KRATOS_THROW_ERROR(std::invalid_argument, "YOUNG_MODULUS_X has Key zero or invalid value ", "")
+		KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_X);
+		KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));
 
-			if (YOUNG_MODULUS_Y.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Y))
-				KRATOS_THROW_ERROR(std::invalid_argument, "YOUNG_MODULUS_Y has Key zero or invalid value ", "")
+		KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_Y);
+		KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_Y));
 
-				if (POISSON_RATIO_XY.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XY))
-					KRATOS_THROW_ERROR(std::invalid_argument, "POISSON_RATIO_XY has Key zero invalid value ", "")
+		KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO_XY);
+		KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO_XY));
 
-					if (DENSITY.Key() == 0 || !rMaterialProperties.Has(DENSITY))
-						KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY has Key zero or invalid value ", "")
+		KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+		KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
 
-						return 0;
+		return 0;
 	}
 } // Namespace Kratos
