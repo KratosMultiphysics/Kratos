@@ -95,7 +95,8 @@ public:
     EigensolverStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
-        BuilderAndSolverPointerType pBuilderAndSolver
+        BuilderAndSolverPointerType pBuilderAndSolver,
+	bool ComputeModalContribution = false
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
@@ -110,6 +111,9 @@ public:
 
         mInitializeWasPerformed = false;
 
+	// set if modal contribution is computed
+	mComputeModalContribution = ComputeModalContribution;
+	
         // default echo level (mute)
         this->SetEchoLevel(0);
 
@@ -336,7 +340,8 @@ public:
 
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
-        this->ComputeModalContribution(rMassMatrix,Eigenvalues,Eigenvectors);
+	if( mComputeModalContribution == true )
+	  this->ComputeModalContribution(rMassMatrix,Eigenvalues,Eigenvectors);
 
         this->FinalizeSolutionStep();
 
@@ -578,6 +583,8 @@ private:
 
     bool mInitializeWasPerformed;
 
+    bool mComputeModalContribution;
+  
     ///@}
     ///@name Private Operators
     ///@{
@@ -714,45 +721,49 @@ private:
         }
     }
 
-    void ComputeModalContribution(SparseMatrixType& rMassMatrix, DenseVectorType& rEigenvalues, DenseMatrixType& rEigenvectors) 
+    void ComputeModalContribution(SparseMatrixType& rMassMatrix, DenseVectorType& rEigenValues, DenseMatrixType& rEigenVectors) 
     { 
         KRATOS_TRY 
          
         //Computing modal contribution 
-        const auto NumEigenvalues = rEigenvalues.size(); 
-        const auto SystemSize = rMassMatrix.size1(); 
-        Matrix Mass = ZeroMatrix(NumEigenvalues,NumEigenvalues); 
-        Vector Mode_contribution = ZeroVector(NumEigenvalues); 
-        Vector Ratio_Mass_Mode_contribution = ZeroVector(NumEigenvalues); 
-        Matrix EigenContribution = ZeroMatrix(NumEigenvalues, SystemSize); 
+        const auto num_eigen_values = rEigenValues.size(); 
+        const auto system_size = rMassMatrix.size1(); 
+        Matrix mass(num_eigen_values,num_eigen_values); 
+	noalias(mass) = ZeroMatrix(num_eigen_values,num_eigen_values); 
+        Vector mode_contribution(num_eigen_values);
+	noalias(mode_contribution)= ZeroVector(num_eigen_values); 
+        Vector ratio_mass_mode_contribution(num_eigen_values);
+	noalias(ratio_mass_mode_contribution) = ZeroVector(num_eigen_values);
+        Matrix eigen_contribution(num_eigen_values, system_size);
+	noalias(eigen_contribution)= ZeroMatrix(num_eigen_values, system_size); 
  
-        double Total_Mass= 0.0; 
-        for (std::size_t i = 0; i < SystemSize; i++) 
+        double total_mass= 0.0; 
+        for (std::size_t i = 0; i < system_size; i++) 
         { 
-            for (std::size_t j = 0; j < SystemSize; j++) 
+            for (std::size_t j = 0; j < system_size; j++) 
             { 
-                Total_Mass += rMassMatrix(i,j); 
+                total_mass += rMassMatrix(i,j); 
             } 
         } 
  
-        EigenContribution = prod(rEigenvectors,rMassMatrix); 
-        Mass = prod(EigenContribution,trans(rEigenvectors)); 
-        double Total_Mass_Contribution =0.0; 
+        noalias(eigen_contribution) = prod(rEigenVectors,rMassMatrix); 
+        noalias(mass) = prod(eigen_contribution,trans(rEigenVectors)); 
+        double total_mass_contribution =0.0; 
  
-        for (std::size_t i = 0; i < NumEigenvalues; i++) 
+        for (std::size_t i = 0; i < num_eigen_values; i++) 
         { 
-            for (std::size_t j = 0; j < SystemSize; j++) 
+            for (std::size_t j = 0; j < system_size; j++) 
             { 
-                Mode_contribution[i] += EigenContribution(i,j); 
+	      mode_contribution[i] += eigen_contribution(i,j); 
             } 
  
-            Ratio_Mass_Mode_contribution[i] =  (Mode_contribution[i]*Mode_contribution[i])/(Mass(i,i)*Total_Mass)*100.0; 
-            Total_Mass_Contribution += Ratio_Mass_Mode_contribution[i]; 
-        } 
- 
-        KRATOS_WATCH(Ratio_Mass_Mode_contribution) 
-        KRATOS_WATCH(Total_Mass_Contribution) 
- 
+            ratio_mass_mode_contribution[i] = (mode_contribution[i]*mode_contribution[i])/(mass(i,i)*total_mass)*100.0; 
+            total_mass_contribution += ratio_mass_mode_contribution[i]; 
+        }
+
+	std::cout<<" ::EIGEN_CONTRIBUTION:: (Mode/Mass) RATIO ["<<ratio_mass_mode_contribution<<"]"<<std::endl;
+ 	std::cout<<" ::EIGEN_CONTRIBUTION:: (Mode/Mass) TOTAL ["<<total_mass_contribution<<"]"<<std::endl;
+	 
         KRATOS_CATCH("") 
     } 
 
