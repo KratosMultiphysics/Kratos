@@ -23,6 +23,7 @@ from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements  as TTestQuadraticElements
+from test_patch_test_shells import TestPatchTestShells  as TTestPatchTestShells
 # Test loading conditions
 from test_loading_conditions import TestLoadingConditions  as TestLoadingConditions
 # Basic moving mesh test
@@ -129,6 +130,10 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_3D_hexa'))
     smallSuite.addTest(TTestQuadraticElements('test_Quad8'))
+    smallSuite.addTest(TTestPatchTestShells('test_thin_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShells('test_thick_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShells('test_thin_shell_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestShells('test_thick_shell_quadrilateral'))
     # Test loading conditions
     smallSuite.addTest(TestLoadingConditions('test_execution'))
     # Basic moving mesh test
@@ -226,6 +231,7 @@ def AssambleTestSuites():
             TTestPatchTestSmallStrain,
             TTestPatchTestLargeStrain,
             TTestQuadraticElements,
+            TTestPatchTestShells,
             TestLoadingConditions,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
