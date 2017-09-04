@@ -8,17 +8,6 @@ try:
 except ImportError:
     have_trilinos = False
 
-_aitken_defaults = KratosMultiphysics.Parameters("""{   "solver_type"       : "Relaxation",
-                                                        "acceleration_type" : "Aitken",
-                                                        "w_0"               : 0.825  }""")
-
-_mvqn_defaults = KratosMultiphysics.Parameters("""{ "solver_type" : "MVQN",
-                                                    "w_0"         : 0.825   }""")
-
-_mvqn_defaults_recursive = KratosMultiphysics.Parameters("""{ "solver_type" : "MVQN_recursive",
-                                                              "w_0"         : 0.825,
-                                                              "buffer_size" : 7           }""")
-
 def CreateConvergenceAccelerator(configuration):
 
     if(type(configuration) != KratosMultiphysics.Parameters):
@@ -27,24 +16,13 @@ def CreateConvergenceAccelerator(configuration):
     convergence_accelerator_type = configuration["solver_type"].GetString()
 
     if(convergence_accelerator_type == "Relaxation"):
-
-        configuration.ValidateAndAssignDefaults(_aitken_defaults)
-
-        if (configuration["acceleration_type"].GetString() == "Aitken"):
-            convergence_accelerator = KratosFSI.AitkenConvergenceAccelerator(configuration["w_0"].GetDouble())
+        return KratosFSI.AitkenConvergenceAccelerator(configuration)
 
     elif(convergence_accelerator_type == "MVQN"):
-
-        configuration.ValidateAndAssignDefaults(_mvqn_defaults)
-
-        convergence_accelerator = KratosFSI.MVQNFullJacobianConvergenceAccelerator(configuration["w_0"].GetDouble())
+        return KratosFSI.MVQNFullJacobianConvergenceAccelerator(configuration)
 
     elif(convergence_accelerator_type == "MVQN_recursive"):
-
-        configuration.ValidateAndAssignDefaults(_mvqn_defaults_recursive)
-
-        convergence_accelerator = KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration["w_0"].GetDouble(),
-                                                                                        configuration["buffer_size"].GetInt())
+        return KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration)
 
     else:
         raise Exception("Convergence accelerator not found. Asking for : " + convergence_accelerator_type)
@@ -62,11 +40,7 @@ def CreateTrilinosConvergenceAccelerator(configuration):
     convergence_accelerator_type = configuration["solver_type"].GetString()
     
     if(convergence_accelerator_type == "Relaxation"):
-
-        configuration.ValidateAndAssignDefaults(_aitken_defaults)
-
-        if (configuration["acceleration_type"].GetString() == "Aitken"):
-            convergence_accelerator = KratosTrilinos.TrilinosAitkenConvergenceAccelerator(configuration["w_0"].GetDouble())
+        return KratosTrilinos.TrilinosAitkenConvergenceAccelerator(configuration)
 
     else:
         raise Exception("Trilinos convergence accelerator not found. Asking for : " + convergence_accelerator_type)

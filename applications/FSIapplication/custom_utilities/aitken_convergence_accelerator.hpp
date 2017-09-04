@@ -14,12 +14,12 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "utilities/math_utils.h"
 
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_parameters.h"
 #include "convergence_accelerator.hpp"
 
 namespace Kratos
@@ -69,6 +69,22 @@ public:
      * Constructor.
      * Aitken convergence accelerator
      */
+    AitkenConvergenceAccelerator(Parameters& rConvAcceleratorParameters)
+    {
+        Parameters aitken_default_parameters(R"(
+        {
+            "solver_type"       : "Relaxation",
+            "acceleration_type" : "Aitken",
+            "w_0"               : 0.825  
+        }
+        )");
+
+        rConvAcceleratorParameters.ValidateAndAssignDefaults(aitken_default_parameters);
+
+        mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+    }
+
+
     AitkenConvergenceAccelerator(double rOmegaInitial = 0.825)
     {
         mOmega_0 = rOmegaInitial;

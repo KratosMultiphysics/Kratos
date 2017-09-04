@@ -430,6 +430,25 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
+    MVQNRecursiveJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters )
+    {
+        Parameters mvqn_recursive_default_parameters(R"(
+        {
+            "solver_type" : "MVQN",
+            "w_0"         : 0.825,
+            "buffer_size" : 10
+        }
+        )");
+
+        rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
+
+        mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+        mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
+        mConvergenceAcceleratorStep = 0;
+        mConvergenceAcceleratorIteration = 0;
+        mConvergenceAcceleratorFirstCorrectionPerformed = false;
+    }
+
     MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 10 )
     {
         mOmega_0 = rOmegaInitial;
