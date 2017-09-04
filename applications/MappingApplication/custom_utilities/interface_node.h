@@ -66,7 +66,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    // A default constructor necessary for serialization 
+    InterfaceNode() : InterfaceObject()
+    {
+    }
+    
     InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
@@ -222,11 +226,6 @@ private:
     ///@{
 
     friend class Serializer;
-
-    // A private default constructor necessary for serialization 
-    InterfaceNode() : InterfaceObject()
-    {
-    }
     
     virtual void save(Serializer& rSerializer) const 
     {

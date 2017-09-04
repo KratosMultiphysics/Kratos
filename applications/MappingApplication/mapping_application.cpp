@@ -35,10 +35,10 @@
 namespace Kratos
 {
 
-KratosMappingApplication::KratosMappingApplication():
-    mInterfaceObject();
-    mInterfaceNode();
-    mInterfaceGeometryObject();
+KratosMappingApplication::KratosMappingApplication() :
+    mInterfaceObject(0.0, 0.0, 0.0),
+    mInterfaceNode(),
+    mInterfaceGeometryObject()
 {}
 
 void KratosMappingApplication::Register()
