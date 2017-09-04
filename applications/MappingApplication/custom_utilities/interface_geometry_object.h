@@ -346,6 +346,11 @@ private:
     ///@{
 
     friend class Serializer;
+
+    // A private default constructor necessary for serialization 
+    InterfaceGeometryObject() : InterfaceObject()
+    {
+    }
     
     virtual void save(Serializer& rSerializer) const 
     {

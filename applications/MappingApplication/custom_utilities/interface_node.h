@@ -222,6 +222,11 @@ private:
     ///@{
 
     friend class Serializer;
+
+    // A private default constructor necessary for serialization 
+    InterfaceNode() : InterfaceObject()
+    {
+    }
     
     virtual void save(Serializer& rSerializer) const 
     {
