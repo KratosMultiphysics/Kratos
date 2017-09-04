@@ -35,7 +35,11 @@
 namespace Kratos
 {
 
-KratosMappingApplication::KratosMappingApplication() { }
+KratosMappingApplication::KratosMappingApplication():
+    mInterfaceObject();
+    mInterfaceNode();
+    mInterfaceGeometryObject();
+{}
 
 void KratosMappingApplication::Register()
 {
@@ -65,5 +69,10 @@ void KratosMappingApplication::Register()
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
+
+    // Registering the serializer
+    Serializer::Register( "InterfaceObject", mInterfaceObject );
+    Serializer::Register( "InterfaceNode", mInterfaceNode );
+    Serializer::Register( "InterfaceGeometryObject", mInterfaceGeometryObject );
 }
 }  // namespace Kratos.
