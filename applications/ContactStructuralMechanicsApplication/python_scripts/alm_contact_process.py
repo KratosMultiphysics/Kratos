@@ -41,7 +41,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "penalty_scale_factor"        : 1.0,
             "use_scale_factor"            : true,
             "penalty"                     : 0.0,
-            "scale_factor"                : 1.0,
+            "scale_factor"                : 1.0e-4,
             "tangent_factor"              : 0.1,
             "type_search"                 : "InRadius",
             "use_exact_integration"       : true,
