@@ -216,6 +216,21 @@ private:
     ///@{
 
     Node<3>* mpNode;
+        
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
 
     ///@}
     ///@name Private Operators
@@ -235,16 +250,6 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-
-        
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-    
-    virtual void save(Serializer& rSerializer) const {}
-    virtual void load(Serializer& rSerializer) {}
 
 
     ///@}
