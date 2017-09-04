@@ -71,7 +71,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    // A default constructor necessary for serialization 
+    InterfaceGeometryObject() : InterfaceObject()
+    {
+    }
+    
     InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int EchoLevel, const int ConstructionIndex,
                             GeometryData::IntegrationMethod IntegrationMethod = GeometryData::NumberOfIntegrationMethods) :
         mpGeometry(&rGeometry),
@@ -346,11 +350,6 @@ private:
     ///@{
 
     friend class Serializer;
-
-    // A private default constructor necessary for serialization 
-    InterfaceGeometryObject() : InterfaceObject()
-    {
-    }
     
     virtual void save(Serializer& rSerializer) const 
     {
