@@ -1093,6 +1093,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     Vector& generalizedStressVector       = rValues.GetGeneralizedStressVector();
     Matrix& sectionConstitutiveMatrix     = rValues.GetConstitutiveMatrix();
 
+	double stenbergShearStabilization = rValues.GetStenbergShearStabilization();
+
     Vector& materialStrainVector       = rMaterialValues.GetStrainVector();
     Vector& materialStressVector       = rMaterialValues.GetStressVector();
     Matrix& materialConstitutiveMatrix = rMaterialValues.GetConstitutiveMatrix();
@@ -1184,8 +1186,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
             if(mBehavior == Thick)
             {
                 // here the transverse shear is treated elastically
-                generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6);		// V.yz
-                generalizedStressVector(7) += cs * h * rVariables.GXZ * ce * generalizedStrainVector(7);		// V.xz
+                generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6) * stenbergShearStabilization;		// V.yz
+                generalizedStressVector(7) += cs * h * rVariables.GXZ * ce * generalizedStrainVector(7)* stenbergShearStabilization;		// V.xz
             }
         }
         else // full 3D case
@@ -1266,8 +1268,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
             if(mBehavior == Thick)
             {
                 // here the transverse shear is treated elastically
-                D(6, 6) += h * cs * ce * rVariables.GYZ;
-                D(7, 7) += h * cs * ce * rVariables.GXZ;
+                D(6, 6) += h * cs * ce * rVariables.GYZ*stenbergShearStabilization;
+				D(7, 7) += h * cs * ce * rVariables.GXZ*stenbergShearStabilization;
             }
 
             if(mStorePlyConstitutiveMatrices)
@@ -1281,10 +1283,9 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
                 }
                 if(mBehavior == Thick)
                 {
-                    //mDSG_shear_stabilization = 1.0;
                     // include transverse moduli and add in shear stabilization
-                    mPlyConstitutiveMatrices[plyNumber](6, 6) = cs * ce * rVariables.GYZ *mDSG_shear_stabilization;
-                    mPlyConstitutiveMatrices[plyNumber](7, 7) = cs * ce * rVariables.GXZ *mDSG_shear_stabilization;
+                    mPlyConstitutiveMatrices[plyNumber](6, 6) = cs * ce * rVariables.GYZ *stenbergShearStabilization;
+                    mPlyConstitutiveMatrices[plyNumber](7, 7) = cs * ce * rVariables.GXZ *stenbergShearStabilization;
                 }
             }
         }

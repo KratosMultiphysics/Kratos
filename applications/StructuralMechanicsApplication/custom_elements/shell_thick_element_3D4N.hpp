@@ -398,6 +398,8 @@ private:
 	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, 
 		int& iJob, bool& bGlobal);
 
+	double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
+
     void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles();

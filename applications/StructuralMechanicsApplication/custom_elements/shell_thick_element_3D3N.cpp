@@ -773,10 +773,6 @@ namespace Kratos
 			data.gpIndex = 0;
 			ShellCrossSection::Pointer & section = mSections[0];
 			CalculateSectionResponse(data);
-			data.generalizedStresses = prod(data.D, data.generalizedStrains);
-			// (perform the calculation manually (outside material law) to
-			// ensure stabilization is used on the transverse shear part
-			// of the material matrix
 
 
 			double resultDouble = 0.0;
@@ -1185,7 +1181,7 @@ namespace Kratos
 
 		// Setup flag to compute ply constitutive matrices
 		// (units [Pa] and rotated to element orientation)
-		section->SetupGetPlyConstitutiveMatrices(data.shearStabilisation);
+		section->SetupGetPlyConstitutiveMatrices();
 		CalculateSectionResponse(data);
 
 		// Resize output vector. 2 Surfaces for each ply
@@ -1574,24 +1570,16 @@ namespace Kratos
 
 		ShellCrossSection::Pointer& section = mSections[0];
 		data.SectionParameters.SetShapeFunctionsValues(data.N);
-		section->CalculateSectionResponse(data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2);
-
-		if (data.basicTriCST == false &&
-			data.ignore_shear_stabilization == false)
+		
+		if (data.ignore_shear_stabilization || data.basicTriCST)
 		{
-			//add in shear stabilization
-			data.shearStabilisation = (data.hMean*data.hMean)
-				/ (data.hMean*data.hMean + data.alpha*data.h_e*data.h_e);
-			data.D(6, 6) *= data.shearStabilisation;
-			data.D(6, 7) *= data.shearStabilisation;
-			data.D(7, 6) *= data.shearStabilisation;
-			data.D(7, 7) *= data.shearStabilisation;
-		}
-
-		if (data.ignore_shear_stabilization)
-		{
+			//remove already added shear stabilization
+			data.shearStabilisation = 1.0;
+			data.SectionParameters.SetStenbergShearStabilization(data.shearStabilisation);
 			std::cout << "Not applying shear stabilisation to shear part of material matrix!" << std::endl;
 		}
+
+		section->CalculateSectionResponse(data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2);
 	}
 
 	void ShellThickElement3D3N::InitializeCalculationData(CalculationData& data)
@@ -1813,6 +1801,10 @@ namespace Kratos
 		edge_length = std::sqrt(inner_prod(P23, P23));
 		if (edge_length > data.h_e) { data.h_e = edge_length; }
 
+		// Write Stenberg shear stabilisation coefficient
+		data.shearStabilisation = (data.hMean*data.hMean)
+			/ (data.hMean*data.hMean + data.alpha*data.h_e*data.h_e);
+
 		//--------------------------------------
 		// Calculate material matrices
 		//
@@ -1825,11 +1817,9 @@ namespace Kratos
 		data.SectionParameters.SetGeneralizedStressVector(data.generalizedStresses);
 		data.SectionParameters.SetConstitutiveMatrix(data.D);
 		data.SectionParameters.SetShapeFunctionsDerivatives(data.dNxy);
+		data.SectionParameters.SetStenbergShearStabilization(data.shearStabilisation);
 		Flags& options = data.SectionParameters.GetOptions();
-		//options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS); //set
-		// to false so we use the shear stabilization added in
-		// 'CalculateSectionResponse()'
-		options.Set(ConstitutiveLaw::COMPUTE_STRESS, false); //set to false
+		options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS);
 		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,
 			data.CalculateLHS);
 
@@ -2508,7 +2498,6 @@ namespace Kratos
 			else
 			{
 				CalculateSectionResponse(data);
-				noalias(data.generalizedStresses) = prod(data.D, data.generalizedStrains);
 
 				if (ijob > 4)
 				{

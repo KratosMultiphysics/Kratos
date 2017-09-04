@@ -913,7 +913,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 		parameters.SetConstitutiveMatrix(D);
 		Flags& options = parameters.GetOptions();
 		options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
 		// Gauss Loop
 		for (unsigned int i = 0; i < size; i++)
@@ -938,6 +938,11 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 
 			// Calculate the response of the Cross Section
 			ShellCrossSection::Pointer & section = mSections[i];
+
+			//add in shear stabilization
+			double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
+			parameters.SetStenbergShearStabilization(shearStabilisation);
+			//double shearStabilisation = (hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e);
 
 			// calculate force resultants
 			parameters.SetShapeFunctionsValues(iN);
@@ -1548,6 +1553,34 @@ void ShellThickElement3D4N::CheckGeneralizedStressOrStrainOutput(const Variable<
 	}
 }
 
+double ShellThickElement3D4N::CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem & referenceCoordinateSystem, const double & hMean)
+{
+	// Calculate Stenberg shear stabilisation as per
+	// https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
+
+	// Determine longest element edge
+	Vector edge_1 = Vector(referenceCoordinateSystem.P1() - referenceCoordinateSystem.P2());
+	Vector edge_2 = Vector(referenceCoordinateSystem.P2() - referenceCoordinateSystem.P3());
+	Vector edge_3 = Vector(referenceCoordinateSystem.P3() - referenceCoordinateSystem.P4());
+	Vector edge_4 = Vector(referenceCoordinateSystem.P4() - referenceCoordinateSystem.P1());
+	double h_e = inner_prod(edge_1, edge_1);
+	if (inner_prod(edge_2, edge_2) > h_e)
+	{
+		h_e = inner_prod(edge_2, edge_2);
+	}
+	if (inner_prod(edge_3, edge_3) > h_e)
+	{
+		h_e = inner_prod(edge_3, edge_3);
+	}
+	if (inner_prod(edge_4, edge_4) > h_e)
+	{
+		h_e = inner_prod(edge_4, edge_4);
+	}
+	h_e = std::sqrt(h_e);
+
+	return ((hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e));
+}
+
 void ShellThickElement3D4N::DecimalCorrection(Vector& a)
 {
     double norm = norm_2(a);
@@ -1847,6 +1880,9 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
         parameters.SetShapeFunctionsValues( iN );
         parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
+		//add in shear stabilization
+		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
+		parameters.SetStenbergShearStabilization(shearStabilisation);
         section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
         Ddrilling = section->GetDrillingStiffness();
 
@@ -2124,8 +2160,11 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
         EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
         // Calculate the response of the Cross Section
-
         ShellCrossSection::Pointer & section = mSections[i];
+		//add in shear stabilization
+		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
+		parameters.SetStenbergShearStabilization(shearStabilisation);
+
         if(ijob > 2)
         {
             if (ijob > 7)

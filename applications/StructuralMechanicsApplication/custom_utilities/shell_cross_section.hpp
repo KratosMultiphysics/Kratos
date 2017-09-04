@@ -112,6 +112,9 @@ public:
         Vector*              mpGeneralizedStressVector;
         Matrix*              mpConstitutiveMatrix;
 
+		double				 mStenbergShearStabilization = 1.0;
+		// refer https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
+
         const Vector*        mpShapeFunctionsValues;
         const Matrix*        mpShapeFunctionsDerivatives;
         const ProcessInfo*   mpCurrentProcessInfo;
@@ -261,6 +264,10 @@ public:
         {
             mpElementGeometry =&rElementGeometry;
         };
+		void SetStenbergShearStabilization(const double& StenbergShearStabilization)
+		{
+			mStenbergShearStabilization = StenbergShearStabilization;
+		};		
 
         /**
         * returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
@@ -304,6 +311,10 @@ public:
         {
             return *mpElementGeometry;
         };
+		double GetStenbergShearStabilization()
+		{
+			return mStenbergShearStabilization;
+		};
     };
 
     class IntegrationPoint
@@ -1140,7 +1151,7 @@ public:
     /**
     * Setup to get the integrated constitutive matrices for each ply
     */
-    void SetupGetPlyConstitutiveMatrices(const double shear_stabilization = 1.0)
+    void SetupGetPlyConstitutiveMatrices()
     {
 		// This function must be called before requesting un-integrated
 		// constitutive matrices for each ply!
@@ -1160,7 +1171,6 @@ public:
     
     		mPlyConstitutiveMatrices[ply].clear();
     	}
-    	mDSG_shear_stabilization = shear_stabilization;
     }
     
     /**
@@ -1364,7 +1374,6 @@ private:
     Vector mOOP_CondensedStrains_converged;
     bool mStorePlyConstitutiveMatrices = false;
     std::vector<Matrix> mPlyConstitutiveMatrices;
-    double mDSG_shear_stabilization;
     
     ///@}
 
