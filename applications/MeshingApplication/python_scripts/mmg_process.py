@@ -267,36 +267,49 @@ class MmgProcess(KratosMultiphysics.Process):
                             current_metric_variable,
                             hessian_parameters))
         elif (self.strategy == "Error"):
-            hessian_parameters = KratosMultiphysics.Parameters("""{}""")
-            hessian_parameters.AddValue("minimal_size",self.params["minimal_size"])
-            hessian_parameters.AddValue("maximal_size",self.params["maximal_size"])
-            hessian_parameters.AddValue("enforce_current",self.params["enforce_current"])
-            hessian_parameters.AddValue("hessian_strategy_parameters",self.params["hessian_strategy_parameters"])
-            hessian_parameters.AddValue("anisotropy_remeshing",self.params["anisotropy_remeshing"])
-            hessian_parameters.AddValue("anisotropy_parameters",self.params["anisotropy_parameters"])
-            for current_metric_variable in self.metric_variable:
-                if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
-                    if (self.dim == 2):
-                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
-                            self.Model[self.model_part_name],
-                            current_metric_variable,
-                            hessian_parameters))
-                    else:
-                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
-                            self.Model[self.model_part_name],
-                            current_metric_variable,
-                            hessian_parameters))
-                else:
-                    if (self.dim == 2):
-                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
-                            self.Model[self.model_part_name],
-                            current_metric_variable,
-                            hessian_parameters))
-                    else:
-                        self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
-                            self.Model[self.model_part_name],
-                            current_metric_variable,
-                            hessian_parameters))                        
+            #hessian_parameters = KratosMultiphysics.Parameters("""{}""")
+            #hessian_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            #hessian_parameters.AddValue("maximal_size",self.params["maximal_size"])
+            #hessian_parameters.AddValue("enforce_current",self.params["enforce_current"])
+            #hessian_parameters.AddValue("hessian_strategy_parameters",self.params["hessian_strategy_parameters"])
+            #hessian_parameters.AddValue("anisotropy_remeshing",self.params["anisotropy_remeshing"])
+            #hessian_parameters.AddValue("anisotropy_parameters",self.params["anisotropy_parameters"])
+            #for current_metric_variable in self.metric_variable:
+            #    if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
+            #        if (self.dim == 2):
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))
+            #        else:
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))
+            #    else:
+            #        if (self.dim == 2):
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))
+            #        else:
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))  
+            spr_parameters = KratosMultiphysics.Parameters("""{}""")
+            spr_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            spr_parameters.AddValue("maximal_size",self.params["maximal_size"])
+            spr_parameters.AddValue("error",self.params["error_parameters"]["interpolation_error"])
+            
+            if (self.dim == 2):
+                self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
+                    self.Model[self.model_part_name],
+                    spr_parameters))
+            else:
+                self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
+                    self.Model[self.model_part_name],
+                    spr_parameters))                          
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient

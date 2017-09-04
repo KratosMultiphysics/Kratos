@@ -116,6 +116,7 @@ public:
             "error_mesh_tolerance" : 1.0e-3,
             "error_mesh_constant" : 1.0e-3,
             "remeshing_utility"   : "MMG",
+            "strategy"            : "Error",
             "remeshing_parameters": 
             {
                 "filename"                             : "out",
@@ -136,7 +137,7 @@ public:
             {
                 "minimal_size"                        : 0.1,
                 "maximal_size"                        : 10.0, 
-                "enforce_current"                     : true
+                "error"                               : 0.05
             }
         })" );
         
@@ -291,16 +292,16 @@ public:
                 MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
                 MetricInit.Execute();
 //                 ComputeErrorSolMetricProcess<2> ComputeMetric = ComputeErrorSolMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]); // DEPRECATED
-//                 ComputeSPRErrorSolMetricProcess<2> ComputeMetric = ComputeSPRErrorSolMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
-//                 ComputeMetric.Execute();
+                 ComputeSPRErrorSolMetricProcess<2> ComputeMetric = ComputeSPRErrorSolMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
+                 ComputeMetric.Execute();
             }
             else
             {
                 MetricFastInit<3> MetricInit = MetricFastInit<3>(mThisModelPart);
                 MetricInit.Execute();
 //                 ComputeErrorSolMetricProcess<3> ComputeMetric = ComputeErrorSolMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]); // DEPRECATED
-//                 ComputeSPRErrorSolMetricProcess<3> ComputeMetric = ComputeSPRErrorSolMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
-//                 ComputeMetric.Execute();
+                 ComputeSPRErrorSolMetricProcess<3> ComputeMetric = ComputeSPRErrorSolMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
+                 ComputeMetric.Execute();
             }
             
             // Remeshing

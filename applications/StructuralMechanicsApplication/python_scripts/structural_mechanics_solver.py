@@ -94,7 +94,7 @@ class MechanicalSolver(object):
                 {
                     "minimal_size"                        : 0.1,
                     "maximal_size"                        : 10.0, 
-                    "enforce_current"                     : true
+                    "error"                               : 0.05
                 }
             },
             "component_wise" : false,
