@@ -259,6 +259,47 @@ public:
     {
         return mpvalue->IsArray();
     }
+    bool IsVector() const
+    {
+        if(mpvalue->IsArray() == false) KRATOS_ERROR << "value is not an Array-type" << std::endl;
+
+        if(mpvalue->Size() > 1)
+        {
+            if((*mpvalue)[0].IsArray())
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    bool IsMatrix() const
+    {
+        if(mpvalue->IsArray() == false) KRATOS_ERROR << "value is not an Array-type" << std::endl;
+        unsigned int nrows = mpvalue->Size();
+        unsigned int ncols = 0;
+        if(nrows != 0)
+            if((*mpvalue)[0].IsArray())
+                ncols = (*mpvalue)[0].Size();
+
+        for (unsigned int i=1; i<nrows; ++i)
+        {
+            auto& row_i = (*mpvalue)[i];
+            if(row_i.IsArray() == false) KRATOS_ERROR << "not an array on row " << i << std::endl;
+            if(row_i.Size() != ncols) KRATOS_ERROR << "wrong size of row " << i << std::endl;
+        }
+
+        if(nrows > 1 && ncols > 1) // minimum size for a Matrix is 2x2, everything smaller is a Vector!
+            return true;
+        else
+            return false;
+    }
     bool IsSubParameter() const
     {
         return mpvalue->IsObject();
@@ -288,34 +329,33 @@ public:
         if(mpvalue->IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
         return mpvalue->GetString();
     }
-    
-    bool IsMatrix()
+    Vector GetVector() const    
     {
-        if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Matrix (a json list of lists)" ;
-        unsigned int nrows = mpvalue->Size();
-        unsigned int ncols = 0;
-        if(nrows != 0)
-            if((*mpvalue)[0].IsArray())
-                ncols = (*mpvalue)[0].Size();
+        if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Vector (a json list)" ;
+        
+        const unsigned int size = mpvalue->Size();
+        if(size < 2) KRATOS_ERROR << "argument is not a Vector, size < 2! " << std::endl;
             
-            
-        KRATOS_WATCH(nrows)
-        KRATOS_WATCH(ncols)
-        if(nrows != 0 && ncols != 0)
-            return true;
-        else
-            return false;
+        Vector V(size);
+        
+        for(unsigned int i=0; i<size; ++i)
+        {
+            V(i) = (*mpvalue)[i].GetDouble();
+        }
+        
+        return V;
     }
-    
     Matrix GetMatrix() const
     {
         if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Matrix (a json list of lists)" ;
         
-        unsigned int nrows = mpvalue->Size();
+        const unsigned int nrows = mpvalue->Size();
         unsigned int ncols = 0;
         if(nrows != 0)
             if((*mpvalue)[0].IsArray())
                 ncols = (*mpvalue)[0].Size();
+
+        if(nrows < 2 || ncols < 2) KRATOS_ERROR << "argument is not a Matrix, size < 2x2! " << std::endl;
             
         Matrix A(nrows,ncols);
         
@@ -351,6 +391,41 @@ public:
         *mpvalue = tmp;
 //         mpvalue->SetString(rapidjson::StringRef(value.c_str()));
 //        mpvalue->SetString(value.c_str(), value.length());
+    }
+    void SetVector(const Vector& vec) // Riccardo how to pass this?
+    {
+        // Riccardo there s also the "SetArrayRaw" method...would you prefer this one?
+        const unsigned int size = vec.size();
+        if(size < 2) KRATOS_ERROR << "Input is not a Vector, size < 2! " << std::endl;
+
+        mpvalue->SetArray();
+        mpvalue->Reserve(size, mpdoc->GetAllocator());
+        for (unsigned int i=0; i<size; ++i)
+        {
+            mpvalue->PushBack(vec[i], mpdoc->GetAllocator());
+            // mpvalue[i].SetDouble(vec[i]); // This is not working, "mpValue" is not an array afterwards any more!
+        }        
+    }
+    void SetMatrix(const Matrix& mat) // Riccardo how to pass this?
+    {
+        const unsigned int nrows = mat.size1();
+        const unsigned int ncols = mat.size2();
+        if(nrows < 2 || ncols < 2) KRATOS_ERROR << "Input is not a Matrix, size < 2x2! " << std::endl;
+
+        mpvalue->SetArray();
+
+        mpvalue->Reserve(nrows, mpdoc->GetAllocator());
+        for (unsigned int i=0; i<nrows; ++i)
+        {
+            mpvalue->PushBack(0, mpdoc->GetAllocator()); // Riccardo how can we do this better?
+            (*mpvalue)[i].SetArray();
+            (*mpvalue)[i].Reserve(ncols, mpdoc->GetAllocator());
+            // auto& row_i = (*mpvalue)[i]; // Riccardo is it better to use this?
+            for (unsigned int j=0; j<ncols; ++j)
+            {
+                (*mpvalue)[i].PushBack(mat(i,j), mpdoc->GetAllocator());
+            }
+        }
     }
 
 
