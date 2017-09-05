@@ -58,7 +58,8 @@
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
-
+#include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
+ 
 
 
 namespace Kratos
@@ -206,6 +207,11 @@ namespace Kratos
        	  init<>() )
        	;
       
+      class_< VonMisesLinearElasticPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "VonMisesLinearElasticPlasticityModel",
+       	  init<>() )
+       	;
+
       class_< SimoJ2ThermoPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
        	( "SimoJ2ThermoPlasticityModel",
        	  init<>() )
