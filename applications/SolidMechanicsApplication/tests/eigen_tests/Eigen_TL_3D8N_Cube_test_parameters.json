@@ -1,0 +1,72 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Eigen_TL_3D8N_Cube_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "solid_mechanics_eigensolver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "analysis_type"                      : "Linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "eigen_tests/Eigen_TL_3D8N_Cube"
+        },
+	"eigensolver_settings":{
+        "solver_type": "FEAST",
+        "print_feast_output": false,
+        "perform_stochastic_estimate": false,
+        "solve_eigenvalue_problem": true,
+	"compute_modal_contribution": false,
+        "lambda_min": 0.0,
+        "lambda_max": 2.5e3,
+        "search_dimension": 6,
+        "linear_solver_settings":{
+            "solver_type": "skyline_lu"
+        }
+	},
+        "problem_domain_sub_model_part_list" : ["Parts_Solid"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet"],
+        "rotation_dofs"                      : false
+    },
+    "constraints_process_list" : [{
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorComponentsToNodesProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Dirichlet",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"] 
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "check_eigenvalues_process",
+        "help"                  : "",
+        "process_name"          : "CheckEigenvaluesProcess",
+        "Parameters"            : {
+            "model_part_name"  : "Structure",
+	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
+            "reference_values": "[907.790376, 907.790376, 1765.137798, 2254.538816]"
+        }
+    }],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
