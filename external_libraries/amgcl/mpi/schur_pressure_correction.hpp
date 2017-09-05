@@ -418,8 +418,22 @@ class schur_pressure_correction {
 
             tmp = backend_type::create_vector(nu, bprm);
 
-            if (prm.approx_schur)
-                M = backend_type::copy_vector(diagonal(*Kuu, /*invert = */true), bprm);
+            if (prm.approx_schur) {
+                M = backend_type::create_vector(nu, bprm);
+
+#pragma omp parallel
+                for(ptrdiff_t i = 0; i < nu; ++i) {
+                    // Keep in mind Kuu has global column numeration:
+                    ptrdiff_t dia = i + u_beg;
+                    value_type v = math::zero<value_type>();
+                    for(ptrdiff_t j = Kuu->ptr[i], e = Kuu->ptr[i+1]; j < e; ++j) {
+                        if (Kuu->col[j] == dia) {
+                            v = math::inverse(Kuu->val[j]);
+                        }
+                    }
+                    (*M)[i] = v;
+                }
+            }
 
             // Scatter/Gather matrices
             boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();
