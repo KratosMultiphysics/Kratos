@@ -331,6 +331,26 @@ public:
     }
 
 
+            // *********************************************************************************
+            // *********************************************************************************
+            virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2) override
+            {
+               KRATOS_TRY
+               
+               // GetTheNormalOfThePlane
+                  PointType Normal(3);
+                  noalias(Normal) = mPlane.Normal; 
+                  PointType T1(3); PointType T2(3);
+                  noalias(T1) = ZeroVector(3); noalias(T2) = ZeroVector(3);
+                  this->CalculateOrthonormalBase(Normal, T1, T2);
+
+                  for (unsigned int i = 0; i < 3; i++)
+                  {
+                     rT1(i) = T1(i); rT2(i) = T2(i); 
+               }
+
+               KRATOS_CATCH("")
+            }
     //************************************************************************************
     //************************************************************************************
 
