@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: abel $
-//   Date:                $Date: 2013-05-27 17:13:27 $
-//   Revision:            $Revision: 1.29 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Abel
 //
+
 
 
 #if !defined(KRATOS_OCTREE_H_INCLUDED )

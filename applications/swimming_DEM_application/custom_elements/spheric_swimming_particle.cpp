@@ -823,7 +823,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
         return;
     }
 
-    else if (mHydrodynamicTorqueType == 1 or mHydrodynamicTorqueType == 2){
+    else if (mHydrodynamicTorqueType == 1 || mHydrodynamicTorqueType == 2){
         const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;

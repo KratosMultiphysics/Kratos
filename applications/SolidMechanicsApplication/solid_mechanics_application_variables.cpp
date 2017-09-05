@@ -22,6 +22,11 @@ namespace Kratos
 
   //Create Variables
 
+  // Generalized eigenvalue problem
+  KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
+  KRATOS_CREATE_VARIABLE( Vector, EIGENVALUE_VECTOR)
+  KRATOS_CREATE_VARIABLE( Matrix , EIGENVECTOR_MATRIX )
+
   //explicit schemes
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 

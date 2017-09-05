@@ -199,7 +199,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::InitializeEulerianElement(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -364,7 +364,8 @@ namespace Kratos
     template< unsigned int TDim, unsigned int TNumNodes >
     void EulerianConvectionDiffusionElement< TDim, TNumNodes >::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
+        Matrix LeftHandSide;
+        this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
     }
 
 //----------------------------------------------------------------------------------------

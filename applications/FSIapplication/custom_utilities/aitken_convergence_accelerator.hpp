@@ -14,12 +14,12 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "utilities/math_utils.h"
 
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_parameters.h"
 #include "convergence_accelerator.hpp"
 
 namespace Kratos
@@ -69,6 +69,22 @@ public:
      * Constructor.
      * Aitken convergence accelerator
      */
+    AitkenConvergenceAccelerator(Parameters& rConvAcceleratorParameters)
+    {
+        Parameters aitken_default_parameters(R"(
+        {
+            "solver_type"       : "Relaxation",
+            "acceleration_type" : "Aitken",
+            "w_0"               : 0.825  
+        }
+        )");
+
+        rConvAcceleratorParameters.ValidateAndAssignDefaults(aitken_default_parameters);
+
+        mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+    }
+
+
     AitkenConvergenceAccelerator(double rOmegaInitial = 0.825)
     {
         mOmega_0 = rOmegaInitial;
@@ -128,13 +144,11 @@ public:
     {
         KRATOS_TRY;
 
-        // (*mpResidualVector_1) = rResidualVector;
         VectorPointerType pAux(new VectorType(rResidualVector));
         std::swap(mpResidualVector_1, pAux);
 
         if (mConvergenceAcceleratorIteration == 1)
         {
-            // rIterationGuess += mOmega_0*mResidualVector_1;
             TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
         }
         else
@@ -142,14 +156,11 @@ public:
             VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliar copy of mResidualVector_1
             TSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
 
-            // double num = inner_prod(mResidualVector_0,(mResidualVector_1-mResidualVector_0));
-            // double den = inner_prod((mResidualVector_1-mResidualVector_0),(mResidualVector_1-mResidualVector_0));
             double den = TSpace::Dot(Aux1minus0, Aux1minus0);
             double num = TSpace::Dot(*mpResidualVector_0, Aux1minus0);
 
             mOmega_1 = -mOmega_0*(num/den);
 
-            // rIterationGuess += mOmega_1*mResidualVector_1;
             TSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
             mOmega_0 = mOmega_1;
         }
@@ -164,8 +175,8 @@ public:
     {
         KRATOS_TRY;
 
-        // *mResidualVector_0 = *mResidualVector_1;
-        mpResidualVector_0 = mpResidualVector_1;
+        // mpResidualVector_0 = mpResidualVector_1;
+        std::swap(mpResidualVector_0, mpResidualVector_1);
         mConvergenceAcceleratorIteration += 1;
 
         KRATOS_CATCH( "" );

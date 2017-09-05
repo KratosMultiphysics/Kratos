@@ -1,10 +1,17 @@
 #ifdef KRATOS_DEBUG
-#include <Python.h>
+  #include <Python.h>
 #else
-#undef _DEBUG
-#include <Python.h>
-#define _DEBUG
+  #ifdef _DEBUG
+    #define _DEBUG_DEFINED
+    #undef _DEBUG
+  #endif
+  #include <Python.h>
+  #ifdef _DEBUG_DEFINED
+    #undef _DEBUG_DEFINED
+    #define _DEBUG
+  #endif
 #endif
+
 #include <iostream>
 
 #if PY_MAJOR_VERSION >= 3
@@ -55,7 +62,6 @@
 
         Py_NoSiteFlag = 1;
         Py_SetProgramName(wchar_argv[0]);
-     
         Py_Initialize();
 
         PySys_SetArgv(argc-1, &wchar_argv[1] );
@@ -97,7 +103,6 @@
 
         PyObject* sysPath = PySys_GetObject((char*)"path");
         PyList_Insert(sysPath,0, PyString_FromString("."));
-        PyList_Insert(sysPath,0, PyString_FromString("python27.zip"));
         PySys_SetArgv(argc-1,&argv[1]);
 
         char filename[1024];

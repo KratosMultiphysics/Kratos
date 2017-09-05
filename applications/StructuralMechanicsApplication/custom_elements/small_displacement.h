@@ -55,7 +55,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class SmallDisplacement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacement
     : public BaseSolidElement
 {
 public:
