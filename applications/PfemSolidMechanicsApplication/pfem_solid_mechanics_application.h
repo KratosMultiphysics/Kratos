@@ -40,6 +40,8 @@
 #include "custom_elements/total_updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
+
+
 #include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
 
@@ -77,14 +79,16 @@
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 //constitutive laws
+#include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_tresca_3D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
-#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
-#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
+//#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
@@ -289,14 +293,17 @@ namespace Kratos
     const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
     const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
 
+
+    const BorjaHenckyCamClayPlastic3DLaw                        mBorjaHenckyCamClayPlastic3DLaw;
     const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
     const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
     const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
-    const HenckyMohrCoulombPlasticAxisym2DLaw                          mHenckyMohrCoulombPlasticAxisym2DLaw;
-    const HenckyMohrCoulombPlasticPlaneStrain2DLaw                mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
+    const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
+    //const HenckyMohrCoulombPlasticAxisym2DLaw                          mHenckyMohrCoulombPlasticAxisym2DLaw;
+    //const HenckyMohrCoulombPlasticPlaneStrain2DLaw                mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
     const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
@@ -306,14 +313,14 @@ namespace Kratos
 
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
-    const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
+    //const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
     const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion               mTrescaYieldCriterion;
-    const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
+    //const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;

@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
-#include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "pfem_solid_mechanics_application_variables.h"
 namespace Kratos
 {
@@ -24,8 +24,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   BorjaHenckyCamClayPlasticPlaneStrain2DLaw::BorjaHenckyCamClayPlasticPlaneStrain2DLaw()
-      : NonLinearHenckyElasticPlasticPlaneStrain2DLaw()
+   BorjaHenckyCamClayPlastic3DLaw::BorjaHenckyCamClayPlastic3DLaw()
+      : NonLinearHenckyElasticPlastic3DLaw()
    {
       mpHardeningLaw   = HardeningLaw::Pointer( new CamClayKinematicHardeningLaw() );
       mpYieldCriterion = YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
@@ -36,7 +36,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   BorjaHenckyCamClayPlasticPlaneStrain2DLaw::BorjaHenckyCamClayPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+   BorjaHenckyCamClayPlastic3DLaw::BorjaHenckyCamClayPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
    {
       mpHardeningLaw    =  pHardeningLaw;
       mpYieldCriterion  =  YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
@@ -46,8 +46,8 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   BorjaHenckyCamClayPlasticPlaneStrain2DLaw::BorjaHenckyCamClayPlasticPlaneStrain2DLaw(const BorjaHenckyCamClayPlasticPlaneStrain2DLaw& rOther)
-      : NonLinearHenckyElasticPlasticPlaneStrain2DLaw(rOther)
+   BorjaHenckyCamClayPlastic3DLaw::BorjaHenckyCamClayPlastic3DLaw(const BorjaHenckyCamClayPlastic3DLaw& rOther)
+      : NonLinearHenckyElasticPlastic3DLaw(rOther)
    {
 
    }
@@ -55,30 +55,22 @@ namespace Kratos
    //********************************CLONE***********************************************
    //************************************************************************************
 
-   ConstitutiveLaw::Pointer BorjaHenckyCamClayPlasticPlaneStrain2DLaw::Clone() const
+   ConstitutiveLaw::Pointer BorjaHenckyCamClayPlastic3DLaw::Clone() const
    {
-      BorjaHenckyCamClayPlasticPlaneStrain2DLaw::Pointer p_clone(new BorjaHenckyCamClayPlasticPlaneStrain2DLaw(*this));
+      BorjaHenckyCamClayPlastic3DLaw::Pointer p_clone(new BorjaHenckyCamClayPlastic3DLaw(*this));
       return p_clone;
    }
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   BorjaHenckyCamClayPlasticPlaneStrain2DLaw::~BorjaHenckyCamClayPlasticPlaneStrain2DLaw()
+   BorjaHenckyCamClayPlastic3DLaw::~BorjaHenckyCamClayPlastic3DLaw()
    {
    }
 
 
-   double& BorjaHenckyCamClayPlasticPlaneStrain2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue)
+   double& BorjaHenckyCamClayPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue)
    {
-      /*      if ( rThisVariable == PLASTIC_STRESS_LIKE)
-              {
-              rValue = this->GetValue( PRECONSOLIDATION, rValue);
-              }
-              else if ( rThisVariable == PLASTIC_STRESS_LIKE)
-              {
-              rValue = this->GetValue( VOLUMETRIC_PLASTIC, rValue);
-              }*/
       if ( rThisVariable == PENALTY_PARAMETER)
       {
       }
@@ -121,13 +113,13 @@ namespace Kratos
       }
       else
       {
-         rValue = NonLinearHenckyElasticPlasticPlaneStrain2DLaw::GetValue( rThisVariable, rValue);
+         rValue = NonLinearHenckyElasticPlastic3DLaw::GetValue( rThisVariable, rValue);
       }
 
       return rValue;
    }
 
-   void BorjaHenckyCamClayPlasticPlaneStrain2DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
+   void BorjaHenckyCamClayPlastic3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
       /*      if ( rThisVariable == PLASTIC_STRESS_LIKE )
               {
@@ -154,11 +146,11 @@ namespace Kratos
       }
       else 
       {
-         NonLinearHenckyElasticPlasticPlaneStrain2DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+         NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
       }
    }
 
-   void BorjaHenckyCamClayPlasticPlaneStrain2DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+   void BorjaHenckyCamClayPlastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
       if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
       {
@@ -271,7 +263,14 @@ namespace Kratos
          ReferencePressure *= OCR;
 
          PreconsolidationStress *= OCR;
-         PreconsolidationStress = rStressVector(1)*OCR;
+
+
+         double MaxStress = 0;
+         for (unsigned int ii = 0; ii< 3; ii++)
+            if ( rStressVector(ii) < MaxStress)
+               MaxStress = rStressVector(ii);
+
+         PreconsolidationStress = MaxStress*OCR;
          if ( PreconsolidationStress > -5.0 ) {
             PreconsolidationStress = -5.0; // a treure;
          }
@@ -289,13 +288,13 @@ namespace Kratos
       }
       else
       {
-         NonLinearHenckyElasticPlasticPlaneStrain2DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+         NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
       }
 
    }
 
 
-   int BorjaHenckyCamClayPlasticPlaneStrain2DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+   int BorjaHenckyCamClayPlastic3DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
    {
 
       return 0;

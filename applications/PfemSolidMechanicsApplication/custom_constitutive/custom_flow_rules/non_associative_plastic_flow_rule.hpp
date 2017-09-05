@@ -155,7 +155,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    void InitializeMaterial(YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProp);
+    void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rProp);
 
 
     void UpdateDerivatives(const Vector& rPrincipalStress, AuxiliarDerivativesStructure & rAuxiliarDerivatives);
@@ -174,7 +174,13 @@ namespace Kratos
     void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix);
 
     virtual Matrix GetElasticLeftCauchyGreen(const RadialReturnVariables& rReturnMappingVariables);
+
     void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix);
+
+    void UpdateDerivatives(const Matrix& rEigenVectors, const Matrix& rStressMatrix, AuxiliarDerivativesStructure & rAuxiliarDerivatives);
+
+    void CalculateElasticMatrix( const RadialReturnVariables& rReturnMappingVariables, Matrix& ElasticMatrix);
+
 
 //    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
 

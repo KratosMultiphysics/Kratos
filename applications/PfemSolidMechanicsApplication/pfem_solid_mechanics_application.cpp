@@ -225,14 +225,16 @@ namespace Kratos
 
 
     //Register Constitutive Laws
+    Serializer::Register("BorjaHenckyCamClayPlastic3DLaw", mBorjaHenckyCamClayPlastic3DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
     Serializer::Register("HenckyTrescaPlasticAxisym2DLaw", mHenckyTrescaPlasticAxisym2DLaw);
     Serializer::Register("HenckyTrescaPlasticPlaneStrain2DLaw", mHenckyTrescaPlasticPlaneStrain2DLaw);
-    Serializer::Register("HenckyMohrCoulombPlasticAxisym2DLaw", mHenckyMohrCoulombPlasticAxisym2DLaw);
-    Serializer::Register("HenckyMohrCoulombPlasticPlaneStrain2DLaw", mHenckyMohrCoulombPlasticPlaneStrain2DLaw);
+    Serializer::Register("HenckyTresca3DLaw", mHenckyTresca3DLaw);
+    //Serializer::Register("HenckyMohrCoulombPlasticAxisym2DLaw", mHenckyMohrCoulombPlasticAxisym2DLaw);
+    //Serializer::Register("HenckyMohrCoulombPlasticPlaneStrain2DLaw", mHenckyMohrCoulombPlasticPlaneStrain2DLaw);
 
     Serializer::Register("HenckyPlasticUPJ2Axisym2DLaw", mHenckyPlasticUPJ2Axisym2DLaw);
     Serializer::Register("HenckyPlasticUPJ2PlaneStrain2DLaw", mHenckyPlasticUPJ2PlaneStrain2DLaw);
@@ -242,13 +244,13 @@ namespace Kratos
     //Register Flow Rules
     Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
     Serializer::Register("J2ExplicitFlowRule", mJ2ExplicitFlowRule);
-    Serializer::Register("MohrCoulombExplicitFlowRule", mMohrCoulombExplicitFlowRule);
+    //Serializer::Register("MohrCoulombExplicitFlowRule", mMohrCoulombExplicitFlowRule);
     Serializer::Register("BorjaCamClayExplicitFlowRule", mBorjaCamClayExplicitFlowRule);
 
     //Register Yield Criterion
     Serializer::Register("J2YieldCriterion", mJ2YieldCriterion);
     Serializer::Register("TrescaYieldCriterion", mTrescaYieldCriterion);
-    Serializer::Register("MohrCoulombYieldCriterion", mMohrCoulombYieldCriterion);
+    //Serializer::Register("MohrCoulombYieldCriterion", mMohrCoulombYieldCriterion);
     Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
 
     //Register Hardening Laws
