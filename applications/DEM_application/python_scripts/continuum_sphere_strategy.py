@@ -126,4 +126,4 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
         ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-        ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+        ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)

@@ -66,7 +66,10 @@ from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
 from SmallTests import Eigen3D3NThinCircleTests         as TEigen3D3NThinCircleTests
 # Membrane tests
 from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
+from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
+from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
 # Spring damper element tests
@@ -154,7 +157,9 @@ def AssambleTestSuites():
     smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Membrane tests
     smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
+    smallSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
+    smallSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
 
@@ -225,14 +230,16 @@ def AssambleTestSuites():
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
             TFofi4PointTentnoCableTests,
+            TFofi4PointTentCableTests,
             TMembraneQ4PointLoadTests,
+            TMembraneQ4TrussPointLoadTests,
             TShellQ4ThickBendingRollUpTests,
             TShellQ4ThickDrillingRollUpTests,
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
-            ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
-            ####TSprismPanTests # FIXME: Needs get up to date
+            ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
+            ###TSprismPanTests # FIXME: Needs get up to date
         ])
     )
         

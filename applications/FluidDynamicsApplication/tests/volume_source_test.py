@@ -254,7 +254,6 @@ class VolumeSourceTest(UnitTest.TestCase):
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()
-                node_iter = self.model_part.Nodes
 
                 for node in self.model_part.Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]

@@ -53,9 +53,7 @@ typedef array_1d<double,3> Vector3;
     KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT_GLOBAL )
 
     // Membrane variables
-    KRATOS_CREATE_VARIABLE(double, PRESTRESS_11)
-    KRATOS_CREATE_VARIABLE(double, PRESTRESS_22)
-    KRATOS_CREATE_VARIABLE(double, PRESTRESS_12)
+    KRATOS_CREATE_VARIABLE(Vector, MEMBRANE_PRESTRESS)
 
     // Cross section
     KRATOS_CREATE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )

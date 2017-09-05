@@ -86,7 +86,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         value_json = self.__linear_interpolation(time, input_time_list, values_json)
                         if (self.iscloseavailable == True):
                             isclosethis = math.isclose(value, value_json, rel_tol=reltol, abs_tol=tol)
-                            self.assertTrue(isclosethis)
+                            self.assertTrue(isclosethis, msg=(str(value)+" != "+str(value_json)+", rel_tol = "+str(reltol)+", abs_tol = "+str(tol)+
+                                                              " : Error checking node "+str(node.Id)+" "+out.GetString()+" results."))
                         else:
                             self.assertAlmostEqual(value, value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" results."), delta=tol)
                     # Vector variable
@@ -97,17 +98,20 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
                                 isclosethis = math.isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis)
+                                self.assertTrue(isclosethis, msg=(str(value)+" != "+str(value_json)+", rel_tol = "+str(reltol)+", abs_tol = "+str(tol)+
+                                                              " : Error checking node "+str(node.Id)+" "+out.GetString()+" results."))
                                 # Y-component
                                 values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
                                 isclosethis = math.isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis)
+                                self.assertTrue(isclosethis, msg=(str(value)+" != "+str(value_json)+", rel_tol = "+str(reltol)+", abs_tol = "+str(tol)+
+                                                              " : Error checking node "+str(node.Id)+" "+out.GetString()+" results."))
                                 # Z-component
                                 values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
                                 isclosethis = math.isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis)
+                                self.assertTrue(isclosethis, msg=(str(value)+" != "+str(value_json)+", rel_tol = "+str(reltol)+", abs_tol = "+str(tol)+
+                                                              " : Error checking node "+str(node.Id)+" "+out.GetString()+" results."))
                             else:
                                 # X-component
                                 values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
@@ -127,7 +131,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json[index])
                                 if (self.iscloseavailable == True):
                                     isclosethis = math.isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
-                                    self.assertTrue(isclosethis)
+                                    self.assertTrue(isclosethis, msg=(str(value)+" != "+str(value_json)+", rel_tol = "+str(reltol)+", abs_tol = "+str(tol)+
+                                                              " : Error checking node "+str(node.Id)+" "+out.GetString()+" results."))
                                 else:
                                     self.assertAlmostEqual(value[index], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" results."), delta=tol)
 

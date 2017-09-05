@@ -39,6 +39,7 @@
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_fsi_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_mat_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
@@ -394,7 +395,8 @@ void  AddContainersToPython()
     AddC2CVariablesToPython();
     AddDEMVariablesToPython(); //TODO: move this to the DEM application
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
-    AddALEVariablesToPython(); ///@TODO: move variables to CFD application
+    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
+    AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
     AddMATVariablesToPython(); ///@TODO: move variables to CFD application
     AddLegacyStructuralAppVarsToPython();
 
@@ -555,19 +557,12 @@ void  AddContainersToPython()
     //for AdjointFluidApplication
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_ACCELERATION )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( AUX_ADJOINT_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ADJOINT_PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( PRIMAL_VELOCITY )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRIMAL_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_SENSITIVITY )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WINDOW_FUNCTION )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DRAG_DIRECTION )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( MASS_MATRIX_0 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( MASS_MATRIX_1 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ADJOINT_MATRIX_1 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ADJOINT_MATRIX_2 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHAPE_DERIVATIVE_MATRIX_1 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHAPE_DERIVATIVE_MATRIX_2 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NUMBER_OF_NEIGHBOUR_ELEMENTS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( UPDATE_SENSITIVITIES )
 
     //for electric application
 

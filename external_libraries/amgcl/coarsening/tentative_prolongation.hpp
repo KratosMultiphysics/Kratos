@@ -129,7 +129,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 
     boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
 
-    TIC("tentative");
+    AMGCL_TIC("tentative");
     if (nullspace.cols > 0) {
         // Sort fine points by aggregate number.
         // Put points not belonging to any aggregate to the end of the list.
@@ -210,7 +210,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
             }
         }
     }
-    TOC("tentative");
+    AMGCL_TOC("tentative");
 
     return P;
 }

@@ -3,8 +3,8 @@
 
 namespace Kratos {
 
-    void NewmarkBetaScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
+    void NewmarkBetaScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     
