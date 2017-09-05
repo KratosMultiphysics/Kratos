@@ -326,7 +326,7 @@ class Benchmark2:
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
 
-        normal_contact_force_outfile_name = 'variables_for_node_1.txt'
+        normal_contact_force_outfile_name = 'variables_for_node_2.txt'
         gnuplot_script_name = 'benchmark2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 10 u 1:10 w lp lt 3 lw 1.5 ps 1 pt 6")
@@ -1988,6 +1988,8 @@ class Benchmark12: ########## ROLLING FRICTION
                 if node.Id == 1:
                    angular_velocity_z = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
                    total_angular_velocity_z += angular_velocity_z
+
+                del node       
 
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_angular_velocity_z).rjust(13)+"\n")
         self.balls_graph_counter += 1
@@ -4166,7 +4168,7 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
             error_file.write(" KO!........ Test 33 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, output_filename):  #FINALIZATION STEP
+    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 100));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; DEM_data1 = []; DEM_data2 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0
@@ -4179,7 +4181,7 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
                     ref_data2.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(output_filename) as inf:
+        with open(velocity_list_outfile_name) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()

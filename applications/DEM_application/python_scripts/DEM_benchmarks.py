@@ -103,7 +103,7 @@ class Solution(main_script.Solution):
         super().Initialize()           
 
         print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
-        list_of_nodes_ids = [1]
+        list_of_nodes_ids = [benchmark_number]
         if nodeplotter:
             os.chdir(self.main_path)
             self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids)
@@ -174,4 +174,4 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution        
         slt.Run()
     benchmark.print_results(number_of_points_in_the_graphic, dt)
-DBC.delete_archives() #.......Removing some unuseful files     
+#DBC.delete_archives() #.......Removing some unuseful files     

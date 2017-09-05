@@ -219,7 +219,7 @@ class Solution(object):
 
         self.report.Prepare(timer, DEM_parameters.ControlTime)
 
-        self.procedures.ModelData(self.spheres_model_part, self.solver)
+        #self.procedures.ModelData(self.spheres_model_part, self.solver) #check link with ModelDataInfo = "OFF"
 
         self.materialTest.PrintChart()
         self.materialTest.PrepareDataForGraph()
