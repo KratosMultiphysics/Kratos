@@ -67,6 +67,8 @@ public:
 
     typedef hsize_t SizeType;
 
+    // typedef typename TDenseSpace::VectorType DenseVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -81,7 +83,9 @@ public:
         {
             "model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "file_name": "PLEASE_SPECIFY_H5_FILE_NAME",
-            "variable_list": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            "variable_list": ["VELOCITY", "ACCELERATION", "PRESSURE"],
+            "nodal_value_list": ["EIGENVECTOR_MATRIX"],
+            "processinfo_value_list": []
         })");
 
         // try accessing parameters without defaults so that an error is thrown
@@ -100,6 +104,14 @@ public:
         for (unsigned int i = 0; i < mVariables.size(); i++)
         {
             mVariables[i] = rParameters["variable_list"].GetArrayItem(i).GetString();
+        }
+
+        // nodal value names to intput
+        mNodalValues.resize(rParameters["nodal_value_list"].size());
+        for( unsigned int i=0; i < mNodalValues.size(); ++i )
+        {
+            mNodalValues[i] = rParameters["nodal_value_list"].GetArrayItem(i).GetString();
+            std::cout << mNodalValues[i] << std::endl;
         }
 
         mNumNodes = 0;
@@ -153,6 +165,19 @@ public:
             }
         }
 
+        // for( size_t i = 0; i < mNodalValues.size(); ++i )
+        // {
+        //     std::cout << "hier" << std::endl;
+        //     if (KratosComponents< Variable<Vector> >::Has(mNodalValues[i]))
+        //     {
+        //         KRATOS_ERROR << "lalala" << mNodalValues[i] << std::endl;
+        //         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<double> >::Get(mVariables[i])) == false)
+        //         {
+        //             KRATOS_THROW_ERROR(std::runtime_error, "variable is not found in nodal solution steps variable list: ", mVariables[i])
+        //         }
+        //     }
+        // }
+
         // nodes should be ordered by node id before IO begins
         if (mrModelPart.Nodes().IsSorted() == false)
         {
@@ -167,6 +192,116 @@ public:
 
     void ExecuteBeforeSolutionLoop() override
     {
+        KRATOS_TRY
+
+        // read the values from the file before starting the computation
+        // open file to read data
+        H5::H5File File(mFilename.c_str(), H5F_ACC_RDONLY);
+        
+        H5::DataSet NodeIdDataset = File.openDataSet("/NodalData/Id");
+
+        hsize_t dims[3];
+        NodeIdDataset.getSpace().getSimpleExtentDims(dims);
+
+        if (mNumNodes != dims[0])
+            KRATOS_THROW_ERROR(std::runtime_error, "inconsistent dimension in file: ", mFilename)
+
+        if (mNumNodes != static_cast<SizeType>(mrModelPart.Nodes().size()))
+            KRATOS_THROW_ERROR(std::runtime_error, "detected change in number of nodes.", "")
+
+        std::vector<unsigned int> NodeIdBuffer(mrModelPart.Nodes().size());
+        NodeIdDataset.read(NodeIdBuffer.data(), H5::PredType::NATIVE_UINT);
+
+        // check that the node ordering is consistent between the model part and file
+        int Delta = 0;
+        auto itNode = std::begin(NodeIdBuffer);
+        std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
+            [&](NodeType& rNode)
+            {
+                Delta += std::abs(static_cast<int>(rNode.Id()) - static_cast<int>(*itNode));
+                itNode++;
+            });
+
+        if (Delta != 0)
+            KRATOS_THROW_ERROR(std::runtime_error, "detected mismatch of node ids in file: ", mFilename);
+
+        std::string values_group_name = "/NodalData/Values";
+
+        for( std::size_t i = 0; i < mNodalValues.size(); ++i)
+        {
+            std::string dataset_name = values_group_name + "/" + mNodalValues[i];
+            std::cout << dataset_name << std::endl;
+
+            // File.getObjinfo(dataset_name.c_str(),&status);
+            H5::DataSet value_dataset = File.openDataSet(dataset_name.c_str());
+            std::cout << "yo" << std::endl;
+            value_dataset.getSpace().getSimpleExtentDims(dims);
+
+            if (KratosComponents< Variable<Vector> >::Has(mNodalValues[i]))
+            {
+                std::vector<double> value_data_buffer(dims[0] * dims[1]); // nodes * modes
+                value_dataset.read(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
+                auto it_value = std::begin(value_data_buffer);
+
+                std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
+                   [&](NodeType& rNode)
+                {
+                    Vector temp_vector( dims[1] );
+                    for( size_t j = 0; j < dims[1]; ++j)
+                    {
+                        temp_vector[j] = *it_value;
+                        it_value++;
+                    }
+                    rNode.GetValue(KratosComponents< Variable<Vector> >::Get(mNodalValues[i])) = temp_vector;
+                });
+            }
+
+            else if( KratosComponents< Variable<Matrix> >::Has(mNodalValues[i]) )
+            {
+                std::vector<double> value_data_buffer(dims[0] * dims[1] * dims[2]); //nodes x dofs x modes
+                value_dataset.read(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
+                auto it_value = std::begin(value_data_buffer);
+
+                std::for_each(std::begin(mrModelPart.Nodes()), std::end(mrModelPart.Nodes()),
+                   [&](NodeType& rNode)
+                {
+                    Matrix temp_matrix( dims[2], dims[1] );
+                    for( size_t j = 0; j < dims[1]; ++j )
+                    {
+                        for( size_t k = 0; k < dims[2]; ++k )
+                        {
+                            temp_matrix(k,j) = *it_value;
+                            it_value++;
+                        }
+                    }
+                    rNode.GetValue(KratosComponents< Variable<Matrix> >::Get(mNodalValues[i])) = temp_matrix;
+                });
+            }
+
+            else
+            {
+                KRATOS_ERROR << "Reading from value " << mNodalValues[i] << " is not implemented right now" << std::endl;
+            }
+
+
+            // else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariables[i]))
+            // {
+
+
+            //     std::vector<double> VariableDataBuffer(3 * mrModelPart.Nodes().size());
+            //     VariableDataset.read(VariableDataBuffer.data(), H5::PredType::NATIVE_DOUBLE);
+            //     unsigned int BlockBegin = 0;
+            //     for (auto it = std::begin(mrModelPart.Nodes()); it != std::end(mrModelPart.Nodes()); it++)
+            //     {
+            //         array_1d<double,3>& rData = it->FastGetSolutionStepValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariables[i]));
+            //         for (unsigned int k = 0; k < 3; k++)
+            //             rData[k] = VariableDataBuffer[BlockBegin + k];
+            //         BlockBegin += 3;
+            //     }
+            // }
+        }
+
+        KRATOS_CATCH("")
     }
 
     void ExecuteInitializeSolutionStep() override
@@ -331,6 +466,7 @@ private:
     std::string mFilename;
     SizeType mNumNodes;
     std::vector<std::string> mVariables;
+    std::vector<std::string> mNodalValues;
 
     ///@}
     ///@name Private Operators
