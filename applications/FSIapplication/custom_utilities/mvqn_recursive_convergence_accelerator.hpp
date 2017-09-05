@@ -442,7 +442,7 @@ public:
     {
         Parameters mvqn_recursive_default_parameters(R"(
         {
-            "solver_type" : "MVQN",
+            "solver_type" : "MVQN_recursive",
             "w_0"         : 0.825,
             "buffer_size" : 10
         }
