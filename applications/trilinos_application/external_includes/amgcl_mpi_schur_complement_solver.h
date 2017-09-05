@@ -91,7 +91,7 @@ public:
                                         },
                                         "pressure_block_preconditioner" :
                                         {
-                                            "krylov_type" : "lgmres",
+                                            "krylov_type" : "fgmres",
                                             "tolerance" : 1e-2,
                                             "preconditioner_type" : "spai0",
                                             "max_iteration": 20
@@ -123,6 +123,35 @@ public:
         }    
 
         mCoarseEnough = rParameters["coarse_enough"].GetInt();
+        
+//         {
+//             "solver": {
+//                 "type" : "fgmres",
+//                 "M": 50
+//             },
+//             "precond": {
+//                 "usolver": {
+//                     "solver": {
+//                         "type" : "gmres",
+//                         "tol": 0.001,
+//                         "maxiter": 5
+//                     }
+//                 },
+//                 "psolver": {
+//                     "solver": {
+//                         "type" : "gmres",
+//                         "tol": 0.01,
+//                         "maxiter": 20
+//                     },
+//                     "precond" : {
+//                         "isolver" : {
+//                             "type" : "gmres",
+//                             "maxiter" : 2
+//                         }
+//                     }
+//                 }
+//             }
+//         }   
 
         mTolerance = rParameters["tolerance"].GetDouble();
         mMaxIterations = rParameters["max_iteration"].GetInt();
@@ -185,25 +214,25 @@ public:
 
         typedef amgcl::backend::builtin<double> Backend;
         
-//         typedef  amgcl::mpi::make_solver<
-//             amgcl::mpi::schur_pressure_correction<
-//                 amgcl::mpi::make_solver<
-//                     amgcl::mpi::block_preconditioner<
-//                         amgcl::runtime::relaxation::as_preconditioner<Backend>
-//                     >,
-//                     amgcl::runtime::iterative_solver
-//                 >,
-//                 amgcl::mpi::make_solver<
-//                     amgcl::mpi::subdomain_deflation<
-//                         amgcl::runtime::amg<Backend>,
-//                         amgcl::runtime::iterative_solver,
-//                         amgcl::runtime::mpi::direct_solver<double>
-//                     >,
-//                     amgcl::runtime::iterative_solver
-//                 >
-//             >,
-//             amgcl::runtime::iterative_solver
-//             > SDD;
+        typedef  amgcl::mpi::make_solver<
+            amgcl::mpi::schur_pressure_correction<
+                amgcl::mpi::make_solver<
+                    amgcl::mpi::block_preconditioner<
+                        amgcl::runtime::relaxation::as_preconditioner<Backend>
+                    >,
+                    amgcl::runtime::iterative_solver
+                >,
+                amgcl::mpi::make_solver<
+                    amgcl::mpi::subdomain_deflation<
+                        amgcl::runtime::amg<Backend>,
+                        amgcl::runtime::iterative_solver,
+                        amgcl::runtime::mpi::direct_solver<double>
+                    >,
+                    amgcl::runtime::iterative_solver
+                >
+            >,
+            amgcl::runtime::iterative_solver
+            > SDD;
         
 //         typedef  amgcl::mpi::make_solver<
 //             amgcl::mpi::schur_pressure_correction<
@@ -225,25 +254,25 @@ public:
 //             amgcl::runtime::iterative_solver
 //             > SDD;
             
-    typedef amgcl::mpi::make_solver<
-        amgcl::mpi::schur_pressure_correction<
-            amgcl::mpi::make_solver<
-                amgcl::mpi::block_preconditioner<
-                    amgcl::runtime::relaxation::as_preconditioner<Backend>
-                    >,
-                amgcl::runtime::iterative_solver //amgcl::solver::bicgstab
-                >,
-            amgcl::mpi::make_solver<
-                amgcl::mpi::subdomain_deflation<
-                    amgcl::runtime::amg<Backend>,
-                    amgcl::runtime::iterative_solver, //amgcl::solver::bicgstab,
-                    amgcl::mpi::skyline_lu<double>
-                    >,
-                amgcl::solver::fgmres
-                >
-            >,
-        amgcl::solver::fgmres
-        > SDD;
+//     typedef amgcl::mpi::make_solver<
+//         amgcl::mpi::schur_pressure_correction<
+//             amgcl::mpi::make_solver<
+//                 amgcl::mpi::block_preconditioner<
+//                     amgcl::runtime::relaxation::as_preconditioner<Backend>
+//                     >,
+//                 amgcl::solver::gmres //amgcl::solver::bicgstab
+//                 >,
+//             amgcl::mpi::make_solver<
+//                 amgcl::mpi::subdomain_deflation<
+//                     amgcl::runtime::amg<Backend>,
+//                     amgcl::solver::gmres, //amgcl::solver::bicgstab,
+//                     amgcl::mpi::skyline_lu<double>
+//                     >,
+//                 amgcl::solver::fgmres
+//                 >
+//             >,
+//         amgcl::solver::fgmres
+//         > SDD;
         
         boost::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
         mprm.put("precond.psolver.precond.num_def_vec", 1);
