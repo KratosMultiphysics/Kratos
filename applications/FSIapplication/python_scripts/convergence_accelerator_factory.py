@@ -46,13 +46,7 @@ def CreateTrilinosConvergenceAccelerator(interface_model_part, epetra_communicat
         return KratosTrilinos.TrilinosAitkenConvergenceAccelerator(configuration)
 
     elif(convergence_accelerator_type == "MVQN_recursive"):
-
-        configuration.ValidateAndAssignDefaults(_mvqn_defaults_recursive)
-
-        convergence_accelerator = KratosTrilinos.TrilinosMVQNRecursiveJacobianConvergenceAccelerator(interface_model_part,
-                                                                                                     epetra_communicator,
-                                                                                                     configuration["w_0"].GetDouble(),
-                                                                                                     configuration["buffer_size"].GetInt())
+        return KratosTrilinos.TrilinosMVQNRecursiveJacobianConvergenceAccelerator(interface_model_part, epetra_communicator, configuration)
 
     else:
         raise Exception("Trilinos convergence accelerator not found. Asking for : " + convergence_accelerator_type)

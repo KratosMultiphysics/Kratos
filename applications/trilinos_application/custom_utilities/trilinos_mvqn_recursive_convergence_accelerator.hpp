@@ -18,6 +18,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
 
 #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
@@ -461,6 +462,29 @@ public:
      */
     TrilinosMVQNRecursiveJacobianConvergenceAccelerator( ModelPart& rInterfaceModelPart,
                                                          const Epetra_MpiComm& rEpetraCommunicator,
+                                                         Parameters &rConvAcceleratorParameters) :
+        mrInterfaceModelPart(rInterfaceModelPart),
+        mrEpetraCommunicator(rEpetraCommunicator)
+    {
+        Parameters mvqn_recursive_default_parameters(R"(
+        {
+            "solver_type" : "MVQN_recursive",
+            "w_0"         : 0.825,
+            "buffer_size" : 10
+        }
+        )");
+
+        rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
+
+        mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+        mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt(); 
+        mConvergenceAcceleratorStep = 0;
+        mConvergenceAcceleratorIteration = 0;
+        mConvergenceAcceleratorFirstCorrectionPerformed = false;
+    }
+
+    TrilinosMVQNRecursiveJacobianConvergenceAccelerator( ModelPart& rInterfaceModelPart,
+                                                         const Epetra_MpiComm& rEpetraCommunicator,
                                                          const double OmegaInitial = 0.825,
                                                          const unsigned int JacobianBufferSize = 7 ):
         mrInterfaceModelPart(rInterfaceModelPart),
@@ -654,8 +678,8 @@ protected:
     ///@{
     ModelPart& mrInterfaceModelPart;                                    // Interface model part
     const Epetra_MpiComm& mrEpetraCommunicator;                         // Epetra communicator
-    const double mOmega_0;                                              // Relaxation factor for the initial fixed point iteration
-    const unsigned int mJacobianBufferSize;                             // User-defined Jacobian buffer-size
+    double mOmega_0;                                                    // Relaxation factor for the initial fixed point iteration
+    unsigned int mJacobianBufferSize;                                   // User-defined Jacobian buffer-size
 
     unsigned int mProblemSize;                                          // Residual to minimize size
     unsigned int mCurrentJacobianBufferSize;                            // Current Jacobian buffer-size (expected to be less or equal to the user-defined one)
