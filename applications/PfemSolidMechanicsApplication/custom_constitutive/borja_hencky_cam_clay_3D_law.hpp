@@ -7,18 +7,19 @@
 //
 //
 
-#if !defined (KRATOS_HENCKY_TRESCA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define       KRATOS_HENCKY_TRESCA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_BORJA_HENCKY_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED)
+#define       KRATOS_BORJA_HENCKY_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
+#include "custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+
 
 namespace Kratos
 {
@@ -32,8 +33,8 @@ namespace Kratos
 
 
 
-class HenckyTrescaPlasticPlaneStrain2DLaw 
-  : public NonLinearHenckyElasticPlasticPlaneStrain2DLaw
+class BorjaHenckyCamClayPlastic3DLaw 
+  : public NonLinearHenckyElasticPlastic3DLaw
 
 {
 public:
@@ -50,10 +51,10 @@ public:
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
-     * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
+     * Counted pointer of BorjaHenckyCamClayPlastic3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HenckyTrescaPlasticPlaneStrain2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( BorjaHenckyCamClayPlastic3DLaw );
 
     /**
      * Life Cycle
@@ -62,22 +63,16 @@ public:
     /**
      * Default constructor.
      */
-    HenckyTrescaPlasticPlaneStrain2DLaw();
+    BorjaHenckyCamClayPlastic3DLaw();
 
 
-    HenckyTrescaPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    BorjaHenckyCamClayPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
      */
-    HenckyTrescaPlasticPlaneStrain2DLaw (const HenckyTrescaPlasticPlaneStrain2DLaw& rOther);
+    BorjaHenckyCamClayPlastic3DLaw (const BorjaHenckyCamClayPlastic3DLaw& rOther);
 
-
-    /**
-     * Assignment operator.
-     */
-
-    //HyperElasticPlasticJ2PlaneStrain2DLaw& operator=(const HyperElasticPlasticJ2PlaneStrain2DLaw& rOther);
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -88,12 +83,19 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HenckyTrescaPlasticPlaneStrain2DLaw();
+    virtual ~BorjaHenckyCamClayPlastic3DLaw();
 
     /**
      * Operators
      */
 
+   virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+
+   virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+
+   virtual void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
+
+   int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
     /**
      * Operations needed by the base class:
      */
@@ -139,6 +141,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -179,16 +182,17 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticPlaneStrain2DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticPlaneStrain2DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
 
 
 
-}; // Class HyperElasticPlasticTrescaPlaneStrain2DLaw
+}; // Class BorjaHenckyCamClayPlastic3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HENCKY_MATSUOKA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_BORJA_HENCKY_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED
+
