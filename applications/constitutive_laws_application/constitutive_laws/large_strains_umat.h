@@ -89,7 +89,7 @@ namespace Kratos
 
 
 
-         virtual void CalculateMaterialResponseCauchy( Parameters & rValues) override;
+         virtual void CalculateMaterialResponseKirchhoff( Parameters & rValues) override;
 
          virtual void  FinalizeMaterialResponseCauchy( Parameters & rValues) override;
 
