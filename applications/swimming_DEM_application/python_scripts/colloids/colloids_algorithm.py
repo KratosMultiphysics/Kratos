@@ -13,7 +13,7 @@ class Algorithm(BaseAlgorithm):
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
-        self.pp.IntegrationScheme = 'TerminalVelocityScheme'
+        self.pp["IntegrationScheme"].GetString() = 'TerminalVelocityScheme'
         self.pp.CFD_DEM.basset_force_type = 0
         self.pp.CFD_DEM.PostCationConcentration = True
         self.pp.initial_concentration = 10

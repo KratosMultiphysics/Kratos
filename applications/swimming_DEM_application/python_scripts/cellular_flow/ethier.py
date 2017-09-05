@@ -260,20 +260,20 @@ creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
 
 #Getting chosen scheme:
-if DEM_parameters.IntegrationScheme == 'Forward_Euler':
+if DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler':
     scheme = ForwardEulerScheme()
-elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
+elif DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler':
     if pp.CFD_DEM.basset_force_type > 0:
         scheme = SymplecticEulerOldVelocityScheme()
     else:
         scheme = SymplecticEulerScheme()
-elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
+elif DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme':
     scheme = TaylorScheme()
-elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
+elif DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method':
     scheme = NewmarkBetaScheme(0.5, 0.25)
-elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
+elif DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
-elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+elif DEM_parameters["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
     scheme = HybridBashforthScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
@@ -981,7 +981,7 @@ while (time <= final_time):
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
 
-                if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+                if DEM_parameters["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space
                     projection_module.InterpolateVelocity()
 

@@ -65,7 +65,7 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
-    if pp.CFD_DEM.coupling_level_type:
+    if pp.CFD_DEM["coupling_level_type"].GetInt():
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
@@ -577,10 +577,10 @@ def CreateRunCode(pp):
         method_name = 'Daitche'
         code.append(method_name)
     else:
-        method_name = pp.CFD_DEM.IntegrationScheme
+        method_name = pp.CFD_DEM["IntegrationScheme"].GetString()
         code.append(method_name)
 
-    DEM_dt = 'Dt=' + str(pp.CFD_DEM.MaxTimeStep)
+    DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())
     code.append(DEM_dt)
 
     if pp.CFD_DEM.basset_force_type > 0:
