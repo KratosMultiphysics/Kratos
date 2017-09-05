@@ -3,8 +3,8 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-#import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 
+from math import sqrt, sin, cos, pi, exp, atan
 
 class TestTruss3D2N(KratosUnittest.TestCase):
     def setUp(self):
@@ -21,7 +21,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)  
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)       
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)      
 
         
     def _apply_material_properties(self,mp,dim):
@@ -30,8 +32,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,0)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,0)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA,0)
 
-        g = [0,0,0]  ##change to 0,0,0 (only for test purpose here)
+        g = [0,0,0]  
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
@@ -49,6 +53,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             for node in mp.Nodes:
                 node.Fix(KratosMultiphysics.DISPLACEMENT_X)
                 node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+        if (which_dof == 'yz'):
+            for node in mp.Nodes:
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
 
@@ -56,12 +64,13 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             for node in mp.Nodes:
                 node.SetSolutionStepValue(StructuralMechanicsApplication.
                 POINT_LOAD_Y,0,load_size_dir)        
-
+        if(which_dof == 'x'):
+            for node in mp.Nodes:
+                node.SetSolutionStepValue(StructuralMechanicsApplication.
+                POINT_LOAD_X,0,load_size_dir)  
 
         
     def _solve_linear(self,mp):
-        
-        #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -84,12 +93,11 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         strategy.Solve()
 
     def _solve_nonlinear(self,mp):
-        
-        #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
+        convergence_criterion.SetEchoLevel(0)
         
         max_iters = 1000
         compute_reactions = True
@@ -108,7 +116,35 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         
         strategy.Check()
         strategy.Solve()
+    def _solve_dynamic(self,mp):
         
+        #define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.00)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
+        convergence_criterion.SetEchoLevel(0)
+
+
+        max_iters = 1000
+        compute_reactions = True
+        reform_step_dofs = True
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
+                                                                scheme, 
+                                                                linear_solver, 
+                                                                convergence_criterion,
+                                                                builder_and_solver, 
+                                                                max_iters,
+                                                                compute_reactions, 
+                                                                reform_step_dofs, 
+                                                                move_mesh_flag)
+        strategy.SetEchoLevel(0)
+        
+        strategy.Check()
+        strategy.Solve()
+        
+           
     
     def _check_results_linear(self,mp):
         
@@ -190,18 +226,51 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep]*(-1))
         #displacement_y
         EA = 210e9*0.01
-        L3 = 11.18033989
+        L = sqrt(4+1)
+        L3 = L*L*L
         P_i = ((EA/(2*L3))*(disp_temp*disp_temp +2*1*disp_temp)*(disp_temp+1))
         self.assertAlmostEqual(P_i,Force_i,1)
 
 
-
-
-    def _create_nodes(self,mp):
-        mp.CreateNewNode(1,0.0,0.0,0.0)
-        mp.CreateNewNode(2,2.0,1.0,0.0)
-        mp.CreateNewNode(3,4.0,0.0,0.0)
+    def _check_results_dynamic(self,mp,time_i):
         
+        #analaytical free-vibration node 3
+        we1 = 7917.25
+        we2 = 19113.94
+        y1 = 1.4142*2.874e-5
+        y2 = -1.4142*4.93107e-6
+        test_disp_temp = y1*(1-cos(we1*time_i))-y2*(1-cos(we2*time_i))
+        simulated_disp_temp = mp.Nodes[3].GetSolutionStepValue(
+            KratosMultiphysics.DISPLACEMENT_X)  
+
+        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
+
+        #analaytical free-vibration node 2
+        we1 = 7917.25
+        we2 = 19113.94
+        y1 = 1.000*2.874e-5
+        y2 = 1.000*4.93107e-6
+        test_disp_temp = y1*(1-cos(we1*time_i))-y2*(1-cos(we2*time_i))
+        simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
+            KratosMultiphysics.DISPLACEMENT_X)  
+
+        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
+    def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
+        # Set buffer size
+        mp.SetBufferSize(buffer_size)
+
+        # Fill buffer
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        time = time - delta_time * (buffer_size)
+        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        for size in range(0, buffer_size):
+            step = size - (buffer_size -1)
+            mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+            time = time + delta_time
+            #delta_time is computed from previous time in process_info
+            mp.CloneTimeStep(time)
+
+        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False        
 
     def test_truss3D2N_linear(self):
         dim = 3
@@ -210,7 +279,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._apply_material_properties(mp,dim)
         
         #create nodes
-        self._create_nodes(mp)
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,1.0,0.0)
+        mp.CreateNewNode(3,4.0,0.0,0.0)
         #add dofs
         self._add_dofs(mp)
         #create condition
@@ -290,6 +361,58 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._solve_nonlinear(mp)  
             self._check_results_nonlinear(mp,time_step,Force_i)
             time_step += 1
+    
+    def test_truss3D2N_dynamic(self):
+        dim = 3
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.5,0.0,0.0)
+        mp.CreateNewNode(3,1.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2,3])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([3])
+        bcs_neumann.AddConditions([1]) 
+        #create Elements
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])       
+        #apply constant boundary conditions
+        Force_X = 100000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+        self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.004
+        time_delta = 0.000001
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        x = []
+        y = []
+        y_1 = []
+        while (time_i <= time_end):
+            
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)            
+            #solve + compare
+            self._solve_dynamic(mp)  
+            self._check_results_dynamic(mp,time_i)
+            time_step += 1        
 
         
 if __name__ == '__main__':
