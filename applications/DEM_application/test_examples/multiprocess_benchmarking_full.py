@@ -182,8 +182,8 @@ def delete_archives():
     folders_to_delete_list.extend(glob('*aphs'))
     folders_to_delete_list.extend(glob('*iles'))
 
-    #for to_erase_folder in folders_to_delete_list:
-        #shutil.rmtree(to_erase_folder)
+    for to_erase_folder in folders_to_delete_list:
+        shutil.rmtree(to_erase_folder)
 
 
 

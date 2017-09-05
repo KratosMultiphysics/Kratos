@@ -10,11 +10,8 @@ from KratosMultiphysics.DEMApplication import *
 
 import plot_variables                # Related to benchmarks in Chung, Ooi
 import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
-#from glob import glob
 
 sys.path.insert(0,'')
-# DEM Application
-
 benchmark_number, nodeplotter = int(sys.argv[1]), 0
 benchmark = getattr(DBC, 'Benchmark' + str(benchmark_number))()
 
@@ -25,14 +22,6 @@ listCONT      = list(range(20,27))
 listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
 
-'''
-listDISCONT   = [] #list(range(1,12))
-listROLLFR    = [] #list(range(12,13))
-listDEMFEM    = [] #list(range(13,18))
-listCONT      = [] #list(range(20,27))
-listDISclZHAO = [] #[30,32]
-listDISclRK   = [] #[31,33]
-'''
 if benchmark_number in listDISCONT:
     nodeplotter = 1
     import DEM_explicit_solver_var_DISCONT as DEM_parameters
@@ -57,9 +46,12 @@ else:
 class Solution(main_script.Solution):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(DEM_parameters)
         os.chdir('..')
         self.main_path = os.getcwd()
+
+    def GetProblemTypeFilename(self):
+        return benchmark
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):        
         return ModelPartIO(modelpart)
@@ -136,8 +128,6 @@ class Solution(main_script.Solution):
     def BeforePrintingOperations(self, time):
         super().BeforePrintingOperations(time)
         self.Setdt()
-        #print("BeforePrintingOperations dt",self.dt)
-        #print("BeforePrintingOperations graph_print_interval", self.graph_print_interval)
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)        
     
     def Finalize(self):      
@@ -168,8 +158,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.iteration = iteration
         slt.dt = dt
         slt.final_time = final_time    
-        slt.graph_print_interval = graph_print_interval  
-        #print("slt.graph_print_interval, slt.dt, slt.final_time,", slt.graph_print_interval,slt.dt, slt.final_time)    
+        slt.graph_print_interval = graph_print_interval     
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution        
         slt.Run()

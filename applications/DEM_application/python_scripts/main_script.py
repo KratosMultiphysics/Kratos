@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
+import shutil
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0,'')
@@ -22,7 +23,7 @@ else:
 
 class Solution(object):
 
-    def __init__(self):
+    def __init__(self, DEM_parameters):
         print("entering _init_ main_script")
         if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
@@ -42,7 +43,9 @@ class Solution(object):
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
+        problem_name = self.GetProblemTypeFilename()
+        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(problem_name))
+
         self.SetGraphicalOutput()
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
@@ -301,15 +304,10 @@ class Solution(object):
 
         self.step           = 0
         self.time           = 0.0
-        self.time_old_print = 0.0        
-        #self.SetFinalTime()
-        print("main script2 - self.dt, self.final_time,", self.dt, self.final_time)                  
+        self.time_old_print = 0.0                       
         while (self.time < self.final_time):
 
             self.InitializeTimeStep()
-
-            #self.dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-            #print("main script3 - self.dt", self.dt)   
             self.time  = self.time + self.dt
             self.step += 1
 
