@@ -142,10 +142,10 @@ namespace Kratos
                KRATOS_THROW_ERROR( std::logic_error, "LinearElastic umat material number material properties failure must be 2 ", "" );
 
             NSTATV[0] = 13;
-            STATEV = new double[13]; //[0..5] epsilonElastic, [6..11] epsilonPlastic, [12] alpha
-            STATEV_FINALIZED = new double [13];
+            STATEV = new double [ NSTATV[0] ]; //[0..5] epsilonElastic, [6..11] epsilonPlastic, [12] alpha
+            STATEV_FINALIZED = new double [ NSTATV[0] ];
 
-            for ( unsigned int i = 0; i < 13; i++ ) {
+            for ( unsigned int i = 0; i < NSTATV[0]; i++ ) {
                STATEV[i] = 0.0;
                STATEV_FINALIZED[i] = 0.0;
             }
@@ -210,7 +210,7 @@ namespace Kratos
    }
 
 
-   void LargeStrainsUmat::CalculateMaterialResponseCauchy(  Parameters & rValues)
+   void LargeStrainsUmat::CalculateMaterialResponseKirchhoff(  Parameters & rValues)
    {
 
       KRATOS_TRY
