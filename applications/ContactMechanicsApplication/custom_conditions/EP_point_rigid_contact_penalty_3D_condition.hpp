@@ -166,6 +166,11 @@ protected:
 
     GeometricalInformation mCurrentInfo;
     GeometricalInformation mSavedInfo;
+
+    double mElasticYoungModulus; // using MCC + IMPLEX, at the finalizeSolutionStep the Contact Forces are correctly ingrated with the finalized of the Young Modulus at the continuum elements, that is quite different from the one used during the implex step.
+
+    bool mImplex;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -190,7 +195,12 @@ protected:
 
     double CalculateEffectiveNormalForceModulus( const double& rNormalForceModulus, const double & rArea);
 
+    Matrix ConvertToTheAppropriateSize( const Matrix & rForceMatrix);
 
+    /**
+     * Calculation of the Contact Force Factors
+     */
+    virtual void CalculateContactFactors(GeneralVariables &rContact);
     ///@}
     ///@name Protected  Access
     ///@{

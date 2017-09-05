@@ -64,11 +64,17 @@ namespace Kratos
             double PlasticSlip;
             double Adhesion;
 
-            void Initialize(const double & rTangentPenalty, double PS, double & rArea )
+            bool Implex;
+
+            FrictionLawVariables() {Implex = false; Area = 1.0;}
+
+            void Initialize(const double & rTangentPenalty, double PS, double & rArea, bool rImplex = false )
             {
                PlasticSlipOld = PS;
+               PlasticSlip = PS;
                Area = rArea;
                TangentPenalty = rTangentPenalty / Area; 
+               Implex = rImplex;
             };
 
          };
@@ -201,6 +207,7 @@ namespace Kratos
          ///@{
          double mPlasticSlip; 
          double mPlasticSlipNew;
+         double mDeltaPlasticSlip;
 
          ///@}
          ///@name Private Operators
@@ -242,12 +249,14 @@ namespace Kratos
          {
             rSerializer.save("mPlasticSlip",mPlasticSlip);
             rSerializer.save("mPlasticSlipNew",mPlasticSlipNew);
+            rSerializer.save("mDeltaPlasticSlip",mDeltaPlasticSlip);
          }
 
          virtual void load( Serializer& rSerializer )
          {
             rSerializer.load("mPlasticSlip",mPlasticSlip);
             rSerializer.load("mPlasticSlipNew",mPlasticSlipNew);
+            rSerializer.load("mDeltaPlasticSlip",mDeltaPlasticSlip);
          }
 
    }; // Class FrictionLaw

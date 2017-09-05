@@ -264,6 +264,34 @@ public:
       KRATOS_CATCH("")     
     } 
 
+            // *********************************************************************************
+            // *********************************************************************************
+            virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2) override
+            {
+               KRATOS_TRY
+               
+               // GetTheNormalOfThePlane
+               const PointType  & rPoint = rValues.GetPoint();
+               PointType Normal(3);
+
+               Normal = rPoint - mBox.Center; 
+               Normal /= norm_2(Normal);
+
+               rT1 = Normal; 
+               if ( fabs(Normal(2))  > 1e-5) {
+                  rT1(2) = (-pow(Normal(0),2) - pow(Normal(1),2) )  / Normal(2);
+                  rT1 /= norm_2(rT1);
+               } else {
+                  rT1(0) = 0; rT1(1) = 0; rT1(2) = 1;
+               }
+
+               rT2 = ZeroVector(3);
+               rT2(0) =  Normal(1) * rT1(2) - Normal(2)*rT1(1);
+               rT2(1) = -Normal(0) * rT1(2) + Normal(2)*rT1(0);
+               rT2(2) =  Normal(0) * rT1(1) - Normal(1)*rT1(0);
+    
+               KRATOS_CATCH("")
+            }
 
     //************************************************************************************
     //************************************************************************************

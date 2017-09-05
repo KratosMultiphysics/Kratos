@@ -713,6 +713,14 @@ public:
     }
 
    
+    virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2)
+    {
+        KRATOS_TRY
+
+        //std::cout<< "Calling empty method directions" <<std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Access
