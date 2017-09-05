@@ -7,18 +7,16 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from SmallTests import FSIProblemEmulatorTest as TFSIProblemEmulatorTest
-from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideMap2D_test1
-from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
-from SmallTests import NonConformantOneSideMap3D_test1 as TNonConformantOneSideMap3D_test1
-from SmallTests import NonConformantOneSideMapTwoFaces3D_test1 as TNonConformantOneSideMapTwoFaces3D_test1
-from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as TConvergenceAcceleratorTest
+from convergence_accelerator_test import ConvergenceAcceleratorTest
+from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
+from FSI_problem_emulator_test import FSIProblemEmulatorTest
+from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 from variable_redistribution_test import VariableRedistributionTest
 
 ## NIGTHLY TESTS
 
 ## VALIDATION TESTS
-from ValidationTests import MokBenchmarkTest as TMokBenchmark
+from mok_benchmark_test import MokBenchmarkTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -36,15 +34,19 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TNonConformantOneSideMap2D_test1('test_execution'))
-    smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
-    smallSuite.addTest(TNonConformantOneSideMap3D_test1('test_execution'))
-    smallSuite.addTest(TNonConformantOneSideMapTwoFaces3D_test1('test_execution'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_aitken_accelerator'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_accelerator'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
-    smallSuite.addTest(TFSIProblemEmulatorTest('test_execution'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_aitken_accelerator'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_accelerator'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
+    smallSuite.addTest(ConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithAitken'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQN'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQNRecursive'))
+    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
+    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
+    smallSuite.addTest(NonConformantOneSideMapTest('test2D_1'))
+    smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
+    smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))
+    smallSuite.addTest(NonConformantOneSideMapTest('test3D_two_faces'))
     smallSuite.addTest(VariableRedistributionTest('testLinearFunction'))
     smallSuite.addTest(VariableRedistributionTest('testSharpCorners'))
     smallSuite.addTest(VariableRedistributionTest('testVector'))
@@ -57,7 +59,7 @@ def AssembleTestSuites():
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTest(TMokBenchmark('test_execution'))
+    validationSuite.addTest(MokBenchmarkTest('testMokBenchmark'))
 
     # Create a test suit that contains all the tests
     allSuite = suites['all']
