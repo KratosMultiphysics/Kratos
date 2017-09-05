@@ -76,6 +76,7 @@
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
+#include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_surfaces/mises_huber_thermal_yield_surface.hpp"
@@ -279,6 +280,7 @@ namespace Kratos {
     const JohnsonCookJ2ThermoPlasticityModel       mJohnsonCookJ2ThermoPlasticityModel;
     const BakerJohnsonCookJ2ThermoPlasticityModel  mBakerJohnsonCookJ2ThermoPlasticityModel;
     const CamClayModel                             mCamClayModel;
+    const VonMisesLinearElasticPlasticityModel        mVonMisesLinearElasticPlasticityModel;
     
     //yield criteria
     const MisesHuberYieldSurface<HardeningRuleType>         mMisesHuberYieldSurface;

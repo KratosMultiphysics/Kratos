@@ -72,6 +72,8 @@ namespace Kratos {
     //plasticity models
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
     Serializer::Register( "CamClayModel", mCamClayModel );
+    Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );
+    
     
     //yield criteria
     Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
