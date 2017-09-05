@@ -307,8 +307,8 @@ private:
 	      {
 		if( i_node->Id() == RigidBodyNodeId ){
 		  i_mp->AddNode(NodeCenterOfGravity);
-		  break;
 		  std::cout<<" node set "<<std::endl;
+		  break;
 		}
 	      }
 	  }
