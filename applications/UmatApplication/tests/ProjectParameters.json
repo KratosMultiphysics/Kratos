@@ -1,0 +1,126 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "patch_test_3D4N_tension",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 0.01,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "threads"         : 1,
+        "echo_level"      : 1
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "solid_mechanics_static_solver",
+        "echo_level"                         : 1,
+        "solution_type"                      : "Static",
+        "analysis_type"                      : "Non-Linear",
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "patch_test_3D4N_tension",
+            "input_file_label" : 0
+        },
+        "line_search"                        : true,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type" : "SuperLUSolver",
+            "scaling"     : false
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto4","DISPLACEMENT_Displacement_Auto6","SurfaceLoad3D_Load_on_surfaces_Auto1"]
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto4",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,null,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto6",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [null,null,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto1",
+            "variable_name"   : "SURFACE_LOAD",
+            "modulus"         : 1.0,
+            "direction"       : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "check_analytic_results_process" : [
+    {
+        "python_module"   : "check_scalar_to_nodes_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "process_name"          : "AssignValueProcess",
+        "Parameters"            : {
+                "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto1",
+                "variable_name"   : "DISPLACEMENT_X",
+                "interval"        : [0.0, "End"],
+                "value"           : 2.73E-03,
+                "tolerance_rank"  : 3
+        }
+    }
+    ],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 0.01,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
