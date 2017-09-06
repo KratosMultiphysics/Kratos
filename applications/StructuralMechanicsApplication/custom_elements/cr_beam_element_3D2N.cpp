@@ -114,6 +114,7 @@ namespace Kratos
 		if (this->mIterationCount == 0)
 		{
 			this->mNodalForces = ZeroVector(local_size * 2);
+			this->CalculateInitialLocalCS();
 		}
 		KRATOS_CATCH("")
 	}
@@ -464,6 +465,11 @@ namespace Kratos
 		this->mRotationMatrix0 = ZeroMatrix(local_size);
 		element_axis.CalculateRotationMatrix(Temp);
 		this->AssembleSmallInBigMatrix(Temp, this->mRotationMatrix0);
+
+		//provide Initial Rotation Matrix for strategies that dont call 'CalculateLocalSystem'
+		this->mRotationMatrix = ZeroMatrix(local_size);
+		this->mRotationMatrix = this->mRotationMatrix0;
+
 		KRATOS_CATCH("")
 	}
 
@@ -838,7 +844,14 @@ namespace Kratos
 			Matrix RotationMatrix = ZeroMatrix(MatSize);
 			Matrix aux_matrix = ZeroMatrix(MatSize);
 
-			RotationMatrix = this->mRotationMatrix;
+			if (this->mIsLinearElement == true)
+			{
+				RotationMatrix = this->mRotationMatrix0;
+			}
+			else
+			{
+				RotationMatrix = this->mRotationMatrix;
+			}
 			aux_matrix = prod(RotationMatrix, rMassMatrix);
 			rMassMatrix = prod(aux_matrix,
 				Matrix(trans(RotationMatrix)));
