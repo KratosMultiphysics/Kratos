@@ -751,10 +751,6 @@ class Procedures(object):
             if not os.path.isdir(directory):
                 os.makedirs(str(directory))
 
-            #if os.path.exists(directory):
-            #    shutil.rmtree(directory)
-            #os.makedirs(directory)
-
         return [post_path, data_and_results, graphs_path, MPI_results]
 
     def FindMaxNodeIdInModelPart(self, model_part):

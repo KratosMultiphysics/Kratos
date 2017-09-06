@@ -76,7 +76,7 @@ def Run():
             if platform.system()=="Windows":
                 os.system("setenv OMP_NUM_THREADS 1") # Is that the correct way to run on Windows?
                 subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                os.system("setenv OMP_NUM_THREADS 16") # Trying to set a 'default' value
+                os.system("setenv OMP_DYNAMIC TRUE") # Trying to set a 'default' value
                 
             else:
                 os.environ['OMP_NUM_THREADS']='1'
@@ -85,7 +85,7 @@ def Run():
                     
                 else:
                     subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                os.system("export OMP_NUM_THREADS=16") # Trying to set a 'default' value
+                os.system("export OMP_DYNAMIC=TRUE") # Trying to set a 'default' value
         except:
             #failure = True
             #list_of_failed_tests += [benchmark]
