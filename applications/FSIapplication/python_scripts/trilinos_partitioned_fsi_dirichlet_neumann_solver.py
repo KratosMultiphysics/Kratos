@@ -151,7 +151,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                 if ((nl_it == self.max_nl_it) and (KratosMPI.mpi.rank == 0)):
                     print("***********************************************************")
                     print("***********************************************************")
-                    print("         NON-LINEAR ITERATION CONVERGENCE ACHIEVED         ")
+                    print("       NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED       ")
                     print("***********************************************************")
                     print("***********************************************************")
 
@@ -234,7 +234,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_main_model_part, self.time_step)
 
         # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
-        self.nodal_update_utilities.UpdateTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
+        self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()

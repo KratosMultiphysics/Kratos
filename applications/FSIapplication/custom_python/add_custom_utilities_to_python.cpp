@@ -72,25 +72,21 @@ void  AddCustomUtilitiesToPython()
         .def("CheckCurrentCoordinatesStructure",&PartitionedFSIUtilities<TSpace,3>::CheckCurrentCoordinatesStructure)
         ;
 
-    class_< NodalUpdateBaseClass <2>, boost::noncopyable > ("BaseNodalUpdate2D", init< >())
+    class_<NodalUpdateBaseClass<2>, boost::noncopyable>("BaseNodalUpdate2D", init<>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<2>::UpdateMeshTimeDerivatives)
-        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateBaseClass<2>::UpdateTimeDerivativesOnInterface)
-        ;
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<2>::SetMeshTimeDerivativesOnInterface);
 
-    class_< NodalUpdateBaseClass <3>, boost::noncopyable > ("BaseNodalUpdate3D", init< >())
+    class_<NodalUpdateBaseClass<3>, boost::noncopyable>("BaseNodalUpdate3D", init<>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<3>::UpdateMeshTimeDerivatives)
-        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateBaseClass<3>::UpdateTimeDerivativesOnInterface)
-        ;
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<3>::SetMeshTimeDerivativesOnInterface);
 
-    class_< NodalUpdateNewmark <2>, bases <NodalUpdateBaseClass2DType>, boost::noncopyable > ("NodalUpdateNewmark2D", init< const double >())
+    class_<NodalUpdateNewmark<2>, bases<NodalUpdateBaseClass2DType>, boost::noncopyable>("NodalUpdateNewmark2D", init<const double>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<2>::UpdateMeshTimeDerivatives)
-        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateNewmark<2>::UpdateTimeDerivativesOnInterface)
-        ;
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<2>::SetMeshTimeDerivativesOnInterface);
 
-    class_< NodalUpdateNewmark <3>, bases <NodalUpdateBaseClass3DType>, boost::noncopyable > ("NodalUpdateNewmark3D", init< const double >())
+    class_<NodalUpdateNewmark<3>, bases<NodalUpdateBaseClass3DType>, boost::noncopyable>("NodalUpdateNewmark3D", init<const double>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<3>::UpdateMeshTimeDerivatives)
-        .def("UpdateTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::UpdateTimeDerivativesOnInterface)
-        ;
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::SetMeshTimeDerivativesOnInterface);
 
     typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
     typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);

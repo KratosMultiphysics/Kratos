@@ -109,13 +109,14 @@ public:
     virtual void UpdateMeshTimeDerivatives(ModelPart& rModelPart,
                                            const double timeStep)
     {
+        KRATOS_ERROR << "Calling the nodal update base class UpdateMeshTimeDerivatives() method. Call the proper time scheme derived one.";
     }
 
     /**
      * Sets the fluid interface time derivatives as the mesh displacement computed values.
      * @param rInterfaceModelPart: modelpart in where the nodal update is to be performed
      */
-    virtual void UpdateTimeDerivativesOnInterface(ModelPart& rInterfaceModelPart)
+    virtual void SetMeshTimeDerivativesOnInterface(ModelPart& rInterfaceModelPart)
     {
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
@@ -271,8 +272,8 @@ public:
      * @param rModelPart: modelpart in where the nodal update is to be performed
      * @param timeStep: time step value
      */
-    virtual void UpdateTimeDerivatives(ModelPart& rModelPart,
-                                       const double timeStep)
+    virtual void UpdateMeshTimeDerivatives(ModelPart &rModelPart,
+                                           const double timeStep)
     {
 
         auto& rLocalMesh = rModelPart.GetCommunicator().LocalMesh();
