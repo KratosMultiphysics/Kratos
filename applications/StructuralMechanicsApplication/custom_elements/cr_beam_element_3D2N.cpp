@@ -1801,6 +1801,15 @@ namespace Kratos
 			KRATOS_ERROR << "LOCAL_INERTIA_VECTOR not provided for this element" << this->Id()
 				<< std::endl;
 		}
+		else
+		{
+			Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
+			if (inertia.size() != 3)
+			{
+				KRATOS_ERROR << "LOCAL_INERTIA_VECTOR must be of size 3 in element:" << this->Id()
+				<< std::endl;
+			}
+		}
 
 		return 0;
 
