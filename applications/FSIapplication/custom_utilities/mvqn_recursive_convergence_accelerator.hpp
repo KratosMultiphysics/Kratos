@@ -180,29 +180,28 @@ public:
         {
             if (mpOldJacobianEmulator != nullptr) // If it is available, consider the previous step Jacobian
             {
-                // mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
                 mpOldJacobianEmulator->ApplyJacobian(pWorkVector, pProjectedVector);
             }
             else // When the JacobianEmulator has no PreviousJacobianEmulator consider minus the identity matrix as inverse Jacobian
             {
-                // TSpace::Assign(rProjectedVector,-1.0,rWorkVector);
                 TSpace::Assign(*pProjectedVector, -1.0, *pWorkVector);
             }
         }
         else
         {
+            const unsigned int previous_iterations = mJacobianObsMatrixV.size();
+            const unsigned int residual_size = TSpace::Size(mJacobianObsMatrixV[0]);
 
-            VectorPointerType pY(new VectorType(mJacobianObsMatrixV[0]));
-            VectorPointerType pW(new VectorType(mJacobianObsMatrixV[0]));
-            VectorPointerType pzQR(new VectorType(mJacobianObsMatrixV.size()));
-            MatrixPointerType pAuxMatQR(new MatrixType(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size()));
+            VectorPointerType pY(new VectorType(residual_size));
+            VectorPointerType pW(new VectorType(residual_size));
+            VectorPointerType pzQR(new VectorType(previous_iterations));
+            MatrixPointerType pAuxMatQR(new MatrixType(residual_size, previous_iterations));
 
             // Loop to store a std::vector<VectorType> type as Matrix type
-            for (unsigned int i = 0; i < TSpace::Size(mJacobianObsMatrixV[0]); i++)
+            for (unsigned int i = 0; i < residual_size; ++i)
             {
-                for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+                for (unsigned int j = 0; j < previous_iterations; ++j)
                 {
-                    // auxMatQR(i,j) = mJacobianObsMatrixV[j](i);
                     (*pAuxMatQR)(i,j) = mJacobianObsMatrixV[j](i);
                 }
             }
@@ -210,13 +209,11 @@ public:
             VectorPointerType pWorkVectorCopy(new VectorType(*pWorkVector));
 
             // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
-            // TODO: Implement an if(!frozen) to avoid the recomputation of the inverse matrix each time the OldJacobianEmulator is called
-            mQR_decomposition.compute(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size(), &(*pAuxMatQR)(0,0));
+            mQR_decomposition.compute(residual_size, previous_iterations, &(*pAuxMatQR)(0,0));
             mQR_decomposition.solve(&(*pWorkVectorCopy)(0), &(*pzQR)(0));
 
-            // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
             TSpace::SetToZero(*pY);
-            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+            for (unsigned int j = 0; j < previous_iterations; ++j)
             {
                 TSpace::UnaliasedAdd(*pY, (*pzQR)(j), mJacobianObsMatrixV[j]);
             }
@@ -236,7 +233,7 @@ public:
 
             // w = W_k*z
             TSpace::SetToZero(*pW);
-            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+            for (unsigned int j = 0; j < previous_iterations; ++j)
             {
                 TSpace::UnaliasedAdd(*pW, (*pzQR)(j), mJacobianObsMatrixW[j]);
             }
@@ -433,6 +430,25 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
+    MVQNRecursiveJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters )
+    {
+        Parameters mvqn_recursive_default_parameters(R"(
+        {
+            "solver_type" : "MVQN",
+            "w_0"         : 0.825,
+            "buffer_size" : 10
+        }
+        )");
+
+        rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
+
+        mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+        mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
+        mConvergenceAcceleratorStep = 0;
+        mConvergenceAcceleratorIteration = 0;
+        mConvergenceAcceleratorFirstCorrectionPerformed = false;
+    }
+
     MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 10 )
     {
         mOmega_0 = rOmegaInitial;

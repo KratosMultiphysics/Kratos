@@ -126,15 +126,15 @@ struct aggregation {
     {
         const size_t n = rows(A);
 
-        TIC("aggregates");
+        AMGCL_TIC("aggregates");
         Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
-        TOC("aggregates");
+        AMGCL_TOC("aggregates");
 
-        TIC("interpolation");
+        AMGCL_TIC("interpolation");
         boost::shared_ptr<Matrix> P = tentative_prolongation<Matrix>(
                 n, aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
-        TOC("interpolation");
+        AMGCL_TOC("interpolation");
 
         if (prm.nullspace.cols > 0)
             prm.aggr.block_size = prm.nullspace.cols;
