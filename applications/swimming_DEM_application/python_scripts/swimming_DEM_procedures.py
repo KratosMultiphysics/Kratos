@@ -558,14 +558,14 @@ class ResultsFileCreator:
 def CreateRunCode(pp):
     code = []
 
-    if pp.CFD_DEM.basset_force_type > 0:
+    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         history_or_not = 'H'
     else:
         history_or_not = 'NH'
 
     code.append(history_or_not)
 
-    if pp.CFD_DEM.basset_force_type == 4:
+    if pp.CFD_DEM["basset_force_type"].GetInt() == 4:
         method_name = 'Hinsberg'
         number_of_exponentials = 'm=' + str(pp.CFD_DEM.number_of_exponentials)
         time_window = 'tw=' + str(pp.CFD_DEM.time_window)
@@ -573,7 +573,7 @@ def CreateRunCode(pp):
         code.append(number_of_exponentials)
         code.append(time_window)
 
-    elif pp.CFD_DEM.basset_force_type > 0:
+    elif pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         method_name = 'Daitche'
         code.append(method_name)
     else:
@@ -583,7 +583,7 @@ def CreateRunCode(pp):
     DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())
     code.append(DEM_dt)
 
-    if pp.CFD_DEM.basset_force_type > 0:
+    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         phi = 'phi=' + str(round(1 / pp.CFD_DEM.time_steps_per_quadrature_step, 3))
         code.append(phi)
 

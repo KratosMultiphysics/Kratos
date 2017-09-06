@@ -514,7 +514,7 @@ DEM_parameters.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # o
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_part)
 
-if DEM_parameters.coupling_level_type:
+if DEM_parameters["coupling_level_type"].GetInt():
 
     if DEM_parameters.meso_scale_length <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
@@ -598,7 +598,7 @@ if DEM_parameters.flow_in_porous_medium_option:
 
     fluid_frac_util.AddFluidFractionField()
 
-if DEM_parameters.flow_in_porous_DEM_medium_option:
+if DEM_parameters["flow_in_porous_DEM_medium_option"].GetBool():
     swim_proc.FixModelPart(spheres_model_part)
 
 # choosing the directory in which we want to work (print to)
@@ -628,10 +628,10 @@ embedded_counter             = swim_proc.Counter(1,
                                                  DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 
                                                  1, 
-                                                 DEM_parameters.coupling_level_type > 1)
+                                                 DEM_parameters["coupling_level_type"].GetInt() > 1)
 pressure_gradient_counter    = swim_proc.Counter(1, 
                                                  1, 
-                                                 DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+                                                 DEM_parameters["coupling_level_type"].GetInt() or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
                                                  1, 
                                                  DEM_parameters.stationary_problem_option)
@@ -762,7 +762,7 @@ while time <= final_time:
     print('ELAPSED TIME = ', timer.time() - init_time)
     sys.stdout.flush()
 
-    if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
+    if DEM_parameters["coupling_scheme_type"].GetString()  == "UpdatedDEM":
         time_final_DEM_substepping = time + Dt
 
     else:
@@ -815,9 +815,9 @@ while time <= final_time:
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedDEM":
+    if output_time <= out and DEM_parameters["coupling_scheme_type"].GetString() == "UpdatedDEM":
 
-        if DEM_parameters.coupling_level_type > 0:
+        if DEM_parameters["coupling_level_type"].GetInt() > 0:
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
@@ -853,9 +853,9 @@ while time <= final_time:
 
         # applying fluid-to-DEM coupling if required
 
-        if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
+        if time >= DEM_parameters.interaction_start_time and DEM_parameters["coupling_level_type"].GetInt() and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
-            if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
+            if DEM_parameters["coupling_scheme_type"].GetString() == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
             else:
@@ -978,7 +978,7 @@ while time <= final_time:
         rigid_face_model_part.ProcessInfo[TIME] = time_dem
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
+        if not DEM_parameters["flow_in_porous_DEM_medium_option"].GetBool(): # in porous flow particles remain static      
             solver.Solve()
             #results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
             if store_coors_counter.Tick():
@@ -1029,9 +1029,9 @@ while time <= final_time:
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+    if output_time <= out and DEM_parameters["coupling_scheme_type"].GetString() == "UpdatedFluid":
 
-        if DEM_parameters.coupling_level_type:
+        if DEM_parameters["coupling_level_type"].GetInt():
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)

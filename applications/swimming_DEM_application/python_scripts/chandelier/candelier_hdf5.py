@@ -10,15 +10,15 @@ class ResultsCandelier:
         self.sim = ch.AnalyticSimulator(ch_pp)
         self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
-        self.dt = pp.CFD_DEM.MaxTimeStep
+        self.dt = pp.CFD_DEM["MaxTimeStep"].GetDouble()
         self.N_q = pp.CFD_DEM.time_steps_per_quadrature_step
         self.quadrature_order = pp.CFD_DEM.quadrature_order
         self.reading_index = 0
         self.times = []
         self.errors = []
-        ch_pp.include_history_force = bool(pp.CFD_DEM.basset_force_type)
+        ch_pp.include_history_force = bool(pp.CFD_DEM["basset_force_type"].GetInt())
 
-        if pp.CFD_DEM.basset_force_type == 2:
+        if pp.CFD_DEM["basset_force_type"].GetInt() == 2:
             self.method = 'Daitche'
         else:
             self.method = 'Hinsberg'

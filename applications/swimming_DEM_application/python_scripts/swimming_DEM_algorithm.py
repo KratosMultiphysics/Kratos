@@ -147,7 +147,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.vorticity_calculation_type = 5
         self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
         self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-        self.pp.CFD_DEM.basset_force_type = 0
+        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)        
         self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
         self.pp.CFD_DEM.basset_force_integration_type = 2
         self.pp.CFD_DEM.n_init_basset_steps = 0
@@ -551,7 +551,7 @@ class Algorithm(object):
                             self.DEMSolve(self.time_dem)
                             self.ApplyForwardCouplingOfVelocityOnly(self.time_dem)
                         else:
-                            if self.pp.CFD_DEM.basset_force_type > 0:
+                            if self.pp.CFD_DEM["basset_force_type"].GetInt() > 0:
                                 node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
                                 node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
@@ -706,7 +706,7 @@ class Algorithm(object):
         return SDP.Counter(self.pp.CFD_DEM["print_particles_results_cycle"].GetInt(), 1, self.pp.CFD_DEM["print_particles_results_option"].GetBool())
 
     def HistoryForceQuadratureCounter(self):
-        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_quadrature_step, 1, self.pp.CFD_DEM.basset_force_type)
+        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_quadrature_step, 1, self.pp.CFD_DEM["basset_force_type"].GetInt())
 
     def GetVolumeDebugTool(self):
         return SDP.ProjectionDebugUtils(self.pp.CFD_DEM.fluid_domain_volume, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.custom_functions_tool)
@@ -718,17 +718,17 @@ class Algorithm(object):
         # Warning: this estimation is based on a constant time step for DEM. This is usually the case, but could not be so. A more robust implementation is needed!
         N_steps = int(self.pp.CFD_DEM["FinalTime"].GetDouble() / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) + 20
         spheres_model_part = self.all_model_parts.Get('SpheresPart')
-        if self.pp.CFD_DEM.basset_force_type > 0:
+        if self.pp.CFD_DEM["basset_force_type"].GetInt() > 0:
             self.basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM.quadrature_order, self.pp.CFD_DEM.time_steps_per_quadrature_step)
-        if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
+        if self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or self.pp.CFD_DEM["basset_force_type"].GetInt() == 1:
             self.basset_force_tool.FillHinsbergVectors(spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
     def AppendValuesForTheHistoryForce(self):
         spheres_model_part = self.all_model_parts.Get('SpheresPart')
 
-        if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
+        if self.pp.CFD_DEM["basset_force_type"].GetInt() == 1 or self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3:
             self.basset_force_tool.AppendIntegrandsWindow(spheres_model_part)
-        elif self.pp.CFD_DEM.basset_force_type == 2:
+        elif self.pp.CFD_DEM["basset_force_type"].GetInt() == 2:
             self.basset_force_tool.AppendIntegrands(spheres_model_part)
 
     def GetBassetForceTools(self):

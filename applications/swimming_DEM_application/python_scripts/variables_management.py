@@ -47,7 +47,7 @@ def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM["buoyancy_force_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM["drag_force_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.CFD_DEM["virtual_mass_force_type"].GetInt())
-    dem_model_part.ProcessInfo.SetValue(BASSET_FORCE_TYPE, pp.CFD_DEM.basset_force_type)
+    dem_model_part.ProcessInfo.SetValue(BASSET_FORCE_TYPE, pp.CFD_DEM["basset_force_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.CFD_DEM["lift_force_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, pp.CFD_DEM["magnus_force_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.CFD_DEM["hydro_torque_type"].GetInt())
@@ -59,7 +59,7 @@ def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.CFD_DEM["power_law_tol"].GetDouble())
     dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.CFD_DEM["drag_porosity_correction_type"].GetInt())
 
-    if pp.CFD_DEM.basset_force_type > 0:
+    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, pp.CFD_DEM.n_init_basset_steps)
         dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, pp.CFD_DEM.time_steps_per_quadrature_step)
         dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
@@ -131,7 +131,7 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += [BUOYANCY]
     pp.dem_vars += [VELOCITY_OLD]
 
-    if pp.CFD_DEM["IntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM.basset_force_type > 0:
+    if pp.CFD_DEM["IntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
         pp.dem_vars += [SLIP_VELOCITY]
@@ -148,7 +148,7 @@ def ConstructListsOfVariables(pp):
     if pp.CFD_DEM["virtual_mass_force_type"].GetInt() > 0 and  pp.CFD_DEM["add_each_hydro_force_option"].GetBool():
         pp.dem_vars += [VIRTUAL_MASS_FORCE]
 
-    if pp.CFD_DEM.basset_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option:
+    if pp.CFD_DEM["basset_force_type"].GetInt() > 0 and  pp.CFD_DEM["add_each_hydro_force_option"].GetBool():
         pp.dem_vars += [BASSET_FORCE]
 
     # clusters variables
@@ -358,7 +358,7 @@ def ConstructListsOfVariablesForCoupling(pp):
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
 
-        if pp.CFD_DEM.basset_force_type > 0:
+        if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
             pp.coupling_dem_vars += [FLUID_VEL_PROJECTED_RATE]
 
     if pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 or pp.CFD_DEM["fluid_model_type"].GetInt() == 0:
@@ -371,7 +371,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
         pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
 
-    if pp.CFD_DEM["virtual_mass_force_type"].GetInt() or pp.CFD_DEM.basset_force_type >= 1:
+    if pp.CFD_DEM["virtual_mass_force_type"].GetInt() or pp.CFD_DEM["basset_force_type"].GetInt() >= 1:
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
 
     if pp.CFD_DEM["embedded_option"].GetBool():
