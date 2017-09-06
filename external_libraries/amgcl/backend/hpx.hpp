@@ -38,7 +38,6 @@ THE SOFTWARE.
 #include <hpx/include/parallel_for_each.hpp>
 #include <hpx/include/parallel_transform_reduce.hpp>
 
-#include <boost/algorithm/minmax.hpp>
 #include <boost/range/irange.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/range/iterator_range.hpp>

@@ -17,6 +17,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mapping_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
@@ -73,6 +74,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_ale_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mapping_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp

@@ -588,6 +588,7 @@ namespace Kratos
       KratosApplication::RegisterALEVariables(); //TODO: move to application
       KratosApplication::RegisterMappingVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
+      KratosApplication::RegisterFSIVariables(); //TODO: move to application
       KratosApplication::RegisterMATVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
