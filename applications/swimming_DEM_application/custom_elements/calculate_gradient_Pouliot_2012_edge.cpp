@@ -93,7 +93,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixTy
     const double h_edge = std::sqrt(SWIMMING_INNER_PRODUCT_3(le, le));
     const double h_edge_inv_2 = 1.0 / (h_edge * h_edge);
 
-    const double epsilon = 1e-3 * h_edge;
+    const double epsilon = 1e-6;//1e-3 * h_edge;
     for (unsigned int node_e = 0; node_e < TNumNodes; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             for (unsigned int node_f = 0; node_f < TNumNodes; ++node_f){
@@ -139,6 +139,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
         for (unsigned int i = 0; i < TDim; ++i){
             //F(TDim * node_e + i) += 2.0 * h_edge_inv * le[i] * vel_component_variation_along_edge;
             F(TDim * node_e + i) = 2.0 * h_edge_inv_2 * le[i] * vel_component_variation_along_edge;
+            KRATOS_WATCH(vel_component_variation_along_edge)
         }
     }
     KRATOS_CATCH("");

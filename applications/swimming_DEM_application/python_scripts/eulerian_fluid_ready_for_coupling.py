@@ -51,7 +51,7 @@ class Solution(object):
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)
 
-    def SetFluidBufferSizeAndAddDofs(self):        
+    def SetFluidBufferSizeAndAddDofs(self):
         self.fluid_model_part.SetBufferSize(3)
         self.solver_module.AddDofs(self.fluid_model_part, self.SolverSettings)
 

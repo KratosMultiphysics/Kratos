@@ -405,11 +405,11 @@ using namespace boost::python;
         ;
 
     class_<DerivativeRecoveryMeshingTools<2> > ("DerivativeRecoveryMeshingTools2D", init<>())
-        .def("FillUpEdgesModelPartFromTrianglesModelPart", &DerivativeRecoveryMeshingTools<2>::FillUpEdgesModelPartFromSimplicesModelPart)
+        .def("FillUpEdgesModelPartFromSimplicesModelPart", &DerivativeRecoveryMeshingTools<2>::FillUpEdgesModelPartFromSimplicesModelPart)
         ;
 
     class_<DerivativeRecoveryMeshingTools<3> > ("DerivativeRecoveryMeshingTools3D", init<>())
-        .def("FillUpEdgesModelPartFromTetrahedraModelPart", &DerivativeRecoveryMeshingTools<3>::FillUpEdgesModelPartFromSimplicesModelPart)
+        .def("FillUpEdgesModelPartFromSimplicesModelPart", &DerivativeRecoveryMeshingTools<3>::FillUpEdgesModelPartFromSimplicesModelPart)
         ;
 
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())

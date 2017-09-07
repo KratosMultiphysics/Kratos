@@ -65,12 +65,15 @@ class Algorithm(BaseAlgorithm):
         self.current_laplacian_errors = np.zeros(2)
         fluid_model_part = self.all_model_parts.Get('FluidPart')
         for node in fluid_model_part.Nodes:
-            vel= Vector(3)
-            coor= Vector(3)
+            vel = Vector(3)
+            coor = Vector(3)
             coor[0]=node.X
             coor[1]=node.Y
             coor[2]=node.Z
-            self.flow_field.Evaluate(0.0 , coor,vel, 0)
+            print('444444444444444444444444444')
+            self.flow_field.Evaluate(0.0, coor, vel, 0)
+            print(vel)
+            print('444444444444444444444444444')
             node.SetSolutionStepValue(VELOCITY_X, vel[0])
             node.SetSolutionStepValue(VELOCITY_Y, vel[1])
             node.SetSolutionStepValue(VELOCITY_Z, vel[2])

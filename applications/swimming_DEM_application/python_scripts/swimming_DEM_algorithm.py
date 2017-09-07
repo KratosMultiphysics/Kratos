@@ -58,8 +58,6 @@ class Logger(object):
         #you might want to specify some extra behavior here.
         pass
 
-
-
 class Algorithm(object):
     def __enter__ (self):
         # sys.stdout = Logger()
@@ -206,6 +204,7 @@ class Algorithm(object):
             var_values = [k for k in dictionary.values()]
             for name, value in zip(var_names, var_values):
                 setattr(self.pp.CFD_DEM, name, value)
+                print(name, value)
 
     def Run(self):
         self.Initialize()
@@ -289,6 +288,8 @@ class Algorithm(object):
         # creating a physical calculations module to analyse the DEM model_part
         dem_physics_calculator = SphericElementGlobalPhysicsCalculator(self.disperse_phase_algorithm.spheres_model_part)
 
+        field_utility = self.GetFieldUtility()
+
         if self.pp.CFD_DEM.coupling_level_type:
 
             if self.pp.CFD_DEM.meso_scale_length <= 0.0 and self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0) > 0:
@@ -297,8 +298,6 @@ class Algorithm(object):
 
             elif self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0) == 0:
                 self.pp.CFD_DEM.meso_scale_length  = 1.0
-
-            field_utility = self.GetFieldUtility()
 
             self.projection_module = CFD_DEM_coupling.ProjectionModule(self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.disperse_phase_algorithm.rigid_face_model_part, self.pp.domain_size, self.pp, field_utility)
             self.projection_module.UpdateDatabase(self.h_min)
@@ -372,7 +371,7 @@ class Algorithm(object):
         self.print_counter                = self.GetPrintCounter()
         self.debug_info_counter           = self.GetDebugInfo()
         self.particles_results_counter    = self.GetParticlesResultsCounter()
-        self.quadrature_counter           = self.HistoryForceQuadratureCounter()
+        self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
@@ -422,6 +421,7 @@ class Algorithm(object):
         # ANALYTICS END
 
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, self.fluid_model_part, self.derivative_recovery_tool, self.custom_functions_tool)
 
         self.FillHistoryForcePrecalculatedVectors()
@@ -429,7 +429,6 @@ class Algorithm(object):
         self.PerformZeroStepInitializations()
 
         self.post_utils.Writeresults(self.time)
-
 
     def FluidInitialize(self):
         self.fluid_model_part = self.fluid_algorithm.fluid_model_part
@@ -449,7 +448,6 @@ class Algorithm(object):
         self.fluid_algorithm.ReadFluidModelPart()
 
     def DispersePhaseInitialize(self):
-
         self.spheres_model_part = self.disperse_phase_algorithm.spheres_model_part
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.spheres_model_part, self.pp.dem_vars)
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.rigid_face_model_part, self.pp.rigid_faces_vars)
@@ -706,7 +704,7 @@ class Algorithm(object):
     def GetParticlesResultsCounter(self):
         return SDP.Counter(self.pp.CFD_DEM.print_particles_results_cycle, 1, self.pp.CFD_DEM.print_particles_results_option)
 
-    def HistoryForceQuadratureCounter(self):
+    def GetHistoryForceQuadratureCounter(self):
         return SDP.Counter(self.pp.CFD_DEM.time_steps_per_quadrature_step, 1, self.pp.CFD_DEM.basset_force_type)
 
     def GetVolumeDebugTool(self):

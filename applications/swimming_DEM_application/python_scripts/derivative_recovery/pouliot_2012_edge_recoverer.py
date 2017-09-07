@@ -8,6 +8,7 @@ from . import recoverer
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.DerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
+        self.dimension = pp.domain_size
         self.model_part = model_part
         self.use_lumped_mass_matrix = pp.CFD_DEM.material_acceleration_calculation_type == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
@@ -21,9 +22,8 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         #self.FillSetOfAllEdges(set_of_all_edges)
         self.recovery_model_part.Nodes = self.model_part.Nodes
         self.recovery_model_part.ProcessInfo = self.model_part.ProcessInfo
-        self.meshing_tool = DerivativeRecoveryMeshingTools2D()
-        print('9999999999')
-        self.meshing_tool.FillUpEdgesModelPartFromTetrahedraModelPart(self.recovery_model_part, self.model_part, element_type)
+        self.meshing_tool = self.GetMeshingTool()
+        self.meshing_tool.FillUpEdgesModelPartFromSimplicesModelPart(self.recovery_model_part, self.model_part, element_type)
         # for i, edge in enumerate(set_of_all_edges):
         #     self.recovery_model_part.CreateNewElement(element_type, i + 1000000, list(edge), self.model_part.GetProperties()[0])
         number_of_elements = len(self.recovery_model_part.Elements)
@@ -50,8 +50,15 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
                     edge_ids = tuple(sorted((first_node.Id, second_node.Id)))
                     set_of_all_edges.add(edge_ids)
 
-    def CreateCPluPlusStrategies(self, echo_level = 1):
-        #from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+    def GetMeshingTool(self):
+        if self.dimension == 2:
+            return DerivativeRecoveryMeshingTools2D()
+        else:
+            return DerivativeRecoveryMeshingTools3D()
+
+    def CreateCPluPlusStrategies(self, echo_level = 3):
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         #linear_solver = SuperLUIterativeSolver()
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = AMGCLSmoother.SPAI0
@@ -61,12 +68,19 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         verbosity = 2 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 400
 
-        if self.use_lumped_mass_matrix:
-            linear_solver = CGSolver()
-        else:
-            linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
-        #linear_solver = SuperLUIterativeSolver()
+        # if self.use_lumped_mass_matrix:
+        #     linear_solver = CGSolver()
+        # else:
+        #     linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+        # linear_solver = SuperLUIterativeSolver()
+        # linear_solver = CGSolver()
+        # linear_solver = SkylineLUFactorizationSolver()
+        linear_solver = SuperLUSolver()
+        # linear_solver = ITSOL_ARMS_Solver()
+        # linear_solver = MKLPardisoSolver()
+        # linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
         self.recovery_strategy = ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
+
         self.recovery_strategy.SetEchoLevel(echo_level)
 
     def AddDofs(self, DOF_variables):
@@ -103,6 +117,18 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = 0
         self.Solve()
         self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, VELOCITY_Z_GRADIENT, VELOCITY_X_GRADIENT)
+        print('***********************************************************************************************')
+        print('***********************************************************************************************')
+        print('***********************************************************************************************')
+        print('***********************************************************************************************')
+
+        analytic_solution = [val for pair in zip([3 * node.X ** 2 for node in self.recovery_model_part.Nodes], [3 * node.Y ** 2 for node in self.recovery_model_part.Nodes]) for val in pair]
+
+        for node in self.recovery_model_part.Nodes:
+            print(node.GetSolutionStepValue(VELOCITY_Z_GRADIENT))
+
+        print('analytic_solutio:\n', analytic_solution)
+
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = 1
         self.Solve()
         self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, VELOCITY_Z_GRADIENT, VELOCITY_Y_GRADIENT)
