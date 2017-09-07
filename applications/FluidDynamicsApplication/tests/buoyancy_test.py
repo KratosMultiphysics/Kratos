@@ -90,7 +90,7 @@ class BuoyancyTest(UnitTest.TestCase):
 
     def setUpModel(self):
 
-        self.model_part = ModelPart("Fluid")
+        self.fluid_model_part = ModelPart("Fluid")
 
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
@@ -104,35 +104,32 @@ class BuoyancyTest(UnitTest.TestCase):
         if self.convection_diffusion_solver == 'bfecc':
             thermal_settings.SetProjectionVariable(PROJECTED_SCALAR1)
 
-        self.model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
+        self.fluid_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
     def setUpSolvers(self):
         oss_switch = 0
 
         import vms_monolithic_solver
-        vms_monolithic_solver.AddVariables(self.model_part)
+        vms_monolithic_solver.AddVariables(self.fluid_model_part)
 
         if self.convection_diffusion_solver == 'bfecc':
             import bfecc_convection_diffusion_solver as thermal_solver
         elif self.convection_diffusion_solver == 'eulerian':
-            import eulerian_convection_diffusion_solver as thermal_solver
+            import convection_diffusion_solver as thermal_solver
         else:
             raise Exception("Unsupported convection-diffusion solver option: {0}".format(self.convection_diffusion_solver))
 
-        thermal_solver.AddVariables(self.model_part)
-        self.model_part.AddNodalSolutionStepVariable(HEAT_FLUX)
-        self.model_part.AddNodalSolutionStepVariable(FACE_HEAT_FLUX)
-        self.model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1)
+        thermal_solver.AddVariables(self.fluid_model_part)
 
         model_part_io = ModelPartIO(self.input_file)
-        model_part_io.ReadModelPart(self.model_part)
+        model_part_io.ReadModelPart(self.fluid_model_part)
 
-        self.model_part.SetBufferSize(2)
-        vms_monolithic_solver.AddDofs(self.model_part)
-        thermal_solver.AddDofs(self.model_part)
+        self.fluid_model_part.SetBufferSize(2)
+        vms_monolithic_solver.AddDofs(self.fluid_model_part)
+        thermal_solver.AddDofs(self.fluid_model_part)
 
         # Building custom fluid solver
-        self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.model_part,self.domain_size)
+        self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
         rel_vel_tol = 1e-5
         abs_vel_tol = 1e-7
         rel_pres_tol = 1e-5
@@ -151,7 +148,7 @@ class BuoyancyTest(UnitTest.TestCase):
         self.fluid_solver.MoveMeshFlag = False
 
         self.fluid_solver.solver = ResidualBasedNewtonRaphsonStrategy(\
-                self.model_part,
+                self.fluid_model_part,
                 self.fluid_solver.time_scheme,
                 self.fluid_solver.linear_solver,
                 self.fluid_solver.conv_criteria,
@@ -164,17 +161,28 @@ class BuoyancyTest(UnitTest.TestCase):
         self.fluid_solver.solver.SetEchoLevel(0)
         self.fluid_solver.solver.Check()
 
-        self.model_part.ProcessInfo.SetValue(OSS_SWITCH,oss_switch)
+        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,oss_switch)
 
         self.fluid_solver.divergence_clearance_steps = 0
         self.fluid_solver.use_slip_conditions = 0
 
-        # thermal solver
-        class SolverSettings:
-            def __init__(self,domain_size):
-                self.domain_size = domain_size
-        settings = SolverSettings(self.domain_size)
-        self.thermal_solver = thermal_solver.CreateSolver(self.model_part,settings)
+        if self.convection_diffusion_solver == 'eulerian':
+            # Duplicate model part
+            thermal_model_part = ModelPart("Thermal")
+            conv_diff_element = "EulerianConvDiff2D"
+            conv_diff_condition = "Condition2D2N"
+
+            modeler = ConnectivityPreserveModeler()
+            modeler.GenerateModelPart(self.fluid_model_part,thermal_model_part,conv_diff_element,conv_diff_condition)
+
+            # thermal solver
+            self.thermal_solver = thermal_solver.ConvectionDiffusionSolver(thermal_model_part,self.domain_size)
+        else:
+            class SolverSettings:
+                def __init__(self,domain_size):
+                    self.domain_size = domain_size
+            settings = SolverSettings(self.domain_size)
+            self.thermal_solver = thermal_solver.CreateSolver(self.model_part,settings)
         self.thermal_solver.Initialize()
 
 
@@ -199,11 +207,11 @@ class BuoyancyTest(UnitTest.TestCase):
         else:
             parameter_string = '{ "gravity" : [ 0.0, -' + str(g) +', 0.0 ] }'
         parameters = Parameters(parameter_string)
-        self.buoyancy_process = BoussinesqForceProcess(self.model_part,parameters)
+        self.buoyancy_process = BoussinesqForceProcess(self.fluid_model_part,parameters)
 
         ## Set initial and boundary conditions
-        self.model_part.ProcessInfo.SetValue(AMBIENT_TEMPERATURE,T1)
-        for node in self.model_part.Nodes:
+        self.fluid_model_part.ProcessInfo.SetValue(AMBIENT_TEMPERATURE,T1)
+        for node in self.fluid_model_part.Nodes:
             node.SetSolutionStepValue(DENSITY,rho)
             node.SetSolutionStepValue(VISCOSITY,nu)
             node.SetSolutionStepValue(CONDUCTIVITY,k)
@@ -233,7 +241,7 @@ class BuoyancyTest(UnitTest.TestCase):
 
         for step in range(self.nsteps):
             time = time+self.dt
-            self.model_part.CloneTimeStep(time)
+            self.fluid_model_part.CloneTimeStep(time)
             self.buoyancy_process.ExecuteInitializeSolutionStep()
             self.fluid_solver.Solve()
             self.thermal_solver.Solve()
@@ -243,7 +251,7 @@ class BuoyancyTest(UnitTest.TestCase):
         if self.print_reference_values:
             with open(self.reference_file+'.csv','w') as ref_file:
                 ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, TEMPERATURE\n")
-                for node in self.model_part.Nodes:
+                for node in self.fluid_model_part.Nodes:
                     vel = node.GetSolutionStepValue(VELOCITY,0)
                     temp = node.GetSolutionStepValue(TEMPERATURE,0)
                     ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], temp))
@@ -251,9 +259,9 @@ class BuoyancyTest(UnitTest.TestCase):
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()
-                node_iter = self.model_part.Nodes
+                node_iter = self.fluid_model_part.Nodes
 
-                for node in self.model_part.Nodes:
+                for node in self.fluid_model_part.Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                     node_id = values[0]
                     reference_vel_x = values[1]
@@ -279,18 +287,27 @@ class BuoyancyTest(UnitTest.TestCase):
 
         mesh_name = 0.0
         gid_io.InitializeMesh( mesh_name)
-        gid_io.WriteMesh( self.model_part.GetMesh() )
+        gid_io.WriteMesh( self.fluid_model_part.GetMesh() )
         gid_io.FinalizeMesh()
-        gid_io.InitializeResults(mesh_name,(self.model_part).GetMesh())
+        gid_io.InitializeResults(mesh_name,(self.fluid_model_part).GetMesh())
 
-        label = self.model_part.ProcessInfo[TIME]
-        gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(PRESSURE,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(TEMPERATURE,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DENSITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(VISCOSITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(CONDUCTIVITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(SPECIFIC_HEAT,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(BODY_FORCE,self.model_part.Nodes,label,0)
+        label = self.fluid_model_part.ProcessInfo[TIME]
+        gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(TEMPERATURE,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(DENSITY,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(VISCOSITY,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(CONDUCTIVITY,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(SPECIFIC_HEAT,self.fluid_model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(BODY_FORCE,self.fluid_model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
+
+if __name__ == '__main__':
+    test = BuoyancyTest()
+    test.setUp()
+    #test.print_reference_values = True
+    test.print_output = True
+    #test.testEulerian()
+    test.validationEulerian()
+    test.tearDown()

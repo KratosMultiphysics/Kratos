@@ -23,29 +23,29 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
-    
+
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropic3D : public ConstitutiveLaw
 {
 public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
@@ -88,7 +88,7 @@ public:
      * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
-    
+
     /**
      * Voigt tensor size:
      */
@@ -96,7 +96,7 @@ public:
     {
         return 6;
     };
-    
+
     /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -112,7 +112,7 @@ public:
      * @see   Parameters
      */
     void CalculateMaterialResponsePK2 (Parameters & rValues) override;
-    
+
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
@@ -162,25 +162,34 @@ public:
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
     /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */ 
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+    
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material 
+     * @param rMaterialProperties: The properties of the material
      * @param rElementGeometry: The geometry of the element
      * @param rCurrentProcessInfo: The current process info instance
      */
     int Check(
-        const Properties& rMaterialProperties, 
-        const GeometryType& rElementGeometry, 
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
-    
+    ) override;
+
 protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -188,18 +197,18 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
 
 private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -207,7 +216,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     /**
      * It calculates the constitutive matrix C
      * @param C: The constitutive matrix
@@ -215,10 +224,10 @@ private:
      * @param NU: The poisson coefficient
      */
     virtual void CalculateElasticMatrix(
-        Matrix& C, 
-        const double E, 
+        Matrix& C,
+        const double E,
         const double NU
-        );
+    );
 
     /**
      * It calculates the stress vector
@@ -227,23 +236,23 @@ private:
      * @param E: The Young Modulus
      * @param NU: The poisson coefficient
      */
-    virtual void CalculateStress(
-        const Vector& rStrainVector, 
-        Vector& rStressVector, 
-        const double E, 
-        const double NU 
-        );
-    
+    virtual void CalculatePK2Stress(
+        const Vector& rStrainVector,
+        Vector& rStressVector,
+        const double E,
+        const double NU
+    );
+
     /**
      * It calculates the strain vector
      * @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateStrain(
+    virtual void CalculateCauchyGreenStrain(
         Parameters& rValues,
         Vector& rStrainVector
-        );
-    
+    );
+
     ///@}
     ///@name Private Operations
     ///@{

@@ -55,58 +55,129 @@ LinearPlaneStress::~LinearPlaneStress()
 {
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
-     
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
     const double& E          = MaterialProperties[YOUNG_MODULUS];
     const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.IsNot( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
-        //1.-Compute total deformation gradient
-        const Matrix& F = rValues.GetDeformationGradientF();
-        
-        Matrix Etensor = prod(trans(F),F);
-        Etensor -= IdentityMatrix(2,2);
-        Etensor *= 0.5;
-        
-        noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
+        CalculateCauchyGreenStrain(rValues, StrainVector);
+    }
+
+    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    {
+        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
+        if (rValues.IsSetDeformationGradientF() == true)
+        {
+            CalculateCauchyGreenStrain(rValues, StrainVector);
+        }
+
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
-          Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-          CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
-          noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
+            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
         }
-        else 
+        else
         {
-            CalculateStress( StrainVector, StressVector, E, NU );
+            CalculatePK2Stress( StrainVector, StressVector, E, NU );
         }
-      
     }
-    else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-    {
-
-        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
-
-    }
-    
 }
 
-//note that since we are in the hypothesis of small strains we can use the same function for everything
+//************************************************************************************
+//************************************************************************************
+
+//NOTE: Note that since we are in the hypothesis of small strains we can use the same function for everything
+
 void LinearPlaneStress::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStress::CalculateMaterialResponsePK1 (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStress::FinalizeMaterialResponsePK1(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStress::FinalizeMaterialResponsePK2(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStress::FinalizeMaterialResponseCauchy(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStress::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& LinearPlaneStress::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+{
+    const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
+    Vector& StrainVector                  = rParameterValues.GetStrainVector();
+    Vector& StressVector                  = rParameterValues.GetStressVector();
+    const double& E          = MaterialProperties[YOUNG_MODULUS];
+    const double& NU    = MaterialProperties[POISSON_RATIO];
+    
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+        CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+        CalculatePK2Stress( StrainVector, StressVector, E, NU );
+
+        rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
+    }
+
+    return( rValue );
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
@@ -122,20 +193,19 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-    
+
     //Set the strain size
     rFeatures.mStrainSize = 3;
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = 2;
-
 }
 
 int LinearPlaneStress::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+)
 {
 
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)

@@ -298,7 +298,7 @@ namespace Kratos {
 
 	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
 
-	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,g);
+	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 	if(computeElement==true){
 
 	  // Evaluate required variables at the integration point
@@ -1049,17 +1049,10 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 template< unsigned int TDim>
 bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables & rElementalVariables,
 							     const ProcessInfo &rCurrentProcessInfo,
-							     unsigned int g,
+							     const ShapeFunctionDerivativesType& rDN_DX,
 							     const double theta)
 {
 
-  ShapeFunctionDerivativesArrayType DN_DX;
-  Matrix NContainer;
-  VectorType GaussWeights;
-  this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-
-  // const GeometryType& rGeom = this->this->GetGeometry();
-  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
   bool computeElement=true;
 

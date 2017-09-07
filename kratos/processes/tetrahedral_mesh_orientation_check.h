@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
+//
+
 #ifndef KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
 #define KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
 
@@ -107,7 +121,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~TetrahedralMeshOrientationCheck() {}
+    ~TetrahedralMeshOrientationCheck() override {}
 
 
     ///@}
@@ -127,7 +141,7 @@ public:
 
 
     /// Check elements to make sure that their jacobian is positive and conditions to ensure that their face normals point outwards
-    virtual void Execute() override
+    void Execute() override
     {
         KRATOS_TRY;
         
@@ -379,19 +393,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "TetrahedralMeshOrientationCheck";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TetrahedralMeshOrientationCheck";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         this->PrintInfo(rOStream);
     }

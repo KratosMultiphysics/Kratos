@@ -64,28 +64,6 @@ void PrestressMembraneElement::EquationIdVector(
 {
   KRATOS_TRY;
 
-  /*
-  unsigned int number_of_nodes = GetGeometry().size();
-  unsigned int dim = number_of_nodes * 3;
-
-  if (rResult.size() != dim)
-      rResult.resize(dim);
-
-  for (unsigned int i = 0; i < number_of_nodes; ++i)
-  {
-      int index = i * 3;
-      rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-      rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-      rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-  }
-
-  Vector equationIdVector;
-  equationIdVector.resize(rResult.size());
-  for (unsigned int i = 0; i < rResult.size(); ++i)
-      equationIdVector[i] = rResult[i];
-  //KRATOS_WATCH(equationIdVector);
-  */
-
   unsigned int NumNodes, LocalSize;
   unsigned int LocalIndex = 0;
 
@@ -132,19 +110,6 @@ void PrestressMembraneElement::GetDofList(
         ElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(DISPLACEMENT_Y);
         ElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(DISPLACEMENT_Z);
     }
-
-    // TODO refered to vms.cpp in FluidDynamicsApplication
-
-    /*
-    ElementalDofList.resize(0);
-
-    for (unsigned int i = 0; i < GetGeometry().size(); ++i)
-    {
-        ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-        ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-    }
-    */
 }
 
 //***********************************************************************************
@@ -166,13 +131,10 @@ void PrestressMembraneElement::Initialize()
 
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
-    mThickness0 = GetProperties()[THICKNESS];
     mThickness = 0.00;
 
-    //// temporary set the pre-stress
-    mPreStress[0] = GetProperties()[PRESTRESS_11];
-    mPreStress[1] = GetProperties()[PRESTRESS_22];
-    mPreStress[2] = GetProperties()[PRESTRESS_12];
+    mTotalDomainInitialSize = 0.00;
+   
 
     //if (mPreStress[0] != mPreStress[1] || mPreStress[2] != 0.0)
     //    KRATOS_THROW_ERROR(std::invalid_argument, "Only Isotropic Pre-stress state is considered in the membrane1 implementation! Further implementation not done yet!", "");
@@ -281,10 +243,6 @@ void PrestressMembraneElement::Initialize()
 
         for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
         {
-            /*    ConstitutiveLaw<Node<3> >::Pointer material = ConstitutiveLaw<Node<3> >::Pointer( new Isotropic2D() );
-            mConstitutiveLawVector[i] = material;*/
-
-
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 
             mConstitutiveLawVector[i]->InitializeMaterial(GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(), i));
@@ -338,7 +296,6 @@ void PrestressMembraneElement::CalculateOnIntegrationPoints(
 
 {
     KRATOS_ERROR << "CalculateOnIntegrationPoints not implemented yet" << std::endl;
-    //std::cout << "CalculateOnIntegrationPoints not implemented yet" << std::endl;
 }
 
 //***********************************************************************************
@@ -350,17 +307,18 @@ void PrestressMembraneElement::CalculateMassMatrix(
 
 {
     KRATOS_TRY
-
-    //std::cout << "PrestressMembraneElement::CalculateMassMatrix : this is the same as MembraneElement" << std::endl;
+    
     //rMassMatrix.resize(0,0);
     // LUMPED MASS MATRIX
     unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+    unsigned int mat_size = number_of_nodes * 3;
 
-    if (rMassMatrix.size1() != MatSize)
-        rMassMatrix.resize(MatSize, MatSize);
+    if (rMassMatrix.size1() != mat_size)
+    {
+        rMassMatrix.resize(mat_size, mat_size);
+    }
 
-    rMassMatrix = ZeroMatrix(MatSize, MatSize);
+    rMassMatrix = ZeroMatrix(mat_size, mat_size);
 
     double TotalMass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
 
@@ -393,14 +351,14 @@ void PrestressMembraneElement::CalculateDampingMatrix(
     KRATOS_TRY
 
     // LUMPED DAMPING MATRIX
-    std::cout << "PrestressMembraneElement::CalculateDampingMatrix : this is the same as MembraneElement" << std::endl;
+
     unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+    unsigned int mat_size = number_of_nodes * 3;
 
-    if (rDampingMatrix.size1() != MatSize)
-        rDampingMatrix.resize(MatSize, MatSize);
+    if (rDampingMatrix.size1() != mat_size)
+        rDampingMatrix.resize(mat_size, mat_size);
 
-    rDampingMatrix = ZeroMatrix(MatSize, MatSize);
+    rDampingMatrix = ZeroMatrix(mat_size, mat_size);
 
     double TotalMass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
 
@@ -432,7 +390,7 @@ void PrestressMembraneElement::FinalizeSolutionStep(
     {
         //
         //            ConstitutiveLaw::Parameters Values (GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        //            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_STRAIN, false);
+        //            Values.GetOptions().Set (ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         //            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_STRESS);
         //            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         //            Matrix dummy = ZeroMatrix ( 0, 0 );
@@ -462,10 +420,10 @@ void PrestressMembraneElement::GetValuesVector(
 
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int mat_size = number_of_nodes * 3;
 
-    if (values.size() != MatSize)
-        values.resize(MatSize);
+    if (values.size() != mat_size)
+        values.resize(mat_size);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -486,10 +444,10 @@ void PrestressMembraneElement::GetFirstDerivativesVector(
 
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int mat_size = number_of_nodes * 3;
 
-    if (values.size() != MatSize)
-        values.resize(MatSize);
+    if (values.size() != mat_size)
+        values.resize(mat_size);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -511,10 +469,10 @@ void PrestressMembraneElement::GetSecondDerivativesVector(
 
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int mat_size = number_of_nodes * 3;
 
-    if (values.size() != MatSize)
-        values.resize(MatSize);
+    if (values.size() != mat_size)
+        values.resize(mat_size);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -819,42 +777,47 @@ void PrestressMembraneElement::CalculateAll(
 {
     KRATOS_TRY
 
-    //std::cout << "PrestressMembraneElement::CalculateAll" << std::endl;
-
-    
     // Initializing all needed variables
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int mat_size = number_of_nodes * 3;
+    
+    // Matrix B(3, mat_size);
+    // change to: array_1d<double, 3> StrainVector;
+    Vector StrainVector(3);
+    Vector StressVector(3);
     
     // set up Constitutive Law
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, true);        // why set to false?
-    //Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-    Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR); 
+    // Set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true); 
     
-
-    // Matrix B(3, MatSize);
-    // change to: array_1d<double, 3> StrainVector;
-    Vector StrainVector(3);
-    Vector StressVector(3);
+    Values.SetStrainVector(StrainVector);       // this is the input parameter
+    Values.SetStressVector(StressVector);       // this is an output parameter
 
     // resizing as needed the LHS
     if (CalculateStiffnessMatrixFlag == true)    // calculation of the matrix is required
     {
-        if (rLeftHandSideMatrix.size1() != MatSize)
-            rLeftHandSideMatrix.resize(MatSize, MatSize);
+        if (rLeftHandSideMatrix.size1() != mat_size)
+        {
+            rLeftHandSideMatrix.resize(mat_size, mat_size);
+        }
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
 
     //resizing as needed the RHS
     if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
     {
-        if (rRightHandSideVector.size() != MatSize)
-            rRightHandSideVector.resize(MatSize);
+        if (rRightHandSideVector.size() != mat_size)
+        {
+            rRightHandSideVector.resize(mat_size);
+        }
 
-        rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
+        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
     }
 
     // Initializing the Nodal coordinates
@@ -874,33 +837,14 @@ void PrestressMembraneElement::CalculateAll(
 
     J = GetGeometry().Jacobian(J);
    
-    //KRATOS_WATCH(integration_points.size());
     //bool is_initialized = false;
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
     {
         // reading integration weight, shape function value and its gradients at this integration point
-        double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
-
-        // double coord0 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(0);
-        // double coord1 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(1);
-        // double coord2 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(2);
-
-        /*
-        KRATOS_WATCH(integration_points.size());
-        KRATOS_WATCH(PointNumber);
-        KRATOS_WATCH(IntegrationWeight);
-        KRATOS_WATCH(coord0);
-        KRATOS_WATCH(coord1);
-        KRATOS_WATCH(coord2);
-        */
+        const double IntegrationWeight = integration_points[PointNumber].Weight();
 
         Vector ShapeFunctionN = row(Ncontainer, PointNumber);
         Matrix DN_De = DN_DeContainer[PointNumber];
-
-        /*
-        KRATOS_WATCH(ShapeFunctionN);
-        KRATOS_WATCH(DN_De);
-        */
 
         // covariant metric in deformed system
         array_1d<double, 3> gab;
@@ -914,7 +858,6 @@ void PrestressMembraneElement::CalculateAll(
         array_1d<double, 3> g2;
         array_1d<double, 3> g3;
 
-
         //if (!is_initialized)
         //{
         //    this->Initialize();
@@ -925,71 +868,35 @@ void PrestressMembraneElement::CalculateAll(
         CalculateMetricDeformed(PointNumber, DN_De, gab, g1, g2);
         CalculateStrain(StrainVector, gab, mGab0[PointNumber]);
 
-        //if (this->GetId() == 1)
-        //{
-        //    KRATOS_WATCH(Q);
-        //    KRATOS_WATCH(g1);
-        //    KRATOS_WATCH(g2);
-        //    KRATOS_WATCH(StrainVector);
-        //}
-
         Vector CartesianStrainVector = prod(Q, StrainVector);
 
         // Constitutive Matrices D
-        Matrix D = ZeroMatrix(3, 3);
+        Matrix D(3, 3);
         //boost::numeric::ublas::bounded_matrix<double, 3, 3> D;
-        //KRATOS_WATCH(StressVector);
 
-        
-        Values.SetStrainVector(StrainVector);       // this is the input parameter
-        Values.SetStressVector(StressVector);       // this is an output parameter
-        Values.SetConstitutiveMatrix(D);            // this is an output parameter
+        Values.SetConstitutiveMatrix(D); // this is an output parameter
 
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
-        /**/
-        //KRATOS_WATCH(StressVector);
 
         // Deformations for Non-linear force vector
         Vector StrainDeformation;
 
-        //if (this->GetId() == 42)
-        //{
-        //    std::cout << "before my function!" << std::endl;
-        //    KRATOS_WATCH(D);
-        //}
-
         StrainDeformation = prod(trans(D), CartesianStrainVector);
 
-        //KRATOS_WATCH(D);
-
-        //KRATOS_WATCH(StrainDeformation);
         array_1d<double,3> pre_stress_tensor;   // Vector with the Cauchy Pre-Stress components in local cartesian frame
         
-
-
         // Getting the prestress values
-        pre_stress_tensor(0) = mPreStress[0];
-        pre_stress_tensor(1) = mPreStress[1];
-        pre_stress_tensor(2) = mPreStress[2];
+
+        pre_stress_tensor(0) = GetProperties()[MEMBRANE_PRESTRESS](0);
+        pre_stress_tensor(1) = GetProperties()[MEMBRANE_PRESTRESS](1);
+        pre_stress_tensor(2) = GetProperties()[MEMBRANE_PRESTRESS](2);
+
 
         array_1d<double, 2> par_g1_1;
         par_g1_1(0) = 0.0;
         par_g1_1(1) = 1.0;
 
-        //if (this->GetId() == 42 && PointNumber == 1)
-        //    KRATOS_WATCH(pre_stress_tensor);
-
         CalculateTransMatrixToLocalCartesian(PointNumber, g1, g2, g3, gab, pre_stress_tensor, par_g1_1);
-
-
-        // !!!! the thickness is considered at the end by the IntToReferenceWeight !!!
-        // pre-integration with thickness
-        //pre_stress_tensor *= mThickness0;
-        //KRATOS_WATCH(mThickness0);
-
-        //KRATOS_WATCH(pre_stress_tensor);
-        //KRATOS_WATCH(StrainDeformation);
-
 
         // taking out the pre-stress
         // Adding the pre-stress values as forces over length
@@ -998,20 +905,15 @@ void PrestressMembraneElement::CalculateAll(
             StrainDeformation[i] += pre_stress_tensor[i];
         }
 
-
-        //std::cout << "After adding the pre-stress tensor" << std::endl;
-        //KRATOS_WATCH(StrainDeformation);
-
-
         // calculate B matrices
         // B matrices:
-        Matrix B = ZeroMatrix(3, MatSize);
+        Matrix B = ZeroMatrix(3, mat_size);
         //CalculateB(B, Q, DN_De, mG1[PointNumber], mG2[PointNumber]);
         CalculateB(B, Q, DN_De, g1, g2);
 
         // integration on the REFERENCE CONFIGURATION
         double DetJ0 = mDetJ0[PointNumber];
-        double IntToReferenceWeight = IntegrationWeight * DetJ0 * mThickness0;
+        double IntToReferenceWeight = IntegrationWeight * DetJ0 * GetProperties()[THICKNESS];
 
         // Nonlinear Deformation
         Matrix Strain_locCartesian_11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
@@ -1020,41 +922,18 @@ void PrestressMembraneElement::CalculateAll(
 
         CalculateSecondVariationStrain(DN_De, Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12, Q, g1, g2);
 
-        //if (this->GetId() == 1)
-        //{
-
-        //    KRATOS_WATCH(Strain_locCartesian_11);
-        //    KRATOS_WATCH(Strain_locCartesian_22);
-        //    KRATOS_WATCH(Strain_locCartesian_12);
-        //}
-
-
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
         {
             // adding membrane contribution to the stiffness matrix
-            //KRATOS_WATCH(B);
-            //KRATOS_WATCH(D);
-            //KRATOS_WATCH(IntToReferenceWeight);
             CalculateAndAddKm(rLeftHandSideMatrix, B, D, IntToReferenceWeight);
 
-            //if (this->GetId() == 42)
-            //{
-            //    std::cout << "Klinear" << std::endl;
-            //    KRATOS_WATCH(D);
-            //    KRATOS_WATCH(rLeftHandSideMatrix);
-            //}
             // adding non-linear-contribution to stiffness matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
                 Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12,
                 StrainDeformation,
                 IntToReferenceWeight);
-
-            //if (this->GetId() == 42)
-            //{
-            //    std::cout << "KNonlinear" << std::endl;
-            //    KRATOS_WATCH(rLeftHandSideMatrix);
-            //}
+            
         }
 
         // RIGHT HAND SIDE VECTOR
@@ -1064,24 +943,7 @@ void PrestressMembraneElement::CalculateAll(
             noalias(rRightHandSideVector) -= IntToReferenceWeight* prod(trans(B), StrainDeformation);
         }
     } // end loop over integration points
-    //if(CalculateStiffnessMatrixFlag==true)
-    //    KRATOS_WATCH(rLeftHandSideMatrix);
 
-    //if(CalculateResidualVectorFlag==true)
-    //    KRATOS_WATCH(rRightHandSideVector);
-
-    // DEBUG INFO
-    //if (this->GetId() == 1 /*|| this->GetId() == 2*/)
-    //{
-    //    //KRATOS_WATCH(rLeftHandSideMatrix);
-    //    KRATOS_WATCH(rRightHandSideVector);
-    //}
-
-    //if (this->GetId() == 42)
-    //{
-    //    std::cout << "K" << std::endl;
-    //    KRATOS_WATCH(rLeftHandSideMatrix);
-    //}
     KRATOS_CATCH("")
 }
 

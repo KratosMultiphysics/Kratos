@@ -31,15 +31,36 @@
 #include "custom_utilities/energy_utilities.h"
 #include "custom_utilities/isotropic_damage_utilities.hpp"
 
+#include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
+
+
 namespace Kratos
 {
 
   namespace Python
   {
 
+  inline
+  void TransferEigenvector1(
+        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
+        ModelPart& rModelPart,
+        int iEigenMode)
+  {
+    rThisUtil.Transfer(rModelPart,iEigenMode);
+  }
 
-    void  AddCustomUtilitiesToPython()
-    {
+  inline
+  void TransferEigenvector2(
+        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
+        ModelPart& rModelPart,
+        int iEigenMode,
+        int step)
+  {
+    rThisUtil.Transfer(rModelPart,iEigenMode,step);
+  }
+
+  void  AddCustomUtilitiesToPython()
+  {
 
       using namespace boost::python;
 
@@ -51,8 +72,12 @@ namespace Kratos
 	.def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
 	;
 
+      class_<EigenvectorToSolutionStepVariableTransferUtility>("EigenvectorToSolutionStepVariableTransferUtility")
+	.def("Transfer",TransferEigenvector1)
+	.def("Transfer",TransferEigenvector2)
+	;
 
-    }
+  }
 
   }  // namespace Python.
 

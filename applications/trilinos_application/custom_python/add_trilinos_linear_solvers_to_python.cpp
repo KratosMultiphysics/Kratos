@@ -34,30 +34,6 @@
 #include "spaces/ublas_space.h"
 #include "includes/model_part.h"
 
-//strategies
-// #include "solving_strategies/strategies/solving_strategy.h"
-// #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-// #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-
-//schemes
-// #include "solving_strategies/schemes/scheme.h"
-// #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-// #include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
-// #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-// #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
-
-//convergence criterias
-// #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-// #include "solving_strategies/convergencecriterias/displacement_criteria.h"
-//
-// //Builder And Solver
-// // #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
-// #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
-// #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_vec.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -73,7 +49,8 @@
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
 
-#include "external_includes/amgcl_solver.h"
+#include "external_includes/amgcl_mpi_solver.h"
+#include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
 namespace Kratos
 {
@@ -133,6 +110,11 @@ void  AddLinearSolvers()
     ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
     .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
     .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
+    ;
+    
+    typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
+    class_<AmgclMPISchurComplementSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
+    ("AmgclMPISchurComplementSolver",init<Parameters>()) 
     ;
     
     enum_<AztecScalingType>("AztecScalingType")

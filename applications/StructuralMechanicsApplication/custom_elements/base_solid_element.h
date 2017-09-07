@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -50,6 +51,64 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseSolidElement
     : public Element
 {
+protected:
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        Vector  N;
+        Matrix  B;
+        double  detF;
+        Matrix  F;
+        double  detJ0;
+        Matrix  J0;
+        Matrix  InvJ0;
+        Matrix  DN_DX;
+        
+        /**
+         * The default constructor
+         * @param StrainSize: The size of the strain vector in Voigt notation
+         * @param Dimension: The size of the strain vector in Voigt notation
+         * @param NumberOfNodes: The size of the strain vector in Voigt notation
+         */
+        KinematicVariables( 
+            const unsigned int& StrainSize, 
+            const unsigned int& Dimension, 
+            const unsigned int& NumberOfNodes 
+            )
+        {
+            detF = 1.0;
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            F = IdentityMatrix(Dimension);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+        }
+    };
+    
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        Vector StrainVector;
+        Vector StressVector;
+        Matrix D;
+        
+        /**
+         * The default constructor
+         * @param StrainSize: The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const unsigned int& StrainSize)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
 public:
 
     ///@name Type Definitions
@@ -102,7 +161,7 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
@@ -120,7 +179,7 @@ public:
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -228,6 +287,18 @@ public:
         std::vector<double>& rOutput, 
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+        
+    /**
+     * Calculate a double array_1d on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable, 
+        std::vector<array_1d<double, 3>>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
@@ -254,11 +325,11 @@ public:
         ) override;
 
      /**
-     * Set a double Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
+      * Set a double Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void SetValueOnIntegrationPoints(
         const Variable<double>& rVariable, 
         std::vector<double>& rValues, 
@@ -266,11 +337,11 @@ public:
         ) override;
     
      /**
-     * Set a Vector Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
+      * Set a Vector Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void SetValueOnIntegrationPoints(
         const Variable<Vector>& rVariable, 
         std::vector<Vector>& rValues, 
@@ -278,11 +349,11 @@ public:
         ) override;
 
      /**
-     * Set a Matrix Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
+      * Set a Matrix Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void SetValueOnIntegrationPoints(
         const Variable<Matrix>& rVariable, 
         std::vector<Matrix>& rValues, 
@@ -301,6 +372,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * Get on rVariable a array_1d Value from the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rValues: The results in the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable, 
+        std::vector<array_1d<double, 3>>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+        
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
      * @param rVariable: The variable we want to get
@@ -387,6 +470,11 @@ protected:
     virtual void InitializeMaterial();
     
     /**
+     * Gives the StressMeasure used
+     */
+    virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
+    
+    /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
@@ -402,12 +490,112 @@ protected:
         const bool CalculateResidualVectorFlag
         );
     
-    double CalculateDerivativesOnReference(
+    /**
+     * This functions updates the kinematics variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     */ 
+    virtual void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        );
+        
+    /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rThisConstitutiveVariables: The constitutive variables
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     * @param ThisStressMeasure: The stress measure considered
+     * @param Displacements: The displacements vector
+     */ 
+    virtual void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
+        ConstitutiveLaw::Parameters& rValues,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+        const Vector Displacements
+        );
+    
+    /**
+     * This methods gives us a matrix with the increment of displacement
+     * @return DeltaDisplacement: The matrix containing the increment of displacements
+     */
+    Matrix CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
+    
+    /**
+     * This functions calculate the derivatives in the reference frame
+     */ 
+    virtual double CalculateDerivativesOnReferenceConfiguration(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
         const unsigned int PointNumber,
         IntegrationMethod ThisIntegrationMethod
+        );
+    
+    /**
+     * This functions calculate the derivatives in the current frame
+     */ 
+    double CalculateDerivativesOnCurrentConfiguration(
+        Matrix& J, 
+        Matrix& InvJ, 
+        Matrix& DN_DX, 
+        const unsigned int PointNumber,
+        IntegrationMethod ThisIntegrationMethod
+        );
+    
+    /**
+     * This function computes the body force
+     */ 
+    Vector GetBodyForce();
+    
+    /**
+     * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
+     */
+    void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double IntegrationWeight
+        );
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
+     */
+    void CalculateAndAddKg(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double IntegrationWeight
+        );
+    
+    /**
+     * Calculation of the RHS
+     */
+    void CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        const Vector& StressVector,
+        const double IntegrationWeight
+        );
+    
+    /**
+     * This function add the external force contribution
+     */ 
+    void CalculateAndAddExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        VectorType& mResidualVector,
+        const double IntegrationWeight
         );
 
     /**

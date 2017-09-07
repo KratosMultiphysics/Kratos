@@ -154,25 +154,25 @@ protected:
 
     void CalculateAndSubKp(
         Matrix& K,
-        array_1d<double, 3>& ge,
-        array_1d<double, 3>& gn,
+        const array_1d<double, 3>& ge,
+        const array_1d<double, 3>& gn,
         const Matrix& DN_De,
         const Vector& N,
-        double pressure,
-        double weight );
+        const double Pressure,
+        const double Weight );
 
     void MakeCrossMatrix(
         bounded_matrix<double, 3, 3>& M,
-        array_1d<double, 3>& U 
+        const array_1d<double, 3>& U 
         );
 
     void CalculateAndAddPressureForce(
-        VectorType& residualvector,
+        VectorType& rResidualVector,
         const Vector& N,
-        const array_1d<double, 3>& v3,
-        double pressure,
-        double weight,
-        const ProcessInfo& rCurrentProcessInfo 
+        const array_1d<double, 3 >& Normal,
+        const double Pressure,
+        const double Weight,
+        const ProcessInfo& rCurrentProcessInfo
         );
     
     ///@}

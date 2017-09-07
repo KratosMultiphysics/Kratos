@@ -7,12 +7,12 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 
 #if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
 #define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
-
 
 
 // System includes
@@ -98,18 +98,6 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rOutput: The values obtained int the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable, 
-        std::vector< Matrix >& rOutput, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -174,6 +162,37 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
+        
+    /**
+     * This functions updates the kinematics variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param PointNumber: The integration point considered
+     */ 
+    void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
+        
+     /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rThisConstitutiveVariables: The constitutive variables
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     * @param ThisStressMeasure: The stress measure considered
+     * @param Displacements: The displacements vector
+     */ 
+    void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
+        ConstitutiveLaw::Parameters& rValues,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+        const Vector Displacements = ZeroVector(1)
+        ) override;
     
     ///@}
     ///@name Protected Operations
@@ -201,58 +220,25 @@ private:
     ///@name Private Operators
     ///@{
 
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-     */
-    void CalculateAndAddKg(
-        MatrixType& K,
-        Matrix& DN_DX,
-        Vector& StressVector,
-        double weight
-    );
-
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
-    );
+        );
 
     void InitializeVariables();
 
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
-        VectorType& mResidualVector,
-        double weight
-    );
-
-    void CalculateStrain(
-        const Matrix& C,
-        Vector& rStrainVector
-        );
-
     void CalculateB(
         Matrix& B,
-        Matrix& F,
-        Matrix& DN_DX,
-        unsigned int StrainSize,
+        const Matrix& F,
+        const Matrix& DN_DX,
+        const unsigned int StrainSize,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         );
 
-
-    void Comprobate_State_Vector(Vector& Result);
-    
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access

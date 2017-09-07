@@ -1,7 +1,7 @@
 import KratosMultiphysics 
 from KratosMultiphysics.ExternalSolversApplication import *
 #from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemBaseApplication import *
+from KratosMultiphysics.PfemApplication import *
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 #from KratosMultiphysics.PfemFluidDynamicsApplication import *
@@ -157,6 +157,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 self.SetMaterialPropertiesToFluidNodes(fluid_part)
 
                 for rigid_part in rigid_body_model_parts:
+                    self.SetMaterialPropertiesToRigidNodes(rigid_part,fluid_part)                
                     transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,rigid_part,entity_type,transfer_flags)
                     transfer_process.Execute()
 
@@ -231,6 +232,22 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
 
         print(" Main Model Part", self.main_model_part )
+
+    def SetMaterialPropertiesToRigidNodes(self,rigid_model_part,fluid_model_part):
+        count=0
+        for elem in fluid_model_part.Elements:
+           
+            density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
+            bulk_modulus = elem.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
+            viscosity = elem.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            break
+
+        for nn in rigid_model_part.Nodes:
+            count+=1
+            nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
+            nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
+            nn.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,viscosity)
+
 
     def SetMaterialPropertiesToFluidNodes(self,model_part):
         count=0

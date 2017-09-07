@@ -16,6 +16,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
@@ -71,6 +72,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_ale_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
@@ -111,7 +113,7 @@ set( KRATOS_PYTHON_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;
 
 	# ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;

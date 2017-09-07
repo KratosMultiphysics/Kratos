@@ -45,7 +45,14 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-/// Short class definition.
+    
+/// Nearest Neighbor Mapper
+/** This class implements the Nearest Neighbor Mapping technique.
+* Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
+* In the mapping phase every node gets assigned the value of it's neighbor
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
+*/
 
 class NearestNeighborMapper : public Mapper
 {
@@ -63,9 +70,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                          Parameters& rJsonParameters) : Mapper(
-                                  i_model_part_origin, i_model_part_destination, rJsonParameters)
+    NearestNeighborMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+                          Parameters JsonParameters) : Mapper(
+                                  rModelPartOrigin, rModelPartDestination, JsonParameters)
     {
         mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
         mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);

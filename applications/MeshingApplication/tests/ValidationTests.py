@@ -45,7 +45,7 @@ class MeshingTestFactory(KratosUnittest.TestCase):
         pass
 
 class TwoDSphereRemeshedChannelTest(MeshingTestFactory):
-    file_name = "mmg_test/2D_sphere_remeshed_channel_test"
+    file_name = "mmg_eulerian_test/2D_sphere_remeshed_channel_test"
     
 class ThreeDSphereRemeshedChannelTest(MeshingTestFactory):
-    file_name = "mmg_test/3D_sphere_remeshed_channel_test"
+    file_name = "mmg_eulerian_test/3D_sphere_remeshed_channel_test"

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics 
 
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -44,9 +44,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         else:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw()
+            cl = StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
             
     def _define_movement(self,dim):
@@ -181,10 +181,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             reference_strain[5] = 2.0*Etensor[0,2]
             
         for elem in mp.Elements:
-            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, mp.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertAlmostEqual(reference_strain[i], strain[0,i])
+                    self.assertAlmostEqual(reference_strain[i], strain[i])
                     
         #finally compute stress
         if(dim == 2):
@@ -210,14 +210,12 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             reference_stress[5] = c4*reference_strain[5]
             
         for elem in mp.Elements:
-            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_TENSOR, mp.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertAlmostEqual(reference_stress[i], stress[0,i],2)        
-        
-        
+                    self.assertAlmostEqual(reference_stress[i], stress[i],2)        
 
-    def _test_SmallDisplacementElement_2D_triangle(self):
+    def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -264,8 +262,51 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                     else:
                         coeff = Area/12.0
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
+                    
+        #self.__post_process(mp)
+                    
+    def test_SmallDisplacementElement_2D_quadrilateral(self):
+        dim = 2
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
         
-    def _test_SmallDisplacementElement_3D_hexa(self): 
+        #create nodes
+        mp.CreateNewNode(1,0.00,3.00,0.00)
+        mp.CreateNewNode(2,1.00,2.25,0.00)
+        mp.CreateNewNode(3,0.75,1.00,0.00)
+        mp.CreateNewNode(4,2.25,2.00,0.00)
+        mp.CreateNewNode(5,0.00,0.00,0.00)
+        mp.CreateNewNode(6,3.00,3.00,0.00)
+        mp.CreateNewNode(7,2.00,0.75,0.00)
+        mp.CreateNewNode(8,3.00,0.00,0.00)
+        
+        for node in mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+            
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,5,6,8])
+                
+        #create Element
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
+        
+        A,b = self._define_movement(dim)
+        
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        
+        #self.__post_process(mp)
+        
+    def test_SmallDisplacementElement_3D_hexa(self): 
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -312,10 +353,35 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-    
-    def test_execution(self):
-        self._test_SmallDisplacementElement_2D_triangle()
-        self._test_SmallDisplacementElement_3D_hexa()
+        
+        #self.__post_process(mp)
+        
+    def __post_process(self, main_model_part):
+        from gid_output_process import GiDOutputProcess
+        self.gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },        
+                                                "nodal_results"       : ["DISPLACEMENT"],
+                                                "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()
         
 if __name__ == '__main__':
     KratosUnittest.main()
