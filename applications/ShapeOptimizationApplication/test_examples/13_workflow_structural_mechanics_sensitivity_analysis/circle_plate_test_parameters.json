@@ -3,7 +3,7 @@
         "execute_solve" : true
     },
     "problem_data"             : {
-        "problem_name"    : "Beam_structure",
+        "problem_name"    : "circle_plate",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1,
@@ -18,11 +18,11 @@
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Beam_structure"
-        },
-
-        "material_import_settings" :{
-            "materials_filename": "materials_beam.json"
+            "input_filename" : "circle_plate"
+        
+        }, 
+    "material_import_settings" :{
+            "materials_filename": "materials_2D.json"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
@@ -37,10 +37,9 @@
             "scaling"     : true,
             "verbosity"   : 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
+        "problem_domain_sub_model_part_list" : ["Parts_plate"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
-
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -80,7 +79,7 @@
         "process_name"     : "OutputPrimalSolutionProcess",
         "Parameters"          : {
             "model_part_name" : "Structure",
-            "file_name"       : "beam_test",
+            "file_name"       : "circle_plate_test",
             "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
     }],
@@ -94,8 +93,8 @@
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
-            "modulus"          : 1.0,
-            "direction"       : [0.0,1.0,1.0]
+            "modulus"          : 1000000.0,
+            "direction"       : [0.0,0.0,1.0]
         }
     }],
     "output_configuration"     : {
@@ -127,19 +126,8 @@
     "constraints_data"         : {
         "incremental_load"         : false,
         "incremental_displacement" : false
-    },
-    "optimization_settings" : {
-        "objectives" : [{ 
-                "identifier"        : "rework_strain_energy",
-                "use_kratos"        : true,
-                "gradient_mode"     : "semi_analytic", 
-                "nodal_sensitivity_variables"  : [],
-                "element_sensitivity_variables"  : ["IZ"],
-                "condition_sensitivity_variables"  : [],
-                "step_size"         : 1e-6
-        }]
-       
-    }
+    }  
+    
 
 }
 

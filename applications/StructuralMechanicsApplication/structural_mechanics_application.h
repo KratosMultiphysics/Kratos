@@ -34,9 +34,10 @@
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
-//fusseder move this element to other application
-#include "custom_elements/cr_beam_element_3D2N_for_SA.hpp"
-
+/* Adding the adjoint element */
+#include "custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.hpp" //TODO: remove this
+#include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
+#include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -250,8 +251,10 @@ private:
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
-    //fusseder move this element to other application
-    const CrBeamElement3D2NForSA mCrBeamElement3D2NForSA;
+    // Adding adjoint elements
+    const CrBeamElement3D2NForSA mCrBeamElement3D2NForSA; //TODO: remove this
+    const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
+    const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
 
     // Adding the shells elements 

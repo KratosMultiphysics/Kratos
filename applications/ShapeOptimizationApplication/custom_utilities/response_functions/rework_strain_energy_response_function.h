@@ -98,7 +98,7 @@ public:
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 
 		// Mode 1: semi-analytic sensitivities
-		if (gradientMode.compare("semi_analytic") == 0)
+		if (gradientMode.compare("semi_analytic") == 0) //TODO: Maybe move this to base class!
 		{
 			mGradientMode = 1;
 			double delta = responseSettings["step_size"].GetDouble();
@@ -133,6 +133,19 @@ public:
 		KRATOS_TRY;
 
 		BaseType::Initialize();
+
+		// It is necessary to initialize the elements since no adjoint problem is solved for this response type.
+		// For this response type the elements are only created!
+		ModelPart& r_model_part = this->GetModelPart();
+	#pragma omp parallel
+        {
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
+            for (auto it = elements_begin; it != elements_end; ++it)
+                it->Initialize();
+        }
+		// TODO: Check if initialization is also necessary for conditions!
 
 		KRATOS_CATCH("");
 	}

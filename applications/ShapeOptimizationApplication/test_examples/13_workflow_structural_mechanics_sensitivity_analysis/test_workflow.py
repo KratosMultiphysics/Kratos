@@ -47,6 +47,19 @@ class TestCase(KratosUnittest.TestCase):
            # Sensitivity = [[]]
            # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
            # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+    def circle_plate(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # solve structure
+            self.solve('circle_plate_test')
+            #self.solve('test_beam_sensitivities/beam_test')
+            # solve adjoint
+            print("Primal solution process finished!")
+            test = self._create_test('circle_plate_test_adjoint')
+            test.Solve()
+            print("Adjoint solution process finished and sensitivities are computed")    
+           # Sensitivity = [[]]
+           # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+           # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))       
 
     def tearDown(self):
         pass

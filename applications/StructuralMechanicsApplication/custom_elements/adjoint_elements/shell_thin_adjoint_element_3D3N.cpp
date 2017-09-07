@@ -6,19 +6,19 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Massimo Petracca
+//  Main authors:    Martin Fusseder
 //
 
-#include "shell_thin_element_3D3N.hpp"
+#include "shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
-#include "geometries/triangle_3d_3.h"
+//#include "geometries/triangle_3d_3.h"
 
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_NODES 3
+#define OPT_NUM_NODES 3 //---------------------------------------------->TODO: check which of the stuff is here really needed
 #define OPT_STRAIN_SIZE 6
 #define OPT_NUM_DOFS 18
 
@@ -42,7 +42,7 @@
 
 //#define OPT_USES_INTERIOR_GAUSS_POINTS
 
-#ifdef OPT_1_POINT_INTEGRATION
+/*#ifdef OPT_1_POINT_INTEGRATION
 #define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
 #else
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
@@ -52,12 +52,12 @@
 #endif // OPT_USES_INTERIOR_GAUSS_POINTS
 #endif // OPT_1_POINT_INTEGRATION
 
-//#define OPT_AVARAGE_RESULTS
+//#define OPT_AVARAGE_RESULTS*/
 
 namespace Kratos
 {
 
-namespace Utilities
+/*namespace Utilities
 {
 inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
 {
@@ -119,7 +119,7 @@ inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
             InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
 }
 
-}
+}*/
 
 // =====================================================================================
 //
@@ -127,119 +127,89 @@ inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
 //
 // =====================================================================================
 
-ShellThinElement3D3N::CalculationData::CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+/*ShellThinAdjointElement3D3N::CalculationData::CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
         const ProcessInfo& rCurrentProcessInfo)
     : LCS0( pCoordinateTransformation->CreateReferenceCoordinateSystem() )
     , LCS( pCoordinateTransformation->CreateLocalCoordinateSystem() )
-    , CurrentProcessInfo(rCurrentProcessInfo)
+    , CurrentProcessInfo(rCurrentProcessInfo)*/
 
-{
-}
+//{
+//}
 
 // =====================================================================================
 //
-// Class ShellThinElement3D3N
+// Class ShellThinAdjointElement3D3N
 //
 // =====================================================================================
 
-ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
+ShellThinAdjointElement3D3N::ShellThinAdjointElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         bool NLGeom)
-    : Element(NewId, pGeometry)
-    , mpCoordinateTransformation( NLGeom ?
-                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
-                                  new ShellT3_CoordinateTransformation(pGeometry))
+    : ShellThinElement3D3N(NewId, pGeometry, NLGeom)
 {
-    mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
+
 }
 
-ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
+ShellThinAdjointElement3D3N::ShellThinAdjointElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         bool NLGeom)
-    : Element(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation( NLGeom ?
-                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
-                                  new ShellT3_CoordinateTransformation(pGeometry))
+    : ShellThinElement3D3N(NewId, pGeometry, pProperties, NLGeom)
 {
-    mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
+
 }
 
-ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
+ShellThinAdjointElement3D3N::ShellThinAdjointElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : Element(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation(pCoordinateTransformation)
+    : ShellThinElement3D3N(NewId, pGeometry, pProperties, pCoordinateTransformation)
 {
-    mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
+
 }
 
-ShellThinElement3D3N::~ShellThinElement3D3N()
+ShellThinAdjointElement3D3N::~ShellThinAdjointElement3D3N()
 {
 }
 
-Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties) const 
 {
+    KRATOS_TRY
+    //std::cout << ( "I am in Create 1 of adjoint element class") << std::endl;
+    bool NLGeom = false; //-----------------------------------------------------------> hard coded linar shell element!!!
+    return Element::Pointer(
+                new ShellThinAdjointElement3D3N(NewId, pGeom, pProperties, NLGeom));
+    
+    KRATOS_CATCH("")
+}
+
+Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId, 
+                    NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
+{
+    bool NLGeom = false; //-----------------------------------------------------------> hard coded linar shell element!!!
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    return boost::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
-//     return Element::Pointer( new ShellThinElement3D3N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
+    return boost::make_shared< ShellThinAdjointElement3D3N >(NewId, newGeom, pProperties, NLGeom);
+//     return Element::Pointer( new ShellThinAdjointElement3D3N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
 }
 
-ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMethod() const
+/*ShellThinAdjointElement3D3N::IntegrationMethod ShellThinAdjointElement3D3N::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
-}
+}*/
 
-void ShellThinElement3D3N::Initialize()
+void ShellThinAdjointElement3D3N::InitializeAgainAfterDisturbing()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
-
-    if(geom.PointsNumber() != OPT_NUM_NODES)
-        KRATOS_THROW_ERROR(std::logic_error, "ShellThinElement3D3N Element - Wrong number of nodes", geom.PointsNumber());
-
-    const GeometryType::IntegrationPointsArrayType & integrationPoints = geom.IntegrationPoints(GetIntegrationMethod());
-    if(integrationPoints.size() != OPT_NUM_GP)
-        KRATOS_THROW_ERROR(std::logic_error, "ShellThinElement3D3N Element - Wrong integration scheme", integrationPoints.size());
-
-    if(mSections.size() != OPT_NUM_GP)
-    {
-        const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-       ShellCrossSection::Pointer theSection;
-       if(props.Has(SHELL_CROSS_SECTION))   
-        {
-            theSection = props[SHELL_CROSS_SECTION];
-        }
-        else
-        {
-            theSection = ShellCrossSection::Pointer(new ShellCrossSection());
-            theSection->BeginStack();
-            theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-            theSection->EndStack();
-        }
-
-        mSections.clear();
-        for(int i = 0; i < OPT_NUM_GP; i++)
-        {
-            ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
-            sectionClone->InitializeCrossSection(props, geom, row( shapeFunctionsValues, i ));
-            mSections.push_back(sectionClone);
-        }
-    }
-
-    mpCoordinateTransformation->Initialize();
-
-    this->SetupOrientationAngles();
+    //ShellThinElement3D3N::mSections.clear();
+    ShellThinElement3D3N::Initialize();
 
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::ResetConstitutiveLaw()
+/*void ShellThinAdjointElement3D3N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
@@ -251,9 +221,9 @@ void ShellThinElement3D3N::ResetConstitutiveLaw()
         mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
 
     KRATOS_CATCH("")
-}
+}*/
 
-void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void ShellThinAdjointElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     if(rResult.size() != OPT_NUM_DOFS)
         rResult.resize(OPT_NUM_DOFS, false);
@@ -265,17 +235,17 @@ void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, Proce
         int index = i * 6;
         NodeType & iNode = geom[i];
 
-        rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = iNode.GetDof(DISPLACEMENT_Z).EquationId();
+        rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
+        rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
+        rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
 
-        rResult[index + 3] = iNode.GetDof(ROTATION_X).EquationId();
-        rResult[index + 4] = iNode.GetDof(ROTATION_Y).EquationId();
-        rResult[index + 5] = iNode.GetDof(ROTATION_Z).EquationId();
+        rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
+        rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
+        rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
     }
 }
 
-void ShellThinElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void ShellThinAdjointElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
     ElementalDofList.resize(0);
     ElementalDofList.reserve(OPT_NUM_DOFS);
@@ -286,23 +256,24 @@ void ShellThinElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessI
     {
         NodeType & iNode = geom[i];
 
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Z));
+        ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_X));
+        ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Y));
+        ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Z));
 
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_X));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Y));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Z));
+        ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_X));
+        ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Y));
+        ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Z));
     }
 }
 
-int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
+int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
+    //ShellThinElement3D3N::Check(rCurrentProcessInfo);
     GeometryType& geom = GetGeometry();
 
-    // verify that the variables are correctly initialized
+   // verify that the variables are correctly initialized
     if(DISPLACEMENT.Key() == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
     if(ROTATION.Key() == 0)
@@ -320,27 +291,12 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     if(CONSTITUTIVE_LAW.Key() == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,"CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered","");
 
-    // verify that the dofs exist
-    for(unsigned int i=0; i<geom.size(); i++)
-    {
-        if(geom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ",geom[i].Id());
-        if(geom[i].HasDofFor(DISPLACEMENT_X) == false || geom[i].HasDofFor(DISPLACEMENT_Y) == false || geom[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id());
-        if(geom[i].SolutionStepsDataHas(ROTATION) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing variable ROTATION on node ",geom[i].Id());
-        if(geom[i].HasDofFor(ROTATION_X) == false || geom[i].HasDofFor(ROTATION_Y) == false || geom[i].HasDofFor(ROTATION_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",geom[i].Id());
-
-        if(geom[i].GetBufferSize() < 2)
-            KRATOS_THROW_ERROR(std::logic_error, "This Element needs at least a buffer size = 2", "");
-    }
 
     // check properties
     if(this->pGetProperties() == NULL)
         KRATOS_THROW_ERROR(std::logic_error, "Properties not provided for element ", this->Id());
 
-    const PropertiesType & props = this->GetProperties();
+    const PropertiesType & props = this->GetProperties();    
 
     if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
     {
@@ -371,16 +327,76 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
         dummySection->Check(props, geom, rCurrentProcessInfo);
     }
 
+    //##################################################################################################
+	// Check for specific sensitivity analysis stuff
+	//##################################################################################################
+    if (ADJOINT_DISPLACEMENT.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                "ADJOINT_DISPLACEMENT Key is 0. "
+                "Check if the application was correctly registered.","");
+
+	if (ADJOINT_ROTATION.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "ADJOINT_ROTATION Key is 0. "
+                    "Check if the application was correctly registered.","");
+
+	// Check if the nodes have adjoint dofs.
+    for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
+    {
+        if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
+                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
+                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "missing ADJOINT_DISPLACEMENT component degree of freedom on node ",
+                    this->GetGeometry()[iNode].Id());
+
+		if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
+                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "missing ADJOINT_ROTATION component degree of freedom on node ",
+                    this->GetGeometry()[iNode].Id());	
+
+		if (this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "missing DISPLACEMENT variable on solution step data for node ",
+                    this->GetGeometry()[iNode].Id());					
+    }
+
     return 0;
 
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::CleanMemory()
+/*void ShellThinAdjointElement3D3N::CleanMemory()
 {
+}*/
+
+void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
+{
+    if(values.size() != OPT_NUM_DOFS)
+        values.resize(OPT_NUM_DOFS, false); 
+
+    const GeometryType & geom = GetGeometry();
+
+    for (SizeType i = 0; i < geom.size(); i++)
+    {
+        const NodeType & iNode = geom[i];
+        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+        const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
+
+        int index = i*6;
+        values[index]     = disp[0];
+        values[index + 1] = disp[1];
+        values[index + 2] = disp[2];
+
+        values[index + 3] = rot[0];
+        values[index + 4] = rot[1];
+        values[index + 5] = rot[2];
+    }
 }
 
-void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
+void ShellThinAdjointElement3D3N::GetPrimalValuesVector(Vector& values, int Step) // TODO: Check if this function is really needed
 {
     if(values.size() != OPT_NUM_DOFS)
         values.resize(OPT_NUM_DOFS, false);
@@ -397,14 +413,180 @@ void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
         values[index]     = disp[0];
         values[index + 1] = disp[1];
         values[index + 2] = disp[2];
-
+ 
         values[index + 3] = rot[0];
         values[index + 4] = rot[1];
         values[index + 5] = rot[2];
     }
+
 }
 
-void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
+void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo)
+{
+        KRATOS_TRY;
+        // define working variables
+		Vector RHS_undist;
+		Vector RHS_dist;
+		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+
+        // Compute RHS before disturbing
+		this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
+        rOutput.resize(1,RHS_dist.size());
+
+		if ( this->GetProperties().Has(rDesignVariable) ) 
+		{
+			// Save properties and its pointer
+            Properties& r_global_property = this->GetProperties(); 
+            Properties::Pointer p_global_properties = this->pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(r_global_property));
+            this->SetProperties(p_local_property);
+
+            // Get disturbance measure
+            double delta = r_global_property[rDesignVariable] * 0.001; // TODO: get this from outside!
+
+			// Disturb the design variable
+            //std::cout << (" DV before dist ") << this->GetProperties()[rDesignVariable] << std::endl;
+			const double current_property_value = this->GetProperties()[rDesignVariable];
+            p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+            //std::cout << (" DV after dist ") << this->GetProperties()[rDesignVariable] << std::endl;
+            ShellThinElement3D3N::ResetSections();
+            ShellThinElement3D3N::Initialize();
+
+			// Compute RHS after disturbance
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+
+			// Compute derivative of RHS w.r.t. design variable with finite differences
+			RHS_dist -= RHS_undist;
+			RHS_dist /= delta;
+			for(unsigned int i = 0; i < RHS_dist.size(); i++)
+			{
+				 rOutput(0, i) = RHS_dist[i];
+				 //std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
+			}
+
+            // Give element original properties back
+            this->SetProperties(p_global_properties);
+            ShellThinElement3D3N::ResetSections();
+            ShellThinElement3D3N::Initialize();
+            //std::cout << (" DV after undist ") << this->GetProperties()[rDesignVariable] << std::endl;	
+		}
+        else
+         rOutput.clear();
+	
+		KRATOS_CATCH("")
+
+}                                            
+	
+void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+		// define working variables
+		Vector RHS_undist;
+		Vector RHS_dist;
+		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+
+		double delta = 1e-6;	//TODO: get this from outside!
+		//std::cout << ("Computation of pseudo loads of element #") << this->Id() << (" for vector variables") << std::endl;
+		if(rDesignVariable == SHAPE_SENSITIVITY) 
+		{
+			const int number_of_nodes = GetGeometry().PointsNumber();
+			const int dimension = this->GetGeometry().WorkingSpaceDimension();
+			const int local_size = number_of_nodes * dimension * 2;
+ 
+			rOutput.resize(dimension * number_of_nodes, local_size);
+           // std::cout << ("Before RHS") << std::endl;
+			// compute RHS before disturbing
+			this->CalculateRightHandSide(RHS_undist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+            //std::cout << ("After RHS") << std::endl;
+
+            //TODO: look that this works also for parallel computing
+			for(int j = 0; j < number_of_nodes; j++)
+			{
+				//begin: derive w.r.t. x-coordinate---------------------------------------------------
+				// disturb the design variable
+				this->GetGeometry()[j].X0() += delta;
+
+				// compute RHS after disturbance
+               // std::cout << ("Before RHS dist_x") << std::endl;
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+                 //std::cout << ("After RHS dist_x") << std::endl;
+
+				//compute derivative of RHS w.r.t. design variable with finite differences
+				RHS_dist -= RHS_undist;
+				RHS_dist /= delta;
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) { 
+					//std::cout << ("Pseudo Load x: ") << RHS_dist[i] << std::endl;
+					rOutput( (0 + j*dimension), i) = RHS_dist[i]; }
+                //std::cout << ("After FD") << std::endl;
+				// Reset pertubed vector
+				RHS_dist = Vector(0);
+
+				// undisturb the design variable
+				this->GetGeometry()[j].X0() -= delta;
+                //std::cout << ("After unsiturb x") << std::endl;
+				//end: derive w.r.t. x-coordinate-----------------------------------------------------
+
+				//begin: derive w.r.t. y-coordinate---------------------------------------------------
+				// disturb the design variable
+				this->GetGeometry()[j].Y0() += delta;
+                //std::cout << ("After disturb y") << std::endl;
+
+				// compute RHS after disturbance
+                //std::cout << ("Before RHS dist_y") << std::endl;
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+                //std::cout << ("After RHS dist_y") << std::endl;
+				//compute derivative of RHS w.r.t. design variable with finite differences
+				RHS_dist -= RHS_undist;
+				RHS_dist /= delta;
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+				{
+					//std::cout << ("Pseudo Load y: ") << RHS_dist[i] << std::endl;
+					 rOutput((1 + j*dimension),i) = RHS_dist[i]; }
+
+				// Reset pertubed vector
+				RHS_dist = Vector(0);
+
+				// undisturb the design variable
+				this->GetGeometry()[j].Y0() -= delta;
+				//end: derive w.r.t. y-coordinate-----------------------------------------------------
+
+				//begin: derive w.r.t. z-coordinate---------------------------------------------------
+				// disturb the design variable
+				this->GetGeometry()[j].Z0() += delta;
+
+				// compute RHS after disturbance
+                //std::cout << ("Before RHS dist_z") << std::endl;
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+                //std::cout << ("After RHS dist_z") << std::endl;
+				//compute derivative of RHS w.r.t. design variable with finite differences
+				RHS_dist -= RHS_undist;
+				RHS_dist /= delta;
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) { 
+					//std::cout << ("Pseudo Load z: ") << RHS_dist[i] << std::endl;
+					rOutput((2 + j*dimension),i) = RHS_dist[i]; }
+
+				// Reset pertubed vector
+				RHS_dist = Vector(0);
+
+				// undisturb the design variable
+				this->GetGeometry()[j].Z0() -= delta;
+				//end: derive w.r.t. z-coordinate-----------------------------------------------------
+
+			}// end loop over element nodes
+		}
+        else
+			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+
+		KRATOS_CATCH("")
+
+}
+
+/*void ShellThinAdjointElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
 {
     if(values.size() != OPT_NUM_DOFS)
         values.resize(OPT_NUM_DOFS,false);
@@ -424,9 +606,9 @@ void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
         values[index + 4]    = 0.0;
         values[index + 5]    = 0.0;
     }
-}
+}*/
 
-void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step)
+/*void ShellThinAdjointElement3D3N::GetSecondDerivativesVector(Vector& values, int Step)
 {
     if(values.size() != OPT_NUM_DOFS)
         values.resize(OPT_NUM_DOFS,false);
@@ -446,9 +628,9 @@ void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step)
         values[index + 4]    = 0.0;
         values[index + 5]    = 0.0;
     }
-}
+}*/
 
-void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+/*void ShellThinAdjointElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
 
@@ -456,9 +638,9 @@ void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProc
     const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
     for(SizeType i = 0; i < mSections.size(); i++)
         mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
-}
+}*/
 
-void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+/*void ShellThinAdjointElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
 
@@ -466,9 +648,9 @@ void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProces
     const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
     for(SizeType i = 0; i < mSections.size(); i++)
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
-}
+}*/
 
-void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+/*void ShellThinAdjointElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     const PropertiesType& props = GetProperties();
     const GeometryType & geom = GetGeometry();
@@ -478,9 +660,9 @@ void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInf
         mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 
     mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
-}
+}*/
 
-void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+/*void ShellThinAdjointElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     const PropertiesType& props = GetProperties();
     const GeometryType& geom = GetGeometry();
@@ -490,9 +672,9 @@ void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
         mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 
     mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
-}
+}*/
 
-void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+/*void ShellThinAdjointElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     if((rMassMatrix.size1() != OPT_NUM_DOFS) || (rMassMatrix.size2() != OPT_NUM_DOFS))
         rMassMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
@@ -527,76 +709,108 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
 
         // rotational mass - neglected for the moment...
     }
-}
+}*/
 
-void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+/*void ShellThinAdjointElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     if((rDampingMatrix.size1() != OPT_NUM_DOFS) || (rDampingMatrix.size2() != OPT_NUM_DOFS))
         rDampingMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
 
     noalias( rDampingMatrix ) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
-}
+}*/
 
-void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+/*void ShellThinAdjointElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
+}*/
 
-void ShellThinElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVector,
+/*void ShellThinAdjointElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo)
 {
     Matrix dummy;
-    CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
+    ShellThinElement3D3N::CalculateLocalSystem(dummy, rRightHandSideVector, rCurrentProcessInfo);
+}*/
 
-// =====================================================================================
-//
-// Class ShellThinElement3D3N - Results on Gauss Points
-//
-// =====================================================================================
-
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void ShellThinAdjointElement3D3N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, 
+        ProcessInfo& rCurrentProcessInfo)
 {
-    if(rValues.size() != OPT_NUM_GP)
-        rValues.resize(OPT_NUM_GP);
+    Vector dummy;
+    ShellThinElement3D3N::CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
+}        
+// =====================================================================================
+//
+// Class ShellThinAdjointElement3D3N - Results on Gauss Points
+//
+// =====================================================================================
 
-    for(int i = 0; i < OPT_NUM_GP; i++)
-        mSections[i]->GetValue(rVariable, rValues[i]);
+void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+{
+	KRATOS_TRY;
+		
+	if(this->Has(rVariable))
+	{
+		// Get result value for output
+		double output_value = this->GetValue(rVariable);
 
-    OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
+		// Resize Output
+        if(rOutput.size() != OPT_NUM_GP)
+            rOutput.resize(OPT_NUM_GP);
+
+		// Write scalar result value on all Gauss-Points
+		for(int i = 0; i < OPT_NUM_GP; i++)
+			rOutput[i] = output_value; 
+
+        //ShellThinElement3D3N::OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
+	}
+	else
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+
+
+	KRATOS_CATCH("")
+
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+				    std::vector<double>& rValues,
+					const ProcessInfo& rCurrentProcessInfo)
+{
+	KRATOS_TRY;
+	this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	KRATOS_CATCH("")
+}
+
+/*void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
+    //if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
+    //if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
         std::vector<array_1d<double,6> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-}
+}*/
 
-void ShellThinElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
+/*void ShellThinAdjointElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
 {
     KRATOS_TRY
     if(crossSections.size() != OPT_NUM_GP)
@@ -606,35 +820,24 @@ void ShellThinElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< Shel
         mSections.push_back(crossSections[i]);
     this->SetupOrientationAngles();
     KRATOS_CATCH("")
-}
-
-void ShellThinElement3D3N::ResetSections()
-{
-    mSections.clear();
-}
-
-std::string ShellThinElement3D3N::Info() const
-{
-	return "ShellThinElement3D3N";
-	//fusseder TODO: seperate between linear and nonliner case!!!!
-}
+}*/
 
 // =====================================================================================
 //
-// Class ShellThinElement3D3N - Private methods
+// Class ShellThinAdjointElement3D3N - Private methods
 //
 // =====================================================================================
 
-void ShellThinElement3D3N::DecimalCorrection(Vector& a)
+/*void ShellThinAdjointElement3D3N::DecimalCorrection(Vector& a)
 {
     double norm = norm_2(a);
     double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
     for(SizeType i = 0; i < a.size(); i++)
         if(std::abs(a(i)) < tolerance)
             a(i) = 0.0;
-}
+}*/
 
-void ShellThinElement3D3N::SetupOrientationAngles()
+/*void ShellThinAdjointElement3D3N::SetupOrientationAngles()
 {
     ShellT3_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
@@ -684,9 +887,9 @@ void ShellThinElement3D3N::SetupOrientationAngles()
 
     for(CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
         (*it)->SetOrientationAngle(angle);
-}
+}*/
 
-void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
+/*void ShellThinAdjointElement3D3N::InitializeCalculationData(CalculationData& data)
 {
     //-------------------------------------
     // Computation of all stuff that remain
@@ -926,9 +1129,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // in global and local coordinate systems
 
     data.globalDisplacements.resize(OPT_NUM_DOFS, false);
-    ShellThinElement3D3N::GetValuesVector( data.globalDisplacements ); //changed by MFusseder in order to ensure
-    // that dofs of primal solution are used during computing sensitivities. (The GetValuesVector function is overwritten
-    // by corresponding adjoint element. There adjoint dofs are used)
+    GetValuesVector( data.globalDisplacements );
 
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(
@@ -975,9 +1176,9 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     Flags& options = data.SectionParameters.GetOptions();
     options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS);
     options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, data.CalculateLHS);
-}
+}*/
 
-void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
+/*void ShellThinAdjointElement3D3N::CalculateBMatrix(CalculationData& data)
 {
     //---------------------------------------------
     // geom data
@@ -1007,13 +1208,13 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
     noalias( data.Q )  = loc1 * data.Q1;
     noalias( data.Q ) += loc2 * data.Q2;
     noalias( data.Q ) += loc3 * data.Q3;
-    noalias( data.TeQ ) = prod( data.Te, data.Q );
-    noalias( data.Qh  ) = /*1.5**/std::sqrt(data.beta0) * prod( data.TeQ, data.TTu );
+    noalias( data.TeQ ) = prod( data.Te, data.Q );*/
+    //noalias( data.Qh  ) = /*1.5**/std::sqrt(data.beta0) * prod( data.TeQ, data.TTu );
 
     //---------------------------------------------
     // compute the bending B matrix (DKT)
 
-    const double LL12 = x12*x12 + y12*y12;
+    /*const double LL12 = x12*x12 + y12*y12;
     const double LL23 = x23*x23 + y23*y23;
     const double LL31 = x31*x31 + y31*y31;
 
@@ -1120,14 +1321,14 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
         data.B(5, j+3) = data.Bb(2, i+1);
         data.B(5, j+4) = data.Bb(2, i+2);
     }
-}
+}*/
 
-void ShellThinElement3D3N::CalculateBeta0(CalculationData& data)
+/*void ShellThinAdjointElement3D3N::CalculateBeta0(CalculationData& data)
 {
     data.beta0 = 1.0; // to be changed!
-}
+}*/
 
-void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
+/*void ShellThinAdjointElement3D3N::CalculateSectionResponse(CalculationData& data)
 {
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
     const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
@@ -1143,13 +1344,13 @@ void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
     ShellCrossSection::Pointer& section = mSections[data.gpIndex];
     data.SectionParameters.SetShapeFunctionsValues( data.N );
     section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
-}
+}*/
 
-void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS)
+/*void ShellThinAdjointElement3D3N::CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS)
 {
     // calculate beta0
     CalculateBeta0( data );
-    
+
     // calculate the total strain displ. matrix
     CalculateBMatrix( data );
 
@@ -1161,12 +1362,12 @@ void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data
 
     // multiply the section tangent matrices and stress resultants by 'dA'
     data.D *= data.dA;
-    //******
+  
     Vector3Type& iSig = data.Sig[data.gpIndex];
     iSig(0) = data.generalizedStresses(0);
     iSig(1) = data.generalizedStresses(1);
     iSig(2) = data.generalizedStresses(2);
-    //******
+
     data.generalizedStresses *= data.dA;
 
     // Add all contributions to the Stiffness Matrix
@@ -1175,9 +1376,9 @@ void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data
 
     // Add all contributions to the residual vector
     noalias( RHS ) -= prod( trans( data.B ), data.generalizedStresses );
-}
+}*/
 
-void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorType& RHS)
+/*void ShellThinAdjointElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorType& RHS)
 {
     Vector3Type meanS;
     meanS.clear();
@@ -1191,15 +1392,15 @@ void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorTyp
         int i2 = i == 2 ? 0 : i+1;
 
         const Vector3Type& p1 = data.LCS0.Nodes()[i1];
-        const Vector3Type& p2 = data.LCS0.Nodes()[i2];
-        /*const Vector3Type& s1 = data.Sig[i1];
-        const Vector3Type& s2 = data.Sig[i2];*/
-        const Vector3Type& s1 = meanS;
-        const Vector3Type& s2 = meanS;
-        /*const Vector3Type& s1 = data.Sig[i];
-        const Vector3Type& s2 = data.Sig[i];*/
+        const Vector3Type& p2 = data.LCS0.Nodes()[i2];*/
+        //const Vector3Type& s1 = data.Sig[i1];
+       // const Vector3Type& s2 = data.Sig[i2];
+    //    const Vector3Type& s1 = meanS;
+    //    const Vector3Type& s2 = meanS;
+        //const Vector3Type& s1 = data.Sig[i];
+       //const Vector3Type& s2 = data.Sig[i];
 
-        Vector3Type t = p2 - p1;
+       /* Vector3Type t = p2 - p1;
         Vector3Type z;
         z(0) = 0.0;
         z(1) = 0.0;
@@ -1225,9 +1426,9 @@ void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorTyp
         RHS(i1*6 + 5) -= m;
         RHS(i2*6 + 5) += m;
     }
-}
+}*/
 
-void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
+/*void ShellThinAdjointElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
 {
     const GeometryType& geom = GetGeometry();
 
@@ -1274,9 +1475,9 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
             rRightHandSideVector[index + 2] += iN * bf[2];
         }
     }
-}
+}*/
 
-void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
+/*void ShellThinAdjointElement3D3N::CalculateAllPrimal(MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo,
                                         const bool LHSrequired,
@@ -1297,18 +1498,18 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     noalias(rRightHandSideVector) = ZeroVector(OPT_NUM_DOFS);
 
     // Initialize common calculation variables
-    
+
     CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
     data.CalculateLHS = LHSrequired;
     data.CalculateRHS = RHSrequired;
-    InitializeCalculationData(data);
+    ShellThinElement3D3N::InitializeCalculationData(data);
 
     // Gauss Loop.
 
     for(size_t i = 0; i < OPT_NUM_GP; i++)
     {
         data.gpIndex = i;
-        CalculateGaussPointContribution(data, rLeftHandSideMatrix, rRightHandSideVector);
+        ShellThinElement3D3N::CalculateGaussPointContribution(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
     //ApplyCorrectionToRHS(data, rRightHandSideVector);
@@ -1323,14 +1524,14 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
             rLeftHandSideMatrix,
             rRightHandSideVector,
             RHSrequired,
-            LHSrequired);       
+            LHSrequired);
 
     // Add body forces contributions. This doesn't depend on the coordinate system
 
     AddBodyForces(data, rRightHandSideVector);
-}
+}*/
 
-bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
+/*bool ShellThinAdjointElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1389,9 +1590,9 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     }
 
     return true;
-}
+}*/
 
-bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+/*bool ShellThinAdjointElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1551,30 +1752,32 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 
     return true;
-}
+}*/
 
 // =====================================================================================
 //
-// Class ShellThinElement3D3N - Serialization
+// Class ShellThinAdjointElement3D3N - Serialization
 //
 // =====================================================================================
 
-void ShellThinElement3D3N::save(Serializer& rSerializer) const
+void ShellThinAdjointElement3D3N::save(Serializer& rSerializer) const //-->TODO: Is this function necessary?
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-    rSerializer.save("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellThinElement3D3N );
+    /*rSerializer.save("CTr", mpCoordinateTransformation);
     rSerializer.save("Sec", mSections);
-    rSerializer.save("IntM", (int)mThisIntegrationMethod);
+    rSerializer.save("IntM", (int)mThisIntegrationMethod);*/
 }
 
-void ShellThinElement3D3N::load(Serializer& rSerializer)
+void ShellThinAdjointElement3D3N::load(Serializer& rSerializer) //-->TODO: Is this function necessary?
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-    rSerializer.load("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ShellThinElement3D3N );
+    /*rSerializer.load("CTr", mpCoordinateTransformation);
     rSerializer.load("Sec", mSections);
     int temp;
     rSerializer.load("IntM", temp);
-    mThisIntegrationMethod = (IntegrationMethod)temp;
+    mThisIntegrationMethod = (IntegrationMethod)temp;*/
 }
 
 }
+
+

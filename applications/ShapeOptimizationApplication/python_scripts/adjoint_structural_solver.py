@@ -23,6 +23,9 @@ class AdjointStructuralSolver:
             "scheme_settings" : {
                 "scheme_type" : "structural"
             },
+            "material_import_settings" :{
+                "materials_filename": "material_name.json"
+            },
           
             "response_function_settings" : {
                 "response_type" : "unknown_name"
@@ -88,19 +91,27 @@ class AdjointStructuralSolver:
                 aux_params.AddValue("bodies_list",self.settings["bodies_list"])
             #aux_params.AddValue("problem_model_part_name",self.settings["problem_model_part_name"])
             #aux_params.AddValue("skin_parts",self.settings["skin_parts"])    
-           
+
+            #--------------------------Is this really needed again? the same import is also performed durning the primal solution!
+            # Import constitutive laws.
+            materials_imported = self.import_constitutive_laws()
+            if materials_imported:
+               print("    Constitutive law was successfully imported.")
+            else:
+                print("    Constitutive law was not imported.") 
+            #----------------------------------------------------------------------------------------------------------
 
             # here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "prefix": "",
-                    "postfix": "ForSA" 
+                    "Add_string": "Adjoint",
+                    "Add_before_in_element_name": "Element", 
+                    "Add_before_in_condition_name": "Condition"
                     }
                     """)
-            # ---------------> the condition here is used as dummy. In this case only the 
-            # elements have to be replaced
+
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 raise Exception("there is currently no 2D adjoint element")
             else:
@@ -108,6 +119,7 @@ class AdjointStructuralSolver:
 
             
             #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            #print("I replace now elements!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             ShapeOptimizationApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             import check_and_prepare_model_process_structural
             check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
@@ -224,7 +236,7 @@ class AdjointStructuralSolver:
 
     def Solve(self):
         if self.settings["response_function_settings"]["response_type"].GetString() == "rework_strain_energy":
-            self.__SolveSpecialStrainEnergy()
+            self._SolveSpecialStrainEnergy()
         else:
             self.solver.Solve()
 
@@ -237,7 +249,7 @@ class AdjointStructuralSolver:
     def Check(self):
         self.solver.Check()
 
-    def __SolveSpecialStrainEnergy(self):
+    def _SolveSpecialStrainEnergy(self):
 
         self.response_function.Initialize()
 
@@ -256,5 +268,25 @@ class AdjointStructuralSolver:
                 node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
                 node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
                 
-        self.response_function.FinalizeSolutionStep()         
+        self.response_function.FinalizeSolutionStep()        
+
+
+    def import_constitutive_laws(self): # copied from structural_mechanics_solver.py
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            import read_materials_process
+            # Create a dictionary of model parts.
+            Model = {self.main_model_part.Name : self.main_model_part}
+            for i in range(self.settings["problem_domain_sub_model_part_list"].size()):
+                part_name = self.settings["problem_domain_sub_model_part_list"][i].GetString()
+                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+            for i in range(self.settings["processes_sub_model_part_list"].size()):
+                part_name = self.settings["processes_sub_model_part_list"][i].GetString()
+                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+            # Add constitutive laws and material properties from json file to model parts.
+            read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported     
             

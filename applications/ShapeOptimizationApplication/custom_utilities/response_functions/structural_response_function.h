@@ -746,11 +746,11 @@ protected:
     	Vector response_gradient;
         Vector adjoint_vector;
         Matrix sensitivity_matrix;
-
+        
 		// Loop elements
 		for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
         {
-
+            //std::cout << ("I compute now nodal sensitivities") << std::endl;
 			Element::GeometryType& r_geom_elem = it->GetGeometry();	
 
             bool update_sensitivities = false;
@@ -877,7 +877,7 @@ protected:
                 this->CalculateSensitivityGradient(
                      *it, rSensitivityVariable, sensitivity_matrix,
                         response_gradient, r_process_info);      
-	
+      
 			    // Get the adjoint displacement field
 			    this->GetAdjointVariables(*it, adjoint_vector);			
                 //it->GetValuesVector(adjoint_vector);
@@ -885,14 +885,12 @@ protected:
                 if (sensitivity_vector.size() != sensitivity_matrix.size1())
                     sensitivity_vector.resize(sensitivity_matrix.size1(), false);
 
-
 			    // Compute the whole sensitivity
                 noalias(sensitivity_vector) =
                 				(prod(sensitivity_matrix, adjoint_vector) +
                                  response_gradient);
 
 			    //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
-
                 this->AssembleElementSensitivityContribution(
                   	    rOutputVariable, sensitivity_vector, *it);		//----> check for correct output
 
@@ -1000,7 +998,7 @@ protected:
 
         if (rAdjointElem.GetProperties().Has(rVariable) == true) 
 		{
-			// get property vector of element
+			/*// get property vector of element
 			Properties::Pointer pElemProp = rAdjointElem.pGetProperties();
 
 			// disturb the design variable
@@ -1021,10 +1019,41 @@ protected:
 			// undisturb design variable
 			pElemProp->SetValue(rVariable, (current_property_value));
             //Iz = rAdjointElem.GetProperties()[rVariable];
+            //std::cout << ("Undisturbed Iz = ") << Iz << std::endl; --------------------> old concept*/
+
+            // Save properties and its pointer ------------------------------------------> new concept
+            Properties& global_property = rAdjointElem.GetProperties(); 
+            Properties::Pointer p_global_properties = rAdjointElem.pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(global_property));
+            rAdjointElem.SetProperties(p_local_property);
+            //TODO: ensure that all stuff of elements use new property (e.g. sections of shell)
+
+			// Disturb the design variable
+			const double current_property_value = rAdjointElem.GetProperties()[rVariable];
+            p_local_property->SetValue(rVariable, (current_property_value + dist_measure));
+
+			double disturbed_resp_func_value = this->CalculateValue(mrModelPart);
+            //std::cout << ("Disturbed value = ") << disturbed_resp_func_value << std::endl;
+            //Iz = rAdjointElem.GetProperties()[rVariable];
+            //std::cout << ("Disturbed Iz = ") << Iz << std::endl;
+
+            double part_derivative_value = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
+
+            rResponseGradient[0] = part_derivative_value;
+
+            //std::cout << ("Part derivative value = ") << part_derivative_value << std::endl;
+
+			// Give element original properties back
+            rAdjointElem.SetProperties(p_global_properties);
+            //Iz = rAdjointElem.GetProperties()[rVariable];
             //std::cout << ("Undisturbed Iz = ") << Iz << std::endl;
+
+            // TODO: delete the local property
 		}
         else
-            KRATOS_THROW_ERROR(std::invalid_argument, "The chosen design variable is not provided by the element!", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "The chosen design variable is not provided by the element!", ""); //TODO: Maybe erase this error
 
 
         KRATOS_CATCH("");
@@ -1267,7 +1296,7 @@ protected:
 		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points	
 	}
 
-     void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
+    void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom)
     {

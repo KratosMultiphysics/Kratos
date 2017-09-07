@@ -9,7 +9,7 @@
 // TODO: 	erase functions which are not needed and make the element clear linear and nonlinear
 // 			Especially that shape sensitivites also works for the linear case
 // ==============================================================================
-#include "custom_elements/cr_beam_element_3D2N_for_SA.hpp"
+#include "custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
@@ -396,17 +396,13 @@ namespace Kratos
 			for(unsigned int i = 0; i < RHS_dist.size(); i++)
 			{
 				 rOutput(0, i) = RHS_dist[i];
-				 std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
+				 //std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
 			}
 
 			// undisturb design variable
 			pElemProp->SetValue(rDesignVariable, (current_property_value));
 
 			
-		}
-		else
-		{
-			KRATOS_THROW_ERROR(std::invalid_argument, "The chosen design variable is not provided by the element!", "");
 		}
 
 		KRATOS_CATCH("")
@@ -423,14 +419,14 @@ namespace Kratos
 		ProcessInfo testProcessInfo = rCurrentProcessInfo;
 
 		double delta = 1e-6;	//get this from outside!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		//std::cout << ("Computation of pseudo loads of element #") << this->Id() << std::endl;
+		std::cout << ("Computation of pseudo loads of element #") << this->Id() << (" for vector variables") << std::endl;
 		if(rDesignVariable == SHAPE_SENSITIVITY) 
 		{
 			const int number_of_nodes = GetGeometry().PointsNumber();
 			const int dimension = this->GetGeometry().WorkingSpaceDimension();
 			const int local_size = number_of_nodes * dimension * 2;
 
-			rOutput.resize(dimension*2, local_size);
+			rOutput.resize(dimension*number_of_nodes, local_size);
 
 			// compute RHS before disturbing
 			this->CalculateRightHandSide(RHS_undist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
@@ -506,10 +502,6 @@ namespace Kratos
 				//end: derive w.r.t. z-coordinate-----------------------------------------------------
 
 			}// end loop over element nodes
-		}
-		else
-		{
-			KRATOS_THROW_ERROR(std::invalid_argument, "The chosen design variable is not provided by the element!", "");
 		}
 
 		KRATOS_CATCH("")
@@ -1830,7 +1822,7 @@ namespace Kratos
     {
 		KRATOS_TRY;
 		
-		if(this->Has(rVariable) == true)
+		if(this->Has(rVariable))
 		{
 			// Get result value for output
 			double output_value = this->GetValue(rVariable);

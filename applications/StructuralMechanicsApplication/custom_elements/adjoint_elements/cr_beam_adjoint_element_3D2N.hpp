@@ -6,27 +6,28 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors: Martin Fusseder
 //                   
 //                   
 //
 
-#if !defined(KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED
+#if !defined(KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED )
+#define  KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED
 
 
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 namespace Kratos
 {
 
-	class CrBeamElement3D2N : public Element
+	class CrBeamAdjointElement3D2N : public CrBeamElement3D2N 
 	{
 	public:
-		KRATOS_CLASS_POINTER_DEFINITION(CrBeamElement3D2N);
+		KRATOS_CLASS_POINTER_DEFINITION(CrBeamAdjointElement3D2N);
 
 
 		typedef Element BaseType;
@@ -41,20 +42,23 @@ namespace Kratos
 		typedef BaseType::DofsVectorType DofsVectorType;
 
 
-		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
 						bool rLinear = false);
-		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
 						PropertiesType::Pointer pProperties,
 						bool rLinear = false);
 
 
-		~CrBeamElement3D2N() override;
+		~CrBeamAdjointElement3D2N() override;
 
 
 		BaseType::Pointer Create(
 			IndexType NewId,
 			NodesArrayType const& rThisNodes,
 			PropertiesType::Pointer pProperties) const override;
+
+		BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, 
+		 PropertiesType::Pointer pProperties) const override;	
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
@@ -64,9 +68,27 @@ namespace Kratos
 			DofsVectorType& rElementalDofList,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		void Initialize() override;
+		//void Initialize() override;
 
-		Matrix CreateElementStiffnessMatrix_Material();
+		void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo) override;
+	
+    	void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo) override;
+
+		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override;	
+
+		void GetValuesVector(Vector& rValues, int Step = 0);				 
+
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;				 
+
+		/*Matrix CreateElementStiffnessMatrix_Material();
 		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
 		Matrix CalculateDeformationStiffness();
 		Matrix CalculateTransformationS();
@@ -116,13 +138,9 @@ namespace Kratos
 		void AddExplicitContribution(const VectorType& rRHSVector,
 			const Variable<VectorType>& rRHSVariable,
 			Variable<array_1d<double, 3> >& rDestinationVariable,
-			const ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) override;*/
 
-		void GetValuesVector(
-			Vector& rValues,
-			int Step = 0) override;
-
-		void GetSecondDerivativesVector(
+		/*void GetSecondDerivativesVector(
 			Vector& rValues,
 			int Step = 0) override;
 
@@ -130,20 +148,17 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
-		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);
+		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);*/
 
-		int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-		double CalculateCurrentLength();
+		/*double CalculateCurrentLength();
 		double CalculatePsi(const double I, const double A_eff);
 		double CalculateShearModulus();
 		double CalculateReferenceLength();
 		void UpdateIncrementDeformation();
 
-		Vector CalculateBodyForces();  
+		Vector CalculateBodyForces();  */
 
-		void CalculateOnIntegrationPoints(
+		/*void CalculateOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
 			std::vector< array_1d<double, 3 > >& rOutput,
 			const ProcessInfo& rCurrentProcessInfo) override;
@@ -168,17 +183,19 @@ namespace Kratos
 
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 			const Vector ForceInput, VectorType& rRightHandSideVector,
-			const double GeometryLength);
+			const double GeometryLength);*/
 
-		std::string Info() const override; //fusseder needed for sensitivity analysis
+		//std::string Info() const override; 
 
 	protected:
-		CrBeamElement3D2N():Element() 
+		CrBeamAdjointElement3D2N(): CrBeamElement3D2N()
 		{
-		}	
+		}
+
 
 	private:
-		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
+		bool mIsLinearElement = false;
+		/*double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
 		Vector mDeformationModes, mIncrementDeformation;
@@ -190,35 +207,16 @@ namespace Kratos
 		Vector mNodalForces;
 
 		int mIterationCount = 0;
-		bool mIsLinearElement = false;
-		bool mIsLumpedMassMatrix = false;
+		
+		bool mIsLumpedMassMatrix = false;*/
 
-		//CrBeamElement3D2N() {}; --> M.Fusseder moved to protected in order to call it in derived adjoint element class
+		//CrBeamAdjointElement3D2N(): {}; -----------------------------------> is now protected
 
 
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;
-	};
-
-
-	class Orientation 
-	{
-	public:
-		Orientation(array_1d<double, 3>& v1, const double theta = 0.00);
-		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
-
-
-		void CalculateRotationMatrix(Matrix& R);
-		void CalculateBasisVectors(array_1d<double, 3>& v1,
-								   array_1d<double, 3>& v2,
-								   array_1d<double, 3>& v3);
-
-		Quaternion<double>& GetQuaternion() { return morientation; }
-
-	private:
-		Quaternion<double> morientation;
 	};
 
 

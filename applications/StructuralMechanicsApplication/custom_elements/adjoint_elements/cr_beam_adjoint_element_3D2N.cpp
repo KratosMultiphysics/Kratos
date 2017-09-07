@@ -6,11 +6,11 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors: Martin Fusseder
 //                   
 //                   
 //
-#include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -19,33 +19,43 @@
 namespace Kratos
 {
 
-	CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
+	CrBeamAdjointElement3D2N::CrBeamAdjointElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry, bool rLinear)
-		: Element(NewId, pGeometry)
+		: CrBeamElement3D2N(NewId, pGeometry, rLinear)
 	{
 		this->mIsLinearElement = rLinear;
 	}
 
-	CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
+	CrBeamAdjointElement3D2N::CrBeamAdjointElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties, bool rLinear)
-		: Element(NewId, pGeometry, pProperties)
+		: CrBeamElement3D2N(NewId, pGeometry, pProperties, rLinear)
 	{
 		this->mIsLinearElement = rLinear;
 	}
 
-	Element::Pointer CrBeamElement3D2N::Create(IndexType NewId,
+	Element::Pointer CrBeamAdjointElement3D2N::Create(IndexType NewId,
 		NodesArrayType const& rThisNodes,
 		PropertiesType::Pointer pProperties) const
 	{
 		const GeometryType& rGeom = this->GetGeometry();
-		return BaseType::Pointer(new CrBeamElement3D2N(
+		return BaseType::Pointer(new CrBeamAdjointElement3D2N(
 			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
 	}
 
-	CrBeamElement3D2N::~CrBeamElement3D2N() {}
+	Element::Pointer CrBeamAdjointElement3D2N::Create(IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties) const 
+    {
+        KRATOS_TRY
+        return Element::Pointer(
+                new CrBeamAdjointElement3D2N(NewId, pGeom, pProperties, this->mIsLinearElement));
+        KRATOS_CATCH("")
+    }
 
-	void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
+	CrBeamAdjointElement3D2N::~CrBeamAdjointElement3D2N() {}
+
+	void CrBeamAdjointElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
 		ProcessInfo& rCurrentProcessInfo) {
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -57,24 +67,24 @@ namespace Kratos
 		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * number_of_nodes * dimension;
-			rResult[index] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X)
+			rResult[index] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X)
 				.EquationId();
-			rResult[index + 1] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y)
+			rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y)
 				.EquationId();
-			rResult[index + 2] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Z)
+			rResult[index + 2] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z)
 				.EquationId();
 
-			rResult[index + 3] = this->GetGeometry()[i].GetDof(ROTATION_X)
+			rResult[index + 3] = this->GetGeometry()[i].GetDof(ADJOINT_ROTATION_X)
 				.EquationId();
-			rResult[index + 4] = this->GetGeometry()[i].GetDof(ROTATION_Y)
+			rResult[index + 4] = this->GetGeometry()[i].GetDof(ADJOINT_ROTATION_Y)
 				.EquationId();
-			rResult[index + 5] = this->GetGeometry()[i].GetDof(ROTATION_Z)
+			rResult[index + 5] = this->GetGeometry()[i].GetDof(ADJOINT_ROTATION_Z)
 				.EquationId();
 		}
 
 	}
 
-	void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
+	void CrBeamAdjointElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
 		ProcessInfo& rCurrentProcessInfo) {
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -89,22 +99,271 @@ namespace Kratos
 		{
 			int index = i * number_of_nodes * dimension;
 			rElementalDofList[index] = this->GetGeometry()[i]
-				.pGetDof(DISPLACEMENT_X);
+				.pGetDof(ADJOINT_DISPLACEMENT_X);
 			rElementalDofList[index + 1] = this->GetGeometry()[i]
-				.pGetDof(DISPLACEMENT_Y);
+				.pGetDof(ADJOINT_DISPLACEMENT_Y);
 			rElementalDofList[index + 2] = this->GetGeometry()[i]
-				.pGetDof(DISPLACEMENT_Z);
+				.pGetDof(ADJOINT_DISPLACEMENT_Z);
 
 			rElementalDofList[index + 3] = this->GetGeometry()[i]
-				.pGetDof(ROTATION_X);
+				.pGetDof(ADJOINT_ROTATION_X);
 			rElementalDofList[index + 4] = this->GetGeometry()[i]
-				.pGetDof(ROTATION_Y);
+				.pGetDof(ADJOINT_ROTATION_Y);
 			rElementalDofList[index + 5] = this->GetGeometry()[i]
-				.pGetDof(ROTATION_Z);
+				.pGetDof(ADJOINT_ROTATION_Z);
 		}
 	}
 
-	void CrBeamElement3D2N::Initialize() {
+	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo)
+	{
+        KRATOS_TRY;
+        // define working variables
+		Vector RHS_undist;
+		Vector RHS_dist;
+		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+
+		//std::cout << (" I compute now sensitivities of element #") << this->Id() << std::endl;
+
+		// Compute RHS before disturbing
+		this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
+
+		rOutput.resize(1,RHS_undist.size());
+
+		//TODO: reduce code duplication
+
+		if (rDesignVariable == IT || rDesignVariable == IY || rDesignVariable == IZ)
+        { 
+			// Save properties and its pointer
+            Properties& r_global_property = this->GetProperties(); 
+            Properties::Pointer p_global_properties = this->pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(r_global_property));
+            this->SetProperties(p_local_property);
+
+			// Check which entry of the inertia vector shall be treated as design variable
+			Vector& inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
+			double& design_variable = rDesignVariable==IT ? inertia[0] : rDesignVariable==IY ? inertia[1] : inertia[2];
+
+			// Get disturbance measure
+            double delta = design_variable * 0.001; // TODO: get this from outside!
+
+			//std::cout << (" DV before dist ") << this->GetProperties()[LOCAL_INERTIA_VECTOR][1] << std::endl;
+			design_variable += delta;
+			//std::cout << (" DV after dist ") << this->GetProperties()[LOCAL_INERTIA_VECTOR][1] << std::endl;
+
+			// Compute RHS after disturbance
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+
+			// Compute derivative of RHS w.r.t. design variable with finite differences
+			RHS_dist -= RHS_undist;
+			RHS_dist /= delta;
+			for(unsigned int i = 0; i < RHS_dist.size(); i++)
+			{
+				 rOutput(0, i) = RHS_dist[i];
+				 //std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
+			}
+
+            // Give element original properties back
+            this->SetProperties(p_global_properties);
+			//std::cout << (" DV after undist ") << this->GetProperties()[LOCAL_INERTIA_VECTOR][1] << std::endl;
+        }
+		else if ( this->GetProperties().Has(rDesignVariable) ) 
+		{
+       
+			// Save properties and its pointer
+            Properties& r_global_property = this->GetProperties(); 
+            Properties::Pointer p_global_properties = this->pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(r_global_property));
+            this->SetProperties(p_local_property);
+
+            // Get disturbance measure
+            double delta = r_global_property[rDesignVariable] * 0.001; // TODO: get this from outside!
+
+			// Disturb the design variable
+            //std::cout << (" DV before dist ") << this->GetProperties()[rDesignVariable] << std::endl;
+			const double current_property_value = this->GetProperties()[rDesignVariable];
+            p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+            //std::cout << (" DV after dist ") << this->GetProperties()[rDesignVariable] << std::endl;
+        
+			// Compute RHS after disturbance
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+
+			rOutput.resize(1,RHS_dist.size());
+
+			// Compute derivative of RHS w.r.t. design variable with finite differences
+			RHS_dist -= RHS_undist;
+			RHS_dist /= delta;
+			for(unsigned int i = 0; i < RHS_dist.size(); i++)
+			{
+				 rOutput(0, i) = RHS_dist[i];
+				 //std::cout << (" pseudo load ") << RHS_dist[i] << std::endl;
+			}
+
+            // Give element original properties back
+            this->SetProperties(p_global_properties);
+            //std::cout << (" DV after undist ") << this->GetProperties()[rDesignVariable] << std::endl;	
+		}
+		else
+		{
+			rOutput.clear();			
+		}
+	
+		KRATOS_CATCH("")
+
+	} 
+
+	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo)
+	{
+    	KRATOS_TRY;
+
+		// define working variables
+		Vector RHS_undist;
+		Vector RHS_dist;
+		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+
+		double delta = 1e-6;	//TODO: get this from outside!
+		//std::cout << ("Computation of pseudo loads of element #") << this->Id() << (" for vector variables") << std::endl;
+		if(rDesignVariable == SHAPE_SENSITIVITY) 
+		{
+			const int number_of_nodes = GetGeometry().PointsNumber();
+			const int dimension = this->GetGeometry().WorkingSpaceDimension();
+			const int local_size = number_of_nodes * dimension * 2;
+ 
+			rOutput.resize(dimension * number_of_nodes, local_size);
+           // std::cout << ("Before RHS") << std::endl;
+			// compute RHS before disturbing
+			this->CalculateRightHandSide(RHS_undist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+            //std::cout << ("After RHS") << std::endl;
+
+            //TODO: look that this works also for parallel computing
+			for(int j = 0; j < number_of_nodes; j++)
+			{
+				//begin: derive w.r.t. x-coordinate---------------------------------------------------
+				// disturb the design variable
+				this->GetGeometry()[j].X0() += delta;
+
+				// compute RHS after disturbance
+               // std::cout << ("Before RHS dist_x") << std::endl;
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+                 //std::cout << ("After RHS dist_x") << std::endl;
+
+				//compute derivative of RHS w.r.t. design variable with finite differences
+				RHS_dist -= RHS_undist;
+				RHS_dist /= delta;
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) { 
+					//std::cout << ("Pseudo Load x: ") << RHS_dist[i] << std::endl;
+					rOutput( (0 + j*dimension), i) = RHS_dist[i]; }
+                //std::cout << ("After FD") << std::endl;
+				// Reset pertubed vector
+				RHS_dist = Vector(0);
+
+				// undisturb the design variable
+				this->GetGeometry()[j].X0() -= delta;
+                //std::cout << ("After unsiturb x") << std::endl;
+				//end: derive w.r.t. x-coordinate-----------------------------------------------------
+
+				//begin: derive w.r.t. y-coordinate---------------------------------------------------
+				// disturb the design variable
+				this->GetGeometry()[j].Y0() += delta;
+                //std::cout << ("After disturb y") << std::endl;
+
+				// compute RHS after disturbance
+                //std::cout << ("Before RHS dist_y") << std::endl;
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+                //std::cout << ("After RHS dist_y") << std::endl;
+				//compute derivative of RHS w.r.t. design variable with finite differences
+				RHS_dist -= RHS_undist;
+				RHS_dist /= delta;
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+				{
+					//std::cout << ("Pseudo Load y: ") << RHS_dist[i] << std::endl;
+					 rOutput((1 + j*dimension),i) = RHS_dist[i]; }
+
+				// Reset pertubed vector
+				RHS_dist = Vector(0);
+
+				// undisturb the design variable
+				this->GetGeometry()[j].Y0() -= delta;
+				//end: derive w.r.t. y-coordinate-----------------------------------------------------
+
+				//begin: derive w.r.t. z-coordinate---------------------------------------------------
+				// disturb the design variable
+				this->GetGeometry()[j].Z0() += delta;
+
+				// compute RHS after disturbance
+                //std::cout << ("Before RHS dist_z") << std::endl;
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); //-----------------------------------> ensure that correct dofs from primal solution are used
+                //std::cout << ("After RHS dist_z") << std::endl;
+				//compute derivative of RHS w.r.t. design variable with finite differences
+				RHS_dist -= RHS_undist;
+				RHS_dist /= delta;
+				for(unsigned int i = 0; i < RHS_dist.size(); i++) { 
+					//std::cout << ("Pseudo Load z: ") << RHS_dist[i] << std::endl;
+					rOutput((2 + j*dimension),i) = RHS_dist[i]; }
+
+				// Reset pertubed vector
+				RHS_dist = Vector(0);
+
+				// undisturb the design variable
+				this->GetGeometry()[j].Z0() -= delta;
+				//end: derive w.r.t. z-coordinate-----------------------------------------------------
+
+			}// end loop over element nodes
+		}
+		else
+			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+		KRATOS_TRY;
+		
+		if(this->Has(rVariable))
+		{
+			// Get result value for output
+			double output_value = this->GetValue(rVariable);
+
+			// Resize Output
+			const unsigned int&  write_points_number = GetGeometry()
+				.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+			if (rOutput.size() != write_points_number) 
+			{
+				rOutput.resize(write_points_number);
+			}
+
+			// Write scalar result value on all Gauss-Points
+			for(unsigned int i = 0; i < write_points_number; ++i)
+			{
+				rOutput[i] = output_value; 
+			}
+		}
+		else
+            KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+
+		KRATOS_CATCH("")
+
+    }
+
+	void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+		KRATOS_TRY;
+		this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		KRATOS_CATCH("")
+    }
+
+	/*void CrBeamAdjointElement3D2N::Initialize() {
 
 		KRATOS_TRY;
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -116,9 +375,9 @@ namespace Kratos
 			this->mNodalForces = ZeroVector(local_size * 2);
 		}
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() {
+	/*Matrix CrBeamAdjointElement3D2N::CreateElementStiffnessMatrix_Material() {
 
 		KRATOS_TRY;
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -205,9 +464,9 @@ namespace Kratos
 
 		return LocalStiffnessMatrix;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry(
+	/*Matrix CrBeamAdjointElement3D2N::CreateElementStiffnessMatrix_Geometry(
 		const Vector qe) {
 
 		KRATOS_TRY
@@ -330,9 +589,9 @@ namespace Kratos
 
 		return LocalStiffnessMatrix;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	Matrix CrBeamElement3D2N::CalculateDeformationStiffness() {
+	/*Matrix CrBeamAdjointElement3D2N::CalculateDeformationStiffness() {
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -400,9 +659,9 @@ namespace Kratos
 		}
 		return Kd;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateInitialLocalCS() {
+	/*void CrBeamAdjointElement3D2N::CalculateInitialLocalCS() {
 
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -449,9 +708,9 @@ namespace Kratos
 		element_axis.CalculateRotationMatrix(Temp);
 		this->AssembleSmallInBigMatrix(Temp, this->mRotationMatrix0);
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRotationMatrix) {
+	/*void CrBeamAdjointElement3D2N::CalculateTransformationMatrix(Matrix& rRotationMatrix) {
 
 		KRATOS_TRY
 			//12x12
@@ -475,9 +734,9 @@ namespace Kratos
 		//Building the rotation matrix for the local element matrix
 		this->AssembleSmallInBigMatrix(AuxRotationMatrix, rRotationMatrix);
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	Matrix CrBeamElement3D2N::CalculateTransformationS() {
+	/*Matrix CrBeamAdjointElement3D2N::CalculateTransformationS() {
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -506,9 +765,9 @@ namespace Kratos
 
 		return S;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	Matrix CrBeamElement3D2N::UpdateRotationMatrixLocal() {
+	/*Matrix CrBeamAdjointElement3D2N::UpdateRotationMatrixLocal() {
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -696,9 +955,9 @@ namespace Kratos
 		}
 		return n_xyz;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) {
+	void CrBeamAdjointElement3D2N::GetValuesVector(Vector& rValues, int Step) {
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -711,23 +970,23 @@ namespace Kratos
 		{
 			int index = i * dimension * 2;
 			rValues[index] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(DISPLACEMENT_X, Step);
+				.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
 			rValues[index + 1] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
+				.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, Step);
 			rValues[index + 2] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+				.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, Step);
 
 			rValues[index + 3] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ROTATION_X, Step);
+				.FastGetSolutionStepValue(ADJOINT_ROTATION_X, Step);
 			rValues[index + 4] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ROTATION_Y, Step);
+				.FastGetSolutionStepValue(ADJOINT_ROTATION_Y, Step);
 			rValues[index + 5] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ROTATION_Z, Step);
+				.FastGetSolutionStepValue(ADJOINT_ROTATION_Z, Step);
 		}
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+	/*void CrBeamAdjointElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
 	{
 
 		KRATOS_TRY
@@ -756,9 +1015,9 @@ namespace Kratos
 		}
 
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+	/*void CrBeamAdjointElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 	{
 
 		KRATOS_TRY
@@ -787,9 +1046,9 @@ namespace Kratos
 				FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
 		}
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
+	/*void CrBeamAdjointElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
@@ -828,9 +1087,9 @@ namespace Kratos
 				Matrix(trans(RotationMatrix)));
 		}
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+	/*void CrBeamAdjointElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
@@ -877,10 +1136,10 @@ namespace Kratos
 		rDampingMatrix += beta  * StiffnessMatrix;
 
 		KRATOS_CATCH("")
-	}
+	}*/
 
 
-	Vector CrBeamElement3D2N::CalculateBodyForces()
+	/*Vector CrBeamAdjointElement3D2N::CalculateBodyForces()
 	{
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -927,9 +1186,9 @@ namespace Kratos
 		// return the total ForceVector
 		return BodyForcesGlobal;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+	/*void CrBeamAdjointElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 		const Vector ForceInput, VectorType& rRightHandSideVector,
 		const double GeometryLength)
 	{
@@ -1004,9 +1263,9 @@ namespace Kratos
 		}
 
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+	/*void CrBeamAdjointElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo) {
 
@@ -1040,9 +1299,9 @@ namespace Kratos
 		rRightHandSideVector += this->CalculateBodyForces();
 		this->mIterationCount++;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateRightHandSide(
+	/*void CrBeamAdjointElement3D2N::CalculateRightHandSide(
 		VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo)
 	{
@@ -1082,7 +1341,7 @@ namespace Kratos
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
 			Vector NodalDeformation = ZeroVector(LocalSize);
-			CrBeamElement3D2N::GetValuesVector(NodalDeformation); //changed by M.Fusseder
+			this->GetValuesVector(NodalDeformation);
 			rRightHandSideVector = ZeroVector(LocalSize);
 			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
 		}
@@ -1091,9 +1350,9 @@ namespace Kratos
 		rRightHandSideVector += this->CalculateBodyForces();
 		KRATOS_CATCH("")
 
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+	/*void CrBeamAdjointElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
@@ -1154,9 +1413,9 @@ namespace Kratos
 		//assign global element variables
 		this->mLHS = rLeftHandSideMatrix;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	Vector CrBeamElement3D2N::CalculateElementForces() {
+	/*Vector CrBeamAdjointElement3D2N::CalculateElementForces() {
 
 		KRATOS_TRY;
 		const int NumNodes = this->GetGeometry().PointsNumber();
@@ -1180,9 +1439,9 @@ namespace Kratos
 
 		return element_forces_t;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	double CrBeamElement3D2N::CalculateCurrentLength() {
+	/*double CrBeamAdjointElement3D2N::CalculateCurrentLength() {
 
 		KRATOS_TRY;
 		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
@@ -1199,9 +1458,9 @@ namespace Kratos
 		return l;
 		KRATOS_CATCH("")
 
-	}
+	}*/
 
-	double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) {
+	/*double CrBeamAdjointElement3D2N::CalculatePsi(const double I, const double A_eff) {
 
 		KRATOS_TRY;
 		const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -1216,9 +1475,9 @@ namespace Kratos
 
 		return psi;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	double CrBeamElement3D2N::CalculateReferenceLength() {
+	/*double CrBeamAdjointElement3D2N::CalculateReferenceLength() {
 
 		KRATOS_TRY;
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
@@ -1227,9 +1486,9 @@ namespace Kratos
 		const double L = sqrt(dx*dx + dy*dy + dz*dz);
 		return L;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::UpdateIncrementDeformation() {
+	/*void CrBeamAdjointElement3D2N::UpdateIncrementDeformation() {
 
 		KRATOS_TRY
 			const int NumNodes = this->GetGeometry().PointsNumber();
@@ -1266,9 +1525,9 @@ namespace Kratos
 		this->mTotalNodalPosistion[5] = this->GetGeometry()[1].Z0()
 			+ actualDeformation[8];
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateOnIntegrationPoints(
+	/*void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(
 		const Variable<array_1d<double, 3 > >& rVariable,
 		std::vector< array_1d<double, 3 > >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo) {
@@ -1350,9 +1609,9 @@ namespace Kratos
 		}
 
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::GetValueOnIntegrationPoints(
+	/*void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(
 		const Variable<array_1d<double, 3 > >& rVariable,
 		std::vector< array_1d<double, 3 > >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo)
@@ -1360,11 +1619,11 @@ namespace Kratos
 		KRATOS_TRY;
 		this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 		KRATOS_CATCH("")
-	}
+	}*/
 
 
 
-	void CrBeamElement3D2N::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+	/*void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 		std::vector< Vector >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
@@ -1390,18 +1649,18 @@ namespace Kratos
 		}
 
 		KRATOS_CATCH("");
-	}
+	}*/
 
-	void CrBeamElement3D2N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+	/*void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
 		std::vector<Vector>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 		this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::AssembleSmallInBigMatrix(Matrix SmallMatrix,
+	/*void CrBeamAdjointElement3D2N::AssembleSmallInBigMatrix(Matrix SmallMatrix,
 		Matrix& BigMatrix) {
 
 		KRATOS_TRY
@@ -1421,10 +1680,10 @@ namespace Kratos
 			}
 		}
 		KRATOS_CATCH("")
-	}
+	}*/
 
 
-	void CrBeamElement3D2N::BuildSingleMassMatrix(MatrixType& rMassMatrix,
+	/*void CrBeamAdjointElement3D2N::BuildSingleMassMatrix(MatrixType& rMassMatrix,
 		double Phi, double CT, double CR, double L)
 	{
 		KRATOS_TRY;
@@ -1496,9 +1755,9 @@ namespace Kratos
 		TempMassMatrix *= CR;
 		rMassMatrix += TempMassMatrix;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+	/*void CrBeamAdjointElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
@@ -1606,9 +1865,9 @@ namespace Kratos
 		}
 
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	void CrBeamElement3D2N::CalculateLumpedMassMatrix(MatrixType& rMassMatrix,
+	/*void CrBeamAdjointElement3D2N::CalculateLumpedMassMatrix(MatrixType& rMassMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
@@ -1638,16 +1897,16 @@ namespace Kratos
 		}
 		//rotaional mass neglected alpha = 0
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	CrBeamElement3D2N::IntegrationMethod
-		CrBeamElement3D2N::GetIntegrationMethod() const
+	/*CrBeamAdjointElement3D2N::IntegrationMethod
+		CrBeamAdjointElement3D2N::GetIntegrationMethod() const
 	{
 		//do this to have 3GP as an output in GID
 		return Kratos::GeometryData::GI_GAUSS_3;
-	}
+	}*/
 
-	void CrBeamElement3D2N::AddExplicitContribution(const VectorType& rRHSVector,
+	/*void CrBeamAdjointElement3D2N::AddExplicitContribution(const VectorType& rRHSVector,
 		const Variable<VectorType>& rRHSVariable,
 		Variable<array_1d<double, 3> >& rDestinationVariable,
 		const ProcessInfo& rCurrentProcessInfo)
@@ -1701,27 +1960,27 @@ namespace Kratos
 		}
 
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	double CrBeamElement3D2N::CalculateShearModulus() {
+	/*double CrBeamAdjointElement3D2N::CalculateShearModulus() {
 		KRATOS_TRY;
 		const double nu = this->GetProperties()[POISSON_RATIO];
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		const double G = E / (2.0 * (1.0 + nu));
 		return G;
 		KRATOS_CATCH("")
-	}
+	}*/
 
-	int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+	int CrBeamAdjointElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
-			if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
-			{
-				KRATOS_ERROR <<
-					"The beam element works only in 3D and with 2 noded elements" << ""
-					<< std::endl;
-			}
+		if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
+		{
+			KRATOS_ERROR <<
+				"The beam element works only in 3D and with 2 noded elements" << ""
+			<< std::endl;
+		}
 		//verify that the variables are correctly initialized
 		if (VELOCITY.Key() == 0) {
 			KRATOS_ERROR <<
@@ -1748,24 +2007,6 @@ namespace Kratos
 				"CROSS_AREA has Key zero! (check if the application is correctly registered" << ""
 				<< std::endl;
 		}
-		//verify that the dofs exist
-		for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)
-		{
-			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
-				KRATOS_ERROR <<
-					"missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id()
-					<< std::endl;
-			}
-			if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-				this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
-				this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) {
-				KRATOS_ERROR <<
-					"missing one of the dofs for the variable DISPLACEMENT on node " <<
-						GetGeometry()[i].Id() << std::endl;
-			}
-		}
-
-
 
 		if (this->GetProperties().Has(CROSS_AREA) == false ||
 			this->GetProperties()[CROSS_AREA] == 0)
@@ -1798,190 +2039,61 @@ namespace Kratos
 				<< std::endl;
 		}
 
+		//##################################################################################################
+		// Check for specific sensitivity analysis stuff
+		//##################################################################################################
+		if (ADJOINT_DISPLACEMENT.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "ADJOINT_DISPLACEMENT Key is 0. "
+                    "Check if the application was correctly registered.","");
+
+		if (ADJOINT_ROTATION.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                    "ADJOINT_ROTATION Key is 0. "
+                    "Check if the application was correctly registered.","");
+
+		 // Check if the nodes have adjoint dofs.
+        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
+        {
+            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing ADJOINT_DISPLACEMENT component degree of freedom on node ",
+                        this->GetGeometry()[iNode].Id());
+
+			if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing ADJOINT_ROTATION component degree of freedom on node ",
+                        this->GetGeometry()[iNode].Id());	
+
+			if (this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                        "missing DISPLACEMENT variable on solution step data for node ",
+                        this->GetGeometry()[iNode].Id());					
+        }
+
 		return 0;
 
 		KRATOS_CATCH("")
 	}
 
-	std::string CrBeamElement3D2N::Info() const
+	/*std::string CrBeamAdjointElement3D2N::Info() const
     {
-		if(mIsLinearElement)
-			return "CrLinearBeamElement3D2N";
-		else	
-			return "CrBeamElement3D2N";
-    }
+		return "CrBeamAdjointElement3D2N";
+		//fusseder TODO: seperate between linear and nonliner case!!!!
+    }*/
 
-	Orientation::Orientation(array_1d<double, 3>& v1, const double theta) {
-
-		KRATOS_TRY
-		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
-		//If only direction of v1 is given -> Default case
-		const int dimension = 3;
-
-		array_1d<double, 3> GlobalZ = ZeroVector(dimension);
-		GlobalZ[2] = 1.0;
-
-		array_1d<double, 3> v2 = ZeroVector(dimension);
-		array_1d<double, 3> v3 = ZeroVector(dimension);
-
-		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(v1);
-		if (VectorNorm != 0) v1 /= VectorNorm;
-
-		if (v1[2] == 1.00) {
-			v2[1] = 1.0;
-			v3[0] = -1.0;
-		}
-
-		if (v1[2] == -1.00) {
-			v2[1] = 1.0;
-			v3[0] = 1.0;
-		}
-
-		if (fabs(v1[2]) != 1.00) {
-
-			v2 = MathUtils<double>::CrossProduct(v1, GlobalZ);
-			VectorNorm = MathUtils<double>::Norm(v2);
-			if (VectorNorm != 0) v2 /= VectorNorm;
-
-			v3 = MathUtils<double>::CrossProduct(v2, v1);
-			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm != 0) v3 /= VectorNorm;
-		}
-
-		//manual rotation around the beam axis
-		if (theta != 0) {
-			const Vector nz_temp = v3;
-			const Vector ny_temp = v2;
-			const double CosTheta = cos(theta);
-			const double SinTheta = sin(theta);
-
-			v2 = ny_temp * CosTheta + nz_temp * SinTheta;
-			VectorNorm = MathUtils<double>::Norm(v2);
-			if (VectorNorm != 0) v2 /= VectorNorm;
-
-			v3 = nz_temp * CosTheta - ny_temp * SinTheta;
-			VectorNorm = MathUtils<double>::Norm(v3);
-			if (VectorNorm != 0) v3 /= VectorNorm;
-		}
-
-		Matrix RotationMatrix = ZeroMatrix(dimension);
-		for (int i = 0; i < dimension; ++i) {
-			RotationMatrix(i, 0) = v1[i];
-			RotationMatrix(i, 1) = v2[i];
-			RotationMatrix(i, 2) = v3[i];
-		}
-
-		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
-
-		KRATOS_CATCH("")
-	}
-
-	Orientation::Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2) {
-
-		KRATOS_TRY
-		//If the user defines an aditional direction v2
-		const int dimension = 3;
-
-
-		array_1d<double, 3> v3 = ZeroVector(dimension);
-
-		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(v1);
-		if (VectorNorm != 0) v1 /= VectorNorm;
-
-		VectorNorm = MathUtils<double>::Norm(v2);
-		if (VectorNorm != 0) v2 /= VectorNorm;
-
-		v3 = MathUtils<double>::CrossProduct(v2, v1);
-		VectorNorm = MathUtils<double>::Norm(v3);
-		if (VectorNorm != 0) v3 /= VectorNorm;
-
-
-		Matrix RotationMatrix = ZeroMatrix(dimension);
-		for (int i = 0; i < dimension; ++i) {
-			RotationMatrix(i, 0) = v1[i];
-			RotationMatrix(i, 1) = v2[i];
-			RotationMatrix(i, 2) = v3[i];
-		}
-
-		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
-
-		KRATOS_CATCH("")
-	}
-
-	void Orientation::CalculateRotationMatrix(Matrix& R) {
-
-		KRATOS_TRY
-			if (R.size1() != 3 || R.size2() != 3) R.resize(3, 3, false);
-		const Quaternion<double> q = this->GetQuaternion();
-		q.ToRotationMatrix(R);
-		KRATOS_CATCH("")
-	}
-
-	void Orientation::CalculateBasisVectors(array_1d<double, 3>& v1,
-		array_1d<double, 3>& v2,
-		array_1d<double, 3>& v3) {
-
-		KRATOS_TRY
-			const Quaternion<double> q = this->GetQuaternion();
-		Matrix R = ZeroMatrix(3);
-		q.ToRotationMatrix(R);
-		if (v1.size() != 3) v1.resize(3, false);
-		if (v2.size() != 3) v2.resize(3, false);
-		if (v3.size() != 3) v3.resize(3, false);
-
-		for (int i = 0; i < 3; ++i) {
-			v1[i] = R(i, 0);
-			v2[i] = R(i, 1);
-			v3[i] = R(i, 2);
-		}
-		KRATOS_CATCH("")
-	}
-
-
-	void CrBeamElement3D2N::save(Serializer& rSerializer) const
+	void CrBeamAdjointElement3D2N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-		rSerializer.save("DeformationModes", this->mDeformationModes);
-		rSerializer.save("NodalPosition", this->mTotalNodalPosistion);
-		rSerializer.save("NodalDeformation", this->mTotalNodalDeformation);
-		rSerializer.save("IterationCounter", this->mIterationCount);
-		rSerializer.save("NodalForces", this->mNodalForces);
-
-
-		rSerializer.save("LocalInitalAxisX", this->mNX0);
-		rSerializer.save("LocalInitalAxisY", this->mNY0);
-		rSerializer.save("LocalInitalAxisZ", this->mNZ0);
-
-
-		rSerializer.save("QuaternionVecA", this->mQuaternionVEC_A);
-		rSerializer.save("QuaternionVecB", this->mQuaternionVEC_B);
-		rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
-		rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
-
-		rSerializer.save("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N);
 	}
 
-	void CrBeamElement3D2N::load(Serializer& rSerializer)
+	void CrBeamAdjointElement3D2N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-		rSerializer.load("DeformationModes", this->mDeformationModes);
-		rSerializer.load("NodalPosition", this->mTotalNodalPosistion);
-		rSerializer.load("NodalDeformation", this->mTotalNodalDeformation);
-		rSerializer.load("IterationCounter", this->mIterationCount);
-		rSerializer.load("NodalForces", this->mNodalForces);
-
-		rSerializer.load("LocalInitalAxisX", this->mNX0);
-		rSerializer.load("LocalInitalAxisY", this->mNY0);
-		rSerializer.load("LocalInitalAxisZ", this->mNZ0);
-
-
-		rSerializer.load("QuaternionVecA", this->mQuaternionVEC_A);
-		rSerializer.load("QuaternionVecB", this->mQuaternionVEC_B);
-		rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
-		rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
-		rSerializer.load("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N);
 	}
 
 } // namespace Kratos.
