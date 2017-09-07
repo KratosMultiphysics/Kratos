@@ -2,12 +2,12 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-import main_script
 
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+import main_script
 import plot_variables                # Related to benchmarks in Chung, Ooi
 import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
 
@@ -46,7 +46,7 @@ else:
 class Solution(main_script.Solution):
 
     def __init__(self):
-        super().__init__(DEM_parameters)
+        super(Solution, self).__init__()
         os.chdir('..')
         self.main_path = os.getcwd()
 
