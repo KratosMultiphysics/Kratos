@@ -49,7 +49,7 @@ import KratosMultiphysics
 from KratosMultiphysics.ConstitutiveModelsApplication import *
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemBaseApplication           as KratosPfemBase
+import KratosMultiphysics.PfemApplication           as KratosPfemBase
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
@@ -171,7 +171,7 @@ computing_model_part = solver.GetComputingModelPart()
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
-solver.InitializeStrategy()
+#solver.InitializeStrategy()
 solver.SetEchoLevel(echo_level)
 
 #### Output settings start ####
