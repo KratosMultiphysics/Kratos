@@ -1,9 +1,12 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
-import subprocess
-import sys
-import platform
-import smtplib
+from __future__ import print_function
+import os,subprocess,sys
+import multiprocessing as mp
+import queue
+from threading import Thread
+import threading
+from glob import glob
+import shutil
+
 
 kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
@@ -11,8 +14,10 @@ path = '../test_examples'
 sys.path.append(path)
 path = os.getcwd()
 path += '/basic_benchmarks'
-os.chdir(path)
-                  
+os.chdir(path)      
+os.environ['OMP_NUM_THREADS']='1'  
+os.system("echo Benchmarks will be running on $OMP_NUM_THREADS cpu")
+
 Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two identical spheres\n",
                   "Running DEM Benchmark 2.... Elastic normal impact of a sphere against a rigid plane\n",
                   "Running DEM Benchmark 3.... Impact of a sphere against a rigid plane with different coefficients of restitution\n",
@@ -43,52 +48,18 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Verlet velocity + Zhao scheme)\n",
                   "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n"]
 
-def Run():
-    
-    print("\nStarting DEM Benchmarking..............\n")
-    g = open("errors.err", "w")
-    g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
-    g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
-    g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
-    g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
-    g.close()
-    Text = ""
-    f = open("BenchTemp.info", "w")
-    failure = False
-    #list_of_failed_tests = []
-    
-    #Discontinuum Tests. From 1 to 17
-    D_DEM_Benchmarks_list = list(range(1,18))
-        
-    #Continuum Tests
-    C_DEM_Benchmarks_list = list(range(20,26))
+def run(benchmark): 
+    f = open('{0}.info'.format(benchmark), 'wb')
+    subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+    f.close()
 
-    #Discontinuum Clusters Tests. From 30 to 33
-    Dcl_DEM_Benchmarks_list = list(range(30,34))
-        
-    Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list
-    
-    for benchmark in Total_DEM_Benchmarks_list:
-          
-        print(Benchmark_text[benchmark - 1])
-                
+def worker(queue):
+    """Process files from the queue."""
+    for benchmark in iter(queue.get, None):
         try:
-            if platform.system()=="Windows":
-                os.system("setenv OMP_NUM_THREADS 1") # Is that the correct way to run on Windows?
-                subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                os.system("setenv OMP_NUM_THREADS ") # Trying to set a 'default' value
-                
-            else:
-                os.environ['OMP_NUM_THREADS']='1'
-                if sys.version_info >= (3, 0):
-                    subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                    
-                else:
-                    subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                os.system("export OMP_NUM_THREADS=") # Trying to set a 'default' value
-        except:
-            #failure = True
-            #list_of_failed_tests += [benchmark]
+            print(Benchmark_text[benchmark - 1])
+            run(benchmark)
+        except Exception as e:# catch exceptions to avoid exiting the thread prematurely   
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             if benchmark == 10:
@@ -105,11 +76,43 @@ def Run():
                 g.write("\n===== DISCONTINUUM CLUSTERS TESTS  ======================\n\n")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
-            
-    print('\n')
-    f.close()
-    os.remove("BenchTemp.info")
+
+def main():
+    print("\nAdding processes to DEM parallel Benchmarking..............\n")
+    g = open("errors.err", "w")
+    g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
+    g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
+    g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
+    g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
+    g.close()
+    Text = ""
+    failure = False
+
+    q = queue.Queue()
+
+    #Discontinuum Tests. From 1 to 17
+    D_DEM_Benchmarks_list = list(range(1,12))
+        
+    #Continuum Tests
+    C_DEM_Benchmarks_list = list(range(20,26))
+
+    #Discontinuum Clusters Tests. From 30 to 33
+    Dcl_DEM_Benchmarks_list = list(range(30,34))
+        
+    Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list
     
+    for item in Total_DEM_Benchmarks_list:
+        #print(Benchmark_text[item - 1])
+        q.put_nowait(item)
+
+    threads = [Thread(target=worker, args=(q,)) for _ in range(mp.cpu_count()-1)] # uses total cpu - n
+    for t in threads:
+        t.daemon = True # threads die if the program dies
+        t.start()
+    for _ in threads: q.put_nowait(None) # signal no more files
+    for t in threads: t.join() # wait for completion
+
+    print('\n')       
     g = open("errors.err", 'a')
     g.write("\n---------------------------------------------------------------------\n")
     g.write("\nList of Benchmarks:\n")
@@ -155,22 +158,36 @@ def Run():
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
-    
-    # To send an email summary to the DEM Team
-    #list_of_failed_tests = ', '.join(str(e) for e in list_of_failed_tests)
-    #subject = "DEM Benchmarks Results. Problems found in tests number "
-    #subject += list_of_failed_tests
-    recipients = ["latorre@cimne.upc.edu"]
-    recipients += ["maceli@cimne.upc.edu", "gcasas@cimne.upc.edu", "farrufat@cimne.upc.edu", "jirazabal@cimne.upc.edu"]
-    subject = "Problems found in DEM Benchmarks"   
-    message = "From: Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + subject + "\n" + Text
-    
-    #if failure:
-    #if (__name__ != '__main__' and failure):
-    if (False):
-        smtplib.SMTP("smtps.cimne.upc.es").sendmail("Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>", recipients, message)
+    delete_archives()
     return Text
 
 
+def delete_archives():
+
+    #.......................Removing extra files
+    files_to_delete_list = glob('*.time')
+    files_to_delete_list.extend(glob('*.dat'))
+    files_to_delete_list.extend(glob('*.gp'))
+    files_to_delete_list.extend(glob('*.txt'))
+    files_to_delete_list.extend(glob('*.lst'))
+    
+    for to_erase_file in files_to_delete_list:
+        os.remove(to_erase_file)
+
+    #............Getting rid of unuseful folders
+    folders_to_delete_list      = glob('*Data')
+    folders_to_delete_list.extend(glob('*ists'))
+    folders_to_delete_list.extend(glob('*ults'))
+    folders_to_delete_list.extend(glob('*he__'))
+    folders_to_delete_list.extend(glob('*aphs'))
+    folders_to_delete_list.extend(glob('*iles'))
+
+    for to_erase_folder in folders_to_delete_list:
+        shutil.rmtree(to_erase_folder)
+
+
+
+
 if __name__ == '__main__':
-    print(Run())
+    mp.freeze_support() # optional if the program is not frozen
+    print(main())
