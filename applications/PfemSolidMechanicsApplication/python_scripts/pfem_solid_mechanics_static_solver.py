@@ -24,12 +24,11 @@ class PfemStaticMechanicalSolver(BaseSolver.StaticMechanicalSolver):
     """    
     def __init__(self, main_model_part, custom_settings): 
         
-        BaseSolver.StaticMechanicalSolver.__init__(main_model_part,custom_settings)
+        super(PfemStaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
     def SetVariables(self):
 
-        BaseSolver.MechanicalSolver.SetVariables(self)
-
+        super(PfemStaticMechanicalSolver, self).SetVariables()
         self.nodal_variables = self.nodal_variables + ['CONTACT_FORCE']
 
         if self.settings.Has("water_pressure_dofs"):
