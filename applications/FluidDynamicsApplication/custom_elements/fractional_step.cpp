@@ -1,6 +1,6 @@
 #include "fractional_step.h"
 #include "includes/cfd_variables.h"
-#include "utilities/check_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos {
 
@@ -840,44 +840,44 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
-    CheckUtilities::CheckVariableKey(VELOCITY);
-    CheckUtilities::CheckVariableKey(PRESSURE);
-    CheckUtilities::CheckVariableKey(BODY_FORCE);
-    CheckUtilities::CheckVariableKey(DENSITY);
-    CheckUtilities::CheckVariableKey(VISCOSITY);
-    CheckUtilities::CheckVariableKey(MESH_VELOCITY);
-    CheckUtilities::CheckVariableKey(FRACT_VEL);
-    CheckUtilities::CheckVariableKey(PRESSURE_OLD_IT);
-    CheckUtilities::CheckVariableKey(NODAL_AREA);
-    CheckUtilities::CheckVariableKey(CONV_PROJ);
-    CheckUtilities::CheckVariableKey(PRESS_PROJ);
-    CheckUtilities::CheckVariableKey(DIVPROJ);
-    CheckUtilities::CheckVariableKey(BDF_COEFFICIENTS);
-    CheckUtilities::CheckVariableKey(DELTA_TIME);
-    CheckUtilities::CheckVariableKey(DYNAMIC_TAU);
-    CheckUtilities::CheckVariableKey(C_SMAGORINSKY);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
+    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
+    KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(FRACT_VEL);
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE_OLD_IT);
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
+    KRATOS_CHECK_VARIABLE_KEY(CONV_PROJ);
+    KRATOS_CHECK_VARIABLE_KEY(PRESS_PROJ);
+    KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
+    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
+    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
+    KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
         Node<3> &rNode = this->GetGeometry()[i];
-        CheckUtilities::CheckVariableInNodalData(VELOCITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(PRESSURE,rNode);
-        CheckUtilities::CheckVariableInNodalData(BODY_FORCE,rNode);
-        CheckUtilities::CheckVariableInNodalData(DENSITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(VISCOSITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(MESH_VELOCITY,rNode);
-        CheckUtilities::CheckVariableInNodalData(FRACT_VEL,rNode);
-        CheckUtilities::CheckVariableInNodalData(PRESSURE_OLD_IT,rNode);
-        CheckUtilities::CheckVariableInNodalData(NODAL_AREA,rNode);
-        CheckUtilities::CheckVariableInNodalData(CONV_PROJ,rNode);
-        CheckUtilities::CheckVariableInNodalData(PRESS_PROJ,rNode);
-        CheckUtilities::CheckVariableInNodalData(DIVPROJ,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FRACT_VEL,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_OLD_IT,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(CONV_PROJ,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESS_PROJ,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ,rNode);
 
-        CheckUtilities::CheckDofInNode(VELOCITY_X,rNode);
-        CheckUtilities::CheckDofInNode(VELOCITY_Y,rNode);
-        if (TDim == 3) CheckUtilities::CheckDofInNode(VELOCITY_Z,rNode);
-        CheckUtilities::CheckDofInNode(PRESSURE,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+        if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
     }
 
     // If this is a 2D problem, check that nodes are in XY plane

@@ -733,7 +733,7 @@ class Procedures(object):
         post_path        = root + '_Post_Files' + run_code
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
-        MPI_results      = root + '_MPI_results'
+        MPI_results      = root + '_MPI_results'       
         
         '''
         answer = input("\nWarning: If there already exists previous results, they are about to be deleted. Do you want to proceed (y/n)? ")

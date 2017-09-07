@@ -36,7 +36,6 @@ class PartitionedFSIBaseSolver:
         if end_time_structure != end_time_fluid:
             raise("ERROR: Different final time among subdomains!")
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.structure_main_model_part = structure_main_model_part
         self.fluid_main_model_part = fluid_main_model_part
 
@@ -45,55 +44,53 @@ class PartitionedFSIBaseSolver:
         {
         "structure_solver_settings":
             {
-            "solver_type": "structural_mechanics_implicit_dynamic_solver",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+            "solver_type"           : "structural_mechanics_implicit_dynamic_solver",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "unknown_name"
             },
             "material_import_settings" :{
-                "materials_filename": "materials.json"
+                "materials_filename" : "materials.json"
             },
-            "echo_level": 0,
-            "time_integration_method": "Implicit",
-            "analysis_type": "nonlinear",
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
-            "line_search": false,
-            "compute_reactions": true,
-            "compute_contact_forces": false,
-            "block_builder": false,
-            "move_mesh_flag": true,
-            "solution_type": "Dynamic",
-            "scheme_type": "Newmark",
-            "convergence_criterion": "Residual_criteria",
+            "echo_level"               : 0,
+            "time_integration_method"  : "Implicit",
+            "analysis_type"            : "nonlinear",
+            "rotation_dofs"            : false,
+            "pressure_dofs"            : false,
+            "reform_dofs_at_each_step" : false,
+            "line_search"              : false,
+            "compute_reactions"        : true,
+            "compute_contact_forces"   : false,
+            "block_builder"            : true,
+            "move_mesh_flag"           : true,
+            "solution_type"            : "Dynamic",
+            "scheme_type"              : "Newmark",
+            "convergence_criterion"    : "Residual_criteria",
             "displacement_relative_tolerance" : 1.0e-3,
             "displacement_absolute_tolerance" : 1.0e-5,
             "residual_relative_tolerance"     : 1.0e-3,
             "residual_absolute_tolerance"     : 1.0e-5,
-            "max_iteration": 10,
-            "linear_solver_settings":{
+            "max_iteration"          : 10,
+            "linear_solver_settings"    :{
                 "solver_type"   : "SuperLUSolver",
                 "max_iteration" : 200,
                 "tolerance"     : 1e-7,
                 "scaling"       : false,
                 "verbosity"     : 1
             },
-            "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part_list": ["solid_model_part"]
+            "processes_sub_model_part_list"      : [""],
+            "problem_domain_sub_model_part_list" : ["solid_model_part"]
             },
-        "fluid_solver_settings":
-            {
-            "solver_type": "navier_stokes_solver_vmsmonolithic",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+        "fluid_solver_settings": {
+            "solver_type"           : "navier_stokes_solver_vmsmonolithic",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "unknown_name"
             },
-            "maximum_iterations": 10,
-            "dynamic_tau" : 0.0,
-            "oss_switch"  : 0,
-            "echo_level"  : 0,
+            "maximum_iterations"           : 10,
+            "dynamic_tau"                  : 0.0,
+            "oss_switch"                   : 0,
+            "echo_level"                   : 0,
             "consider_periodic_conditions" : false,
             "compute_reactions"            : true,
             "divergence_clearance_steps"   : 0,
@@ -102,7 +99,7 @@ class PartitionedFSIBaseSolver:
             "absolute_velocity_tolerance"  : 1e-5,
             "relative_pressure_tolerance"  : 1e-3,
             "absolute_pressure_tolerance"  : 1e-5,
-            "linear_solver_settings"        : {
+            "linear_solver_settings"       : {
                 "solver_type"         : "AMGCL",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-9,
@@ -128,20 +125,19 @@ class PartitionedFSIBaseSolver:
             },
         "coupling_solver_settings":
             {
-            "coupling_scheme"                : "DirichletNeumann",
-            "solver_type"                    : "partitioned_fsi_solver",
-            "nl_tol"                         : 1e-5,
-            "nl_max_it"                      : 50,
-            "solve_mesh_at_each_iteration"   : true,
+            "coupling_scheme"              : "DirichletNeumann",
+            "solver_type"                  : "partitioned_fsi_solver",
+            "nl_tol"                       : 1e-5,
+            "nl_max_it"                    : 50,
+            "solve_mesh_at_each_iteration" : true,
             "coupling_strategy" : {
                 "solver_type"       : "Relaxation",
                 "acceleration_type" : "Aitken",
                 "w_0"               : 0.825
                 },
-            "mesh_solver"                    : "mesh_solver_structural_similarity",
-            "mesh_reform_dofs_each_step"     : false,
-            "structure_interfaces_list"      : [""],
-            "fluid_interfaces_list"          : [""]
+            "mesh_solver"                : "mesh_solver_structural_similarity",
+            "structure_interfaces_list"  : [""],
+            "fluid_interfaces_list"      : [""]
             },
         "mapper_settings"              : [{
             "mapper_face"                                : "Unique",
@@ -201,7 +197,6 @@ class PartitionedFSIBaseSolver:
 
         # Construct the ALE mesh solver
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
-        mesh_solver_settings.AddValue("mesh_reform_dofs_each_step",self.settings["coupling_solver_settings"]["mesh_reform_dofs_each_step"])
 
         self.mesh_solver_module = __import__(self.settings["coupling_solver_settings"]["mesh_solver"].GetString())
         self.mesh_solver = self.mesh_solver_module.CreateSolver(self.fluid_solver.main_model_part,
@@ -216,7 +211,7 @@ class PartitionedFSIBaseSolver:
         # Get fluid buffer size
         buffer_fluid = self.fluid_solver.GetMinimumBufferSize()
 
-        return min(buffer_structure,buffer_fluid)
+        return max(buffer_structure,buffer_fluid)
 
 
     def AddVariables(self):
@@ -228,18 +223,18 @@ class PartitionedFSIBaseSolver:
         # Standard CFD variables addition
         self.fluid_solver.AddVariables()
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION) # TODO: This should be added in the mesh solvers
         # Mesh solver variables addition
         self.mesh_solver.AddVariables()
 
         ## FSIApplication variables addition
         NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_RESIDUAL)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
 
 
     def ImportModelPart(self):
@@ -342,6 +337,14 @@ class PartitionedFSIBaseSolver:
             raise("ERROR: Solid domain size and fluid domain size are not equal!")
 
         return fluid_domain_size
+
+
+    def _GetNodalUpdateUtilities(self):
+
+        if (self.domain_size == 2):
+            return KratosFSI.NodalUpdateNewmark2D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
+        else:
+            return KratosFSI.NodalUpdateNewmark3D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
 
 
     def _GetPartitionedFSIUtilities(self):

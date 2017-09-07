@@ -62,6 +62,8 @@ struct ilut {
 
     typedef typename math::scalar_of<value_type>::type scalar_type;
 
+    typedef detail::ilu_solve<Backend> ilu_solve;
+
     /// Relaxation parameters.
     struct params {
         /// Fill factor.
@@ -73,31 +75,25 @@ struct ilut {
         /// Damping factor.
         scalar_type damping;
 
-        /// Use serial version of the algorithm
-        bool serial;
+        /// Parameters for sparse triangular system solver
+        typename ilu_solve::params solve;
 
-        /// Number of Jacobi iterations.
-        /** \note Used for approximate solution of triangular systems on parallel backends */
-        unsigned jacobi_iters;
-
-        params() : p(2), tau(1e-2f), damping(1), serial(false), jacobi_iters(2) {}
+        params() : p(2), tau(1e-2f), damping(1) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, p)
             , AMGCL_PARAMS_IMPORT_VALUE(p, tau)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
-            , AMGCL_PARAMS_IMPORT_VALUE(p, serial)
-            , AMGCL_PARAMS_IMPORT_VALUE(p, jacobi_iters)
+            , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
         {
-            AMGCL_PARAMS_CHECK(p, (p)(tau)(damping)(serial)(jacobi_iters));
+            AMGCL_PARAMS_CHECK(p, (p)(tau)(damping)(solve));
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, p);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, tau);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, jacobi_iters);
+            AMGCL_PARAMS_EXPORT_CHILD(p, path, solve);
         }
     };
 
@@ -179,7 +175,7 @@ struct ilut {
         L->nnz = L->ptr[n];
         U->nnz = U->ptr[n];
 
-        ilu = boost::make_shared<ilu_solve>(L, U, D, prm, bprm);
+        ilu = boost::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -215,7 +211,6 @@ struct ilut {
 
     private:
         typedef typename backend::builtin<value_type>::matrix build_matrix;
-        typedef detail::ilu_solve<Backend> ilu_solve;
         boost::shared_ptr<ilu_solve> ilu;
 
         struct sparse_vector {
