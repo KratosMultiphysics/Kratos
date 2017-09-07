@@ -22,14 +22,18 @@ else:
 
 class Solution(object):
 
-    def __init__(self, DEM_parameters):
+    def __init__(self):
+        parameters_file = open("ProjectParametersDEM.json",'r')
+        self.DEM_parameters = Parameters(parameters_file.read())
+        
         if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
                 return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
         else:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
                 return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-        #self.procedures.CheckInputParameters(self.DEM_parameters)
+        self.model_part_reader = model_part_reader
+            
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
@@ -79,11 +83,11 @@ class Solution(object):
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher = self.particle_watcher, path = self.main_path)
 
     def SetFinalTime(self):
-        self.final_time = DEM_parameters.FinalTime
+        self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
         #return final_time
 
     def Setdt(self):
-        self.dt = DEM_parameters.MaxTimeStep
+        self.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
         #return dt
 
     def SetProcedures(self):
@@ -220,24 +224,24 @@ class Solution(object):
         self.materialTest.PrintChart()
         self.materialTest.PrepareDataForGraph()
 
-        self.post_utils = DEM_procedures.PostUtils(DEM_parameters, self.spheres_model_part)
+        self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.final_time / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def GetMpFilename(self):               
-        return DEM_parameters.problem_name + "DEM"
+        return self.DEM_parameters["problem_name"].GetString() + "DEM"
     
     def GetInletFilename(self):
-        return DEM_parameters.problem_name + "DEM_Inlet"   
+        return self.DEM_parameters["problem_name"].GetString() + "DEM_Inlet"   
 
     def GetFemFilename(self):
-        return DEM_parameters.problem_name + "DEM_FEM_boundary"   
+        return self.DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"   
 
     def GetClusterFilename(self):
-        return DEM_parameters.problem_name + "DEM_Clusters"  
+        return self.DEM_parameters["problem_name"].GetString() + "DEM_Clusters"  
     
     def GetProblemTypeFilename(self):
-        return DEM_parameters.problem_name
+        return self.DEM_parameters["problem_name"].GetString()
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):        
         os.chdir(self.main_path)
