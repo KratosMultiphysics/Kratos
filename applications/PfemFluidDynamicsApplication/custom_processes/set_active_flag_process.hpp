@@ -157,14 +157,14 @@ namespace Kratos
 		unsigned int elementRigidNodes=0;
 		for(unsigned int i=0; i<numNodes; i++)
 		  {
-		    if(itElem->GetGeometry()[i].Is(RIGID)){
+		    if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID)){
 		      elementRigidNodes++;
 		    }
 		    if(itElem->GetGeometry()[i].IsNot(RIGID) && itElem->GetGeometry()[i].IsNot(FREE_SURFACE)){
 		      peakElementsEliminationCriteria=false;
 		      doNotErase=true;
 		      // break;
-		    }else if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && doNotErase==false){
+		    }else if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && doNotErase==false){
 		      peakElementsEliminationCriteria=true;
 		      const array_1d<double,3> &wallVelocity = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 		      double normWallVelocity=norm_2(wallVelocity);
@@ -199,7 +199,7 @@ namespace Kratos
 				unsigned int freeSurfaceNodes=0;
 				for(unsigned int i = 0; i < rN.size(); i++)
 				  {
-				    if(rN[i].Is(RIGID))
+				    if(rN[i].Is(RIGID) && rN[i].IsNot(SOLID))
 				      rigidNodes += 1;
 				    if(rN[i].Is(FREE_SURFACE) && rN[i].IsNot(RIGID))
 				      freeSurfaceNodes += 1;
@@ -237,7 +237,7 @@ namespace Kratos
 	      	unsigned int elementRigidNodes=0;
 	      	for(unsigned int i=0; i<numNodes; i++)
 	      	  {
-	      	    if(itElem->GetGeometry()[i].Is(RIGID)){
+	      	    if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID)){
 	      	      elementRigidNodes++;
 	      	    }
 	      	  }
@@ -312,7 +312,7 @@ namespace Kratos
 		unsigned int numNodes=itElem->GetGeometry().size();
 	      	for(unsigned int i=0; i<numNodes; i++)
 	      	  {
-	      	    if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].Is(FREE_SURFACE)){
+	      	    if(itElem->GetGeometry()[i].Is(RIGID)  && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE)){
 	      	      WeakPointerVector<Element >& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
 	      	      bool doNotSetNullPressure=false;
 	      	      for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
@@ -330,7 +330,7 @@ namespace Kratos
 		unsigned int elementRigidNodes=0;
 		for(unsigned int i=0; i<numNodes; i++)
 		  {
-		    if(itElem->GetGeometry()[i].Is(RIGID)){
+		    if(itElem->GetGeometry()[i].Is(RIGID)  && itElem->GetGeometry()[i].IsNot(SOLID)){
 		      elementRigidNodes++;
 		    }
 		  }

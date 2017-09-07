@@ -174,8 +174,8 @@ public:
 	      normVelocityP.resize(nds);
 	      unsigned int  checkedNodes =0;
 	      box_side_element = false;
-	      unsigned int countIsolatedWallNodes=0;
-	      bool isolatedWallElement=true;
+	      unsigned int countIsolatedWallNodes=0; 
+	      // bool isolatedWallElement=true;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
 		  //set vertices
@@ -216,7 +216,7 @@ public:
 		    for(unsigned int i = 0; i < rN.size(); i++)
 		      {
 			if(rN[i].IsNot(RIGID)){
-			  isolatedWallElement=false;
+			  // isolatedWallElement=false;
 			  localIsolatedWallNode=false;
 			}
 		      }
