@@ -153,7 +153,7 @@ namespace Kratos
 
     // specialized methods:
     
-    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor)
+    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
@@ -163,7 +163,7 @@ namespace Kratos
     }
     
 
-    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor)
+    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
@@ -176,7 +176,7 @@ namespace Kratos
 
     //option: g(J) = (lambda/2)*ln(J)² - (mu)*lnJ (neo_hookean_lnJ_model)
     
-    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction)
+    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
     {
       KRATOS_TRY
 
@@ -193,7 +193,7 @@ namespace Kratos
     //************// dW
     
 
-    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI3
+    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI3
     {
       KRATOS_TRY
 
@@ -211,7 +211,7 @@ namespace Kratos
     }
 
 
-    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI3dI3
+    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI3dI3
     {
       KRATOS_TRY
 

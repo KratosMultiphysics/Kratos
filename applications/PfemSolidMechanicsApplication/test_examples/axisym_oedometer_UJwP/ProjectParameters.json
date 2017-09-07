@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "axisym_oedometer_UJwP",
         "model_part_name" : "Main Domain",
-        "domain_size"     : 2,
+        "dimension"       : 2,
         "time_step"       : 0.01,
         "start_time"      : 0.0,
         "end_time"        : 300.0,
@@ -13,7 +13,7 @@
     "solver_settings"          : {
         "solver_type"                        : "pfem_solid_mechanics_static_solver",
         "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "scheme_type"                        : "Non-Linear",
         "jacobian_dofs"                      : true,
         "water_pressure_dofs"                : true,
         "pressure_dofs"                      : true,

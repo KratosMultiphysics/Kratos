@@ -210,13 +210,13 @@ namespace Kratos
     /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);	
+    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;	
 
 
     /**
      * Finalize ModelData type:
      */
-    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues);
+    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
     
     /**
      * Calculates the stress vector

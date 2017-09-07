@@ -49,8 +49,8 @@ class Solution(object):
         # Defining the model_part
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
-        #self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.ProjectParameters["problem_data"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.ProjectParameters["problem_data"]["start_time"].GetDouble())
         
@@ -169,7 +169,6 @@ class Solution(object):
         
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        #self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
 
         

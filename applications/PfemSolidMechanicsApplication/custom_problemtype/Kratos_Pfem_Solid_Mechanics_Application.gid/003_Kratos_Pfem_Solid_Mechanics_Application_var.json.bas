@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
         "model_part_name" : "Main_Domain",
-        "domain_size"     : *GenData(DOMAIN_SIZE,INT),
+        "dimension"       : *GenData(DIMENSION,INT),
 	"time_step"       : *GenData(Time_Step),
         "start_time"      : *GenData(Start_Time),
         "end_time"        : *GenData(End_Time),
@@ -27,9 +27,9 @@
         "solver_type"                        : "pfem_solid_mechanics_static_solver",
         "solution_type"                      : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
-        "analysis_type"                      : "Linear",
+        "scheme_type"                        : "Linear",
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
-        "analysis_type"                      : "Non-Linear",
+        "shceme_type"                        : "Non-Linear",
 *endif
 *endif
         "model_import_settings"              : {
@@ -183,10 +183,10 @@
 		    "mesh_smoothing": *tcl(string tolower *cond(MeshSmoothing)),
 		    "variables_smoothing": *tcl(string tolower *cond(JacobiSmoothing)),
 		    "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-*if(GenData(DOMAIN_SIZE,INT)==2)
+*if(GenData(DIMENSION,INT)==2)
 		    "reference_element_type": "Element2D3N",
 		    "reference_condition_type": "CompositeCondition2D2N"
-*elseif(GenData(DOMAIN_SIZE,INT)==3)
+*elseif(GenData(DIMENSION,INT)==3)
 		    "reference_element_type": "Element3D4N" ,
 		    "reference_condition_type": "CompositeCondition3D3N"
 *endif
@@ -649,7 +649,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
-            "variable_name"   : "*cond(Variable)S_VECTOR",
+            "variable_name"   : "*cond(Variable)_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
 *endif	
@@ -718,7 +718,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
-            "variable_name"   : "*cond(Variable)S_VECTOR",
+            "variable_name"   : "*cond(Variable)_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
 *endif	    

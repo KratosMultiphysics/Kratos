@@ -8,10 +8,10 @@ KratosMultiphysics.CheckForPreviousImport()
 class ConstitutiveLawUtility:
     #
 
-    def __init__(self, model_part, domain_size):
+    def __init__(self, model_part, dimension):
 
-        self.model_part  = model_part
-        self.domain_size = domain_size
+        self.model_part = model_part
+        self.dimension  = dimension
 
     #
     def Initialize(self):

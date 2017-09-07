@@ -73,7 +73,7 @@ namespace Kratos
 
 	  KRATOS_TRY
 
-	  const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+	  const unsigned int dimension  = rCurrentProcessInfo[DIMENSION];
 	  const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
 
@@ -255,7 +255,7 @@ namespace Kratos
 	{
 	  KRATOS_TRY
 
-	  const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+	  const unsigned int dimension  = rCurrentProcessInfo[DIMENSION];
 	  const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
 	  BoundaryVariables Variables;
@@ -295,7 +295,7 @@ namespace Kratos
 		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
 
 		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-		const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+		const unsigned int dimension  = rCurrentProcessInfo[DIMENSION];
 		const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
 		BoundaryVariables Variables;
@@ -317,7 +317,7 @@ namespace Kratos
 		std::cout<<"  TRANSFER MASTER_ELEMENT_TO_MASTER_CONDITION "<<std::endl;
 
 		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-		const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+		const unsigned int dimension  = rCurrentProcessInfo[DIMENSION];
 		const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
 		BoundaryVariables Variables;

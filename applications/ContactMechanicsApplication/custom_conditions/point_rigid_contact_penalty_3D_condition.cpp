@@ -87,7 +87,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void PointRigidContactPenalty3DCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
+  void PointRigidContactPenalty3DCondition::CalculateKinematics(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
   {
     KRATOS_TRY
 
@@ -118,7 +118,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void PointRigidContactPenalty3DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  void PointRigidContactPenalty3DCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
     KRATOS_TRY
@@ -218,7 +218,7 @@ namespace Kratos
   //***********************************************************************************
 
   void PointRigidContactPenalty3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-								GeneralVariables& rVariables,
+								ConditionVariables& rVariables,
 								double& rIntegrationWeight)
 
   {
@@ -260,7 +260,7 @@ namespace Kratos
   //************* Tangent Contact Force constitutive matrix      **********************
   //***********************************************************************************
 
-  void PointRigidContactPenalty3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void PointRigidContactPenalty3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     KRATOS_TRY
       
@@ -309,7 +309,7 @@ namespace Kratos
   }
 
   void PointRigidContactPenalty3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-									 GeneralVariables& rVariables,
+									 ConditionVariables& rVariables,
 									 double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -341,7 +341,7 @@ namespace Kratos
   //***********************************************************************************
 
   void PointRigidContactPenalty3DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
-									      GeneralVariables& rVariables,
+									      ConditionVariables& rVariables,
 									      double& rIntegrationWeight)
   {
 
@@ -380,7 +380,7 @@ namespace Kratos
   //***********************************************************************************
 
   void PointRigidContactPenalty3DCondition::CalculateAndAddTangentContactForce(VectorType& rRightHandSideVector,
-									       GeneralVariables& rVariables,
+									       ConditionVariables& rVariables,
 									       double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -415,7 +415,7 @@ namespace Kratos
   //**************************** Calculate Normal Force Modulus ***********************
   //***********************************************************************************
 
-  double& PointRigidContactPenalty3DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, GeneralVariables& rVariables )
+  double& PointRigidContactPenalty3DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, ConditionVariables& rVariables )
   {
     KRATOS_TRY
 
@@ -430,7 +430,7 @@ namespace Kratos
   //**************************** Calculate Effective Normal Force Modulus ***********************
   //*********************************************************************************************
 
-  double& PointRigidContactPenalty3DCondition::CalculateEffectiveNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables )
+  double& PointRigidContactPenalty3DCondition::CalculateEffectiveNormalForceModulus( double& rNormalForceModulus, ConditionVariables& rVariables )
   {
     KRATOS_TRY
 
@@ -455,7 +455,7 @@ namespace Kratos
   //**************************** Check Coulomb law for Tangent Contact Force **********
   //***********************************************************************************
 
-  double PointRigidContactPenalty3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
+  double PointRigidContactPenalty3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , ConditionVariables& rVariables)
   {
 
     rVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement, rVariables.DeltaTime);

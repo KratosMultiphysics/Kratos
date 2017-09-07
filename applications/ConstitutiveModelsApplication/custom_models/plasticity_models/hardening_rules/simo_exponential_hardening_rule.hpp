@@ -151,7 +151,7 @@ namespace Kratos
     /**
      * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
      */
-    static constexpr double mTheta = 1.0;
+    constexpr static const double mTheta = 1.0;
 	
      
     ///@}

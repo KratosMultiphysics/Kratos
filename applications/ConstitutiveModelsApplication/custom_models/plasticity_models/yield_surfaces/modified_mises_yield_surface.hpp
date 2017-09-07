@@ -81,7 +81,7 @@ namespace Kratos
     }
     
     /// Clone.
-    virtual BaseTypePointer Clone() const
+    virtual BaseTypePointer Clone() const override
     {
       return ( ModifiedMisesYieldSurface::Pointer(new ModifiedMisesYieldSurface(*this)) );
     }
@@ -289,12 +289,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }

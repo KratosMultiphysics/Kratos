@@ -88,13 +88,13 @@ namespace Kratos
       ///@{
 
       /// Law Dimension
-      SizeType WorkingSpaceDimension() { return 2; }
+      SizeType WorkingSpaceDimension() override { return 2; } 
 
       /// Law Voigt Strain Size
-      SizeType GetStrainSize() { return 3; }
+      SizeType GetStrainSize() override { return 3; }
 
       /// Law Features
-      void GetLawFeatures(Features& rFeatures)
+      void GetLawFeatures(Features& rFeatures)  override
       {
 	KRATOS_TRY
 	  

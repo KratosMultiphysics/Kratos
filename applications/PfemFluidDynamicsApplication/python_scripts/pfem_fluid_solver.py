@@ -109,7 +109,7 @@ class PfemFluidSolver:
                                                               self.settings["pressure_tolerance"].GetDouble(),
                                                               self.settings["maximum_pressure_iterations"].GetInt(),
                                                               self.settings["time_order"].GetInt(),
-                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION])
 
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())

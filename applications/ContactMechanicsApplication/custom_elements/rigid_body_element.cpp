@@ -389,7 +389,7 @@ void RigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
       
-	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+	noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
 	  
     }
 }
@@ -457,7 +457,7 @@ Vector& RigidBodyElement::GetNodalPreviousValue(const Variable<array_1d<double,3
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -571,8 +571,8 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
     KRATOS_TRY
 
     //create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     std::cout<<" ID "<<this->Id()<<std::endl;
     std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
@@ -598,7 +598,8 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 
 	this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
 	
-	Vector VolumeForce = ZeroVector(3);
+	Vector VolumeForce(3);
+	noalias(VolumeForce) = ZeroVector(3);
 	VolumeForce = CalculateVolumeForce(VolumeForce);
 	this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
 
@@ -662,7 +663,7 @@ Vector& RigidBodyElement::MapToInitialLocalFrame(Vector& rVariable)
 //************************************************************************************
 
 void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						     GeneralVariables& rVariables,
+						     ElementVariables& rVariables,
 						     Vector& rVolumeForce)
 {
     KRATOS_TRY
@@ -674,7 +675,8 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     double DomainSize = rVariables.RigidBody.Mass;
 
     //gravity load
-    Vector GravityLoad = ZeroVector(dimension);
+    Vector GravityLoad(dimension);
+    noalias(GravityLoad) = ZeroVector(dimension);
 
     unsigned int RowIndex = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -778,7 +780,11 @@ Vector&  RigidBodyElement::CalculateVolumeForce( Vector& rVolumeForce)
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rVolumeForce = ZeroVector(dimension);
+    if( rVolumeForce.size() != dimension )
+      rVolumeForce.resize(dimension,false);
+    
+    noalias(rVolumeForce) = ZeroVector(dimension);
+    
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
         if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
@@ -843,7 +849,7 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
       
-      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
     }
 
 
@@ -952,7 +958,7 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -984,17 +990,26 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
      
     MatrixType m22 = ZeroMatrix(3,3);
 
-    Vector CurrentCompoundRotationVector     = ZeroVector(3);
-    Vector PreviousCompoundRotationVector    = ZeroVector(3);
+    Vector CurrentCompoundRotationVector(3);
+    noalias(CurrentCompoundRotationVector) = ZeroVector(3);
+    Vector PreviousCompoundRotationVector(3);
+    noalias(PreviousCompoundRotationVector) = ZeroVector(3);
 
-    Vector CurrentStepRotationVector         = ZeroVector(3);
-    Vector AngularVelocityVector             = ZeroVector(3);
-    Vector AngularAccelerationVector         = ZeroVector(3);
-    Vector CurrentAngularAccelerationVector  = ZeroVector(3);
-    Vector PreviousAngularAccelerationVector = ZeroVector(3);
+    Vector CurrentStepRotationVector(3);
+    noalias(CurrentStepRotationVector) = ZeroVector(3);
+    Vector AngularVelocityVector(3);
+    noalias(AngularVelocityVector) = ZeroVector(3);
+    Vector AngularAccelerationVector(3);
+    noalias(AngularAccelerationVector) = ZeroVector(3);
+    Vector CurrentAngularAccelerationVector(3);
+    noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
+    Vector PreviousAngularAccelerationVector(3);
+    noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
  
-    Vector CurrentValueVector   = ZeroVector(3);
-    Vector PreviousValueVector  = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
+    Vector PreviousValueVector(3);
+    noalias(PreviousValueVector) = ZeroVector(3);
 
     std::vector<QuaternionType> PreviousNodeQuaternions;
     QuaternionType QuaternionValue;
@@ -1085,7 +1100,8 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     Matrix TensorAngularVelocity = ZeroMatrix(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
-    Vector VectorTerm1 = ZeroVector(3);
+    Vector VectorTerm1(3);
+    noalias(VectorTerm1) = ZeroVector(3);
 
     VectorTerm1  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
 
@@ -1286,7 +1302,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration 
-void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1298,27 +1314,37 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
 
-    rRightHandSideVector = ZeroVector( MatSize );
+    noalias(rRightHandSideVector) = ZeroVector( MatSize );
 
      double TotalMass = 0;
     TotalMass = rVariables.RigidBody.Mass;
 
 
     //displacements and rotations vector
-    Matrix TotalRotationMatrix               = ZeroMatrix(3,3);
-    Vector TotalRotationVector               = ZeroVector(3);
+    Matrix TotalRotationMatrix(3,3);
+    noalias(TotalRotationMatrix) = ZeroMatrix(3,3);
+    Vector TotalRotationVector(3);
+    noalias(TotalRotationVector) = ZeroVector(3);
 
-    Vector LinearAccelerationVector          = ZeroVector(3);
-    Vector CurrentLinearAccelerationVector   = ZeroVector(3);
-    Vector PreviousLinearAccelerationVector  = ZeroVector(3);
+    Vector LinearAccelerationVector(3);
+    noalias(LinearAccelerationVector) = ZeroVector(3);
+    Vector CurrentLinearAccelerationVector(3);
+    noalias(CurrentLinearAccelerationVector) = ZeroVector(3);
+    Vector PreviousLinearAccelerationVector(3);
+    noalias(PreviousLinearAccelerationVector) = ZeroVector(3);
 
-    Vector AngularVelocityVector             = ZeroVector(3);
-    Vector AngularAccelerationVector         = ZeroVector(3);
-    Vector CurrentAngularAccelerationVector  = ZeroVector(3);
-    Vector PreviousAngularAccelerationVector = ZeroVector(3);
+    Vector AngularVelocityVector(3);
+    noalias(AngularVelocityVector) = ZeroVector(3);
+    Vector AngularAccelerationVector(3);
+    noalias(AngularAccelerationVector) = ZeroVector(3);
+    Vector CurrentAngularAccelerationVector(3);
+    noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
+    Vector PreviousAngularAccelerationVector(3);
+    noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
  
 
-    Vector CurrentValueVector = ZeroVector(3);
+    Vector CurrentValueVector(3);
+    noalias(CurrentValueVector) = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -1370,7 +1396,8 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 
     //Compute Linear Term:
 
-    Vector LinearInertialForceVector = ZeroVector(3);
+    Vector LinearInertialForceVector(3);
+    noalias(LinearInertialForceVector) = ZeroVector(3);
 
     //this transformation is wrong
     //LinearInertialForceVector  = MapToMaterialFrame( TotalQuaternion, LinearInertialForceVector );
@@ -1396,7 +1423,8 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     Matrix TensorAngularVelocity = ZeroMatrix(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
-    Vector AngularInertialForceVector = ZeroVector(3);
+    Vector AngularInertialForceVector(3);
+    noalias(AngularInertialForceVector) = ZeroVector(3);
 
     AngularInertialForceVector  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
 
@@ -1405,7 +1433,8 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 
     //compose total acceleration integral function:
 
-    Vector TotalInertialForceVector = ZeroVector(dofs_size);
+    Vector TotalInertialForceVector(3);
+    noalias(TotalInertialForceVector) = ZeroVector(dofs_size);
 
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
 
@@ -1415,7 +1444,8 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
       BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
     //Initialize Local Matrices
-    VectorType Fi = ZeroVector(dofs_size);
+    VectorType Fi(dofs_size);
+    noalias(Fi) = ZeroVector(dofs_size);
     unsigned int RowIndex = 0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1423,7 +1453,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 
     	RowIndex = i * (dofs_size);
 
-    	Fi = ZeroVector(dofs_size);
+    	noalias(Fi) = ZeroVector(dofs_size);
 	
     	//nodal force vector
     	Fi  = TotalInertialForceVector;
@@ -1561,10 +1591,14 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
 
      KRATOS_TRY
 
-     Matrix SkewSymVariable = ZeroMatrix(3,3);
-     Vector RadiusVector    = ZeroVector(3);
-     Vector Variable        = ZeroVector(3);
-     Vector AngularVariable = ZeroVector(3);
+     Matrix SkewSymVariable(3,3);
+     noalias(SkewSymVariable) = ZeroMatrix(3,3);
+     Vector RadiusVector(3);
+     noalias(RadiusVector) = ZeroVector(3);
+     Vector Variable(3);
+     noalias(Variable) = ZeroVector(3);
+     Vector AngularVariable(3);
+     noalias(AngularVariable) = ZeroVector(3);
      array_1d<double,3>     VariableArray;
  
      array_1d<double,3> Radius;
@@ -1730,7 +1764,7 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
      if(VOLUME_ACCELERATION.Key() == 0)
         // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(NODAL_MASS.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"NODAL_MASS has Key zero! (check if the application is correctly registered", "" )
     if(LOCAL_INERTIA_TENSOR.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered", "" )
     if(ROTATION.Key() == 0)

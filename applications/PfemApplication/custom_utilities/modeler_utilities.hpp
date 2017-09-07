@@ -1333,7 +1333,7 @@ public:
     {
       KRATOS_TRY
       
-	const unsigned int dimension = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+	const unsigned int dimension = rModelPart.GetProcessInfo()[DIMENSION];
       double ModelPartVolume = 0;
       if( dimension ==2 ){
       

@@ -219,7 +219,7 @@ namespace Kratos
 
    // COMPUTE Kuug. ( the same, but since is a different size, is copied and put it ok)
    void AxisymPointRigidContactPenaltyWater2DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
    {
 
@@ -252,7 +252,7 @@ namespace Kratos
 
    // TANGENT MATRIX OF THE TANGENT CONTACT. It has to be better programed (but it works).
    void AxisymPointRigidContactPenaltyWater2DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -326,7 +326,7 @@ namespace Kratos
    //***********************************************************************************
    // CALCULATE CONTACT FORCE, the same but then adds a zero on the water row.
    void AxisymPointRigidContactPenaltyWater2DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
 
    {

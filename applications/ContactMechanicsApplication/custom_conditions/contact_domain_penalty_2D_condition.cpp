@@ -131,7 +131,7 @@ namespace Kratos
   //****************************CALCULATE EXPLICIT PENALTY PARAMETERS*******************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainPenalty2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
   {
 
 
@@ -364,7 +364,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainPenalty2DCondition::CalculateNormalForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {    
     F = rVariables.Contact.Penalty.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
 
@@ -374,7 +374,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
 
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
@@ -392,7 +392,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainPenalty2DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainPenalty2DCondition::CalculateTangentSlipForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
 
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
@@ -412,7 +412,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+  void ContactDomainPenalty2DCondition::CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
   {
     KRATOS_TRY
     

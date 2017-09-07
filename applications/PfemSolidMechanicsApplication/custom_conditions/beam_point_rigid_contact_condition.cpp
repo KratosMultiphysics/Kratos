@@ -415,7 +415,7 @@ void BeamPointRigidContactCondition::InitializeSystemMatrices(MatrixType& rLeftH
 //************************************************************************************
 //************************************************************************************
 
-void BeamPointRigidContactCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void BeamPointRigidContactCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -427,7 +427,7 @@ void BeamPointRigidContactCondition::InitializeGeneralVariables(GeneralVariables
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-void BeamPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables,
+void BeamPointRigidContactCondition::CalculateKinematics(ConditionVariables& rVariables,
 							 const ProcessInfo& rCurrentProcessInfo,
 							 const double& rPointNumber)
 {
@@ -448,8 +448,8 @@ void BeamPointRigidContactCondition::CalculateConditionSystem(LocalSystemCompone
     KRATOS_TRY
 
     //create and initialize condition variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    ConditionVariables Variables;
+    this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
@@ -483,7 +483,7 @@ void BeamPointRigidContactCondition::CalculateConditionSystem(LocalSystemCompone
 //************************************************************************************
 //************************************************************************************
 
-void BeamPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void BeamPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
 
   //contributions of the stiffness matrix calculated on the reference configuration
@@ -525,7 +525,7 @@ void BeamPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& r
 //************************************************************************************
 //************************************************************************************
 
-void BeamPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void BeamPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
     //contribution of the internal and external forces
     if( rLocalSystem.CalculationFlags.Is( BeamPointRigidContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
@@ -746,7 +746,7 @@ void BeamPointRigidContactCondition::CalculateDampingMatrix( MatrixType& rDampin
 //***********************************************************************************
 
 void BeamPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-					     GeneralVariables& rVariables,
+					     ConditionVariables& rVariables,
 					     double& rIntegrationWeight)
 
 {
@@ -762,7 +762,7 @@ void BeamPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftHandSi
 //***********************************************************************************
 
 void BeamPointRigidContactCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-							      GeneralVariables& rVariables,
+							      ConditionVariables& rVariables,
 							      double& rIntegrationWeight)
 
 {

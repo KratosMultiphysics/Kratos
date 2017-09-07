@@ -43,7 +43,7 @@ class MeshingStrategy(object):
         #print("::[Modeler_Strategy]:: Construction of Mesh Strategy finished")
         
     #
-    def Initialize(self,meshing_parameters,domain_size):
+    def Initialize(self,meshing_parameters,dimension):
         
         print("::[Meshing Strategy]:: -START-")
 
@@ -92,7 +92,7 @@ class MeshingStrategy(object):
 
         for mesher in self.mesh_modelers:
             mesher.SetEchoLevel(self.echo_level)
-            mesher.Initialize(domain_size)
+            mesher.Initialize(dimension)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0

@@ -130,7 +130,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosConstitutiveModelsApplication KratosSolidMechanicsApplication KratosContactMechanicsApplication)
+target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosContactMechanicsApplication)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
 

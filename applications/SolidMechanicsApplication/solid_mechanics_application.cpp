@@ -40,6 +40,7 @@
 
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/line_gl_3d_2.h"
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
@@ -122,30 +123,65 @@ namespace Kratos
     mUpdatedLagrangianUPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     
     mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
-    
+    mLargeDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLargeDisplacementBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLargeDisplacementBeamEMCElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),   
+    mLargeDisplacementBeamSEMCElement3D2N( 0, Element::GeometryType::Pointer( new LineGL3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mGeometricallyExactRodElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
     mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), true ),
     mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
     mShellThinCorotationalElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), true ),
-    
+
+    mPointLoadCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mPointLoadCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     mAxisymPointLoadCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-    mPointLoadCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     
+    mLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mLineLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     
     mSurfaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mSurfaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mSurfaceLoadCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
     mSurfaceLoadCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
-    mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) )
+    mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
+
+    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mPointMomentCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     
+    mLineMomentCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineMomentCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLineMomentCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineMomentCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+
+    mSurfaceMomentCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mSurfaceMomentCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSurfaceMomentCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSurfaceMomentCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSurfaceMomentCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
+    
+    mPointElasticCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mPointElasticCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mAxisymPointElasticCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    
+    mLineElasticCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineElasticCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLineElasticCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineElasticCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymLineElasticCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mAxisymLineElasticCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    
+    mSurfaceElasticCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),    
+    mSurfaceElasticCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSurfaceElasticCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSurfaceElasticCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSurfaceElasticCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) )
+
   {}
 
   void KratosSolidMechanicsApplication::Register()
@@ -162,6 +198,11 @@ namespace Kratos
     
     //Register Variables (variables created in solid_mechanics_application_variables.cpp)
 
+    // Generalized eigenvalue problem
+    KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
+    KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )
+    KRATOS_REGISTER_VARIABLE( EIGENVECTOR_MATRIX )
+
     //explicit schemes
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
@@ -171,16 +212,15 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
       
     //geometrical
-    KRATOS_REGISTER_VARIABLE( AREA )
-    KRATOS_REGISTER_VARIABLE( IX )
-    KRATOS_REGISTER_VARIABLE( IY )
-    KRATOS_REGISTER_VARIABLE( IZ )
-    KRATOS_REGISTER_VARIABLE( CROSS_AREA )
-    KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
-    KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
-       
-    //cross section
+
+    //beam cross section
+    //KRATOS_REGISTER_VARIABLE( BEAM_CROSS_SECTION )
+    KRATOS_REGISTER_VARIABLE( CROSS_SECTION_AREA )
+    KRATOS_REGISTER_VARIABLE( CROSS_SECTION_RADIUS )
+    KRATOS_REGISTER_VARIABLE( CROSS_SECTION_SIDES )
+     
+    //shell cross section
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
@@ -197,29 +237,69 @@ namespace Kratos
         
     //nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_LOAD ) 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SURFACE_LOAD )
-
+      
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_POINT_LOAD )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_POINT_MOMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_LINE_LOAD ) 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_SURFACE_LOAD )
+
+    //nodal moment variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_MOMENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SURFACE_MOMENT )
+
+    KRATOS_REGISTER_VARIABLE( PLANE_POINT_MOMENT )
+    KRATOS_REGISTER_VARIABLE( PLANE_LINE_MOMENT )
+
+    //nodal elastic variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_STIFFNESS )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_STIFFNESS )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SURFACE_STIFFNESS )
       
     //condition load variables
-    KRATOS_REGISTER_VARIABLE( POINT_LOADS_VECTOR )   
-    KRATOS_REGISTER_VARIABLE( POINT_MOMENTS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( LINE_LOADS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( SURFACE_LOADS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( POSITIVE_FACE_PRESSURES_VECTOR )
-    KRATOS_REGISTER_VARIABLE( NEGATIVE_FACE_PRESSURES_VECTOR )
-              
+    KRATOS_REGISTER_VARIABLE( POINT_LOAD_VECTOR )   
+    KRATOS_REGISTER_VARIABLE( LINE_LOAD_VECTOR )
+    KRATOS_REGISTER_VARIABLE( SURFACE_LOAD_VECTOR )
+    KRATOS_REGISTER_VARIABLE( POSITIVE_FACE_PRESSURE_VECTOR )
+    KRATOS_REGISTER_VARIABLE( NEGATIVE_FACE_PRESSURE_VECTOR )
+
+    //condition moment variables
+    KRATOS_REGISTER_VARIABLE( POINT_MOMENT_VECTOR )
+    KRATOS_REGISTER_VARIABLE( LINE_MOMENT_VECTOR )
+    KRATOS_REGISTER_VARIABLE( SURFACE_MOMENT_VECTOR )
+      
+    KRATOS_REGISTER_VARIABLE( PLANE_POINT_MOMENT_VECTOR )
+    KRATOS_REGISTER_VARIABLE( PLANE_LINE_MOMENT_VECTOR )
+
+    //condition elastic variables
+    KRATOS_REGISTER_VARIABLE( POINT_STIFFNESS_VECTOR )
+    KRATOS_REGISTER_VARIABLE( LINE_STIFFNESS_VECTOR )
+    KRATOS_REGISTER_VARIABLE( SURFACE_STIFFNESS_VECTOR )      
+      
     //element
     KRATOS_REGISTER_VARIABLE( VON_MISES_STRESS )
 
     //nodal dofs
-    KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )  
-     
+    KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
+      
+    //explicit beam
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_MOMENT )
+      
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POSITION_MOMENTUM )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_MOMENTUM )  
+
+    KRATOS_REGISTER_VARIABLE( INERTIA_DYADIC )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESIDUAL_LYAPUNOV )  
+    KRATOS_REGISTER_VARIABLE( TANGENT_MATRIX )
+    KRATOS_REGISTER_VARIABLE( TANGENT_LYAPUNOV )
+
+    KRATOS_REGISTER_VARIABLE( ALPHA_TRAPEZOIDAL_RULE )
+    KRATOS_REGISTER_VARIABLE( POSITION_UPDATE_LABEL )
+    KRATOS_REGISTER_VARIABLE( ROTATION_UPDATE_LABEL )
+    KRATOS_REGISTER_VARIABLE( MOMENTUM_UPDATE_LABEL )
+      
     //Register Elements
 
     //Register solids
@@ -298,7 +378,13 @@ namespace Kratos
 
     //Register beams
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamElement3D2N", mLargeDisplacementBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamElement3D3N", mLargeDisplacementBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamEMCElement3D2N", mLargeDisplacementBeamEMCElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementBeamSEMCElement3D2N", mLargeDisplacementBeamSEMCElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "GeometricallyExactRodElement3D2N", mGeometricallyExactRodElement3D2N )
 
+      
     //Register shells
     KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
@@ -306,21 +392,17 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
       
 
-    //Register Conditions
-    KRATOS_REGISTER_CONDITION( "ForceLoadCondition", mForceLoadCondition )
-
-    KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
-      
+    //Register Conditions           
     KRATOS_REGISTER_CONDITION( "PointLoadCondition3D1N", mPointLoadCondition3D1N )
     KRATOS_REGISTER_CONDITION( "PointLoadCondition2D1N", mPointLoadCondition2D1N )
     KRATOS_REGISTER_CONDITION( "AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N )
 
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N", mLineLoadCondition3D2N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D3N", mLineLoadCondition3D3N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N", mLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N", mLineLoadCondition2D3N )
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N", mLineLoadCondition3D2N )
-    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D3N", mLineLoadCondition3D3N )
 
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D3N", mSurfaceLoadCondition3D3N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D4N )
@@ -328,7 +410,37 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
 
+    KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
+    KRATOS_REGISTER_CONDITION( "PointMomentCondition2D1N", mPointMomentCondition2D1N )
+      
+    KRATOS_REGISTER_CONDITION( "LineMomentCondition2D2N", mLineMomentCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "LineMomentCondition2D3N", mLineMomentCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineMomentCondition3D2N", mLineMomentCondition3D2N )
+    KRATOS_REGISTER_CONDITION( "LineMomentCondition3D3N", mLineMomentCondition3D3N )
 
+    KRATOS_REGISTER_CONDITION( "SurfaceMomentCondition3D3N", mSurfaceMomentCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "SurfaceMomentCondition3D4N", mSurfaceMomentCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "SurfaceMomentCondition3D6N", mSurfaceMomentCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "SurfaceMomentCondition3D8N", mSurfaceMomentCondition3D8N )
+    KRATOS_REGISTER_CONDITION( "SurfaceMomentCondition3D9N", mSurfaceMomentCondition3D9N )
+
+    KRATOS_REGISTER_CONDITION( "PointElasticCondition3D1N", mPointElasticCondition3D1N )
+    KRATOS_REGISTER_CONDITION( "PointElasticCondition2D1N", mPointElasticCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "AxisymPointElasticCondition2D1N", mAxisymPointElasticCondition2D1N )
+
+    KRATOS_REGISTER_CONDITION( "LineElasticCondition3D2N", mLineElasticCondition3D2N )
+    KRATOS_REGISTER_CONDITION( "LineElasticCondition3D3N", mLineElasticCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "LineElasticCondition2D2N", mLineElasticCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "LineElasticCondition2D3N", mLineElasticCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "AxisymLineElasticCondition2D2N", mAxisymLineElasticCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "AxisymLineElasticCondition2D3N", mAxisymLineElasticCondition2D3N )
+
+    KRATOS_REGISTER_CONDITION( "SurfaceElasticCondition3D3N", mSurfaceElasticCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "SurfaceElasticCondition3D4N", mSurfaceElasticCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "SurfaceElasticCondition3D6N", mSurfaceElasticCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "SurfaceElasticCondition3D8N", mSurfaceElasticCondition3D8N )
+    KRATOS_REGISTER_CONDITION( "SurfaceElasticCondition3D9N", mSurfaceElasticCondition3D9N )
+      
     //Register Constitutive Laws
 
     //Hyperelastic laws

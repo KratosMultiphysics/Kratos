@@ -149,7 +149,7 @@ namespace Kratos
     HyperElasticModel& operator=(HyperElasticModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const;
+    virtual ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.

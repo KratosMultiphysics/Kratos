@@ -409,7 +409,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void PointRigidContactCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -428,7 +428,7 @@ namespace Kratos
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
+   void PointRigidContactCondition::CalculateKinematics(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
    {
       KRATOS_TRY
 
@@ -447,8 +447,8 @@ namespace Kratos
       KRATOS_TRY
 
       //create and initialize condition variables:
-      GeneralVariables Variables;
-      this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+      ConditionVariables Variables;
+      this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
       //reading integration points
       for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
@@ -490,7 +490,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void PointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
    {
 
       //contributions of the stiffness matrix calculated on the reference configuration
@@ -532,7 +532,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void PointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
    {
       //contribution of the internal and external forces
       if( rLocalSystem.CalculationFlags.Is( PointRigidContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
@@ -752,7 +752,7 @@ namespace Kratos
    //***********************************************************************************
 
    void PointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
 
    {
@@ -768,7 +768,7 @@ namespace Kratos
    //***********************************************************************************
 
    void PointRigidContactCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
 
    {

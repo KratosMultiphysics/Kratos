@@ -382,7 +382,7 @@ End Elements
 *loop groups *OnlyInCond
 *if(strcmp(cond(Parametric_Wall),"False")==0)
 *if(strcmp(cond(Body_Surface),"False")==0)
-*if(GenData(DOMAIN_SIZE,INT) == 3)
+*if(GenData(DIMENSION,INT) == 3)
 Begin Elements Element3D4N
 *else
 Begin Elements Element2D3N
@@ -415,7 +415,7 @@ End Elements
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 *if(strcmp(cond(Body_Surface),"True")==0 || strcmp(cond(Parametric_Wall),"True")==0)
-*if(GenData(DOMAIN_SIZE,INT) == 3)
+*if(GenData(DIMENSION,INT) == 3)
 Begin Elements Element3D3N
 *else
 Begin Elements Element2D2N

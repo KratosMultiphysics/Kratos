@@ -87,7 +87,7 @@ AxisymContactDomainPenalty2DCondition::~AxisymContactDomainPenalty2DCondition()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainPenalty2DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymContactDomainPenalty2DCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     GeometryType & MasterGeometry = mContactVariables.GetMasterGeometry();
 
@@ -175,7 +175,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRad
 //************************************************************************************
 
 
-void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
+void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
 {
     KRATOS_TRY
 
@@ -274,7 +274,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariable
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
   ElementType&  MasterElement  = mContactVariables.GetMasterElement();
   // UL
@@ -296,7 +296,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemCompon
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
 {
   ElementType&  MasterElement  = mContactVariables.GetMasterElement();
   // UL
