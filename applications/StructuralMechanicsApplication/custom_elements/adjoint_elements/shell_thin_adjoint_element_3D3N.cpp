@@ -432,10 +432,11 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
 
         // Compute RHS before disturbing
 		this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
-        rOutput.resize(1,RHS_dist.size());
+        rOutput.resize(1,RHS_undist.size());
 
 		if ( this->GetProperties().Has(rDesignVariable) ) 
 		{
+            //std::cout << ("calculating now pseudo loads of element #") << this->Id() << std::endl;	
 			// Save properties and its pointer
             Properties& r_global_property = this->GetProperties(); 
             Properties::Pointer p_global_properties = this->pGetProperties(); 
