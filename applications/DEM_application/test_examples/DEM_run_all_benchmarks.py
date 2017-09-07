@@ -9,6 +9,7 @@ kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 path = '../test_examples'
 sys.path.append(path)
+
 path = os.getcwd()
 path += '/basic_benchmarks'
 os.chdir(path)
@@ -81,10 +82,14 @@ def Run():
             else:
                 os.environ['OMP_NUM_THREADS']='1'
                 if sys.version_info >= (3, 0):
-                    subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                    path_py = os.getcwd()
+                    path_py += '/../../python_scripts'       
+                    subprocess.check_call(["python3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                     
                 else:
-                    subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                    path_py = os.getcwd()
+                    path_py += '/../../python_scripts'                                                                              
+                    subprocess.check_call(["python", "-3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                 os.system("export OMP_NUM_THREADS=") # Trying to set a 'default' value
         except:
             #failure = True
