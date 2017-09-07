@@ -171,6 +171,14 @@ namespace Kratos
             KRATOS_THROW_ERROR( std::invalid_argument, "JACOBIAN has Key zero! (check if the application is correctly registered", "" )
 
 
+      if ( this->GetProperties().Has(THICKNESS) ) {
+	      double thickness = this->GetProperties()[THICKNESS];
+	      if ( thickness <= 0.0) {
+		      this->GetProperties()[THICKNESS] = 1.0;
+	      }
+      } else {
+	     this->GetProperties()[THICKNESS] = 1.0;
+      } 
 
                   return correct;
 
