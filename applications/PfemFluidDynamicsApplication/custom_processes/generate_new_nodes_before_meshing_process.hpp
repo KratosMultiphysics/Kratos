@@ -563,6 +563,10 @@ private:
 	// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
 	//   Edges[i]=0;
 	// }
+	if((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID))  && 
+	   (Element[SecondEdgeNode[i]].Is(FREE_SURFACE)|| Element[SecondEdgeNode[i]].Is(RIGID))){
+	  Edges[i]=0;
+	}
       }
 
     }else if(rigidNodes==1){

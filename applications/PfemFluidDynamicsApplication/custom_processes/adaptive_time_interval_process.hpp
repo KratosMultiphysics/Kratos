@@ -361,7 +361,7 @@ namespace Kratos
 	      bool solidElement=false;
 	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		{
-		  if(itElem->GetGeometry()[i].Is(SOLID)){
+		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->IsNot(ACTIVE)){
 		    solidElement=true;
 		  }
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
