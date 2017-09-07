@@ -217,8 +217,8 @@ class Algorithm(BaseAlgorithm):
             elif num_type(size_parameter) == 'float':
                 mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('irregular mesh')
                 mesh_grp_laplacian = laplacian_mthd_group.require_group('irregular mesh')
-                dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
-                dset_laplacian = mesh_grp_laplacian.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
+                dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('h = ' + str(size_parameter), (2,), dtype = np.float64)
+                dset_laplacian = mesh_grp_laplacian.require_dataset('h = ' + str(size_parameter), (2,), dtype = np.float64)
             dset_mat_deriv.attrs['mesh size'] =  min(float(size_parameter), 1.0 / float(size_parameter))
             dset_mat_deriv[0] = self.current_mat_deriv_errors[0]
             dset_mat_deriv[1] = self.current_mat_deriv_errors[1]

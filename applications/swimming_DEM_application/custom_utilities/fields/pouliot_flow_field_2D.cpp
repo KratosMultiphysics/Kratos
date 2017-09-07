@@ -44,9 +44,6 @@ double PouliotFlowField2D::U0(const int i)
 {
     const double x = mX[i];
     const double y = mY[i];
-    KRATOS_WATCH(i)
-    KRATOS_WATCH(x)
-    KRATOS_WATCH(y)
     return x*x*x + y*y*y;
 }
 double PouliotFlowField2D::U1(const int i)
@@ -67,15 +64,11 @@ double PouliotFlowField2D::U0DT(const int i)
 double PouliotFlowField2D::U0D0(const int i)
 {
     const double x = mX[i];
-    KRATOS_WATCH(i)
-    KRATOS_WATCH(x)
     return 3*x*x;
 }
 double PouliotFlowField2D::U0D1(const int i)
 {
     const double y = mY[i];
-    KRATOS_WATCH(i)
-    KRATOS_WATCH(y)
     return 3*y*y;
 }
 double PouliotFlowField2D::U0D2(const int i)
