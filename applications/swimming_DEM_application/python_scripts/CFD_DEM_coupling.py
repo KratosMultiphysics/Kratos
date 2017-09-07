@@ -22,7 +22,7 @@ class ProjectionModule:
         self.n_particles_in_depth        = pp.CFD_DEM.n_particles_in_depth
         self.meso_scale_length           = pp.CFD_DEM["meso_scale_length"].GetDouble()
         self.shape_factor                = pp.CFD_DEM["shape_factor"].GetDouble()
-        self.do_impose_flow_from_field   = pp.CFD_DEM.do_impose_flow_from_field
+        self.do_impose_flow_from_field   = pp.CFD_DEM["do_impose_flow_from_field_option"].GetBool()
         self.flow_field                  = flow_field
 
         if self.dimension == 3:
@@ -106,7 +106,6 @@ class ProjectionModule:
         #sys.stdout.flush()
 
         if self.coupling_type != 3:
-            print(self.bin_of_objects_fluid)
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:

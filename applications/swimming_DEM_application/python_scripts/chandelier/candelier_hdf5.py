@@ -11,8 +11,8 @@ class ResultsCandelier:
         self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
         self.dt = pp.CFD_DEM["MaxTimeStep"].GetDouble()
-        self.N_q = pp.CFD_DEM.time_steps_per_quadrature_step
-        self.quadrature_order = pp.CFD_DEM.quadrature_order
+        self.N_q = pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt()
+        self.quadrature_order = pp.CFD_DEM["quadrature_order"].GetInt()
         self.reading_index = 0
         self.times = []
         self.errors = []
@@ -23,7 +23,7 @@ class ResultsCandelier:
         else:
             self.method = 'Hinsberg'
             self.m = pp.CFD_DEM.number_of_exponentials
-            self.t_w = pp.CFD_DEM.time_window
+            self.t_w = pp.CFD_DEM["time_window"].GetDouble()
 
         self.result_code = self.method + '_dt=' + str(self.dt) + '_Nq=' + str(self.N_q) + '_quadrature_order=' + str(self.quadrature_order)
         if self.method == 'Hinsberg':

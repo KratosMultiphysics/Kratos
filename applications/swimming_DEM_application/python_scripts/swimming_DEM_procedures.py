@@ -568,7 +568,7 @@ def CreateRunCode(pp):
     if pp.CFD_DEM["basset_force_type"].GetInt() == 4:
         method_name = 'Hinsberg'
         number_of_exponentials = 'm=' + str(pp.CFD_DEM.number_of_exponentials)
-        time_window = 'tw=' + str(pp.CFD_DEM.time_window)
+        time_window = 'tw=' + str(pp.CFD_DEM["time_window"].GetDouble())
         code.append(method_name)
         code.append(number_of_exponentials)
         code.append(time_window)
@@ -584,10 +584,10 @@ def CreateRunCode(pp):
     code.append(DEM_dt)
 
     if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
-        phi = 'phi=' + str(round(1 / pp.CFD_DEM.time_steps_per_quadrature_step, 3))
+        phi = 'phi=' + str(round(1 / pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(), 3))
         code.append(phi)
 
-    quadrature_order = 'QuadOrder=' + str(pp.CFD_DEM.quadrature_order)
+    quadrature_order = 'QuadOrder=' + str(pp.CFD_DEM["quadrature_order"].GetInt())
     code.append(quadrature_order)
 
     return '_' + '_'.join(code)

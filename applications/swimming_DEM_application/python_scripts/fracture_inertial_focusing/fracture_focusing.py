@@ -93,7 +93,7 @@ pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * p
 pp.CFD_DEM.quadrature_order = 2
 pp.CFD_DEM.time_window = 0.01
 pp.CFD_DEM.number_of_exponentials = 8
-pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
+pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM["time_window"].GetDouble() / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 #Z
 
