@@ -38,13 +38,13 @@ using namespace boost::python;
 
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 
-void  AddConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython()
 {
-    class_< SmallStrainUmat, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "SmallStrainUmat", init<>() )
+    class_< SmallStrainUmat3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "SmallStrainUmat3DLaw", init<>() )
     ;
-    class_< LargeStrainUmat, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LargeStrainUmat", init<>() )
+    class_< LargeStrainUmat3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LargeStrainUmat3DLaw", init<>() )
     ;
 }
 }  // namespace Python.

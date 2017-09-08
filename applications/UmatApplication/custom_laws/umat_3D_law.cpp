@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_laws/umat_law.hpp"
+#include "custom_laws/umat_3D_law.hpp"
 
 
 /**

@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_laws/small_strain_umat_3D_law.hpp"
+#include "custom_laws/large_strain_umat_3D_law.hpp"
 
 
 extern "C" void umat_wrapper_( double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
@@ -29,21 +29,21 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  SmallStrainUmat3DLaw::SmallStrainUmat3DLaw() : Umat3DLaw()
+  LargeStrainUmat3DLaw::LargeStrainUmat3DLaw() : Umat3DLaw()
   {
   }
   
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
-  SmallStrainUmat3DLaw::SmallStrainUmat3DLaw(const SmallStrainUmat3DLaw& rOther) : Umat3DLaw(rOther)
+  LargeStrainUmat3DLaw::LargeStrainUmat3DLaw(const LargeStrainUmat3DLaw& rOther) : Umat3DLaw(rOther)
   {
   }
 
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  SmallStrainUmat3DLaw& SmallStrainUmat3DLaw::operator=(const SmallStrainUmat3DLaw& rOther)
+  LargeStrainUmat3DLaw& LargeStrainUmat3DLaw::operator=(const LargeStrainUmat3DLaw& rOther)
   {
     return *this;
   } 
@@ -52,9 +52,9 @@ namespace Kratos
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  ConstitutiveLaw::Pointer SmallStrainUmat3DLaw::Clone() const
+  ConstitutiveLaw::Pointer LargeStrainUmat3DLaw::Clone() const
   {
-    return ( SmallStrainUmat3DLaw::Pointer(new SmallStrainUmat3DLaw(*this)) );
+    return ( LargeStrainUmat3DLaw::Pointer(new LargeStrainUmat3DLaw(*this)) );
   }
 
 
@@ -62,7 +62,7 @@ namespace Kratos
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
 
-  SmallStrainUmat3DLaw::~SmallStrainUmat3DLaw()
+  LargeStrainUmat3DLaw::~LargeStrainUmat3DLaw()
   {
   }
 
@@ -79,9 +79,9 @@ namespace Kratos
   //************************************************************************************
 
   
-  void LargeStrainUmatLaw::InitializeMaterial( const Properties& props,
-					       const GeometryType& geom,
-					       const Vector& ShapeFunctionsValues )
+  void LargeStrainUmat3DLaw::InitializeMaterial( const Properties& props,
+						 const GeometryType& geom,
+						 const Vector& ShapeFunctionsValues )
   {
 
     KRATOS_TRY
@@ -186,7 +186,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void LargeStrainUmatLaw::CalculateMaterialResponseKirchhoff(  Parameters & rValues)
+  void LargeStrainUmat3DLaw::CalculateMaterialResponseKirchhoff(  Parameters & rValues)
   {
 
     KRATOS_TRY
@@ -331,7 +331,7 @@ namespace Kratos
   //***********************************FINALIZE*****************************************
   //************************************************************************************
 
-  void LargeStrainUmatLaw::FinalizeMaterialResponseCauchy( Parameters & rValues)
+  void LargeStrainUmat3DLaw::FinalizeMaterialResponseCauchy( Parameters & rValues)
   {
     KRATOS_TRY
 
@@ -347,7 +347,7 @@ namespace Kratos
   //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
   //************************************************************************************
 
-  void LargeStrainUmatLaw::GetLawFeatures(Features& rFeatures)
+  void LargeStrainUmat3DLaw::GetLawFeatures(Features& rFeatures)
   {
     //Set the type of law
     rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );

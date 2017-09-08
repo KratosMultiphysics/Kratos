@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "includes/constitutive_law.h"
+#include "custom_laws/umat_3D_law.hpp"
 
 
 namespace Kratos
@@ -37,16 +37,11 @@ namespace Kratos
     ///@{
     typedef ProcessInfo                                           ProcessInfoType;
     typedef ConstitutiveLaw                                              BaseType;
-    typedef ConstitutiveModelData::SizeType                              SizeType;
+    typedef Umat3DLaw                                                 DerivedType;
 
-    typedef ConstitutiveModelData::VectorType                          VectorType;
-    typedef ConstitutiveModelData::MatrixType                          MatrixType;
-    typedef ConstitutiveModelData::ModelData                        ModelDataType;
-    typedef ConstitutiveModelData::ConstitutiveLawData                LawDataType;
-
-    typedef array_1d<double, 81>                               MaterialTensorType;
-    typedef array_1d<double, 3 >                                   PlaneArrayType;
-    typedef array_1d<double, 6 >                                   SpaceArrayType;
+    typedef DerivedType::MaterialTensorType                    MaterialTensorType;
+    typedef DerivedType::PlaneArrayType                            PlaneArrayType;
+    typedef DerivedType::SpaceArrayType                            SpaceArrayType;
 
     /// Pointer definition of SmallStrainUmat3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUmat3DLaw );
@@ -172,12 +167,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save ( Serializer& rSerializer ) const
+    virtual void save ( Serializer& rSerializer ) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS ( rSerializer, Umat3DLaw )
     }
 
-    virtual void load ( Serializer& rSerializer )
+    virtual void load ( Serializer& rSerializer ) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS ( rSerializer, Umat3DLaw )
     }

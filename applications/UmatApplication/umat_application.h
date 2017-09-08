@@ -178,8 +178,8 @@ private:
 	///@name Static Member Variables
 	///@{
 
-	const SmallStrainUmatLaw  mSmallStrainUmatLaw;
-	const LargeStrainUmatLaw  mLargeStrainUmatLaw;
+	const SmallStrainUmat3DLaw  mSmallStrainUmat3DLaw;
+	const LargeStrainUmat3DLaw  mLargeStrainUmat3DLaw;
 	
 	///@}
 	///@name Member Variables
