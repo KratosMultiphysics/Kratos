@@ -196,8 +196,8 @@ namespace Kratos
     //internal elastic variables
 
     //stored total deformation gradient for incremental strain update
-    double        mDeterminantF0;
-    MatrixType    mInverseDeformationGradientF0;
+    double        mTotalDeformationDet;
+    MatrixType    mInverseTotalDeformationMatrix;
     
     ///@}
     ///@name Protected Operators
@@ -276,8 +276,8 @@ namespace Kratos
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Constitutive3DLaw )
 
       rSerializer.save("mpModel",mpModel);
-      rSerializer.save("mDeterminantF0",mDeterminantF0);
-      rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+      rSerializer.save("mTotalDeformationDet",mTotalDeformationDet);
+      rSerializer.save("mInverseTotalDeformationMatrix",mInverseTotalDeformationMatrix);
     }
 
     virtual void load(Serializer& rSerializer) override
@@ -285,8 +285,8 @@ namespace Kratos
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Constitutive3DLaw )
 
       rSerializer.load("mpModel",mpModel);
-      rSerializer.load("mDeterminantF0",mDeterminantF0);
-      rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+      rSerializer.load("mTotalDeformationDet",mTotalDeformationDet);
+      rSerializer.load("mInverseTotalDeformationMatrix",mInverseTotalDeformationMatrix);
     }
 
 

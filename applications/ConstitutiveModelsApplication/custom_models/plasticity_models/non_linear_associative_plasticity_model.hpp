@@ -392,10 +392,10 @@ namespace Kratos
       
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
 	
-	const MatrixType& rDeformationGradientF0 = rModelData.GetDeformationGradientF0();
+	const MatrixType& rTotalDeformationMatrix = rModelData.GetTotalDeformationMatrix();
 	MatrixType StressMatrixPart;
-	noalias( StressMatrixPart ) = prod( rDeformationGradientF0, rStressMatrix );
-	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rDeformationGradientF0) );
+	noalias( StressMatrixPart ) = prod( rTotalDeformationMatrix, rStressMatrix );
+	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rTotalDeformationMatrix) );
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
 	  double I3 = 0;
@@ -442,15 +442,15 @@ namespace Kratos
       
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
 	
-	const MatrixType& rDeformationGradientF0 = rModelData.GetDeformationGradientF0();
+	const MatrixType& rTotalDeformationMatrix = rModelData.GetTotalDeformationMatrix();
 	MatrixType StressMatrixPart;
 	
-	MatrixType InverseDeformationGradientF0;
-	InverseDeformationGradientF0.clear();
-	double detF0;
-	ConstitutiveModelUtilities::InvertMatrix3( rDeformationGradientF0, InverseDeformationGradientF0, detF0);
-	noalias( StressMatrixPart ) = prod( InverseDeformationGradientF0, rStressMatrix );
-	noalias( rStressMatrix ) = prod( StressMatrixPart, trans(InverseDeformationGradientF0) );
+	MatrixType InverseTotalDeformationMatrix;
+	InverseTotalDeformationMatrix.clear();
+	double TotalDeformationDet;
+	ConstitutiveModelUtilities::InvertMatrix3( rTotalDeformationMatrix, InverseTotalDeformationMatrix, TotalDeformationDet);
+	noalias( StressMatrixPart ) = prod( InverseTotalDeformationMatrix, rStressMatrix );
+	noalias( rStressMatrix ) = prod( StressMatrixPart, trans(InverseTotalDeformationMatrix) );
 	
       }	
    
@@ -750,7 +750,7 @@ namespace Kratos
       double VolumetricPart = (rValues.StrainMatrix(0,0)+rValues.StrainMatrix(1,1)+rValues.StrainMatrix(2,2)) / (3.0);
 
       rValues.StrainMatrix  = rStressMatrix;
-      rValues.StrainMatrix *= ( 1.0 / rValues.MaterialParameters.LameMu * pow(rValues.GetDeterminantF0(),(2.0/3.0)) );
+      rValues.StrainMatrix *= ( 1.0 / rValues.MaterialParameters.LameMu * pow(rValues.GetTotalDeformationDet(),(2.0/3.0)) );
             
       rValues.StrainMatrix(0,0) += VolumetricPart;
       rValues.StrainMatrix(1,1) += VolumetricPart;

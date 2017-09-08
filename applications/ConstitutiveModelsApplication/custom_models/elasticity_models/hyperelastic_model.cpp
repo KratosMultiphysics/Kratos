@@ -402,7 +402,7 @@ namespace Kratos
     rVariables.SetState(rValues.State);
     
     //deformation gradient
-    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+    const MatrixType& rDeltaDeformationMatrix = rValues.GetDeltaDeformationMatrix();
     
     const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
     
@@ -415,8 +415,8 @@ namespace Kratos
       rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 
       //current strain matrix
-      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeformationGradientF);
-      noalias(rValues.StrainMatrix) = prod(trans(rDeformationGradientF), rVariables.Strain.Matrix);
+      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeltaDeformationMatrix);
+      noalias(rValues.StrainMatrix) = prod(trans(rDeltaDeformationMatrix), rVariables.Strain.Matrix);
 
       noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;     
       
@@ -436,8 +436,8 @@ namespace Kratos
       rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
 
       //current strain matrix
-      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeformationGradientF));
-      noalias(rValues.StrainMatrix) = prod(rDeformationGradientF, rVariables.Strain.Matrix);
+      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeltaDeformationMatrix));
+      noalias(rValues.StrainMatrix) = prod(rDeltaDeformationMatrix, rVariables.Strain.Matrix);
 
       noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;
 
@@ -699,7 +699,7 @@ namespace Kratos
     this->CalculateStrainInvariants( rVariables.Strain.Matrix, rVariables.Strain.Invariants.I1, rVariables.Strain.Invariants.I2, rVariables.Strain.Invariants.I3 );
  
     //jacobian
-    rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetDeterminantF0();
+    rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetTotalDeformationDet();
     rVariables.Strain.Invariants.J_13 = pow(rVariables.Strain.Invariants.J,(-1.0/3.0));
 
     //std::cout<<" Strain.Invariants [I1:"<<rVariables.Strain.Invariants.I1<<" I2:"<<rVariables.Strain.Invariants.I2<<" I3:"<<rVariables.Strain.Invariants.I3<<"] J:"<<rVariables.Strain.Invariants.J<<std::endl;
