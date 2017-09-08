@@ -26,10 +26,10 @@ namespace Kratos
     KRATOS_TRY
 
     //member variables initialization
-    mDeterminantF0 = 1.0;
+    mTotalDeformationDet = 1.0;
 
     MatrixType Identity = identity_matrix<double>(3);   
-    noalias(mInverseDeformationGradientF0) = Identity;
+    noalias(mInverseTotalDeformationMatrix) = Identity;
 
     
     KRATOS_CATCH(" ")    
@@ -47,10 +47,10 @@ namespace Kratos
     mpModel = pModel->Clone();
 
     //member variables initialization
-    mDeterminantF0 = 1.0;
+    mTotalDeformationDet = 1.0;
 
     MatrixType Identity = identity_matrix<double>(3);    
-    noalias(mInverseDeformationGradientF0) = Identity;
+    noalias(mInverseTotalDeformationMatrix) = Identity;
     
     KRATOS_CATCH(" ")    
   }
@@ -60,8 +60,8 @@ namespace Kratos
 
   LargeStrain3DLaw::LargeStrain3DLaw(const LargeStrain3DLaw& rOther)
     : Constitutive3DLaw(rOther)
-    ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
+    ,mTotalDeformationDet(rOther.mTotalDeformationDet)
+    ,mInverseTotalDeformationMatrix(rOther.mInverseTotalDeformationMatrix)
   {
     mpModel = rOther.mpModel->Clone();
   }
@@ -73,8 +73,8 @@ namespace Kratos
   {
     Constitutive3DLaw::operator=(rOther);
     mpModel = rOther.mpModel->Clone();
-    mDeterminantF0 = rOther.mDeterminantF0;
-    mInverseDeformationGradientF0 = rOther.mInverseDeformationGradientF0;
+    mTotalDeformationDet = rOther.mTotalDeformationDet;
+    mInverseTotalDeformationMatrix = rOther.mInverseTotalDeformationMatrix;
     return *this;
   } 
   
@@ -123,7 +123,7 @@ namespace Kratos
     KRATOS_TRY      
 
     if(rThisVariable == DETERMINANT_F){
-      mDeterminantF0 = rValue;
+      mTotalDeformationDet = rValue;
     }
 
     KRATOS_CATCH(" ")
@@ -166,7 +166,7 @@ namespace Kratos
     rValue = mpModel->GetValue(rThisVariable,rValue);
       
     if(rThisVariable == DETERMINANT_F){
-      rValue = mDeterminantF0;
+      rValue = mTotalDeformationDet;
     }
 
     return rValue;
@@ -196,14 +196,14 @@ namespace Kratos
     LawDataType& rVariables = rModelValues.rConstitutiveLawData();
        
     //a.- Calculate incremental deformation gradient determinant
-    rVariables.DeterminantF0 = rValues.GetDeterminantF();    
-    rVariables.DeterminantF  = rVariables.DeterminantF0/mDeterminantF0; //determinant incremental F
+    rVariables.TotalDeformationDet = rValues.GetDeterminantF();    
+    rVariables.DeltaDeformationDet = rVariables.TotalDeformationDet/mTotalDeformationDet; //determinant incremental F
         
     //b.- Calculate incremental deformation gradient
-    const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF();
+    const MatrixType& rTotalDeformationMatrix = rValues.GetDeformationGradientF();
 
-    noalias(rVariables.DeformationGradientF0) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF0, rVariables.DeformationGradientF0);
-    rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF0, mInverseDeformationGradientF0); //incremental F
+    noalias(rVariables.TotalDeformationMatrix) = ConstitutiveModelUtilities::DeformationGradientTo3D(rTotalDeformationMatrix, rVariables.TotalDeformationMatrix);
+    rVariables.DeltaDeformationMatrix = prod(rVariables.TotalDeformationMatrix, mInverseTotalDeformationMatrix); //incremental F
         
     if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
       rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
@@ -225,14 +225,14 @@ namespace Kratos
     //Finalize Material response
     if(rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE)){
       
-      const Matrix& rDeformationGradientF  = rValues.GetDeformationGradientF();
-      const double& rDeterminantF          = rValues.GetDeterminantF();
+      const Matrix& rDeltaDeformationMatrix = rValues.GetDeformationGradientF();
+      const double& rDeltaDeformationDet    = rValues.GetDeterminantF();
             
       //update total deformation gradient
-      MatrixType DeformationGradientF0;
-      noalias(DeformationGradientF0) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF,DeformationGradientF0);
-      ConstitutiveModelUtilities::InvertMatrix3( DeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0);
-      mDeterminantF0 = rDeterminantF; //special treatment of the determinant
+      MatrixType TotalDeformationMatrix;
+      noalias(TotalDeformationMatrix) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeltaDeformationMatrix,TotalDeformationMatrix);
+      ConstitutiveModelUtilities::InvertMatrix3( TotalDeformationMatrix, mInverseTotalDeformationMatrix, mTotalDeformationDet);
+      mTotalDeformationDet = rDeltaDeformationDet; //special treatment of the determinant
 	
       //finalize model (update total strain measure)
       mpModel->FinalizeModel(rModelValues);

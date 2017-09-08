@@ -334,26 +334,26 @@ namespace Kratos
     this->CalculateMaterialResponseKirchhoff(rValues);
 
     //1.- Obtain parameters
-    Flags & Options                    = rValues.GetOptions();    
+    Flags & Options                      = rValues.GetOptions();    
 
-    Vector& StressVector               = rValues.GetStressVector();
+    Vector& StressVector                 = rValues.GetStressVector();
 
-    const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-    const double& DeterminantF         = rValues.GetDeterminantF();
+    const Matrix& DeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    const double& DeltaDeformationDet    = rValues.GetDeterminantF();
 
-    Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
+    Matrix& ConstitutiveMatrix           = rValues.GetConstitutiveMatrix();
 
 
     //2.-Calculate Total PK2 stress
     if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
       {
-	TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_PK2);
+	TransformStresses(StressVector, DeltaDeformationMatrix, DeltaDeformationDet, StressMeasure_Kirchhoff, StressMeasure_PK2);
       }
 
     //3.-Calculate PK2 constitutive tensor
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
       {
-	PullBackConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
+	PullBackConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
       }
     
     KRATOS_CATCH(" ")      
@@ -370,11 +370,11 @@ namespace Kratos
  
     this->CalculateMaterialResponsePK2(rValues);
 
-    Vector& rStressVector               = rValues.GetStressVector();
-    const Matrix& rDeformationGradientF = rValues.GetDeformationGradientF();
-    const double& rDeterminantF         = rValues.GetDeterminantF();
+    Vector& rStressVector                 = rValues.GetStressVector();
+    const Matrix& rDeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    const double& rDeltaDeformationDet    = rValues.GetDeterminantF();
 
-    TransformStresses(rStressVector,rDeformationGradientF,rDeterminantF,StressMeasure_PK2,StressMeasure_PK1);
+    TransformStresses(rStressVector,rDeltaDeformationMatrix,rDeltaDeformationDet,StressMeasure_PK2,StressMeasure_PK1);
     
     KRATOS_CATCH(" ")
 	  
@@ -390,26 +390,26 @@ namespace Kratos
     this->CalculateMaterialResponsePK2(rValues);
 
     //1.- Obtain parameters
-    Flags & Options                    = rValues.GetOptions();    
+    Flags & Options                      = rValues.GetOptions();    
 
-    Vector& StressVector               = rValues.GetStressVector();
+    Vector& StressVector                 = rValues.GetStressVector();
 
-    const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-    const double& DeterminantF         = rValues.GetDeterminantF();
+    const Matrix& DeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    const double& DeltaDeformationDet    = rValues.GetDeterminantF();
 
-    Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
+    Matrix& ConstitutiveMatrix           = rValues.GetConstitutiveMatrix();
 
 
     //2.-Calculate Total Kirchhoff stress
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
       {
-        TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_PK2, StressMeasure_Kirchhoff);
+        TransformStresses(StressVector, DeltaDeformationMatrix, DeltaDeformationDet, StressMeasure_PK2, StressMeasure_Kirchhoff);
       }
 
     //3.-Calculate Kirchhoff constitutive tensor
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       {
-        PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
+        PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
       }
 
     KRATOS_CATCH(" ")      
@@ -425,13 +425,13 @@ namespace Kratos
       
     this->CalculateMaterialResponseKirchhoff(rValues);
 
-    const double& rDeterminantF          = rValues.GetDeterminantF();
+    const double& rDeltaDeformationDet   = rValues.GetDeterminantF();
     Vector& rStressVector                = rValues.GetStressVector();
     Matrix& rConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
 
     //Set to cauchy Stress:
-    rStressVector       /= rDeterminantF;
-    rConstitutiveMatrix /= rDeterminantF;
+    rStressVector       /= rDeltaDeformationDet;
+    rConstitutiveMatrix /= rDeltaDeformationDet;
 
     KRATOS_CATCH(" ")
   }
@@ -561,7 +561,7 @@ namespace Kratos
 
   //   mpElasticModel->CalculateStrainEnergyFunction(mStrainEnergy);
       
-  //   // double ln_J = std::log(ElasticVariables.DeterminantF);
+  //   // double ln_J = std::log(rVariables.DeltaDeformationDet);
   //   // double trace_C = 0.0;
     
   //   // for(unsigned int i = 0; i<RightCauchyGreen.size1();i++)
