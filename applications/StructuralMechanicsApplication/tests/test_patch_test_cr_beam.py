@@ -22,10 +22,6 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             node.AddDof(KratosMultiphysics.ROTATION_X)
             node.AddDof(KratosMultiphysics.ROTATION_Y)
             node.AddDof(KratosMultiphysics.ROTATION_Z)
-            node.AddDof(KratosMultiphysics.TORQUE_X)
-            node.AddDof(KratosMultiphysics.TORQUE_Y)
-            node.AddDof(KratosMultiphysics.TORQUE_Z)
-            
     
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -35,14 +31,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)  
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)     
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)    
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
-
-
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)     
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)  
         
     def _apply_material_properties(self,mp,dim):
         #define properties
@@ -50,6 +41,8 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
+
+
 
         local_inertia_vector = KratosMultiphysics.Vector(3)
         local_inertia_vector[0] = 0.00001
@@ -156,7 +149,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
 
         max_iters = 1000
-        compute_reactions = True
+        compute_reactions = False
         reform_step_dofs = True
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
@@ -206,29 +199,18 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_x, -1.00,2)
             self.assertAlmostEqual(displacement_y, 0.00,5)
 
-    def _check_results_dynamic(self,mp,time_i):
+    def _check_results_dynamic(self,mp,time_i,nr_nodes):
         
-        #analaytical free-vibration node 3
-        we1 = 7917.25
-        we2 = 19113.94
-        y1 = 1.4142*2.874e-5
-        y2 = -1.4142*4.93107e-6
-        test_disp_temp = y1*(1-cos(we1*time_i))-y2*(1-cos(we2*time_i))
-        simulated_disp_temp = mp.Nodes[3].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X)  
+        #check free vibration of cantilever tip
+        disp_y_analytical = ((1.541*(10**(-2)))*(1-cos(575.076*time_i)) 
+            -(3.193*(10**(-4)))*(1-cos(3603.800*time_i)))*(-1)
+        disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
+            KratosMultiphysics.DISPLACEMENT_Y)
 
-        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
 
-        #analaytical free-vibration node 2
-        we1 = 7917.25
-        we2 = 19113.94
-        y1 = 1.000*2.874e-5
-        y2 = 1.000*4.93107e-6
-        test_disp_temp = y1*(1-cos(we1*time_i))-y2*(1-cos(we2*time_i))
-        simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X)  
+        self.assertAlmostEqual(disp_y_analytical, disp_y_simulated,2)
 
-        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
+
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
         mp.SetBufferSize(buffer_size)
@@ -335,10 +317,123 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             self._solve_nonlinear(mp)
             self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
             time_step += 1
+    def test_cr_beam_dynamic_lumped_mass_matrix(self):
+        dim = 3
+        nr_nodes = 11
+        nr_elements = nr_nodes-1
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LUMPED_MASS_MATRIX,1)
 
-  
+
+        #create nodes
+        dx = 1.00 / nr_elements
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+        bcs_rot.AddNodes([1])     
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([nr_nodes])
+        bcs_neumann.AddConditions([1])            
+        #create Element
+        for i in range(nr_elements):
+            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+             mp.GetProperties()[0])
+
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_rot,'rotXYZ')
+        Force_Y = -100000.000
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.04
+        # time_delta = 0.001
+        time_delta = 0.0001
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        x = []
+        y = []
+        y_1 = []
+        while (time_i <= time_end):
+            
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)            
+            #solve + compare
+            self._solve_dynamic(mp)  
+            self._check_results_dynamic(mp,time_i,nr_nodes)
+            time_step += 1        
+    def test_cr_beam_dynamic_consistent_mass_matrix(self):
+        dim = 3
+        nr_nodes = 11
+        nr_elements = nr_nodes-1
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LUMPED_MASS_MATRIX,0)
+
         
-  
+        #create nodes
+        dx = 1.00 / nr_elements
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+        bcs_rot.AddNodes([1])     
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([nr_nodes])
+        bcs_neumann.AddConditions([1])            
+        #create Element
+        for i in range(nr_elements):
+            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+             mp.GetProperties()[0])
+
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_rot,'rotXYZ')
+        Force_Y = -100000.000
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.04
+        # time_delta = 0.001
+        time_delta = 0.0001
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        x = []
+        y = []
+        y_1 = []
+        while (time_i <= time_end):
+            
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)            
+            #solve + compare
+            self._solve_dynamic(mp)  
+            self._check_results_dynamic(mp,time_i,nr_nodes)
+            time_step += 1        
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
