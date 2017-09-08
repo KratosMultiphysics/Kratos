@@ -86,6 +86,7 @@
 "PostBoundingBox"                  : false,
 "PostPressure"                     : false,
 "PredefinedSkinOption"             : false,
+"PostRollingResistanceMoment"      : false,
 "MeanRadius"                       : 0.0001,
 "problem_name"                     : "ucs_benchmark"
 }

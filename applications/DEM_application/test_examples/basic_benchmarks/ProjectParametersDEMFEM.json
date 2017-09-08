@@ -90,7 +90,7 @@
 "PostContactFailureId"             : false,
 "PostMeanContactArea"              : false,
 "PostBoundingBox"                  : false,
-
+"PostRollingResistanceMoment"      : false,
 "PredefinedSkinOption"             : false,
 "MeanRadius"                       : 0.0001,
 

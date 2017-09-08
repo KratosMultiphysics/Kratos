@@ -67,5 +67,6 @@
 "PostGroupId"                      : false,
 "PostExportId"                     : false,
 "PostStressStrainOption"           : false,
+"PostRollingResistanceMoment"      : false,
 "problem_name"                     : "benchmark30"
 }

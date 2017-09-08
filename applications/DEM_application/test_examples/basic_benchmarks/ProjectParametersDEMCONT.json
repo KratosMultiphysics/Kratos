@@ -41,13 +41,13 @@
 "ControlTime"                      : 100.0,
 "NeighbourSearchFrequency"         : 1000,
 
-"TestType"                         : "None"
+"TestType"                         : "None",
 "ConfinementPressure"              : 0.0,
 "LoadingVelocityTop"               : 0.0,
 "LoadingVelocityBot"               : 0.0,
 "StressStrainOption"               : true,
-"MeshType"                         : "Current"
-"MeshPath"                         : "0"
+"MeshType"                         : "Current",
+"MeshPath"                         : "0",
 "SpecimenLength"                   : 0.30,
 "SpecimenDiameter"                 : 0.15,
 "MeasuringSurface"                 : 0.01767145867644375,
@@ -91,6 +91,7 @@
 "PostMeanContactArea"              : false,
 "PostBoundingBox"                  : false,
 "PostPressure"                     : false,
+"PostRollingResistanceMoment"      : false,
 
 "problem_name"                     : "benchmark20"
 }
