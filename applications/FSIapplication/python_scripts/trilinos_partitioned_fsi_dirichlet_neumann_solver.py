@@ -228,7 +228,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         if (self.solve_mesh_at_each_iteration == True):
             self.mesh_solver.Solve()
         else:
-            self.mesh_solver.MoveNodes()
+            self.mesh_solver.MoveMesh()
 
         # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
         self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_main_model_part, self.time_step)
