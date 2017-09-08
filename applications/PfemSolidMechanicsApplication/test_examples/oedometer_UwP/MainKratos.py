@@ -262,7 +262,7 @@ while(time < end_time):
     xVector.append(time)
     nodes = main_model_part.GetNodes()
     node = nodes[234]
-    pw = node.GetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE) / (-20.0)
+    pw = (node.GetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE)+15.0)  / (-20.0)
     yVector.append(pw)
 
     #analyticalSolution

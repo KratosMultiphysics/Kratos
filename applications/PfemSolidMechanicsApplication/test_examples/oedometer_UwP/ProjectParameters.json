@@ -152,10 +152,24 @@
             "mesh_id"         : 0,
             "model_part_name" : "PRESSURE_Pressure_Auto1",
             "variable_name"   : "WATER_PRESSURE",
-            "value"           : 0.0,
+            "value"           : -15.0,
             "interval"        : [0.0, "End"]
         }
-    }],
+    },
+        {
+        "help"            : "This process tries to set the initial state of the soil",
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "assign_initial_HM_state_process",
+        "process_name"    : "SetInitialStateProcess",
+        "Parameters"      : {
+             "model_part_name": "Main Domain",
+             "gravity_active":              false,
+             "constant_horizontal_stress":  0, 
+             "constant_vertical_stress":    -15.0,
+             "constant_water_pressure":     -15.0
+             }
+	}
+],
     "loads_process_list"       : [{
         "python_module" : "assign_modulus_and_direction_to_conditions_process",
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
@@ -166,7 +180,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
             "variable_name"   : "LINE_LOAD",
-            "modulus"         : 20.0,
+            "modulus"         : 50.0,
             "direction"       : [0.0,-1,0.0],
             "interval"        : [0.0,"End"]
         }
