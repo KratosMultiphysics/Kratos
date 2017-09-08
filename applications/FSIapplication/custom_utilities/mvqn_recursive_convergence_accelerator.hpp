@@ -77,7 +77,7 @@ public:
      */
     JacobianEmulator( Pointer&& OldJacobianEmulatorPointer )
     {
-        mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
+        mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace>>(std::move(OldJacobianEmulatorPointer));
     }
 
     /**
@@ -345,12 +345,13 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    QR<double, row_major>                 mQR_decomposition;        // QR decomposition object
+    QR<double, row_major>                 mQR_decomposition;    // QR decomposition object
 
-    Pointer                           mpOldJacobianEmulator;        // Pointer to the old Jacobian
+    Pointer                           mpOldJacobianEmulator;    // Pointer to the old Jacobian
 
-    std::vector<VectorType>             mJacobianObsMatrixV;        // Residual increment observation matrix
-    std::vector<VectorType>             mJacobianObsMatrixW;        // Solution increment observation matrix
+    std::vector<VectorType>             mJacobianObsMatrixV;    // Residual increment observation matrix
+    std::vector<VectorType>             mJacobianObsMatrixW;    // Solution increment observation matrix
+
     ///@}
 
     ///@name Protected Operators
@@ -450,6 +451,7 @@ public:
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
 
+        mColumnCutOffRelTol = 1e-8;
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
         mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
         mConvergenceAcceleratorStep = 0;
@@ -459,6 +461,7 @@ public:
 
     MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 10 )
     {
+        mColumnCutOffRelTol = 1e-8;
         mOmega_0 = rOmegaInitial;
         mJacobianBufferSize = rJacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
@@ -471,6 +474,7 @@ public:
      */
     MVQNRecursiveJacobianConvergenceAccelerator( const MVQNRecursiveJacobianConvergenceAccelerator& rOther )
     {
+        mColumnCutOffRelTol = rOther.mColumnCutOffRelTol;
         mOmega_0 = rOther.mOmega_0;
         mJacobianBufferSize = rOther.mJacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
@@ -579,19 +583,63 @@ public:
             TSpace::UnaliasedAdd(*pNewColV, -1.0, *mpResidualVector_0); // NewColV = ResidualVector_1 - ResidualVector_0
             TSpace::UnaliasedAdd(*pNewColW, -1.0, *mpIterationValue_0); // NewColW = IterationValue_1 - IterationValue_0
 
+            const double new_col_v_norm = TSpace::TwoNorm(*pNewColV);
+            const double new_col_w_norm = TSpace::TwoNorm(*pNewColW);
+
             // Observation matrices information filling
             if (mConvergenceAcceleratorIteration <= mProblemSize)
             {
-                // Append the new information to the existent observation matrices
-                (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
-                (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
+                if (mConvergenceAcceleratorIteration == 1)
+                {
+                    // For the 1st iteration, always append the new information to the existent observation matrices
+                    (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
+                    (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
+
+                    // Set the 1st column as maximum norm value
+                    mObsMatrixVMaxNorm = new_col_v_norm;
+                    mObsMatrixWMaxNorm = new_col_w_norm;
+                }
+                else
+                {
+                    // Append the new information to the existent observation matrices acording to the cut off criterion
+                    if ((new_col_v_norm > mColumnCutOffRelTol) && (new_col_w_norm > mColumnCutOffRelTol))
+                    {
+                        (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
+                        (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
+                    }
+                    else
+                    {
+                        std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+                        std::cout << "WARNING: Current iteration info has not been appended to observation matrices!" << std::endl;
+                        std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+                    }
+
+                    // Check if the new column norms are larger than the existent ones
+                    mObsMatrixVMaxNorm = (mObsMatrixVMaxNorm < new_col_v_norm) ? new_col_v_norm : mObsMatrixVMaxNorm;
+                    mObsMatrixWMaxNorm = (mObsMatrixWMaxNorm < new_col_w_norm) ? new_col_w_norm : mObsMatrixWMaxNorm;
+
+                }
 
                 //~ std::cout << "Observation matrices new information appended" << std::endl;
             }
             else
             {
-                (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(*pNewColV);
-                (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(*pNewColW);
+                // Append the new information to the existent observation matrices acording to the cut off criterion
+                if ((new_col_v_norm  > mColumnCutOffRelTol) && (new_col_w_norm > mColumnCutOffRelTol))
+                {
+                    (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(*pNewColV);
+                    (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(*pNewColW);
+                }
+                else
+                {
+                    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+                    std::cout << "WARNING: Current iteration info has not been appended to observation matrices!" << std::endl;
+                    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+                }
+
+                // Check if the new column norms are larger than the existent ones
+                mObsMatrixVMaxNorm = (mObsMatrixVMaxNorm < new_col_v_norm) ? new_col_v_norm : mObsMatrixVMaxNorm;
+                mObsMatrixWMaxNorm = (mObsMatrixWMaxNorm < new_col_w_norm) ? new_col_w_norm : mObsMatrixWMaxNorm;
 
                 //~ std::cout << "Observation matrices size is kept (oldest column is dropped)" << std::endl;
             }
@@ -649,6 +697,10 @@ protected:
 
     ///@name Protected member Variables
     ///@{
+
+    double                              mColumnCutOffRelTol;    // Relative tolerance for the observation cut off
+    double mObsMatrixVMaxNorm; // Observation matrix V maximum column norm
+    double mObsMatrixWMaxNorm; // Observation matrix W maximum column norm
 
     double mOmega_0;                                                    // Relaxation factor for the initial fixed point iteration
     unsigned int mProblemSize;                                          // Residual to minimize size
