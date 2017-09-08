@@ -16,78 +16,78 @@ def initialize_time_parameters(benchmark_number):
 
         final_time                      = 0.0005
         dt                              = 6.4e-8 # Complies Rayleigh's condition
-        output_time_step                = 0.000005
+        graph_print_interval                = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==2:
 
         final_time                      = 0.007
-        dt                              = 3e-7 #3e-7 # Complies Rayleigh's condition????????????????
-        output_time_step                = 0.0001
+        dt                              = 3e-7 # Complies Rayleigh's condition????????????????
+        graph_print_interval                = 0.0001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==3:
 
         final_time                      = 0.00031
-        dt                              = 1.0e-8  #1.1e-9 # Complies Rayleigh's condition
-        output_time_step                = 0.000001
+        dt                              = 8.1e-9 #1.1e-9 # Complies Rayleigh's condition
+        graph_print_interval                = 0.000001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==4:
 
         final_time                      = 0.0002  #0.00003
-        dt                              = 1.9e-8  #1.9e-9 # Complies Rayleigh's condition
-        output_time_step                = 0.000001
+        dt                              = 2e-8 #1.9e-9 # Complies Rayleigh's condition
+        graph_print_interval                = 0.000001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==5:
 
         final_time                      = 0.0000005
         dt                              = 3.6e-11  #3.6e-12 # Complies Rayleigh's condition
-        output_time_step                = 0.00000005
+        graph_print_interval                = 0.00000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==6:
 
         final_time                      = 0.01
         dt                              = 1.0e-6  #1.0e-7 # Complies Rayleigh's condition ????????????????
-        output_time_step                = 0.00025
+        graph_print_interval                = 0.00025
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==7:
 
         final_time                      = 0.0005
-        dt                              = 4e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
-        output_time_step                = 0.000005
+        dt                              = 4.4614e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
+        graph_print_interval                = 0.000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==8:
 
         final_time                      = 0.02
-        dt                              = 1.0e-6 #5.0e-7 # Complies Rayleigh's condition
-        output_time_step                = 0.0001
+        dt                              = 2.0e-6 #5.0e-7 # Complies Rayleigh's condition
+        graph_print_interval                = 0.0001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==9:
 
         final_time                      = 0.001 #0.0005
-        dt                              = 5.0e-8 #6.4e-8 # Complies Rayleigh's condition
-        output_time_step                = 0.000005
+        dt                              = 5.0e-8 # 3.4e-8 # Complies Rayleigh's condition
+        graph_print_interval                = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==10:
 
         final_time                      = 0.00015 #0.0005
-        dt                              = 2.0e-8 #2.0e-9  #3.6e-12 # Complies Rayleigh's condition
-        output_time_step                = 0.00001
+        dt                              = 2.0e-8  #3.6e-12 # Complies Rayleigh's condition
+        graph_print_interval                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
 
     elif benchmark_number==11:
 
         final_time                      = 0.00015 #0.0005
-        dt                              = 2.0e-8 #2.0e-9 #3.6e-12 # Complies Rayleigh's condition
-        output_time_step                = 0.00001
+        dt                              = 1.0e-7 #3.6e-12 # Complies Rayleigh's condition
+        graph_print_interval                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
 
@@ -95,143 +95,143 @@ def initialize_time_parameters(benchmark_number):
 
         final_time                      = 0.1
         dt                              = 5.0e-7
-        output_time_step                = 1e-4
+        graph_print_interval                = 1e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==13:
 
         final_time                      = 2.0
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==14:
 
         final_time                      = 2.0
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==15:
 
         final_time                      = 2.0
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==16:
 
         final_time                      = 2.5
         dt                              = 1.0e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==17:
 
         final_time                      = 1.0
         dt                              = 1.0e-6
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==20:          # Normal compression
 
         final_time                      = 0.01
         dt                              = 1e-5
-        output_time_step                = 1e-5   # utilitzo com a output freq del grafic de punts
+        graph_print_interval                = 1e-5   # utilitzo com a output freq del grafic de punts
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==21:          # Normal compression with indentation
 
         final_time                      = 0.01
         dt                              = 1e-5
-        output_time_step                = 1e-5
+        graph_print_interval                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==22:          # Tensile
 
         final_time                      = 0.05
         dt                              = 1e-5
-        output_time_step                = 1e-5
+        graph_print_interval                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==23:          # Tensile with indentation
 
         final_time                      = 0.05
         dt                              = 1e-5
-        output_time_step                = 1e-5
+        graph_print_interval                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==24:          # Shear
 
         final_time                      = 8e-5
         dt                              = 1e-7
-        output_time_step                = 1e-7
+        graph_print_interval                = 1e-7
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==25:          # Shear + radius expansion
 
         final_time                      = 8e-5
         dt                              = 1e-7
-        output_time_step                = 1e-7
+        graph_print_interval                = 1e-7
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==26:          #
 
         final_time                      = 0.1
         dt                              = 1e-5
-        output_time_step                = 1e-4
+        graph_print_interval                = 1e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==27:          #UCS TEST
 
         final_time                      = 0.05
         dt                              = 5e-7
-        output_time_step                = 5e-4
+        graph_print_interval                = 5e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==28:          #PENDULO3D . not ready
 
         final_time                      = 100
         dt                              = 1e-4
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==30:
 
         final_time                      = 0.5
         dt                              = 1.0e-3
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==31:
 
         final_time                      = 0.5
         dt                              = 1.0e-3
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==32:
 
         final_time                      = 1.0
         dt                              = 1.0e-6
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
         
     elif benchmark_number==33:
 
         final_time                      = 1.0
         dt                              = 1.0e-6
-        output_time_step                = 1e-2
+        graph_print_interval                = 1e-2
         number_of_points_in_the_graphic = 1
 
     else: #benchmark_number==68:        #
 
         final_time                      = 1e-3
         dt                              = 1e-6
-        output_time_step                = 1e-7
+        graph_print_interval                = 1e-7
         number_of_points_in_the_graphic = 1
 
-    return final_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
+    return final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
 
 
 class Benchmark1:
@@ -247,7 +247,7 @@ class Benchmark1:
             else:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -267,7 +267,7 @@ class Benchmark1:
 
         error1, error2, error3 = self.compute_errors(normal_contact_force_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 1:")
 
@@ -315,7 +315,7 @@ class Benchmark2:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
 
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -326,7 +326,7 @@ class Benchmark2:
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
 
-        normal_contact_force_outfile_name = 'variables_for_node_1.txt'
+        normal_contact_force_outfile_name = 'variables_for_node_2.txt'
         gnuplot_script_name = 'benchmark2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 10 u 1:10 w lp lt 3 lw 1.5 ps 1 pt 6")
@@ -335,7 +335,7 @@ class Benchmark2:
 
         error1, error2, error3 = self.compute_errors(normal_contact_force_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 2:")
 
@@ -377,7 +377,7 @@ class Benchmark3:
     def __init__(self):
         self.restitution_numbers_list = []
         self.initial_normal_vel = 0
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
@@ -392,7 +392,7 @@ class Benchmark3:
             self.initial_normal_vel = node.GetSolutionStepValue(VELOCITY_Z)
             modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -408,25 +408,25 @@ class Benchmark3:
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark3_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark3_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+        self.generated_data = open(self.output_filename, 'w')
 
         for i in range(0, number_of_points_in_the_graphic):
             first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
+            self.generated_data.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.generated_data.close()
 
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.write("set grid; plot '" + self.output_filename + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.output_filename + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.gnuplot_outfile.close()
 
-        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)
+        self.create_gnuplot_scripts(self.output_filename, dt)
 
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 3:")
 
@@ -436,19 +436,19 @@ class Benchmark3:
             error_file.write(" KO!........ Test 3 FAILED\n")
         error_file.close()
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
 
         gnuplot_script_name_1 = 'benchmark3_comparison_1_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + output_filename + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 2 t 'Cast iron'\n")
         self.gnuplot_outfile.close()
 
         #print_gnuplot_files_on_screen(gnuplot_script_name_1)
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
 
         lines_Chung = lines_DEM = list(range(0, 6))
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -461,24 +461,24 @@ class Benchmark3:
                 i+=1
         i = 0
 
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[1]))
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_Chung_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_Chung_data
 
-        print("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
+        print("Error in restitution numbers =", 100*generated_data_error,"%")
 
-        error1 = 100*final_restitution_numbers_error
+        error1 = 100*generated_data_error
 
         error2 = error3 = 0
 
@@ -510,7 +510,7 @@ class Benchmark4:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -555,7 +555,7 @@ class Benchmark4:
         error1, error2, error3 = self.compute_errors(self.tangential_restitution_coefficient_list_outfile_name, self.final_angular_vel_list_outfile_name,\
                                     self.rebound_angle_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 4:")
 
@@ -705,7 +705,7 @@ class Benchmark5:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -744,7 +744,7 @@ class Benchmark5:
 
         error1, error2, error3 = self.compute_errors(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 5:")
 
@@ -864,7 +864,7 @@ class Benchmark6:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -906,7 +906,7 @@ class Benchmark6:
 
         error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 6:")
 
@@ -1028,7 +1028,7 @@ class Benchmark7:
                 node.SetSolutionStepValue(VELOCITY_X, -initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, -self.initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -1070,7 +1070,7 @@ class Benchmark7:
 
         error1, error2, error3 = self.compute_errors(self.final_tangential_center_vel_list_outfile_name, self.final_angular_vel_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 7:")
 
@@ -1182,7 +1182,7 @@ class Benchmark8:
                 node.SetSolutionStepValue(VELOCITY_X, self.initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -1226,7 +1226,7 @@ class Benchmark8:
 
         error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 8:")
 
@@ -1328,7 +1328,7 @@ class Benchmark9:
     def __init__(self):
         self.initial_normal_vel = 200.0
         self.restitution_numbers_list = []
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
@@ -1348,7 +1348,7 @@ class Benchmark9:
                 node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                 modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -1365,28 +1365,28 @@ class Benchmark9:
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark9_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark9_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+        self.generated_data = open(self.output_filename, 'w')
 
         for i in range(0, number_of_points_in_the_graphic):
             if number_of_points_in_the_graphic == 1:
                 first_col = 0
             else:
                 first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
+            self.generated_data.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.generated_data.close()
 
         gnuplot_script_name = 'benchmark9_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.write("set grid; plot '" + self.output_filename + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.output_filename + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.gnuplot_outfile.close()
 
-        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)
+        self.create_gnuplot_scripts(self.output_filename, dt)
 
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 9:")
 
@@ -1396,19 +1396,19 @@ class Benchmark9:
             error_file.write(" KO!........ Test 9 FAILED\n")
         error_file.close()
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
 
         gnuplot_script_name_1 = 'benchmark9_comparison_1_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + output_filename + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark9_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark9_graph1.dat' w lp ls 2 t 'Cast iron'\n")
         self.gnuplot_outfile.close()
 
         #print_gnuplot_files_on_screen(gnuplot_script_name_1)
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
 
         lines_Chung = lines_DEM = list(range(0, 6));
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -1420,24 +1420,24 @@ class Benchmark9:
                     Chung_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[1]))
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_Chung_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_Chung_data
 
-        print("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
+        print("Error in restitution numbers =", 100*generated_data_error,"%")
 
-        error1 = 100*final_restitution_numbers_error
+        error1 = 100*generated_data_error
 
         error2 = error3 = 0
 
@@ -1546,7 +1546,7 @@ class Benchmark10: ########## LINEAR THORNTON
 
         coeff_of_rest = '%.2f' % self.coeff_of_restitution
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
 
         if (coeff_of_rest=='0.25'):
@@ -1695,7 +1695,7 @@ class Benchmark10: ########## LINEAR THORNTON
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
 
@@ -1803,7 +1803,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
 
         coeff_of_rest = '%.2f' % self.coeff_of_restitution
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
 
         if (coeff_of_rest=='0.25'):
@@ -1952,7 +1952,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
         pass
 
 
@@ -1960,12 +1960,12 @@ class Benchmark12: ########## ROLLING FRICTION
 
     def __init__(self):
         
-        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+        self.balls_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
-        self.angular_velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.angular_velocity_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):                 #FINALIZATION STEP
         
@@ -1974,13 +1974,13 @@ class Benchmark12: ########## ROLLING FRICTION
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             total_angular_velocity_z = 0.0
 
@@ -1989,14 +1989,16 @@ class Benchmark12: ########## ROLLING FRICTION
                    angular_velocity_z = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
                    total_angular_velocity_z += angular_velocity_z
 
+                del node       
+
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_angular_velocity_z).rjust(13)+"\n")
         self.balls_graph_counter += 1
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
 
-        error1, error2, error3 = self.compute_errors(self.angular_velocity_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("\n\n")
         error_file.write("==== WENSRICH PAPER TEST. ROLLING FRICTION ====\n\n")
@@ -2008,42 +2010,42 @@ class Benchmark12: ########## ROLLING FRICTION
             error_file.write(" KO!........ Test 12 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):
 
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:  #with open('paper_data/reference_graph_benchmark12.dat') as inf:
+        with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
-                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                    DEM_data.append(float(parts[1])) 
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+        print("Error in simulation =", 100*generated_data_error,"%")
 
-        error1 = 100*final_restitution_numbers_error
+        error1 = 100*generated_data_error
 
         error2 = error3 = 0
 
         return error1, error2, error3
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
 
 
@@ -2065,9 +2067,9 @@ class Benchmark13: ########## DEM-FEM Facet
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2090,7 +2092,7 @@ class Benchmark13: ########## DEM-FEM Facet
 
         error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("\n\n")
         error_file.write("======== DE/FE CONTACT BENCHMARKS ==========\n\n")
@@ -2151,9 +2153,9 @@ class Benchmark14: ########## DEM-FEM Edge
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2176,7 +2178,7 @@ class Benchmark14: ########## DEM-FEM Edge
 
         error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 14:")
 
@@ -2235,9 +2237,9 @@ class Benchmark15: ########## DEM-FEM Vertex
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2260,7 +2262,7 @@ class Benchmark15: ########## DEM-FEM Vertex
 
         error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 15:")
 
@@ -2320,9 +2322,9 @@ class Benchmark16: ########## DEM-FEM Grid
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2350,7 +2352,7 @@ class Benchmark16: ########## DEM-FEM Grid
 
         error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 16:")
 
@@ -2360,7 +2362,7 @@ class Benchmark16: ########## DEM-FEM Grid
             error_file.write(" KO!........ Test 16 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 250));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; ref_data3 = []; DEM_data1 = []; DEM_data2 = []; DEM_data3 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0; summation_of_ref_data3 = 0
@@ -2374,7 +2376,7 @@ class Benchmark16: ########## DEM-FEM Grid
                     ref_data3.append(float(parts[3]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2438,9 +2440,9 @@ class Benchmark17: ########## DEM-FEM Rolling
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2467,7 +2469,7 @@ class Benchmark17: ########## DEM-FEM Rolling
 
         error1, error2, error3 = self.compute_errors(self.error_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 17:")
 
@@ -2512,14 +2514,13 @@ class Benchmark17: ########## DEM-FEM Rolling
 class Benchmark20:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.generated_data = None
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):                 #FINALIZATION STEP
         self.simulation_graph.close()
@@ -2527,9 +2528,8 @@ class Benchmark20:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
-
-        self.graph_frequency        = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2548,18 +2548,19 @@ class Benchmark20:
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
         self.balls_graph_counter += 1
 
-    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+
         '''
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.write("set grid; plot '" + self.output_filename + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.output_filename + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.gnuplot_outfile.close()
-        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+        self.create_gnuplot_scripts(self.output_filename, dt)
+        '''
 
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-
-        error_filename = 'errors.txt'
+        error1, error2, error3 = self.compute_errors(self.output_filename)
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("\n\n")
         error_file.write("== BASIC CONTINUUM TESTS ==\n\n")
@@ -2572,69 +2573,63 @@ class Benchmark20:
             error_file.write(" KO!........ Test 20 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
-
+    def compute_errors(self, output_filename):  #FINALIZATION STEP       
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:  #with open('paper_data/reference_graph_benchmark20.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[1]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+        print("Error in simulation =", 100*generated_data_error,"%")
 
-        error1 = 100*final_restitution_numbers_error
+        error1 = 100*generated_data_error
 
         error2 = error3 = 0
 
         return error1, error2, error3
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
         '''
         gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Data'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + output_filename + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
         self.gnuplot_outfile.close()
-
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
         '''
-
-
 
 class Benchmark21:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.generated_data = None
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):        #FINALIZATION STEP
         self.simulation_graph.close()
@@ -2642,9 +2637,8 @@ class Benchmark21:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
-
-        self.graph_frequency        = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2663,19 +2657,9 @@ class Benchmark21:
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
         self.balls_graph_counter += 1
 
-    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
-
-        '''
-        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
-        self.gnuplot_outfile.close()
-        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
-
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-
-        error_filename = 'errors.txt'
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+        error1, error2, error3 = self.compute_errors(self.output_filename)
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 21:")
 
@@ -2687,9 +2671,7 @@ class Benchmark21:
         error_file.close()
 
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
-
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
@@ -2700,58 +2682,41 @@ class Benchmark21:
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[1]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
-
-        error1 = 100*final_restitution_numbers_error
-
+        print("Error in simulation =", 100*generated_data_error,"%")
+        error1 = 100*generated_data_error
         error2 = error3 = 0
 
         return error1, error2, error3
 
-
-
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
-
-    '''
-        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
-        self.gnuplot_outfile.close()
-
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-    '''
 
 
 class Benchmark22:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.generated_data = None
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):        #FINALIZATION STEP
         self.simulation_graph.close()
@@ -2759,9 +2724,8 @@ class Benchmark22:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
-
-        self.graph_frequency        = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2780,19 +2744,9 @@ class Benchmark22:
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
         self.balls_graph_counter += 1
 
-    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
-
-        '''
-        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
-        self.gnuplot_outfile.close()
-        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
-
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-
-        error_filename = 'errors.txt'
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+        error1, error2, error3 = self.compute_errors(self.output_filename)
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 22:")
 
@@ -2803,9 +2757,7 @@ class Benchmark22:
             error_file.write(" KO!........ Test 22 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
-
+    def compute_errors(self, output_filename):
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
@@ -2816,66 +2768,51 @@ class Benchmark22:
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[1]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
-
-        error1 = 100*final_restitution_numbers_error
-
+        print("Error in simulation =", 100*generated_data_error,"%")
+        error1 = 100*generated_data_error
         error2 = error3 = 0
 
         return error1, error2, error3
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
-
-    '''
-        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
-        self.gnuplot_outfile.close()
-
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-    '''
-
 
 class Benchmark23:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
-        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.generated_data = None
+        #self.graph_frequency = int(graph_print_interval/dt)  # def __init__(self, graph_print_interval, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
+        
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):        #FINALIZATION STEP
         self.simulation_graph.close()
-
+        
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
-
-        self.graph_frequency        = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP        
+        #print("generate_graph_points bench23, graph_print_interval, dt - ", graph_print_interval, dt )
+        self.graph_frequency        = int(graph_print_interval/dt)
+        
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -2884,29 +2821,20 @@ class Benchmark23:
             self.total_force_x = 0.0
             self.total_force_y = 0.0
 
-            for node in modelpart.Nodes:
+            for node in modelpart.Nodes:                
                 if node.Id == 141:
                    force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                    force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
-
+            
             self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-        self.balls_graph_counter += 1
-
+        self.balls_graph_counter += 1                
+        
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
-        '''
-        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
-        self.gnuplot_outfile.close()
-        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
-
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 23:")
 
@@ -2917,68 +2845,51 @@ class Benchmark23:
             error_file.write(" KO!........ Test 23 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
-
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
-        i = 0
-        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
+        i = 0        
+        with open('paper_data/reference_graph_benchmark' + '23' + '.dat') as inf:            
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[1]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
-
+            
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j) 
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
-
-        error1 = 100*final_restitution_numbers_error
-
+        print("Error in simulation =", 100*generated_data_error,"%")
+        error1 = 100*generated_data_error
         error2 = error3 = 0
 
         return error1, error2, error3
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
-
-    '''
-        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
-        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
-        self.gnuplot_outfile.close()
-
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-    '''
 
 
 class Benchmark24:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
         self.balls_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
         self.simulation_graph.close()
@@ -3048,9 +2959,9 @@ class Benchmark24:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
-
-        self.graph_frequency = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
+        #print("generate_graph_points bench24, graph_print_interval, dt - ", graph_print_interval, dt )
+        self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
            self.graph_frequency = 1
@@ -3071,20 +2982,20 @@ class Benchmark24:
         self.balls_graph_counter += 1
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 24:")
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 24 SUCCESSFUL\n")
-            shutil.rmtree('benchmark27_Post_Files', ignore_errors = True)
+            shutil.rmtree('benchmark24_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 24 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
@@ -3095,43 +3006,40 @@ class Benchmark24:
                     analytics_data.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[2]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
-
-        error1 = 100*final_restitution_numbers_error
-
+        print("Error in simulation =", 100*generated_data_error,"%")
+        error1 = 100*generated_data_error
         error2 = error3 = 0
 
         return error1, error2, error3
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
 
 
 class Benchmark25:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
         self.balls_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
-
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
         self.simulation_graph.close()
@@ -3141,7 +3049,6 @@ class Benchmark25:
         return c
 
     def ApplyNodalRotation(self, time, dt, modelpart):
-
         ang_vel = 20 * pi
         angular_velocity = [0, 0, ang_vel]
         rotation_matrix = [[cos(ang_vel * time), -1.0 * sin(ang_vel * time), 0], [sin(ang_vel * time), cos(ang_vel * time), 0], [0,0,1]]
@@ -3205,9 +3112,8 @@ class Benchmark25:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
-
-        self.graph_frequency = int(output_time_step/dt)
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
+        self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
            self.graph_frequency = 1
@@ -3228,9 +3134,8 @@ class Benchmark25:
         self.balls_graph_counter += 1
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-
-        error_filename = 'errors.txt'
+        error1, error2, error3 = self.compute_errors(self.output_filename)
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 25:")
 
@@ -3241,7 +3146,7 @@ class Benchmark25:
             error_file.write(" KO!........ Test 25 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
@@ -3252,30 +3157,28 @@ class Benchmark25:
                     analytics_data.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
                     DEM_data.append(float(parts[2]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        generated_data_error = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            generated_data_error+=fabs(i-j)
+        generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
-
-        error1 = 100*final_restitution_numbers_error
-
+        print("Error in simulation =", 100*generated_data_error,"%")
+        error1 = 100*generated_data_error
         error2 = error3 = 0
 
         return error1, error2, error3
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
 
 
@@ -3283,13 +3186,13 @@ class Benchmark26:
 
     def __init__(self):
 
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
         self.balls_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.output_filename, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
         self.simulation_graph.close()
@@ -3297,9 +3200,9 @@ class Benchmark26:
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        self.graph_frequency = int(output_time_step/dt)
+        self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
            self.graph_frequency = 1
@@ -3322,25 +3225,25 @@ class Benchmark26:
     def print_results(self, number_of_points_in_the_graphic, dt = 0):
         pass
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
         pass
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
 
 
 class Benchmark27:
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
         self.balls_graph_counter = 1
         self.rigid_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.rigid_face_file = "benchmark" + str(sys.argv[1]) + '_rigid_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.simulation_graph = open(self.output_filename, 'w')
         self.rigid_graph = open(self.rigid_face_file, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -3416,10 +3319,10 @@ class Benchmark27:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        #self.graph_frequency = int(5e-7/dt)   #output_time_step/dt
-        self.graph_frequency = int(output_time_step/1/dt)   #1 veces mas grf que bin
+        #self.graph_frequency = int(5e-7/dt)   #graph_print_interval/dt
+        self.graph_frequency = int(graph_print_interval/1/dt)   #1 veces mas grf que bin
         #print (self.graph_frequency)
         #print (self.balls_graph_counter)
         if self.graph_frequency < 1:
@@ -3492,10 +3395,10 @@ class Benchmark27:
         self.rigid_graph_counter += 1
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
         error4, error5, error6 = self.compute_rigid_errors(self.rigid_face_file)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 27:")
 
@@ -3511,7 +3414,7 @@ class Benchmark27:
             error_file.write(" KO!........ Test 27 FAILED (finite elements)\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
         reference_data = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
@@ -3522,7 +3425,7 @@ class Benchmark27:
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+        with open(output_filename) as current_data:
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3547,7 +3450,7 @@ class Benchmark27:
                     analytics_data.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+        with open(output_filename) as current_data:
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3573,7 +3476,7 @@ class Benchmark27:
                     analytics_data.append(float(parts[3]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+        with open(output_filename) as current_data:
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3630,7 +3533,7 @@ class Benchmark27:
 
         return error4, error5, error6
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
 
 
@@ -3638,15 +3541,15 @@ class Benchmark27:
 class Benchmark28:   #pendulo3D
 
     def __init__(self):
-        self.restitution_numbers_vector_list_outfile = None
+        self.generated_data = None
         self.balls_graph_counter = 1
         self.rigid_graph_counter = 1
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.rigid_face_file = "benchmark" + str(sys.argv[1]) + '_rigid_graph.dat'
-        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.simulation_graph = open(self.output_filename, 'w')
         self.rigid_graph = open(self.rigid_face_file, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
@@ -3723,10 +3626,10 @@ class Benchmark28:   #pendulo3D
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
-        #self.graph_frequency = int(5e-7/dt)   #output_time_step/dt
-        self.graph_frequency = int(output_time_step/1/dt)   #1 veces mas grf que bin
+        #self.graph_frequency = int(5e-7/dt)   #graph_print_interval/dt
+        self.graph_frequency = int(graph_print_interval/1/dt)   #1 veces mas grf que bin
         if self.graph_frequency < 1:
            self.graph_frequency = 1
 
@@ -3778,9 +3681,9 @@ class Benchmark28:   #pendulo3D
         self.balls_graph_counter += 1
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):
-        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.output_filename)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 28:")
 
@@ -3792,7 +3695,7 @@ class Benchmark28:   #pendulo3D
         error_file.write("DEM Benchmark 28:")
 
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+    def compute_errors(self, output_filename):
         reference_data = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
@@ -3803,7 +3706,7 @@ class Benchmark28:   #pendulo3D
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+        with open(output_filename) as current_data:
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3828,7 +3731,7 @@ class Benchmark28:   #pendulo3D
                     analytics_data.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+        with open(output_filename) as current_data:
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3854,7 +3757,7 @@ class Benchmark28:   #pendulo3D
                     analytics_data.append(float(parts[3]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+        with open(output_filename) as current_data:
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3880,7 +3783,7 @@ class Benchmark28:   #pendulo3D
     def compute_rigid_errors(self, rigid_face_file):
         pass
 
-    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+    def create_gnuplot_scripts(self, output_filename, dt):
         pass
 
 
@@ -3903,9 +3806,9 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Vel
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -3930,7 +3833,7 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Vel
 
         error1, error2, error3 = self.compute_errors(self.local_angular_velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("\n\n")
         error_file.write("===== DISCONTINUUM CLUSTERS TESTS =====\n\n")
@@ -3942,7 +3845,7 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Vel
             error_file.write(" KO!........ Test 30 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 50));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; ref_data3 = []; DEM_data1 = []; DEM_data2 = []; DEM_data3 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0; summation_of_ref_data3 = 0
@@ -3956,7 +3859,7 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Vel
                     ref_data3.append(float(parts[3]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4019,9 +3922,9 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4046,7 +3949,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
 
         error1, error2, error3 = self.compute_errors(self.local_angular_velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 31:")
 
@@ -4056,7 +3959,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
             error_file.write(" KO!........ Test 31 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 50));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; ref_data3 = []; DEM_data1 = []; DEM_data2 = []; DEM_data3 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0; summation_of_ref_data3 = 0
@@ -4070,7 +3973,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
                     ref_data3.append(float(parts[3]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4133,9 +4036,9 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4157,7 +4060,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet
 
         error1, error2 = self.compute_errors(self.velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 32:")
 
@@ -4167,7 +4070,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet
             error_file.write(" KO!........ Test 32 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 100));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; DEM_data1 = []; DEM_data2 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0
@@ -4180,7 +4083,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet
                     ref_data2.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(output_filename) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4231,9 +4134,9 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
 
-        self.graph_frequency        = int(output_time_step/dt)
+        self.graph_frequency        = int(graph_print_interval/dt)
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -4255,7 +4158,7 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
 
         error1, error2 = self.compute_errors(self.velocity_list_outfile_name)
 
-        error_filename = 'errors.txt'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 33:")
 
@@ -4265,7 +4168,7 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
             error_file.write(" KO!........ Test 33 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 100));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; DEM_data1 = []; DEM_data2 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0
@@ -4278,7 +4181,7 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet
                     ref_data2.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
+        with open(velocity_list_outfile_name) as inf:
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4317,7 +4220,9 @@ def delete_archives():
     files_to_delete_list = glob('*.time')
     files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
-
+    files_to_delete_list.extend(glob('*.txt'))
+    files_to_delete_list.extend(glob('*.lst'))
+    
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
 

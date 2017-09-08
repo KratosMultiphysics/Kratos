@@ -35,6 +35,7 @@ class DamEigenSolver():
                 "print_feast_output"          : true,
                 "perform_stochastic_estimate" : false,
                 "solve_eigenvalue_problem"    : true,
+                "compute_modal_contribution"  : false,
                 "lambda_min"                  : 0.0,
                 "lambda_max"                  : 500.0,
                 "search_dimension"            : 4
@@ -47,6 +48,9 @@ class DamEigenSolver():
         ##overwrite the default settings with user-provided parameters 
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+
+        self.compute_modal_contribution = self.settings["eigensolver_settings"]["compute_modal_contribution"].GetBool()
+        self.settings["eigensolver_settings"].RemoveValue("compute_modal_contribution")
         
         # eigensolver_settings are validated/assigned in the linear_solver
         print("Construction of Dam Eigensolver finished")
@@ -117,7 +121,8 @@ class DamEigenSolver():
         self.solver = KratosSolid.EigensolverStrategy(
             self.main_model_part,
             self.scheme,
-            self.builder_and_solver)
+            self.builder_and_solver,
+            self.compute_modal_contribution)
             
 
     def GetComputingModelPart(self):
@@ -153,5 +158,4 @@ class DamEigenSolver():
         minimum_buffer_size = self.GetMinimumBufferSize()
         if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
             self.main_model_part.SetBufferSize( minimum_buffer_size )
-        
         
