@@ -73,6 +73,7 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 
 /* UTILITIES */
 // Cross sections
@@ -364,6 +365,7 @@ private:
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
 
     ///@}
     ///@name Private Operators
