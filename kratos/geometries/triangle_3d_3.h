@@ -2153,9 +2153,10 @@ private:
         /*    3) crossproduct(edge from quad, {x,y,z}-direction)                         */
         /*       this gives 4x3=12 more tests                                            */
         
-        double min,max,d,fex,fey,fez;
+        double d,fex,fey,fez;
         array_1d<double,3 > v0,v1,v2;
         array_1d<double,3 > normal,e0,e1,e2;
+        std::pair<double, double> min_max;
         
         /* move everything so that the boxcenter is in (0,0,0) */
         noalias(v0) = triverts[0] - boxcenter;
@@ -2197,16 +2198,16 @@ private:
         /*  AABB around the triangle against the AABB */
 
         /* test in X-direction */
-        FindMinMax(v0[0],v1[0],v2[0],min,max);
-        if(min>boxhalfsize[0] || max<-boxhalfsize[0]) return false;
+        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        if(min_max.first>boxhalfsize[0] || min_max.second<-boxhalfsize[0]) return false;
         
         /* test in Y-direction */
-        FindMinMax(v0[1],v1[1],v2[1],min,max);
-        if(min>boxhalfsize[1] || max<-boxhalfsize[1]) return false;
+        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        if(min_max.first>boxhalfsize[1] || min_max.second<-boxhalfsize[1]) return false;
         
         /* test in Z-direction */
-        FindMinMax(v0[2],v1[2],v2[2],min,max);
-        if(min>boxhalfsize[2] || max<-boxhalfsize[2]) return false;
+        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        if(min_max.first>boxhalfsize[2] || min_max.second<-boxhalfsize[2]) return false;
 
         /* Bullet 2: */
         /*  test if the box intersects the plane of the triangle */
@@ -2216,23 +2217,6 @@ private:
         if(!PlaneBoxOverlap(normal,d,boxhalfsize)) return false;
         
         return true;  /* box and triangle overlaps */
-    }
-
-    /**
-     * Find the minimum and maximum among three values
-     * @see TriBoxOverlap
-     */
-    void FindMinMax(const double& x0,
-                    const double& x1,
-                    const double& x2,
-                    double& min,
-                    double& max)
-    {
-        min = max = x0;
-        if(x1<min) min=x1;
-        else       max=x1;
-        if(x2<min)      min=x2;
-        else if(x2>max) max=x2;
     }
 
     /**
@@ -2267,7 +2251,7 @@ private:
         
         return false;
     }
-    
+
     /*========================= X-tests ========================*/
     bool AxisTest_X(double& ey, double& ez,
                     double& fey, double& fez,
@@ -2281,18 +2265,17 @@ private:
         /*    va: i vertex                                      */
         /*    vb: i+1 vertex (ommited, since pa=pb)             */
         /*    vc: i+2 vertex                                    */
-        double pa, pc, min, max, rad;
+        double pa, pc, rad;
         pa = ey*va[2] - ez*va[1];
         pc = ey*vc[2] - ez*vc[1];
-        if(pa<pc) {min=pa; max=pc;}
-        else      {min=pc; max=pa;}
+        std::pair<double, double> min_max = std::minmax(pa,pc);
         
         rad = fez*boxhalfsize[1] + fey*boxhalfsize[2];
         
-        if(min>rad || max<-rad) return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
         else return true;
     }
-    
+
     /*========================= Y-tests ========================*/
     bool AxisTest_Y(double& ex, double& ez,
                     double& fex, double& fez,
@@ -2306,18 +2289,17 @@ private:
         /*    va: i vertex                                      */
         /*    vb: i+1 vertex (ommited, since pa=pb)             */
         /*    vc: i+2 vertex                                    */
-        double pa, pc, min, max, rad;
+        double pa, pc, rad;
         pa = ez*va[0] - ex*va[2];
         pc = ez*vc[0] - ex*vc[2];
-        if(pa<pc) {min=pa; max=pc;}
-        else      {min=pc; max=pa;}
+        std::pair<double, double> min_max = std::minmax(pa,pc);
         
         rad = fez*boxhalfsize[0] + fex*boxhalfsize[2];
         
-        if(min>rad || max<-rad) return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
         else return true;
     }
-    
+
     /*========================= Z-tests ========================*/
     bool AxisTest_Z(double& ex, double& ey, 
                     double& fex, double& fey,
@@ -2331,15 +2313,14 @@ private:
         /*    va: i vertex                                      */
         /*    vb: i+1 vertex (ommited, since pa=pb)             */
         /*    vc: i+2 vertex                                    */
-        double pa, pc, min, max, rad;
+        double pa, pc, rad;
         pa = ex*va[1] - ey*va[0];
         pc = ex*vc[1] - ey*vc[0];
-        if(pa<pc) {min=pa; max=pc;}
-        else      {min=pc; max=pa;}
+        std::pair<double, double> min_max = std::minmax(pa,pc);
         
         rad = fey*boxhalfsize[0] + fex*boxhalfsize[1];
         
-        if(min>rad || max<-rad) return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
         else return true;
     }
 

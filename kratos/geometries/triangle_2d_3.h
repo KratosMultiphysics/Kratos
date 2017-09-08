@@ -1888,7 +1888,7 @@ private:
         double fex,fey;
         array_1d<double,3 > v0,v1,v2;
         array_1d<double,3 > e0,e1,e2;
-        std::pair<double, double> minmax;
+        std::pair<double, double> min_max;
 
         /* move everything so that the boxcenter is in (0,0,0) */
         noalias(v0) = triverts[0]- boxcenter;
@@ -1922,14 +1922,12 @@ private:
         /*  the triangle against the AABB */
 
         /* test in X-direction */
-        //~ FindMinMax(v0[0],v1[0],v2[0],min,max);
-        minmax = std::minmax({v0[0],v1[0],v2[0]});
-        if(minmax.first>boxhalfsize[0] || minmax.second<-boxhalfsize[0]) return false;
+        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        if(min_max.first>boxhalfsize[0] || min_max.second<-boxhalfsize[0]) return false;
 
         /* test in Y-direction */
-        //~ FindMinMax(v0[1],v1[1],v2[1],min,max);
-        minmax = std::minmax({v0[1],v1[1],v2[1]});
-        if(minmax.first>boxhalfsize[1] || minmax.second<-boxhalfsize[1]) return false;
+        min_max = std::minmax({v0[1],v1[1],v2[1]});
+        if(min_max.first>boxhalfsize[1] || min_max.second<-boxhalfsize[1]) return false;
 
         /* test in Z-direction */
         /*  we do not consider boxhalfsize[2] since we are working in 2D */
@@ -1943,23 +1941,6 @@ private:
         return true;   /* box and triangle overlaps */
     }
 
-    /**
-     * Find the minimum and maximum among three values
-     * @see TriBoxOverlap
-     */
-    //~ void FindMinMax(const double& x0,
-                    //~ const double& x1,
-                    //~ const double& x2,
-                    //~ double& min,
-                    //~ double& max)
-    //~ {
-        //~ min = max = x0;
-        //~ if(x1<min) min=x1;
-        //~ else       max=x1;
-        //~ if(x2<min)      min=x2;
-        //~ else if(x2>max) max=x2;
-    //~ }
-    
     /*========================= Z-tests ========================*/
     bool AxisTest_Z(double& ex, double& ey, 
                     double& fex, double& fey,
@@ -1976,13 +1957,11 @@ private:
         double pa, pc, rad;
         pa = ex*va[1] - ey*va[0];
         pc = ex*vc[1] - ey*vc[0];
-        //~ if(pa<pc) {min=pa; max=pc;}
-        //~ else      {min=pc; max=pa;}
-        std::pair<double, double> minmax = std::minmax(pa,pc);
+        std::pair<double, double> min_max = std::minmax(pa,pc);
         
         rad = fey*boxhalfsize[0] + fex*boxhalfsize[1];
         
-        if(minmax.first>rad || minmax.second<-rad) return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
         //~ if(min>rad || max<-rad) return false;
         else return true;
     }
