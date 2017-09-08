@@ -22,32 +22,40 @@ listCONT      = list(range(20,27))
 listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
 
-if benchmark_number in listDISCONT:
-    nodeplotter = 1
-    import DEM_explicit_solver_var_DISCONT as DEM_parameters
-elif benchmark_number in listROLLFR:
-    import DEM_explicit_solver_var_ROLLFR as DEM_parameters
-elif benchmark_number in listDEMFEM:
-    import DEM_explicit_solver_var_DEMFEM as DEM_parameters
-elif benchmark_number in listCONT:
-    import DEM_explicit_solver_var_CONT as DEM_parameters
-elif benchmark_number == 27:
-    import DEM_explicit_solver_var_UCS as DEM_parameters
-elif benchmark_number == 28:
-    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters
-elif benchmark_number in listDISclZHAO:
-    import DEM_explicit_solver_var_DISclZHAO as DEM_parameters
-elif benchmark_number in listDISclRK:
-    import DEM_explicit_solver_var_DISclRK as DEM_parameters
-else:
-    print('Benchmark number does not exist')
-    sys.exit()
+
 
 class Solution(main_script.Solution):
 
     def __init__(self):
         super(Solution, self).__init__()
         os.chdir('..')
+        print(benchmark_number)
+        print()
+
+        if benchmark_number in listDISCONT:
+            nodeplotter = 1
+            parameters_file = open("ProjectParametersDISCONT.json",'r')
+        elif benchmark_number in listROLLFR:
+            parameters_file = open("ProjectParametersROLLFR.json",'r')
+        elif benchmark_number in listDEMFEM:
+            parameters_file = open("ProjectParametersDEMFEM.json",'r')
+        elif benchmark_number in listCONT:
+            print("entro")
+            parameters_file = open("ProjectParametersDEMCONT.json",'r')
+        elif benchmark_number == 27:
+            parameters_file = open("ProjectParametersUCS.json",'r')
+        #elif benchmark_number == 28:
+        #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
+        #    parameters_file = open("ProjectParametersDEM.json",'r')
+        elif benchmark_number in listDISclZHAO:
+            parameters_file = open("ProjectParametersDISclZHAO.json",'r')
+        elif benchmark_number in listDISclRK:
+            parameters_file = open("ProjectParametersDISclRK.json",'r')
+        else:
+            print('Benchmark number does not exist')
+            sys.exit()
+
+        self.DEM_parameters = Parameters(parameters_file.read())
         self.main_path = os.getcwd()
 
     def GetProblemTypeFilename(self):
@@ -58,17 +66,17 @@ class Solution(main_script.Solution):
 
     def SetSolverStrategy(self):
         # Strategy object
-        if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+        if (self.DEM_parameters.ElementType == "SphericPartDEMElement3D" or self.DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
             import sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+        elif (self.DEM_parameters.ElementType == "SphericContPartDEMElement3D" or self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
             import continuum_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+        elif (self.DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
+        elif (self.DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
             import thermal_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
+        elif (self.DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (DEM_parameters.ElementType == "IceContPartDEMElement3D"):
+        elif (self.DEM_parameters.ElementType == "IceContPartDEMElement3D"):
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
@@ -88,7 +96,7 @@ class Solution(main_script.Solution):
         #return self.dt
 
     def Initialize(self):
-        DEM_parameters.problem_name = 'benchmark' + str(benchmark_number)
+        self.DEM_parameters.problem_name = 'benchmark' + str(benchmark_number)
         #self.final_time = slt.final_time  
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
