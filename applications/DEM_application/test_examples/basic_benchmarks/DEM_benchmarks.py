@@ -66,17 +66,18 @@ class Solution(main_script.Solution):
 
     def SetSolverStrategy(self):
         # Strategy object
-        if (self.DEM_parameters.ElementType == "SphericPartDEMElement3D" or self.DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+        element_type = self.DEM_parameters["ElementType"].GetString()
+        if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
             import sphere_strategy as SolverStrategy
-        elif (self.DEM_parameters.ElementType == "SphericContPartDEMElement3D" or self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+        elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
             import continuum_sphere_strategy as SolverStrategy
-        elif (self.DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+        elif (element_type == "ThermalSphericContPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (self.DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
+        elif (element_type == "ThermalSphericPartDEMElement3D"):
             import thermal_sphere_strategy as SolverStrategy
-        elif (self.DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
+        elif (element_type == "SinteringSphericConPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (self.DEM_parameters.ElementType == "IceContPartDEMElement3D"):
+        elif (element_type == "IceContPartDEMElement3D"):
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
@@ -96,7 +97,7 @@ class Solution(main_script.Solution):
         #return self.dt
 
     def Initialize(self):
-        self.DEM_parameters.problem_name = 'benchmark' + str(benchmark_number)
+        self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
         #self.final_time = slt.final_time  
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
