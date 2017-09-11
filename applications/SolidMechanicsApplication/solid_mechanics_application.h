@@ -316,9 +316,21 @@ typedef array_1d<double,6> Vector6;
    const SmallDisplacementElement mSmallDisplacementElement3D20N;
    const SmallDisplacementElement mSmallDisplacementElement3D27N;
 
+   //B-bar
    const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D3N;
-   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D4N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D6N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D8N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D9N;
 
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D4N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D6N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D8N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D10N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D15N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D20N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D27N;
+   
    const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
    const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
    const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;

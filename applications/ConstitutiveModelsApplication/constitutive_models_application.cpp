@@ -70,9 +70,12 @@ namespace Kratos {
     Serializer::Register( "BorjaModel", mBorjaModel );
     
     //plasticity models
+    Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
+    Serializer::Register( "SimoJ2PlasticityModel", mSimoJ2PlasticityModel );
     Serializer::Register( "CamClayModel", mCamClayModel );
-    
+    Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
+	
     //yield criteria
     Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
     Serializer::Register( "MisesHuberThermalYieldSurface", mMisesHuberThermalYieldSurface );      

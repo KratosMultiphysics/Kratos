@@ -166,7 +166,7 @@ namespace Kratos
      */
 
     virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
-    {
+    {      
       KRATOS_TRY
 
       // calculate volumetric stress
@@ -179,13 +179,11 @@ namespace Kratos
      
       rStressMatrix += VolumetricStressMatrix;
 		
-      KRATOS_CATCH(" ")
-    
+      KRATOS_CATCH(" ")	
     }
     
     virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
-
       KRATOS_TRY
     
       PlasticDataType Variables;
@@ -203,8 +201,7 @@ namespace Kratos
 	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
 
     
-      KRATOS_CATCH(" ")
-    
+      KRATOS_CATCH(" ")    
     }
     
     /**
@@ -409,7 +406,7 @@ namespace Kratos
       else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
-	  rVariables.StrainMatrix = identity_matrix<double>(3);;
+	  rVariables.StrainMatrix = identity_matrix<double>(3);
 	}
 	else{
 	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
@@ -740,17 +737,19 @@ namespace Kratos
       double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
       double& rEquivalentPlasticStrain     = mInternal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
-      
+
       //update mechanical variables
       rEquivalentPlasticStrainOld  = rEquivalentPlasticStrain;
       rEquivalentPlasticStrain    += sqrt(2.0/3.0) * rDeltaGamma;
 
-	
+
+      const MaterialDataType& rMaterial    = rVariables.GetMaterialParameters();
+      
       //update total strain measure
       double VolumetricPart = (rValues.StrainMatrix(0,0)+rValues.StrainMatrix(1,1)+rValues.StrainMatrix(2,2)) / (3.0);
 
       rValues.StrainMatrix  = rStressMatrix;
-      rValues.StrainMatrix *= ( 1.0 / rValues.MaterialParameters.LameMu * pow(rValues.GetTotalDeformationDet(),(2.0/3.0)) );
+      rValues.StrainMatrix *= ( 1.0 / rMaterial.GetLameMu() * pow(rValues.GetTotalDeformationDet(),(2.0/3.0)) );
             
       rValues.StrainMatrix(0,0) += VolumetricPart;
       rValues.StrainMatrix(1,1) += VolumetricPart;

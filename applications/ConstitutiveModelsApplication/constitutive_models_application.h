@@ -71,7 +71,9 @@
 #include "custom_models/elasticity_models/borja_model.hpp"
 
 //plasticity models
+#include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
 #include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
+#include "custom_models/plasticity_models/simo_J2_plasticity_model.hpp"
 #include "custom_models/plasticity_models/simo_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
@@ -243,21 +245,21 @@ namespace Kratos {
     ///@{
 
     //outfitted python laws
-    const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw;
+    const PythonOutfittedConstitutiveLaw           mPythonOutfittedConstitutiveLaw;
     
     //general constitutive laws
     
     //small strain laws
-    const SmallStrain3DLaw                      mSmallStrain3DLaw;
-    const SmallStrainOrthotropic3DLaw           mSmallStrainOrthotropic3DLaw;
-    const SmallStrainPlaneStrain2DLaw           mSmallStrainPlaneStrain2DLaw;
-    const SmallStrainPlaneStress2DLaw           mSmallStrainPlaneStress2DLaw;
-    const SmallStrainAxisymmetric2DLaw          mSmallStrainAxisymmetric2DLaw;
+    const SmallStrain3DLaw                         mSmallStrain3DLaw;
+    const SmallStrainOrthotropic3DLaw              mSmallStrainOrthotropic3DLaw;
+    const SmallStrainPlaneStrain2DLaw              mSmallStrainPlaneStrain2DLaw;
+    const SmallStrainPlaneStress2DLaw              mSmallStrainPlaneStress2DLaw;
+    const SmallStrainAxisymmetric2DLaw             mSmallStrainAxisymmetric2DLaw;
 
     //large strain laws
-    const LargeStrain3DLaw                       mLargeStrain3DLaw;
-    const LargeStrainPlaneStrain2DLaw            mLargeStrainPlaneStrain2DLaw;
-    const LargeStrainAxisymmetric2DLaw           mLargeStrainAxisymmetric2DLaw;
+    const LargeStrain3DLaw                         mLargeStrain3DLaw;
+    const LargeStrainPlaneStrain2DLaw              mLargeStrainPlaneStrain2DLaw;
+    const LargeStrainAxisymmetric2DLaw             mLargeStrainAxisymmetric2DLaw;
 
 
     //general constitutive models
@@ -274,7 +276,9 @@ namespace Kratos {
     const BorjaModel                               mBorjaModel;
 
     //plasticity models
+    const VonMisesLinearElasticPlasticityModel     mVonMisesLinearElasticPlasticityModel;
     const VonMisesNeoHookeanPlasticityModel        mVonMisesNeoHookeanPlasticityModel;
+    const SimoJ2PlasticityModel                    mSimoJ2PlasticityModel;
     const SimoJ2ThermoPlasticityModel              mSimoJ2ThermoPlasticityModel;
     const JohnsonCookJ2ThermoPlasticityModel       mJohnsonCookJ2ThermoPlasticityModel;
     const BakerJohnsonCookJ2ThermoPlasticityModel  mBakerJohnsonCookJ2ThermoPlasticityModel;
@@ -296,8 +300,7 @@ namespace Kratos {
     const ExponentialDamageHardeningRule            mExponentialDamageHardeningRule;
     const ModifiedExponentialDamageHardeningRule    mModifiedExponentialDamageHardeningRule;
     const CamClayHardeningRule                      mCamClayHardeningRule;
-    
-    
+      
        
     ///@}
     ///@name Private Operators

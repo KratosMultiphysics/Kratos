@@ -293,6 +293,9 @@ namespace Kratos
       rValues.MaterialParameters.LameLambda    = (rValues.MaterialParameters.YoungModulus*rValues.MaterialParameters.PoissonCoefficient)/((1.0+rValues.MaterialParameters.PoissonCoefficient)*(1.0-2.0*rValues.MaterialParameters.PoissonCoefficient));
       rValues.MaterialParameters.BulkModulus   = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
 
+      //infinitessimal strain (plasticity mu_bar := mu)
+      rValues.MaterialParameters.LameMuBar     = rValues.MaterialParameters.LameMu;
+      
 
       //hyperelastic model parameters
       if( rProperties.Has(C10) ){

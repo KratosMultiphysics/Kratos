@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
+import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
 import importlib
 
 def Factory(custom_settings, Model):
@@ -21,6 +21,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 	    "constitutive_law": {
                 "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.LinearElasticModel"
             },
+            "section_type": {},
 	    "variables": {},
 	    "tables": {},
             "echo_level" : 0
@@ -42,7 +43,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
-            variable = self._GetItemFromModule(key)
+            my_key = "KratosMultiphysics."+key
+            variable = self._GetItemFromModule(my_key)
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
             elif( value.IsArray() ):
@@ -111,10 +113,10 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         if(len(splitted) == 0):
             raise Exception("something wrong. Trying to split the string "+my_string)
         if(len(splitted) == 1):
-            material_law = "KratosMaterialModels."+my_string+"()"
+            material_law = "KratosMaterials."+my_string+"()"
             return eval(material_law)
         elif(len(splitted) == 2):
-            material_law = "KratosMaterialModels."+splitted[0]+"(KratosMaterialModels."+splitted[1]+"())"
+            material_law = "KratosMaterials."+splitted[0]+"(KratosMaterials."+splitted[1]+"())"
             return eval(material_law)
         elif(len(splitted) == 3):
             module_name = ""

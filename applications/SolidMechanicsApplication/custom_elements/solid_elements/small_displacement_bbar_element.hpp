@@ -147,15 +147,11 @@ protected:
     virtual void InitializeElementVariables(ElementVariables& rVariables,
                                             const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX);
 
     /**
-     * Calculation of the Hydrostatic Deformation Matrix  H
+     * Calculation of the Volumetric Deformation Matrix  H
      */
-    void CalculateHydrostaticDeformationMatrix(ElementVariables& rVariables);
+    void CalculateVolumetricDeformationMatrix(ElementVariables& rVariables);
 
     /**
      * Calculation of the Deformation Matrix B_bar B
@@ -165,7 +161,7 @@ protected:
     /**
      * Calculation of the Infinitesimal B_bar Strain
      */
-    void CalculateInfinitesimalStrainBbar(const Matrix& rB, Vector& rStrainVector);
+    void CalculateInfinitesimalStrainBbar(Vector& rStrainVector, const Matrix& rH, const Matrix& rDN_DX);
 
 
     ///@}

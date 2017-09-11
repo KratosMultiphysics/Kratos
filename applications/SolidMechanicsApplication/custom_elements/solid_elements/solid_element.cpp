@@ -845,9 +845,10 @@ void SolidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, Eleme
 
       // operation performed: add Km to the rLefsHandSideMatrix
       this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
+      
       // operation performed: add Kg to the rLefsHandSideMatrix
       this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
     }
 
     //KRATOS_WATCH( rLeftHandSideMatrix )

@@ -78,6 +78,8 @@ class Solution(object):
             MaterialParameters = KratosMultiphysics.Parameters(materials_file.read())
     
             if(MaterialParameters.Has("material_models_list")):
+
+                import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
                 
                 ## Get the list of the model_part's in the object Model
                 for i in range(self.ProjectParameters["solver_settings"]["problem_domain_sub_model_part_list"].size()):
@@ -88,8 +90,12 @@ class Solution(object):
         
                 assign_materials_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( MaterialParameters["material_models_list"] )
 
-            for process in assign_materials_processes:
-                process.Execute()
+                for process in assign_materials_processes:
+                    process.Execute()
+                    print(" set material ")
+                
+                print(" Materials.json found ")
+                
         else:
             print(" No Materials.json found ")
             

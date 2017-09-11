@@ -28,7 +28,6 @@ namespace Kratos
 SmallDisplacementBbarElement::SmallDisplacementBbarElement()
   : SmallDisplacementElement()
 {
-    // DO NOT CALL IT: only needed for Register and Serialization!!!
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -38,7 +37,6 @@ SmallDisplacementBbarElement::SmallDisplacementBbarElement(IndexType NewId,
                                                            GeometryType::Pointer pGeometry)
     : SmallDisplacementElement(NewId, pGeometry)
 {
-    // DO NOT ADD DOFS HERE!!!
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -49,7 +47,6 @@ SmallDisplacementBbarElement::SmallDisplacementBbarElement(IndexType NewId,
                                                            PropertiesType::Pointer pProperties)
     : SmallDisplacementElement(NewId, pGeometry, pProperties)
 {
-    
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -130,41 +127,10 @@ void SmallDisplacementBbarElement::InitializeElementVariables(ElementVariables& 
 {
     KRATOS_TRY
       
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
-
-    if (dimension == 3)
-    {
-        voigt_size = 6;
-    }
-
-    rVariables.Initialize(voigt_size, dimension, number_of_nodes);
-
-    // needed parameters for consistency with the general constitutive law:
-    // small displacements
-    rVariables.detF = 1.0;
-    rVariables.F = identity_matrix<double>(dimension);
-
-    // set variables including all integration points values
-
-    // reading shape functions
-    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod));
-
-    // reading shape functions local gradients
-    rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod));
-
-    // calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-    rVariables.j = GetGeometry().Jacobian(rVariables.j, mThisIntegrationMethod);
-
-    // Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
-
-    // calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = GetGeometry().Jacobian(rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition);
-
-    // calculate hydrostatic deformation matrix
-    CalculateHydrostaticDeformationMatrix(rVariables);
+    SmallDisplacementElement::InitializeElementVariables(rVariables, rCurrentProcessInfo);
+    
+    // calculate volumetric deformation matrix (stored in rVariables.H) 
+    CalculateVolumetricDeformationMatrix(rVariables);
 
     KRATOS_CATCH( "" )    
 }
@@ -180,164 +146,86 @@ void SmallDisplacementBbarElement::CalculateKinematics(ElementVariables& rVariab
 {
     KRATOS_TRY
 
-    // Get the parent coodinates derivative [dN/d£]
+    //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-    // Get the shape functions for the order of the integration method [N]
+    //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
-    // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    //Parent to reference configuration
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+    
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix(rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    // Compute cartesian derivatives  [dN/dx_n]
-    noalias(rVariables.DN_DX) = prod(DN_De[rPointNumber], InvJ);
+    //Compute cartesian derivatives  [dN/dx_n]
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
-    // Set Shape Functions Values for this integration point
-    rVariables.N = row(Ncontainer, rPointNumber);
-
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row( Ncontainer, rPointNumber);
+    
     // Compute the deformation matrix B_bar
     this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.H, rVariables.DN_DX);
     
     // Compute infinitessimal B_bar strain
-    this->CalculateInfinitesimalStrainBbar(rVariables.B, rVariables.StrainVector);
+    this->CalculateInfinitesimalStrainBbar(rVariables.StrainVector, rVariables.H, rVariables.DN_DX);
 
+    std::cout<<" Bmatrix "<<rVariables.B<<" Hmatrix "<<rVariables.H<<std::endl;
+    std::cout<<" Strain "<<rVariables.StrainVector<<std::endl;
+
+    Vector Displacements;
+    this->GetValuesVector(Displacements,0);
+    std::cout<<" B*u "<<prod(rVariables.B,Displacements)<<std::endl;
+
+    
     KRATOS_CATCH("")
 }
 
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(const Matrix& rB,
-								    Vector& rStrainVector)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if (dimension == 2)
-    {
-        // Infinitesimal Bbar Strain Calculation
-        if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
-
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            array_1d<double, 3>& Displacement =
-                GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-            rStrainVector[0] += Displacement[0] * rB(0, i * 2) +
-                                Displacement[1] * rB(0, i * 2 + 1); // xx
-            rStrainVector[1] += Displacement[0] * rB(1, i * 2) +
-                                Displacement[1] * rB(1, i * 2 + 1); // yy
-            rStrainVector[2] += Displacement[0] * rB(2, i * 2) +
-                                Displacement[1] * rB(2, i * 2 + 1); // zz
-            rStrainVector[3] += Displacement[0] * rB(3, i * 2) +
-                                Displacement[1] * rB(3, i * 2 + 1); // xy
-        }
-    }
-    else if (dimension == 3)
-    {
-
-        //Infinitesimal Bbar Strain Calculation
-        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
-      
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            array_1d<double, 3>& Displacement =
-                GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-            rStrainVector[0] += Displacement[0] * rB(0, i * 3) +
-                                Displacement[1] * rB(0, i * 3 + 1) +
-                                Displacement[2] * rB(0, i * 3 + 2); // xx
-            rStrainVector[1] += Displacement[0] * rB(1, i * 3) +
-                                Displacement[1] * rB(1, i * 3 + 1) +
-                                Displacement[2] * rB(1, i * 3 + 2); // yy
-            rStrainVector[2] += Displacement[0] * rB(2, i * 3) +
-                                Displacement[1] * rB(2, i * 3 + 1) +
-                                Displacement[2] * rB(2, i * 3 + 2); // zz
-            rStrainVector[3] += Displacement[0] * rB(3, i * 3) +
-                                Displacement[1] * rB(3, i * 3 + 1) +
-                                Displacement[2] * rB(3, i * 3 + 2); // xy
-            rStrainVector[4] += Displacement[0] * rB(4, i * 3) +
-                                Displacement[1] * rB(4, i * 3 + 1) +
-                                Displacement[2] * rB(4, i * 3 + 2); // yz
-            rStrainVector[5] += Displacement[0] * rB(5, i * 3) +
-                                Displacement[1] * rB(5, i * 3 + 1) +
-                                Displacement[2] * rB(5, i * 3 + 2); // xz
-        }
-    }
-    else
-    {
-        KRATOS_THROW_ERROR(std::invalid_argument, "something is wrong with the dimension", "")
-    }
-
-    KRATOS_CATCH("")
-}
 
 //************************************************************************************
 //************************************************************************************
   
-void SmallDisplacementBbarElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
+void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(Vector& rStrainVector,
+								    const Matrix& rH,
+								    const Matrix& rDN_DX)
 {
     KRATOS_TRY
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
 
-    if (dimension == 3)
-    {
-        voigt_size = 6;
-    }
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    Matrix J (dimension,dimension);
+      
+    //Displacement gradient J [dU/dx_n]
+    this->CalculateDisplacementGradient( J, rDN_DX );
     
-    if (rB.size1() != voigt_size || rB.size2() != dimension * number_of_nodes)
-        rB.resize(voigt_size, dimension * number_of_nodes, false);
+    //Compute infinitessimal strain
+    this->CalculateInfinitesimalStrain( J, rStrainVector );
     
-    if (dimension == 2)
-    {
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            unsigned int index = 2 * i;
+    //Add Bbar terms:     
 
-            rB(0,index + 0) = rDN_DX(i,0);
-            rB(0,index + 1) = 0.0;
+    double VolumetricStrain = 0;
+    for( unsigned int i=0; i<dimension; i++ )
+      {
+	VolumetricStrain -= rStrainVector[i];
+      }
+    VolumetricStrain /= double(dimension);
 
-	    rB(1,index + 0) = 0.0;
-            rB(1,index + 1) = rDN_DX(i,1);
 
-	    rB(2,index + 0) = 0.0;
-            rB(2,index + 1) = 0.0;
+    Vector Displacements;
+    this->GetValuesVector(Displacements,0);
 
-	    rB(3,index + 0) = rDN_DX(i,1);
-            rB(3,index + 1) = rDN_DX(i,0);
-        }
-    }
-    else if (dimension == 3)
-    {
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            unsigned int index = 3 * i;
-
-            rB(0,index + 0) = rDN_DX(i,0);
-            rB(1,index + 1) = rDN_DX(i,1);
-            rB(2,index + 2) = rDN_DX(i,2);
-
-	    rB(3,index + 0) = rDN_DX(i,1);
-            rB(3,index + 1) = rDN_DX(i,0);
-
-	    rB(4,index + 1) = rDN_DX(i,2);
-            rB(4,index + 2) = rDN_DX(i,1);
-	    
-            rB(5,index + 0) = rDN_DX(i,2);
-            rB(5,index + 2) = rDN_DX(i,0);
-        }
-    }
-    else
-    {
-        KRATOS_THROW_ERROR(std::invalid_argument, "something is wrong with the dimension", "")
-    }
+    double DeformationVolume = 0;
+    for(unsigned int i =0; i<Displacements.size(); i++)
+       DeformationVolume += rH(i,0) * Displacements[i];
     
+    
+    VolumetricStrain += DeformationVolume;
+      
+    for( unsigned int i=0; i<dimension; i++ )
+      {
+	rStrainVector[i] += VolumetricStrain;
+      }
+   
     KRATOS_CATCH("")
 }
 
@@ -346,93 +234,51 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrix(Matrix& rB, const 
 
 void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB,
                                                                   const Matrix& rH,
-                                                                  const Matrix& rDN_DX) // JLM debe entrar rBh
+                                                                  const Matrix& rDN_DX)
 {
     KRATOS_TRY
+      
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    if (dimension == 3)
-    {
-        voigt_size = 6;
-    }
+    // Compute deformation matrix
+    this->CalculateDeformationMatrix(rB, rDN_DX);
 
-    // Inicializar Auxiliar B matrix
-    Matrix B;
-    this->CalculateDeformationMatrix(B, rDN_DX);
-    
-    if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
-      rB.resize(voigt_size, dimension*number_of_nodes, false );
-
-    double athird = 1.0/3.0;
-    
     if (dimension == 2)
     {
-        rB(0,0) =  2.0 * athird * B(0,0);
-        rB(0,1) = -athird * B(1,1);
-
-        rB(0,2) =  2.0 * athird * B(0,2);
-        rB(0,3) = -athird * B(1,3);
-        rB(0,4) =  2.0 * athird * B(0,4);
-        rB(0,5) = -athird * B(1,5);
-        rB(0,6) =  2.0 * athird * B(0,6);
-        rB(0,7) = -athird * B(1,7);
-
-        rB(1,0) = -athird * B(0,0);
-        rB(1,1) =  2.0 * athird * B(1,1);
-
-        rB(1,2) = -athird * B(0,2);
-        rB(1,3) =  2.0 * athird * B(1,3);
-        rB(1,4) = -athird * B(0,4);
-        rB(1,5) =  2.0 * athird * B(1,5);
-        rB(1,6) = -athird * B(0,6);
-        rB(1,7) =  2.0 * athird * B(1,7);
-
-        rB(2,0) = -athird * B(0,0);
-        rB(2,1) = -athird * B(1,1);
-
-        rB(2,2) = -athird * B(0,2);
-        rB(2,3) = -athird * B(1,3);
-        rB(2,4) = -athird * B(0,4);
-        rB(2,5) = -athird * B(1,5);
-        rB(2,6) = -athird * B(0,6);
-        rB(2,7) = -athird * B(1,7);
-
-        for (unsigned int i = 0; i < number_of_nodes * dimension; i++)
+        unsigned int index = 0;
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            // unsigned int index = 2 * i;
-   	    rB(0,i) += athird * rH(i,0);
-            rB(1,i) += athird * rH(i,0);
-            rB(2,i) += athird * rH(i,0);
-            rB(3,i)  = B(3,i);
+            index = 2 * i;
+
+            rB( 0, index + 0 ) += rH( index  , 0 ) - 0.5 * rDN_DX( i, 0 );
+	    rB( 0, index + 1 ) += rH( index+1, 0 ) - 0.5 * rDN_DX( i, 1 );		       
+            rB( 1, index + 1 ) += rH( index+1, 0 ) - 0.5 * rDN_DX( i, 1 );
+	    rB( 1, index + 0 ) += rH( index  , 0 ) - 0.5 * rDN_DX( i, 0 );
         }
     }
     else if (dimension == 3)
     {
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+      double athird = 1.0/3.0;
+      unsigned int index = 0;
+      
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = 3 * i;
+	  index = 3 * i;
 
-            rB(0,index + 0) = 2.0 * athird * B(0,index + 0);
-            rB(1,index + 0) = -athird * B(0,index + 0);
-            rB(2,index + 0) = -athird * B(0,index + 0);
-            rB(0,index + 1) = -athird * B(1,index + 1);
-            rB(1,index + 1) = 2.0 * athird * B(1,index + 1);
-            rB(2,index + 1) = -athird * B(1,index + 1);
-            rB(0,index + 2) = -athird * B(2,index + 2);
-            rB(1,index + 2) = -athird * B(2,index + 2);
-            rB(2,index + 2) = 2.0 * athird * B(2,index + 2);
-        }
-        for (unsigned int i = 0; i < number_of_nodes * dimension; i++)
-        {
-            rB(0,i) += athird * rH(i,0);
-            rB(1,i) += athird * rH(i,0);
-            rB(2,i) += athird * rH(i,0);
-            rB(3,i) = B(3,i);
-            rB(4,i) = B(4,i);
-            rB(5,i) = B(5,i);
-        }
+	  rB( 0, index + 0 ) += rH( index  , 0 ) - athird * ( rDN_DX( i, 0 ) );
+	  rB( 0, index + 1 ) += rH( index+1, 0 ) - athird * ( rDN_DX( i, 1 ) );
+	  rB( 0, index + 2 ) += rH( index+2, 0 ) - athird * ( rDN_DX( i, 2 ) );
+	  
+	  rB( 1, index + 1 ) += rH( index+1, 0 ) - athird * ( rDN_DX( i, 1 ) );
+	  rB( 1, index + 0 ) += rH( index  , 0 ) - athird * ( rDN_DX( i, 0 ) );
+	  rB( 1, index + 2 ) += rH( index+2, 0 ) - athird * ( rDN_DX( i, 2 ) );
+	  
+	  rB( 2, index + 2 ) += rH( index+2, 0 ) - athird * ( rDN_DX( i, 2 ) );
+	  rB( 2, index + 0 ) += rH( index  , 0 ) - athird * ( rDN_DX( i, 0 ) );
+	  rB( 2, index + 1 ) += rH( index+1, 0 ) - athird * ( rDN_DX( i, 1 ) );
+	}
+
     }
     else
     {
@@ -444,15 +290,12 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB,
     KRATOS_CATCH("")
 }
 
-void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(ElementVariables& rVariables)
+void SmallDisplacementBbarElement::CalculateVolumetricDeformationMatrix(ElementVariables& rVariables)
 {
     KRATOS_TRY
       
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // if (rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes)
-    //    rB.resize(voigt_size, dimension*number_of_nodes, false);
 
     rVariables.H.resize(dimension * number_of_nodes, 1, false);
     rVariables.H.clear();
@@ -461,6 +304,7 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(Element
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     double GeometrySize = 0.0;
+    
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
       {
 	const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -468,8 +312,6 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(Element
 	Matrix InvJ;
 	MathUtils<double>::InvertMatrix(rVariables.J[PointNumber], InvJ, rVariables.detJ);
 	noalias(rVariables.DN_DX) = prod(DN_De[PointNumber], InvJ);
-
-	this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
 
 	double IntegrationWeight = integration_points[PointNumber].Weight() * rVariables.detJ;
 	GeometrySize += IntegrationWeight;
@@ -480,12 +322,12 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(Element
 	    for (unsigned int j= 0; j < dimension; j++)
 	      {
 		index = i * dimension + j;
-		rVariables.H(index,0) += rVariables.B(j, index) * IntegrationWeight;
+		rVariables.H(index,0) += rVariables.DN_DX(i,j) * IntegrationWeight;
 	      }
 	  }
       }
 
-    rVariables.H /= GeometrySize;
+    rVariables.H /= (GeometrySize*dimension);
 
     KRATOS_CATCH("")
 }

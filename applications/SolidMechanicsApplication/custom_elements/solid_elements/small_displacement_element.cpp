@@ -205,10 +205,10 @@ void SmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables,
     rVariables.N=row( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B,rVariables.DN_DX);
+    this->CalculateDeformationMatrix( rVariables.B, rVariables.DN_DX );
 
     //Compute infinitessimal strain
-    this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
+    this->CalculateInfinitesimalStrain( rVariables.H, rVariables.StrainVector );
 
 
     KRATOS_CATCH( "" )
@@ -330,7 +330,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
       
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = dimension * (dimension +1) * 0.5;
+    unsigned int voigt_size            = dimension * (dimension +1) * 0.5;
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
       rB.resize(voigt_size, dimension*number_of_nodes, false );
@@ -355,22 +355,22 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
     else if( dimension == 3 )
     {
       unsigned int index = 0;
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            index = 3 * i;
+	  index = 3 * i;
 
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
+	  rB( 0, index + 0 ) = rDN_DX( i, 0 );
+	  rB( 1, index + 1 ) = rDN_DX( i, 1 );
+	  rB( 2, index + 2 ) = rDN_DX( i, 2 );
 
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
+	  rB( 3, index + 0 ) = rDN_DX( i, 1 );
+	  rB( 3, index + 1 ) = rDN_DX( i, 0 );
 
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
+	  rB( 4, index + 1 ) = rDN_DX( i, 2 );
+	  rB( 4, index + 2 ) = rDN_DX( i, 1 );
 
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
+	  rB( 5, index + 0 ) = rDN_DX( i, 2 );
+	  rB( 5, index + 2 ) = rDN_DX( i, 0 );
 
         }
 
