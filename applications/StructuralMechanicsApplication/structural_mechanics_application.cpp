@@ -192,8 +192,6 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
 
-    //fusseder
-    KRATOS_REGISTER_VARIABLE( IZ_SENSITIVITY )
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)

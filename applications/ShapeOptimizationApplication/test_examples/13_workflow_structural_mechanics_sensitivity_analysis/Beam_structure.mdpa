@@ -7,13 +7,13 @@ End Properties
 Begin Properties 1
     DENSITY  7850
     CROSS_AREA 0.01
-    AREA 2
-    YOUNG_MODULUS  2.1e7
+    AREA 0.001
+    YOUNG_MODULUS  2.1e6
     POISSON_RATIO  0.30000  
-    LOCAL_INERTIA_TENSOR [2,2] ((0.10,0.10),(0.10,0.10)) // matrix
-	IT 0.001
-	IY 0.001
-	IZ 0.001
+    LOCAL_INERTIA_VECTOR [3] (8.33e-6,8.33e-6,8.33e-6) 
+	IT 8.33e-6
+	IY 8.33e-6
+	IZ 8.33e-6
 End Properties
 
 Begin Nodes
@@ -36,7 +36,7 @@ Begin Nodes
    17        1.600000        0.0000        0.00000
 End Nodes
 
-Begin Elements CrBeamElement3D2NForSA // GUI group identifier: solid
+Begin Elements CrLinearBeamElement3D2N// GUI group identifier: solid
     1           1           1       2
     2           1           2       3
     3           1           3       4
@@ -101,6 +101,7 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_support // Group disp_fix // Subtree DISPLACEMENT
     Begin SubModelPartNodes
         1
+        9
         17
     End SubModelPartNodes
     Begin SubModelPartElements
@@ -111,7 +112,6 @@ End SubModelPart
 Begin SubModelPart ROTATION_support // Group dirrot // Subtree ROTATION
     Begin SubModelPartNodes
         1
-        17
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -119,7 +119,7 @@ Begin SubModelPart ROTATION_support // Group dirrot // Subtree ROTATION
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart DISPLACEMENT_Z_support // Group disp_z // Subtree DISPLACEMENT
+Begin SubModelPart DISPLACEMENT_Y_support // Group disp_y // Subtree DISPLACEMENT
     Begin SubModelPartNodes
         2
         3
@@ -144,22 +144,46 @@ Begin SubModelPart DISPLACEMENT_Z_support // Group disp_z // Subtree DISPLACEMEN
 End SubModelPart
 
 
-Begin Conditions PointLoadCondition3D1NForSA// GUI group identifier: load
-    1 0 2
-    2 0 8
-    3 0 9
-    4 0 10
-    5 0 16
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: load
+    1 0 1
+    2 0 2
+    3 0 3
+    4 0 4
+    5 0 5
+    6 0 6
+    7 0 7
+    8 0 8
+    9 0 9
+    10 0 10
+    11 0 11
+    12 0 12
+    13 0 13
+    14 0 14
+    15 0 15
+    16 0 16
+    17 0 17
 End Conditions
 
 
 Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
     Begin SubModelPartNodes
+        1
         2
+        3
+        4
+        5
+        6
+        7
         8
         9
         10
+        11
+        12
+        13
+        14
+        15
         16
+        17
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -169,6 +193,63 @@ Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
         3
         4
         5
+        6
+        7
+        8
+        9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart sensitivity_model_part // Group disp_z // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        9
+        13
+        17
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
+        9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+    End SubModelPartElements
+    Begin SubModelPartConditions
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
+        9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
     End SubModelPartConditions
 End SubModelPart
 

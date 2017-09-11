@@ -73,8 +73,6 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(IT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(IY)
 
-    //fusseder
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(IZ_SENSITIVITY)
 
 
     // shell generalized variables

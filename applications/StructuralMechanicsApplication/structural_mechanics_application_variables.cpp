@@ -29,8 +29,6 @@ typedef array_1d<double,3> Vector3;
     KRATOS_CREATE_VARIABLE( int,    SECTION_SIDES )
     KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
 
-    //fusseder
-    KRATOS_CREATE_VARIABLE( double, IZ_SENSITIVITY )
 
     // Truss generalized variables
     KRATOS_CREATE_VARIABLE(double, TRUSS_PRESTRESS_PK2)

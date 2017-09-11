@@ -7,10 +7,10 @@
 //   License:        BSD License
 //   Kratos default license: kratos/license.txt
 //
-//   Project Name:        $ShapeOptimizationApplication   $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         November  2016   $
-//   Revision:            $Revision:                0.0   $
+//   Project Name:        $ShapeOptimizationApplication     $
+//   Last modified by:    $Author: martin.fusseder@tum.de   $
+//   Date:                $Date:         August  2017       $
+//   Revision:            $Revision:                0.0     $
 
 // System includes
 
@@ -23,6 +23,7 @@
 #include "processes/process.h"
 #include "custom_processes/output_primal_solution_process.h"
 #include "custom_processes/input_primal_solution_process.h"
+#include "custom_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
@@ -42,6 +43,10 @@ void AddCustomProcessesToPython()
 
     class_< InputPrimalSolutionProcess, bases<Process> >
     ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>())
+    ;
+
+    class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
+            init<ModelPart&, Parameters>())
     ;
 }
 

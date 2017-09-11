@@ -4,6 +4,7 @@
 //					 license: ShapeOptimizationApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
+//                   Martin Fusseder, https://github.com/MFusseder
 //
 // fusseder TODO: copied from Adjoint fluid application. Maybe rename the class
 
@@ -172,7 +173,7 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY
+        KRATOS_TRY    
 
         // open file to read data
         H5::H5File File(mFilename.c_str(), H5F_ACC_RDONLY);

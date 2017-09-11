@@ -80,6 +80,36 @@ public:
     /// Destructor.
     ~PointLoadConditionForSA() override;
 
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     * @param rResult: The vector containing the equation id
+     * @param rCurrentProcessInfo: The current process info instance
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
+    
+    /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @param rElementalDofList: The vector containing the dof of the element
+     * @param rCurrentProcessInfo: The current process info instance
+     */
+    void GetDofList(
+        DofsVectorType& ElementalDofList,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Sets on rValues the nodal displacements
+     * @param rValues: The values of displacements
+     * @param Step: The step to be computed
+     */
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0 
+        ) override;
+
     ///@}
     ///@name Operators
     ///@{
@@ -100,6 +130,16 @@ public:
         NodesArrayType const& ThisNodes,  
         PropertiesType::Pointer pProperties 
         ) const override;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix only
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+				       ProcessInfo& rCurrentProcessInfo) override; 
+    //fusseder TODO: maybe remove this function to base_load_condition                   
 
     ///@}
     ///@name Access
@@ -139,6 +179,15 @@ public:
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;                                  
 
 protected:
     ///@name Protected static Member Variables

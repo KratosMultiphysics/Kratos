@@ -62,8 +62,8 @@
             "model_part_name" : "ROTATION_support",
             "variable_name"   : "ROTATION",
             "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : false,
             "value"           : [0.0,0.0,0.0]
         }
     }
@@ -76,7 +76,7 @@
         "Parameters"          : {
             "model_part_name" : "Structure",
             "file_name"       : "beam_test",
-            "variable_list"   : ["DISPLACEMENT","ROTATION","TORQUE"]
+            "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
     }],
     "loads_process_list"       : [{
@@ -89,14 +89,14 @@
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
-            "modulus"          : 100000.0,
-            "direction"       : [0.0,-1.0,0.0]
+            "modulus"          : 1.0,
+            "direction"       : [0.0,0.0,1.0]
         }
     }],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
+                "GiDPostMode"           : "GiD_PostAscii",
                 "WriteDeformedMeshFlag" : "WriteDeformed",
                 "WriteConditionsFlag"   : "WriteConditions",
                 "MultiFileFlag"         : "SingleFile"
@@ -109,7 +109,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
-            "gauss_point_results" : ["FORCE","MOMENT","IZ_SENSITIVITY"]
+            "gauss_point_results" : ["FORCE","MOMENT"]
         },
         "point_data_configuration"  : []
     },

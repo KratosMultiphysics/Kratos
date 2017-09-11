@@ -189,6 +189,8 @@ protected:
     // A protected default constructor necessary for serialization
     PointLoadCondition() {};
 
+    std::string Info() const override; //fusseder needed for sensitivity analysis
+
     ///@}
 
 private:
