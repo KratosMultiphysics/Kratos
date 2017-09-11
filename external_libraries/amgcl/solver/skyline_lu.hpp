@@ -70,126 +70,17 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 
 #include <amgcl/backend/interface.hpp>
+#include <amgcl/value_type/interface.hpp>
+#include <amgcl/reorder/cuthill_mckee.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
 namespace solver {
 
-namespace matrix_permutation {
-
-struct none {
-    template <class Matrix>
-    static void get(const Matrix&, std::vector<int> &perm) {
-        for(size_t i = 0; i < perm.size(); ++i) perm[i] = i;
-    }
-};
-
-template <bool reverse = false>
-struct CuthillMcKee {
-    template <class Matrix>
-    static void get(const Matrix &A, std::vector<int> &perm) {
-        typedef typename backend::row_iterator<Matrix>::type row_iterator;
-        const int n = backend::rows(A);
-
-        /* The data structure used to sort and traverse the level sets:
-         *
-         * The current level set is currentLevelSet;
-         * In this level set, there are nodes with degrees from 0 (not really
-         * useful) to maxDegreeInCurrentLevelSet.
-         * firstWithDegree[i] points to a node with degree i, or to -1 if it
-         * does not exist. nextSameDegree[firstWithDegree[i]] points to the
-         * second node with that degree, etc.
-         * While the level set is being traversed, the structure for the next
-         * level set is generated; nMDICLS will be the next
-         * maxDegreeInCurrentLevelSet and nFirstWithDegree will be
-         * firstWithDegree.
-         */
-        int initialNode = 0; // node to start search
-        int maxDegree   = 0;
-
-        std::vector<int> degree(n);
-        std::vector<int> levelSet(n, 0);
-        std::vector<int> nextSameDegree(n, -1);
-
-        for(int i = 0; i < n; ++i) {
-            degree[i] = backend::row_nonzeros(A, i);
-            maxDegree = std::max(maxDegree, degree[i]);
-        }
-
-        std::vector<int> firstWithDegree(maxDegree + 1, -1);
-        std::vector<int> nFirstWithDegree(maxDegree + 1);
-
-        // Initialize the first level set, made up by initialNode alone
-        perm[0] = initialNode;
-        int currentLevelSet = 1;
-        levelSet[initialNode] = currentLevelSet;
-        int maxDegreeInCurrentLevelSet = degree[initialNode];
-        firstWithDegree[maxDegreeInCurrentLevelSet] = initialNode;
-
-        // Main loop
-        for (int next = 1; next < n; ) {
-            int nMDICLS = 0;
-            std::fill(nFirstWithDegree.begin(), nFirstWithDegree.end(), -1);
-            bool empty = true; // used to detect different connected components
-
-            int firstVal  = reverse ? maxDegreeInCurrentLevelSet : 0;
-            int finalVal  = reverse ? -1 : maxDegreeInCurrentLevelSet + 1;
-            int increment = reverse ? -1 : 1;
-
-            for(int soughtDegree = firstVal; soughtDegree != finalVal; soughtDegree += increment)
-            {
-                int node = firstWithDegree[soughtDegree];
-                while (node > 0) {
-                    // Visit neighbors
-                    for(row_iterator a = backend::row_begin(A, node); a; ++a) {
-                        int c = a.col();
-                        if (levelSet[c] == 0) {
-                            levelSet[c] = currentLevelSet + 1;
-                            perm[next] = c;
-                            ++next;
-                            empty = false; // this level set is not empty
-                            nextSameDegree[c] = nFirstWithDegree[degree[c]];
-                            nFirstWithDegree[degree[c]] = c;
-                            nMDICLS = std::max(nMDICLS, degree[c]);
-                        }
-                    }
-                    node = nextSameDegree[node];
-                }
-            }
-
-            ++currentLevelSet;
-            maxDegreeInCurrentLevelSet = nMDICLS;
-            for(int i = 0; i <= nMDICLS; ++i)
-                firstWithDegree[i] = nFirstWithDegree[i];
-
-            if (empty) {
-                // The graph contains another connected component that we
-                // cannot reach.  Search for a node that has not yet been
-                // included in a level set, and start exploring from it.
-                bool found = false;
-                for(int i = 0; i < n; ++i) {
-                    if (levelSet[i] == 0) {
-                        perm[next] = i;
-                        ++next;
-                        levelSet[i] = currentLevelSet;
-                        maxDegreeInCurrentLevelSet = degree[i];
-                        firstWithDegree[maxDegreeInCurrentLevelSet] = i;
-                        found = true;
-                        break;
-                    }
-                }
-                precondition(found, "Internal consistency error at skyline_lu");
-            }
-        }
-    }
-};
-
-}
-
 /// Direct solver that uses skyline LU factorization.
 template <
     typename ValueType,
-    class ordering = matrix_permutation::CuthillMcKee<false>
+    class ordering = reorder::cuthill_mckee<false>
     >
 class skyline_lu {
     public:
@@ -345,11 +236,12 @@ class skyline_lu {
          */
         void factorize() {
             precondition(!math::is_zero(D[0]), "Zero diagonal in skyline_lu");
+            D[0] = math::inverse(D[0]);
 
             for(int k = 0; k < n - 1; ++k) {
                 // check whether A(1,k+1) lies within the skyline structure
                 if (ptr[k + 1] + k + 1 == ptr[k + 2]) {
-                    U[ptr[k+1]] = math::inverse(D[0]) * U[ptr[k+1]];
+                    U[ptr[k+1]] = D[0] * U[ptr[k+1]];
                 }
 
                 // Compute column k+1 of U
@@ -369,7 +261,7 @@ class skyline_lu {
                     for(int j = jBeginMult; j < i; ++j, ++indexL, ++indexU)
                         sum -= L[indexL] * U[indexU];
 
-                    U[indexEntry] = math::inverse(D[i]) * sum;
+                    U[indexEntry] = D[i] * sum;
                 }
 
                 // Compute row k+1 of L
@@ -394,18 +286,15 @@ class skyline_lu {
                 }
 
                 // Find element in diagonal
-                value_type sum = D[k + 1];
+                value_type sum = D[k+1];
                 for(int j = ptr[k+1]; j < ptr[k+2]; ++j)
                     sum -= L[j] * U[j];
 
                 precondition(!math::is_zero(sum),
                         "Zero sum in skyline_lu factorization");
 
-                D[k+1] = sum;
+                D[k+1] = math::inverse(sum);
             }
-
-            // Invert diagonal
-            for(int i = 0; i < n; ++i) D[i] = math::inverse(D[i]);
         }
 };
 
