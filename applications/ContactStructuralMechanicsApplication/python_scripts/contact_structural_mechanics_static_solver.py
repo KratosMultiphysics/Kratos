@@ -116,7 +116,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             echo_level = self.settings["echo_level"].GetInt()
             
             if (fancy_convergence_criterion == True):
-                table = ContactStructuralMechanicsApplication.BprinterUtility()
+                table = KratosMultiphysics.TableStreamUtility()
             
             if(self.settings["convergence_criterion"].GetString() == "Contact_Displacement_criterion"):
                 if (fancy_convergence_criterion == True):

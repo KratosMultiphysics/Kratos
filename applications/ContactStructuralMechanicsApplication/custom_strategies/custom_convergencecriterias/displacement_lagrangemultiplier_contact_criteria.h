@@ -20,10 +20,10 @@
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "includes/define.h"
-#include "custom_utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #if !defined(_WIN32)
-    #include "custom_utilities/color_utilities.h"
+    #include "utilities/color_utilities.h"
 #endif
 
 namespace Kratos
@@ -66,23 +66,23 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementLagrangeMultiplierContactCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >     BaseType;
+ 
+    typedef TSparseSpace                                  SparseSpaceType;
 
-    typedef TSparseSpace                               SparseSpaceType;
+    typedef typename BaseType::TDataType                        TDataType;
 
-    typedef typename BaseType::TDataType                     TDataType;
+    typedef typename BaseType::DofsArrayType                DofsArrayType;
 
-    typedef typename BaseType::DofsArrayType             DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType        TSystemMatrixType;
 
-    typedef typename BaseType::TSystemMatrixType     TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType        TSystemVectorType;
 
-    typedef typename BaseType::TSystemVectorType     TSystemVectorType;
+    typedef OpenMPUtils::PartitionVector                  PartitionVector;
 
-    typedef OpenMPUtils::PartitionVector               PartitionVector;
-
-    typedef std::size_t                                        KeyType;
+    typedef std::size_t                                           KeyType;
     
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle

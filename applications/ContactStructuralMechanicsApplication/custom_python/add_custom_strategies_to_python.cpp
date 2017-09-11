@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/bprinter_utility.h"
 #include "custom_utilities/process_factory_utility.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
@@ -58,7 +57,7 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
     typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
     
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;

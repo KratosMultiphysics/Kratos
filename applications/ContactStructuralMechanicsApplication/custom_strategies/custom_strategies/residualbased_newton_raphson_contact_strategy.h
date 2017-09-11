@@ -29,7 +29,7 @@
 // Utilities
 #include "utilities/variable_utils.h"
 #if !defined(_WIN32)
-	#include "custom_utilities/color_utilities.h"
+	#include "utilities/color_utilities.h"
 #endif
 #include "custom_utilities/process_factory_utility.h"
 
