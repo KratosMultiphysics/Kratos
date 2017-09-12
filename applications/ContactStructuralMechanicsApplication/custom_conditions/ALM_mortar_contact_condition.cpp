@@ -1636,9 +1636,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     
     /* LHSs */
     MatrixType inv_LHS1, inv_LHS2;
-    double aux_det;
-    MathUtils<double>::GeneralizedInvertMatrix(LHS1, inv_LHS1, aux_det);
-    MathUtils<double>::GeneralizedInvertMatrix(LHS2, inv_LHS2, aux_det);
+    double aux_det1, aux_det2;
+    MathUtils<double>::GeneralizedInvertMatrix(LHS1, inv_LHS1, aux_det1);
+    MathUtils<double>::GeneralizedInvertMatrix(LHS2, inv_LHS2, aux_det2);
     
     if (TDim == 2)
     {
@@ -1687,8 +1687,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 double delta_position = 1.0; // TODO: Check the consistency of this!!!! (consider the delta or not)
                 CalculateDeltaPosition(delta_position, MasterGeometry, i_node, i_dof);
                 
-                rDerivativeData.DeltaN1[i_node * TDim + i_dof] = delta_position * (aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
-                rDerivativeData.DeltaN2[i_node * TDim + i_dof] = delta_position * (aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1));
+                const double tolerance = std::numeric_limits<double>::epsilon();
+                
+                if (std::abs(aux_det1) > tolerance) rDerivativeData.DeltaN1[i_node * TDim + i_dof] = delta_position * (aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
+                if (std::abs(aux_det2) > tolerance) rDerivativeData.DeltaN2[i_node * TDim + i_dof] = delta_position * (aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1));
             }
         }
     }
