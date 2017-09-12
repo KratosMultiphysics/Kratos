@@ -86,10 +86,12 @@ public:
     /// Default constructors
     ALMFrictionlessMortarConvergenceCriteria(
         double Tolerance = std::numeric_limits<double>::epsilon(),
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr,
+        const bool PrintingOutput = false 
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mTolerance(Tolerance),
         mpTable(pTable),
+        mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
@@ -97,6 +99,9 @@ public:
     ///Copy constructor 
     ALMFrictionlessMortarConvergenceCriteria( ALMFrictionlessMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
+      ,mpTable(rOther.mpTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
+      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
 
@@ -186,6 +191,8 @@ public:
                 auto& table = mpTable->GetTable();
                 if (is_converged == 0)
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         table << BOLDFONT(FGRN("       Achieved"));
                     #else
@@ -193,9 +200,16 @@ public:
                         //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
                         //Table << &ThisStream;
                     #endif
+                    }
+                    else
+                    {
+                        table << "Achieved";
+                    }
                 }
                 else
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         table << BOLDFONT(FRED("   Not achieved"));
                     #else
@@ -203,25 +217,40 @@ public:
                         //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
                         //Table << (&ThisStream);
                     #endif
+                    }
+                    else
+                    {
+                        table << "Not achieved";
+                    }
                 }
             }
             else
             {
                 if (is_converged == 0)
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     #else
                         std::cout << "\tActive set convergence is achieved" << std::endl;
                     #endif
+                    }
                 }
                 else
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     #else
                         std::cout << "\tActive set convergence is not achieved" << std::endl;
                     #endif
+                    }
+                    else
+                    {
+                        std::cout << "\tActive set convergence is not achieved" << std::endl;
+                    }
                 }
             }
         }
@@ -381,6 +410,7 @@ private:
     double mTolerance;               // Tolerance considered in contact check
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mPrintingOutput;            // If the colors and bold are printed
     bool mTableIsInitialized;        // If the table is already initialized
     
     ///@}

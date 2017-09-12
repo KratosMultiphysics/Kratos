@@ -131,7 +131,7 @@ void  AddCustomStrategiesToPython()
             "MortarAndConvergenceCriteria", 
             init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
-            .def("SetActualizeRHSFlag", &MortarAndConvergenceCriteriaType::SetActualizeRHSFlag)
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool>())
             ;
             
     // Weighted residual values update
@@ -151,6 +151,7 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<double>())
             .def(init<double, TablePrinterPointerType>())
+            .def(init<double, TablePrinterPointerType, bool>())
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -161,6 +162,7 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<double>())
             .def(init<double, TablePrinterPointerType>())
+            .def(init<double, TablePrinterPointerType, bool>())
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
@@ -171,6 +173,7 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -181,7 +184,7 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def("SetEchoLevel", &DisplacementLagrangeMultiplierMixedContactCriteriaType::SetEchoLevel)
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     // Displacement and lagrange multiplier residual Convergence Criterion
@@ -192,6 +195,7 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     //********************************************************************

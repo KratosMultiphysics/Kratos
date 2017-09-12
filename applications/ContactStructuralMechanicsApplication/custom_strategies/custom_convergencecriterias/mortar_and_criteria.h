@@ -106,10 +106,12 @@ public:
     MortarAndConvergenceCriteria(
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr,
+        const bool PrintingOutput = false 
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
         mpTable(pTable),
+        mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
@@ -119,6 +121,9 @@ public:
      */
     MortarAndConvergenceCriteria(MortarAndConvergenceCriteria const& rOther)
       :BaseType(rOther)
+      ,mpTable(rOther.mpTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
+      ,mTableIsInitialized(rOther.mTableIsInitialized)
      {
          BaseType::mpFirstCriterion   =  rOther.mpFirstCriterion;
          BaseType::mpSecondCriterion  =  rOther.mpSecondCriterion;      
@@ -154,8 +159,8 @@ public:
         {
             if (mpTable != nullptr)
             {
-                const unsigned int NLIteration = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-                mpTable->AddToRow<unsigned int>(NLIteration);
+                const unsigned int nl_iteration = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+                mpTable->AddToRow<unsigned int>(nl_iteration);
             }
         }
         
@@ -181,8 +186,8 @@ public:
     {
         if (mpTable != nullptr && mTableIsInitialized == false)
         {
-            auto& Table = mpTable->GetTable();
-            Table.AddColumn("ITER", 4);
+            auto& table = mpTable->GetTable();
+            table.AddColumn("ITER", 4);
             mTableIsInitialized = true;
         }
         
@@ -209,11 +214,18 @@ public:
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             std::cout.precision(4);
+            if (mPrintingOutput == false)
+            {
             #if !defined(_WIN32)
                 std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
             #else
                 std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
             #endif
+            }
+            else
+            {
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            }
                 
             if (mpTable != nullptr)
             {
@@ -302,6 +314,7 @@ private:
     ///@{
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mPrintingOutput;            // If the colors and bold are printed
     bool mTableIsInitialized;        // If the table is already initialized
     
     ///@}
