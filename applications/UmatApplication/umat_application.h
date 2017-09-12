@@ -5,12 +5,12 @@
 //           \___/|_|_|_\__,_|\__| INTERFACE                       .                             
 //			                                           .
 //   License:(BSD)	  UmatApplication/license.txt              .
-//   Main authors:        Lluis Monforte                           .
+//   Main authors:        LlMonforte, JMCarbonell                  .
 //                        ..                                       .
 //------------------------------------------------------------------
 //
 //   Project Name:        KratosUmatApplication      $
-//   Created by:          $Author:       LlMonforte  $
+//   Created by:          $Author:       JMCarbonell $
 //   Last modified by:    $Co-Author:                $
 //   Date:                $Date:      September 2017 $
 //   Revision:            $Revision:             0.0 $
