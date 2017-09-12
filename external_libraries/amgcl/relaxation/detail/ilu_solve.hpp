@@ -1,7 +1,39 @@
 #ifndef AMGCL_RELAXATION_DETAIL_ILU_SOLVE_HPP
 #define AMGCL_RELAXATION_DETAIL_ILU_SOLVE_HPP
 
+/*
+The MIT License
+
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+/**
+ * \file   amgcl/relaxation/detail/ilu_solve.hpp
+ * \author Denis Demidov <dennis.demidov@gmail.com>
+ * \brief  Solver for sparse triangular systems obtained as a result of an
+ *         incomplete LU factorization.
+ */
+
 #include <amgcl/backend/interface.hpp>
+#include <amgcl/util.hpp>
 
 namespace amgcl {
 namespace relaxation {
@@ -9,7 +41,8 @@ namespace detail {
 
 template <class Backend>
 class ilu_solve {
-    private:
+    public:
+        typedef typename Backend::params backend_params;
         typedef typename Backend::value_type value_type;
         typedef typename Backend::matrix matrix;
         typedef typename Backend::vector vector;
@@ -17,23 +50,37 @@ class ilu_solve {
         typedef typename backend::builtin<value_type>::matrix build_matrix;
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
-        unsigned jacobi_iters;
+        struct params {
+            /// Number of Jacobi iterations.
+            unsigned    iters;
 
-        boost::shared_ptr<matrix> L;
-        boost::shared_ptr<matrix> U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
+            /// Damping factor.
+            scalar_type damping;
+
+            params() : iters(2), damping(0.72) {}
+
+            params(const boost::property_tree::ptree &p)
+                : AMGCL_PARAMS_IMPORT_VALUE(p, iters)
+                , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
+            {
+                AMGCL_PARAMS_CHECK(p, (iters)(damping));
+            }
+
+            void get(boost::property_tree::ptree &p, const std::string &path) const {
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, iters);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
+            }
+        } prm;
 
     public:
-        template <class Params>
         ilu_solve(
                 boost::shared_ptr<build_matrix> L,
                 boost::shared_ptr<build_matrix> U,
                 boost::shared_ptr<backend::numa_vector<value_type> > D,
-                const Params &prm,
-                const typename Backend::params &bprm
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
                 ) :
-            jacobi_iters(prm.jacobi_iters),
+            prm(prm),
             L(Backend::copy_matrix(L, bprm)),
             U(Backend::copy_matrix(U, bprm)),
             D(Backend::copy_vector(D, bprm)),
@@ -46,24 +93,31 @@ class ilu_solve {
             vector *y0 = t1.get();
             vector *y1 = t2.get();
 
-            backend::copy(x, *y0);
-            for(unsigned i = 0; i < jacobi_iters; ++i) {
+            backend::axpby(prm.damping, x, 0.0, *y0);
+            for(unsigned i = 0; i < prm.iters; ++i) {
                 backend::residual(x, *L, *y0, *y1);
-                std::swap(y0, y1);
+                backend::axpby(prm.damping, *y1, (1-prm.damping), *y0);
             }
 
-            backend::copy(*y0, x);
-            for(unsigned i = 0; i < jacobi_iters; ++i) {
+            backend::vmul(prm.damping, *D, *y0, 0.0, x);
+            for(unsigned i = 0; i < prm.iters; ++i) {
                 backend::residual(*y0, *U, x, *y1);
-                backend::vmul(math::identity<scalar_type>(), *D, *y1, math::zero<scalar_type>(), x);
+                backend::vmul(prm.damping, *D, *y1, (1-prm.damping), x);
             }
         }
+
+    private:
+        boost::shared_ptr<matrix> L;
+        boost::shared_ptr<matrix> U;
+        boost::shared_ptr<matrix_diagonal> D;
+        boost::shared_ptr<vector> t1, t2;
 };
 
 template <class value_type>
 class ilu_solve< backend::builtin<value_type> > {
     public:
         typedef backend::builtin<value_type> Backend;
+        typedef typename Backend::params backend_params;
         typedef typename Backend::matrix matrix;
         typedef typename Backend::vector vector;
         typedef typename Backend::matrix_diagonal matrix_diagonal;
@@ -71,23 +125,40 @@ class ilu_solve< backend::builtin<value_type> > {
         typedef typename Backend::rhs_type rhs_type;
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
-        template <class Params>
+        struct params {
+            /// Use serial version of the algorithm
+            bool serial;
+
+            params() : serial(num_threads() < 4) {}
+
+            params(const boost::property_tree::ptree &p)
+                : AMGCL_PARAMS_IMPORT_VALUE(p, serial)
+            {
+                AMGCL_PARAMS_CHECK(p, (serial));
+            }
+
+            void get(boost::property_tree::ptree &p, const std::string &path) const {
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
+            }
+        } prm;
+
         ilu_solve(
                 boost::shared_ptr<build_matrix> L,
                 boost::shared_ptr<build_matrix> U,
                 boost::shared_ptr<backend::numa_vector<value_type> > D,
-                const Params &prm, const typename Backend::params &bprm
-                ) : is_serial(prm.serial || num_threads() < 4)
+                const params &prm = params(),
+                const backend_params& = backend_params()
+                ) : prm(prm)
         {
-            if (is_serial)
-                serial_init(L, U, D, bprm);
+            if (prm.serial)
+                serial_init(L, U, D);
             else
-                parallel_init(L, U, D, bprm);
+                parallel_init(L, U, D);
         }
 
         template <class Vector>
         void solve(Vector &x) {
-            if (is_serial)
+            if (prm.serial)
                 serial_solve(x);
             else
                 parallel_solve(x);
@@ -121,8 +192,7 @@ class ilu_solve< backend::builtin<value_type> > {
         void serial_init(
                 boost::shared_ptr<build_matrix>    L,
                 boost::shared_ptr<build_matrix>    U,
-                boost::shared_ptr<matrix_diagonal> D,
-                const typename Backend::params&
+                boost::shared_ptr<matrix_diagonal> D
                 )
         {
             this->L = L;
@@ -325,8 +395,7 @@ class ilu_solve< backend::builtin<value_type> > {
         void parallel_init(
                 boost::shared_ptr<build_matrix> L,
                 boost::shared_ptr<build_matrix> U,
-                boost::shared_ptr<backend::numa_vector<value_type> > D,
-                const typename Backend::params&
+                boost::shared_ptr<backend::numa_vector<value_type> > D
                 )
         {
             lower = boost::make_shared< sptr_solve<true > >(*L, D->data());
