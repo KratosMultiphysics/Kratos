@@ -120,7 +120,7 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLH
                                                                                               const ConditionDataStruct& rData)
 {
     const unsigned int LocalSize = TDim+1;
-    noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
+    noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
     // LHS boundary term coming from the integration by parts of the mass conservation equation
     for (unsigned int i=0; i<TNumNodes; ++i)
@@ -170,7 +170,7 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRH
         {
             for (unsigned int dim=0; dim<TDim; ++dim)
             {
-                rhs_gauss[row] += rData.wGauss * rData.N[i] * rData.N[j] * rData.Normal[dim] * rData.v(j,dim);
+                rhs_gauss[row] -= rData.wGauss * rData.N[i] * rData.N[j] * rData.Normal[dim] * rData.v(j,dim);
             }
         }
     }

@@ -138,11 +138,11 @@ for dim in dim_vector:
     ## Compute galerkin functional
     # Navier-Stokes functional
     if (divide_by_rho):
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss  + grad_q.transpose()*v_gauss
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss + grad_q.transpose()*v_gauss
         if (artificial_compressibility):
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
     else:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*grad_q.transpose()*v_gauss
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss + rho*grad_q.transpose()*v_gauss
         if (artificial_compressibility):
             rv_galerkin -= (1/(c*c))*q_gauss*pder_gauss
 
@@ -216,14 +216,14 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
 
-    ## Compute velocity subscale Gauss point value
-    v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
-    v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
+    # ## Compute velocity subscale Gauss point value
+    # v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
+    # v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
 
-    if(dim == 2):
-        outstring = outstring.replace("//substitute_gausspt_subscale_2D", v_s_gauss_out)
-    elif(dim == 3):
-        outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
+    # if(dim == 2):
+    #     outstring = outstring.replace("//substitute_gausspt_subscale_2D", v_s_gauss_out)
+    # elif(dim == 3):
+    #     outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
 
 ## Write the modified template
 out = open("embedded_ausas_navier_stokes.cpp",'w')
