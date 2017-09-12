@@ -35,6 +35,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
+            "convergence_criterion_output": "Fancy",
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
@@ -120,10 +121,22 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
-        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
+        output_type = self.settings["convergence_criterion_output"].GetString()
+        V_RT = self.settings["relative_velocity_tolerance"].GetDouble()
+        V_AT = self.settings["absolute_velocity_tolerance"].GetDouble()
+        P_RT = self.settings["relative_pressure_tolerance"].GetDouble()
+        P_AT = self.settings["absolute_pressure_tolerance"].GetDouble()
+        if (output_type == "Standard"):
+            self.conv_criteria = KratosCFD.VelPrCriteria(V_RT,V_AT,P_RT,P_AT)
+        else:
+            if (output_type == "FancyWriting"):
+                writing = True
+            else:
+                writing = False
+            
+            table = KratosMultiphysics.TableStreamUtility(not writing)
+                
+            self.conv_criteria = KratosCFD.FancyVelPrCriteria(V_RT,V_AT,P_RT,P_AT, table, True, writing)
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 

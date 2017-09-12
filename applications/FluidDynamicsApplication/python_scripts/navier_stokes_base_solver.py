@@ -35,6 +35,7 @@ class NavierStokesBaseSolver(object):
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
+            "convergence_criterion_output": "Fancy",
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],

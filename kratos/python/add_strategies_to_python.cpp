@@ -47,6 +47,10 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
+#include "solving_strategies/convergencecriterias/fancy_displacement_criteria.h"
+#include "solving_strategies/convergencecriterias/fancy_residual_criteria.h"
+#include "solving_strategies/convergencecriterias/fancy_and_criteria.h"
+#include "solving_strategies/convergencecriterias/fancy_or_criteria.h"
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -369,32 +373,63 @@ namespace Kratos
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("DisplacementCriteria", init< double, double>())
-                    .def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-                    .def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
                     ;
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("ResidualCriteria", init< double, double>())
-					.def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-					.def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
-					;
+                    ;
 
             class_<And_Criteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("AndCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-                    .def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-                    .def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
                     ;
 
             class_<Or_Criteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("OrCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-                    .def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-                    .def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
+                    ;
+                    
+            // Fancy convergence criteria
+            typedef boost::shared_ptr<TableStreamUtility> TableStreamPointerType;
+                    
+            class_< FancyDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyDisplacementCriteria", init< double, double>())
+                    .def(init< double, double >())
+                    .def(init< double, double, TableStreamPointerType >())
+                    .def(init< double, double, TableStreamPointerType, bool >())
+                    .def(init< double, double, TableStreamPointerType, bool, bool >())
+                    ;
+
+            class_<FancyResidualCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyResidualCriteria", init< double, double>())
+                    .def(init< double, double >())
+                    .def(init< double, double, TableStreamPointerType >())
+                    .def(init< double, double, TableStreamPointerType, bool >())
+                    .def(init< double, double, TableStreamPointerType, bool, bool >())
+                    ;
+
+            class_<FancyAndConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyAndConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType, bool >())
+                    ;
+
+            class_<FancyOrConvergenceCriteria<SparseSpaceType, LocalSpaceType >,
+                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+                    boost::noncopyable >
+                    ("FancyOrConvergenceCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType >())
+                    .def(init< TConvergenceCriteriaPointer, TConvergenceCriteriaPointer, TableStreamPointerType, bool >())
                     ;
 
             //********************************************************************
