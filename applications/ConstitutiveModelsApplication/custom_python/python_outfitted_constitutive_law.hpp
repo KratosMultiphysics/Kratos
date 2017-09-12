@@ -252,9 +252,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Matrix mInverseDeformationGradientF0;
+    Matrix mInverseTotalDeformationMatrix;  //F0
 
-    double mDeterminantF0;
+    double mTotalDeformationDet;  //detF0
 
     double mStrainEnergy;
 
@@ -317,16 +317,16 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-	rSerializer.save("mDeterminantF0",mDeterminantF0);
+	rSerializer.save("mInverseTotalDeformationMatrix",mInverseTotalDeformationMatrix);
+	rSerializer.save("mTotalDeformationDet",mTotalDeformationDet);
 	rSerializer.save("mStrainEnergy",mStrainEnergy);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-	rSerializer.load("mDeterminantF0",mDeterminantF0);
+	rSerializer.load("mInverseTotalDeformationMatrix",mInverseTotalDeformationMatrix);
+	rSerializer.load("mTotalDeformationDet",mTotalDeformationDet);
 	rSerializer.load("mStrainEnergy",mStrainEnergy);
     }
 

@@ -126,16 +126,16 @@ namespace Kratos
       double                       Pressure;
       double                       Temperature;
       double                       CharacteristicSize;      
-      double                       DeterminantF;
-      double                       DeterminantF0;
+      double                       DeltaDeformationDet;  //wildcard for the determinant of the deformation increment (usually detF )
+      double                       TotalDeformationDet;  //wildcard for the determinant of the total deformation     (usually detF0)
       
       //model data
       StressMeasureType            StressMeasure;       //stress measure requested
       StrainMeasureType            StrainMeasure;       //strain measure provided
 
       //deformation
-      MatrixType                   DeformationGradientF;   //incremental F
-      MatrixType                   DeformationGradientF0;  //total F
+      MatrixType                   DeltaDeformationMatrix;  //wildcard deformation increment (usually incremental F)
+      MatrixType                   TotalDeformationMatrix;  //wildcard total deformation     (usually total F := F0)
     };
     
     
@@ -187,16 +187,16 @@ namespace Kratos
 
       //Get const Data
       const double&        GetPressure                     () const {return mConstitutiveLawData.Pressure;}; 
-      const double&        GetTemperature                  () const {return mConstitutiveLawData.Temperature;}; 
-      const double&        GetDeterminantF                 () const {return mConstitutiveLawData.DeterminantF;};
-      const double&        GetDeterminantF0                () const {return mConstitutiveLawData.DeterminantF0;}; 
+      const double&        GetTemperature                  () const {return mConstitutiveLawData.Temperature;};
+      const double&        GetDeltaDeformationDet          () const {return mConstitutiveLawData.DeltaDeformationDet;}; 
+      const double&        GetTotalDeformationDet          () const {return mConstitutiveLawData.TotalDeformationDet;};
       const double&        GetCharacteristicSize           () const {return mConstitutiveLawData.CharacteristicSize;}; 
 
       const StressMeasureType& GetStressMeasure            () const {return mConstitutiveLawData.StressMeasure;}; 
       const StrainMeasureType& GetStrainMeasure            () const {return mConstitutiveLawData.StrainMeasure;};
 
-      const MatrixType&    GetDeformationGradientF         () const {return mConstitutiveLawData.DeformationGradientF;}; 
-      const MatrixType&    GetDeformationGradientF0        () const {return mConstitutiveLawData.DeformationGradientF0;};
+      const MatrixType&    GetDeltaDeformationMatrix       () const {return mConstitutiveLawData.DeltaDeformationMatrix;}; 
+      const MatrixType&    GetTotalDeformationMatrix       () const {return mConstitutiveLawData.TotalDeformationMatrix;};
 
       const ConstitutiveLawData&   GetConstitutiveLawData  () const {return mConstitutiveLawData;};
       

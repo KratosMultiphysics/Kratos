@@ -43,8 +43,8 @@ PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw(PyObject* pPyCons
 
 PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw(const PythonOutfittedConstitutiveLaw& rOther)
     : ConstitutiveLaw(rOther)
-    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
-    ,mDeterminantF0(rOther.mDeterminantF0)
+    ,mInverseTotalDeformationMatrix(rOther.mInverseTotalDeformationMatrix)
+    ,mTotalDeformationDet(rOther.mTotalDeformationDet)
     ,mStrainEnergy(rOther.mStrainEnergy)
     ,mpPyConstitutiveLaw(rOther.mpPyConstitutiveLaw)
 {
@@ -126,7 +126,7 @@ void PythonOutfittedConstitutiveLaw::SetValue( const Variable<double>& rThisVari
 
   if (rThisVariable == DETERMINANT_F)
     {
-      mDeterminantF0 = rValue;
+      mTotalDeformationDet = rValue;
     }
 }
 
@@ -153,9 +153,9 @@ void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rMate
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues )
 {
-  mDeterminantF0                = 1;
-  mInverseDeformationGradientF0 = identity_matrix<double> (3);
-  mStrainEnergy                 = 0;
+  mTotalDeformationDet           = 1;
+  mInverseTotalDeformationMatrix = identity_matrix<double> (3);
+  mStrainEnergy                  = 0;
 
 }
 
@@ -225,11 +225,11 @@ void PythonOutfittedConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& r
 {
     this->CalculateMaterialResponsePK2 (rValues);
 
-    Vector& StressVector               = rValues.GetStressVector();
-    const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-    const double& DeterminantF         = rValues.GetDeterminantF();
+    Vector& StressVector                   = rValues.GetStressVector();
+    const Matrix& DeltaDeformationMatrix   = rValues.GetDeformationGradientF();
+    const double& DeltaDeformationDet      = rValues.GetDeterminantF();
 
-    TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_PK2,StressMeasure_PK1);
+    TransformStresses(StressVector,DeltaDeformationMatrix,DeltaDeformationDet,StressMeasure_PK2,StressMeasure_PK1);
 }
 
 //************************************************************************************
@@ -267,13 +267,13 @@ void PythonOutfittedConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters
 
     this->CalculateMaterialResponseKirchhoff (rValues);
 
-    const double& DeterminantF          = rValues.GetDeterminantF();
+    const double& DeltaDeformationDet   = rValues.GetDeterminantF();
     Vector& StressVector                = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
 
      //Set to cauchy Stress:
-    StressVector       /= DeterminantF;
-    ConstitutiveMatrix /= DeterminantF;
+    StressVector       /= DeltaDeformationDet;
+    ConstitutiveMatrix /= DeltaDeformationDet;
 
 }
 
@@ -338,13 +338,13 @@ void PythonOutfittedConstitutiveLaw::FinalizeMaterialResponseCauchy (Parameters&
 
 void PythonOutfittedConstitutiveLaw::UpdateInternalVariables(Parameters& rValues)
 {
-    const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
-    const double& DeterminantF            = rValues.GetDeterminantF();
+    const Matrix& DeltaDeformationMatrix   = rValues.GetDeformationGradientF();
+    const double& DeltaDeformationDet      = rValues.GetDeterminantF();
 
-    Matrix DeformationGradientF0          = DeformationGradientF;
-    DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
-    MathUtils<double>::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
-    mDeterminantF0 = DeterminantF; //special treatment of the determinant 
+    Matrix TotalDeformationMatrix          = DeltaDeformationMatrix;
+    TotalDeformationMatrix = Transform2DTo3D(TotalDeformationMatrix);
+    MathUtils<double>::InvertMatrix( TotalDeformationMatrix, this->mInverseTotalDeformationMatrix, mTotalDeformationDet);
+    mTotalDeformationDet = DeltaDeformationDet; //special treatment of the determinant 
 }
 
 
@@ -355,7 +355,7 @@ void PythonOutfittedConstitutiveLaw::UpdateInternalVariables(Parameters& rValues
  * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
  * if the matrix passed is 3D is does nothing
  * if the matrix passed is bigger or smaller throws an error
- * @param rMatrix : usually the DeformationGradientF
+ * @param rMatrix : usually the DeltaDeformationMatrix
  */
 Matrix& PythonOutfittedConstitutiveLaw::Transform2DTo3D (Matrix& rMatrix)
 {

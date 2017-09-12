@@ -179,8 +179,8 @@ namespace Kratos
 
 
                // elasto-plastic step. Recover Initial be
-               const MatrixType & rDeformationGradientF = rValues.GetDeformationGradientF();
-               RecoverPreviousElasticLeftCauchyGreen( rDeformationGradientF, rValues.StrainMatrix );
+               const MatrixType & rDeltaDeformationMatrix = rValues.GetDeltaDeformationMatrix();
+               RecoverPreviousElasticLeftCauchyGreen( rDeltaDeformationMatrix, rValues.StrainMatrix );
 
                double InitialYieldFunction;
                this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
@@ -189,10 +189,10 @@ namespace Kratos
                if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
                {
                   // compute solution with change
-                  ComputeSolutionWithChange( rValues, Variables, rDeformationGradientF);
+                  ComputeSolutionWithChange( rValues, Variables, rDeltaDeformationMatrix);
                } else {
                   // compute unloading condition
-                  ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rDeformationGradientF);
+                  ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rDeltaDeformationMatrix);
                   bool UnloadingCondition = false;
                   if (UnloadingCondition) {
                      // compute solution with change
@@ -458,7 +458,7 @@ namespace Kratos
             //***************************************************************************************
             //***************************************************************************************
             // Advance the solution first in elastic regime and then in elastoplastic
-            void ComputeSolutionWithChange( ModelDataType& rValues, PlasticDataType & rVariables, const MatrixType& rDeformationGradientF)
+            void ComputeSolutionWithChange( ModelDataType& rValues, PlasticDataType & rVariables, const MatrixType& rDeltaDeformationMatrix)
             {
                KRATOS_TRY
 
@@ -474,7 +474,7 @@ namespace Kratos
                {
                   HalfTime = 0.5*(InitialTime + EndTime);
 
-                  ComputeSubstepIncrementalDeformationGradient( rDeformationGradientF, 0, HalfTime, HalfTimeDeformationGradient);
+                  ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, 0, HalfTime, HalfTimeDeformationGradient);
                   MatrixType AuxMatrix; 
                   AuxMatrix = prod( InitialLeftCauchyGreen, trans(HalfTimeDeformationGradient));
                   AuxMatrix = prod( HalfTimeDeformationGradient, AuxMatrix);
@@ -501,7 +501,7 @@ namespace Kratos
 
                // continue with plasticity
                MatrixType RemainingDeformationGradient;
-               ComputeSubstepIncrementalDeformationGradient( rDeformationGradientF, HalfTime, 1,RemainingDeformationGradient);
+               ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, HalfTime, 1,RemainingDeformationGradient);
 
                ComputeSubsteppingElastoPlasticProblem( rValues, rVariables, RemainingDeformationGradient);
 
@@ -513,7 +513,7 @@ namespace Kratos
             //***********************************************************************************
             //***********************************************************************************
             // Compute  the elasto-plastic problem
-            void ComputeSubsteppingElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeformationGradientF)
+            void ComputeSubsteppingElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeltaDeformationMatrix)
             {
                KRATOS_TRY
 
@@ -536,7 +536,7 @@ namespace Kratos
                      TimeStep = 1.0 - DoneTimeStep;
                   }
 
-                  ComputeSubstepIncrementalDeformationGradient( rDeformationGradientF, DoneTimeStep, DoneTimeStep + TimeStep, SubstepDeformationGradient);
+                  ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, DoneTimeStep, DoneTimeStep + TimeStep, SubstepDeformationGradient);
 
 
                   ErrorMeasure = ComputeElastoPlasticProblem( rValues, rVariables, SubstepDeformationGradient);
@@ -618,7 +618,7 @@ namespace Kratos
             //***********************************************************************************
             //***********************************************************************************
             // Compute one step of the elasto-plastic problem
-            void ComputeOneStepElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeformationGradientF)
+            void ComputeOneStepElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeltaDeformationMatrix)
             {
                KRATOS_TRY
 
@@ -636,7 +636,7 @@ namespace Kratos
 
                double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
 
-               MatrixType StrainMatrix = prod( rDeformationGradientF, trans( rDeformationGradientF) );
+               MatrixType StrainMatrix = prod( rDeltaDeformationMatrix, trans( rDeltaDeformationMatrix) );
                VectorType StrainVector; 
                ConvertCauchyGreenTensorToHenckyVector( StrainMatrix, StrainVector);
 
@@ -654,7 +654,7 @@ namespace Kratos
 
                MatrixType UpdateMatrix;
                ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
-               UpdateMatrix = prod( rDeformationGradientF, UpdateMatrix);
+               UpdateMatrix = prod( rDeltaDeformationMatrix, UpdateMatrix);
 
 
                rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
@@ -747,7 +747,7 @@ namespace Kratos
             //**************************************************************************************
             //**************************************************************************************
             // divide the deformation gradient in smaller steps
-            void ComputeSubstepIncrementalDeformationGradient( const MatrixType & rDeformationGradientF, const double & rReferenceConfiguration, const double & rFinalConfiguration, MatrixType & rSubstepDeformationGradient)
+            void ComputeSubstepIncrementalDeformationGradient( const MatrixType & rDeltaDeformationMatrix, const double & rReferenceConfiguration, const double & rFinalConfiguration, MatrixType & rSubstepDeformationGradient)
             {
                KRATOS_TRY
 
@@ -755,8 +755,8 @@ namespace Kratos
                MatrixType DeformationGradientFinal;
                MatrixType IdentityMatrix = identity_matrix<double>(3);
 
-               DeformationGradientReference = rReferenceConfiguration*rDeformationGradientF  + (1.0 - rReferenceConfiguration)*IdentityMatrix;
-               DeformationGradientFinal     =     rFinalConfiguration*rDeformationGradientF  + (1.0 -     rFinalConfiguration)*IdentityMatrix;
+               DeformationGradientReference = rReferenceConfiguration * rDeltaDeformationMatrix + (1.0 - rReferenceConfiguration) * IdentityMatrix;
+               DeformationGradientFinal     = rFinalConfiguration * rDeltaDeformationMatrix + (1.0 - rFinalConfiguration) * IdentityMatrix;
 
                double det;
                rSubstepDeformationGradient.clear();
@@ -769,13 +769,13 @@ namespace Kratos
             //***************************************************************************************
             //***************************************************************************************
             // recalculate the elastic left cauchy n
-            void RecoverPreviousElasticLeftCauchyGreen( const MatrixType & rDeformationGradientF, MatrixType & rInitialLeftCauchyGreen)
+            void RecoverPreviousElasticLeftCauchyGreen( const MatrixType & rDeltaDeformationMatrix, MatrixType & rInitialLeftCauchyGreen)
             {
                KRATOS_TRY
 
                MatrixType InverseMatrix; double detMatrix;
                InverseMatrix.clear();
-               ConstitutiveModelUtilities::InvertMatrix3( rDeformationGradientF, InverseMatrix, detMatrix);
+               ConstitutiveModelUtilities::InvertMatrix3( rDeltaDeformationMatrix, InverseMatrix, detMatrix);
                rInitialLeftCauchyGreen = prod( InverseMatrix, rInitialLeftCauchyGreen);
                rInitialLeftCauchyGreen = prod( rInitialLeftCauchyGreen, trans(InverseMatrix));
 

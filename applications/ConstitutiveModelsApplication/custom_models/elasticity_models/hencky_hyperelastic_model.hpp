@@ -102,12 +102,12 @@ namespace Kratos
 
             // Compute trial strain
             //deformation gradient
-            const MatrixType& rDeformationGradientF  = rValues.GetDeformationGradientF();
+            const MatrixType& rDeltaDeformationMatrix  = rValues.GetDeltaDeformationMatrix();
 
             //historical strain matrix
             rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
-            rValues.StrainMatrix = prod( rDeformationGradientF, rValues.StrainMatrix);
-            rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(rDeformationGradientF));
+            rValues.StrainMatrix = prod( rDeltaDeformationMatrix, rValues.StrainMatrix);
+            rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(rDeltaDeformationMatrix));
 
             KRATOS_CATCH("")
 

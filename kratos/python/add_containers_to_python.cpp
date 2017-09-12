@@ -39,6 +39,7 @@
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_fsi_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_mat_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
@@ -394,7 +395,8 @@ void  AddContainersToPython()
     AddC2CVariablesToPython();
     AddDEMVariablesToPython(); //TODO: move this to the DEM application
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
-    AddALEVariablesToPython(); ///@TODO: move variables to CFD application
+    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
+    AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
     AddMATVariablesToPython(); ///@TODO: move variables to CFD application
     AddLegacyStructuralAppVarsToPython();
 
