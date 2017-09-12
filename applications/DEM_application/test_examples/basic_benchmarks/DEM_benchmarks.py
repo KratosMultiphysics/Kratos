@@ -95,7 +95,7 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return benchmark
 
-    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):        
+    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):      
         return ModelPartIO(modelpart)
 
     def SetSolverStrategy(self):

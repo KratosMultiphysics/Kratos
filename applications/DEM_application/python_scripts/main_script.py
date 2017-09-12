@@ -27,22 +27,25 @@ class Solution(object):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
 
-
+    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+        print("1.- Checking model_part_reader entry")
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
 
     def __init__(self):
         print("_______access main __init__")
         self.LoadJsonFile()
-        #parameters_file = open("ProjectParametersDEM.json",'r')
-        #self.DEM_parameters = Parameters(parameters_file.read())
-        
+
+        '''
         if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
                 return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
         else:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-        self.model_part_reader = model_part_reader
-            
+                print("1.- Checking model_part_reader entry")
+                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)       
+        self.model_part_reader = model_part_reader  # this is not needed and causes problems with derivated def model_part_reader
+        '''
+        
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
@@ -261,7 +264,8 @@ class Solution(object):
         os.chdir(self.main_path)
 
         # Reading the model_part
-        spheres_mp_filename   = self.GetMpFilename()        
+        spheres_mp_filename   = self.GetMpFilename()  
+        print("2.- Checking model_part_reader entry")       
         model_part_io_spheres = self.model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
         if "do_not_perform_initial_partition" in self.DEM_parameters.keys() and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
