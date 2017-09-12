@@ -57,6 +57,20 @@ HyperElasticIsotropicNeoHookean3D::~HyperElasticIsotropicNeoHookean3D()
 //************************************************************************************
 //************************************************************************************
 
+void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1 (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+    
+    Vector& stress_vector                = rValues.GetStressVector();
+    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
+    const double& determinant_f          = rValues.GetDeterminantF();
+
+    TransformStresses(stress_vector, deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Get Values to compute the constitutive law:
@@ -102,20 +116,6 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     {
         CalculatePK2Stress( C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1 (Parameters& rValues)
-{
-    CalculateMaterialResponsePK2(rValues);
-    
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double& determinant_f          = rValues.GetDeterminantF();
-
-    TransformStresses(stress_vector, deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
 }
 
 //************************************************************************************
@@ -363,9 +363,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 {
     Matrix stress_matrix;
     
-    const unsigned int dimension = WorkingSpaceDimension();
-    
-    stress_matrix = LameLambda * std::log(DeterminantF) * CTensor + LameMu * ( IdentityMatrix(dimension, dimension) - CTensor );
+    stress_matrix = LameLambda * std::log(DeterminantF) * CTensor + LameMu * ( IdentityMatrix(3, 3) - CTensor );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
@@ -383,9 +381,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchoffStress(
 {
     Matrix stress_matrix;
     
-    const unsigned int dimension = WorkingSpaceDimension();
-    
-    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(dimension, dimension) + LameMu * ( CTensor - IdentityMatrix(dimension, dimension) );
+    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(3, 3) + LameMu * ( CTensor - IdentityMatrix(3, 3) );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }

@@ -106,6 +106,22 @@ public:
         return 3;
     };
     
+    /**
+     * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    
 protected:
 
     ///@name Protected static Member Variables
@@ -146,33 +162,33 @@ private:
      * @param LameLambda: First Lame parameter
      * @param LameMu: Seconf Lame parameter
      */
-    virtual void CalculateConstitutiveMatrix(
+    void CalculateConstitutiveMatrix(
         Matrix& ConstitutiveMatrix,
         const Matrix& InverseCTensor,
         const double& DeterminantF,
         const double& LameLambda,
         const double& LameMu
-        );
+        ) override;
 
     /**
      * It calculates the strain vector
      * @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateCauchyGreenStrain(
+    void CalculateCauchyGreenStrain(
         Parameters& rValues,
         Vector& rStrainVector
-        );
+        ) override;
     
     /**
      * Calculates the Almansi strains
      * @param @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateAlmansiStrain( 
+    void CalculateAlmansiStrain( 
         Parameters& rValues,
         Vector& rStrainVector 
-        );
+        ) override;
 
     ///@}
     ///@name Private Operations
