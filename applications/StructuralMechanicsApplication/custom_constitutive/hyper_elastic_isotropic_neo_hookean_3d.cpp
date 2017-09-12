@@ -337,10 +337,11 @@ void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrix(
     
     for(unsigned int i = 0; i < 6; i++)
     {
+        const unsigned int& i0 = this->msIndexVoigt3D6C[i][0];
+        const unsigned int& i1 = this->msIndexVoigt3D6C[i][1];
+            
         for(unsigned int j = 0; j < 6; j++)
         {
-            const unsigned int& i0 = this->msIndexVoigt3D6C[i][0];
-            const unsigned int& i1 = this->msIndexVoigt3D6C[i][1];
             const unsigned int& j0 = this->msIndexVoigt3D6C[j][0];
             const unsigned int& j1 = this->msIndexVoigt3D6C[j][1];
             
@@ -364,7 +365,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
     
     const unsigned int dimension = WorkingSpaceDimension();
     
-    stress_matrix  = LameLambda * std::log(DeterminantF) * CTensor + LameMu * ( IdentityMatrix(dimension, dimension) - CTensor );
+    stress_matrix = LameLambda * std::log(DeterminantF) * CTensor + LameMu * ( IdentityMatrix(dimension, dimension) - CTensor );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }

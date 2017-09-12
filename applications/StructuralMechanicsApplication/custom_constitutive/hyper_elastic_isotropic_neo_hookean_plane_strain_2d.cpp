@@ -92,14 +92,15 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrix(
     
     for(unsigned int i = 0; i < 3; i++)
     {
+        const unsigned int& i0 = this->msIndexVoigt2D3C[i][0];
+        const unsigned int& i1 = this->msIndexVoigt2D3C[i][1];
+            
         for(unsigned int j = 0; j < 3; j++)
         {
-            const unsigned int& i0 = this->msIndexVoigt2D3C[i][0];
-            const unsigned int& i1 = this->msIndexVoigt2D3C[i][1];
             const unsigned int& j0 = this->msIndexVoigt2D3C[j][0];
             const unsigned int& j1 = this->msIndexVoigt2D3C[j][1];
             
-            ConstitutiveMatrix(i,j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda* log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0)));
+            ConstitutiveMatrix(i, j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0)));
         }
     }
 }
