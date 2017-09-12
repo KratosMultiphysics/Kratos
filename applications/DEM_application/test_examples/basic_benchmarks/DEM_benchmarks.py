@@ -12,7 +12,7 @@ import plot_variables                # Related to benchmarks in Chung, Ooi
 import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
 
 sys.path.insert(0,'')
-benchmark_number, nodeplotter = int(sys.argv[1]), 0
+benchmark_number = int(sys.argv[1])
 benchmark = getattr(DBC, 'Benchmark' + str(benchmark_number))()
 
 listDISCONT   = list(range(1,12))
@@ -26,21 +26,19 @@ listDISclRK   = [31,33]
 
 class Solution(main_script.Solution):
 
-    def __init__(self):
-        super(Solution, self).__init__()
-        os.chdir('..')
-        print(benchmark_number)
-        print()
+    def LoadJsonFile(self):
+        print("_______LoadJsonFile main script")
 
         if benchmark_number in listDISCONT:
-            nodeplotter = 1
+            self.nodeplotter = True
+            print("_______access listDISCONT benchmarks.py")
             parameters_file = open("ProjectParametersDISCONT.json",'r')
         elif benchmark_number in listROLLFR:
             parameters_file = open("ProjectParametersROLLFR.json",'r')
         elif benchmark_number in listDEMFEM:
             parameters_file = open("ProjectParametersDEMFEM.json",'r')
-        elif benchmark_number in listCONT:
-            print("entro")
+        elif benchmark_number in listCONT:           
+            print("_______access listCONT benchmarks.py")
             parameters_file = open("ProjectParametersDEMCONT.json",'r')
         elif benchmark_number == 27:
             parameters_file = open("ProjectParametersUCS.json",'r')
@@ -56,6 +54,42 @@ class Solution(main_script.Solution):
             sys.exit()
 
         self.DEM_parameters = Parameters(parameters_file.read())
+
+
+    def __init__(self):
+        super(Solution, self).__init__()
+        os.chdir('..')            
+        self.nodeplotter = False
+        print("_______access derivated __init__")
+        self.LoadJsonFile()
+        '''
+        if benchmark_number in listDISCONT:
+            self.nodeplotter = True
+            print("access listDISCONT benchmarks.py")
+            parameters_file = open("ProjectParametersDISCONT.json",'r')
+        elif benchmark_number in listROLLFR:
+            parameters_file = open("ProjectParametersROLLFR.json",'r')
+        elif benchmark_number in listDEMFEM:
+            parameters_file = open("ProjectParametersDEMFEM.json",'r')
+        elif benchmark_number in listCONT:
+            print("access derivated __init__")
+            print("access listCONT benchmarks.py")
+            parameters_file = open("ProjectParametersDEMCONT.json",'r')
+        elif benchmark_number == 27:
+            parameters_file = open("ProjectParametersUCS.json",'r')
+        #elif benchmark_number == 28:
+        #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
+        #    parameters_file = open("ProjectParametersDEM.json",'r')
+        elif benchmark_number in listDISclZHAO:
+            parameters_file = open("ProjectParametersDISclZHAO.json",'r')
+        elif benchmark_number in listDISclRK:
+            parameters_file = open("ProjectParametersDISclRK.json",'r')
+        else:
+            print('Benchmark number does not exist')
+            sys.exit()
+
+        self.DEM_parameters = Parameters(parameters_file.read())
+        '''
         self.main_path = os.getcwd()
 
     def GetProblemTypeFilename(self):
@@ -66,6 +100,7 @@ class Solution(main_script.Solution):
 
     def SetSolverStrategy(self):
         # Strategy object
+        print("_______SetSolverStrategy benchmarks.py")
         element_type = self.DEM_parameters["ElementType"].GetString()
         if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
             import sphere_strategy as SolverStrategy
@@ -85,7 +120,8 @@ class Solution(main_script.Solution):
         return SolverStrategy    
          
     def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
+        print("_______SetSolver benchmarks.py")
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
 
     def SetFinalTime(self):        
         self.final_time = final_time  
@@ -105,7 +141,7 @@ class Solution(main_script.Solution):
 
         print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [benchmark_number]
-        if nodeplotter:
+        if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter = plot_variables.variable_plotter(self.spheres_model_part, list_of_nodes_ids)
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
@@ -142,14 +178,14 @@ class Solution(main_script.Solution):
     def Finalize(self):      
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
         super().Finalize()
-        if nodeplotter:
+        if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
     def FinalizeTimeStep(self, time):
         super().FinalizeTimeStep(time)
-        if nodeplotter:
+        if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
             self.tang_plotter.plot_tangential_force(time)   

@@ -118,6 +118,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         (self.cplusplus_strategy).PrepareContactElementsForPrinting()
 
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
+        print("_______AddAdditionalVariables continuum strategy")
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 

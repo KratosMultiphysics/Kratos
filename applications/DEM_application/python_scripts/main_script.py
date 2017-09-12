@@ -22,9 +22,18 @@ else:
 
 class Solution(object):
 
-    def __init__(self):
+    def LoadJsonFile(self):
+        print("_______LoadJsonFile main script")
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
+
+
+
+    def __init__(self):
+        print("_______access main __init__")
+        self.LoadJsonFile()
+        #parameters_file = open("ProjectParametersDEM.json",'r')
+        #self.DEM_parameters = Parameters(parameters_file.read())
         
         if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
@@ -71,6 +80,7 @@ class Solution(object):
 
         self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
         self.solver = self.SetSolver()
+        print("_______main script init self.solver")
         #self.final_time = DEM_parameters.FinalTime
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
@@ -124,9 +134,12 @@ class Solution(object):
     def SetSolverStrategy(self):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
+        print("_______SetSolverStrategy main")
         if (self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):
+            
             import sphere_strategy as SolverStrategy
         elif (self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
+            
             import continuum_sphere_strategy as SolverStrategy
         elif (self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
@@ -143,6 +156,7 @@ class Solution(object):
 
 
     def SetSolver(self):
+        print("_______SetSolver main")
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
 
 
@@ -155,7 +169,7 @@ class Solution(object):
 
         self.CleanUpOperations()
 
-    def AddVariables(self):
+    def AddVariables(self):        
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, self.DEM_parameters)
 
     def FillAnalyticSubModelParts(self):
