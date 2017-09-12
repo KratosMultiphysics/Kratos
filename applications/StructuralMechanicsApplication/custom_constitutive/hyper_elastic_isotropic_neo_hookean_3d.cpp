@@ -114,7 +114,7 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        CalculatePK2Stress( C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
+        CalculatePK2Stress( inverse_C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
 }
 
