@@ -21,7 +21,6 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 	    "constitutive_law": {
                 "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.LinearElasticModel"
             },
-            "section_type": {},
 	    "variables": {},
 	    "tables": {},
             "echo_level" : 0
@@ -83,7 +82,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         self._AssignMaterialProperties()
 
-        print(" Material ", self.material_name, " assigned " )
+        print("::[Material_Assigned]::", self.material_name)
         
     #
     def ExecuteFinalize(self):
@@ -94,7 +93,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
     def _AssignMaterialProperties(self):
 
         # Check dimension
-        self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
         
         if(self.material_law.WorkingSpaceDimension() != self.dimension):
             raise Exception( "mismatch between the ConstitutiveLaw dimension and the dimension of the space")

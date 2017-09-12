@@ -92,10 +92,7 @@ class Solution(object):
 
                 for process in assign_materials_processes:
                     process.Execute()
-                    print(" set material ")
-                
-                print(" Materials.json found ")
-                
+                                
         else:
             print(" No Materials.json found ")
             

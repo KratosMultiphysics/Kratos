@@ -96,7 +96,7 @@ class MechanicalSolver(object):
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
-        print("::[Solid Mechanical Solver]:: Constructed")
+        print("::[Solid_Mechanical_Solver]:: Constructed")
 
         
     def GetMinimumBufferSize(self):
@@ -167,26 +167,26 @@ class MechanicalSolver(object):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
             
-        print("::[Mechanical Solver]:: General Variables ADDED")
+        print("::[Mechanical_Solver]:: General Variables ADDED")
                                                               
         
     def AddDofs(self):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
                 
-        print("::[Mechanical Solver]:: DOF's ADDED")
+        print("::[Mechanical_Solver]:: DOF's ADDED")
         
     def ImportModelPart(self):
 
-        print("::[MechanicalSolver]:: Importing model part.")
+        print("::[Mechanical_Solver]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
         
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):            
             # Import model part from mdpa file.
-            print("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            print("    Finished reading model part from mdpa file.")
+            # print("   Finished reading model part from mdpa file ")
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
@@ -196,7 +196,7 @@ class MechanicalSolver(object):
             restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
-            print("    Loading Restart file: ", restart_path + ".rest")
+            print("   Loading Restart file: ", restart_path + ".rest ")
             # set serializer flag
             serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
@@ -209,14 +209,14 @@ class MechanicalSolver(object):
             #I use it to rebuild the contact conditions.
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            print("    Finished loading model part from restart file.")            
+            # print("   Finished loading model part from restart file ")            
 
         else:
             raise Exception("Other input options are not yet implemented.")
 
 
         print(self.main_model_part)
-        print ("::[MechanicalSolver]:: Finished importing model part.")
+        print ("::[Mechanical_Solver]:: Finished importing model part.")
             
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -227,7 +227,7 @@ class MechanicalSolver(object):
     
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        print("::[MechanicalSolver]:: -START-")
+        print("::[Mechanical_Solver]:: -START-")
         
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
@@ -242,7 +242,7 @@ class MechanicalSolver(object):
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
-        print("::[MechanicalSolver]:: -END-")        
+        print("::[Mechanical_Solver]:: -END-")        
         
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
@@ -329,18 +329,22 @@ class MechanicalSolver(object):
         # Import constitutive laws
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
-            print("    Constitutive law was successfully imported.")
+            print("   Constitutive law was successfully imported.")
         else:
-            print("    Constitutive law was not imported.")
+            print("   Constitutive law was not imported.")
 
     def _import_constitutive_laws(self):
-        # Constitutive law import
-        import constitutive_law_python_utility as constitutive_law_utils
-        constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]);
-        constitutive_law.Initialize();
-                                                    
-        return True
+        
+        if os.path.isfile("materials.py"):
+            # Constitutive law import
+            import constitutive_law_python_utility as constitutive_law_utils
+            constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
+                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]);
+            constitutive_law.Initialize();
+            
+            return True
+        else:
+            return False        
 
     def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.

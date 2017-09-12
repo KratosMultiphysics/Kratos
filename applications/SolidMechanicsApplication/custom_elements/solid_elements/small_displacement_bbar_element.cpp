@@ -169,15 +169,7 @@ void SmallDisplacementBbarElement::CalculateKinematics(ElementVariables& rVariab
     
     // Compute infinitessimal B_bar strain
     this->CalculateInfinitesimalStrainBbar(rVariables.StrainVector, rVariables.H, rVariables.DN_DX);
-
-    std::cout<<" Bmatrix "<<rVariables.B<<" Hmatrix "<<rVariables.H<<std::endl;
-    std::cout<<" Strain "<<rVariables.StrainVector<<std::endl;
-
-    Vector Displacements;
-    this->GetValuesVector(Displacements,0);
-    std::cout<<" B*u "<<prod(rVariables.B,Displacements)<<std::endl;
-
-    
+   
     KRATOS_CATCH("")
 }
 
