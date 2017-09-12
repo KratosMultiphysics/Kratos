@@ -103,7 +103,7 @@ public:
         //const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
         //const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
         
-        //#pragma omp parallel for                              --> TODO: try to rework this in order parallel computing is possible
+    #pragma omp parallel for                              //--> TODO: try to rework this in order parallel computing is possible
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
         {
         
@@ -129,7 +129,7 @@ public:
 
         }
         
-        //#pragma omp parallel for                              --> TODO: try to rework this in order parallel computing is possible
+    #pragma omp parallel for                              //--> TODO: try to rework this in order parallel computing is possible
         for(int i=0; i< (int)r_root_model_part.Conditions().size(); i++)
         {
             //TODO: Rework this for new adjoint condition name: e.g. PointLoadAdjointCondition
