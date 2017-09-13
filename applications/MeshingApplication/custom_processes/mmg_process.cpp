@@ -1565,8 +1565,8 @@ void MmgProcess<3>::InitVerbosityParameter(const int& VerbosityMMG)
 template<>  
 void MmgProcess<2>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<int, 1> NumArrayElements, 
-    const array_1d<int, 1> NumArrayConditions
+    const array_1d<SizeType, 1> NumArrayElements, 
+    const array_1d<SizeType, 1> NumArrayConditions
     )
 {
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D) 
@@ -1582,8 +1582,8 @@ void MmgProcess<2>::SetMeshSize(
 template<>  
 void MmgProcess<3>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<int, 2> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-    const array_1d<int, 2> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+    const array_1d<SizeType, 2> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+    const array_1d<SizeType, 2> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
     )
 {
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D) 
