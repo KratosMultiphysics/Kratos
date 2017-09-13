@@ -66,6 +66,7 @@ namespace Kratos
     typedef typename BaseType::Pointer                         BaseTypePointer;
     typedef typename BaseType::SizeType                               SizeType;
     typedef typename BaseType::VoigtIndexType                   VoigtIndexType;
+    typedef typename BaseType::VectorType                           VectorType;
     typedef typename BaseType::MatrixType                           MatrixType;
     typedef typename BaseType::ModelDataType                     ModelDataType;
     typedef typename BaseType::MaterialDataType               MaterialDataType;
@@ -129,7 +130,7 @@ namespace Kratos
 
 
       //damage threshold properties
-      const Properties& rMaterialProperties  =  rModelData.GetMaterialProperties();
+      const Properties& rMaterialProperties  =  rValues.GetMaterialProperties();
       rDamageThreshold =  rMaterialProperties[DAMAGE_THRESHOLD];
 
 
@@ -178,14 +179,15 @@ namespace Kratos
       this->InitializeVariables(rValues,Variables);
 
       //Calculate Stress Matrix
-      
+
+      MatrixType StressMatrix;
       // calculate elastic stress
-      this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
+      this->mElasticityModel.CalculateStressTensor(rValues,StressMatrix);
       
-      rValues.StressMatrix = rStressMatrix;  //store stress to ModelData StressMatrix
+      rValues.StressMatrix = StressMatrix;  //store stress to ModelData StressMatrix
 
       // calculate damaged stress
-      this->CalculateAndAddStressTensor(Variables,rStressMatrix);
+      this->CalculateAndAddStressTensor(Variables,StressMatrix);
 
     
       //Calculate Constitutive Matrix
@@ -404,7 +406,7 @@ namespace Kratos
       EffectiveStressVector  = ConstitutiveModelUtilities::StressTensorToVector(rModelData.GetStressMatrix(), EffectiveStressVector);
 
       VectorType EquivalentStrainVector;
-      EquivalentStrainVector = this->CalculateEquivalentStrainDerivative(rVariables, EquivalentStrainVector);
+      EquivalentStrainVector = this->CalculateEquivalentStrainDerivative(rVariables, rConstitutiveMatrix, EquivalentStrainVector);
 
       rConstitutiveMatrix *= (1-rDamage);
       rConstitutiveMatrix += DeltaStateFunction * outer_prod(EffectiveStressVector,EquivalentStrainVector);
@@ -427,9 +429,6 @@ namespace Kratos
       double& rDamage              = rVariables.DeltaInternal.Variables[0];
 	     
       double StateFunction         = rVariables.TrialStateFunction;
-
-      rEquivalentPlasticStrain = 0;
-      rDeltaGamma = 0;
 	
       if ( StateFunction >= rDamageThreshold )
 	{
@@ -564,14 +563,15 @@ namespace Kratos
     
     // calculate equivalent strain derivative
     
-    VectorType& CalculateEquivalentStrainDerivative(PlasticDataType& rVariables, VectorType& rEquivalentStrainDerivative)
+    VectorType& CalculateEquivalentStrainDerivative(PlasticDataType& rVariables, const Matrix& rConstitutiveMatrix, VectorType& rEquivalentStrainDerivative)
     {
       KRATOS_TRY
 
       //The derivative of the equivalent strain with respect to the strain vector is obtained through the perturbation method
-	
+
+      VectorType StressVector;
       MatrixType StressMatrix;
-      double EquivalentStrainForward,
+      double EquivalentStrainForward;
       double EquivalentStrainBackward;
       
       //Compute the strains perturbations in each direction of the vector
@@ -579,32 +579,31 @@ namespace Kratos
       VectorType StrainVector;
       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rStrainMatrix, StrainVector);
       VectorType PerturbatedStrainVector;
-      IsotropicDamageUtilities::ComputePerturbationVector(PerturbatedStrainVector,StrainVector);
+      ConstitutiveModelUtilities::ComputePerturbationVector(PerturbatedStrainVector,StrainVector);
 
       for(unsigned int i = 0; i < StrainVector.size(); i++)
 	{
 	  //Forward perturbed equivalent strain
-	  noalias(StrainVector_p) = StrainVector;
 	  StrainVector[i] += PerturbatedStrainVector[i];
 	  
-	  rVariables.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector,StrainMatrix);
+	  rVariables.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector,rVariables.StrainMatrix);
 	  noalias(StressVector)   = prod(rConstitutiveMatrix, StrainVector);
 	  StressMatrix            = ConstitutiveModelUtilities::StressVectorToTensor(StressVector,StressMatrix);
 
 	  this->CalculateStressNorm(rVariables,StressMatrix);
-	  EquivalentStrainForward = mpYieldCriterion->CalculateYieldCondition(rVariables, EquivalentStrainForward);
+	  EquivalentStrainForward = this->mYieldSurface.CalculateYieldCondition(rVariables, EquivalentStrainForward);
 
 	  StrainVector[i] -= PerturbatedStrainVector[i];
 	  
 	  //Backward perturbed equivalent strain
 	  StrainVector[i] -= PerturbatedStrainVector[i];
 	  
-	  rVariables.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector,StrainMatrix);
+	  rVariables.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector,rVariables.StrainMatrix);
 	  noalias(StressVector)   = prod(rConstitutiveMatrix, StrainVector);
 	  StressMatrix            = ConstitutiveModelUtilities::StressVectorToTensor(StressVector,StressMatrix);
 
 	  this->CalculateStressNorm(rVariables,StressMatrix);
-	  EquivalentStrainForward = mpYieldCriterion->CalculateYieldCondition(rVariables, EquivalentStrainForward);
+	  EquivalentStrainForward = this->mYieldSurface.CalculateYieldCondition(rVariables, EquivalentStrainForward);
 
 	  StrainVector[i] += PerturbatedStrainVector[i];
         

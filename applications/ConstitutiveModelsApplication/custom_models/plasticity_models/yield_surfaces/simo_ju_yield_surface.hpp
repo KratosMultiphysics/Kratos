@@ -107,7 +107,8 @@ namespace Kratos
     double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
-      
+	
+      const ModelDataType& rModelData = rVariables.GetModelData();
       const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
 
       const double& rStressNorm = rVariables.GetStressNorm();
