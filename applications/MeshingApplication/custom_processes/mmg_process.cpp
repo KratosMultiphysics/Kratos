@@ -519,11 +519,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
-    std::unordered_map<int, std::vector<IndexType>> color_nodes;
-    std::unordered_map<int, std::vector<IndexType>> color_cond_0;
-    std::unordered_map<int, std::vector<IndexType>> color_cond_1;
-    std::unordered_map<int, std::vector<IndexType>> color_elem_0;
-    std::unordered_map<int, std::vector<IndexType>> color_elem_1;
+//     std::unordered_map<int, std::vector<IndexType>> color_nodes; // NOTE: This is not yet supported by MMG, so what we are going to do is to add all the nodes from conditions and elements to the submodelparts (it is not efficient, and not 100 per cent guaranteed)
+    std::unordered_map<int, std::vector<IndexType>> color_cond_0, color_cond_1, color_elem_0, color_elem_1;
     
     /* NODES */ // TODO: ADD OMP
     for (unsigned int i_node = 1; i_node <= n_nodes; i_node++)
@@ -537,7 +534,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             p_node->pAddDof(*it_dof);
         }
         
-        if (ref != 0) color_nodes[ref].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
+//         if (ref != 0) color_nodes[ref].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
     
     // Auxiliar values
@@ -668,13 +665,56 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             {      
                 ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                 
-                if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
+//                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
                 if (color_cond_1.find(key) != color_cond_1.end()) r_sub_model_part.AddConditions(color_cond_1[key]);
                 if (color_elem_0.find(key) != color_elem_0.end()) r_sub_model_part.AddElements(color_elem_0[key]);
                 if (color_elem_1.find(key) != color_elem_1.end()) r_sub_model_part.AddElements(color_elem_1[key]);
             }
         }
+    }
+    
+    // TODO: Add OMP
+    // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
+    const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
+
+    for (auto sub_model_part_name : sub_model_part_names)
+    {
+        ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+        
+        std::vector<IndexType> node_ids;
+        
+        ConditionsArrayType& sub_conditions_array = r_sub_model_part.Conditions();
+        const SizeType sub_num_conditions = sub_conditions_array.end() - sub_conditions_array.begin();
+        
+//         #pragma omp parallel for 
+        for(IndexType i = 0; i < sub_num_conditions; i++) 
+        {
+            auto it_cond = sub_conditions_array.begin() + i;
+            auto& cond_geom = it_cond->GetGeometry();
+            
+            for (SizeType i_node = 0; i_node < cond_geom.size(); i_node++)
+            {
+                node_ids.push_back(cond_geom[i_node].Id());
+            }
+        }
+        
+        ElementsArrayType& sub_elements_array = r_sub_model_part.Elements();
+        const SizeType sub_num_elements = sub_elements_array.end() - sub_elements_array.begin();
+        
+//         #pragma omp parallel for 
+        for(IndexType i = 0; i < sub_num_elements; i++) 
+        {
+            auto it_elem = sub_elements_array.begin() + i;
+            auto& elem_geom = it_elem->GetGeometry();
+            
+            for (SizeType i_node = 0; i_node < elem_geom.size(); i_node++)
+            {
+                node_ids.push_back(elem_geom[i_node].Id());
+            }
+        }
+        
+        r_sub_model_part.AddNodes(node_ids);
     }
     
     /* Save to file */
@@ -1183,7 +1223,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
         
         p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Condition creation avoided" << std::endl;
     }
@@ -1225,7 +1265,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
         
         p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Condition creation avoided" << std::endl;
     }
@@ -1283,7 +1323,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition1(
         
         p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Condition creation avoided" << std::endl;
     }
@@ -1325,7 +1365,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement0(
         
         p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Element creation avoided" << std::endl;
     }
@@ -1369,7 +1409,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement0(
         
         p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Element creation avoided" << std::endl;
     }
@@ -1431,7 +1471,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement1(
     
         p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Element creation avoided" << std::endl;
     }
