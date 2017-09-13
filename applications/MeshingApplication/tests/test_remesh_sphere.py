@@ -63,7 +63,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
 
         metric_process.Execute()
 
-        MMGParameters = KratosMultiphysics.Parameters("""
+        mmg_parameters = KratosMultiphysics.Parameters("""
         {
             "filename"                         : "mmg_eulerian_test/coarse_sphere_test", 
             "save_external_files"              : true,
@@ -72,7 +72,8 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         """)
 
         # We create the remeshing utility
-        mmg_process = MeshingApplication.MmgProcess3D(main_model_part, MMGParameters)
+        mmg_parameters["filename"].SetString(file_path + "/" + mmg_parameters["filename"].GetString())
+        mmg_process = MeshingApplication.MmgProcess3D(main_model_part, mmg_parameters)
 
         # We remesh
         mmg_process.Execute()
