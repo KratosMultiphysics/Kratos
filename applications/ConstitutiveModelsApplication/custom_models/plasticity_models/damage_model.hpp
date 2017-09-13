@@ -375,8 +375,8 @@ namespace Kratos
       if( rVariables.State().IsNot(ConstitutiveModelData::RETURN_MAPPING_COMPUTED) )
 	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculation" << std::endl;
 
-      double& rDamageThreshold = rVariables.Internal.Variables[0];
       double& rDamage          = rVariables.DeltaInternal.Variables[0];
+
       //alternative way, compute damage if not computed
       //double rDamage = 0;
       //rDamage = this->mYieldSurface.CalculateStateFunction( rVariables, rDamage );
@@ -386,6 +386,7 @@ namespace Kratos
 
       //tangent OPTION 1:
       
+      // double& rDamageThreshold = rVariables.Internal.Variables[0];
       // const MatrixType& rStrainMatrix  = rVariables.GetStrainMatrix();
 
       // VectorType StrainVector;
@@ -401,9 +402,10 @@ namespace Kratos
       //alternative tangent OPTION 2:
       
       const ModelDataType&  rModelData = rVariables.GetModelData();
-      
-      VectorType EffectiveStressVector;
-      EffectiveStressVector  = ConstitutiveModelUtilities::StressTensorToVector(rModelData.GetStressMatrix(), EffectiveStressVector);
+      const MatrixType& rStressMatrix  = rModelData.GetStressMatrix();
+
+      Vector EffectiveStressVector;
+      EffectiveStressVector  = ConstitutiveModelUtilities::StressTensorToVector(rStressMatrix, EffectiveStressVector);
 
       VectorType EquivalentStrainVector;
       EquivalentStrainVector = this->CalculateEquivalentStrainDerivative(rVariables, rConstitutiveMatrix, EquivalentStrainVector);
@@ -571,8 +573,8 @@ namespace Kratos
 
       VectorType StressVector;
       MatrixType StressMatrix;
-      double EquivalentStrainForward;
-      double EquivalentStrainBackward;
+      double EquivalentStrainForward  = 0.0;
+      double EquivalentStrainBackward = 0.0;
       
       //Compute the strains perturbations in each direction of the vector
       const MatrixType& rStrainMatrix  = rVariables.GetStrainMatrix();
@@ -609,6 +611,8 @@ namespace Kratos
         
 	  rEquivalentStrainDerivative[i] = (EquivalentStrainForward - EquivalentStrainBackward) / (2.0 * PerturbatedStrainVector[i]);
 	}
+
+      return rEquivalentStrainDerivative;
 
       KRATOS_CATCH(" ")         
     }

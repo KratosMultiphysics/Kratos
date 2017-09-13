@@ -92,6 +92,8 @@ namespace Kratos {
     Serializer::Register( "ExponentialDamageHardeningRule", mExponentialDamageHardeningRule );
     Serializer::Register( "ModifiedExponentialDamageHardeningRule", mModifiedExponentialDamageHardeningRule );
     Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
+    Serializer::Register( "SimoJuExponentialDamageModel", mSimoJuExponentialDamageModel );
+    Serializer::Register( "SimoJuModifiedExponentialDamageModel", mSimoJuModifiedExponentialDamageModel );
       
 
   }
