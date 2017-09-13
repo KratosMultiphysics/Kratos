@@ -18,13 +18,15 @@
 // External includes
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/kratos_flags.h"
+#include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "includes/serializer.h"
+#include "utilities/discont_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "includes/cfd_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -64,6 +66,8 @@ class EmbeddedAusasNavierStokes : public Element
 public:
     ///@name Type Definitions
     ///@{
+    typedef GeometryType::IntegrationPointsArrayType                InteGrationPointsType;
+    typedef GeometryType::ShapeFunctionsGradientsType   ShapeFunctionDerivativesArrayType;
 
     /// Counted pointer of
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedAusasNavierStokes);
@@ -73,21 +77,30 @@ public:
         bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
         array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
 
-        bounded_matrix<double, TNumNodes, TDim > DN_DX;
-        array_1d<double, TNumNodes > N;
+        bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        array_1d<double, TNumNodes> N;
 
-        Matrix C;
-        Vector stress;
-        Vector strain;
+        Matrix C;             // Matrix to store the constitutive matrix in Voigt notation
+        Vector stress;        // Vector to store the stress values in Voigt notation
+        Vector strain;        // Vector to store the stain values in Voigt notation
 
-        double bdf0;
-        double bdf1;
-        double bdf2;
+        double bdf0;          // BDF2 scheme coefficient 0
+        double bdf1;          // BDF2 scheme coefficient 1
+        double bdf2;          // BDF2 scheme coefficient 2
         double c;             // Wave velocity (needed if artificial compressibility is considered)
         double h;             // Element size
-        double volume;        // In 2D: element area. In 3D: element volume
         double dt;            // Time increment
         double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
+    };
+
+    struct ElementGeometryDataStruct
+    {
+        Matrix  N_container;                     // Container with the shape functions values in each partition Gauss points
+        Vector GaussWeights;                     // Vector containing the Gauss pts. weights
+        ShapeFunctionDerivativesArrayType DN_DX; // Array containing the shape functions derivatives
+        unsigned int ndivisions;                 // Number of element subdivisions
+        double total_volume;                     // In 2D: element area. In 3D: element volume
+        double element_size;                     // Element size
     };
 
     ///@}
@@ -136,7 +149,7 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
@@ -146,82 +159,112 @@ public:
         if (rRightHandSideVector.size() != MatrixSize)
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
 
-        // Struct to pass around the data
-        ElementDataStruct data;
-        this->FillElementData(data, rCurrentProcessInfo);
-
-        // Allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
-        array_1d<double,MatrixSize> rhs_local;
-
-        // Loop on gauss points
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-
-        // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
-        GetShapeFunctionsOnGauss(Ncontainer);
-
-        for(unsigned int igauss = 0; igauss<Ncontainer.size2(); ++igauss)
+        // Set the elemental distance vector
+        Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
+        for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            noalias(data.N) = row(Ncontainer, igauss);
-
-            ComputeConstitutiveResponse(data, rCurrentProcessInfo);
-
-            ComputeGaussPointRHSContribution(rhs_local, data);
-            ComputeGaussPointLHSContribution(lhs_local, data);
-
-            // here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-            noalias(rLeftHandSideMatrix) += lhs_local;
-            noalias(rRightHandSideVector) += rhs_local;
+            elemental_distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         }
 
-        rLeftHandSideMatrix  *= data.volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
+        // Number of positive and negative distance function values
+        unsigned int npos = 0, nneg = 0;
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            if (elemental_distances[i] > 0.0)
+            {
+                npos++;
+            }
+            else
+            {
+                nneg++;
+            }
+        }
+
+        if (npos != 0 && nneg != 0)
+        {
+            this->Set(TO_SPLIT, true);
+        }
+
+        // Fill the data structure to pass around the data
+        ElementDataStruct data;
+        this->FillElementData(data, rCurrentProcessInfo);
+        ElementGeometryDataStruct geometry_data;
+        this->FillElementGeometryData(geometry_data);
+
+        // Initialize LHS and RHS 
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
+
+        // Element LHS and RHS contributions computation
+        if (npos == TNumNodes) // All nodes belong to fluid domain
+        {
+            CalculateLocalSystemAsFluid<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
+        }
+        else // Element intersects both fluid and structure domains
+        {
+            CalculateLocalSystemAsMixed<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
+        }
 
         KRATOS_CATCH("Error in embedded Ausas Navier-Stokes element!")
-    }
 
+    }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rRightHandSideVector.size() != MatrixSize)
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
 
-        // Struct to pass around the data
-        ElementDataStruct data;
-        this->FillElementData(data, rCurrentProcessInfo);
-
-        // Allocate memory needed
-        array_1d<double,MatrixSize> rhs_local;
-
-        // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
-        GetShapeFunctionsOnGauss(Ncontainer);
-
-        // Loop on gauss point
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
+        // Set the elemental distance vector
+        Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
+        for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            noalias(data.N) = row(Ncontainer, igauss);
-
-            ComputeConstitutiveResponse(data, rCurrentProcessInfo);
-
-            ComputeGaussPointRHSContribution(rhs_local, data);
-
-            //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-            noalias(rRightHandSideVector) += rhs_local;
+            elemental_distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         }
 
-        // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
+        // Number of positive and negative distance function values
+        unsigned int npos = 0, nneg = 0;
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            if (elemental_distances[i] > 0.0)
+            {
+                npos++;
+            }
+            else
+            {
+                nneg++;
+            }
+        }
 
-        KRATOS_CATCH("")
+        if (npos != 0 && nneg != 0)
+        {
+            this->Set(TO_SPLIT, true);
+        }
+
+        // Fill the data structure to pass around the data
+        ElementDataStruct data;
+        this->FillElementData(data, rCurrentProcessInfo);
+        ElementGeometryDataStruct geometry_data;
+        this->FillElementGeometryData(geometry_data);
+
+        // Initialize RHS
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
+
+        // Element LHS and RHS contributions computation
+        if (npos == TNumNodes) // All nodes belong to fluid domain
+        {
+            CalculateRHSAsFluid<MatrixSize>(rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
+        }
+        else // Element intersects both fluid and structure domains
+        {
+            CalculateRHSAsMixed<MatrixSize>(rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
+        }
+
+        KRATOS_CATCH("");
     }
 
     /// Checks the input and that all required Kratos variables have been registered.
@@ -235,7 +278,7 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
@@ -309,7 +352,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "EmbeddedAusasNavierStokes #";
+        return "EmbeddedAusasNavierStokes";
     }
 
     /// Print information about this object.
@@ -362,22 +405,22 @@ protected:
     // Element initialization (constitutive law)
     void Initialize() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
+        // Initalize the constitutive law pointer
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mpConstitutiveLaw->InitializeMaterial( GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues(), 0 ) );
 
-        KRATOS_CATCH( "" )
+        // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
+        Vector zero_vector(TNumNodes, 0.0);
+        this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+
+        KRATOS_CATCH("");
     }
 
     // Auxiliar function to fill the element data structure
     void FillElementData(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
     {
-        // Getting data for the given geometry
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), rData.DN_DX, rData.N, rData.volume);
-
-        // Compute element size
-        rData.h = ComputeH(rData.DN_DX);
 
         // Database access to all of the variables needed
         const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -417,8 +460,251 @@ protected:
 
     }
 
+    // Auxiliar function to fill the element splitting data
+    void FillElementGeometryData(ElementGeometryDataStruct &rGeometryData)
+    {
+        constexpr unsigned int MaxPartitions = 3*(TDim-1);
+
+        GeometryType& rGeom = this->GetGeometry();
+
+        // Getting data for the given geometry
+        array_1d<double, TNumNodes> N_continuous;
+        bounded_matrix<double, TNumNodes, TDim> DN_DX_continuous;
+        GeometryUtils::CalculateGeometryData(rGeom, DN_DX_continuous, N_continuous, rGeometryData.total_volume);
+
+        // Compute element size
+        rGeometryData.element_size = ComputeH(DN_DX_continuous);
+
+        if (this->Is(TO_SPLIT))
+        {
+            // Arrays initialization
+            bounded_matrix<double, TNumNodes, TDim> nodal_coords;
+            bounded_matrix<double, MaxPartitions, TNumNodes> shape_function_values;
+            bounded_matrix<double, MaxPartitions, TNumNodes> enriched_shape_function_values;
+
+            array_1d<double, TNumNodes> nodal_distances = this->GetValue(ELEMENTAL_DISTANCES);
+
+            array_1d<double, MaxPartitions> partition_volumes;
+            array_1d<double, MaxPartitions> partition_signs;
+            array_1d<double, MaxPartitions> edge_areas;
+
+            std::vector<Matrix> gauss_gradients(MaxPartitions);
+
+            // Fill the nodal coordinates matrix
+            this->FillNodalCoordinatesMatrix(nodal_coords);
+
+            rGeometryData.ndivisions = DiscontinuousShapeFunctionsUtilities::CalculateDiscontinuousShapeFunctions(nodal_coords,
+                                                                                                                  DN_DX_continuous,
+                                                                                                                  nodal_distances,
+                                                                                                                  partition_volumes,
+                                                                                                                  shape_function_values,
+                                                                                                                  partition_signs,
+                                                                                                                  gauss_gradients,
+                                                                                                                  enriched_shape_function_values,
+                                                                                                                  edge_areas);
+
+            // Resize the splitting data according to the obtained splitting pattern
+            if ((rGeometryData.GaussWeights).size() != rGeometryData.ndivisions)
+            {
+                (rGeometryData.GaussWeights).resize(rGeometryData.ndivisions, false);
+            }
+
+            if ((rGeometryData.N_container).size1() != rGeometryData.ndivisions || (rGeometryData.N_container).size2() != TDim+1)
+            {
+                (rGeometryData.N_container).resize(rGeometryData.ndivisions, TDim+1, false);
+            }
+
+            if ((rGeometryData.DN_DX).size() != rGeometryData.ndivisions)
+            {
+                (rGeometryData.DN_DX).resize(rGeometryData.ndivisions);
+            }
+
+            // Gather the computed splitting data to the splitting data structure
+            for (unsigned int division=0; division<rGeometryData.ndivisions; ++division)
+            {
+                for (unsigned int dof=0; dof<TDim+1; ++dof)
+                {
+                    rGeometryData.N_container(division, dof) = enriched_shape_function_values(division, dof);
+                }
+
+                rGeometryData.GaussWeights[division] = partition_volumes[division];
+                rGeometryData.DN_DX[division] = gauss_gradients[division];
+            }
+        }
+        else
+        {
+            // Fill the shape functions container
+            rGeometryData.N_container = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+            // Fill the shape functions gradient container
+            Vector DetJ;
+            rGeom.ShapeFunctionsIntegrationPointsGradients(rGeometryData.DN_DX, DetJ, GeometryData::GI_GAUSS_2);
+
+            // Fill the Gauss pts. weights container
+            const unsigned int ngauss = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+            const InteGrationPointsType& rIntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            rGeometryData.GaussWeights.resize(ngauss, false);
+            for (unsigned int igauss = 0; igauss<ngauss; ++igauss)
+            {
+                rGeometryData.GaussWeights[igauss] = DetJ[igauss]*rIntegrationPoints[igauss].Weight();
+            }
+        }
+    }
+
+    template <unsigned int MatrixSize>
+    void CalculateLocalSystemAsFluid(MatrixType &rLeftHandSideMatrix,
+                                     VectorType &rRightHandSideVector,
+                                     ElementDataStruct &rData,
+                                     ElementGeometryDataStruct &rGeometryData,
+                                     ProcessInfo &rCurrentProcessInfo)
+    {
+        // Allocate memory needed
+        array_1d<double, MatrixSize> rhs_local;
+        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
+
+        rData.h = rGeometryData.element_size;
+        const unsigned int ngauss = (rGeometryData.N_container).size2();
+
+        // Loop on gauss points
+        for (unsigned int igauss = 0; igauss < ngauss; ++igauss)
+        {
+            // Gather in the Gauss pt. data from the geometry data structure
+            const double wgauss = rGeometryData.GaussWeights[igauss];
+            noalias(rData.N) = row(rGeometryData.N_container, igauss);
+            noalias(rData.DN_DX) = rGeometryData.DN_DX[igauss];
+
+            ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
+
+            ComputeGaussPointRHSContribution(rhs_local, rData);
+            ComputeGaussPointLHSContribution(lhs_local, rData);
+
+            noalias(rLeftHandSideMatrix) += wgauss * lhs_local;
+            noalias(rRightHandSideVector) += wgauss * rhs_local;
+        }
+    }
+
+    template <unsigned int MatrixSize>
+    void CalculateLocalSystemAsMixed(MatrixType &rLeftHandSideMatrix,
+                                     VectorType &rRightHandSideVector,
+                                     ElementDataStruct &rData,
+                                     ElementGeometryDataStruct &rGeometryData,
+                                     ProcessInfo &rCurrentProcessInfo)
+    {
+        // Allocate memory needed
+        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
+        array_1d<double, MatrixSize> rhs_local;
+
+        rData.h = rGeometryData.element_size;
+        const unsigned int ngauss = (rGeometryData.N_container).size2();
+
+        // Loop on gauss points
+        for (unsigned int igauss = 0; igauss < ngauss; ++igauss)
+        {
+            // Gather in the Gauss pt. data from the geometry data structure
+            const double wgauss = rGeometryData.GaussWeights[igauss];
+            noalias(rData.N) = row(rGeometryData.N_container, igauss);
+            noalias(rData.DN_DX) = rGeometryData.DN_DX[igauss];
+
+            ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
+
+            ComputeGaussPointRHSContribution(rhs_local, rData);
+            ComputeGaussPointLHSContribution(lhs_local, rData);
+
+            noalias(rLeftHandSideMatrix) += wgauss * lhs_local;
+            noalias(rRightHandSideVector) += wgauss * rhs_local;
+        }
+
+        // TODO: ADD THE PENALTY TERMS IN HERE
+    }
+
+    template <unsigned int MatrixSize>
+    void CalculateRHSAsFluid(VectorType &rRightHandSideVector,
+                             ElementDataStruct &rData,
+                             ElementGeometryDataStruct &rGeometryData,
+                             ProcessInfo &rCurrentProcessInfo)
+    {
+        // Allocate memory needed
+        array_1d<double, MatrixSize> rhs_local;
+        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
+
+        rData.h = rGeometryData.element_size;
+        const unsigned int ngauss = (rGeometryData.N_container).size2();
+
+        // Loop on gauss points
+        for (unsigned int igauss = 0; igauss < ngauss; ++igauss)
+        {
+            // Gather in the Gauss pt. data from the geometry data structure
+            const double wgauss = rGeometryData.GaussWeights[igauss];
+            noalias(rData.N) = row(rGeometryData.N_container, igauss);
+            noalias(rData.DN_DX) = rGeometryData.DN_DX[igauss];
+
+            ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
+
+            ComputeGaussPointRHSContribution(rhs_local, rData);
+
+            noalias(rRightHandSideVector) += wgauss * rhs_local;
+        }
+    }
+
+    template <unsigned int MatrixSize>
+    void CalculateRHSAsMixed(VectorType &rRightHandSideVector,
+                             ElementDataStruct &rData,
+                             ElementGeometryDataStruct &rGeometryData,
+                             ProcessInfo &rCurrentProcessInfo)
+    {
+        // Allocate memory needed
+        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
+        array_1d<double, MatrixSize> rhs_local;
+
+        rData.h = rGeometryData.element_size;
+        const unsigned int ngauss = (rGeometryData.N_container).size2();
+
+        // Loop on gauss points
+        for (unsigned int igauss = 0; igauss < ngauss; ++igauss)
+        {
+            // Gather in the Gauss pt. data from the geometry data structure
+            const double wgauss = rGeometryData.GaussWeights[igauss];
+            noalias(rData.N) = row(rGeometryData.N_container, igauss);
+            noalias(rData.DN_DX) = rGeometryData.DN_DX[igauss];
+
+            ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
+
+            ComputeGaussPointRHSContribution(rhs_local, rData);
+
+            noalias(rRightHandSideVector) += wgauss * rhs_local;
+        }
+
+        // TODO: ADD THE PENALTY TERMS IN HERE
+    }
+
+    // Auxiliar function to fill the tetrahedra nodal coordinates
+    void FillNodalCoordinatesMatrix(bounded_matrix<double,4,3>& rNodalCoordinates)
+    {
+        const GeometryType& rGeom = this->GetGeometry();
+
+        for (unsigned int inode=0; inode<TNumNodes; ++inode)
+        {
+            rNodalCoordinates(inode,0) = rGeom[inode].X();
+            rNodalCoordinates(inode,1) = rGeom[inode].Y();
+            rNodalCoordinates(inode,2) = rGeom[inode].Z();
+        }
+
+    }
+
+    // Auxiliar function to fill the triangle nodal coordinates
+    void FillNodalCoordinatesMatrix(bounded_matrix<double,3,2>& rNodalCoordinates)
+    {
+        const GeometryType& rGeom = this->GetGeometry();
+
+        for (unsigned int inode=0; inode<TNumNodes; ++inode)
+        {
+            rNodalCoordinates(inode,0) = rGeom[inode].X();
+            rNodalCoordinates(inode,1) = rGeom[inode].Y();
+        }
+    }
+
     // Auxiliar function to compute the element size
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
+    double ComputeH(bounded_matrix<double,TNumNodes, TDim>& DN_DX)
     {
         double h=0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -435,7 +721,7 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4,4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(bounded_matrix<double,4,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -444,7 +730,7 @@ protected:
     }
 
     // 2D triangle shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(bounded_matrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
@@ -453,17 +739,17 @@ protected:
         Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
     }
 
-    // 3D tetrahedra shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
-    {
-        Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
-    }
+    // // 3D tetrahedra shape functions values at centered Gauss point
+    // void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
+    // {
+    //     Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
+    // }
 
-    // 2D triangle shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
-    {
-        Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
-    }
+    // // 2D triangle shape functions values at centered Gauss point
+    // void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
+    // {
+    //     Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
+    // }
 
     // Computes the strain rate in Voigt notation
     void ComputeStrain(ElementDataStruct& rData, const unsigned int& strain_size)

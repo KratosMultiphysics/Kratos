@@ -90,13 +90,14 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add base class variables
         super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
         ## Add specific variables needed for the embedded solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Speed of sound velocity
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE) # Nodal external pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_PRESSURE)    # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_VELOCITY)    # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ELEMENTAL_DISTANCES)   # Store the element nodal distance values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)        # Speed of sound velocity
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)     # Nodal external pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)     # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_PRESSURE)        # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_VELOCITY)        # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         print("Monolithic embedded fluid solver variables added correctly")
 
