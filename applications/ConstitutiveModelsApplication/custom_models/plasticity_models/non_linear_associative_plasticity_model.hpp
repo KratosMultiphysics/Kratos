@@ -273,8 +273,6 @@ namespace Kratos
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
             
-      if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
-	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
       
       //Calculate Constitutive Matrix
     
@@ -288,7 +286,12 @@ namespace Kratos
 
       Variables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
       
-      rStressMatrix += VolumetricStressMatrix;      
+      rStressMatrix += VolumetricStressMatrix;
+
+
+      if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
+	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
+
         
       KRATOS_CATCH(" ")
     }
