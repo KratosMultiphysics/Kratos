@@ -1,64 +1,44 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.TrilinosApplication import *
-from KratosMultiphysics.MetisApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.ALEApplication as ALEApplication
+import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.mpi import *
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
+import trilinos_mesh_solver_base
 
 
-def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-    model_part.AddNodalSolutionStepVariable(MESH_REACTION)
-    model_part.AddNodalSolutionStepVariable(MESH_RHS)
-    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
-    mpi.world.barrier()
-    if mpi.rank == 0:
-        print("variables for the mesh solver added correctly")
+def CreateSolver(model_part, custom_settings):
+    return TrilinosMeshSolverComponentwise(model_part, custom_settings)
 
 
-def AddDofs(model_part):
-    for node in model_part.Nodes:
-        # adding dofs
-        node.AddDof(MESH_DISPLACEMENT_X, MESH_REACTION_X)
-        node.AddDof(MESH_DISPLACEMENT_Y, MESH_REACTION_Y)
-        node.AddDof(MESH_DISPLACEMENT_Z, MESH_REACTION_Z)
+class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolverBase):
+    def __init__(self, model_part, custom_settings):
+        super(TrilinosMeshSolverComponentwise, self).__init__(model_part, custom_settings)
+        mpi.world.barrier()
+        if mpi.rank == 0:
+            print("::[TrilinosMeshSolverComponentwise]:: Construction finished")
 
-    mpi.world.barrier()
-    if mpi.rank == 0:
-        print("dofs for the mesh solver added correctly")
+    #### Private functions ####
 
-
-class TrilinosMeshSolverComponentwise:
-
-    def __init__(self, model_part, domain_size, reform_dof_at_every_step):
-
-        self.model_part = model_part
-        self.domain_size = domain_size
-        self.reform_dof_at_every_step = reform_dof_at_every_step
-
-        #AddDofs(model_part)
-
-        # assignation of parameters to be used
-        self.time_order = 1
-
-        # Create communicator
-        self.Comm = CreateCommunicator()
-
-        # Define solver
+    def _create_linear_solver(self):
         import PressureMultiLevelSolver
         pressure_nit_max = 1000
         pressure_linear_tol = 1e-6
-        self.linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol, pressure_nit_max)
+        linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol, pressure_nit_max)
+        return linear_solver
 
-    def Initialize(self):
-        self.solver = TrilinosLaplacianMeshMovingStrategy(self.Comm, self.model_part, self.linear_solver, self.domain_size, self.time_order, self.reform_dof_at_every_step)
-        (self.solver).SetEchoLevel(0)
-        print("finished moving the mesh")
-
-    def Solve(self):
-        (self.solver).Solve()
-
-    def MoveNodes(self):
-        (self.solver).MoveNodes()
+    def _create_mesh_motion_solver(self):
+        domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        linear_solver = self.get_linear_solver()
+        time_order = self.settings("time_order").GetInt()
+        reform_dofs_each_step = self.settings("reform_dofs_each_step").GetBool()
+        comm = self.get_communicator()
+        solver = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
+            comm,
+            self.model_part, 
+            linear_solver, 
+            domain_size,
+            time_order, 
+            reform_dof_at_every_step)
+        return solver

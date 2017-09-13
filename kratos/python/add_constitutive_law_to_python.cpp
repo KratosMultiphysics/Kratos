@@ -1,23 +1,15 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
@@ -189,6 +181,11 @@ void  AddConstitutiveLawToPython()
     .def("CalculateMaterialResponsePK2",&ConstitutiveLaw::CalculateMaterialResponsePK2)
     .def("CalculateMaterialResponseKirchhoff",&ConstitutiveLaw::CalculateMaterialResponseKirchhoff)
     .def("CalculateMaterialResponseCauchy",&ConstitutiveLaw::CalculateMaterialResponseCauchy)
+    .def("InitializeMaterialResponse",&ConstitutiveLaw::InitializeMaterialResponse)
+    .def("InitializeMaterialResponsePK1",&ConstitutiveLaw::InitializeMaterialResponsePK1)
+    .def("InitializeMaterialResponsePK2",&ConstitutiveLaw::InitializeMaterialResponsePK2)
+    .def("InitializeMaterialResponseKirchhoff",&ConstitutiveLaw::InitializeMaterialResponseKirchhoff)
+    .def("InitializeMaterialResponseCauchy",&ConstitutiveLaw::InitializeMaterialResponseCauchy)     
     .def("FinalizeMaterialResponse",&ConstitutiveLaw::FinalizeMaterialResponse)
     .def("FinalizeMaterialResponsePK1",&ConstitutiveLaw::FinalizeMaterialResponsePK1)
     .def("FinalizeMaterialResponsePK2",&ConstitutiveLaw::FinalizeMaterialResponsePK2)
@@ -209,13 +206,16 @@ void  AddConstitutiveLawToPython()
     .def("PushForwardConstitutiveMatrix",&ConstitutiveLaw::PushForwardConstitutiveMatrix)
     .def("Check",&ConstitutiveLaw::Check)
     .def("GetLawFeatures",&ConstitutiveLaw::GetLawFeatures)
-    .def_readonly("COMPUTE_STRAIN", &ConstitutiveLaw::COMPUTE_STRAIN)
+    .def_readonly("USE_ELEMENT_PROVIDED_STRAIN", &ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)
     .def_readonly("COMPUTE_STRESS", &ConstitutiveLaw::COMPUTE_STRESS)
     .def_readonly("COMPUTE_CONSTITUTIVE_TENSOR", &ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)
     .def_readonly("COMPUTE_STRAIN_ENERGY", &ConstitutiveLaw::COMPUTE_STRAIN_ENERGY)
     .def_readonly("ISOCHORIC_TENSOR_ONLY", &ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)
     .def_readonly("VOLUMETRIC_TENSOR_ONLY", &ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY)
-    .def_readonly("TOTAL_TENSOR", &ConstitutiveLaw::TOTAL_TENSOR)
+    .def_readonly("MECHANICAL_RESPONSE_ONLY", &ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY)
+    .def_readonly("THERMAL_RESPONSE_ONLY", &ConstitutiveLaw::THERMAL_RESPONSE_ONLY)
+    .def_readonly("INCREMENTAL_STRAIN_MEASURE", &ConstitutiveLaw::INCREMENTAL_STRAIN_MEASURE)
+    .def_readonly("INITIALIZE_MATERIAL_RESPONSE", &ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE)
     .def_readonly("FINALIZE_MATERIAL_RESPONSE", &ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE)
     .def_readonly("FINITE_STRAINS", &ConstitutiveLaw::FINITE_STRAINS)
     .def_readonly("INFINITESIMAL_STRAINS", &ConstitutiveLaw::INFINITESIMAL_STRAINS)

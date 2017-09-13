@@ -32,9 +32,8 @@ namespace Kratos
 
 KRATOS_CREATE_VARIABLE(double,  MELT_TEMPERATURE_1)
 KRATOS_CREATE_VARIABLE(double,  MELT_TEMPERATURE_2)
-KRATOS_CREATE_VARIABLE(double,  ERROR)
-KRATOS_CREATE_VARIABLE(double,  ERROR_1)
-KRATOS_CREATE_VARIABLE(double,  ERROR_2)
+KRATOS_CREATE_VARIABLE(double,  BFECC_ERROR)
+KRATOS_CREATE_VARIABLE(double,  BFECC_ERROR_1)
 
 KRATOS_CREATE_VARIABLE(double, MEAN_SIZE)
 KRATOS_CREATE_VARIABLE(double, PROJECTED_SCALAR1)
@@ -59,8 +58,10 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication():
     mLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mLaplacian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mLaplacian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
-    mThermalFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-    mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
+    mThermalFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mFluxCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
 {}
 
 
@@ -73,9 +74,8 @@ void KratosConvectionDiffusionApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_1)
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_2)
-    KRATOS_REGISTER_VARIABLE(ERROR)
-	KRATOS_REGISTER_VARIABLE(ERROR_1)
-	KRATOS_REGISTER_VARIABLE(ERROR_2)
+    KRATOS_REGISTER_VARIABLE(BFECC_ERROR)
+	KRATOS_REGISTER_VARIABLE(BFECC_ERROR_1)
 
     KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
     KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
@@ -102,6 +102,8 @@ void KratosConvectionDiffusionApplication::Register()
 
     KRATOS_REGISTER_CONDITION("ThermalFace2D", mThermalFace2D);
     KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
+    KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
+    KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
 
 }
 

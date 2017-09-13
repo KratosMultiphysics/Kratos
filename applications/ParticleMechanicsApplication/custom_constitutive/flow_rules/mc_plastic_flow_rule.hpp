@@ -175,7 +175,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    void InitializeMaterial(YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProp);
+    void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rProp) override;
 
 
     virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
