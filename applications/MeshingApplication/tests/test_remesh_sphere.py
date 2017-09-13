@@ -3,7 +3,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import os
 
 class TestRemeshMMG(KratosUnittest.TestCase):
     
@@ -22,7 +25,8 @@ class TestRemeshMMG(KratosUnittest.TestCase):
             node.AddDof(KratosMultiphysics.DISTANCE)
 
         # We import the model main_model_part
-        KratosMultiphysics.ModelPartIO("mmg_eulerian_test/coarse_sphere_test").ReadModelPart(main_model_part)
+        file_path = os.path.dirname(os.path.realpath(__file__))
+        KratosMultiphysics.ModelPartIO(file_path + "/mmg_eulerian_test/coarse_sphere_test").ReadModelPart(main_model_part)
 
         # We calculate the gradient of the distance variable
         find_nodal_h = KratosMultiphysics.FindNodalHProcess(main_model_part)
@@ -59,7 +63,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
 
         metric_process.Execute()
 
-        MMGParameters = KratosMultiphysics.Parameters("""
+        mmg_parameters = KratosMultiphysics.Parameters("""
         {
             "filename"                         : "mmg_eulerian_test/coarse_sphere_test", 
             "save_external_files"              : true,
@@ -68,7 +72,8 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         """)
 
         # We create the remeshing utility
-        mmg_process = MeshingApplication.MmgProcess3D(main_model_part, MMGParameters)
+        mmg_parameters["filename"].SetString(file_path + "/" + mmg_parameters["filename"].GetString())
+        mmg_process = MeshingApplication.MmgProcess3D(main_model_part, mmg_parameters)
 
         # We remesh
         mmg_process.Execute()
@@ -100,7 +105,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalize()  
         
         import filecmp 
-        value = filecmp.cmp("mmg_eulerian_test/coarse_sphere_test_result.mesh", "mmg_eulerian_test/coarse_sphere_test_step=0.o.mesh")
+        value = filecmp.cmp(file_path + "/mmg_eulerian_test/coarse_sphere_test_result.mesh", file_path + "/mmg_eulerian_test/coarse_sphere_test_step=0.o.mesh")
         self.assertTrue(value)
         
 if __name__ == '__main__':

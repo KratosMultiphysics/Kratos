@@ -76,7 +76,7 @@ public:
         ):mrThisModelPart(rThisModelPart), 
           mrNodalLengthVariable(rNodalLengthVariable)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
         
         Parameters default_parameters = Parameters(R"(
         {
@@ -94,7 +94,7 @@ public:
             KRATOS_ERROR << "Missing variable " << rNodalLengthVariable;
         }
         
-        KRATOS_CATCH(""); 
+        KRATOS_CATCH("")
     }
 
     /// Destructor.
@@ -183,7 +183,7 @@ public:
                 for (unsigned int i_node = 0; i_node < num_nodes_geometry; i_node++)
                 {
                     #pragma omp atomic
-                    mean_nodal_h_slave += r_this_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * nodal_condition_area;
+                    mean_nodal_h_slave += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
                 }
             }
             
@@ -199,7 +199,7 @@ public:
                 for (unsigned int i_node = 0; i_node < num_nodes_geometry; i_node++)
                 {
                     #pragma omp atomic
-                    mean_nodal_h_master += r_this_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * nodal_condition_area;
+                    mean_nodal_h_master += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
                 }
             }
         }
@@ -305,10 +305,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrThisModelPart;
-    Variable<double>& mrNodalLengthVariable;
-    double mFactorStiffness;
-    double mPenaltyScale;
+    
+    ModelPart& mrThisModelPart;              // The main model part
+    Variable<double>& mrNodalLengthVariable; // The variable used to messure the lenght of the element
+    double mFactorStiffness;                 // The proportion between stiffness and penalty/scale factor
+    double mPenaltyScale;                    // The penalty/scale factor proportion
 
     ///@}
     ///@name Private Operators
