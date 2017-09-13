@@ -60,7 +60,7 @@ class ShallowWaterSolver:
         return 1
 
     def GetComputingModelPart(self):
-        return self.model_part.GetSubModelPart("Parts_water")
+        return self.model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
 
     def ImportModelPart(self):
         ## Read model part
