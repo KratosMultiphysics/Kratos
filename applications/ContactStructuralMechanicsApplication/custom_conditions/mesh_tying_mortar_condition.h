@@ -25,14 +25,10 @@
 #include "includes/ublas_interface.h"
 #include "includes/condition.h"
 #include "includes/kratos_flags.h"
+#include "includes/mortar_classes.h"
 
 /* Utilities */
 #include "utilities/math_utils.h"
-
-/* Custom includes */
-#include "custom_includes/mortar_operator.h"
-#include "custom_includes/dual_LM_operators.h"
-#include "custom_includes/mortar_kinematic_variables.h"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
