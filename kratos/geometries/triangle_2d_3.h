@@ -431,14 +431,16 @@ public:
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
      * 
+     * Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox3.txt
+     * and the article "A Fast Triangle-Triangle Intersection Test", SIGGRAPH '05 ACM, Art.8, 2005:
+     * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
+     * 
      * @return bool if the triangle overlaps a box
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
     bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint ) override 
     {
-        const BaseType& geom_1 = *this;
-
         Point<3, double> boxcenter;
         Point<3, double> boxhalfsize;
 
@@ -446,17 +448,11 @@ public:
         boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
         boxcenter[2]   = 0.00;
 
-
         boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
         boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
         boxhalfsize[2] = 0.00;
 
-        std::size_t size = geom_1.size();
-        std::vector<Point<3, double> > triverts(size);
-        for(unsigned int i = 0; i < size; i++ )
-            triverts[i] =  geom_1.GetPoint(i);
-
-        return TriBoxOverlap(boxcenter, boxhalfsize, triverts);
+        return TriBoxOverlap(boxcenter, boxhalfsize);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -1875,34 +1871,36 @@ private:
 //*************************************************************************************
 //*************************************************************************************
 
-
-    inline bool TriBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts)
+    /** 
+     * @see HasIntersection
+     * use separating axis theorem to test overlap between triangle and box
+     * need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     */
+    inline bool TriBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize)
     {
-        /*    use separating axis theorem to test overlap between triangle and box       */
-        /*    need to test for overlap in these directions:                              */
-        /*    1) the {x,y,(z)}-directions                                                */
-        /*    2) normal of the triangle                                                  */
-        /*    3) crossproduct(edge from tri, {x,y,z}-direction)                          */
-        /*       this gives 3x3=9 more tests                                             */
-
         double fex,fey;
         array_1d<double,3 > v0,v1,v2;
         array_1d<double,3 > e0,e1,e2;
         std::pair<double, double> min_max;
 
-        /* move everything so that the boxcenter is in (0,0,0) */
-        noalias(v0) = triverts[0]- boxcenter;
-        noalias(v1) = triverts[1]- boxcenter;
-        noalias(v2) = triverts[2]- boxcenter;
+        // move everything so that the boxcenter is in (0,0,0)
+        noalias(v0) = this->GetPoint(0) - boxcenter;
+        noalias(v1) = this->GetPoint(1) - boxcenter;
+        noalias(v2) = this->GetPoint(2) - boxcenter;
 
-        /* compute triangle edges */
-        noalias(e0) = v1 - v0;      /* tri edge 0 */
-        noalias(e1) = v2 - v1;      /* tri edge 1 */
-        noalias(e2) = v0 - v2;      /* tri edge 2 */
+        // compute triangle edges
+        noalias(e0) = v1 - v0;
+        noalias(e1) = v2 - v1;
+        noalias(e2) = v0 - v2;
 
-        /* Bullet 3:  */
-        /*  test the 9 tests first (this was faster) */
-        /*  We are only interested on z-axis test, which defines the {x,y} plane */
+        // Bullet 3:
+        //  test the 9 tests first (this was faster)
+        //  We are only interested on z-axis test, which defines the {x,y} plane
+        //  Note that projections onto crossproduct tri-{x,y} are always 0:
+        //    that means there is no separating axis on X,Y-axis tests
         fex = std::abs(e0[0]);
         fey = std::abs(e0[1]);
         if (!AxisTest_Z(e0[0],e0[1],fex,fey,v0,v2,boxhalfsize)) return false;
@@ -1915,54 +1913,55 @@ private:
         fey = std::abs(e2[1]);
         if (!AxisTest_Z(e2[0],e2[1],fex,fey,v2,v1,boxhalfsize)) return false;
 
-        /* Bullet 1: */
-        /*  first test overlap in the {x,y,(z)}-directions */
-        /*  find min, max of the triangle each direction, and test for overlap in */
-        /*  that direction -- this is equivalent to testing a minimal AABB around */
-        /*  the triangle against the AABB */
+        // Bullet 1:
+        //  first test overlap in the {x,y,(z)}-directions
+        //  find min, max of the triangle each direction, and test for overlap in
+        //  that direction -- this is equivalent to testing a minimal AABB around
+        //  the triangle against the AABB 
 
-        /* test in X-direction */
+        // test in X-direction
         min_max = std::minmax({v0[0],v1[0],v2[0]});
         if(min_max.first>boxhalfsize[0] || min_max.second<-boxhalfsize[0]) return false;
 
-        /* test in Y-direction */
+        // test in Y-direction
         min_max = std::minmax({v0[1],v1[1],v2[1]});
         if(min_max.first>boxhalfsize[1] || min_max.second<-boxhalfsize[1]) return false;
 
-        /* test in Z-direction */
-        /*  we do not consider boxhalfsize[2] since we are working in 2D */
+        // test in Z-direction
+        // we do not consider boxhalfsize[2] since we are working in 2D */
 
-        /* Bullet 2: */
-        /*  test if the box intersects the plane of the triangle  */
-        /*  compute plane equation of triangle: normal*x+d=0      */
-        /*  Triangle and box are on the {x-y} plane.              */
-        /*  this test is false                                    */
+        // Bullet 2:
+        //  test if the box intersects the plane of the triangle
+        //  compute plane equation of triangle: normal*x+d=0
+        //  Triangle and box are on the {x-y} plane, so this test won't return false
 
-        return true;   /* box and triangle overlaps */
+        return true;   // box and triangle overlaps
     }
 
-    /*========================= Z-tests ========================*/
+    /** Z-AxisTest
+     * This method return true if there is a separating axis
+     * 
+     * @param ex, ey: i-edge corrdinates
+     * @param fex, fey: i-edge fabs coordinates
+     * @param va: i   vertex
+     * @param vb: i+1 vertex (omitted, pa=pb)
+     * @param vc: i+2 vertex
+     * @param boxhalfsize
+     */
     bool AxisTest_Z(double& ex, double& ey, 
                     double& fex, double& fey,
                     array_1d<double,3>& va, 
                     array_1d<double,3>& vc, 
                     Point<3,double>& boxhalfsize)
     {
-        /*  z-i test:                                           */
-        /*    ex, ey: i-edge coordinates                        */
-        /*    fex, fey: i-edge fabs coordinates                 */
-        /*    va: i vertex                                      */
-        /*    vb: i+1 vertex (ommited, since pa=pb)             */
-        /*    vc: i+2 vertex                                    */
         double pa, pc, rad;
         pa = ex*va[1] - ey*va[0];
         pc = ex*vc[1] - ey*vc[0];
         std::pair<double, double> min_max = std::minmax(pa,pc);
-        
+
         rad = fey*boxhalfsize[0] + fex*boxhalfsize[1];
-        
+
         if(min_max.first>rad || min_max.second<-rad) return false;
-        //~ if(min>rad || max<-rad) return false;
         else return true;
     }
 

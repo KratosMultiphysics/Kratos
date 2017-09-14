@@ -469,6 +469,17 @@ namespace Testing {
     }
 
     /**
+     * Test a box inside a triangle HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3InsideBoxIntersection, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point<3> point_1( 0.1, 0.1, 0.0);
+        Point<3> point_2( 0.3, 0.4, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+    }
+
+
+    /**
      * Test a non overlaping box and triangle HasIntersection
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3BoxNoIntersection, KratosCoreGeometriesFastSuite) {
