@@ -519,8 +519,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
-//     std::unordered_map<int, std::vector<IndexType>> color_nodes; // NOTE: This is not yet supported by MMG, so what we are going to do is to add all the nodes from conditions and elements to the submodelparts (it is not efficient, and not 100 per cent guaranteed)
-    std::unordered_map<int, std::vector<IndexType>> color_cond_0, color_cond_1, color_elem_0, color_elem_1;
+    std::unordered_map<int, std::vector<IndexType>>color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
     
     /* NODES */ // TODO: ADD OMP
     for (unsigned int i_node = 1; i_node <= n_nodes; i_node++)
@@ -534,7 +533,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             p_node->pAddDof(*it_dof);
         }
         
-//         if (ref != 0) color_nodes[ref].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
+        if (ref != 0) color_nodes[ref].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
     
     // Auxiliar values
@@ -665,7 +664,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             {      
                 ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
                 
-//                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
+                if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
                 if (color_cond_1.find(key) != color_cond_1.end()) r_sub_model_part.AddConditions(color_cond_1[key]);
                 if (color_elem_0.find(key) != color_elem_0.end()) r_sub_model_part.AddElements(color_elem_0[key]);
