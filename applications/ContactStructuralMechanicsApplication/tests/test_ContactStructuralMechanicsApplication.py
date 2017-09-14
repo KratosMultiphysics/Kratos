@@ -10,14 +10,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 # Exact integration tests
-from TestExactIntegration import TestLineExactIntegration1          as TTestLineExactIntegration1
-from TestExactIntegration import TestLineExactIntegration2          as TTestLineExactIntegration2
-from TestExactIntegration import TestLineExactIntegration3          as TTestLineExactIntegration3
-from TestExactIntegration import TestTriangleExactIntegration1      as TTestTriangleExactIntegration1
-from TestExactIntegration import TestTriangleExactIntegration2      as TTestTriangleExactIntegration2
-from TestExactIntegration import TestTriangleExactIntegration3      as TTestTriangleExactIntegration3
-from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
-from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 
 # Mesh tying tests
@@ -75,14 +67,6 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     # Exact integration tests
-    smallSuite.addTest(TTestLineExactIntegration1('test_execution'))
-    smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
-    smallSuite.addTest(TTestLineExactIntegration3('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration2('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
-    smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
-    smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
     smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration'))
     
     # Mesh tying tests 
@@ -130,14 +114,6 @@ def AssambleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             ## SMALL
-            TTestLineExactIntegration1,
-            TTestLineExactIntegration2,
-            TTestLineExactIntegration3,
-            TTestTriangleExactIntegration1,
-            TTestTriangleExactIntegration2,
-            TTestTriangleExactIntegration3,
-            TTestQuadrilateralExactIntegration1,
-            TTestQuadrilateralExactIntegration2,
             TTestDoubleCurvatureIntegration,
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
