@@ -49,6 +49,7 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/process_factory_utility.h" 
 
 namespace Kratos
 {
@@ -303,6 +304,20 @@ void AddUtilitiesToPython()
     .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
     ;
 
+    // Process Factory utility 
+    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>()) 
+    .def("AddProcess",&ProcessFactoryUtility::AddProcess) 
+    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses) 
+    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize) 
+    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop) 
+    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep) 
+    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep) 
+    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep) 
+    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep) 
+    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize) 
+    .def("Clear",&ProcessFactoryUtility::Clear) 
+    ; 
+    
     class_<CuttingUtility >("CuttingUtility", init< >())
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
