@@ -77,7 +77,7 @@ void  AddCustomProcessesToPython()
 
     //Temperature by device     
     class_< DamTemperaturebyDeviceProcess, bases< Process >, boost::noncopyable > ( "DamTemperaturebyDeviceProcess",
-        init < ModelPart&, Parameters>());
+        init < ModelPart&, Parameters&>());
 }
 
 }  // namespace Python.

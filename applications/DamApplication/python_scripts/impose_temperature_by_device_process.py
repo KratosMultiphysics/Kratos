@@ -18,12 +18,6 @@ class ImposeTemperaturebyDeviceProcess(Process):
         
         self.process = DamTemperaturebyDeviceProcess(model_part, settings) 
                  
-                 
     def ExecuteInitializeSolutionStep(self):
 
         self.process.ExecuteInitializeSolutionStep()
-
-    def ExecuteFinalizeSolutionStep(self):
-
-        self.process.ExecuteFinalizeSolutionStep()
-

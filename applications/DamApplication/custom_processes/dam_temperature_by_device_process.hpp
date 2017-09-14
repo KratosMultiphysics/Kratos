@@ -39,9 +39,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamTemperaturebyDeviceProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamTemperaturebyDeviceProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -66,21 +66,21 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mvalue = rParameters["value"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mIsFixed = rParameters["is_fixed"].GetBool();
+        mValue = rParameters["value"].GetDouble();
         // Getting the values of the device coordinates
-        mdevice_coordinates.resize(3,false);
-        mdevice_coordinates[0] = rParameters["position"][0].GetDouble();
-        mdevice_coordinates[1] = rParameters["position"][1].GetDouble();
-        mdevice_coordinates[2] = rParameters["position"][2].GetDouble();
+        mDeviceCoordinates.resize(3,false);
+        mDeviceCoordinates[0] = rParameters["position"][0].GetDouble();
+        mDeviceCoordinates[1] = rParameters["position"][1].GetDouble();
+        mDeviceCoordinates[2] = rParameters["position"][2].GetDouble();
         
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["table"].GetInt();
         
         if(mTableId != 0)
-            mpTable = model_part.pGetTable(mTableId);
+            mpTable = mrModelPart.pGetTable(mTableId);
 
         KRATOS_CATCH("");
     }
@@ -98,8 +98,8 @@ public:
         
         KRATOS_TRY;
 
-        const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        const int nelements = mrModelPart.GetMesh(mMeshId).Elements().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
         bool IsInside = false;
         array_1d<double,3> LocalCoordinates;       
         Element::Pointer pSelectedElement;
@@ -107,24 +107,22 @@ public:
         // Getting the values of table in case that it exist        
         if(mTableId != 0 )
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mvalue = mpTable->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mValue = mpTable->GetValue(time);
         }
-
-        KRATOS_WATCH(mvalue)
 
         if (nelements != 0)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
             int PointsNumber = 0;
 
             for(int k = 0; k<nelements; k++)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 pSelectedElement = (*(it.base()));
-                IsInside = pSelectedElement->GetGeometry().IsInside(mdevice_coordinates,LocalCoordinates);
-                if(IsInside) break;
+                IsInside = pSelectedElement->GetGeometry().IsInside(mDeviceCoordinates,LocalCoordinates);
+                if(IsInside) break; 
             }
             if(IsInside==false)
             {
@@ -132,7 +130,7 @@ public:
                 {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
                     pSelectedElement = (*(it.base()));
-                    IsInside = pSelectedElement->GetGeometry().IsInside(mdevice_coordinates,LocalCoordinates,1.0e-5);
+                    IsInside = pSelectedElement->GetGeometry().IsInside(mDeviceCoordinates,LocalCoordinates,1.0e-5);
                     if(IsInside) break;
                 }
             }
@@ -145,70 +143,15 @@ public:
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                if (pSelectedElement->GetGeometry().GetPoint(j).IsFixed(var)==false)
-                {
-                    pSelectedElement->GetGeometry().GetPoint(j).FastGetSolutionStepValue(var) = mvalue;
+                    pSelectedElement->GetGeometry().GetPoint(j).FastGetSolutionStepValue(var) = mValue;
                     pSelectedElement->GetGeometry().GetPoint(j).Fix(var);
-                    
-                }
-
             }    
         }
     
         KRATOS_CATCH("");
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void ExecuteFinalizeSolutionStep()
-    {
-    
-        KRATOS_TRY;
-
-        const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        bool IsInside = false;
-        array_1d<double,3> LocalCoordinates;       
-        Element::Pointer pSelectedElement;
-
-        if (nelements != 0)
-        {
-            ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-            int PointsNumber = 0;
-
-            for(int k = 0; k<nelements; k++)
-            {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                pSelectedElement = (*(it.base()));
-                IsInside = pSelectedElement->GetGeometry().IsInside(mdevice_coordinates,LocalCoordinates);
-                if(IsInside) break;
-            }
-            if(IsInside==false)
-            {
-                for(int k = 0; k<nelements; k++)
-                {
-                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                    pSelectedElement = (*(it.base()));
-                    IsInside = pSelectedElement->GetGeometry().IsInside(mdevice_coordinates,LocalCoordinates,1.0e-5);
-                    if(IsInside) break;
-                }
-            }
-            if(IsInside == false)
-            {
-                KRATOS_ERROR << "ERROR!!, PLEASE REPEAT THE SEARCH " << std::endl;
-            }
-
-            PointsNumber = pSelectedElement->GetGeometry().PointsNumber();
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                pSelectedElement->GetGeometry().GetPoint(j).Free(var);   
-            }    
-        }
-
-        KRATOS_CATCH("");
-    }
-
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
     std::string Info() const
@@ -233,13 +176,13 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    bool mis_fixed;
-    double mvalue;
-    array_1d<double,3> mdevice_coordinates;
-    double mtime_unit_converter;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    bool mIsFixed;
+    double mValue;
+    array_1d<double,3> mDeviceCoordinates;
+    double mTimeUnitConverter;
     TableType::Pointer mpTable;
     int mTableId; 
     
