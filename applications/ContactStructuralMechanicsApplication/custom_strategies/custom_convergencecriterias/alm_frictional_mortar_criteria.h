@@ -131,7 +131,7 @@ public:
         unsigned int is_converged_active = 0;
         unsigned int is_converged_slip = 0;
         
-//         const double& epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+//         const double& epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double& scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
         const double& tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
@@ -145,7 +145,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             
-            const double& epsilon = it_node->GetValue(PENALTY_PARAMETER); 
+            const double& epsilon = it_node->GetValue(INITIAL_PENALTY); 
             
             // Check if the node is slave
             bool node_is_slave = true;
