@@ -189,6 +189,7 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set( PLANE_STRESS_LAW );
     rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
+	rFeatures.mOptions.Set(STENBERG_STABILIZATION_SUITABLE);
 
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);

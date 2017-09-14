@@ -845,6 +845,26 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
     if(rValues.size() != size)
         rValues.resize(size);
 
+	// The membrane formulation needs to iterate to find the correct 
+	// mid-surface strain values.
+	//
+	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// for just the first element.
+
+	if (this->Id() == 1)
+	{
+		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+		{
+			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
+				<< "\nThe membrane formulation used in the specified shell element"
+				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
+				<< "recovered quantities (strain, stress, etc...).\n"
+				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
+				<< std::endl;
+		}
+	}
+
+
 	// TODO: TSAI_WU_RESERVE_FACTOR
 
 	if (rVariable == VON_MISES_STRESS ||
@@ -1193,6 +1213,26 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Matrix>& 
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
+	// The membrane formulation needs to iterate to find the correct 
+	// mid-surface strain values.
+	//
+	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// for just the first element.
+
+	if (this->Id() == 1)
+	{
+		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+		{
+			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis." 
+				<< "\nThe membrane formulation used in the specified shell element" 
+				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
+				<< "recovered quantities (strain, stress, etc...).\n" 
+				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities." 
+				<< std::endl;
+		}
+	}
+
+
     if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
@@ -1874,6 +1914,20 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     options.Set(ConstitutiveLaw::COMPUTE_STRESS, RHSrequired);
     options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, LHSrequired);
 
+	//Check constitutive law has been verified with Stenberg stabilization
+	if (this->Id() == 1)
+	{
+		ConstitutiveLaw::Pointer pcl = props.GetValue(CONSTITUTIVE_LAW);
+		ConstitutiveLaw::Features pclFeatures;
+		pcl->GetLawFeatures(pclFeatures);
+		if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
+		{
+			std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
+				<< "\nPlease check results carefully."
+				<< std::endl;
+		}
+	}
+
     // Gauss Loop.
     for(int i = 0; i < 4; i++)
     {
@@ -2194,7 +2248,8 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
         // Calculate the response of the Cross Section
         ShellCrossSection::Pointer & section = mSections[i];
-		//add in shear stabilization
+
+		//Add in shear stabilization
 		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
 		parameters.SetStenbergShearStabilization(shearStabilisation);
 

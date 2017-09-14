@@ -1822,7 +1822,7 @@ namespace Kratos
 		options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS);
 		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,
 			data.CalculateLHS);
-
+		
 		//--------------------------------------
 		// calculate the displacement vector
 		// in global and local coordinate systems
@@ -2332,7 +2332,24 @@ namespace Kratos
 		InitializeCalculationData(data);
 		CalculateSectionResponse(data);
 
-		// Calulate element stiffness
+		//Check constitutive law has been verified with Stenberg stabilization
+		// (already applied in 'InitializeCalculationData')
+		if (this->Id() == 1)
+		{
+			const Properties& props = GetProperties();
+			ConstitutiveLaw::Pointer pcl = props.GetValue(CONSTITUTIVE_LAW);
+			ConstitutiveLaw::Features pclFeatures;
+			pcl->GetLawFeatures(pclFeatures);
+			if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
+			{
+				std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
+					<< "\nPlease check results carefully."
+					<< std::endl;
+			}
+		}
+
+
+		// Calculate element stiffness
 		Matrix BTD = Matrix(18, 8, 0.0);
 		data.D *= data.TotalArea;
 		BTD = prod(trans(data.B), data.D);
