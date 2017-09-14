@@ -1307,7 +1307,7 @@ namespace Kratos
 			LeftHandSideMatrix = this->mLHS;
 
 			Vector NodalDeformation = ZeroVector(LocalSize);
-			this->GetValuesVector(NodalDeformation);
+			CrBeamElement3D2N::GetValuesVector(NodalDeformation);
 			Stress = ZeroVector(LocalSize);
 			Stress = prod(LeftHandSideMatrix, NodalDeformation);
 			Matrix TransformationMatrix = ZeroMatrix(LocalSize);

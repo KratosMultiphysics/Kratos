@@ -321,6 +321,136 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	void CrBeamAdjointElement3D2N::Calculate(const Variable<Vector >& rVariable,
+                           Vector& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+	{
+    	KRATOS_TRY;
+
+		const Variable<Vector> & rSTRESS_ON_GP =
+           	  KratosComponents<Variable<Vector> >::Get("STRESS_ON_GP");  
+		const Variable<Vector> & rSTRESS_ON_NODE =
+           	  KratosComponents<Variable<Vector> >::Get("STRESS_ON_NODE");  	
+		const Variable<std::string>& rTRACED_STRESS_TYPE =
+           	  KratosComponents<Variable<std::string>>::Get("TRACED_STRESS_TYPE");	 
+
+		if(rVariable == rSTRESS_ON_GP || rVariable == rSTRESS_ON_NODE)
+		{
+			std::string traced_stress_type = this->GetValue(rTRACED_STRESS_TYPE);
+
+    		const char item_1 = traced_stress_type.at(0);
+    		const char item_2 = traced_stress_type.at(1);
+
+    		int direction_1 = 0;
+    		std::vector< array_1d<double, 3 > > stress_vector;
+  
+    		if(item_1 == 'M') 
+        		CrBeamElement3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+    		else if(item_1 == 'F') 
+        		CrBeamElement3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+    		else 
+        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;  
+
+    		if(item_2 == 'X')  
+        		direction_1 = 0; 
+    		else if(item_2 == 'Y')  
+        		direction_1 = 1; 
+    		else if(item_2 == 'Z')  
+        		direction_1 = 2;   
+    		else 
+        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;              
+
+			if(rVariable == rSTRESS_ON_GP)
+			{
+				const unsigned int&  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);	
+
+    			Output.resize(GP_num);   
+    			for(unsigned int i = 0; i < GP_num ; i++)
+    			{
+        			Output(i) = stress_vector[i][direction_1];
+    			}
+			}
+			else if(rVariable == rSTRESS_ON_NODE)
+			{
+				Output.resize(2);   
+        		Output(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
+				Output(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
+			}
+		}
+		else
+		{	
+			Output.resize(3);
+			Output.clear();
+		}
+			
+
+    	KRATOS_CATCH("")
+	}
+
+	void CrBeamAdjointElement3D2N::Calculate(const Variable<Matrix >& rVariable,
+                           Matrix& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+	{
+   		KRATOS_TRY;
+
+		const Variable<Matrix> & rSTRESS_DISP_DERIV_ON_GP =
+           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DISP_DERIV_ON_GP");  
+		const Variable<Matrix> & rSTRESS_DISP_DERIV_ON_NODE =
+           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DISP_DERIV_ON_NODE");  
+		const Variable<Vector>& rSTRESS_ON_GP =
+        	  KratosComponents<Variable<Vector>>::Get("STRESS_ON_GP");
+		const Variable<Vector>& rSTRESS_ON_NODE =
+        	  KratosComponents<Variable<Vector>>::Get("STRESS_ON_NODE");
+
+		if(rVariable == rSTRESS_DISP_DERIV_ON_GP || rVariable == rSTRESS_DISP_DERIV_ON_NODE)   
+		{
+			const int num_nodes = this->GetGeometry().PointsNumber();
+			const int dimension = this->GetGeometry().WorkingSpaceDimension();
+			const int num_dofs = num_nodes * dimension * 2;   
+    		Vector stress_vector_undist;
+    		Vector stress_vector_dist;
+    		double dist_measure = 1e-6; //------------------>TODO: get this from outside
+    		ProcessInfo copy_process_info = rCurrentProcessInfo;		
+
+			if(rVariable == rSTRESS_DISP_DERIV_ON_GP)
+    			this->Calculate(rSTRESS_ON_GP, stress_vector_undist, rCurrentProcessInfo);
+			else
+				this->Calculate(rSTRESS_ON_NODE, stress_vector_undist, rCurrentProcessInfo);
+
+			DofsVectorType element_dof_list;
+    		CrBeamElement3D2N::GetDofList(element_dof_list, copy_process_info);
+			
+			unsigned int size_stress_vec = stress_vector_undist.size();
+    		Output.resize(num_dofs, size_stress_vec);
+    		for(int i = 0; i < num_dofs; i++)
+    		{
+        		element_dof_list[i]->GetSolutionStepValue() += dist_measure;
+
+        		if(rVariable == rSTRESS_DISP_DERIV_ON_GP)
+    				this->Calculate(rSTRESS_ON_GP, stress_vector_dist, rCurrentProcessInfo);
+				else
+					this->Calculate(rSTRESS_ON_NODE, stress_vector_dist, rCurrentProcessInfo);
+
+        		for(unsigned int j = 0; j < size_stress_vec; j++)
+        		{
+            		stress_vector_dist[j] -= stress_vector_undist[j];
+            		stress_vector_dist[j] /= dist_measure;
+            		Output(i,j) = stress_vector_dist[j];
+        		}   
+
+        		element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
+        		stress_vector_dist.clear();
+    		}
+		}
+		else
+		{
+			Output.resize(12,3);
+			Output.clear();
+		}
+			
+    	KRATOS_CATCH("")
+	}
+
 	void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)

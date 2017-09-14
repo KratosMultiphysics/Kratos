@@ -115,17 +115,19 @@ public:
 		m_id_of_traced_element = rParameters["traced_element"].GetInt();
 		m_traced_pElement = r_model_part.pGetElement(m_id_of_traced_element);
 
-		//give stress location to traced element
-		m_id_of_location = rParameters["stress_location"].GetInt();
-		m_traced_pElement->SetValue(LOCATION_OF_TRACED_STRESS, m_id_of_location);
-
 		//tell traced element the stress type 
 		m_traced_stress_type = rParameters["stress_type"].GetString();
 		m_traced_pElement->SetValue(TRACED_STRESS_TYPE, m_traced_stress_type);
 
+		// get info how and where to treat the stress
 		m_stress_treatment = rParameters["stress_treatment"].GetString();
-		m_traced_pElement->SetValue(STRESS_TREATMENT, m_stress_treatment);
-
+		if(m_stress_treatment != "mean" && m_stress_treatment != "GP" && m_stress_treatment != "node")
+			KRATOS_ERROR << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl; 
+		if(m_stress_treatment == "GP" || m_stress_treatment == "node")
+			m_id_of_location = rParameters["stress_location"].GetInt();
+		if(m_id_of_location < 1)
+			KRATOS_THROW_ERROR(std::invalid_argument, "Chose a 'stress_location' > 0. Specified 'stress_location': ", m_id_of_location);
+			
 		// Initialize member variables to NULL
 		//m_initial_value = 0.0;
 		//m_initial_value_defined = false;
@@ -163,7 +165,39 @@ public:
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-		m_traced_pElement->Calculate(STRESS_VALUE, m_stress_value, CurrentProcessInfo);
+		Vector element_stress;
+		if(m_stress_treatment == "mean" || m_stress_treatment == "GP")
+			m_traced_pElement->Calculate(STRESS_ON_GP, element_stress, CurrentProcessInfo);
+		else 
+			m_traced_pElement->Calculate(STRESS_ON_NODE, element_stress, CurrentProcessInfo);
+
+		int stress_vec_size = element_stress.size();
+
+		if(m_stress_treatment == "mean")
+		{
+			for(int i = 0; i < stress_vec_size; i++)
+				m_stress_value += element_stress[i];
+
+			m_stress_value /= stress_vec_size;	
+		}
+		else if(m_stress_treatment == "GP")
+		{
+			if(stress_vec_size >= m_id_of_location)
+				m_stress_value = element_stress[m_id_of_location - 1];
+			else
+				KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " << 
+								stress_vec_size  << "!"<< std::endl; 
+		}
+		else if(m_stress_treatment == "node")
+		{
+			const int num_ele_nodes = m_traced_pElement->GetGeometry().PointsNumber();
+			if(num_ele_nodes >= m_id_of_location)
+				m_stress_value = element_stress[m_id_of_location - 1];
+			else
+				KRATOS_ERROR << "Chosen Node is not availible. The element has only " << 
+								num_ele_nodes  << " nodes."<< std::endl; 
+
+		}
 
 		// Set initial value if not done yet
 		/*if(!m_initial_value_defined)
@@ -247,19 +281,54 @@ public:
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
 	{
+		rResponseGradient.resize(rAdjointMatrix.size1());
+		rResponseGradient.clear();
+		
 		if(rAdjointElem.Id() == m_id_of_traced_element)
 		{
-			//computes adjoint load in global direction. Or is it in local direction required???????????????
-			m_traced_pElement->Calculate(ADJOINT_LOAD, rResponseGradient, rProcessInfo);
-		}
-		else
-		{
-			// There is only a contribution of the traced element to the adjoint load case
-			int num_DOFs_element = rAdjointMatrix.size1();
-			rResponseGradient.resize(num_DOFs_element);
-			for(int i = 0; i < num_DOFs_element; i++){ rResponseGradient[i] = 0.0; }
-		}
+			Matrix stress_displ_deriv;
+			if(m_stress_treatment == "mean" || m_stress_treatment == "GP")
+				m_traced_pElement->Calculate(STRESS_DISP_DERIV_ON_GP, stress_displ_deriv, rProcessInfo);
+			else
+				m_traced_pElement->Calculate(STRESS_DISP_DERIV_ON_NODE, stress_displ_deriv, rProcessInfo);	
 
+			int num_of_dofs = stress_displ_deriv.size1();
+			int num_of_deriv = stress_displ_deriv.size2();
+			double stress_displ_deriv_value = 0.0;
+
+			if(rResponseGradient.size() != stress_displ_deriv.size1())
+				KRATOS_ERROR << "Size of stress displacement derivative does not fit!" << std::endl; 
+
+			for (int dof_it = 0 ; dof_it < num_of_dofs; dof_it++)
+			{
+				if(m_stress_treatment == "mean")
+				{
+					for(int GP_it = 0; GP_it < num_of_deriv; GP_it++)
+						stress_displ_deriv_value += stress_displ_deriv(dof_it, GP_it);
+
+					stress_displ_deriv_value /= num_of_deriv;	
+				}
+				else if(m_stress_treatment == "GP")
+				{
+					if(num_of_deriv >= m_id_of_location)
+						stress_displ_deriv_value = stress_displ_deriv(dof_it, (m_id_of_location-1));
+					else
+						KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " << 
+									num_of_deriv  << "!"<< std::endl; 
+				}
+				else if(m_stress_treatment == "node")
+				{
+					if(num_of_deriv >= m_id_of_location)
+						stress_displ_deriv_value = stress_displ_deriv(dof_it, (m_id_of_location-1));
+					else
+						KRATOS_ERROR << "Chosen node is not availible. The element has only " << 
+									num_of_deriv  << " nodes."<< std::endl; 
+
+				}
+				rResponseGradient[dof_it] = (-1) * stress_displ_deriv_value;
+				stress_displ_deriv_value = 0.0;	
+			}
+		}
 	}
 
 

@@ -76,6 +76,14 @@ namespace Kratos
     	void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo) override;
 
+		void Calculate(const Variable<Vector >& rVariable,
+                           Vector& Output,
+                           const ProcessInfo& rCurrentProcessInfo) override;
+
+		void Calculate(const Variable<Matrix >& rVariable,
+                           Matrix& Output,
+                           const ProcessInfo& rCurrentProcessInfo) override;				   
+						   
 		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override;

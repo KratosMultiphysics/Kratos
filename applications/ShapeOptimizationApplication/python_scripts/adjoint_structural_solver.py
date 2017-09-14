@@ -141,10 +141,16 @@ class AdjointStructuralSolver:
             node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_X)
             node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_Y)
             node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_Z)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
             if self.settings["rotation_dofs"].GetBool():
                 node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_X)
                 node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Y)
-                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)     
+                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)  
+                node.AddDof(KratosMultiphysics.ROTATION_X)
+                node.AddDof(KratosMultiphysics.ROTATION_Y)
+                node.AddDof(KratosMultiphysics.ROTATION_Z)    
 
         print("DOFs for the structural adjoint solver added correctly.")
 

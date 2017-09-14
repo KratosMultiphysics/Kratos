@@ -65,6 +65,8 @@ public:
 
      typedef Element::PropertiesType PropertiesType;
 
+     typedef Element::DofsArrayType DofsArrayType;
+
    // typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
    // typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
@@ -130,13 +132,17 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) override;
 
-    void GetPrimalValuesVector(Vector& values, int Step = 0); // currently not used. TODO: Is it necessary?	
-
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo) override;
 	
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo) override;
+
+	void Calculate(const Variable<Matrix >& rVariable, Matrix& Output,
+                           const ProcessInfo& rCurrentProcessInfo) override;    
+
+    void Calculate(const Variable<Vector >& rVariable, Vector& Output,
+                           const ProcessInfo& rCurrentProcessInfo) override;                                                                
 
     //void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 

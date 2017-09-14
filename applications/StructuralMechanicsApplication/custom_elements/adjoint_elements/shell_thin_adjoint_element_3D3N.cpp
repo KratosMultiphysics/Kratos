@@ -396,31 +396,6 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
     }
 }
 
-void ShellThinAdjointElement3D3N::GetPrimalValuesVector(Vector& values, int Step) // TODO: Check if this function is really needed
-{
-    if(values.size() != OPT_NUM_DOFS)
-        values.resize(OPT_NUM_DOFS, false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (SizeType i = 0; i < geom.size(); i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ROTATION, Step);
-
-        int index = i*6;
-        values[index]     = disp[0];
-        values[index + 1] = disp[1];
-        values[index + 2] = disp[2];
- 
-        values[index + 3] = rot[0];
-        values[index + 4] = rot[1];
-        values[index + 5] = rot[2];
-    }
-
-}
-
 void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo)
 {
@@ -585,6 +560,123 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 
 		KRATOS_CATCH("")
 
+}
+
+void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable,
+                           Matrix& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+{
+    // Used to compute the stress displacement derivative
+
+    KRATOS_TRY;
+
+    const Variable<Matrix> & rSTRESS_DISP_DERIV_ON_GP =
+           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DISP_DERIV_ON_GP");  
+
+	if(rVariable == rSTRESS_DISP_DERIV_ON_GP)   
+	{
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
+        double dist_measure = 1e-6; //------------------>TODO: get this from outside
+        ProcessInfo copy_process_info = rCurrentProcessInfo;
+        const Variable<Vector>& rSTRESS_ON_GP =
+           	    KratosComponents<Variable<Vector>>::Get("STRESS_ON_GP");
+        DofsVectorType element_dof_list;
+
+        ShellThinElement3D3N::GetDofList(element_dof_list, copy_process_info);
+
+        this->Calculate(rSTRESS_ON_GP, stress_vector_undist, rCurrentProcessInfo);
+
+        Output.resize(OPT_NUM_DOFS, OPT_NUM_GP);
+        for(size_t i = 0; i < OPT_NUM_DOFS; i++)
+        {
+            element_dof_list[i]->GetSolutionStepValue() += dist_measure;
+
+            this->Calculate(rSTRESS_ON_GP, stress_vector_dist, rCurrentProcessInfo);
+
+            for(size_t j = 0; j < OPT_NUM_GP; j++)
+            {
+                stress_vector_dist[j] -= stress_vector_undist[j];
+                stress_vector_dist[j] /= dist_measure;
+                Output(i,j) = stress_vector_dist[j];
+            }   
+
+            element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
+
+            stress_vector_dist.clear();
+        }
+    }
+    else
+	{
+		Output.resize(OPT_NUM_DOFS, OPT_NUM_GP);
+		Output.clear();
+	}
+      
+    KRATOS_CATCH("")
+}
+
+void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
+                           Vector& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const Variable<Vector> & rSTRESS_ON_GP =
+            KratosComponents<Variable<Vector> >::Get("STRESS_ON_GP");  
+
+	if(rVariable == rSTRESS_ON_GP)
+	{
+
+	    const Variable<std::string> & rTRACED_STRESS_TYPE =
+           	KratosComponents<Variable<std::string> >::Get("TRACED_STRESS_TYPE");
+	    std::string traced_stress_type = this->GetValue(rTRACED_STRESS_TYPE);
+
+        const char item_1 = traced_stress_type.at(0);
+        const char item_2 = traced_stress_type.at(1);
+        const char item_3 = traced_stress_type.at(2);
+        int direction_1 = 0;
+        int direction_2 = 0;   
+        std::vector<Matrix> stress_vector;
+  
+        if(item_1 == 'M') 
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT, stress_vector, rCurrentProcessInfo);
+        else if(item_1 == 'F') 
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE, stress_vector, rCurrentProcessInfo);
+        else 
+            KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;  
+
+        if(item_2 == 'X')  
+            direction_1 = 0; 
+        else if(item_2 == 'Y')  
+            direction_1 = 1; 
+        else if(item_2 == 'Z')  
+            direction_1 = 2;   
+        else 
+            KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;       
+
+        if(item_3 == 'X')  
+            direction_2 = 0; 
+        else if(item_3 == 'Y')  
+            direction_2 = 1; 
+        else if(item_3 == 'Z')  
+            direction_2 = 2;   
+        else 
+            KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;        
+
+        Output.resize(OPT_NUM_GP);   
+        for(size_t i = 0; i < OPT_NUM_GP; i++)
+        {
+            Output(i) = stress_vector[i](direction_1, direction_2);
+        }
+
+    }
+    else
+    {
+        Output.resize(OPT_NUM_GP);  
+        Output.clear(); 
+    }
+
+    KRATOS_CATCH("")
 }
 
 /*void ShellThinAdjointElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)

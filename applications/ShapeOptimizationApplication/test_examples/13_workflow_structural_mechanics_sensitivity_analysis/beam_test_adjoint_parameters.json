@@ -18,13 +18,13 @@
             "scheme_type"              : "structural"
             },
         "response_function_settings" : {
-                "response_type"     : "nodal_displacement",
+                "response_type"     : "local_stress",
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic", 
                 "sensitivity_model_part_name" : "sensitivity_model_part",
                 "nodal_sensitivity_variables"  : [],
-                "element_sensitivity_variables"  : ["IY","THICKNESS"],
-                "condition_sensitivity_variables"  : [],
+                "element_sensitivity_variables"  : [],
+                "condition_sensitivity_variables"  : ["POINT_LOAD"],
                 "step_size"         : 1e-6,
                 "traced_element"    : 13,
                 "stress_type"       : "MY",
@@ -110,8 +110,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["ADJOINT_DISPLACEMENT","DISPLACEMENT"],
-            "gauss_point_results" : ["IY_SENSITIVITY","THICKNESS_SENSITIVITY"]
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT","DISPLACEMENT","POINT_LOAD_SENSITIVITY"],
+            "gauss_point_results" : []
         },
         "point_data_configuration"  : []
     },
