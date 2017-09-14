@@ -149,6 +149,8 @@ namespace Kratos
 
             break;
 
+            for ( unsigned int i = 0; i < 13; i++ )
+               STATEV[i] = 0.0;
 
          case 1:
             //mises material, mises umat,>=4 matprops
@@ -174,6 +176,11 @@ namespace Kratos
 
             break;
 
+         case 2:
+            //hypoplastic material with small-strain stiffness
+            STATEV = new double[14];
+            for ( unsigned int i = 0; i < 14; i++ )
+               STATEV[i] = 0.0;
 
          default:
             std::cout << "No umat material with id: " << MaterialNumber[0] << " defined" << std::endl;
