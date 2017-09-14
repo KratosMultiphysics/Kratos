@@ -178,7 +178,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Paramet
     Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
     const double& determinant_f = rValues.GetDeterminantF();
     
-    // Set to cauchy Stress:
+    // Set to Cauchy Stress:
     stress_vector       /= determinant_f;
     constitutive_matrix /= determinant_f;
 }
@@ -354,7 +354,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrix(
 //************************************************************************************
 
 void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
-    const Matrix& CTensor,
+    const Matrix& InvCTensor,
     Vector& rStressVector,
     const double& DeterminantF,
     const double& LameLambda,
@@ -363,7 +363,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 {
     Matrix stress_matrix;
     
-    stress_matrix = LameLambda * std::log(DeterminantF) * CTensor + LameMu * ( IdentityMatrix(3, 3) - CTensor );
+    stress_matrix = LameLambda * std::log(DeterminantF) * InvCTensor + LameMu * ( IdentityMatrix(3, 3) - InvCTensor );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
@@ -372,7 +372,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 //************************************************************************************
 
 void HyperElasticIsotropicNeoHookean3D::CalculateKirchoffStress(
-    const Matrix& CTensor,
+    const Matrix& BTensor,
     Vector& rStressVector,
     const double& DeterminantF,
     const double& LameLambda,
@@ -381,7 +381,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchoffStress(
 {
     Matrix stress_matrix;
     
-    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(3, 3) + LameMu * ( CTensor - IdentityMatrix(3, 3) );
+    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(3, 3) + LameMu * ( BTensor - IdentityMatrix(3, 3) );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
