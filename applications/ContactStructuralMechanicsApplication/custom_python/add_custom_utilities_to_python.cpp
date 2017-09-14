@@ -24,7 +24,6 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
-#include "custom_utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/process_factory_utility.h"
 
 namespace Kratos
@@ -50,26 +49,6 @@ void  AddCustomUtilitiesToPython()
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
     .def("CleanMortarConditions",&TreeContactSearch::CleanMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
-    ;
-    
-    // Exact integration (for testing)
-    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
-    .def(init<const unsigned int>())
-    .def(init<const unsigned int, const bool>())
-    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
-    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
-    ;
-    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
-    .def(init<const unsigned int>())
-    .def(init<const unsigned int, const bool>())
-    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
-    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
-    ;
-    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
-    .def(init<const unsigned int>())
-    .def(init<const unsigned int, const bool>())
-    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
-    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
   
     // Process Factory utility
