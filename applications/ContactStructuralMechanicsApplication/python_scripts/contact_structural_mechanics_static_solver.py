@@ -41,7 +41,11 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 "ensure_contact": false,
                 "adaptative_strategy": false,
                 "split_factor": 10.0,
-                "max_number_splits": 3
+                "max_number_splits": 3,
+                "contact_displacement_relative_tolerance": 1.0e-4,
+                "contact_displacement_absolute_tolerance": 1.0e-9,
+                "contact_residual_relative_tolerance": 1.0e-4,
+                "contact_residual_absolute_tolerance": 1.0e-9
             }
         }
         """)
@@ -115,6 +119,10 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        conv_params.AddValue("contact_displacement_relative_tolerance",self.contact_settings["contact_displacement_relative_tolerance"])
+        conv_params.AddValue("contact_displacement_absolute_tolerance",self.contact_settings["contact_displacement_absolute_tolerance"])
+        conv_params.AddValue("contact_residual_relative_tolerance",self.contact_settings["contact_residual_relative_tolerance"])
+        conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
         conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
