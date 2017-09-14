@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -23,7 +23,9 @@
 #include "linear_solvers/linear_solver.h"
 
 //Utilities
+#include "custom_utilities/bprinter_utility.h"
 #include "custom_utilities/tree_contact_search.h"
+#include "custom_utilities/process_factory_utility.h"
 
 namespace Kratos
 {
@@ -32,36 +34,41 @@ namespace Python
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
-
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     
-    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
-    .def("ModelPartSetter",&TreeContactSearch::ModelPartSetter)
-    .def("InitializeNTNConditions",&TreeContactSearch::InitializeNTNConditions)
-    .def("InitializeNTSConditions",&TreeContactSearch::InitializeNTSConditions)
+    // Adding table from bprinter to python
+    class_<BprinterUtility>("BprinterUtility", init<>());
+    
+    // Tree contact search
+    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
-    .def("InitializeMortarConditionsDLM",&TreeContactSearch::InitializeMortarConditionsDLM)
-    .def("TotalClearNTNConditions",&TreeContactSearch::TotalClearNTNConditions)
-    .def("TotalClearNTSConditions",&TreeContactSearch::TotalClearNTSConditions)
-    .def("TotalClearMortarConditions",&TreeContactSearch::TotalClearMortarConditions)
-    .def("PartialClearNTNConditions",&TreeContactSearch::PartialClearNTNConditions)
-    .def("PartialClearNTSConditions",&TreeContactSearch::PartialClearNTSConditions)
-    .def("PartialClearMortarConditions",&TreeContactSearch::PartialClearMortarConditions)
-    .def("CreatePointListNTN",&TreeContactSearch::CreatePointListNTN)
-    .def("CreatePointListNTS",&TreeContactSearch::CreatePointListNTS)
+    .def("TotalClearScalarMortarConditions",&TreeContactSearch::TotalClearScalarMortarConditions)
+    .def("TotalClearComponentsMortarConditions",&TreeContactSearch::TotalClearComponentsMortarConditions)
+    .def("TotalClearALMFrictionlessMortarConditions",&TreeContactSearch::TotalClearALMFrictionlessMortarConditions)
+    .def("PartialClearScalarMortarConditions",&TreeContactSearch::PartialClearScalarMortarConditions)
+    .def("PartialClearComponentsMortarConditions",&TreeContactSearch::PartialClearComponentsMortarConditions)
+    .def("PartialClearALMFrictionlessMortarConditions",&TreeContactSearch::PartialClearALMFrictionlessMortarConditions)
     .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch::UpdatePointListMortar)
-    .def("CreateNTNConditions",&TreeContactSearch::CreateNTNConditions)
-    .def("CreateNTSConditions",&TreeContactSearch::CreateNTSConditions)
-    .def("CreateMortarConditions",&TreeContactSearch::CreateMortarConditions)
-    .def("UpdateNTNConditions",&TreeContactSearch::UpdateNTNConditions)
-    .def("UpdateNTSConditions",&TreeContactSearch::UpdateNTSConditions)
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
+    .def("CleanMortarConditions",&TreeContactSearch::CleanMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
     ;
   
+    // Process Factory utility
+    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
+    .def(init< >())
+    .def("AddProcess",&ProcessFactoryUtility::AddProcess)
+    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
+    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
+    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
+    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)
+    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep)
+    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep)
+    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
+    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
+    .def("Clear",&ProcessFactoryUtility::Clear)
+    ;
 }
 
 }  // namespace Python.
