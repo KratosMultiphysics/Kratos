@@ -23,22 +23,17 @@ listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
 
 
-
 class Solution(main_script.Solution):
 
-    def LoadJsonFile(self):
-        print("_______LoadJsonFile main script")
-
+    def LoadParametersFile(self):
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
-            print("_______access listDISCONT benchmarks.py")
             parameters_file = open("ProjectParametersDISCONT.json",'r')
         elif benchmark_number in listROLLFR:
             parameters_file = open("ProjectParametersROLLFR.json",'r')
         elif benchmark_number in listDEMFEM:
             parameters_file = open("ProjectParametersDEMFEM.json",'r')
         elif benchmark_number in listCONT:           
-            print("_______access listCONT benchmarks.py")
             parameters_file = open("ProjectParametersDEMCONT.json",'r')
         elif benchmark_number == 27:
             parameters_file = open("ProjectParametersUCS.json",'r')
@@ -52,7 +47,6 @@ class Solution(main_script.Solution):
         else:
             print('Benchmark number does not exist')
             sys.exit()
-
         self.DEM_parameters = Parameters(parameters_file.read())
 
 
@@ -60,36 +54,7 @@ class Solution(main_script.Solution):
         super(Solution, self).__init__()
         os.chdir('..')            
         self.nodeplotter = False
-        print("_______access derivated __init__")
-        self.LoadJsonFile()
-        '''
-        if benchmark_number in listDISCONT:
-            self.nodeplotter = True
-            print("access listDISCONT benchmarks.py")
-            parameters_file = open("ProjectParametersDISCONT.json",'r')
-        elif benchmark_number in listROLLFR:
-            parameters_file = open("ProjectParametersROLLFR.json",'r')
-        elif benchmark_number in listDEMFEM:
-            parameters_file = open("ProjectParametersDEMFEM.json",'r')
-        elif benchmark_number in listCONT:
-            print("access derivated __init__")
-            print("access listCONT benchmarks.py")
-            parameters_file = open("ProjectParametersDEMCONT.json",'r')
-        elif benchmark_number == 27:
-            parameters_file = open("ProjectParametersUCS.json",'r')
-        #elif benchmark_number == 28:
-        #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
-        #    parameters_file = open("ProjectParametersDEM.json",'r')
-        elif benchmark_number in listDISclZHAO:
-            parameters_file = open("ProjectParametersDISclZHAO.json",'r')
-        elif benchmark_number in listDISclRK:
-            parameters_file = open("ProjectParametersDISclRK.json",'r')
-        else:
-            print('Benchmark number does not exist')
-            sys.exit()
-
-        self.DEM_parameters = Parameters(parameters_file.read())
-        '''
+        self.LoadParametersFile()
         self.main_path = os.getcwd()
 
     def GetProblemTypeFilename(self):
@@ -100,7 +65,6 @@ class Solution(main_script.Solution):
 
     def SetSolverStrategy(self):
         # Strategy object
-        print("_______SetSolverStrategy benchmarks.py")
         element_type = self.DEM_parameters["ElementType"].GetString()
         if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
             import sphere_strategy as SolverStrategy
@@ -120,17 +84,13 @@ class Solution(main_script.Solution):
         return SolverStrategy    
          
     def SetSolver(self):
-        print("_______SetSolver benchmarks.py")
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
 
     def SetFinalTime(self):        
         self.final_time = final_time  
-        #return self.final_time
 
     def Setdt(self):       
         self.dt = dt
-        #print("setdt", self.dt )
-        #return self.dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))

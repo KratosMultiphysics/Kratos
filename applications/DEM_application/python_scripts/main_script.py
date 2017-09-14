@@ -22,35 +22,22 @@ else:
 
 class Solution(object):
 
-    def LoadJsonFile(self):
-        print("_______LoadJsonFile main script")
+    def LoadParametersFile(self):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
 
     def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-        print("1.- Checking model_part_reader entry")
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
 
     def __init__(self):
-        print("_______access main __init__")
-        self.LoadJsonFile()
 
-        '''
-        if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
-            def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-        else:
-            def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-                print("1.- Checking model_part_reader entry")
-                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)       
-        self.model_part_reader = model_part_reader  # this is not needed and causes problems with derivated def model_part_reader
-        '''
-        
+        self.LoadParametersFile()
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()       
         #self.SetAnalyticParticleWatcher()
+
         # Creating necessary directories:
         self.main_path = os.getcwd()
         problem_name = self.GetProblemTypeFilename()
@@ -83,7 +70,6 @@ class Solution(object):
 
         self.all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
         self.solver = self.SetSolver()
-        print("_______main script init self.solver")
         #self.final_time = DEM_parameters.FinalTime
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
@@ -97,11 +83,9 @@ class Solution(object):
 
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
-        #return final_time
 
     def Setdt(self):
         self.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
-        #return dt
 
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
@@ -135,14 +119,12 @@ class Solution(object):
         return scheme
 
     def SetSolverStrategy(self):
+
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
-        print("_______SetSolverStrategy main")
-        if (self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):
-            
+        if (self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):            
             import sphere_strategy as SolverStrategy
-        elif (self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
-            
+        elif (self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):            
             import continuum_sphere_strategy as SolverStrategy
         elif (self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D"):
             import thermal_continuum_sphere_strategy as SolverStrategy
@@ -159,9 +141,7 @@ class Solution(object):
 
 
     def SetSolver(self):
-        print("_______SetSolver main")
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
-
 
     def Run(self):
         self.Initialize()
@@ -191,13 +171,13 @@ class Solution(object):
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
+        
         # Adding dofs
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
         self.solver.AddDofs(self.DEM_inlet_model_part)
 
         os.chdir(self.main_path)
-
         self.KRATOSprint("\nInitializing Problem...")
         
         self.GraphicalOutputInitialize()
