@@ -4,6 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import math
+
 class TestConstitutiveLaw(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -15,10 +17,10 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
         # Define a model part and create new nodes
         model_part = KratosMultiphysics.ModelPart("test")
-        node1 = model_part.CreateNewNode(1,0.0,0.0,0.0)
-        node2 = model_part.CreateNewNode(2,1.0,0.0,0.0)
-        node3 = model_part.CreateNewNode(3,0.0,1.0,0.0)
-        node4 = model_part.CreateNewNode(4,0.0,0.0,1.0)
+        node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+        node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
 
         # Material properties
         prop_id = 0
@@ -36,10 +38,10 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
         # Construct a constitutive law 
         cl = StructuralMechanicsApplication.HyperElastic3DLaw()
-        cl.Check( properties, geom, model_part.ProcessInfo )
+        cl.Check(properties, geom, model_part.ProcessInfo)
 
         if(cl.WorkingSpaceDimension() != dim):
-            raise Exception( "mismatch between the WorkingSpaceDimension of the Constitutive Law and the dimension of the space in which the test is performed")
+            raise Exception("Mismatch between the WorkingSpaceDimension of the Constitutive Law and the dimension of the space in which the test is performed")
 
         ## Set the parameters to be employed
         #note that here i am adding them all to check that this does not fail
@@ -53,16 +55,14 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
         # From here below it should be an otput not an input
-        #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, False) 
+        cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, True) 
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.INFINITESIMAL_STRAINS, False)
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRAIN_LAW, False)
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW, False)
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.AXISYMMETRIC_LAW, False)
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.U_P_LAW, False)
-        #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ISOTROPIC, False)
+        cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ISOTROPIC, True)
         #cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ANISOTROPIC, False)
-
-        from math import sqrt
 
         F = KratosMultiphysics.Matrix(3,3)
         F[0,0] = 1.0; F[0,1] = 0.0; F[0,2] = 0.0;
@@ -77,16 +77,16 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
         # Setting the parameters - note that a constitutive law may not need them all!
         cl_params = KratosMultiphysics.ConstitutiveLawParameters()
-        cl_params.SetOptions( cl_options )
-        cl_params.SetDeformationGradientF( F )
-        cl_params.SetDeterminantF( detF )
-        cl_params.SetStrainVector( strain_vector )
-        cl_params.SetStressVector( stress_vector )
-        cl_params.SetConstitutiveMatrix( constitutive_matrix )
-        cl_params.SetShapeFunctionsValues( N )
-        cl_params.SetShapeFunctionsDerivatives( DN_DX )
-        cl_params.SetProcessInfo( model_part.ProcessInfo )
-        cl_params.SetMaterialProperties( properties )
+        cl_params.SetOptions(cl_options)
+        cl_params.SetDeformationGradientF(F)
+        cl_params.SetDeterminantF(detF)
+        cl_params.SetStrainVector(strain_vector)
+        cl_params.SetStressVector(stress_vector)
+        cl_params.SetConstitutiveMatrix(constitutive_matrix)
+        cl_params.SetShapeFunctionsValues(N)
+        cl_params.SetShapeFunctionsDerivatives(DN_DX)
+        cl_params.SetProcessInfo(model_part.ProcessInfo)
+        cl_params.SetMaterialProperties(properties)
         cl_params.SetElementGeometry(geom)
 
         ## Do all sort of checks
@@ -95,61 +95,58 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         cl_params.CheckShapeFunctions()
 
         #print("The Material Response PK2")
-        #cl.CalculateMaterialResponsePK2( cl_params )
-        #print( "Stress = ", cl_params.GetStressVector() )
-        #print( "Strain = ", cl_params.GetStrainVector() )
-        #print( "C      = ", cl_params.GetConstitutiveMatrix() )
+        #cl.CalculateMaterialResponsePK2(cl_params)
+        #print("Stress = ", cl_params.GetStressVector())
+        #print("Strain = ", cl_params.GetStrainVector())
+        #print("C      = ", cl_params.GetConstitutiveMatrix())
 
-        #cl.FinalizeMaterialResponsePK2( cl_params )
-        #cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+        #cl.FinalizeMaterialResponsePK2(cl_params)
+        #cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
         #print("\n The Material Response Kirchhoff")
-        #cl.CalculateMaterialResponseKirchhoff( cl_params )
-        #print( "Stress = ", cl_params.GetStressVector() )
-        #print( "Strain = ", cl_params.GetStrainVector() )
-        #print( "C      = ", cl_params.GetConstitutiveMatrix() )
+        #cl.CalculateMaterialResponseKirchhoff(cl_params)
+        #print("Stress = ", cl_params.GetStressVector())
+        #print("Strain = ", cl_params.GetStrainVector())
+        #print("C      = ", cl_params.GetConstitutiveMatrix())
 
-        #cl.FinalizeMaterialResponseKirchhoff( cl_params )
-        #cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+        #cl.FinalizeMaterialResponseKirchhoff(cl_params)
+        #cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
         #print("\n The Material Response Cauchy")
-        #cl.CalculateMaterialResponseCauchy( cl_params )
-        #print( "Stress = ", cl_params.GetStressVector() )
-        #print( "Strain = ", cl_params.GetStrainVector() )
-        #print( "C      = ", cl_params.GetConstitutiveMatrix() )
+        #cl.CalculateMaterialResponseCauchy(cl_params)
+        #print("Stress = ", cl_params.GetStressVector())
+        #print("Strain = ", cl_params.GetStrainVector())
+        #print("C      = ", cl_params.GetConstitutiveMatrix())
         
-        #cl.FinalizeMaterialResponseCauchy( cl_params )
-        #cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+        #cl.FinalizeMaterialResponseCauchy(cl_params)
+        #cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
         
         # Check the results
-        lame_lambda = (young_modulus * poisson_ratio)/((1.0 + poisson_ratio)*(1.0 - 2.0 * poisson_ratio))
-        lame_mu = young_modulus/(2.0 * (1.0 + poisson_ratio))
-        
-        C1 = lame_mu/2.0
-        D1 = lame_lambda/2.0
+        lame_lambda = (young_modulus * poisson_ratio) / ((1.0 + poisson_ratio) * (1.0 - 2.0 * poisson_ratio))
+        lame_mu = young_modulus / (2.0 * (1.0 + poisson_ratio))
         
         reference_stress = KratosMultiphysics.Vector(cl.GetStrainSize())
         for i in range(cl.GetStrainSize()):
             reference_stress[i] = 0.0
         
-        for i in range(10):
-            F[0,0] = 1.0 + 0.2 * i;
-            detF = 1.0 + 0.2 * i;
-            cl_params.SetDeformationGradientF( F )
-            cl_params.SetDeterminantF( detF )
+        for i in range(100):
+            F[0,0] = 1.0 + 0.2 * i
+            detF = 1.0 + 0.2 * i
+            cl_params.SetDeformationGradientF(F)
+            cl_params.SetDeterminantF(detF)
             
-            cl.CalculateMaterialResponseCauchy( cl_params )
-            cl.FinalizeMaterialResponseCauchy( cl_params )
-            cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+            cl.CalculateMaterialResponseCauchy(cl_params)
+            cl.FinalizeMaterialResponseCauchy(cl_params)
+            cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
         
-            lambda_strech = detF
-            reference_stress[0] = 4.0*C1/(3*detF**(5/3))*(lambda_strech**2.0-detF/lambda_strech) + 2.0*D1*(detF - 1.0)
-            reference_stress[1] = 2.0*C1/(3*detF**(5/3))*(detF/lambda_strech - lambda_strech**2.0) + 2.0*D1*(detF - 1.0)
+            reference_stress[0] = (lame_lambda * math.log(detF) + lame_mu * (detF ** 2.0 - 1.0)) / detF
+            reference_stress[1] = (lame_lambda * math.log(detF)) / detF
             reference_stress[2] = reference_stress[1]
         
             stress = cl_params.GetStressVector()
-            #for j in range(cl.GetStrainSize()): #FIXME
-                #self.assertAlmostEqual(reference_stress[j], stress[j],2) 
+            
+            for j in range(cl.GetStrainSize()):
+                self.assertAlmostEqual(reference_stress[j], stress[j], 2) 
         
 if __name__ == '__main__':
     KratosUnittest.main()
