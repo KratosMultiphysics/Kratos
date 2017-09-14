@@ -339,8 +339,6 @@ class TestParameters(KratosUnittest.TestCase):
             #print(key,value)
             
         #testing values
-                          
-
         expected_values = ['10', '2.0', 'true', '"hello"', '{"list_value":[3,"hi",false],"tmp":5.0}']
         counter = 0
         
@@ -365,71 +363,136 @@ class TestParameters(KratosUnittest.TestCase):
         
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
+
+    def test_is_methods(self):
+        # This method checks all the "IsXXX" Methods
+        tmp = Parameters("""{
+            "int_value" : 10,   
+            "double_value": 2.0,   
+            "bool_value" : true,   
+            "string_value" : "hello",
+            "vector_value" : [5,3,4], 
+            "matrix_value" : [[1,2],[3,6]]
+        }""") # if you add more values to this, make sure to add the corresponding in the loop
+
+        for key in tmp.keys():
+            val_type = key[:-6] # removing "_value"
+
+            if val_type == "int":
+                self.assertTrue(tmp[key].IsInt())
+            else:                    
+                self.assertFalse(tmp[key].IsInt())
+
+            if val_type == "double":
+                self.assertTrue(tmp[key].IsDouble())
+            else:
+                self.assertFalse(tmp[key].IsDouble())
+
+            if val_type == "bool":
+                self.assertTrue(tmp[key].IsBool())
+            else:
+                self.assertFalse(tmp[key].IsBool())
+
+            if val_type == "string":
+                self.assertTrue(tmp[key].IsString())
+            else:
+                self.assertFalse(tmp[key].IsString())
+
+            if val_type == "vector":
+                self.assertTrue(tmp[key].IsVector())
+            else:
+                self.assertFalse(tmp[key].IsVector())
+
+            if val_type == "matrix":
+                self.assertTrue(tmp[key].IsMatrix())
+            else:
+                self.assertFalse(tmp[key].IsMatrix())   
+
+    def test_get_methods(self):
+        # This method checks all the "GetXXX" Methods if they throw an error
+        tmp = Parameters("""{
+            "int_value" : 10,   
+            "double_value": 2.0,   
+            "bool_value" : true,   
+            "string_value" : "hello",
+            "vector_value" : [5.2,-3.1,4.33], 
+            "matrix_value" : [[1,2],[3,4],[5,6]]
+        }""") # if you add more values to this, make sure to add the corresponding in the loop
+
+        for key in tmp.keys():
+            val_type = key[:-6] # removing "_value"
+
+            # Int and Double are checked tgth bcs both internally call "IsNumber"
+            if val_type == "int" or val_type == "double": 
+                if val_type == "int":
+                    self.assertEqual(tmp[key].GetInt(),10)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetInt()
+            
+            if val_type == "double" or val_type == "int":
+                if val_type == "double":
+                    self.assertEqual(tmp[key].GetDouble(),2.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetDouble()
+            
+            if val_type == "bool":
+                self.assertEqual(tmp[key].GetBool(),True)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetBool()
+            
+            if val_type == "string":
+                self.assertEqual(tmp[key].GetString(),"hello")
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetString()
+
+            if val_type == "vector":
+                V = tmp[key].GetVector()
+                self.assertEqual(V[0],5.2)
+                self.assertEqual(V[1],-3.1)
+                self.assertEqual(V[2],4.33)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetVector()
+
+            if val_type == "matrix":
+                A = tmp[key].GetMatrix()
+                self.assertEqual(A[0,0],1.0)
+                self.assertEqual(A[0,1],2.0)
+                self.assertEqual(A[1,0],3.0)
+                self.assertEqual(A[1,1],4.0)
+                self.assertEqual(A[2,0],5.0)
+                self.assertEqual(A[2,1],6.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetMatrix()   
         
     def test_vector_interface(self):
-        # Read and check a Vector from a Parameters-Object
-        tmp = Parameters("""{
-            "vector_value": [1.32,-2.22,5.5],
-            "false_vector_value_1" : 5,
-            "false_vector_value_2" : 7.2,
-            "false_vector_value_3": [[2,1.5,3.3,6],[1,2,7.9,6]]
-        }""")
-        
-        self.assertTrue(tmp["vector_value"].IsVector())
-        
-        V = tmp["vector_value"].GetVector()
-        self.assertEqual(V[0],1.32)
-        self.assertEqual(V[1],-2.22)
-        self.assertEqual(V[2],5.5)
-        
+        tmp = Parameters("""{ }""")
         # Manually assign and check a Vector
         vec = Vector(3)
         vec[0] = 1.32
         vec[1] = -2.22
         vec[2] = 5.5
 
-        tmp.AddEmptyValue("vector_value2")
-        tmp["vector_value2"].SetVector(vec)
+        tmp.AddEmptyValue("vector_value")
+        tmp["vector_value"].SetVector(vec)
 
-        self.assertTrue(tmp["vector_value2"].IsVector())
+        self.assertTrue(tmp["vector_value"].IsVector())
 
-        V2 = tmp["vector_value2"].GetVector()
+        V2 = tmp["vector_value"].GetVector()
         self.assertEqual(V2[0],1.32)
         self.assertEqual(V2[1],-2.22)
         self.assertEqual(V2[2],5.5)
 
-        # Check the IsVector method
-        self.assertFalse(tmp["false_vector_value_1"].IsVector()) # int
-        self.assertFalse(tmp["false_vector_value_2"].IsVector()) # double
-        self.assertFalse(tmp["false_vector_value_3"].IsVector()) # Matrix
-
-        # check that the errors of the GetVector method are thrown correctly
-        with self.assertRaises(RuntimeError):
-            tmp["false_vector_value_1"].GetVector() # int
-        with self.assertRaises(RuntimeError):
-            tmp["false_vector_value_2"].GetVector() # double
-        with self.assertRaises(RuntimeError):
-            tmp["false_vector_value_3"].GetVector() # Matrix
-
     def test_matrix_interface(self):
         # Read and check a Matrix from a Parameters-Object
         tmp = Parameters("""{
-            "matrix_value": [[1,2],[3,4],[5,6]],
-            "false_matrix_value_1": 2,
-            "false_matrix_value_2": 2.9,
-            "false_matrix_value_3": [2, 1.5],
-            "false_matrix_value_4": [[2, 1.5,3.3],[1,2]]
+            "false_matrix_value": [[2, 1.5,3.3],[1,2]]
         }""")
-        
-        self.assertTrue(tmp["matrix_value"].IsMatrix())
-        
-        A = tmp["matrix_value"].GetMatrix()
-        self.assertEqual(A[0,0],1.0)
-        self.assertEqual(A[0,1],2.0)
-        self.assertEqual(A[1,0],3.0)
-        self.assertEqual(A[1,1],4.0)
-        self.assertEqual(A[2,0],5.0)
-        self.assertEqual(A[2,1],6.0)
         
         # Manually assign and check a Matrix
         mat = Matrix(3,2)
@@ -440,12 +503,12 @@ class TestParameters(KratosUnittest.TestCase):
         mat[2,0] = 5.0
         mat[2,1] = 6.0
 
-        tmp.AddEmptyValue("matrix_value2")
-        tmp["matrix_value2"].SetMatrix(mat)
+        tmp.AddEmptyValue("matrix_value")
+        tmp["matrix_value"].SetMatrix(mat)
         
-        self.assertTrue(tmp["matrix_value2"].IsMatrix())
+        self.assertTrue(tmp["matrix_value"].IsMatrix())
         
-        A2 = tmp["matrix_value2"].GetMatrix()
+        A2 = tmp["matrix_value"].GetMatrix()
         self.assertEqual(A2[0,0],1.0)
         self.assertEqual(A2[0,1],2.0)
         self.assertEqual(A2[1,0],3.0)
@@ -454,20 +517,11 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(A2[2,1],6.0)
 
         # Check the IsMatrix Method
-        self.assertFalse(tmp["false_matrix_value_1"].IsMatrix()) # int
-        self.assertFalse(tmp["false_matrix_value_2"].IsMatrix()) # double
-        self.assertFalse(tmp["false_matrix_value_3"].IsMatrix()) # Vector
-        self.assertFalse(tmp["false_matrix_value_4"].IsMatrix()) # Mis-sized Matrix
+        self.assertFalse(tmp["false_matrix_value"].IsMatrix()) # Mis-sized Matrix
 
         # check that the errors of the GetMatrix method are thrown correctly
-        with self.assertRaises(RuntimeError):
-            tmp["false_matrix_value_1"].GetMatrix() # int
         with self.assertRaises(RuntimeError):        
-            tmp["false_matrix_value_2"].GetMatrix() # double
-        with self.assertRaises(RuntimeError):        
-            tmp["false_matrix_value_3"].GetMatrix() # Vector
-        with self.assertRaises(RuntimeError):        
-            tmp["false_matrix_value_4"].GetMatrix() # Mis-sized Matrix
+            tmp["false_matrix_value"].GetMatrix() # Mis-sized Matrix
         
         
 if __name__ == '__main__':
