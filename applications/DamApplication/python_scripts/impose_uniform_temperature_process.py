@@ -36,4 +36,4 @@ class ImposeUniformTemperatureProcess(Process):
 
     def ExecuteInitializeSolutionStep(self):
 
-        self.process.ExecuteInitializeSolutionStep()
+        self.process.ExecuteInitialize()
