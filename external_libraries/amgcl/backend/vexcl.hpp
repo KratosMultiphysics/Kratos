@@ -111,7 +111,7 @@ struct vexcl {
         params() : fast_matrix_setup(true) {}
 
         params(const boost::property_tree::ptree &p)
-            : AMGCL_PARAMS_IMPORT_CHILD(p, fast_matrix_setup)
+            : AMGCL_PARAMS_IMPORT_VALUE(p, fast_matrix_setup)
         {
             std::vector<vex::backend::command_queue> *ptr = 0;
             ptr = p.get("q", ptr);

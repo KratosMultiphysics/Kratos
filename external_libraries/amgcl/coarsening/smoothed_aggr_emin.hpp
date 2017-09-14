@@ -89,12 +89,12 @@ struct smoothed_aggr_emin {
         typedef typename backend::value_type<Matrix>::type Val;
         typedef ptrdiff_t Idx;
 
-        TIC("aggregates");
+        AMGCL_TIC("aggregates");
         Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
         prm.aggr.eps_strong *= 0.5;
-        TOC("aggregates");
+        AMGCL_TOC("aggregates");
 
-        TIC("interpolation");
+        AMGCL_TIC("interpolation");
         boost::shared_ptr<Matrix> P_tent = tentative_prolongation<Matrix>(
                 rows(A), aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
@@ -157,7 +157,7 @@ struct smoothed_aggr_emin {
 
         boost::shared_ptr<Matrix> P = interpolation(Af, dia, *P_tent, omega);
         boost::shared_ptr<Matrix> R = restriction  (Af, dia, *P_tent, omega);
-        TOC("interpolation");
+        AMGCL_TOC("interpolation");
 
         if (prm.nullspace.cols > 0)
             prm.aggr.block_size = prm.nullspace.cols;

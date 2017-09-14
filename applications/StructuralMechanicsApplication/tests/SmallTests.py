@@ -140,6 +140,12 @@ class Eigen3D3NThinCircleTests(StructuralMechanichsTestFactory):
     
 class Fofi4PointTentnoCableTests(StructuralMechanichsTestFactory):
     file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"
+	
+class Fofi4PointTentCableTests(StructuralMechanichsTestFactory):
+    file_name = "formfinding_test/Fofi_4Point_Tent_Cable_test"	
     
 class MembraneQ4PointLoadTests(StructuralMechanichsTestFactory):
     file_name = "membrane_test/Membrane_Q4_PointLoad_test"
+    
+class MembraneQ4TrussPointLoadTests(StructuralMechanichsTestFactory):
+    file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"    

@@ -9,6 +9,7 @@ kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 path = '../test_examples'
 sys.path.append(path)
+
 path = os.getcwd()
 path += '/basic_benchmarks'
 os.chdir(path)
@@ -46,14 +47,14 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
 def Run():
     
     print("\nStarting DEM Benchmarking..............\n")
-    g = open("errors.txt", "w")
+    g = open("errors.err", "w")
     g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
     g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
     g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
     g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
     g.close()
     Text = ""
-    f = open("BenchTemp.txt", "w")
+    f = open("BenchTemp.info", "w")
     failure = False
     #list_of_failed_tests = []
     
@@ -75,43 +76,47 @@ def Run():
         try:
             if platform.system()=="Windows":
                 os.system("setenv OMP_NUM_THREADS 1") # Is that the correct way to run on Windows?
-                subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
-                os.system("setenv OMP_NUM_THREADS 16") # Trying to set a 'default' value
+                subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                os.system("setenv OMP_NUM_THREADS ") # Trying to set a 'default' value
                 
             else:
-                os.system("export OMP_NUM_THREADS=1")
+                os.environ['OMP_NUM_THREADS']='1'
                 if sys.version_info >= (3, 0):
-                    subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
+                    path_py = os.getcwd()
+                    path_py += '/../../python_scripts'       
+                    subprocess.check_call(["python3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                     
                 else:
-                    subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
-                os.system("export OMP_NUM_THREADS=16") # Trying to set a 'default' value
+                    path_py = os.getcwd()
+                    path_py += '/../../python_scripts'                                                                              
+                    subprocess.check_call(["python", "-3", path_py + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                os.system("export OMP_NUM_THREADS=") # Trying to set a 'default' value
         except:
             #failure = True
             #list_of_failed_tests += [benchmark]
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
-            g = open("errors.txt", "a")
+            g = open("errors.err", "a")
             if benchmark == 10:
-                g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW ====\n\n")
+                g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW =====\n\n")
             if benchmark == 11:
-                g.write("\n==== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ===\n\n")
+                g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ===\n\n")
             if benchmark == 12:
-                g.write("\n==== WENSRICH PAPER TEST. ROLLING FRICTION =====\n\n")
+                g.write("\n===== WENSRICH PAPER TEST. ROLLING FRICTION =============\n\n")
             if benchmark == 13:
-                g.write("\n======== DE/FE CONTACT BENCHMARKS ==========\n\n")
+                g.write("\n===== DE/FE CONTACT BENCHMARKS ==========================\n\n")
             if benchmark == 20:
-                g.write("\n======== BASIC CONTINUUM TESTS  ==========\n\n")
+                g.write("\n===== BASIC CONTINUUM TESTS  ============================\n\n")
             if benchmark == 30:
-                g.write("\n======= DISCONTINUUM CLUSTERS TESTS  =========\n\n")
+                g.write("\n===== DISCONTINUUM CLUSTERS TESTS  ======================\n\n")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
             
     print('\n')
     f.close()
-    os.remove("BenchTemp.txt")
+    os.remove("BenchTemp.info")
     
-    g = open("errors.txt", 'a')
-    g.write("\n----------------------------------------------\n")
+    g = open("errors.err", 'a')
+    g.write("\n---------------------------------------------------------------------\n")
     g.write("\nList of Benchmarks:\n")
     g.write("\nDISCONTINUUM TESTS:\n")
     g.write("Benchmark 01. Elastic normal impact of two identical spheres\n")
@@ -145,13 +150,13 @@ def Run():
     g.write("Benchmark 33. Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n")
     g.close()
     
-    if 'FAILED' in open('errors.txt').read():
+    if 'FAILED' in open('errors.err').read():
         failure = True
         
-    g = open("errors.txt")
+    g = open("errors.err")
     file_contents = g.read()
     g.close()
-    os.remove("errors.txt")
+    os.remove("errors.err")
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
@@ -161,7 +166,7 @@ def Run():
     #subject = "DEM Benchmarks Results. Problems found in tests number "
     #subject += list_of_failed_tests
     recipients = ["latorre@cimne.upc.edu"]
-    recipients += ["maceli@cimne.upc.edu", "msantasusana@cimne.upc.edu", "gcasas@cimne.upc.edu", "farrufat@cimne.upc.edu", "jirazabal@cimne.upc.edu"]
+    recipients += ["maceli@cimne.upc.edu", "gcasas@cimne.upc.edu", "farrufat@cimne.upc.edu", "jirazabal@cimne.upc.edu"]
     subject = "Problems found in DEM Benchmarks"   
     message = "From: Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + subject + "\n" + Text
     

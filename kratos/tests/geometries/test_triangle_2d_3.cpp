@@ -25,8 +25,6 @@
 
 namespace Kratos {
 namespace Testing {
-
-  static bool exceptionThrown = false;
     
   /// Factory functions
 
@@ -113,7 +111,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle2D3<Node<3>>();
 
-    KRATOS_CHECK_EXCEPTION_RAISED(geom->Volume(), Exception);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
 	}
 
   /** Checks if the minimum edge length is calculated correctly.

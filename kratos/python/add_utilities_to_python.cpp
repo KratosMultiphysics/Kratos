@@ -49,6 +49,7 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -314,6 +315,26 @@ void AddUtilitiesToPython()
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
 }
 

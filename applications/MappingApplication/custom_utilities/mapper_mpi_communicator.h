@@ -53,8 +53,10 @@ typedef matrix<int> GraphType; // GraphColoringProcess
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// MPI-parallel version of the MapperCommunicator
+/** This class inherits from MapperCommunicator and provides additional Functionalities that are needed
+* for MPI-parallel execution
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class MapperMPICommunicator : public MapperCommunicator
 {
@@ -70,8 +72,8 @@ public:
     ///@{
 
     MapperMPICommunicator(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                          Parameters& rJsonParameters) :
-        MapperCommunicator(rModelPartOrigin, rModelPartDestination, rJsonParameters) { }
+                          Parameters JsonParameters) :
+        MapperCommunicator(rModelPartOrigin, rModelPartDestination, JsonParameters, MyPID()) { }
 
     /// Destructor.
     virtual ~MapperMPICommunicator() { }
@@ -98,7 +100,7 @@ public:
                                                      mEchoLevel,
                                                      mApproximationTolerance) );
 
-        if (mEchoLevel > 3)
+        if (mEchoLevel >= 4)
         {
             mpInterfaceObjectManagerOrigin->PrintInterfaceObjects("Origin");
         }
@@ -119,7 +121,7 @@ public:
                         mEchoLevel,
                         mApproximationTolerance) );
 
-        if (mEchoLevel > 3)
+        if (mEchoLevel >= 4)
         {
             mpInterfaceObjectManagerDestination->PrintInterfaceObjects("Destination");
         }
@@ -284,9 +286,9 @@ private:
             mMaxReceiveBufferSize,
             mColoredGraph,
             mMaxColors);
-        if (mEchoLevel > 3)
+        if (mEchoLevel >= 4)
         {
-            PrintPairs();
+            // PrintPairs(); // TODO reimplement!
         }
     }
 

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_SOLVING_STRATEGY )
@@ -77,50 +77,50 @@ class SolvingStrategy
 public:
     ///@name Type Definitions
     ///@{
-    
+
 //     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
 
     typedef typename TSparseSpace::DataType                                        TDataType;
-    
+
     typedef typename TSparseSpace::MatrixType                              TSystemMatrixType;
-    
+
     typedef typename TSparseSpace::VectorType                              TSystemVectorType;
 
     typedef typename TSparseSpace::MatrixPointerType                TSystemMatrixPointerType;
-    
+
     typedef typename TSparseSpace::VectorPointerType                TSystemVectorPointerType;
 
     typedef typename TDenseSpace::MatrixType                           LocalSystemMatrixType;
-    
+
     typedef typename TDenseSpace::VectorType                           LocalSystemVectorType;
 
     typedef Scheme<TSparseSpace, TDenseSpace>                                    TSchemeType;
-    
+
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
 
     typedef typename ModelPart::DofType                                             TDofType;
-    
+
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
-    
+
 //     typedef Dof<TDataType>                                                          TDofType;
-    
+
 //     typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> >            DofsArrayType;
-    
+
 //     typedef PointerVectorSet<TDofType, IndexedObject>                          DofsArrayType;
-    
+
     typedef typename DofsArrayType::iterator                                 DofIteratorType;
-    
+
     typedef typename DofsArrayType::const_iterator                   DofConstantIteratorType;
-    
+
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
-    
+
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
-    
+
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-    
+
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(SolvingStrategy);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -131,14 +131,14 @@ public:
      */
 
     SolvingStrategy(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         bool MoveMeshFlag = false
     )
         : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
-    
+
     ///@}
 
     /** Destructor.
@@ -146,11 +146,11 @@ public:
 
     ///@{
     virtual ~SolvingStrategy(){}
-    
+
     ///@}
 
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-    
+
     ///@{
 
     /**
@@ -180,9 +180,9 @@ public:
         Predict();
         SolveSolutionStep();
         FinalizeSolutionStep();
-        
-        return 0.0; 
-        
+
+        return 0.0;
+
     }
 
     /**
@@ -314,20 +314,20 @@ public:
         if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
         {
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-        }   
+        }
 
         NodesArrayType& NodesArray = GetModelPart().Nodes();
         const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)  
+        for(int i = 0; i < numNodes; i++)
         {
             auto itNode = NodesArray.begin() + i;
 
             noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
             noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
         }
-        
+
         if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout<<" MESH MOVED "<<std::endl;
@@ -387,9 +387,9 @@ public:
         {
             itCond->Check(GetModelPart().GetProcessInfo());
         }
-        
+
         return 0;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -493,4 +493,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_SOLVING_STRATEGY  defined */
-

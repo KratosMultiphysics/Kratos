@@ -180,7 +180,8 @@ void ThermalFace2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-    ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+    const ProcessInfo &rConstProcessInfo = CurrentProcessInfo;
+    const ConvectionDiffusionSettings::Pointer my_settings = rConstProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 

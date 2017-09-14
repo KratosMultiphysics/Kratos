@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 #import kratos core and applications
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ALEApplication import *
@@ -114,6 +113,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         CSM_solver.SetEchoLevel(echo_level)
 
         mesh_solver.Initialize()
+        mesh_solver.SetEchoLevel(echo_level)        
 
         for responseFunctionId in listOfResponseFunctions:
             listOfResponseFunctions[responseFunctionId].initialize()
@@ -138,7 +138,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.updateMeshForAnalysis()
             print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
-            print("\n> Starting SolidMechanicsApplication to solve structure")
+            print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
             self.solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
@@ -220,7 +220,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         mesh_solver.Solve()
 
         # Update reference mesh (Since shape updates are imposed as incremental quantities)
-        mesh_solver.UpdateReferenceMesh()
+        mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
 
     # --------------------------------------------------------------------------
     def solveStructure( self, optimizationIteration ): 

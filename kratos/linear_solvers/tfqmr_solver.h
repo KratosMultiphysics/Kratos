@@ -15,8 +15,6 @@
 #if !defined(KRATOS_TFQMR_SOLVER_H_INCLUDED )
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
 
-
-
 // External includes
 
 // Project includes
@@ -24,11 +22,8 @@
 #include "linear_solvers/iterative_solver.h"
 #include <math.h>
 
-
 namespace Kratos
 {
-
-
 template<class TSparseSpaceType,
          class TDenseSpaceType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
