@@ -132,7 +132,7 @@ public:
         // Defining the convergence
         unsigned int is_converged = 0;
         
-//         const double& epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+//         const double& epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double& scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
@@ -143,7 +143,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             
-            const double& epsilon = it_node->GetValue(PENALTY_PARAMETER);
+            const double& epsilon = it_node->GetValue(INITIAL_PENALTY);
             
             // Check if the node is slave
             bool node_is_slave = true;

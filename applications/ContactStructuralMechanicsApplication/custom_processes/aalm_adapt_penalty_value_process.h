@@ -109,7 +109,7 @@ public:
         KRATOS_TRY;
         
         // We initialize the zero vector
-        const double& penalty_parameter = mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER];
+        const double& penalty_parameter = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
         const double& max_gap_factor = mrThisModelPart.GetProcessInfo()[MAX_GAP_FACTOR];
         
         // We iterate over the node
@@ -133,35 +133,35 @@ public:
             {
                 if (previous_gap > max_gap)
                 {
-                    it_node->SetValue(PENALTY_PARAMETER, std::abs(penalty_parameter * previous_gap / (current_gap) * (std::abs(current_gap) + max_gap)/(current_gap - previous_gap)));
+                    it_node->SetValue(INITIAL_PENALTY, std::abs(penalty_parameter * previous_gap / (current_gap) * (std::abs(current_gap) + max_gap)/(current_gap - previous_gap)));
                 }
                 else
                 {
-                    it_node->SetValue(PENALTY_PARAMETER, std::abs(penalty_parameter * previous_gap / (10.0 * current_gap)));
+                    it_node->SetValue(INITIAL_PENALTY, std::abs(penalty_parameter * previous_gap / (10.0 * current_gap)));
                 }
             }
             else if (current_gap > max_gap)
             {
                 if (std::abs(current_gap - previous_gap) > std::max(current_gap/10.0, std::max(previous_gap/1.0, 5 * max_gap)))
                 {
-                    it_node->SetValue(PENALTY_PARAMETER, 2.0 * penalty_parameter);
+                    it_node->SetValue(INITIAL_PENALTY, 2.0 * penalty_parameter);
                 }
                 else if ((std::abs(current_gap) <= std::abs(previous_gap) * 1.01 || std::abs(current_gap) >= std::abs(previous_gap) * 0.99) && (std::abs(current_gap) < 10.0 *  max_gap))
                 {
-                    it_node->SetValue(PENALTY_PARAMETER, penalty_parameter * std::pow((std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0), 2.0));
+                    it_node->SetValue(INITIAL_PENALTY, penalty_parameter * std::pow((std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0), 2.0));
                 }
                 else if (std::abs(current_gap) > std::abs(previous_gap) * 1.01)
                 {
-                    it_node->SetValue(PENALTY_PARAMETER, 2.0 * penalty_parameter * (previous_gap/current_gap));
+                    it_node->SetValue(INITIAL_PENALTY, 2.0 * penalty_parameter * (previous_gap/current_gap));
                 }
                 else
                 {
-                    it_node->SetValue(PENALTY_PARAMETER, penalty_parameter * (std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0));
+                    it_node->SetValue(INITIAL_PENALTY, penalty_parameter * (std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0));
                 }
             }
             else
             {
-                it_node->SetValue(PENALTY_PARAMETER, penalty_parameter);
+                it_node->SetValue(INITIAL_PENALTY, penalty_parameter);
             }
         }
 

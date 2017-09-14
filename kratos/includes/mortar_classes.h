@@ -562,7 +562,7 @@ public:
         // We get the ALM variables
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            PenaltyParameter[i] = SlaveGeometry[i].GetValue(PENALTY);
+            PenaltyParameter[i] = SlaveGeometry[i].GetValue(INITIAL_PENALTY);
         }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
         

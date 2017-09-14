@@ -27,7 +27,7 @@ class TestLineExactIntegration1(KratosUnittest.TestCase):
         model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(1)
 
         # Line 2
         model_part.CreateNewNode(3, 0.00,0.001,0.00)
@@ -70,7 +70,7 @@ class TestLineExactIntegration2(KratosUnittest.TestCase):
         model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(1)
 
         # Line 2
         model_part.CreateNewNode(3, 0.50,0.001,0.00)
@@ -114,7 +114,7 @@ class TestLineExactIntegration3(KratosUnittest.TestCase):
         model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(1)
 
         # Line 2
         model_part.CreateNewNode(3, 0.0,0.5,0.00)
@@ -162,7 +162,7 @@ class TestTriangleExactIntegration1(KratosUnittest.TestCase):
         model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 2
         normal[2] = -1.0
@@ -217,7 +217,7 @@ class TestTriangleExactIntegration2(KratosUnittest.TestCase):
         model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 2
         model_part.CreateNewNode(4, 0.00,0.00,0.01)
@@ -274,7 +274,7 @@ class TestTriangleExactIntegration3(KratosUnittest.TestCase):
         model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 3 and 4
         model_part.CreateNewNode(5, 0.00,0.00,0.01)
@@ -386,7 +386,7 @@ class TestQuadrilateralExactIntegration1(KratosUnittest.TestCase):
         model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N(2)
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(2)
 
         # Quadrilateral 2
         model_part.CreateNewNode(5, 0.00,0.00,0.01)
@@ -452,7 +452,7 @@ class TestQuadrilateralExactIntegration2(KratosUnittest.TestCase):
         model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N()
+        ExactIntegration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N()
 
         # Quadrilateral 2
         normal[2] = -1.0
