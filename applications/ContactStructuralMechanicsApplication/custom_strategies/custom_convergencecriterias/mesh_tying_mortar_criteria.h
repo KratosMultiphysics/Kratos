@@ -18,8 +18,10 @@
 
 /* Project includes */
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
-#include "custom_utilities/color_utilities.h"
-#include "custom_utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
+#if !defined(_WIN32)
+    #include "utilities/color_utilities.h"
+#endif
 
 namespace Kratos
 {
@@ -74,7 +76,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<BprinterUtility>                   TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle

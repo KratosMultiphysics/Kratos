@@ -1,23 +1,25 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                    
 //
 
-#if !defined(KRATOS_BPRINTER_UTILITY)
-#define KRATOS_BPRINTER_UTILITY
+#if !defined(KRATOS_TABLE_STREAM_UTILITY)
+#define KRATOS_TABLE_STREAM_UTILITY
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_external_libraries/bprinter/table_printer.h"
+#include "includes/table_stream.h"
 
 namespace Kratos
 {
@@ -28,7 +30,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef bprinter::TablePrinter TablePrinterType;
+    typedef TableStream TableStreamType;
     
 ///@}
 ///@name  Enum's
@@ -38,7 +40,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-class BprinterUtility
+class TableStreamUtility
 {
 public:
     ///@name Type Definitions
@@ -53,10 +55,12 @@ public:
      * The default constructor
      */
     
-    BprinterUtility()
-    = default;
+    TableStreamUtility(const bool UseBoldFont = true):
+        mTable(&std::cout, "|", UseBoldFont)
+    {
+    }
     
-    virtual ~BprinterUtility()= default;;
+    virtual ~TableStreamUtility()= default;
     
     ///@}
     ///@name Access
@@ -119,10 +123,10 @@ public:
     
     /**
      * It returns the table of BPrinter
-     * @return mTable: The bprinter table
+     * @return mTable: The table stream table
      */
         
-    TablePrinterType& GetTable()
+    TableStreamType& GetTable()
     {
         return mTable;
     }
@@ -164,7 +168,7 @@ private:
     ///@name Member Variables
     ///@{      
     
-    TablePrinterType mTable{&std::cout, "|"};
+    TableStreamType mTable;
     
     ///@}
     ///@name Private Operators
@@ -190,7 +194,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-};// class BprinterUtility
+};// class TableStreamUtility
 
 ///@}
 ///@name Type Definitions
@@ -204,4 +208,4 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_BPRINTER_UTILITY defined */
+#endif /* KRATOS_TABLE_STREAM_UTILITY defined */
