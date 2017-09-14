@@ -276,7 +276,7 @@ public:
             }
             else
             {
-                return false; // Riccardo if the vector is empty, should we return true or false?
+                return true;
             }
         }
         else
@@ -412,7 +412,7 @@ public:
 //         mpvalue->SetString(rapidjson::StringRef(value.c_str()));
 //        mpvalue->SetString(value.c_str(), value.length());
     }
-    void SetVector(const Vector& vec) // Riccardo how to pass this?
+    void SetVector(const Vector& vec)
     {
         const unsigned int size = vec.size();
 
@@ -424,7 +424,7 @@ public:
             mpvalue->PushBack(vec[i], mpdoc->GetAllocator());
         }        
     }
-    void SetMatrix(const Matrix& mat) // Riccardo how to pass this?
+    void SetMatrix(const Matrix& mat)
     {
         const unsigned int nrows = mat.size1();
         const unsigned int ncols = mat.size2();
