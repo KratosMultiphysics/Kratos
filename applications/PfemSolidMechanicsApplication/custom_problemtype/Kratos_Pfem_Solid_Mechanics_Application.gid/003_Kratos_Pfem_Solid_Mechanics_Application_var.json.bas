@@ -613,6 +613,7 @@
 *endif
              }
          }
+*endif
     ],
     "loads_process_list"       : [
 *set var numberloads= 0
@@ -823,6 +824,10 @@
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0)
+				      "WATER_PRESSURE",
+				      "JACOBIAN",
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0)
 				      "WATER_PRESSURE",
