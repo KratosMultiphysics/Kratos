@@ -338,11 +338,7 @@ public:
     }
     bool GetBool() const
     {
-		if (mpvalue->IsBool() == false)
-		{
-			RecursivelyFindValue(*mpdoc, *mpvalue);
-			KRATOS_ERROR <<"argument must be a bool" << std::endl;
-		}
+        KRATOS_ERROR_IF_NOT(mpvalue->IsBool()) << "argument must be a bool" << std::endl;
         return mpvalue->GetBool();
     }
     std::string GetString() const
