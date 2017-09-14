@@ -261,17 +261,22 @@ public:
     }
     bool IsVector() const
     {
-        if(mpvalue->IsArray() == false) KRATOS_ERROR << "value is not an Array-type" << std::endl;
-
-        if(mpvalue->Size() > 1)
+        if(mpvalue->IsArray())
         {
-            if((*mpvalue)[0].IsArray())
+            if (mpvalue->Size() > 0) // check size first before accessing to avoid segfault
             {
-                return false;
+                if((*mpvalue)[0].IsArray()) // mpvalue is a matrix
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
             else
             {
-                return true;
+                return false; // Riccardo if the vector is empty, should we return true or false?
             }
         }
         else
@@ -281,24 +286,40 @@ public:
     }
     bool IsMatrix() const
     {
-        if(mpvalue->IsArray() == false) KRATOS_ERROR << "value is not an Array-type" << std::endl;
-        unsigned int nrows = mpvalue->Size();
-        unsigned int ncols = 0;
-        if(nrows != 0)
-            if((*mpvalue)[0].IsArray())
-                ncols = (*mpvalue)[0].Size();
-
-        for (unsigned int i=1; i<nrows; ++i)
+        if(mpvalue->IsArray())
         {
-            auto& row_i = (*mpvalue)[i];
-            if(row_i.IsArray() == false) KRATOS_ERROR << "not an array on row " << i << std::endl;
-            if(row_i.Size() != ncols) KRATOS_ERROR << "wrong size of row " << i << std::endl;
+            unsigned int nrows = mpvalue->Size();
+            if (nrows > 0)
+            {
+                if((*mpvalue)[0].IsArray()) // mpvalue is a matrix
+                {
+                    unsigned int ncols = 0;
+                    if(nrows != 0)
+                        ncols = (*mpvalue)[0].Size();
+            
+                    for (unsigned int i=1; i<nrows; ++i)
+                    {
+                        auto& row_i = (*mpvalue)[i];
+                        if(row_i.IsArray() == false) return false;
+                        if(row_i.Size() != ncols) return false;
+                    }
+            
+                    return true;                    
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
-
-        if(nrows > 1 && ncols > 1) // minimum size for a Matrix is 2x2, everything smaller is a Vector!
-            return true;
         else
+        {
             return false;
+        }
     }
     bool IsSubParameter() const
     {
@@ -331,10 +352,11 @@ public:
     }
     Vector GetVector() const    
     {
-        if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Vector (a json list)" ;
+        KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "argument must be a Vector (a json list)" << std::endl;
         
         const unsigned int size = mpvalue->Size();
-        if(size < 2) KRATOS_ERROR << "argument is not a Vector, size < 2! " << std::endl;
+        if (size > 0)
+            KRATOS_ERROR_IF((*mpvalue)[0].IsArray()) << "argument must be a Vector (a json list), it might be a matrix" << std::endl;
             
         Vector V(size);
         
@@ -347,23 +369,21 @@ public:
     }
     Matrix GetMatrix() const
     {
-        if(mpvalue->IsArray() == false) KRATOS_ERROR << "argument must be a Matrix (a json list of lists)" ;
+        KRATOS_ERROR_IF_NOT(mpvalue->IsArray()) << "argument must be a Matrix (a json list of lists)" << std::endl;
         
         const unsigned int nrows = mpvalue->Size();
         unsigned int ncols = 0;
         if(nrows != 0)
             if((*mpvalue)[0].IsArray())
                 ncols = (*mpvalue)[0].Size();
-
-        if(nrows < 2 || ncols < 2) KRATOS_ERROR << "argument is not a Matrix, size < 2x2! " << std::endl;
             
         Matrix A(nrows,ncols);
         
         for(unsigned int i=0; i<nrows; ++i)
         {
             auto& row_i = (*mpvalue)[i];
-            if(row_i.IsArray() == false) KRATOS_ERROR << "not an array on row " << i << std::endl;
-            if(row_i.Size() != ncols) KRATOS_ERROR << "wrong size of row " << i << std::endl;
+            KRATOS_ERROR_IF_NOT(row_i.IsArray()) << "not an array on row " << i << std::endl;
+            KRATOS_ERROR_IF(row_i.Size() != ncols) << "wrong size of row " << i << std::endl;
             for(unsigned int j=0; j<ncols; ++j)
             {
                 A(i,j) = (row_i)[j].GetDouble();
@@ -394,33 +414,30 @@ public:
     }
     void SetVector(const Vector& vec) // Riccardo how to pass this?
     {
-        // Riccardo there s also the "SetArrayRaw" method...would you prefer this one?
         const unsigned int size = vec.size();
-        if(size < 2) KRATOS_ERROR << "Input is not a Vector, size < 2! " << std::endl;
 
         mpvalue->SetArray();
         mpvalue->Reserve(size, mpdoc->GetAllocator());
+
         for (unsigned int i=0; i<size; ++i)
         {
             mpvalue->PushBack(vec[i], mpdoc->GetAllocator());
-            // mpvalue[i].SetDouble(vec[i]); // This is not working, "mpValue" is not an array afterwards any more!
         }        
     }
     void SetMatrix(const Matrix& mat) // Riccardo how to pass this?
     {
         const unsigned int nrows = mat.size1();
         const unsigned int ncols = mat.size2();
-        if(nrows < 2 || ncols < 2) KRATOS_ERROR << "Input is not a Matrix, size < 2x2! " << std::endl;
 
         mpvalue->SetArray();
-
         mpvalue->Reserve(nrows, mpdoc->GetAllocator());
+
         for (unsigned int i=0; i<nrows; ++i)
         {
-            mpvalue->PushBack(0, mpdoc->GetAllocator()); // Riccardo how can we do this better?
-            (*mpvalue)[i].SetArray();
+            mpvalue->PushBack(0, mpdoc->GetAllocator()); // Pushing back a default element to allocate memory
+            (*mpvalue)[i].SetArray(); // change that default element to an array
             (*mpvalue)[i].Reserve(ncols, mpdoc->GetAllocator());
-            // auto& row_i = (*mpvalue)[i]; // Riccardo is it better to use this?
+            
             for (unsigned int j=0; j<ncols; ++j)
             {
                 (*mpvalue)[i].PushBack(mat(i,j), mpdoc->GetAllocator());
