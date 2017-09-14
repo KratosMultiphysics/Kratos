@@ -138,7 +138,7 @@ public:
             }
             if(IsInside == false)
             {
-                std::cout << "ERROR!!, PLEASE REPEAT THE SEARCH " << std::endl;
+                KRATOS_ERROR << "ERROR!!, PLEASE REPEAT THE SEARCH " << std::endl;
             }
 
             PointsNumber = pSelectedElement->GetGeometry().PointsNumber();
@@ -195,7 +195,7 @@ public:
             }
             if(IsInside == false)
             {
-                std::cout << "ERROR!!, PLEASE REPEAT THE SEARCH " << std::endl;
+                KRATOS_ERROR << "ERROR!!, PLEASE REPEAT THE SEARCH " << std::endl;
             }
 
             PointsNumber = pSelectedElement->GetGeometry().PointsNumber();
