@@ -1,5 +1,5 @@
 import os
-os.environ['OMP_NUM_THREADS'] = "1"
+os.environ['OMP_NUM_THREADS'] = "6"
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_MainKratos
@@ -48,7 +48,7 @@ class TestCase(KratosUnittest.TestCase):
            # Sensitivity = [[]]
            # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
            # Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
-    def test_circle_plate(self):
+    def circle_plate(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # solve structure
             self.solve('circle_plate_test')

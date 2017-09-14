@@ -34,7 +34,7 @@
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
-/* Adding the adjoint element */
+/* Adding the adjoint elements */
 #include "custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.hpp" //TODO: remove this
 #include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
@@ -73,6 +73,9 @@
 
 //fusseder TODO: move this to another application
 #include "custom_conditions/point_load_condition_for_SA.h"
+
+/* Adding the adjoint conditions */
+#include "custom_conditions/adjoint_conditions/point_load_adjoint_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -370,6 +373,10 @@ private:
     const PointMoment3DCondition mPointMomentCondition3D1N;
     // Torque condition
     const PointTorque3DCondition mPointTorqueCondition3D1N;
+
+    // Adjoint Conditions
+    const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
+    const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws

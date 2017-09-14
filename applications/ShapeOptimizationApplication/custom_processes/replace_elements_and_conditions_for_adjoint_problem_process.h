@@ -99,24 +99,22 @@ public:
     void Execute()  override
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
+
+        std::string sub_name_element = mSettings["Add_before_in_element_name"].GetString();
+        std::string sub_name_condition = mSettings["Add_before_in_condition_name"].GetString();
+        std::string adding_string = mSettings["Add_string"].GetString();
         
-        //const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
-        //const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
-        
-    #pragma omp parallel for                              //--> TODO: try to rework this in order parallel computing is possible
+    #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
         {
-        
             ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
 
             std::string element_name = it->Info();
-            std::string sub_name = mSettings["Add_before_in_element_name"].GetString();;
-            std::string::size_type position = 0;
-            std::string::size_type found;
-            found = element_name.find(sub_name, position);
-            std::string adding_string = mSettings["Add_string"].GetString();;
-            element_name.insert(found,adding_string);
-    
+            std::string::size_type position_ele = 0;
+            std::string::size_type found_ele;
+            found_ele = element_name.find(sub_name_element, position_ele);
+            element_name.insert(found_ele, adding_string);
+
             if( !KratosComponents< Element >::Has( element_name ) )
                 KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", element_name);
             const Element& rReferenceElement = KratosComponents<Element>::Get(element_name); //is this a problem to initialize the element in the loop?
@@ -126,20 +124,22 @@ public:
             p_element->Data() = it->Data();
             
             (*it.base()) = p_element;
-
         }
         
-    #pragma omp parallel for                              //--> TODO: try to rework this in order parallel computing is possible
+    #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
         for(int i=0; i< (int)r_root_model_part.Conditions().size(); i++)
         {
-            //TODO: Rework this for new adjoint condition name: e.g. PointLoadAdjointCondition
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
 
-            std::string ConditionName = it->Info();
-            ConditionName += "ForSA";
-            if( !KratosComponents< Condition >::Has( ConditionName ) )
-                KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
-            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName); //is this a problem to initialize the element in the loop?
+            std::string condition_name = it->Info();
+            std::string::size_type position_cond = 0;
+            std::string::size_type found_cond;
+            found_cond = condition_name.find(sub_name_condition, position_cond);
+            condition_name.insert(found_cond, adding_string);
+      
+            if( !KratosComponents< Condition >::Has( condition_name ) )
+                KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
+            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); //is this a problem to initialize the element in the loop?
       
             Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
      
@@ -147,7 +147,6 @@ public:
             p_condition->Data() = it->Data();
             
             (*it.base()) = p_condition;
-
         }      
         
         //change the sons
