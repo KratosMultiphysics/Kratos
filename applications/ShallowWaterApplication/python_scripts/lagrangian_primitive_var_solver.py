@@ -29,7 +29,7 @@ class LagrangianPrimitiveVarSolver(shallow_water_base_solver.ShallowWaterBaseSol
         super(LagrangianPrimitiveVarSolver,self)._AddPrimitiveDofs()
 
     def Initialize(self):
-        super(LagrangianPrimitiveVarSolver,self)._InitializeMeshStage()
+        super(LagrangianPrimitiveVarSolver,self).Initialize()
 
         # Creating the solution strategy for the particle stage
         self.VariableUtils = KratosMultiphysics.VariableUtils()

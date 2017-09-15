@@ -4,10 +4,10 @@ import KratosMultiphysics.ShallowWaterApplication as KratosShallow
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return SetBathymetryProcess(Model, settings["Parameters"])
+    return SetVectorProcess(Model, settings["Parameters"])
 
-## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class SetBathymetryProcess(KratosMultiphysics.Process):
+## This process sets the value of a vector variable using the ApplyConstantVectorValueProcess.
+class SetVectorProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
 
@@ -17,10 +17,12 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
             {
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
-                "interval"             : [0.0, 1e30],
-                "variable_name"        : "BATYMETRY",
-                "constrained"          : false,
-                "value"                : "z"
+                "variable_name"        : "VELOCITY",
+                "is_fixed_x": false,
+                "is_fixed_y": false,
+                "is_fixed_z": false,
+                "modulus" : 1.0,
+                "direction": [1.0, 0.0, 0.0]
             }
             """
             )

@@ -4,10 +4,10 @@ import KratosMultiphysics.ShallowWaterApplication as KratosShallow
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return SetBathymetryProcess(Model, settings["Parameters"])
+    return SetInitialHeightProcess(Model, settings["Parameters"])
 
 ## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class SetBathymetryProcess(KratosMultiphysics.Process):
+class SetInitialHeightProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
 
@@ -18,13 +18,18 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "interval"             : [0.0, 1e30],
-                "variable_name"        : "BATYMETRY",
+                "variable_name"        : "HEIGHT",
                 "constrained"          : false,
-                "value"                : "z"
+                "value"                : "1.0"
             }
             """
             )
         settings.ValidateAndAssignDefaults(default_settings)
+
+        if settings["variable_name"].GetString() == "FREE_SURFACE_ELEVATION":
+            eta = settings["value"].GetString()
+            settings["value"].SetString(eta + '-z')
+            settings["variable_name"].SetString("HEIGHT")
 
         import assign_scalar_variable_process
         self.process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, settings)

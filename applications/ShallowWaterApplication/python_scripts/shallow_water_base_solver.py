@@ -59,6 +59,10 @@ class ShallowWaterBaseSolver(object):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY);
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.BATHYMETRY);
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.RAIN);
+        # Auxiliar variables
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
 
     def AddDofs(self):
         pass
@@ -78,9 +82,6 @@ class ShallowWaterBaseSolver(object):
         self._SetBufferSize()
 
     def Initialize(self):
-        pass
-
-    def _InitializeMeshStage(self):
         self.computing_model_part = self.GetComputingModelPart()
 
         # If needed, create the estimate time step utility
@@ -93,7 +94,9 @@ class ShallowWaterBaseSolver(object):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.settings["convergence_echo_level"].GetInt())
 
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # DomainSize
+                                                                                             self.domain_size+1) # BlockSize
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
@@ -106,6 +109,7 @@ class ShallowWaterBaseSolver(object):
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
+
         (self.solver).SetEchoLevel(self.settings["solver_echo_level"].GetInt())
         (self.solver).Check()
 
@@ -119,6 +123,9 @@ class ShallowWaterBaseSolver(object):
     def Solve(self):
         # Solve equations on mesh
         (self.solver).Solve()
+
+    def Clear(self):
+        (self.solver).Clear()
 
     def ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
