@@ -49,11 +49,12 @@ namespace Kratos {
     void DEM_Dempack_dev::CalculateElasticConstants(double &kn_el,
                                                 double &kt_el,
                                                 double initial_dist,
-                                                double equiv_young,
+                                                double &equiv_young,
                                                 double equiv_poisson,
                                                 double calculation_area,
                                                 SphericContinuumParticle* element1,
-                                                SphericContinuumParticle* element2) {
+                                                SphericContinuumParticle* element2,
+                double indentation) {
         
         KRATOS_TRY 
 
