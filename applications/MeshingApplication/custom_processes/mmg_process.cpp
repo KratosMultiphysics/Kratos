@@ -12,6 +12,7 @@
 
 // System includes
 #include <set>
+#include <unordered_set>
 
 // External includes
 // The includes related with the MMG library
@@ -681,7 +682,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     {
         ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
         
-        std::vector<IndexType> node_ids;
+        std::unordered_set<IndexType> node_ids;
         
         ConditionsArrayType& sub_conditions_array = r_sub_model_part.Conditions();
         const SizeType sub_num_conditions = sub_conditions_array.end() - sub_conditions_array.begin();
@@ -694,7 +695,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             
             for (SizeType i_node = 0; i_node < cond_geom.size(); i_node++)
             {
-                node_ids.push_back(cond_geom[i_node].Id());
+                node_ids.insert(cond_geom[i_node].Id());
             }
         }
         
@@ -709,11 +710,13 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             
             for (SizeType i_node = 0; i_node < elem_geom.size(); i_node++)
             {
-                node_ids.push_back(elem_geom[i_node].Id());
+                node_ids.insert(elem_geom[i_node].Id());
             }
         }
         
-        r_sub_model_part.AddNodes(node_ids);
+        std::vector<IndexType> vector_ids;
+        std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
+        r_sub_model_part.AddNodes(vector_ids);
     }
     
     /* Save to file */
