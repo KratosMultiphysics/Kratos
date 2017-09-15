@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 
@@ -359,18 +359,18 @@ public:
             for (int i = 0; i < nel; i++)
             {
                 int i0, i1, i2, i3; //indices of the subtetrahedra
-                TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);              
+                TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);
                 double sub_volume = ComputeSubTetraVolumeAndCenter(aux_coordinates, center_position, i0, i1, i2, i3);
-                
-                
+
+
                 local_subtet_indices[0] = t[i*4];
                 local_subtet_indices[1] = t[i*4+1];
                 local_subtet_indices[2] = t[i*4+2];
                 local_subtet_indices[3] = t[i*4+3];
-                
+
                 AddToEdgeAreas<3>(edge_areas,exact_distance,local_subtet_indices,sub_volume);
-                
-                
+
+
 
                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
                 boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
@@ -522,8 +522,8 @@ public:
     static int CalculateDiscontinuousShapeFunctions(
 			boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
             array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(2-1))>& rPartitionsSign, 
-			std::vector<Matrix>& rGradientsValue, 
+            array_1d<double,(3*(2-1))>& rPartitionsSign,
+			std::vector<Matrix>& rGradientsValue,
 			boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
 			array_1d<double,3>& edge_areas)
     {
@@ -680,6 +680,8 @@ public:
         Nenriched=ZeroMatrix(3,3);
         rGPShapeFunctionValues=ZeroMatrix(3,3);
 
+        bounded_matrix<unsigned int, 4, 3> partition_nodes_id;
+
         //now we must check the 4 created partitions of the domain.
         //one has been collapsed, so we discard it and therefore save only one.
         unsigned int partition_number=0;		//
@@ -691,6 +693,11 @@ public:
             if (j_aux>2) j_aux -= 3;
             boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
             array_1d<double,3> N;
+
+            partition_nodes_id(i,0) = i;
+            partition_nodes_id(i,1) = i+2;
+            partition_nodes_id(i,2) = j_aux;
+
             if (i<3)
             {
                 partition_father_nodes(0,0)=i;
@@ -753,7 +760,8 @@ public:
 
                 partition_number++;
 
-                AddToEdgeAreas<2>(edge_areas, rDistances, partition_father_nodes, temp_area);
+                AddToEdgeAreas<2>(edge_areas, rDistances, row(partition_nodes_id, i), temp_area);
+                KRATOS_WATCH(edge_areas)
             }
 
         }
@@ -1078,17 +1086,17 @@ private:
             array_1d<double, 3 > & center_position,
             const int i0, const int i1, const int i2, const int i3)
     {
-        double x10 = aux_coordinates(i1, 0) - aux_coordinates(i0, 0); 
-        double y10 = aux_coordinates(i1, 1) - aux_coordinates(i0, 1); 
-        double z10 = aux_coordinates(i1, 2) - aux_coordinates(i0, 2); 
+        double x10 = aux_coordinates(i1, 0) - aux_coordinates(i0, 0);
+        double y10 = aux_coordinates(i1, 1) - aux_coordinates(i0, 1);
+        double z10 = aux_coordinates(i1, 2) - aux_coordinates(i0, 2);
 
-        double x20 = aux_coordinates(i2, 0) - aux_coordinates(i0, 0); 
-        double y20 = aux_coordinates(i2, 1) - aux_coordinates(i0, 1); 
-        double z20 = aux_coordinates(i2, 2) - aux_coordinates(i0, 2); 
+        double x20 = aux_coordinates(i2, 0) - aux_coordinates(i0, 0);
+        double y20 = aux_coordinates(i2, 1) - aux_coordinates(i0, 1);
+        double z20 = aux_coordinates(i2, 2) - aux_coordinates(i0, 2);
 
-        double x30 = aux_coordinates(i3, 0) - aux_coordinates(i0, 0); 
-        double y30 = aux_coordinates(i3, 1) - aux_coordinates(i0, 1); 
-        double z30 = aux_coordinates(i3, 2) - aux_coordinates(i0, 2); 
+        double x30 = aux_coordinates(i3, 0) - aux_coordinates(i0, 0);
+        double y30 = aux_coordinates(i3, 1) - aux_coordinates(i0, 1);
+        double z30 = aux_coordinates(i3, 2) - aux_coordinates(i0, 2);
 
         double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
         double vol = detJ * 0.1666666666666666666667;
@@ -1262,7 +1270,7 @@ private:
     }
 
     template <int TDim>
-    static void AddToEdgeAreas(array_1d<double, (TDim-1)*3 >& edge_areas, 
+    static void AddToEdgeAreas(array_1d<double, (TDim-1)*3 >& edge_areas,
                                const array_1d<double, TDim+1 >& exact_distance,
                                const array_1d<double, TDim+1 >& indices,
                                const double sub_volume)
@@ -1279,7 +1287,7 @@ private:
                 pos++;
             }
         }
-               
+
         if(ncut == TDim && pos==1) //cut face with a positive node!!
         {
             double edge_area = sub_volume*3.0/fabs(exact_distance[positive_pos]);
@@ -1299,5 +1307,3 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_DISCONTINUOUS_UTILITIES_INCLUDED  defined
-
-

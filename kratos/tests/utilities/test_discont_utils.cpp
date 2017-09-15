@@ -19,7 +19,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "utilities/discont_utils.h"
 
-namespace Kratos 
+namespace Kratos
 {
 	namespace Testing
 	{
@@ -54,7 +54,7 @@ namespace Kratos
 			bounded_matrix<double, 3, 3> enriched_N_values;
 			array_1d<double, 3> edge_areas;
 
-			
+
 			auto rGeom = base_model_part.Elements()[1].GetGeometry();
 			for (unsigned int inode=0; inode<base_model_part.NumberOfNodes(); ++inode)
 			{
