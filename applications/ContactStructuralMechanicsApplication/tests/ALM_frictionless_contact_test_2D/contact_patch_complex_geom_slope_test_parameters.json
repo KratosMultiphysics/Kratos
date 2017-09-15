@@ -1,3 +1,4 @@
+
 {
     "problem_data"             : {
         "problem_name"    : "contact_patch_complex_geom_slope_test",
@@ -10,7 +11,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "contact_structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
