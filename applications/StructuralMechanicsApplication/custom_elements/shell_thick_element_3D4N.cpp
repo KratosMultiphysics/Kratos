@@ -864,9 +864,6 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 		}
 	}
 
-
-	// TODO: TSAI_WU_RESERVE_FACTOR
-
 	if (rVariable == VON_MISES_STRESS ||
 		rVariable == VON_MISES_STRESS_TOP_SURFACE ||
 		rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
