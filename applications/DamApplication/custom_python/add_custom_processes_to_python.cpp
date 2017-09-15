@@ -25,6 +25,7 @@
 #include "custom_processes/dam_uplift_circular_condition_load_process.hpp"
 #include "custom_processes/dam_westergaard_condition_load_process.hpp"
 #include "custom_processes/dam_nodal_young_modulus_process.hpp"
+#include "custom_processes/dam_temperature_by_device_process.hpp"
 #include "custom_processes/dam_construction_process.hpp"
 #include "custom_processes/dam_added_mass_condition_process.hpp"
 
@@ -73,6 +74,10 @@ void  AddCustomProcessesToPython()
     // Added Mass Distribution     
     class_< DamAddedMassConditionProcess, bases< Process >, boost::noncopyable > ( "DamAddedMassConditionProcess",
         init < ModelPart&, Parameters>());
+
+    //Temperature by device     
+    class_< DamTemperaturebyDeviceProcess, bases< Process >, boost::noncopyable > ( "DamTemperaturebyDeviceProcess",
+        init < ModelPart&, Parameters&>());
 }
 
 }  // namespace Python.
