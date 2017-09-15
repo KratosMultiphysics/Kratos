@@ -753,6 +753,7 @@ public:
 
                 partition_number++;
 
+                AddToEdgeAreas<2>(edge_areas, rDistances, partition_father_nodes, temp_area);
             }
 
         }
