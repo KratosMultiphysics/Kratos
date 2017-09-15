@@ -49,6 +49,7 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/process_factory_utility.h"  
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 
@@ -306,7 +307,7 @@ void AddUtilitiesToPython()
     ;
 
     // Process Factory utility 
-    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>()) 
+    class_< ProcessFactoryUtility >("ProcessFactoryUtility", init<boost::python::list&>()) 
     .def("AddProcess",&ProcessFactoryUtility::AddProcess) 
     .def("AddProcesses",&ProcessFactoryUtility::AddProcesses) 
     .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize) 
