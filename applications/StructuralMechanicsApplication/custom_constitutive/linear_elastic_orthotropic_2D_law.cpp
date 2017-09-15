@@ -206,10 +206,10 @@ namespace Kratos
 		rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
 		//Set the strain size
-		rFeatures.mStrainSize = GetStrainSize();
+		rFeatures.mStrainSize = 3;
 
 		//Set the spacedimension
-		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+		rFeatures.mSpaceDimension = 2;
 	}
 	
 

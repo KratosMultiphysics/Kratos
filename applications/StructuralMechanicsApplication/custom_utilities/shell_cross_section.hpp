@@ -497,7 +497,7 @@ public:
                 mOrientationAngle += 360.0;
         }
 
-		void RecoverOrthotropicProperties(const unsigned int currentPly);
+		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
 
         inline const IntegrationPointCollection& GetIntegrationPoints()const
         {

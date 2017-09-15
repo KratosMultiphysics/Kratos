@@ -442,13 +442,19 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
         {
             Ply& iPly = *ply_it;
             const Properties& iPlyProps = iPly.GetProperties();
+			Properties LaminaProps;
 
             if(CheckIsOrthotropic(iPlyProps))
             {
-                iPly.RecoverOrthotropicProperties(ply_number);
+				LaminaProps = Properties(iPlyProps);
+                iPly.RecoverOrthotropicProperties(ply_number, LaminaProps);
+				materialValues.SetMaterialProperties(LaminaProps);
             }
+			else
+			{
+				materialValues.SetMaterialProperties(iPlyProps);
+			}
 
-            materialValues.SetMaterialProperties(iPlyProps);
             double iPlyAngle = iPly.GetOrientationAngle();
 
             if(iPlyAngle == 0.0)
@@ -1471,31 +1477,31 @@ void ShellCrossSection::PrivateCopy(const ShellCrossSection & other)
         mOOP_CondensedStrains_converged = other.mOOP_CondensedStrains_converged;
     }
 }
-void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int currentPly)
+void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps)
 {
     // Composite mechanical properties material definition
     //
     // Arranged as: (thickness), (RZangle), density, E1, E2, Poisson_12, G12, G13, G23
 
-    mpProperties->SetValue(DENSITY,
+    laminaProps.SetValue(DENSITY,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 2));    //DENSITY
 
-    mpProperties->SetValue(YOUNG_MODULUS_X,
+    laminaProps.SetValue(YOUNG_MODULUS_X,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 3));    //E1
 
-    mpProperties->SetValue(YOUNG_MODULUS_Y,
+    laminaProps.SetValue(YOUNG_MODULUS_Y,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 4));    //E2
 
-    mpProperties->SetValue(POISSON_RATIO_XY,
+    laminaProps.SetValue(POISSON_RATIO_XY,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 5));    //Nu_12
 
-    mpProperties->SetValue(SHEAR_MODULUS_XY,
+    laminaProps.SetValue(SHEAR_MODULUS_XY,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 6));    //G12
 
-    mpProperties->SetValue(SHEAR_MODULUS_XZ,
+    laminaProps.SetValue(SHEAR_MODULUS_XZ,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 7));    //G13
 
-    mpProperties->SetValue(SHEAR_MODULUS_YZ,
+    laminaProps.SetValue(SHEAR_MODULUS_YZ,
         (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 8));    //G23
 }
 }
