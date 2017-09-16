@@ -109,6 +109,7 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     # Simple patch tests
     smallSuite.addTest(TTestConstitutiveLaw('test_Uniaxial_HyperElastic_3D'))
+    smallSuite.addTest(TTestConstitutiveLaw('test_Shear_HyperElastic_3D'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
