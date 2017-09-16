@@ -272,6 +272,84 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
             stress = cl_params.GetStressVector()
             
             for j in range(cl.GetStrainSize()):
+                self.assertAlmostEqual(reference_stress[j], stress[j], 2)
+                
+    def test_Shear_Plus_Strech_HyperElastic_3D(self):
+        nnodes = 4
+        dim = 3
+
+        # Define a model  and geometry
+        model_part = KratosMultiphysics.ModelPart("test")
+        geom = self._create_geometry(model_part, dim, nnodes)
+
+        # Material properties
+        young_modulus = 200e9
+        poisson_ratio = 0.3
+        properties = self._create_properties(model_part, young_modulus, poisson_ratio)
+
+        N = KratosMultiphysics.Vector(nnodes)
+        DN_DX = KratosMultiphysics.Matrix(nnodes, dim)
+
+        # Construct a constitutive law 
+        cl = StructuralMechanicsApplication.HyperElastic3DLaw()
+        self._cl_check(cl, properties, geom, model_part, dim)
+
+        # Set the parameters to be employed
+        dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': False, 
+                        'COMPUTE_STRESS': True, 
+                        'COMPUTE_CONSTITUTIVE_TENSOR': True,
+                        'FINITE_STRAINS': True,
+                        'ISOTROPIC': True,
+                        }
+        cl_options = self._set_cl_options(dict_options)
+
+        # Define deformation gradient
+        F = self._create_F()
+        detF = 1.0
+
+        stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+
+        # Setting the parameters - note that a constitutive law may not need them all!
+        cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom)
+        
+        # Check the results
+        lame_lambda = (young_modulus * poisson_ratio) / ((1.0 + poisson_ratio) * (1.0 - 2.0 * poisson_ratio))
+        lame_mu = young_modulus / (2.0 * (1.0 + poisson_ratio))
+        
+        reference_stress = KratosMultiphysics.Vector(cl.GetStrainSize())
+        for i in range(cl.GetStrainSize()):
+            reference_stress[i] = 0.0
+        
+        x1beta = 1.0 
+        x2beta = 1.0 
+        x3beta = math.pi/200
+        for i in range(100):
+            F[0,0] =  math.cos(x3beta * i)
+            F[0,1] = -math.sin(x3beta * i)
+            F[1,0] =  math.sin(x3beta * i)
+            F[1,1] =  math.cos(x3beta * i)
+            F[0,2] =  - x1beta * math.sin(x3beta * i) - x2beta * math.cos(x3beta * i)
+            F[1,2] =    x1beta * math.cos(x3beta * i) - x2beta * math.sin(x3beta * i)
+                        
+            cl_params.SetDeformationGradientF(F)
+            
+            cl.CalculateMaterialResponseCauchy(cl_params)
+            cl.FinalizeMaterialResponseCauchy(cl_params)
+            cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
+        
+            reference_stress[0] = (x2beta * math.cos(i * x3beta) + x1beta * math.sin(i * x3beta))**2.0
+            reference_stress[1] = (x1beta * math.cos(i * x3beta) - x2beta * math.sin(i * x3beta))**2.0
+            reference_stress[3] = (x2beta * math.cos(i * x3beta) + x1beta * math.sin(i * x3beta)) * (- x1beta * math.cos(i * x3beta) + x2beta * math.sin(i * x3beta))
+            reference_stress[4] = x1beta * math.cos(i * x3beta) - x2beta * math.sin(i * x3beta)
+            reference_stress[5] = - x2beta * math.cos(i * x3beta) - x1beta * math.sin(i * x3beta)
+        
+            reference_stress *= lame_mu
+        
+            stress = cl_params.GetStressVector()
+            
+            for j in range(cl.GetStrainSize()):
                 self.assertAlmostEqual(reference_stress[j], stress[j], 2) 
         
 if __name__ == '__main__':
