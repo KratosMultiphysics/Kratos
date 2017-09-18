@@ -53,7 +53,7 @@ class Algorithm(BaseAlgorithm):
         return self.field_utility
 
     def GetRecoveryCounter(self):
-        return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+        return SDP.Counter(1, 1, self.pp.CFD_DEM["coupling_level_type"].GetInt() or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 
     def GetRunCode(self):
         return self.run_code

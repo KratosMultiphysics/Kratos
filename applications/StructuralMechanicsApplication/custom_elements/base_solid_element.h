@@ -109,6 +109,7 @@ protected:
             D = ZeroMatrix(StrainSize, StrainSize);
         }
     };
+
 public:
 
     ///@name Type Definitions
@@ -610,6 +611,11 @@ protected:
         const double detJ
         );
     
+    /**
+    * This function computes the element size h
+    * for triangular elements: element size h is the double circumradius
+    */
+    void CalculateElementSize() override;
     ///@}
     ///@name Protected  Access
     ///@{
