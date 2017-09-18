@@ -5,12 +5,22 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
+try:
+  import KratosMultiphysics.MeshingApplication as MeshingApplication
+  missing_meshing_dependencies = False
+  missing_application = ''
+except ImportError as e:
+    missing_meshing_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
+
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
 # Convergence criteria class
 class convergence_criterion:
-    def __init__(self, convergence_criterion_parameters):
+    def __init__(self, convergence_criterion_parameters, model_part = None, adaptative_parameters = None, processes_list = None):
         # Note that all the convergence settings are introduced via a Kratos parameters object.
         
         D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
@@ -22,6 +32,10 @@ class convergence_criterion:
         
         if(echo_level >= 1):
             print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())
+
+        if (missing_meshing_dependencies == True):
+            if (convergence_criterion_parameters["convergence_criterion"].GetString() == "AdaptativeErrorCriteria"):
+                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
 
         rotation_dofs = False
         if(convergence_criterion_parameters.Has("rotation_dofs")):
@@ -75,5 +89,9 @@ class convergence_criterion:
                 Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+                
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "AdaptativeErrorCriteria"):
+                self.mechanical_convergence_criterion = MeshingApplication.ErrorMeshCriteria(model_part, adaptative_parameters, processes_list)
+                
         
 
