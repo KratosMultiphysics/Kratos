@@ -824,8 +824,8 @@ private:
 		//getting the data of the solution step
 		array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		array_1d<double, 3> node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		array_1d<double, 3> node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		const array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		const array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		noalias(node_data) = (0.5*node0_data + 0.5*node1_data);		  
 		// node_data = (0.5*node0_data + 0.5*node1_data);		  
@@ -851,8 +851,8 @@ private:
 		//getting the data of the solution step
 		Matrix& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		Matrix node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		Matrix node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		Matrix& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		Matrix& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		if( node_data.size1() > 0 && node_data.size2() ){
 		  if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
@@ -874,8 +874,8 @@ private:
 		//getting the data of the solution step
 		Vector& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		Vector node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		Vector node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		Vector& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		Vector& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		if( node_data.size() > 0 ){
 		  if( node_data.size() == node0_data.size() &&
