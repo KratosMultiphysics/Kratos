@@ -10,13 +10,13 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
    
-    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
-        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures)
 
-    def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
+    def AddAdditionalVariables(self, spheres_model_part, Param):
         
-        BaseExplicitStrategy.AddAdditionalVariables(self, spheres_model_part, DEM_parameters)
+        BaseExplicitStrategy.AddAdditionalVariables(self, spheres_model_part, Param)
 
         # Add the necessary variables for the ice_strategy here:
         # spheres_model_part.AddNodalSolutionStepVariable(VARIABLE1)

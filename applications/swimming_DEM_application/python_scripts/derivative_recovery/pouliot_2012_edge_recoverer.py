@@ -9,10 +9,10 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.DerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
         self.model_part = model_part
-        self.use_lumped_mass_matrix = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 3
+        self.use_lumped_mass_matrix = pp.CFD_DEM.material_acceleration_calculation_type == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = pp.CFD_DEM["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = pp.CFD_DEM.vorticity_calculation_type > 0
 
         self.CreateCPluPlusStrategies()
 
@@ -115,7 +115,7 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
 class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         Pouliot2012EdgeGradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-        self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.store_full_gradient = self.pp.CFD_DEM.store_full_gradient
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:

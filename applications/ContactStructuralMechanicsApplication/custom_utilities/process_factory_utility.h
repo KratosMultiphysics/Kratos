@@ -1,14 +1,13 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
-//
+//  Main authors:    Vicente Mataix Ferrandiz
+// 
 
 #if !defined(PROCESS_FACTORY_UTILITY_DEFINED )
 #define  PROCESS_FACTORY_UTILITY_DEFINED

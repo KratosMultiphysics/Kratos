@@ -25,9 +25,9 @@ class Solution(BaseAlgorithm):
     def SelectScheme(self):
         scheme = BaseAlgorithm.SelectScheme(self)
         if scheme == None:
-            if self.pp.CFD_DEM["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
+            if self.pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
                 return HybridBashforthScheme()
-            elif self.pp.CFD_DEM["IntegrationScheme"].GetString() == "TerminalVelocityScheme":
+            elif self.pp.CFD_DEM.IntegrationScheme == "TerminalVelocityScheme":
                 return TerminalVelocityScheme()
             else:
                 return None
