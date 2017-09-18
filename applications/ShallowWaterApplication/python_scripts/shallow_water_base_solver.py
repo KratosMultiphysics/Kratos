@@ -56,6 +56,7 @@ class ShallowWaterBaseSolver(object):
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.HEIGHT);
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY);
         # Physic problem parameters
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.FREE_SURFACE_ELEVATION);
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY);
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.BATHYMETRY);
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.RAIN);
@@ -117,6 +118,9 @@ class ShallowWaterBaseSolver(object):
 
         print ("Mesh stage solver initialization finished.")
 
+        # Initialize shallow water variables utility
+        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
+
         # Initialize dry/wet state utility
         #~ self.drybedutility = DryBedUtility(self.model_part)
 
@@ -169,14 +173,14 @@ class ShallowWaterBaseSolver(object):
             node.AddDof(KratosMultiphysics.VELOCITY_X);
             node.AddDof(KratosMultiphysics.VELOCITY_Y);
             node.AddDof(KratosShallow.HEIGHT);
-        print ("variables for the SWE solver added correctly")
+        print ("Primitive variables for the SWE solver added correctly")
 
     def _AddConservedDofs(self):
         for node in self.model_part.Nodes:
             node.AddDof(KratosMultiphysics.MOMENTUM_X);
             node.AddDof(KratosMultiphysics.MOMENTUM_Y);
             node.AddDof(KratosShallow.HEIGHT);
-        print ("variables for the SWE solver added correctly")
+        print ("Conserved variables for the SWE solver added correctly")
 
     def _pfem2_init(self,model_part):
         # For the pfem2

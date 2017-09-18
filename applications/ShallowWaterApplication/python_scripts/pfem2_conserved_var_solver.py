@@ -10,27 +10,27 @@ KratosMultiphysics.CheckForPreviousImport()
 import shallow_water_base_solver
 
 def CreateSolver(model_part, custom_settings):
-    return LagrangianConservedVarSolver(model_part, custom_settings)
+    return Pfem2ConservedVarSolver(model_part, custom_settings)
 
-class LagrangianConservedVarSolver(shallow_water_base_solver.ShallowWaterBaseSolver):
+class Pfem2ConservedVarSolver(shallow_water_base_solver.ShallowWaterBaseSolver):
     def __init__(self, model_part, custom_settings):
         # Model part and solver init
-        super(LagrangianConservedVarSolver,self).__init__(model_part,custom_settings)
+        super(Pfem2ConservedVarSolver,self).__init__(model_part,custom_settings)
         # Particle stage init
-        super(LagrangianConservedVarSolver,self)._pfem2_init(model_part)
+        super(Pfem2ConservedVarSolver,self)._pfem2_init(model_part)
 
     def AddVariables(self):
-        super(LagrangianConservedVarSolver,self).AddVariables()
-        super(LagrangianConservedVarSolver,self)._AddParticleVariables()
+        super(Pfem2ConservedVarSolver,self).AddVariables()
+        super(Pfem2ConservedVarSolver,self)._AddParticleVariables()
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.DELTA_MOMENTUM)
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.PROJECTED_MOMENTUM)
 
     def AddDofs(self):
-        super(LagrangianConservedVarSolver,self)._AddConservedDofs()
+        super(Pfem2ConservedVarSolver,self)._AddConservedDofs()
 
     def Initialize(self):
-        super(LagrangianConservedVarSolver,self).Initialize()
+        super(Pfem2ConservedVarSolver,self).Initialize()
 
         # Creating the solution strategy for the particle stage
         self.VariableUtils = KratosMultiphysics.VariableUtils()
@@ -40,9 +40,8 @@ class LagrangianConservedVarSolver(shallow_water_base_solver.ShallowWaterBaseSol
 
     def Solve(self):
         # Move particles
-        super(LagrangianConservedVarSolver,self).ExecuteParticlesUtilitiesBeforeSolve()
+        super(Pfem2ConservedVarSolver,self).ExecuteParticlesUtilitiesBeforeSolve()
         # Solve equations on mesh
         (self.solver).Solve()
         # Update particles
-        super(LagrangianConservedVarSolver,self).ExecuteParticlesUtilitiesAfetrSolve()
-
+        super(Pfem2ConservedVarSolver,self).ExecuteParticlesUtilitiesAfetrSolve()

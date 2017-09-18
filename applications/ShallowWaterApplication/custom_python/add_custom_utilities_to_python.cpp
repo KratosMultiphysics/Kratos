@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/move_shallow_water_particle_hu_utility.h"
-#include "custom_utilities/dry_bed_utility.h"
+#include "custom_utilities/shallow_water_variables_utility.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -75,46 +75,47 @@ namespace Python
 
   void  AddCustomUtilitiesToPython()
   {
-	using namespace boost::python;
+    using namespace boost::python;
 
-		//~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		//~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		//~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    //~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    //~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    //~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		class_< MoveShallowWaterParticleUtility<2> > ("MoveShallowWaterParticleUtility", init<ModelPart& , int >())
-			.def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
-			.def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
-			.def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
-			.def("PreReseed", &MoveShallowWaterParticleUtility<2>::PreReseed)
-			.def("PostReseed", &MoveShallowWaterParticleUtility<2>::PostReseed)
-			.def("ResetBoundaryConditions", &MoveShallowWaterParticleUtility<2>::ResetBoundaryConditions)
-			.def("TransferLagrangianToEulerian",&MoveShallowWaterParticleUtility<2>::TransferLagrangianToEulerian)
-			.def("CalculateVelOverElemSize", &MoveShallowWaterParticleUtility<2>::CalculateVelOverElemSize)
-			.def("CalculateDeltaVariables", &MoveShallowWaterParticleUtility<2>::CalculateDeltaVariables)
-			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
-			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
-			;
+    class_< MoveShallowWaterParticleUtility<2> > ("MoveShallowWaterParticleUtility", init<ModelPart& , int >())
+        .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
+        .def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
+        .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
+        .def("PreReseed", &MoveShallowWaterParticleUtility<2>::PreReseed)
+        .def("PostReseed", &MoveShallowWaterParticleUtility<2>::PostReseed)
+        .def("ResetBoundaryConditions", &MoveShallowWaterParticleUtility<2>::ResetBoundaryConditions)
+        .def("TransferLagrangianToEulerian",&MoveShallowWaterParticleUtility<2>::TransferLagrangianToEulerian)
+        .def("CalculateVelOverElemSize", &MoveShallowWaterParticleUtility<2>::CalculateVelOverElemSize)
+        .def("CalculateDeltaVariables", &MoveShallowWaterParticleUtility<2>::CalculateDeltaVariables)
+        .def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
+        .def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
+        ;
 
-		class_< MoveShallowWaterParticleHUUtility<2> > ("MoveShallowWaterParticleHUUtility", init<ModelPart& , int >())
-			.def("MountBin", &MoveShallowWaterParticleHUUtility<2>::MountBin)
-			.def("MoveParticles", &MoveShallowWaterParticleHUUtility<2>::MoveParticles)
-			.def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleHUUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
-			.def("PreReseed", &MoveShallowWaterParticleHUUtility<2>::PreReseed)
-			.def("PostReseed", &MoveShallowWaterParticleHUUtility<2>::PostReseed)
-			.def("ResetBoundaryConditions", &MoveShallowWaterParticleHUUtility<2>::ResetBoundaryConditions)
-			.def("TransferLagrangianToEulerian",&MoveShallowWaterParticleHUUtility<2>::TransferLagrangianToEulerian)
-			.def("CalculateVelOverElemSize", &MoveShallowWaterParticleHUUtility<2>::CalculateVelOverElemSize)
-			.def("CalculateDeltaVariables", &MoveShallowWaterParticleHUUtility<2>::CalculateDeltaVariables)
-			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyScalarVarToPreviousTimeStep)
-			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyVectorVarToPreviousTimeStep)
-			.def("ComputeVelocity", &MoveShallowWaterParticleHUUtility<2>::ComputeVelocity)
-			;
-		
-		class_< DryBedUtility > ("DryBedUtility", init<ModelPart& >())
-			.def("CheckConservedVariables", &DryBedUtility::CheckConservedVariables)
-			.def("CheckPrimitiveVariables", &DryBedUtility::CheckPrimitiveVariables)
-			;
+    class_< MoveShallowWaterParticleHUUtility<2> > ("MoveShallowWaterParticleHUUtility", init<ModelPart& , int >())
+        .def("MountBin", &MoveShallowWaterParticleHUUtility<2>::MountBin)
+        .def("MoveParticles", &MoveShallowWaterParticleHUUtility<2>::MoveParticles)
+        .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleHUUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
+        .def("PreReseed", &MoveShallowWaterParticleHUUtility<2>::PreReseed)
+        .def("PostReseed", &MoveShallowWaterParticleHUUtility<2>::PostReseed)
+        .def("ResetBoundaryConditions", &MoveShallowWaterParticleHUUtility<2>::ResetBoundaryConditions)
+        .def("TransferLagrangianToEulerian",&MoveShallowWaterParticleHUUtility<2>::TransferLagrangianToEulerian)
+        .def("CalculateVelOverElemSize", &MoveShallowWaterParticleHUUtility<2>::CalculateVelOverElemSize)
+        .def("CalculateDeltaVariables", &MoveShallowWaterParticleHUUtility<2>::CalculateDeltaVariables)
+        .def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyScalarVarToPreviousTimeStep)
+        .def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyVectorVarToPreviousTimeStep)
+        .def("ComputeVelocity", &MoveShallowWaterParticleHUUtility<2>::ComputeVelocity)
+        ;
 
+    class_< ShallowWaterVariablesUtility > ("ShallowWaterVariablesUtility", init<ModelPart&>())
+        .def("ComputeFreeSurfaceElevation", &ShallowWaterVariablesUtility::ComputeFreeSurfaceElevation)
+        .def("ComputeVelocity", &ShallowWaterVariablesUtility::ComputeVelocity)
+        .def("DryWetStateConservedVariables", &ShallowWaterVariablesUtility::DryWetStateConservedVariables)
+        .def("DryWetStatePrimitiveVariables", &ShallowWaterVariablesUtility::DryWetStatePrimitiveVariables)
+        ;
   }
 
 
