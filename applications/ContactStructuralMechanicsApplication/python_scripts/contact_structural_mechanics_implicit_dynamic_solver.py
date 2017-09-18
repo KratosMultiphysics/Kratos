@@ -106,7 +106,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         super().Initialize()
     
     def AddProcessesList(self, processes_list):
-        self.processes_list = ContactStructuralMechanicsApplication.ProcessFactoryUtility(processes_list)
+        self.processes_list = KratosMultiphysics.ProcessFactoryUtility(processes_list)
     
     def _create_convergence_criterion(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
