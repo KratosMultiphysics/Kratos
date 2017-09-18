@@ -145,11 +145,6 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Para
     // We compute the left Cauchy-Green tensor (B):
     Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
     
-    // Inverse of the left Cauchy-Green tensor (B):
-    double aux_det;
-    Matrix inverse_B_tensor(3, 3); 
-    MathUtils<double>::InvertMatrix( B_tensor, inverse_B_tensor, aux_det);
-    
     if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         CalculateAlmansiStrain(rValues, strain_vector);
