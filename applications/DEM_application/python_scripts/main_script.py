@@ -26,7 +26,7 @@ class Solution(object):
         parameters_file = open("ProjectParametersDEM.json",'r')
         self.DEM_parameters = Parameters(parameters_file.read())
 
-    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
 
     def __init__(self):
