@@ -19,12 +19,12 @@ class DerivativeRecoveryStrategy:
         self.derivative_recovery_tool = derivative_recovery_tool
         self.custom_functions_tool = custom_functions_tool
         self.pp = pp
-        self.store_full_gradient = self.pp.CFD_DEM.store_full_gradient
-        self.mat_deriv_type = pp.CFD_DEM.material_acceleration_calculation_type
-        self.laplacian_type = pp.CFD_DEM.laplacian_calculation_type
-        self.vorticity_type = pp.CFD_DEM.vorticity_calculation_type
-        self.pressure_grad_type = pp.CFD_DEM.pressure_grad_recovery_type
-        self.fluid_fraction_grad_type = pp.CFD_DEM.fluid_fraction_grad_type
+        self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.mat_deriv_type = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()
+        self.laplacian_type = pp.CFD_DEM["laplacian_calculation_type"].GetInt()
+        self.vorticity_type = pp.CFD_DEM["vorticity_calculation_type"].GetInt()
+        self.pressure_grad_type = pp.CFD_DEM["pressure_grad_recovery_type"].GetInt()
+        self.fluid_fraction_grad_type = pp.CFD_DEM["fluid_fraction_grad_type"].GetInt()
 
         self.do_pre_recovery = False
         self.must_reconstruct_gradient = self.laplacian_type in {3, 4, 5, 6} and self.mat_deriv_type in {3, 4}

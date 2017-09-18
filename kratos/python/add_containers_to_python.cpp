@@ -38,6 +38,7 @@
 #include "python/add_c2c_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_mapping_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_fsi_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_mat_variables_to_python.h" //TODO: to be removed eventually
@@ -398,6 +399,9 @@ void  AddContainersToPython()
     AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
     AddMATVariablesToPython(); ///@TODO: move variables to CFD application
+    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
+    AddMappingVariablesToPython(); ///@TODO: move variables to Mapping application
+    AddMATVariablesToPython(); ///@TODO: move variables to CL application
     AddLegacyStructuralAppVarsToPython();
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE )
@@ -571,6 +575,10 @@ void  AddContainersToPython()
     // For MeshingApplication
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_ERROR )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ERROR_INTEGRATION_POINT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(RECOVERED_STRESS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ELEMENT_H)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ELEMENT_ERROR)
     
     //for PFEM application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_AREA )
@@ -674,6 +682,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CUTTED_AREA)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NET_INPUT_MATERIAL)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MIU )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_CONTACT_STRESS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENTIAL_CONTACT_STRESS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( STABILIZATION_FACTOR )
