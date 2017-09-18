@@ -26,7 +26,6 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleHorizontalDiscontUtils, KratosCoreFastSuite)
 		{
-
 			// Generate a model part with the previous
 			ModelPart base_model_part("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -140,24 +139,9 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(enriched_N_values(2,2), 0.0, 1e-6);
 
 			// Check edge areas
-			KRATOS_CHECK_NEAR(edge_areas(0), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR(edge_areas(0),  0.0, 1e-6);
 			KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
-
-			// for (auto &node : volume_part.Nodes())
-			// 	if (fabs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16)
-			// 	{ // There are no propagation in this version so I avoid numeric_limit::max() one
-			// 		auto distance = fabs(node.Z() - 2.00);
-			// 		KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
-			// 	}
-
-			//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-			//gid_io_fluid.InitializeMesh(0.00);
-			//gid_io_fluid.WriteMesh(volume_part.GetMesh());
-			//gid_io_fluid.FinalizeMesh();
-			//gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-			//gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-			//gid_io_fluid.FinalizeResults();
-
+			KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
 		}
 	}
 }  // namespace Kratos.
