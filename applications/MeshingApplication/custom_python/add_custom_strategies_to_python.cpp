@@ -28,9 +28,7 @@
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#ifdef INCLUDE_MMG
-    #include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
-#endif
+#include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
 
 // Builders and solvers
 
@@ -45,11 +43,9 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
-    typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
-
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    
+
     // Base types
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
         
@@ -58,10 +54,8 @@ void  AddCustomStrategiesToPython()
     // Custom scheme types
 
     // Custom convergence criterion types
-#ifdef INCLUDE_MMG
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
-#endif
-
+    
     // Custom builder and solvers types
     
     //********************************************************************
@@ -76,17 +70,14 @@ void  AddCustomStrategiesToPython()
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-#ifdef INCLUDE_MMG
     // Displacement Convergence Criterion
     class_< ErrorMeshCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
             "ErrorMeshCriteria", 
             init<ModelPart&, Parameters>())
-            .def(init<ModelPart&, Parameters, ProcessesListType>())
             .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
             ;
-#endif         
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************

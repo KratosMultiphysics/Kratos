@@ -70,33 +70,6 @@ class MechanicalSolver(object):
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
-            "adaptative_params":{
-                "error_mesh_tolerance" : 1.0e-3,
-                "error_mesh_constant" : 1.0e-3,
-                "remeshing_utility"   : "MMG",
-                "remeshing_parameters":
-                {
-                    "filename"                             : "out",
-                    "framework"                            : "Lagrangian",
-                    "internal_variables_parameters"        :
-                    {
-                        "allocation_size"                      : 1000, 
-                        "bucket_size"                          : 4, 
-                        "search_factor"                        : 2, 
-                        "interpolation_type"                   : "LST",
-                        "internal_variable_interpolation_list" :[]
-                    },
-                    "save_external_files"              : false,
-                    "max_number_of_searchs"            : 1000,
-                    "echo_level"                       : 3
-                },
-                "error_strategy_parameters": 
-                {
-                    "minimal_size"                        : 0.1,
-                    "maximal_size"                        : 10.0, 
-                    "error"                               : 0.05
-                }
-            },
             "component_wise" : false,
             "max_iteration": 10,
             "linear_solver_settings":{
@@ -118,7 +91,6 @@ class MechanicalSolver(object):
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
-        self.processes_list = None
         print("::[MechanicalSolver]:: Construction finished")
 
     def AddVariables(self):
@@ -218,9 +190,6 @@ class MechanicalSolver(object):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
         print("::[MechanicalSolver]:: Finished initialization.")
-
-    def AddProcessesList(self, processes_list):
-        self.processes_list = KratosMultiphysics.ProcessFactoryUtility(processes_list)
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
@@ -428,9 +397,8 @@ class MechanicalSolver(object):
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        adaptative_params = self.settings["adaptative_params"]
         import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params, self.main_model_part, adaptative_params, self.processes_list)
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):

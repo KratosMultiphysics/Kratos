@@ -50,8 +50,6 @@ class Kratos_Execute_Test:
         if (ProjectParameters.Has("json_output_process") == True): 
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"]) 
 
-        solver.AddProcessesList(self.list_of_processes)
-
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
