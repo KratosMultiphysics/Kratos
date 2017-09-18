@@ -578,12 +578,7 @@ public:
             rGPShapeFunctionValues(0,1) = one_third;
             rGPShapeFunctionValues(0,2) = one_third;
             rNenriched(0,0) = 0.0;
-
-            for (int j = 0; j < 3; j++)
-            {
-                rGradientsValue[0](0, j) = 0.0;
-            }
-
+            rGradientsValue[0] = ZeroMatrix(3, 3);
             rDistances[0] = (rDistances(0) < 0.0) ? -1.0 : 1.0;
 
             return 1;
