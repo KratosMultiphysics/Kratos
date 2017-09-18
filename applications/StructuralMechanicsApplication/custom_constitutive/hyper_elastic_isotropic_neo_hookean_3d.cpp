@@ -109,7 +109,7 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix( constitutive_matrix, inverse_C_tensor, determinant_f, lame_lambda, lame_mu );
+        CalculateConstitutiveMatrixPK2( constitutive_matrix, inverse_C_tensor, determinant_f, lame_lambda, lame_mu );
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
@@ -158,7 +158,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Para
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix( constitutive_matrix, inverse_B_tensor, determinant_f, lame_lambda, lame_mu );
+        CalculateConstitutiveMatrixKirchoff( constitutive_matrix, determinant_f, lame_lambda, lame_mu );
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
@@ -323,7 +323,7 @@ int HyperElasticIsotropicNeoHookean3D::Check(
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrix(
+void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrixPK2(
     Matrix& ConstitutiveMatrix,
     const Matrix& InverseCTensor,
     const double& DeterminantF,
@@ -345,7 +345,36 @@ void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrix(
             const unsigned int& j0 = this->msIndexVoigt3D6C[j][0];
             const unsigned int& j1 = this->msIndexVoigt3D6C[j][1];
             
-            ConstitutiveMatrix(i,j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0)));
+            ConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrixKirchoff(
+    Matrix& ConstitutiveMatrix,
+    const double& DeterminantF,
+    const double& LameLambda,
+    const double& LameMu
+    )
+{
+    ConstitutiveMatrix.clear();
+    
+    const double log_j = std::log(DeterminantF);
+    
+    for(unsigned int i = 0; i < 6; i++)
+    {
+        const unsigned int& i0 = this->msIndexVoigt3D6C[i][0];
+        const unsigned int& i1 = this->msIndexVoigt3D6C[i][1];
+            
+        for(unsigned int j = 0; j < 6; j++)
+        {
+            const unsigned int& j0 = this->msIndexVoigt3D6C[j][0];
+            const unsigned int& j1 = this->msIndexVoigt3D6C[j][1];
+            
+            ConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
         }
     }
 }
