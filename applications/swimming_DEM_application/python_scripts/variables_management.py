@@ -149,7 +149,7 @@ def ConstructListsOfVariables(pp):
         pp.dem_vars += [VIRTUAL_MASS_FORCE]
 
     if pp.CFD_DEM["basset_force_type"].GetInt() > 0 and  pp.CFD_DEM["add_each_hydro_force_option"].GetBool():
-    pp.dem_vars += [BASSET_FORCE]
+        pp.dem_vars += [BASSET_FORCE]
 
     # clusters variables
     pp.clusters_vars = []
