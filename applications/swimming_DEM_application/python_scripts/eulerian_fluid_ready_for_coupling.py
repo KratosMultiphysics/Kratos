@@ -61,6 +61,9 @@ class Solution(object):
         model_part_io_fluid.ReadModelPart(self.fluid_model_part)  
         
     def ActivateTurbulenceModel(self):
+        
+        for element in self.fluid_model_part.Elements:
+            element.SetValue(C_SMAGORINSKY, 0.0)
 
         if self.pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras":
             # apply the initial turbulent viscosity on all of the nodes

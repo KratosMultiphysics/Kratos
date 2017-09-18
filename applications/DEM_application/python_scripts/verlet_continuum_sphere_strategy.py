@@ -11,13 +11,13 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
    
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
-    def AddAdditionalVariables(self, model_part, Param):
+    def AddAdditionalVariables(self, model_part, DEM_parameters):
         
-        BaseExplicitStrategy.AddAdditionalVariables(self, model_part, Param)
+        BaseExplicitStrategy.AddAdditionalVariables(self, model_part, DEM_parameters)
 
     def CreateCPlusPlusStrategy(self):
         
@@ -31,8 +31,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
-        self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
-        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option) #TODO: check that this is finding the function in base classes        
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
@@ -47,7 +47,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # PRINTING VARIABLES
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
-        self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
@@ -64,7 +64,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
 
-        self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
+        if self.contact_mesh_option:
+            self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1) #TODO: convert this variable to BOOL in Kratos
+        else:
+            self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
+            
         #self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
 
         if ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):

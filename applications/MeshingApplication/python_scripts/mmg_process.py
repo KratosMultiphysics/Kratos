@@ -44,6 +44,10 @@ class MmgProcess(KratosMultiphysics.Process):
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.0
             },
+            "error_parameters"              :{
+                "initial_run"                  : true,
+                "interpolation_error"          : 0.004
+            },
             "enforce_current"                  : true,
             "initial_step"                     : 1,
             "step_frequency"                   : 0,
@@ -96,7 +100,12 @@ class MmgProcess(KratosMultiphysics.Process):
             mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (mesh_dependent_constant == 0.0):
                 self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-        
+        elif (self.strategy == "Error"):
+            self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
+            mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
+            if (mesh_dependent_constant == 0.0):
+                self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
+
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         self.find_nodal_h.Execute()
@@ -185,11 +194,17 @@ class MmgProcess(KratosMultiphysics.Process):
             if self.step_frequency > 0:
                 if self.step >= self.step_frequency:
                     if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
-                        self._ExecuteRefinement()
-                        self.step = 0  # Reset
+                        if (self.strategy != "Error"):
+                            self._ExecuteRefinement()
+                            self.step = 0  # Reset
 
+                                
     def ExecuteFinalizeSolutionStep(self):
-        pass
+        if (self.strategy == "Error"):
+            if (self.params["error_parameters"]["initial_run"].GetBool() == True):
+                self.params["error_parameters"]["initial_run"].SetBool(False)
+                self._ExecuteRefinement()
+        
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -251,6 +266,50 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.Model[self.model_part_name],
                             current_metric_variable,
                             hessian_parameters))
+        elif (self.strategy == "Error"):
+            #hessian_parameters = KratosMultiphysics.Parameters("""{}""")
+            #hessian_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            #hessian_parameters.AddValue("maximal_size",self.params["maximal_size"])
+            #hessian_parameters.AddValue("enforce_current",self.params["enforce_current"])
+            #hessian_parameters.AddValue("hessian_strategy_parameters",self.params["hessian_strategy_parameters"])
+            #hessian_parameters.AddValue("anisotropy_remeshing",self.params["anisotropy_remeshing"])
+            #hessian_parameters.AddValue("anisotropy_parameters",self.params["anisotropy_parameters"])
+            #for current_metric_variable in self.metric_variable:
+            #    if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
+            #        if (self.dim == 2):
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))
+            #        else:
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))
+            #    else:
+            #        if (self.dim == 2):
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))
+            #        else:
+            #            self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
+            #                self.Model[self.model_part_name],
+            #                current_metric_variable,
+            #                hessian_parameters))  
+            spr_parameters = KratosMultiphysics.Parameters("""{}""")
+            spr_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            spr_parameters.AddValue("maximal_size",self.params["maximal_size"])
+            spr_parameters.AddValue("error",self.params["error_parameters"]["interpolation_error"])
+            
+            if (self.dim == 2):
+                self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess2D(
+                    self.Model[self.model_part_name],
+                    spr_parameters))
+            else:
+                self.MetricsProcess.append(MeshingApplication.ComputeSPRErrorSolMetricProcess3D(
+                    self.Model[self.model_part_name],
+                    spr_parameters))                          
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient
@@ -276,6 +335,7 @@ class MmgProcess(KratosMultiphysics.Process):
             metric_process.Execute()
 
         print("Remeshing")
+        #if (self.strategy != "Error"):
         self.MmgProcess.Execute()
 
         if (self.strategy == "LevelSet"):
@@ -313,11 +373,13 @@ class MmgProcess(KratosMultiphysics.Process):
           if isinstance(val,float):
               variable_list.append(aux_var)
           else:
-              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
-              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
-              if (self.dim == 3):
-                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
-
+            if (self.strategy == "Hessian"):
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
+                if (self.dim == 3):
+                    variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
+            elif (self.strategy == "Error"):
+                variable_list.append(aux_var)       
       return variable_list
 
 def linear_interpolation(x, x_list, y_list):
