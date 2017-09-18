@@ -23,7 +23,7 @@
 namespace Kratos
 {
 class SphericParticle;
-class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
+class DEMWall : public Condition
 {
 public:
 
