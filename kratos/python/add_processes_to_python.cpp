@@ -38,6 +38,7 @@
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/translation_operation.h"
 #include "processes/rotation_operation.h"
+#include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
@@ -148,6 +149,10 @@ void  AddProcessesToPython()
             init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
     ;
 
+    class_<StructuredMeshGeneratorProcess, bases<Process>, boost::noncopyable >("StructuredMeshGeneratorProcess",
+            init<Geometry< Node<3> >::Pointer, ModelPart&, Parameters&>())
+    ;
+
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
             init<ModelPart&, bool>())
     .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
@@ -178,7 +183,6 @@ void  AddProcessesToPython()
             .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
 			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
     ;
-
 
     class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
             init<ModelPart&, Parameters>())
