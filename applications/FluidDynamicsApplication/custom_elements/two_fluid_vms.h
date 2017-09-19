@@ -995,7 +995,7 @@ protected:
 
         // Build the local matrix and RHS
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-        double K, G, PDivV, L, qF; // Temporary results
+        double K, PDivV, L, qF; // Temporary results
 
         array_1d<double,3> BodyForce(3,0.0);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
