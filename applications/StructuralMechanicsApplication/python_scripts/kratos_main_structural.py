@@ -78,8 +78,6 @@ if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
     for process in list_of_processes:
         print(process)
 
-solver.AddProcessesList(list_of_processes)
-
 ## Processes initialization
 for process in list_of_processes:
     process.ExecuteInitialize()

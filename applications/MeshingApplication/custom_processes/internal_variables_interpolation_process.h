@@ -310,9 +310,9 @@ public:
         {
             auto variable_array_list = ThisParameters["internal_variable_interpolation_list"];
 
-            for (unsigned int i_var = 0; i_var < variable_array_list.size(); i_var++)
+            for (auto && i_var : variable_array_list)
             {
-                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(variable_array_list[i_var].GetString()));
+                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(i_var.GetString()));
             }
         }
         else

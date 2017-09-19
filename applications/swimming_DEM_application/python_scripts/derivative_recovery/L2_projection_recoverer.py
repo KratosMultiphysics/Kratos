@@ -8,10 +8,10 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.DerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
         self.model_part = model_part
-        self.use_lumped_mass_matrix = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 3
+        self.use_lumped_mass_matrix = pp.CFD_DEM.material_acceleration_calculation_type == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = pp.CFD_DEM["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = pp.CFD_DEM.vorticity_calculation_type > 0
 
         if self.use_lumped_mass_matrix:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
@@ -94,7 +94,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         L2ProjectionGradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-        self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.store_full_gradient = self.pp.CFD_DEM.store_full_gradient
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:
