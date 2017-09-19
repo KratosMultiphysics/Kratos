@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 
@@ -190,7 +190,7 @@ public:
         //identify collapsed nodes
         for (unsigned int i=0; i<4; i++)
         {
-            if(fabs(rDistances[i]) < relatively_close)
+            if(std::abs(rDistances[i]) < relatively_close)
             {
                 collapsed_node[i] = true;
                 rDistances[i] = 0.0;
@@ -199,7 +199,7 @@ public:
             else
                 collapsed_node[i] = false;
 
-            abs_distance[i] = fabs(rDistances[i]);
+            abs_distance[i] = std::abs(rDistances[i]);
         }
 
         //now decide splitting pattern
@@ -209,8 +209,8 @@ public:
             const int j = edge_j[edge];
             if (rDistances[i] * rDistances[j] < 0.0)
             {
-                const double tmp = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
-// 		    const double d = fabs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
+                const double tmp = std::abs(rDistances[i]) / (std::abs(rDistances[i]) + std::abs(rDistances[j]));
+// 		    const double d = std::abs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
 // 		    abs_distance[i] = d * tmp;
 // 		    abs_distance[j] = d * (1.0 - tmp);
 
@@ -248,7 +248,7 @@ public:
                 double d =    (rPoints(i_node,0) - base_point[0]) * grad_d[0] +
                               (rPoints(i_node,1) - base_point[1]) * grad_d[1] +
                               (rPoints(i_node,2) - base_point[2]) * grad_d[2] ;
-                abs_distance[i_node] = fabs(d);
+                abs_distance[i_node] = std::abs(d);
             }
 
         }
@@ -359,18 +359,18 @@ public:
             for (int i = 0; i < nel; i++)
             {
                 int i0, i1, i2, i3; //indices of the subtetrahedra
-                TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);              
+                TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);
                 double sub_volume = ComputeSubTetraVolumeAndCenter(aux_coordinates, center_position, i0, i1, i2, i3);
-                
-                
+
+
                 local_subtet_indices[0] = t[i*4];
                 local_subtet_indices[1] = t[i*4+1];
                 local_subtet_indices[2] = t[i*4+2];
                 local_subtet_indices[3] = t[i*4+3];
-                
+
                 AddToEdgeAreas<3>(edge_areas,exact_distance,local_subtet_indices,sub_volume);
-                
-                
+
+
 
                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
                 boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
@@ -473,7 +473,7 @@ public:
 
         }
 
-//             if(fabs(sub_volumes_sum/volume - 1.0) > 1e-9)
+//             if(std::abs(sub_volumes_sum/volume - 1.0) > 1e-9)
 // 	    {
 // 	      KRATOS_WATCH(volume);
 // 	      KRATOS_WATCH(rVolumes);
@@ -519,144 +519,95 @@ public:
 
 
     //2D
-    static int CalculateDiscontinuousShapeFunctions(
-			boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
-            array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(2-1))>& rPartitionsSign, 
-			std::vector<Matrix>& rGradientsValue, 
-			boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
-			array_1d<double,3>& edge_areas) //, //and information about the interfase:
-    // array_1d<double,(3)>& face_gauss_N, array_1d<double,(3)>& face_gauss_Nenriched, double& face_Area, array_1d<double,(3)>& face_n ,unsigned int& type_of_cut)
+    static int CalculateDiscontinuousShapeFunctions(const bounded_matrix<double,(2+1), 2 >& rPoints,
+                                                    bounded_matrix<double, (2+1), 2 >& rDN_DX,
+                                                    array_1d<double,(2+1)>& rDistances,
+                                                    array_1d<double,(3*(2-1))>& rVolumes,
+                                                    bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
+                                                    array_1d<double,(3*(2-1))>& rPartitionsSign,
+                                                    std::vector<Matrix>& rGradientsValue,
+                                                    bounded_matrix<double,3*(2-1), (2+1)>& rNenriched,
+                                                    array_1d<double,3>& rEdgeAreas)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        const double unsigned_distance0=fabs(rDistances(0));
-        const double unsigned_distance1=fabs(rDistances(1));
-        const double unsigned_distance2=fabs(rDistances(2));
+        // TRICK TO AVOID INTERSECTIONS TOO CLOSE TO THE NODES
+        const double unsigned_distance_0 = std::abs(rDistances(0));
+        const double unsigned_distance_1 = std::abs(rDistances(1));
+        const double unsigned_distance_2 = std::abs(rDistances(2));
 
-        //we begin by finding the largest distance:
-        double longest_distance=fabs(unsigned_distance0);
-        if (unsigned_distance1>longest_distance)
-            longest_distance=unsigned_distance1;
-        if (unsigned_distance2>longest_distance)
-            longest_distance=unsigned_distance2;
+        // We begin by finding the largest distance:
+        const double longest_distance = std::max(unsigned_distance_0, std::max(unsigned_distance_1, unsigned_distance_2));
 
-        //Now we set a maximum relative distance
-        const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
-        if (unsigned_distance0<tolerable_distance)
-            rDistances[0]=tolerable_distance;
-        if (unsigned_distance1<tolerable_distance)
-            rDistances[1]=tolerable_distance;
-        if (unsigned_distance2<tolerable_distance)
-            rDistances[2]=tolerable_distance;
+        // Set a maximum relative distance
+        const double tolerable_distance = longest_distance*0.001;	// (1/1,000,000 seems to have good results)
 
+        if (unsigned_distance_0 < tolerable_distance)
+        {
+            rDistances[0] = tolerable_distance;
+        }
+        if (unsigned_distance_1 < tolerable_distance)
+        {
+            rDistances[1] = tolerable_distance;
+        }
+        if (unsigned_distance_2 < tolerable_distance)
+        {
+            rDistances[2] = tolerable_distance;
+        }
         //END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
 
+        const double one_third = 1.0/3.0;
+        bounded_matrix<double, 3, 2> aux_points;      // For auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+        bounded_matrix<double, 3, 2> coord_subdomain; // Used to pass arguments when we must calculate areas, shape functions, etc
+        bounded_matrix<double, 3, 2> DN_DX_subdomain; // Used to retrieve derivatives
 
+        // Area of the complete element
+        const double Area = CalculateVol(rPoints(0,0), rPoints(0,1),
+                                         rPoints(1,0), rPoints(1,1),
+                                         rPoints(2,0), rPoints(2,1));
 
-        //unsigned int i,j,k;
-        //unsigned int i_aux,j_aux,k_aux; //
-        //type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated
-        const double one_third=1.0/3.0;
-        boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+        array_1d<bool, 3> cut_edges;
+        array_1d<double, 3> aux_nodes_relative_locations;
+        bounded_matrix<int, 3, 2> aux_nodes_father_nodes;
 
-
-        double Area;//area of the complete element
-        rGPShapeFunctionValues(0,0)=one_third;
-        rGPShapeFunctionValues(0,1)=one_third;
-        rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
-        Area = CalculateVolume2D( rPoints );
-        array_1d<bool,3> cut_edges;
-        array_1d<double,3> aux_nodes_relative_locations;
-        boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
-
-        //to begin with we must check whether our element is cut or not by the interfase.
-        if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
+        // Check whether the element is cut or not by the interface
+        if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) // The element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
         {
             rVolumes(0)=Area;
-            rGPShapeFunctionValues(0,0)=one_third;
-            rGPShapeFunctionValues(0,1)=one_third;
-            rGPShapeFunctionValues(0,2)=one_third;
-            Nenriched(0,0) = 0.0;
-            //type_of_cut=1;
-            for (int j = 0; j < 3; j++)
-                rGradientsValue[0](0, j) = 0.0;
-            if (rDistances(0) < 0.0) rPartitionsSign[0] = -1.0;
-            else rPartitionsSign[0] = 1.0;
-            //KRATOS_WATCH("one element not in the intefase")
+            rGPShapeFunctionValues(0,0) = one_third;
+            rGPShapeFunctionValues(0,1) = one_third;
+            rGPShapeFunctionValues(0,2) = one_third;
+            rNenriched(0,0) = 0.0;
+            rGradientsValue[0] = ZeroMatrix(3, 3);
+            rDistances[0] = (rDistances(0) < 0.0) ? -1.0 : 1.0;
+
             return 1;
         }
 
-        else //we must create the enrichement, it can be in 2 or 3 parts. we'll start with 3 always.
+        else // Create the enrichement, it can be in 2 or 3 parts. always start with 3.
         {
-            //to begin with we reset the NEnriched:
-            Nenriched=ZeroMatrix(3,3);
+            rNenriched = ZeroMatrix(3,3); // Reset the enriched shape functions values
 
-            //KRATOS_WATCH("one element IS in the intefase")
-            if ((rDistances(0)*rDistances(1))<0.0) //edge 12 is cut
-                cut_edges[0]=true;
-            else
-                cut_edges[0]=false;
-            if ((rDistances(1)*rDistances(2))<0.0) //edge 23 is cut.
-                cut_edges[1]=true;
-            else
-                cut_edges[1]=false;
-            if ((rDistances(2)*rDistances(0))<0.0) //edge 23 is cut.
-                cut_edges[2]=true;
-            else
-                cut_edges[2]=false;
-
+            cut_edges[0] = ((rDistances(0)*rDistances(1))<0.0) ? true : false; // Edge 12 is cut
+            cut_edges[1] = ((rDistances(1)*rDistances(2))<0.0) ? true : false; // Edge 23 is cut
+            cut_edges[2] = ((rDistances(2)*rDistances(0))<0.0) ? true : false; // Edge 13 is cut
         }
 
-        //'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
-        //since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
-// 		const double unsigned_distance0=fabs(rDistances(0));
-// 		const double unsigned_distance1=fabs(rDistances(1));
-// 		const double unsigned_distance2=fabs(rDistances(2));
-// 		//we begin by finding the largest distance:
-// 		double longest_distance=fabs(unsigned_distance0);
-// 		if (unsigned_distance1>longest_distance)
-// 			longest_distance=unsigned_distance1;
-// 		if (unsigned_distance2>longest_distance)
-// 			longest_distance=unsigned_distance2;
-// 		//Now we set a maximum relative distance
-// 		const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
-// // 		//and now we check if a distance is too small:
-// // 		if (unsigned_distance0<tolerable_distance)
-// // 			rDistances[0]=tolerable_distance*(rDistances[0]/(fabs(rDistances[0]));
-// // 		if (unsigned_distance1<tolerable_distance)
-// // 			rDistances[1]=tolerable_distance*(rDistances[1]/(fabs(rDistances[1]));
-// // 		if (unsigned_distance2<tolerable_distance)
-// // 			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
-// 		if (unsigned_distance0<tolerable_distance && unsigned_distance0)
-// 			rDistances[0]=tolerable_distance*(rDistances[0]/(fabs(rDistances[0]));
-// 		if (unsigned_distance1<tolerable_distance)
-// 			rDistances[1]=tolerable_distance*(rDistances[1]/(fabs(rDistances[1]));
-// 		if (unsigned_distance2<tolerable_distance)
-// 			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
-//
-// 		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
-
-
-        //for (int jj = 0; jj < 3; jj++)
-        //	KRATOS_WATCH(rDistances(jj));
-        for (unsigned int i=0; i<3; i++) //we go over the 3 edges:
+        // Go over the 3 edges
+        for (unsigned int i=0; i<3; i++)
         {
-            int edge_begin_node=i;
-            int edge_end_node=i+1;
-            if (edge_end_node==3) edge_end_node=0; //it's a triangle, so node 3 is actually node 0
+            const unsigned int edge_begin_node = i;
+            const unsigned int edge_end_node = (i+1 == 3) ? 0 : i+1; // It's a triangle, so node 3 is actually node 0
 
-            if(cut_edges(i)==true)
+            if(cut_edges(i) == true)
             {
-                aux_nodes_relative_locations(i)=fabs(rDistances(edge_end_node)/(rDistances(edge_end_node)-rDistances(edge_begin_node) ) ) ; //position in 'natural' coordinates of edge 12, 1 when it passes over node 1. (it is over the edge 01)
+                aux_nodes_relative_locations(i)=std::abs(rDistances(edge_end_node)/(rDistances(edge_end_node)-rDistances(edge_begin_node) ) ) ; // Position in 'natural' coordinates of edge 12, 1 when it passes over node 1. (it is over the edge 01)
                 aux_nodes_father_nodes(i,0)=edge_begin_node;
                 aux_nodes_father_nodes(i,1)=edge_end_node;
             }
             else
             {
-                if(fabs(rDistances(edge_end_node))>fabs(rDistances(edge_begin_node))) //if edge is not cut, we collapse the aux node into the node which has the highest absolute value to have "nicer" (less "slivery") subelements
+                if(std::abs(rDistances(edge_end_node))>std::abs(rDistances(edge_begin_node))) // If edge is not cut, we collapse the aux node into the node which has the highest absolute value to have "nicer" (less "slivery") subelements
                 {
                     aux_nodes_relative_locations(i)=0.0;
                     aux_nodes_father_nodes(i,0)=edge_end_node;
@@ -670,31 +621,61 @@ public:
                 }
             }
 
-            //and we save the coordinate of the new aux nodes:
-            for (unsigned int j=0; j<2; j++)	//x,y coordinates
+            // Save the x and y-coordinates of the new aux nodes
+            for (unsigned int j=0; j<2; j++)
+            {
                 aux_points(i,j)= rPoints(edge_begin_node,j) * aux_nodes_relative_locations(i) + rPoints(edge_end_node,j) * (1.0- aux_nodes_relative_locations(i));
+            }
         }
 
+        // Compute the edge areas
+        unsigned int aux_counter = 0;
+        bounded_matrix<double, 2, 2> intersection_aux_points;
 
-        //we reset all data:
+        for (unsigned int iedge = 0; iedge<3; ++iedge)
+        {
+            if (cut_edges(iedge) == true)
+            {
+                intersection_aux_points(aux_counter, 0) = aux_points(iedge, 0);
+                intersection_aux_points(aux_counter, 1) = aux_points(iedge, 1);
+                aux_counter++;
+            }
+        }
+
+        const double intersection_length = std::sqrt(std::pow(intersection_aux_points(0,0)-intersection_aux_points(1,0), 2) +
+                                                     std::pow(intersection_aux_points(0,1)-intersection_aux_points(1,1), 2));
+
+        rEdgeAreas[0] = (cut_edges(0) == true) ? intersection_length*0.5 : 0.0;
+        rEdgeAreas[1] = (cut_edges(1) == true) ? intersection_length*0.5 : 0.0;
+        rEdgeAreas[2] = (cut_edges(2) == true) ? intersection_length*0.5 : 0.0;
+
+        // Reset all data:
         rGradientsValue[0]=ZeroMatrix(3,2);
         rGradientsValue[1]=ZeroMatrix(3,2);
         rGradientsValue[2]=ZeroMatrix(3,2);
-        Nenriched=ZeroMatrix(3,3);
+        rNenriched=ZeroMatrix(3,3);
         rGPShapeFunctionValues=ZeroMatrix(3,3);
 
+        bounded_matrix<unsigned int, 4, 3> partition_nodes_id;
 
-        //now we must check the 4 created partitions of the domain.
-        //one has been collapsed, so we discard it and therefore save only one.
-        unsigned int partition_number=0;		//
-        //the 3 first partitions are  created using 2 auxiliary nodes and a normal node. at least one of these will be discarded due to zero area
-        //the last one is composed by the 3 auxiliary nodes. it 'looks' wrong, but since at least one has been collapsed, it actually has a normal node.
-        for (unsigned int i=0; i<4; i++) //i partition
+        // Now we must check the 4 created partitions of the domain.
+        // One has been collapsed, so we discard it and therefore save only one.
+        // The 3 first partitions are  created using 2 auxiliary nodes and a normal node. at least one of these will be discarded due to zero area
+        // The last one is composed by the 3 auxiliary nodes. it 'looks' wrong, but since at least one has been collapsed, it actually has a normal node.
+        unsigned int partition_number=0;
+
+        for (unsigned int i=0; i<4; i++) // i partition
         {
-            unsigned int j_aux = i + 2;
-            if (j_aux>2) j_aux -= 3;
-            boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+
+            const unsigned int j_aux = (i+2 > 2) ? i-1 : i+2;
+
+            bounded_matrix<int,3,2> partition_father_nodes;
             array_1d<double,3> N;
+
+            partition_nodes_id(i,0) = i;
+            partition_nodes_id(i,1) = i+2;
+            partition_nodes_id(i,2) = j_aux;
+
             if (i<3)
             {
                 partition_father_nodes(0,0)=i;
@@ -713,61 +694,68 @@ public:
             }
             else
             {
-                //the last partition, made by the 3 aux nodes.
+                // Last partition, made by the 3 aux nodes.
                 partition_father_nodes=aux_nodes_father_nodes;
                 coord_subdomain=aux_points;
             }
-            //calculate data of this partition
+
+            // Calculate data of this partition
             double temp_area;
             CalculateGeometryData(coord_subdomain, DN_DX_subdomain, temp_area);
-            if (temp_area > 1.0e-20) //ok, it does not have zero area
+
+            if (temp_area > std::numeric_limits<double>::epsilon()) // Check if it does have zero area
             {
-                rVolumes(partition_number)=temp_area;
-                //we look for the gauss point of the partition:
-                double x_GP_partition =  one_third * ( coord_subdomain(0,0) + coord_subdomain(1,0) + coord_subdomain(2,0) );
-                double y_GP_partition =  one_third * ( coord_subdomain(0,1) + coord_subdomain(1,1) + coord_subdomain(2,1) );
-                double z_GP_partition  = 0.0;
-                //we reset the coord_subdomain matrix so that we have the whole element again:
+                rVolumes(partition_number) = temp_area;
+
+                // Look for the gauss point of the partition:
+                const double x_GP_partition =  one_third * ( coord_subdomain(0,0) + coord_subdomain(1,0) + coord_subdomain(2,0) );
+                const double y_GP_partition =  one_third * ( coord_subdomain(0,1) + coord_subdomain(1,1) + coord_subdomain(2,1) );
+                const double z_GP_partition  = 0.0;
+
+                // Reset the coord_subdomain matrix to have the whole element again
                 coord_subdomain = rPoints;
-                //and we calculate its shape function values
+
+                // Calculate its shape function values
                 CalculatePosition ( coord_subdomain , x_GP_partition ,y_GP_partition ,z_GP_partition , N);
-                //we check the partition sign.
-                const double partition_sign = (N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2))/fabs(N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2));
-                rPartitionsSign(partition_number)=partition_sign;
-                //now we must add the contribution to the normal nodes only if they have the same sign:
+
+                // Check the partition sign.
+                const double partition_sign = (N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2))/std::abs(N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2));
+                rPartitionsSign(partition_number) = partition_sign;
+
+                // Add the contribution to the normal nodes only if they have the same sign
                 for (int j=0; j<3; j++) //j (real) node
                 {
-                    if((partition_sign*rDistances(j))>0) //ok. add contribution!
+                    if((partition_sign*rDistances(j)) > 0) // Add contribution!
                     {
-                        //now we loop in the nodes that define the partition.
-                        for (unsigned int k=0; k<3; k++) //loop on k nodes of the current subelement
+                        // Loop in the nodes that define the partition.
+                        for (unsigned int k=0; k<3; k++) // Loop on k nodes of the current subelement
+                        {
                             if (partition_father_nodes(k,0)==j || partition_father_nodes(k,1)==j )// (first node)
                             {
-                                Nenriched(partition_number,j)+=one_third; //partition, shape function
-                                rGradientsValue[partition_number](j,0)+=DN_DX_subdomain(k,0); //[i_partition], (shape function gradient,direction(x,y))
-                                rGradientsValue[partition_number](j,1)+=DN_DX_subdomain(k,1); //[i_partition], (shape function gradient,direction(x,y))
+                                rNenriched(partition_number,j) += one_third; // Partition, shape function
+                                rGradientsValue[partition_number](j,0) += DN_DX_subdomain(k,0); // [i_partition], (shape function gradient,direction(x,y))
+                                rGradientsValue[partition_number](j,1) += DN_DX_subdomain(k,1); // [i_partition], (shape function gradient,direction(x,y))
                             }
-
+                        }
                     }
-                    //else //do nothing. it simply can't add to a  node that is not in the same side, since we are creating discontinous shape functions
+                    // Else do nothing it simply can't add to a node that is not in the same side, since we are creating discontinous shape functions
                 }
 
-                rGPShapeFunctionValues(partition_number,0)=N(0);
-                rGPShapeFunctionValues(partition_number,1)=N(1);
-                rGPShapeFunctionValues(partition_number,2)=N(2);
+                rGPShapeFunctionValues(partition_number,0) = N(0);
+                rGPShapeFunctionValues(partition_number,1) = N(1);
+                rGPShapeFunctionValues(partition_number,2) = N(2);
 
                 partition_number++;
-
             }
 
         }
 
         double tot_area;
-        CalculateGeometryData(rPoints, DN_DX, tot_area);
+        CalculateGeometryData(rPoints, rDN_DX, tot_area);
 
         return 3;
-        KRATOS_CATCH("");
 
+        KRATOS_CATCH("");
     }
 
     //2D IN LOCAL AXIS
@@ -788,13 +776,14 @@ public:
         boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
         boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 
-
-
-        double Area;//area of the complete element
         rGPShapeFunctionValues(0,0)=one_third;
         rGPShapeFunctionValues(0,1)=one_third;
         rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
-        Area = CalculateVolume2D( rOriginalPoints );
+
+        // Area of the complete element
+        const double Area = CalculateVol(rOriginalPoints(0,0), rOriginalPoints(0,1),
+                                         rOriginalPoints(1,0), rOriginalPoints(1,1),
+                                         rOriginalPoints(2,0), rOriginalPoints(2,1));
         array_1d<bool,3> cut_edges;
         array_1d<double,3> aux_nodes_relative_locations;
         boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
@@ -841,11 +830,11 @@ public:
 
             //'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
             //since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
-            const double unsigned_distance0=fabs(rDistances(0));
-            const double unsigned_distance1=fabs(rDistances(1));
-            const double unsigned_distance2=fabs(rDistances(2));
+            const double unsigned_distance0=std::abs(rDistances(0));
+            const double unsigned_distance1=std::abs(rDistances(1));
+            const double unsigned_distance2=std::abs(rDistances(2));
             //we begin by finding the largest distance:
-            double longest_distance=fabs(unsigned_distance0);
+            double longest_distance=std::abs(unsigned_distance0);
             if (unsigned_distance1>longest_distance)
                 longest_distance=unsigned_distance1;
             if (unsigned_distance2>longest_distance)
@@ -854,11 +843,11 @@ public:
             const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
             //and now we check if a distance is too small:
             if (unsigned_distance0<tolerable_distance)
-                rDistances[0]=tolerable_distance*(rDistances[0]/fabs(rDistances[0]));
+                rDistances[0]=tolerable_distance*(rDistances[0]/std::abs(rDistances[0]));
             if (unsigned_distance1<tolerable_distance)
-                rDistances[1]=tolerable_distance*(rDistances[1]/fabs(rDistances[1]));
+                rDistances[1]=tolerable_distance*(rDistances[1]/std::abs(rDistances[1]));
             if (unsigned_distance2<tolerable_distance)
-                rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
+                rDistances[2]=tolerable_distance*(rDistances[2]/std::abs(rDistances[2]));
             //END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
 
 
@@ -872,13 +861,13 @@ public:
 
                 if(cut_edges(i)==true)
                 {
-                    aux_nodes_relative_locations(i)=fabs(rDistances(edge_end_node)/(rDistances(edge_end_node)-rDistances(edge_begin_node) ) ) ; //position in 'natural' coordinates of edge 12, 1 when it passes over node 1. (it is over the edge 01)
+                    aux_nodes_relative_locations(i)=std::abs(rDistances(edge_end_node)/(rDistances(edge_end_node)-rDistances(edge_begin_node) ) ) ; //position in 'natural' coordinates of edge 12, 1 when it passes over node 1. (it is over the edge 01)
                     aux_nodes_father_nodes(i,0)=edge_begin_node;
                     aux_nodes_father_nodes(i,1)=edge_end_node;
                 }
                 else
                 {
-                    if(fabs(rDistances(edge_end_node))>fabs(rDistances(edge_begin_node))) //if edge is not cut, we collapse the aux node into the node which has the highest absolute value to have "nicer" (less "slivery") subelements
+                    if(std::abs(rDistances(edge_end_node))>std::abs(rDistances(edge_begin_node))) //if edge is not cut, we collapse the aux node into the node which has the highest absolute value to have "nicer" (less "slivery") subelements
                     {
                         aux_nodes_relative_locations(i)=0.0;
                         aux_nodes_father_nodes(i,0)=edge_end_node;
@@ -934,7 +923,6 @@ public:
                 aux_points(i,1)= cosinus * (aux_points(i,1)-y_reference) + sinus * (aux_x_coord-x_reference);
             }
 
-
             //to calculate the new rigidity matrix in local coordinates, the element will need the derivated in the rotated axis and the rotation matrix:
             CalculateGeometryData(rRotatedPoints, DN_DX_in_local_axis, temp_area);
 
@@ -942,11 +930,6 @@ public:
             rRotationMatrix(0,1)= sinus;
             rRotationMatrix(1,0)= -sinus;
             rRotationMatrix(1,1)=cosinus;
-
-            //KRATOS_WATCH(rRotatedPoints)
-            //KRATOS_WATCH(aux_points)
-            //KRATOS_WATCH(rRotationMatrix)
-
 
             //we reset all data:
             rGradientsValue[0]=ZeroMatrix(3,2);
@@ -989,10 +972,10 @@ public:
                     partition_father_nodes=aux_nodes_father_nodes;
                     coord_subdomain=aux_points;
                 }
-                //calculate data of this partition
 
+                //calculate data of this partition
                 CalculateGeometryData(coord_subdomain, DN_DX_subdomain, temp_area);
-                if (temp_area > 1.0e-20) //ok, it does not have zero area
+                if (temp_area > std::numeric_limits<double>::epsilon()) //ok, it does not have zero area
                 {
                     rVolumes(partition_number)=temp_area;
                     //we look for the gauss point of the partition:
@@ -1004,7 +987,7 @@ public:
                     //and we calculate its shape function values
                     CalculatePosition ( coord_subdomain , x_GP_partition ,y_GP_partition ,z_GP_partition , N);
                     //we check the partition sign.
-                    const double partition_sign = (N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2))/fabs(N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2));
+                    const double partition_sign = (N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2))/std::abs(N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2));
                     rPartitionsSign(partition_number)=partition_sign;
                     //now we must add the contribution to the normal nodes only if they have the same sign:
                     for (int j=0; j<3; j++) //j (real) node
@@ -1019,9 +1002,8 @@ public:
                                     rGradientsValue[partition_number](j,0)+=DN_DX_subdomain(k,0); //[i_partition], (shape function gradient,direction(x,y))
                                     rGradientsValue[partition_number](j,1)+=DN_DX_subdomain(k,1); //[i_partition], (shape function gradient,direction(x,y))
                                 }
-
                         }
-                        //else //do nothing. it simply can't add to a  node that is not in the same side, since we are creating discontinous shape functions
+                        //else do nothing. it simply can't add to a node that is not in the same side, since we are creating discontinous shape functions
                     }
 
                     rGPShapeFunctionValues(partition_number,0)=N(0);
@@ -1031,16 +1013,12 @@ public:
                     partition_number++;
 
                 }
-
             }
-
-
-
 
             return 3;
         }
-        KRATOS_CATCH("");
 
+        KRATOS_CATCH("");
     }
 
 
@@ -1070,11 +1048,6 @@ private:
         const int i = edge_i[Edge];
         const int j = edge_j[Edge];
 
-        //            std::cout << "splitting edge" << i << " " << j << std::endl;
-        //            KRATOS_WATCH(Volume1Id);
-        //            KRATOS_WATCH(Volume2Id);
-        //            KRATOS_WATCH(rShapeFunctionValues)
-
         double delta1 = rShapeFunctionValues(Volume1Id, i) * (1.00 - division_i);
         rShapeFunctionValues(Volume1Id, i) += delta1;
         rShapeFunctionValues(Volume1Id, j) -= delta1;
@@ -1082,13 +1055,6 @@ private:
         double delta2 = rShapeFunctionValues(Volume2Id, i) * (1.00 - division_j);
         rShapeFunctionValues(Volume2Id, j) += delta2;
         rShapeFunctionValues(Volume2Id, i) -= delta2;
-
-        //            KRATOS_WATCH(delta1)
-        //            KRATOS_WATCH(delta2)
-        //
-        //            KRATOS_WATCH(rShapeFunctionValues)
-
-
 
         //            rShapeFunctionValues(Volume1Id, i) += rShapeFunctionValues(Volume1Id, j) * (1.00 - division_i);
         //            rShapeFunctionValues(Volume1Id, j) *= division_i;
@@ -1105,17 +1071,17 @@ private:
             array_1d<double, 3 > & center_position,
             const int i0, const int i1, const int i2, const int i3)
     {
-        double x10 = aux_coordinates(i1, 0) - aux_coordinates(i0, 0); //geom[1].X() - geom[0].X();
-        double y10 = aux_coordinates(i1, 1) - aux_coordinates(i0, 1); // geom[1].Y() - geom[0].Y();
-        double z10 = aux_coordinates(i1, 2) - aux_coordinates(i0, 2); // geom[1].Z() - geom[0].Z();
+        double x10 = aux_coordinates(i1, 0) - aux_coordinates(i0, 0);
+        double y10 = aux_coordinates(i1, 1) - aux_coordinates(i0, 1);
+        double z10 = aux_coordinates(i1, 2) - aux_coordinates(i0, 2);
 
-        double x20 = aux_coordinates(i2, 0) - aux_coordinates(i0, 0); // geom[2].X() - geom[0].X();
-        double y20 = aux_coordinates(i2, 1) - aux_coordinates(i0, 1); // geom[2].Y() - geom[0].Y();
-        double z20 = aux_coordinates(i2, 2) - aux_coordinates(i0, 2); // geom[2].Z() - geom[0].Z();
+        double x20 = aux_coordinates(i2, 0) - aux_coordinates(i0, 0);
+        double y20 = aux_coordinates(i2, 1) - aux_coordinates(i0, 1);
+        double z20 = aux_coordinates(i2, 2) - aux_coordinates(i0, 2);
 
-        double x30 = aux_coordinates(i3, 0) - aux_coordinates(i0, 0); // geom[3].X() - geom[0].X();
-        double y30 = aux_coordinates(i3, 1) - aux_coordinates(i0, 1); // geom[3].Y() - geom[0].Y();
-        double z30 = aux_coordinates(i3, 2) - aux_coordinates(i0, 2); // geom[3].Z() - geom[0].Z();
+        double x30 = aux_coordinates(i3, 0) - aux_coordinates(i0, 0);
+        double y30 = aux_coordinates(i3, 1) - aux_coordinates(i0, 1);
+        double z30 = aux_coordinates(i3, 2) - aux_coordinates(i0, 2);
 
         double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
         double vol = detJ * 0.1666666666666666666667;
@@ -1130,153 +1096,144 @@ private:
     }
 
     template<class TMatrixType>
-    static void ComputeElementCoordinates(array_1d<double, 4 > & N, const array_1d<double, 3 > & center_position, const TMatrixType& rPoints, const double vol)
+    static void ComputeElementCoordinates(array_1d<double, 4 > & rN,
+                                          const array_1d<double, 3 > & rCenterPosition,
+                                          const TMatrixType& rPoints,
+                                          const double Vol)
     {
-        double x0 = rPoints(0, 0); //geom[0].X();
-        double y0 = rPoints(0, 1); //geom[0].Y();
-        double z0 = rPoints(0, 2); //geom[0].Z();
-        double x1 = rPoints(1, 0); //geom[1].X();
-        double y1 = rPoints(1, 1); //geom[1].Y();
-        double z1 = rPoints(1, 2); //geom[1].Z();
-        double x2 = rPoints(2, 0); //geom[2].X();
-        double y2 = rPoints(2, 1); //geom[2].Y();
-        double z2 = rPoints(2, 2); //geom[2].Z();
-        double x3 = rPoints(3, 0); //geom[3].X();
-        double y3 = rPoints(3, 1); //geom[3].Y();
-        double z3 = rPoints(3, 2); //geom[3].Z();
+        const double x0 = rPoints(0, 0);
+        const double y0 = rPoints(0, 1);
+        const double z0 = rPoints(0, 2);
+        const double x1 = rPoints(1, 0);
+        const double y1 = rPoints(1, 1);
+        const double z1 = rPoints(1, 2);
+        const double x2 = rPoints(2, 0);
+        const double y2 = rPoints(2, 1);
+        const double z2 = rPoints(2, 2);
+        const double x3 = rPoints(3, 0);
+        const double y3 = rPoints(3, 1);
+        const double z3 = rPoints(3, 2);
 
-        double xc = center_position[0];
-        double yc = center_position[1];
-        double zc = center_position[2];
+        const double xc = rCenterPosition[0];
+        const double yc = rCenterPosition[1];
+        const double zc = rCenterPosition[2];
 
-        double inv_vol = 1.0 / vol;
-        //            N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
-        //            N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
-        //            N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
-        //            N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
-        N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
-        N[1] = CalculateVol(x0, y0, z0, x2, y2, z2, x3, y3, z3, xc, yc, zc) * inv_vol;
-        N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
-        N[3] = CalculateVol(x1, y1, z1, x2, y2, z2, x0, y0, z0, xc, yc, zc) * inv_vol;
+        const double inv_vol = 1.0 / Vol;
 
+        rN[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
+        rN[1] = CalculateVol(x0, y0, z0, x2, y2, z2, x3, y3, z3, xc, yc, zc) * inv_vol;
+        rN[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
+        rN[3] = CalculateVol(x1, y1, z1, x2, y2, z2, x0, y0, z0, xc, yc, zc) * inv_vol;
     }
 
     static inline double CalculateVol(const double x0, const double y0, const double z0,
                                       const double x1, const double y1, const double z1,
                                       const double x2, const double y2, const double z2,
-                                      const double x3, const double y3, const double z3
-                                     )
+                                      const double x3, const double y3, const double z3)
     {
-        double x10 = x1 - x0;
-        double y10 = y1 - y0;
-        double z10 = z1 - z0;
+        const double x10 = x1 - x0;
+        const double y10 = y1 - y0;
+        const double z10 = z1 - z0;
 
-        double x20 = x2 - x0;
-        double y20 = y2 - y0;
-        double z20 = z2 - z0;
+        const double x20 = x2 - x0;
+        const double y20 = y2 - y0;
+        const double z20 = z2 - z0;
 
-        double x30 = x3 - x0;
-        double y30 = y3 - y0;
-        double z30 = z3 - z0;
+        const double x30 = x3 - x0;
+        const double y30 = y3 - y0;
+        const double z30 = z3 - z0;
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+
         return detJ * 0.1666666666666666666667;
     }
 
-    static inline void CalculateGeometryData(
-        const bounded_matrix<double, 3, 3 > & coordinates,
-        boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
-        double& Area)
+    static inline double CalculateVol(const double x0, const double y0,
+                                      const double x1, const double y1,
+                                      const double x2, const double y2)
     {
-        double x10 = coordinates(1,0) - coordinates(0,0);
-        double y10 = coordinates(1,1) - coordinates(0,1);
+        return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
+    }
 
-        double x20 = coordinates(2,0) - coordinates(0,0);
-        double y20 = coordinates(2,1) - coordinates (0,1);
+    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & rCoordinates,
+                                             bounded_matrix<double,3,2>& rDN_DX,
+                                             double& rArea)
+    {
+        const double x10 = rCoordinates(1,0) - rCoordinates(0,0);
+        const double y10 = rCoordinates(1,1) - rCoordinates(0,1);
+
+        const double x20 = rCoordinates(2,0) - rCoordinates(0,0);
+        const double y20 = rCoordinates(2,1) - rCoordinates (0,1);
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
         //J=|				|=	|			  |
         //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
 
+        const double detJ = x10 * y20-y10 * x20;
 
-        double detJ = x10 * y20-y10 * x20;
+        rDN_DX(0,0) = -y20 + y10;
+        rDN_DX(0,1) = x20 - x10;
+        rDN_DX(1,0) =  y20;
+        rDN_DX(1,1) = -x20;
+        rDN_DX(2,0) = -y10;
+        rDN_DX(2,1) = x10;
 
-        DN_DX(0,0) = -y20 + y10;
-        DN_DX(0,1) = x20 - x10;
-        DN_DX(1,0) =  y20	   ;
-        DN_DX(1,1) = -x20     ;
-        DN_DX(2,0) = -y10	   ;
-        DN_DX(2,1) = x10	   ;
+        rDN_DX /= detJ;
 
-        DN_DX /= detJ;
-
-        Area = 0.5*detJ;
+        rArea = 0.5*detJ;
     }
 
-    static inline void CalculateGeometryData( //3D
-        boost::numeric::ublas::bounded_matrix<double, 4, 3 > & coordinates,
-        boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,
-        double& Volume)
+    static inline void CalculateGeometryData(bounded_matrix<double, 4, 3 > & rCoordinates,
+                                             bounded_matrix<double,4,3>& rDN_DX,
+                                             double& rVolume)
     {
-        double x10 = coordinates(1,0) - coordinates(0,0);
-        double y10 = coordinates(1,1) - coordinates(0,1);
-        double z10 = coordinates(1,2) - coordinates(0,2);
+        const double x10 = rCoordinates(1,0) - rCoordinates(0,0);
+        const double y10 = rCoordinates(1,1) - rCoordinates(0,1);
+        const double z10 = rCoordinates(1,2) - rCoordinates(0,2);
 
-        double x20 = coordinates(2,0) - coordinates(0,0);
-        double y20 = coordinates(2,1) - coordinates (0,1);
-        double z20 = coordinates(2,2) - coordinates (0,2);
+        const double x20 = rCoordinates(2,0) - rCoordinates(0,0);
+        const double y20 = rCoordinates(2,1) - rCoordinates (0,1);
+        const double z20 = rCoordinates(2,2) - rCoordinates (0,2);
 
-        double x30 = coordinates(3,0) - coordinates(0,0);
-        double y30 = coordinates(3,1) - coordinates (0,1);
-        double z30 = coordinates(3,2) - coordinates (0,2);
+        const double x30 = rCoordinates(3,0) - rCoordinates(0,0);
+        const double y30 = rCoordinates(3,1) - rCoordinates (0,1);
+        const double z30 = rCoordinates(3,2) - rCoordinates (0,2);
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
-        DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
-        DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
-        DN_DX(0,2) = -x20 * y30 + y20 * x30 + x10 * y30 - y10 * x30 - x10 * y20 + y10 * x20;
-        DN_DX(1,0) = y20 * z30 - y30 * z20;
-        DN_DX(1,1) = z20 * x30 - x20 * z30;
-        DN_DX(1,2) = x20 * y30 - y20 * x30;
-        DN_DX(2,0) = -y10 * z30 + z10 * y30;
-        DN_DX(2,1) = x10 * z30 - z10 * x30;
-        DN_DX(2,2) = -x10 * y30 + y10 * x30;
-        DN_DX(3,0) = y10 * z20 - z10 * y20;
-        DN_DX(3,1) = -x10 * z20 + z10 * x20;
-        DN_DX(3,2) = x10 * y20 - y10 * x20;
+        rDN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
+        rDN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
+        rDN_DX(0,2) = -x20 * y30 + y20 * x30 + x10 * y30 - y10 * x30 - x10 * y20 + y10 * x20;
+        rDN_DX(1,0) = y20 * z30 - y30 * z20;
+        rDN_DX(1,1) = z20 * x30 - x20 * z30;
+        rDN_DX(1,2) = x20 * y30 - y20 * x30;
+        rDN_DX(2,0) = -y10 * z30 + z10 * y30;
+        rDN_DX(2,1) = x10 * z30 - z10 * x30;
+        rDN_DX(2,2) = -x10 * y30 + y10 * x30;
+        rDN_DX(3,0) = y10 * z20 - z10 * y20;
+        rDN_DX(3,1) = -x10 * z20 + z10 * x20;
+        rDN_DX(3,2) = x10 * y20 - y10 * x20;
 
-        DN_DX /= detJ;
+        rDN_DX /= detJ;
 
-        Volume = detJ*0.1666666666666666666667;
+        rVolume = detJ*0.1666666666666666666667;
     }
 
-    //template<class TMatrixType, class TVectorType, class TGradientType>
-    static inline double CalculateVolume2D(
-        const bounded_matrix<double, 3, 3 > & coordinates)
+    static inline void CalculatePosition(const bounded_matrix<double, 3, 3 > & rCoordinates,
+                                         const double xc,
+                                         const double yc,
+                                         const double zc,
+                                         array_1d<double, 3 > & rN)
     {
-        double x10 = coordinates(1,0) - coordinates(0,0);
-        double y10 = coordinates(1,1) - coordinates(0,1);
+        const double x0 = rCoordinates(0,0);
+        const double y0 = rCoordinates(0,1);
+        const double x1 = rCoordinates(1,0);
+        const double y1 = rCoordinates(1,1);
+        const double x2 = rCoordinates(2,0);
+        const double y2 = rCoordinates(2,1);
 
-        double x20 = coordinates(2,0) - coordinates(0,0);
-        double y20 = coordinates(2,1) - coordinates (0,1);
-        double detJ = x10 * y20-y10 * x20;
-        return 0.5*detJ;
-    }
-
-    static inline void CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
-                                         const double xc, const double yc, const double zc,
-                                         array_1d<double, 3 > & N
-                                        )
-    {
-        double x0 = coordinates(0,0);
-        double y0 = coordinates(0,1);
-        double x1 = coordinates(1,0);
-        double y1 = coordinates(1,1);
-        double x2 = coordinates(2,0);
-        double y2 = coordinates(2,1);
-
-        double area = CalculateVol(x0, y0, x1, y1, x2, y2);
+        const double area = CalculateVol(x0, y0, x1, y1, x2, y2);
         double inv_area = 0.0;
         if (area == 0.0)
         {
@@ -1287,65 +1244,49 @@ private:
             inv_area = 1.0 / area;
         }
 
-
-        N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
-        N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
-        N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
-        //KRATOS_WATCH(N);
-        /*
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
-            return true;
-
-        return false;
-        */
-    }
-
-    static inline double CalculateVol(const double x0, const double y0,
-                                      const double x1, const double y1,
-                                      const double x2, const double y2
-                                     )
-    {
-        return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
+        rN[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
+        rN[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
+        rN[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
     }
 
     template <int TDim>
-    static void AddToEdgeAreas(array_1d<double, (TDim-1)*3 >& edge_areas, 
-                        const array_1d<double, TDim+1 >& exact_distance,
-                        const array_1d<double, TDim+1 >& indices,
-                        const double sub_volume)
+    static void AddToEdgeAreas(array_1d<double, (TDim-1)*3 >& rEdgeAreas,
+                               const array_1d<double, TDim+1 >& rExactDistance,
+                               const array_1d<double, TDim+1 >& rIndices,
+                               const double SubVolume)
     {
-        //check if the element has 3 "nodes" on the cut surface and if the remaining one is positive
-        //to do so, remember that edge nodes are marked with an id greater than 3
+        // Check if the element has 3 "nodes" on the cut surface and if the remaining one is positive
+        // To do so, remember that edge nodes are marked with an id greater than 3
         unsigned int ncut=0, pos=0, positive_pos=0;
         for(unsigned int i=0; i<TDim+1; i++)
         {
-            if(indices[i] > TDim) ncut++;
-            else if(exact_distance[indices[i]] > 0)
+            if(rIndices[i] > TDim)
             {
-                positive_pos = indices[i];
+            ncut++;
+            }
+            else if(rExactDistance[rIndices[i]] > 0)
+            {
+                positive_pos = rIndices[i];
                 pos++;
             }
         }
-               
+
         if(ncut == TDim && pos==1) //cut face with a positive node!!
         {
-            double edge_area = sub_volume*3.0/fabs(exact_distance[positive_pos]);
+            double edge_area = SubVolume*3.0/std::abs(rExactDistance[positive_pos]);
             edge_area /= static_cast<double>(TDim);
             for(unsigned int i=0; i<TDim+1; i++)
             {
-                if( indices[i] > TDim)
+                if( rIndices[i] > TDim)
                 {
-                    int edge_index = indices[i] - TDim - 1;
-                    edge_areas[edge_index] += edge_area;
+                    int edge_index = rIndices[i] - TDim - 1;
+                    rEdgeAreas[edge_index] += edge_area;
                 }
              }
         }
     }
-
 };
 
 } // namespace Kratos.
 
 #endif // KRATOS_DISCONTINUOUS_UTILITIES_INCLUDED  defined
-
-
