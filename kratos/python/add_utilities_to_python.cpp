@@ -49,6 +49,9 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/process_factory_utility.h"  
+#include "utilities/table_stream_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -303,6 +306,20 @@ void AddUtilitiesToPython()
     .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
     ;
 
+    // Process Factory utility 
+    class_< ProcessFactoryUtility >("ProcessFactoryUtility", init<boost::python::list&>()) 
+    .def("AddProcess",&ProcessFactoryUtility::AddProcess) 
+    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses) 
+    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize) 
+    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop) 
+    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep) 
+    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep) 
+    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep) 
+    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep) 
+    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize) 
+    .def("Clear",&ProcessFactoryUtility::Clear) 
+    ; 
+    
     class_<CuttingUtility >("CuttingUtility", init< >())
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
@@ -314,6 +331,31 @@ void AddUtilitiesToPython()
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Adding table from table stream to python
+    class_<TableStreamUtility>("TableStreamUtility", init<>())
+    .def(init< bool >())
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
 }
 

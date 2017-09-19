@@ -37,9 +37,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamConstructionProcess(ModelPart& model_part,
+    DamConstructionProcess(ModelPart& rModelPart,
                                 Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -63,14 +63,14 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mheight = rParameters["Height_Dam"].GetDouble();
-        mphases = rParameters["Number_of_phases"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mIsFixed = rParameters["is_fixed"].GetBool();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mHeight = rParameters["Height_Dam"].GetDouble();
+        mPhases = rParameters["Number_of_phases"].GetDouble();
 
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
   
 
         KRATOS_CATCH("");
@@ -88,11 +88,11 @@ public:
     {
         KRATOS_TRY;
         
-        const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
+        const int nelements = mrModelPart.GetMesh(mMeshId).Elements().size();
 
         if (nelements != 0)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
             
             #pragma omp parallel for
             for(int k = 0; k<nelements; k++)
@@ -113,24 +113,24 @@ public:
             
             KRATOS_TRY;
             
-            const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
+            const int nelements = mrModelPart.GetMesh(mMeshId).Elements().size();
             int direction;
             
-            if( mgravity_direction == "X")
+            if( mGravityDirection == "X")
                 direction = 0;
-            else if( mgravity_direction == "Y")
+            else if( mGravityDirection == "Y")
                 direction = 1;
             else
                 direction = 2;
 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
 
-            double current_height = mreference_coordinate + (mheight/mphases)*time;
+            double current_height = mReferenceCoordinate + (mHeight/mPhases)*time;
 
             if (nelements != 0)
             {
-                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+                ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
                 
                 #pragma omp parallel for
                 for(int k = 0; k<nelements; k++)
@@ -139,7 +139,7 @@ public:
                     const Geometry< Node<3> >& geom = it->GetGeometry();
                     array_1d<double,3> central_position = geom.Center();
 
-                    if((central_position(direction) >= mreference_coordinate) && (central_position(direction) <= current_height) )
+                    if((central_position(direction) >= mReferenceCoordinate) && (central_position(direction) <= current_height) )
                     {
                         it->Set(ACTIVE, true);
                     }
@@ -175,14 +175,14 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mgravity_direction;
-    bool mis_fixed;
-    double mreference_coordinate;
-    double mheight;
-    double mphases;
-    double mtime_unit_converter;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mGravityDirection;
+    bool mIsFixed;
+    double mReferenceCoordinate;
+    double mHeight;
+    double mPhases;
+    double mTimeUnitConverter;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

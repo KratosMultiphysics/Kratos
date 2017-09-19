@@ -61,9 +61,8 @@ namespace Python
 
 void AddCustomUtilitiesToPython()
 {
-
     using namespace boost::python;
-
+    
     class_<MeshTransfer < 2 > >("MeshTransfer2D", init< >())
     .def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
     .def("DirectScalarVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation<double>)

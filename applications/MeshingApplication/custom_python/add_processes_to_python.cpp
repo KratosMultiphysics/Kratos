@@ -24,6 +24,7 @@
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
 #include "custom_processes/metrics_error_process.h"
+#include "custom_processes/metrics_spr_error_process.h"
 // #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
@@ -127,6 +128,33 @@ void  AddProcessesToPython()
         .def("Execute",&ComputeErrorSolMetricProcess<3>::Execute)
         ;
         
+        //SPR_ERROR
+        // SPR_ERROR DOUBLE
+        //class_<ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&, Variable<Vector>&>())
+        //.def(init<ModelPart&, Variable<Vector>&, Parameters>())
+        //.def("Execute",&ComputeSPRErrorSolMetricProcess<2, Variable<Vector>>::Execute)
+        //;
+        class_<ComputeSPRErrorSolMetricProcess<2>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<2>::Execute)
+        ;
+   
+        class_<ComputeSPRErrorSolMetricProcess<3>, bases<Process> >("ComputeSPRErrorSolMetricProcess3D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<3>::Execute)
+        ;
+        
+        // SPR_ERROR ARRAY 1D
+        /*class_<ComputeSPRErrorSolMetricProcess<2, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp2D", init<ModelPart&, component_type&>())
+        .def(init<ModelPart&, component_type&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<2, component_type>::Execute)
+        ;
+        
+        class_<ComputeSPRErrorSolMetricProcess<3, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp3D", init<ModelPart&, component_type&>())
+        .def(init<ModelPart&, component_type&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<3, component_type>::Execute)
+        ;*/
+
         /* MMG PROCESS */
         #ifdef INCLUDE_MMG
             // 2D

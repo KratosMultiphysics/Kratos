@@ -159,6 +159,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, FRICTION_COEFFICIENT )
   KRATOS_CREATE_VARIABLE( double, LAMBDA )
   KRATOS_CREATE_VARIABLE( double, MIU )
+  KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )
   KRATOS_CREATE_VARIABLE( double, NORMAL_CONTACT_STRESS )
   KRATOS_CREATE_VARIABLE( double, TANGENTIAL_CONTACT_STRESS )
 
@@ -212,6 +213,10 @@ namespace Kratos
   // For MeshingApplication
   KRATOS_CREATE_VARIABLE( double, NODAL_ERROR )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
+  KRATOS_CREATE_VARIABLE(double, ERROR_INTEGRATION_POINT)
+  KRATOS_CREATE_VARIABLE(Vector, RECOVERED_STRESS)
+  KRATOS_CREATE_VARIABLE(double, ELEMENT_H)
+  KRATOS_CREATE_VARIABLE(double, ELEMENT_ERROR)
 
   //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( double, NODAL_AREA )
@@ -585,6 +590,7 @@ namespace Kratos
       KratosApplication::RegisterC2CVariables(); //TODO: move to application
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
       KratosApplication::RegisterALEVariables(); //TODO: move to application
+      KratosApplication::RegisterMappingVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
       KratosApplication::RegisterFSIVariables(); //TODO: move to application
       KratosApplication::RegisterMATVariables(); //TODO: move to application
@@ -769,6 +775,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( FRICTION_COEFFICIENT )
       KRATOS_REGISTER_VARIABLE( LAMBDA )
       KRATOS_REGISTER_VARIABLE( MIU )
+      KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )
       KRATOS_REGISTER_VARIABLE( NORMAL_CONTACT_STRESS )
       KRATOS_REGISTER_VARIABLE( TANGENTIAL_CONTACT_STRESS )
 
@@ -857,6 +864,10 @@ namespace Kratos
       
       KRATOS_REGISTER_VARIABLE( NODAL_ERROR )
       KRATOS_REGISTER_VARIABLE( NODAL_ERROR_COMPONENTS )
+      KRATOS_REGISTER_VARIABLE( ERROR_INTEGRATION_POINT)
+      KRATOS_REGISTER_VARIABLE(RECOVERED_STRESS)
+      KRATOS_REGISTER_VARIABLE(ELEMENT_H)
+      KRATOS_REGISTER_VARIABLE(ELEMENT_ERROR)
       
       //--------------- PFEM fluids Application -------------------//
 
