@@ -500,6 +500,7 @@ protected:
                                                                                                                   enriched_shape_function_values,
                                                                                                                   edge_areas);
 
+            KRATOS_WATCH(partition_signs)
             KRATOS_WATCH(edge_areas)
 
             // Compute the shape function values at the intersection points in the edges
@@ -594,6 +595,8 @@ protected:
         rGeometryData.N_positive_cut = ZeroMatrix(rGeometryData.ncutpoints, TDim + 1);
         rGeometryData.N_negative_cut = ZeroMatrix(rGeometryData.ncutpoints, TDim + 1);
 
+        KRATOS_WATCH(cut_edges)
+
         unsigned int icut = 0;
         for (unsigned int iedge=0; iedge<nedges; ++iedge)
         {
@@ -605,7 +608,7 @@ protected:
                 unsigned int jnode = j_edges(iedge);
 
                 // Get the intersected point edge area
-                KRATOS_WATCH(rEdgeAreas)
+                KRATOS_WATCH(iedge)
                 rGeometryData.cut_edge_areas(icut) = rEdgeAreas(iedge);
 
                 // Fill the positive distance side shape functions array
@@ -631,10 +634,6 @@ protected:
                 icut++;
             }
         }
-        
-        KRATOS_WATCH(rGeometryData.cut_edge_areas)
-        KRATOS_WATCH(rGeometryData.N_positive_cut)
-        KRATOS_WATCH(rGeometryData.N_negative_cut)
     }
 
     void CalculateLocalSystemContribution(MatrixType &rLeftHandSideMatrix,
@@ -711,7 +710,7 @@ protected:
         if (this->Is(TO_SPLIT))
         {
             // Add the intersection boundary fluxes contribution comping from the integration by parts
-            this->AddRHSBoundaryTermsContribution(rRightHandSideVector, rData, rGeometryData);
+            // this->AddRHSBoundaryTermsContribution(rRightHandSideVector, rData, rGeometryData);
 
             // Add the normal component penalty contribution
             this->AddRHSNormalVelocityPenaltyContribution(rRightHandSideVector, rData, rGeometryData);
@@ -731,7 +730,61 @@ protected:
                                             const ElementDataStruct &rData,
                                             const ElementGeometryDataStruct &rGeometryData)
     {
+        constexpr unsigned int BlockSize = TDim + 1;
+        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
+        // Obtain the previous iteration velocity solution
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+        GetPreviousSolutionVector(rData, prev_sol);
+
+        // Declare auxiliar arrays
+        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+
+        // Compute the LHS and RHS boundary terms contributions
+        array_1d<double, TNumNodes> aux_cut;
+        const Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
+
+        KRATOS_WATCH(rGeometryData.ncutpoints)
+        KRATOS_WATCH(rGeometryData.cut_edge_areas)
+
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                // Get the shape functions according to the positive or negative distance sides
+                if (elemental_distances[i] > 0.0)
+                {
+                    aux_cut = row(rGeometryData.N_positive_cut, icut);
+                }
+                else
+                {
+                    aux_cut = row(rGeometryData.N_negative_cut, icut);
+                }
+            }
+
+            // Contribution coming fron the shear stress operator
+            // At the momoent the contribution coming from the stress operator is neglected since it is relatively low and implies the computation of the sh. function gradients in the intersection pts.
+
+            // Contribution coming from the pressure terms
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int d = 0; d < TDim; ++d)
+                    {
+                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) -= weight * aux_cut(i) * aux_cut(j) * rGeometryData.intersection_normal(d);
+                    }
+                }
+            }
+        }
+
+        // LHS assembly
+        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+
+        // RHS assembly
+        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
     }
 
     /**
@@ -791,7 +844,7 @@ protected:
         }
 
         // Compute the penalty coefficient (TODO: Implement a K depending on the element size)
-        const double pen_coef = 0.0001;
+        const double pen_coef = 0.1;
 
         // Compute the LHS and RHS penalty contributions
         array_1d<double, TNumNodes> aux_cut;
@@ -1058,6 +1111,76 @@ protected:
         mu_eff /= (strain_size - TDim);
 
         return mu_eff;
+    }
+
+    /**
+    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
+    * @param rSplittingData: reference to the intersection data structure
+    * @param rVoigtNormProjMatrix: reference to the computed tangential projection auxiliar matrix
+    */
+    void SetVoigtNormalProjectionMatrix(const ElementGeometryDataStruct &rGeometryData,
+                                        bounded_matrix<double, TDim, (TDim - 1) * 3> &rVoigtNormProjMatrix)
+    {
+        rVoigtNormProjMatrix.clear();
+
+        if (TDim == 3)
+        {
+            // Fill the normal projection matrix for Voigt notation
+            rVoigtNormProjMatrix(0, 0) = rGeometryData.intersection_normal(0);
+            rVoigtNormProjMatrix(0, 3) = rGeometryData.intersection_normal(1);
+            rVoigtNormProjMatrix(0, 5) = rGeometryData.intersection_normal(2);
+            rVoigtNormProjMatrix(1, 1) = rGeometryData.intersection_normal(1);
+            rVoigtNormProjMatrix(1, 3) = rGeometryData.intersection_normal(0);
+            rVoigtNormProjMatrix(1, 4) = rGeometryData.intersection_normal(2);
+            rVoigtNormProjMatrix(2, 2) = rGeometryData.intersection_normal(2);
+            rVoigtNormProjMatrix(2, 4) = rGeometryData.intersection_normal(1);
+            rVoigtNormProjMatrix(2, 5) = rGeometryData.intersection_normal(0);
+        }
+        else
+        {
+            // Fill the noromal projection matrix for Voigt notation
+            rVoigtNormProjMatrix(0, 0) = rGeometryData.intersection_normal(0);
+            rVoigtNormProjMatrix(0, 2) = rGeometryData.intersection_normal(1);
+            rVoigtNormProjMatrix(1, 1) = rGeometryData.intersection_normal(1);
+            rVoigtNormProjMatrix(1, 2) = rGeometryData.intersection_normal(0);
+        }
+    }
+
+    /**
+    * This functions sets the B strain matrix
+    * @param rData: reference to element data structure (it contains the shape functions derivatives)
+    * @param rB_matrix: reference to the computed B strain matrix
+    */
+    void SetStrainMatrix(const ElementDataStruct &rData,
+                         bounded_matrix<double, (TDim - 1) * 3, TNumNodes * TDim> &rB_matrix)
+    {
+        rB_matrix.clear();
+
+        if (TDim == 3)
+        {
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                rB_matrix(0, i * TDim) = rData.DN_DX(i, 0);
+                rB_matrix(1, i * TDim + 1) = rData.DN_DX(i, 1);
+                rB_matrix(2, i * TDim + 2) = rData.DN_DX(i, 2);
+                rB_matrix(3, i * TDim) = rData.DN_DX(i, 1);
+                rB_matrix(3, i * TDim + 1) = rData.DN_DX(i, 0);
+                rB_matrix(4, i * TDim + 1) = rData.DN_DX(i, 2);
+                rB_matrix(4, i * TDim + 2) = rData.DN_DX(i, 1);
+                rB_matrix(5, i * TDim) = rData.DN_DX(i, 2);
+                rB_matrix(5, i * TDim + 2) = rData.DN_DX(i, 0);
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                rB_matrix(0, i * TDim) = rData.DN_DX(i, 0);
+                rB_matrix(1, i * TDim + 1) = rData.DN_DX(i, 1);
+                rB_matrix(2, i * TDim) = rData.DN_DX(i, 1);
+                rB_matrix(2, i * TDim + 1) = rData.DN_DX(i, 0);
+            }
+        }
     }
 
     ///@}
