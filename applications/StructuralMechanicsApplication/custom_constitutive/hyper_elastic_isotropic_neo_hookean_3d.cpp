@@ -137,6 +137,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Para
     // The deformation gradient
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
     const double& determinant_f = rValues.GetDeterminantF();
+    if (determinant_f < 0.0) KRATOS_ERROR << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
     
     // The LAME parameters
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
@@ -340,7 +341,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateConstitutiveMatrixPK2(
             const unsigned int& j0 = this->msIndexVoigt3D6C[j][0];
             const unsigned int& j1 = this->msIndexVoigt3D6C[j][1];
             
-            ConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
+            ConstitutiveMatrix(i,j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0))); 
         }
     }
 }
