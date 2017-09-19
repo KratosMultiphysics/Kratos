@@ -1023,9 +1023,6 @@ protected:
                 
                 for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                 {
-                    // Velocity block
-//                        K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
-
                     // v-p block (pressure gradient)
                     double div_v_p = rShapeDeriv(i, m) * rShapeFunc[j];
                     double stab_grad_p = StabilizationOperator[i] * rShapeDeriv(j,m);
@@ -1036,8 +1033,6 @@ protected:
                     double stab_div_u = TauOne*rShapeDeriv(i,m)* ( Density*AGradN[j] );//+ ReactionTerm * rShapeFunc[j] );
                     rDampingMatrix(FirstRow + TDim, FirstCol + m) += Weight * ( q_div_u + stab_div_u );
 
-                    // v * Grad(p) block
-//                    G = StabilizationOperator[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + sigma * N) * TauOne * Grad(p)
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
                     rDampRHS[FirstCol + TDim] -=  Weight * PDivV*OldVel[m];
 
@@ -1076,7 +1071,6 @@ protected:
             FirstCol = 0;
         }
 
-//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
         this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
     }
 
