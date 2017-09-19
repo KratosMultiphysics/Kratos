@@ -14,7 +14,10 @@ def CreateSolver(model_part, custom_settings):
 
 class EulerianPrimitiveVarSolver(shallow_water_base_solver.ShallowWaterBaseSolver):
     def AddDofs(self):
-        super(LagrangianPrimitiveVarSolver,self)._AddPrimitiveDofs()
+        super(EulerianPrimitiveVarSolver,self)._AddPrimitiveDofs()
 
     def Solve(self):
+        # Solve equations
         (self.solver).Solve()
+        # Compute free surface
+        (self.ShallowVariableUtils).ComputeFreeSurfaceElevation()

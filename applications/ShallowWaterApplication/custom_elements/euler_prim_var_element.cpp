@@ -209,7 +209,7 @@ namespace Kratos
         
         // Copmute stabilization parameters
         bool stabilization = true;
-        double Ctau = 0.002;
+        double Ctau = 0.005;
         double tau_u = 0, tau_h = 0;
         double fheight = fabs(height);
         if (stabilization && fheight > 1e-6)

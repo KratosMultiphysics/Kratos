@@ -23,18 +23,13 @@ class ApplySlipProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-        # Compute the normal on the nodes of interest
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
-
-        # Mark the nodes and conditions with the appropriate slip flag
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
-        for condition in self.model_part.Conditions: #TODO: this may well not be needed!
-            condition.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
+    def ExecuteInitialize(self):
+        #~ # Compute the normal on the nodes of interest
+        #~ KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
 
         #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         #TODO: Remove the MESH_VELOCITY variable as soon the scheme doesn't use it
-        vel = [0.0, 0.0, 0.0]
         for node in self.model_part.Nodes:
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
-            node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,vel)
+            node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,[0.0, 0.0, 0.0])

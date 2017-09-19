@@ -43,5 +43,8 @@ class Pfem2ConservedVarSolver(shallow_water_base_solver.ShallowWaterBaseSolver):
         super(Pfem2ConservedVarSolver,self).ExecuteParticlesUtilitiesBeforeSolve()
         # Solve equations on mesh
         (self.solver).Solve()
+        # Compute free surface and velocity
+        (self.ShallowVariableUtils).ComputeFreeSurfaceElevation()
+        (self.ShallowVariableUtils).ComputeVelocity()
         # Update particles
         super(Pfem2ConservedVarSolver,self).ExecuteParticlesUtilitiesAfetrSolve()

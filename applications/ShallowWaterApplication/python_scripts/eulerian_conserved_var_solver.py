@@ -22,3 +22,6 @@ class EulerianConservedVarSolver(shallow_water_base_solver.ShallowWaterBaseSolve
 
     def Solve(self):
         (self.solver).Solve()
+        # Compute free surface and velocity
+        (self.ShallowVariableUtils).ComputeFreeSurfaceElevation()
+        (self.ShallowVariableUtils).ComputeVelocity()

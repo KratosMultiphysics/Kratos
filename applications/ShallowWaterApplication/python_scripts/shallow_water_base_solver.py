@@ -32,6 +32,7 @@ class ShallowWaterBaseSolver(object):
             "maximum_iterations"           : 20,
             "compute_reactions"            : false,
             "reform_dofs_at_each_step"     : false,
+            "calculate_norm_dx"            : true,
             "move_mesh_flag"               : false,
             "volume_model_part_name"       : "volume_model_part",
             "linear_solver_settings"       : {
@@ -95,9 +96,9 @@ class ShallowWaterBaseSolver(object):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.settings["convergence_echo_level"].GetInt())
 
-        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # DomainSize
-                                                                                             self.domain_size+1) # BlockSize
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # DomainSize
+                                                                                             #~ self.domain_size+1) # BlockSize
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
@@ -110,6 +111,17 @@ class ShallowWaterBaseSolver(object):
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
+        #~ self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.model_part,
+                                                                     #~ self.time_scheme,
+                                                                     #~ self.linear_solver,
+                                                                     #~ builder_and_solver,
+                                                                     #~ self.settings["compute_reactions"].GetBool(),
+                                                                     #~ self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                     #~ self.settings["calculate_norm_dx"].GetBool(),
+                                                                     #~ self.settings["move_mesh_flag"].GetBool())
+ 
+        # Compute the normals on the body boundary
+        KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part, self.domain_size)
 
         (self.solver).SetEchoLevel(self.settings["solver_echo_level"].GetInt())
         (self.solver).Check()
