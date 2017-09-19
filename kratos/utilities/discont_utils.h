@@ -350,7 +350,9 @@ public:
 
 
             if (nint != 0)
-                KRATOS_THROW_ERROR(std::logic_error, "requiring an internal node for splitting ... can not accept this", "");
+            {
+                KRATOS_ERROR << "Requiring an internal node for splitting ... can not accept this";
+            }
 
 
             //now obtain the tetras and compute their center coordinates and volume
@@ -529,7 +531,7 @@ public:
                                                     bounded_matrix<double,3*(2-1), (2+1)>& rNenriched,
                                                     array_1d<double,3>& rEdgeAreas)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         // TRICK TO AVOID INTERSECTIONS TOO CLOSE TO THE NODES
         const double unsigned_distance_0 = std::abs(rDistances(0));
@@ -1067,30 +1069,31 @@ private:
         //            rShapeFunctionValues(Volume2Id, j) = division_j * 0.25;
     }
 
-    static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & aux_coordinates,
-            array_1d<double, 3 > & center_position,
-            const int i0, const int i1, const int i2, const int i3)
+    static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & rAuxCoordinates,
+                                                 array_1d<double, 3 > & rCenterPosition,
+                                                 const int i0, const int i1, const int i2, const int i3)
     {
-        double x10 = aux_coordinates(i1, 0) - aux_coordinates(i0, 0);
-        double y10 = aux_coordinates(i1, 1) - aux_coordinates(i0, 1);
-        double z10 = aux_coordinates(i1, 2) - aux_coordinates(i0, 2);
+        const double x10 = rAuxCoordinates(i1, 0) - rAuxCoordinates(i0, 0);
+        const double y10 = rAuxCoordinates(i1, 1) - rAuxCoordinates(i0, 1);
+        const double z10 = rAuxCoordinates(i1, 2) - rAuxCoordinates(i0, 2);
 
-        double x20 = aux_coordinates(i2, 0) - aux_coordinates(i0, 0);
-        double y20 = aux_coordinates(i2, 1) - aux_coordinates(i0, 1);
-        double z20 = aux_coordinates(i2, 2) - aux_coordinates(i0, 2);
+        const double x20 = rAuxCoordinates(i2, 0) - rAuxCoordinates(i0, 0);
+        const double y20 = rAuxCoordinates(i2, 1) - rAuxCoordinates(i0, 1);
+        const double z20 = rAuxCoordinates(i2, 2) - rAuxCoordinates(i0, 2);
 
-        double x30 = aux_coordinates(i3, 0) - aux_coordinates(i0, 0);
-        double y30 = aux_coordinates(i3, 1) - aux_coordinates(i0, 1);
-        double z30 = aux_coordinates(i3, 2) - aux_coordinates(i0, 2);
+        const double x30 = rAuxCoordinates(i3, 0) - rAuxCoordinates(i0, 0);
+        const double y30 = rAuxCoordinates(i3, 1) - rAuxCoordinates(i0, 1);
+        const double z30 = rAuxCoordinates(i3, 2) - rAuxCoordinates(i0, 2);
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        double vol = detJ * 0.1666666666666666666667;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double vol = detJ / 6.0;
 
         for (unsigned int i = 0; i < 3; i++)
         {
-            center_position[i] = aux_coordinates(i0, i) + aux_coordinates(i1, i) + aux_coordinates(i2, i) + aux_coordinates(i3, i);
+            rCenterPosition[i] = rAuxCoordinates(i0, i) + rAuxCoordinates(i1, i) + rAuxCoordinates(i2, i) + rAuxCoordinates(i3, i);
         }
-        center_position *= 0.25;
+
+        rCenterPosition *= 0.25;
 
         return vol;
     }
@@ -1145,7 +1148,7 @@ private:
 
         const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
-        return detJ * 0.1666666666666666666667;
+        return detJ / 6.0;
     }
 
     static inline double CalculateVol(const double x0, const double y0,
@@ -1217,7 +1220,7 @@ private:
 
         rDN_DX /= detJ;
 
-        rVolume = detJ*0.1666666666666666666667;
+        rVolume = detJ / 6.0;
     }
 
     static inline void CalculatePosition(const bounded_matrix<double, 3, 3 > & rCoordinates,
@@ -1237,7 +1240,7 @@ private:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
+            KRATOS_ERROR << "Element with zero area found.";
         }
         else
         {
