@@ -70,10 +70,7 @@ class Algorithm(BaseAlgorithm):
             coor[0]=node.X
             coor[1]=node.Y
             coor[2]=node.Z
-            print('444444444444444444444444444')
             self.flow_field.Evaluate(0.0, coor, vel, 0)
-            print(vel)
-            print('444444444444444444444444444')
             node.SetSolutionStepValue(VELOCITY_X, vel[0])
             node.SetSolutionStepValue(VELOCITY_Y, vel[1])
             node.SetSolutionStepValue(VELOCITY_Z, vel[2])
@@ -157,9 +154,9 @@ class Algorithm(BaseAlgorithm):
             norm_mat_deriv_average += SDP.Norm(mat_deriv)
             norm_laplacian_average += SDP.Norm(laplacian)
 
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, calc_mat_deriv[0] - mat_deriv[0])
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, calc_mat_deriv[1] - mat_deriv[1])
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, calc_mat_deriv[2] - mat_deriv[2])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_X, calc_mat_deriv[0] - mat_deriv[0])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_Y, calc_mat_deriv[1] - mat_deriv[1])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_Z, calc_mat_deriv[2] - mat_deriv[2])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, mat_deriv[2])
@@ -177,7 +174,7 @@ class Algorithm(BaseAlgorithm):
 
         module_mat_deriv /= len(fluid_model_part.Nodes)
         module_laplacian /= len(fluid_model_part.Nodes)
-        SDP.MultiplyNodalVariableByFactor(fluid_model_part, MATERIAL_ACCELERATION, 1.0 / module_mat_deriv)
+        SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN_RATE, 1.0 / module_mat_deriv)
         SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / module_laplacian)
 
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:

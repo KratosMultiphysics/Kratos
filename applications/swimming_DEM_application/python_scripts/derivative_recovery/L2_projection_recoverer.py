@@ -24,18 +24,19 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         model_part_cloner.GenerateModelPart(self.model_part, self.recovery_model_part, element_type, condition_type)
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
-        #from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         #linear_solver = SuperLUIterativeSolver()
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = AMGCLSmoother.ILU0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
-        tolerance = 1e-6
+        tolerance = 1e-8
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
-        
+
         if self.use_lumped_mass_matrix:
-            linear_solver = CGSolver()
+            linear_solver = SuperLUIterativeSolver()
         else:
             linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 

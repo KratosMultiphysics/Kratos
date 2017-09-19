@@ -53,8 +53,10 @@ class DerivativeRecoveryStrategy:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
             else:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-        elif self.mat_deriv_type in {3, 4}:
+        elif self.mat_deriv_type == 3:
             return L2_projection_recoverer.L2ProjectionDirectMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.mat_deriv_type == 4:
+            return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 5:
             return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 6:
