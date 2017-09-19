@@ -54,56 +54,6 @@ HyperElasticIsotropicNeoHookeanPlaneStrain2D::~HyperElasticIsotropicNeoHookeanPl
 {
 };
 
-//************************************************************************************
-//************************************************************************************
-
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    
-    // To reuse the 3D law we resize the deformation gradient to 3
-    Matrix deformation_gradient_f3D(3, 3);
-    deformation_gradient_f3D( 0 , 0 ) = deformation_gradient_f( 0 , 0 );
-    deformation_gradient_f3D( 1 , 0 ) = deformation_gradient_f( 1 , 0 );
-    deformation_gradient_f3D( 0 , 1 ) = deformation_gradient_f( 0 , 1 );
-    deformation_gradient_f3D( 1 , 1 ) = deformation_gradient_f( 1 , 1 );
-    deformation_gradient_f3D( 0 , 2 ) = 0.0;
-    deformation_gradient_f3D( 1 , 2 ) = 0.0;
-    deformation_gradient_f3D( 2 , 0 ) = 0.0;
-    deformation_gradient_f3D( 2 , 1 ) = 0.0;
-    deformation_gradient_f3D( 2 , 2 ) = 1.0;
-    
-    rValues.SetDeformationGradientF(deformation_gradient_f3D);
-    
-    HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
-{
-    // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    
-    // To reuse the 3D law we resize the deformation gradient to 3
-    Matrix deformation_gradient_f3D(3, 3);
-    deformation_gradient_f3D( 0 , 0 ) = deformation_gradient_f( 0 , 0 );
-    deformation_gradient_f3D( 1 , 0 ) = deformation_gradient_f( 1 , 0 );
-    deformation_gradient_f3D( 0 , 1 ) = deformation_gradient_f( 0 , 1 );
-    deformation_gradient_f3D( 1 , 1 ) = deformation_gradient_f( 1 , 1 );
-    deformation_gradient_f3D( 0 , 2 ) = 0.0;
-    deformation_gradient_f3D( 1 , 2 ) = 0.0;
-    deformation_gradient_f3D( 2 , 0 ) = 0.0;
-    deformation_gradient_f3D( 2 , 1 ) = 0.0;
-    deformation_gradient_f3D( 2 , 2 ) = 1.0;
-    
-    rValues.SetDeformationGradientF(deformation_gradient_f3D);
-    
-    HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rValues);
-}
-
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 

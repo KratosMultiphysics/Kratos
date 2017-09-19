@@ -316,7 +316,7 @@ namespace Kratos
         
         const double detDF = MathUtils<double>::Det(DF);
         rThisKinematicVariables.detF = detDF * ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
-        rThisKinematicVariables.F = prod(DF, ReferenceConfigurationDeformationGradient(PointNumber));
+        noalias(rThisKinematicVariables.F) = prod(DF, ReferenceConfigurationDeformationGradient(PointNumber));
         
         // Calculating operator B
         CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
@@ -446,10 +446,7 @@ namespace Kratos
 
     double UpdatedLagrangian::ReferenceConfigurationDeformationGradientDeterminant(const unsigned PointNumber) const
     {
-        if (mF0Computed == false)
-        {
-            return mDetF0[PointNumber];
-        }
+        if (mF0Computed == false) return mDetF0[PointNumber];
         
         return 1.0;
     }
@@ -459,10 +456,7 @@ namespace Kratos
         
     Matrix UpdatedLagrangian::ReferenceConfigurationDeformationGradient(const unsigned PointNumber) const
     {
-        if (mF0Computed == false)
-        {
-            return mF0[PointNumber];
-        }
+        if (mF0Computed == false) return mF0[PointNumber];
         
         const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
         

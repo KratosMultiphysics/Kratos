@@ -106,22 +106,6 @@ public:
         return 3;
     };
     
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-    
 protected:
 
     ///@name Protected static Member Variables

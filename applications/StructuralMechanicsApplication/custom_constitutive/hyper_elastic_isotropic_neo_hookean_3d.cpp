@@ -76,6 +76,8 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
+    const SizeType dimension = WorkingSpaceDimension();
+    
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
     Vector& stress_vector                  = rValues.GetStressVector();
@@ -98,7 +100,7 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     
     // Inverse of the right Cauchy-Green tensor (C):
     double aux_det;
-    Matrix inverse_C_tensor(3, 3); 
+    Matrix inverse_C_tensor(dimension, dimension); 
     MathUtils<double>::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
     
     if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
@@ -388,7 +390,9 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 {
     Matrix stress_matrix;
     
-    stress_matrix = LameLambda * std::log(DeterminantF) * InvCTensor + LameMu * ( IdentityMatrix(3, 3) - InvCTensor );
+    const SizeType dimension = WorkingSpaceDimension();
+    
+    stress_matrix = LameLambda * std::log(DeterminantF) * InvCTensor + LameMu * ( IdentityMatrix(dimension, dimension) - InvCTensor );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
@@ -406,7 +410,9 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchoffStress(
 {
     Matrix stress_matrix;
     
-    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(3, 3) + LameMu * ( BTensor - IdentityMatrix(3, 3) );
+    const SizeType dimension = WorkingSpaceDimension();
+    
+    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(dimension, dimension) + LameMu * ( BTensor - IdentityMatrix(dimension, dimension) );
     
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
