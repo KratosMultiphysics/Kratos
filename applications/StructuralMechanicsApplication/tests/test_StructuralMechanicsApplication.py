@@ -16,7 +16,9 @@ except ImportError as e:
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
 # Import the tests o test_classes to create the suits
-## SMALL TESTS
+## SMALL 
+# CL tests
+from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
@@ -66,7 +68,10 @@ from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
 from SmallTests import Eigen3D3NThinCircleTests         as TEigen3D3NThinCircleTests
 # Membrane tests
 from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
+from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
+from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
 # Spring damper element tests
@@ -103,6 +108,7 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     # Simple patch tests
+    smallSuite.addTest(TTestConstitutiveLaw('test_Uniaxial_HyperElastic_3D'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
@@ -154,7 +160,9 @@ def AssambleTestSuites():
     smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Membrane tests
     smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
+    smallSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
+    smallSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
 
@@ -190,6 +198,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TTestConstitutiveLaw,
             TTestPatchTestSmallStrain,
             TTestPatchTestLargeStrain,
             TTestQuadraticElements,
@@ -225,14 +234,16 @@ def AssambleTestSuites():
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
             TFofi4PointTentnoCableTests,
+            TFofi4PointTentCableTests,
             TMembraneQ4PointLoadTests,
+            TMembraneQ4TrussPointLoadTests,
             TShellQ4ThickBendingRollUpTests,
             TShellQ4ThickDrillingRollUpTests,
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
-            ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
-            ####TSprismPanTests # FIXME: Needs get up to date
+            ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
+            ###TSprismPanTests # FIXME: Needs get up to date
         ])
     )
         

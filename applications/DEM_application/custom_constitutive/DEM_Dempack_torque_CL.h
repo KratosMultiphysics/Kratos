@@ -17,7 +17,7 @@ namespace Kratos {
         DEM_Dempack_torque() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_Dempack_torque() {
         }

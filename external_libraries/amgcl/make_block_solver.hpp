@@ -117,6 +117,10 @@ class make_block_solver {
         typename Precond::matrix const& system_matrix() const {
             return S->system_matrix();
         }
+
+        friend std::ostream& operator<<(std::ostream &os, const make_block_solver &p) {
+            return os << *p.S << std::endl;
+        }
     private:
         typedef make_solver<Precond, IterativeSolver> Solver;
         boost::shared_ptr<Solver> S;

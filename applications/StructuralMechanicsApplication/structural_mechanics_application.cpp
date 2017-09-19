@@ -205,10 +205,8 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT_GLOBAL )
 
-    // Prestressed membrane vairiables
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_11 )
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_22 )
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_12 )
+    // Prestresse membrane generalized vairiables
+    KRATOS_REGISTER_VARIABLE( MEMBRANE_PRESTRESS )
 
     // Cross section
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
@@ -390,6 +388,8 @@ void KratosStructuralMechanicsApplication::Register()
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
     Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
     Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic);
+    Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D);
+    Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
     
 }
 
