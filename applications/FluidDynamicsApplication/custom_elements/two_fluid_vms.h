@@ -1002,18 +1002,18 @@ protected:
         BodyForce *= Density;
         
         array_1d<double, TNumNodes> StabilizationOperator = Density*AGradN;
-        noalias(StabilizationOperator) += ReactionTerm * rShapeFunc;
+        noalias(StabilizationOperator) -= ReactionTerm * rShapeFunc;
         StabilizationOperator *= TauOne;
 
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
             {
-                // Calculate the part of the contributions that is constant for each node combination
-
-                // Velocity block
-                K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-                K += StabilizationOperator[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v) + sigma * N) * TauOne * (a * Grad(u))
+                // Convection + Reaction: v *( a*Grad(u) + sigma*u )
+                // For Darcy: sigma = A + B|u|
+                K = rShapeFunc[i] * ( Density*AGradN[j] + ReactionTerm*rShapeFunc[j] );
+                // Stabilization: (a * Grad(v) - sigma * N) * TauOne *( a*Grad(u) + sigma*u )
+                K += StabilizationOperator[i] * ( Density*AGradN[j] + ReactionTerm*rShapeFunc[j] );
                 K *= Weight;
 
                 // q-p stabilization block (reset result)
@@ -1026,15 +1026,19 @@ protected:
                     // Velocity block
 //                        K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
-                    // v * Grad(p) block
-                    G = StabilizationOperator[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + sigma * N) * TauOne * Grad(p)
-                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+                    // v-p block (pressure gradient)
+                    double div_v_p = rShapeDeriv(i, m) * rShapeFunc[j];
+                    double stab_grad_p = StabilizationOperator[i] * rShapeDeriv(j,m);
+                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (stab_grad_p - div_v_p);
 
-                    // Write v * Grad(p) component
-                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
-                    // Use symmetry to write the q * Div(u) component
-                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
-                    
+                    // q-u block (velocit divergence)
+                    double q_div_u = rShapeFunc[i] * rShapeDeriv(j,m);
+                    double stab_div_u = TauOne*rShapeDeriv(i,m)* ( Density*AGradN[j] );//+ ReactionTerm * rShapeFunc[j] );
+                    rDampingMatrix(FirstRow + TDim, FirstCol + m) += Weight * ( q_div_u + stab_div_u );
+
+                    // v * Grad(p) block
+//                    G = StabilizationOperator[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + sigma * N) * TauOne * Grad(p)
+                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
                     rDampRHS[FirstCol + TDim] -=  Weight * PDivV*OldVel[m];
 
                     // q-p stabilization block
@@ -1044,11 +1048,7 @@ protected:
                     {
                         // Velocity block
                         rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
-
-                        // Reaction (Darcy porosity) losses
-                        rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * (rShapeFunc[m] + StabilizationOperator[m]) * ReactionTerm * rShapeFunc[n];
                     }
-
                 }
 
                 // Write remaining terms to velocity block
@@ -1057,7 +1057,6 @@ protected:
 
                 // Write q-p stabilization block
                 rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
-
 
                 // Update reference column index for next iteration
                 FirstCol += BlockSize;
