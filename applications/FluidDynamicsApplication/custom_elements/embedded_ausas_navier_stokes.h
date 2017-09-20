@@ -281,32 +281,31 @@ public:
 
         // Check that all required variables have been registered
         if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
         if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
+            KRATOS_ERROR << "PRESSURE Key is 0. Check if the application was correctly registered.";
         if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_ERROR << "DENSITY Key is 0. Check if the application was correctly registered.";
         if(DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
+            KRATOS_ERROR << "DYNAMIC_TAU Key is 0. Check if the application was correctly registered.";
         if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
+            KRATOS_ERROR << "DELTA_TIME Key is 0. Check if the application was correctly registered.";
         if(SOUND_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"SOUND_VELOCITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_ERROR << "SOUND_VELOCITY Key is 0. Check if the application was correctly registered.";
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_ERROR << "Missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
             if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
-
+                KRATOS_ERROR << "Missing PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
             if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                KRATOS_ERROR << "Missing VELOCITY component degree of freedom on node " << this->GetGeometry()[i].Id();
             if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+                KRATOS_ERROR << "Missing PRESSURE component degree of freedom on node " << this->GetGeometry()[i].Id();
         }
 
         // Check constitutive law
@@ -500,9 +499,6 @@ protected:
                                                                                                                   enriched_shape_function_values,
                                                                                                                   edge_areas);
 
-            KRATOS_WATCH(partition_signs)
-            KRATOS_WATCH(edge_areas)
-
             // Compute the shape function values at the intersection points in the edges
             this->ComputeIntersectionPointsShapeFunctionValues(rGeometryData, edge_areas);
 
@@ -568,22 +564,21 @@ protected:
         const array_1d<double, TNumNodes>& nodal_distances = this->GetValue(ELEMENTAL_DISTANCES);
 
         unsigned int aux_count = 0;
-        for (unsigned int i=0; i<TDim; i++)
+        for (unsigned int i=0; i<TNumNodes; ++i)
         {
-            for (unsigned int j=i+1; j<TDim+1; j++)
+            const unsigned int j = (i+1 > TDim) ? 0 : i+1;
+
+            i_edges(aux_count) = i; // Construct the edges i-nodes vector
+            j_edges(aux_count) = j; // Construct the edges j-nodes vector
+            cut_edges(aux_count) = 0;
+
+            if ((nodal_distances[i] * nodal_distances[j]) < 0)
             {
-                i_edges(aux_count) = i; // Construct the edges i-nodes vector
-                j_edges(aux_count) = j; // Construct the edges j-nodes vector
-                cut_edges(aux_count) = 0;
-
-                if ((nodal_distances[i] * nodal_distances[j]) < 0)
-                {
-                    rGeometryData.ncutpoints++;
-                    cut_edges(aux_count) = 1; // Flag 1 says that this edge is cut
-                }
-
-                aux_count++;
+                rGeometryData.ncutpoints++;
+                cut_edges(aux_count) = 1; // Flag 1 says that this edge is cut
             }
+
+            aux_count++;
         }
 
         if ((rGeometryData.cut_edge_areas).size() != rGeometryData.ncutpoints)
@@ -592,10 +587,8 @@ protected:
         }
 
         // Compute the enriched shape function values at the edges intersection pts.
-        rGeometryData.N_positive_cut = ZeroMatrix(rGeometryData.ncutpoints, TDim + 1);
-        rGeometryData.N_negative_cut = ZeroMatrix(rGeometryData.ncutpoints, TDim + 1);
-
-        KRATOS_WATCH(cut_edges)
+        rGeometryData.N_positive_cut = ZeroMatrix(rGeometryData.ncutpoints, TNumNodes);
+        rGeometryData.N_negative_cut = ZeroMatrix(rGeometryData.ncutpoints, TNumNodes);
 
         unsigned int icut = 0;
         for (unsigned int iedge=0; iedge<nedges; ++iedge)
@@ -608,27 +601,26 @@ protected:
                 unsigned int jnode = j_edges(iedge);
 
                 // Get the intersected point edge area
-                KRATOS_WATCH(iedge)
                 rGeometryData.cut_edge_areas(icut) = rEdgeAreas(iedge);
 
-                // Fill the positive distance side shape functions array
+                // First edge node shape functions intersection values
                 if (nodal_distances[inode] > 0.0)
                 {
-                    rGeometryData.N_positive_cut(icut, inode) = 1.0;
+                    rGeometryData.N_positive_cut(icut, inode) = 1.0; // Fill the positive distance side shape functions array
                 }
                 else
                 {
-                    rGeometryData.N_negative_cut(icut, inode) = 1.0;
+                    rGeometryData.N_negative_cut(icut, inode) = 1.0; // Fill the negative distance side shape functions array
                 }
 
-                // Fill the negative distance side shape functions array
+                // Second edge node shape functions intersection values
                 if (nodal_distances[jnode] > 0.0)
                 {
-                    rGeometryData.N_positive_cut(icut, jnode) = 1.0;
+                    rGeometryData.N_positive_cut(icut, jnode) = 1.0; // Fill the positive distance side shape functions array
                 }
                 else
                 {
-                    rGeometryData.N_negative_cut(icut, jnode) = 1.0;
+                    rGeometryData.N_negative_cut(icut, jnode) = 1.0; // Fill the negative distance side shape functions array
                 }
 
                 icut++;
@@ -674,7 +666,7 @@ protected:
             this->AddSystemBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
 
             // Add the normal component penalty contribution
-            this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
+            // this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
         }
     }
 
@@ -710,7 +702,7 @@ protected:
         if (this->Is(TO_SPLIT))
         {
             // Add the intersection boundary fluxes contribution comping from the integration by parts
-            // this->AddRHSBoundaryTermsContribution(rRightHandSideVector, rData, rGeometryData);
+            this->AddRHSBoundaryTermsContribution(rRightHandSideVector, rData, rGeometryData);
 
             // Add the normal component penalty contribution
             this->AddRHSNormalVelocityPenaltyContribution(rRightHandSideVector, rData, rGeometryData);
@@ -741,40 +733,54 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Compute the LHS and RHS boundary terms contributions
+        array_1d<double, TDim> side_normal; 
         array_1d<double, TNumNodes> aux_cut;
         const Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
 
-        KRATOS_WATCH(rGeometryData.ncutpoints)
-        KRATOS_WATCH(rGeometryData.cut_edge_areas)
+        // Contribution coming fron the shear stress operator
+        // At the momoent the contribution coming from the stress operator is neglected since it is relatively low and implies the computation of the sh. function gradients in the intersection pts.
 
+        // Contribution coming from the positive side pressure term
         for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
         {
             const double weight = rGeometryData.cut_edge_areas(icut);
 
-            for (unsigned int i = 0; i < TNumNodes; ++i)
-            {
-                // Get the shape functions according to the positive or negative distance sides
-                if (elemental_distances[i] > 0.0)
-                {
-                    aux_cut = row(rGeometryData.N_positive_cut, icut);
-                }
-                else
-                {
-                    aux_cut = row(rGeometryData.N_negative_cut, icut);
-                }
-            }
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_positive_cut, icut);
 
-            // Contribution coming fron the shear stress operator
-            // At the momoent the contribution coming from the stress operator is neglected since it is relatively low and implies the computation of the sh. function gradients in the intersection pts.
+            // Get the normal according to the positive or negative distance sides
+            side_normal = rGeometryData.intersection_normal;
 
-            // Contribution coming from the pressure terms
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
                 for (unsigned int j = 0; j < TNumNodes; ++j)
                 {
                     for (unsigned int d = 0; d < TDim; ++d)
                     {
-                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) -= weight * aux_cut(i) * aux_cut(j) * rGeometryData.intersection_normal(d);
+                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) -= weight * aux_cut(i) * aux_cut(j) * side_normal(d);
+                    }
+                }
+            }
+        }
+
+        // Contribution coming from the negative side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_negative_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = -rGeometryData.intersection_normal;
+
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int d = 0; d < TDim; ++d)
+                    {
+                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) -= weight * aux_cut(i) * aux_cut(j) * side_normal(d);
                     }
                 }
             }
