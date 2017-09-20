@@ -60,10 +60,7 @@ namespace Kratos
 
         Check();
 
-		// I cannot do this test because the GetGeometryType is not a constant method! Pooyan.
-		//if (r_element.GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-		//	KRATOS_ERROR << "Un supported geometry is given. Only Quadrilateral2D4 is supported and given geometry is : " << rGeometry << std::endl;
-	}
+    }
 
 	StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess() {
 

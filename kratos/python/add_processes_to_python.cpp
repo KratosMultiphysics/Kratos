@@ -150,7 +150,7 @@ void  AddProcessesToPython()
     ;
 
     class_<StructuredMeshGeneratorProcess, bases<Process>, boost::noncopyable >("StructuredMeshGeneratorProcess",
-            init<Geometry< Node<3> >::Pointer, ModelPart&, Parameters&>())
+            init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()[with_custodian_and_ward<1, 2>()])
     ;
 
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
