@@ -22,8 +22,8 @@
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic", 
                 "sensitivity_model_part_name" : "sensitivity_model_part",
-                "nodal_sensitivity_variables"  : [],
-                "element_sensitivity_variables"  : [],
+                "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "element_sensitivity_variables"  : ["IY"],
                 "condition_sensitivity_variables"  : ["POINT_LOAD"],
                 "step_size"         : 1e-6,
                 "traced_element"    : 13,
@@ -36,7 +36,7 @@
             },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "DISPLACEMENT_support_1","ROTATION_support","PointLoad3D_load"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
@@ -81,6 +81,21 @@
             "is_fixed_z"      : false,
             "value"           : [0.0,0.0,0.0]
         }
+    },
+    {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support_1",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
     }
     ],
     "loads_process_list"       : [],
@@ -110,8 +125,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["ADJOINT_DISPLACEMENT","DISPLACEMENT","POINT_LOAD_SENSITIVITY"],
-            "gauss_point_results" : []
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT","ADJOINT_ROTATION","DISPLACEMENT","POINT_LOAD_SENSITIVITY","SHAPE_SENSITIVITY"],
+            "gauss_point_results" : ["IY_SENSITIVITY"]
         },
         "point_data_configuration"  : []
     },

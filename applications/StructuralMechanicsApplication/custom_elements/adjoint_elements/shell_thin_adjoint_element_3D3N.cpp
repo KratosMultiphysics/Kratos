@@ -562,61 +562,8 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 
 }
 
-void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable,
-                           Matrix& Output,
-                           const ProcessInfo& rCurrentProcessInfo)
-{
-    // Used to compute the stress displacement derivative
-
-    KRATOS_TRY;
-
-    const Variable<Matrix> & rSTRESS_DISP_DERIV_ON_GP =
-           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DISP_DERIV_ON_GP");  
-
-	if(rVariable == rSTRESS_DISP_DERIV_ON_GP)   
-	{
-        Vector stress_vector_undist;
-        Vector stress_vector_dist;
-        double dist_measure = 1e-6; //------------------>TODO: get this from outside
-        ProcessInfo copy_process_info = rCurrentProcessInfo;
-        const Variable<Vector>& rSTRESS_ON_GP =
-           	    KratosComponents<Variable<Vector>>::Get("STRESS_ON_GP");
-        DofsVectorType element_dof_list;
-
-        ShellThinElement3D3N::GetDofList(element_dof_list, copy_process_info);
-
-        this->Calculate(rSTRESS_ON_GP, stress_vector_undist, rCurrentProcessInfo);
-
-        Output.resize(OPT_NUM_DOFS, OPT_NUM_GP);
-        for(size_t i = 0; i < OPT_NUM_DOFS; i++)
-        {
-            element_dof_list[i]->GetSolutionStepValue() += dist_measure;
-
-            this->Calculate(rSTRESS_ON_GP, stress_vector_dist, rCurrentProcessInfo);
-
-            for(size_t j = 0; j < OPT_NUM_GP; j++)
-            {
-                stress_vector_dist[j] -= stress_vector_undist[j];
-                stress_vector_dist[j] /= dist_measure;
-                Output(i,j) = stress_vector_dist[j];
-            }   
-
-            element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
-
-            stress_vector_dist.clear();
-        }
-    }
-    else
-	{
-		Output.resize(OPT_NUM_DOFS, OPT_NUM_GP);
-		Output.clear();
-	}
-      
-    KRATOS_CATCH("")
-}
-
 void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
-                           Vector& Output,
+                           Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -663,21 +610,257 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
         else 
             KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;        
 
-        Output.resize(OPT_NUM_GP);   
+        rOutput.resize(OPT_NUM_GP);   
         for(size_t i = 0; i < OPT_NUM_GP; i++)
         {
-            Output(i) = stress_vector[i](direction_1, direction_2);
+            rOutput(i) = stress_vector[i](direction_1, direction_2);
         }
 
     }
     else
     {
-        Output.resize(OPT_NUM_GP);  
-        Output.clear(); 
+        rOutput.resize(OPT_NUM_GP);  
+        rOutput.clear(); 
     }
 
     KRATOS_CATCH("")
 }
+
+void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput, 
+                                                const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const Variable<Matrix> & rSTRESS_DISP_DERIV_ON_GP =
+           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DISP_DERIV_ON_GP");  
+    const Variable<Matrix> & rSTRESS_DV_DERIV_ON_GP =
+           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DV_DERIV_ON_GP"); 
+    const Variable<Vector>& rSTRESS_ON_GP =
+        KratosComponents<Variable<Vector>>::Get("STRESS_ON_GP");                             
+           
+	if(rVariable == rSTRESS_DISP_DERIV_ON_GP)   
+	{
+       this->CalculateStressDisplacementDerivative(rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);
+    }
+    else if(rVariable == rSTRESS_DV_DERIV_ON_GP)
+    {
+        const Variable<std::string> & rDESIGN_VARIABLE_NAME =
+           	  KratosComponents<Variable<std::string> >::Get("DESIGN_VARIABLE_NAME");
+        std::string design_varible_name = this->GetValue( rDESIGN_VARIABLE_NAME );	
+
+        if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
+        {
+            const Variable<double>& r_variable =
+                KratosComponents<Variable<double>>::Get(design_varible_name);
+            this->CalculateStressDesignVariableDerivative(r_variable, rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);
+        }
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_varible_name) == true)
+        {
+            const Variable<array_1d<double, 3>>& r_variable =
+                KratosComponents<Variable<array_1d<double, 3>>>::Get(design_varible_name);
+            this->CalculateStressDesignVariableDerivative(r_variable, rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);    
+        }      
+    }
+    else
+	{
+		rOutput.clear();
+	}
+      
+    KRATOS_CATCH("")
+}
+
+void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, 
+                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    Vector stress_vector_undist;
+    Vector stress_vector_dist;
+    double dist_measure = 1e-6; //------------------>TODO: get this from outside
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
+    DofsVectorType element_dof_list;
+
+    ShellThinElement3D3N::GetDofList(element_dof_list, copy_process_info);
+
+    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+    rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
+    for(size_t i = 0; i < OPT_NUM_DOFS; i++)
+    {
+        element_dof_list[i]->GetSolutionStepValue() += dist_measure;
+
+        this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+        for(size_t j = 0; j < OPT_NUM_GP; j++)
+        {
+            stress_vector_dist[j] -= stress_vector_undist[j];
+            stress_vector_dist[j] /= dist_measure;
+            rOutput(i,j) = stress_vector_dist[j];
+        }   
+
+        element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
+
+        stress_vector_dist.clear();
+    }
+
+    KRATOS_CATCH("")
+}   
+
+void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
+                                                const Variable<Vector>& rStressVariable, Matrix& rOutput, 
+											    const ProcessInfo& rCurrentProcessInfo) 
+{
+    KRATOS_TRY;
+
+        // Define working variables
+		Vector stress_vector_undist;
+		Vector stress_vector_dist;
+
+        // Compute stress on GP before disturbance
+		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+        rOutput.resize(1, OPT_NUM_GP);
+
+		if( this->GetProperties().Has(rDesignVariable) ) 
+		{
+			// Save properties and its pointer
+            Properties& r_global_property = this->GetProperties(); 
+            Properties::Pointer p_global_properties = this->pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(r_global_property));
+            this->SetProperties(p_local_property);
+
+            // Get disturbance measure
+            double delta = r_global_property[rDesignVariable] * 0.001; // TODO: get this from outside!
+
+			// Disturb the design variable
+			const double current_property_value = this->GetProperties()[rDesignVariable];
+            p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+
+            ShellThinElement3D3N::ResetSections();
+            ShellThinElement3D3N::Initialize();
+
+			// Compute stress on GP after disturbance
+		    this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+			// Compute derivative of stress w.r.t. design variable with finite differences
+			stress_vector_dist  -= stress_vector_undist;
+			stress_vector_dist  /= delta;
+
+			for(size_t j = 0; j < OPT_NUM_GP; j++)
+			    rOutput(0, j) = stress_vector_dist[j];
+		
+            // Give element original properties back
+            this->SetProperties(p_global_properties);
+
+            ShellThinElement3D3N::ResetSections();
+            ShellThinElement3D3N::Initialize();
+          
+		}
+        else
+         rOutput.clear();
+
+    KRATOS_CATCH("")
+} 
+
+void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+                                            const Variable<Vector>& rStressVariable,
+                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // define working variables
+	Vector stress_vector_undist;
+	Vector stress_vector_dist;
+	double delta = 1e-6;	//TODO: get this from outside!
+
+	if(rDesignVariable == SHAPE_SENSITIVITY) 
+	{
+		const int number_of_nodes = GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+ 
+		rOutput.resize(dimension * number_of_nodes, OPT_NUM_GP);
+     
+		// Compute stress on GP before disturbance
+	    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+        //TODO: look that this works also for parallel computing
+		for(int j = 0; j < number_of_nodes; j++)
+		{
+			//begin: derive w.r.t. x-coordinate---------------------------------------------------
+			// disturb the design variable
+			this->GetGeometry()[j].X0() += delta;
+
+			// Compute stress on GP after disturbance
+			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+			// Compute derivative of stress w.r.t. design variable with finite differences
+			stress_vector_dist  -= stress_vector_undist;
+			stress_vector_dist  /= delta;
+
+			for(size_t i = 0; i < OPT_NUM_GP; i++)
+				rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
+
+			// Reset pertubed vector
+			stress_vector_dist = Vector(0);
+
+			// undisturb the design variable
+			this->GetGeometry()[j].X0() -= delta;
+			//end: derive w.r.t. x-coordinate-----------------------------------------------------
+
+			//begin: derive w.r.t. y-coordinate---------------------------------------------------
+			// disturb the design variable
+			this->GetGeometry()[j].Y0() += delta;
+
+			// Compute stress on GP after disturbance
+			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+			// Compute derivative of stress w.r.t. design variable with finite differences
+			stress_vector_dist  -= stress_vector_undist;
+			stress_vector_dist  /= delta;
+
+			for(size_t i = 0; i < OPT_NUM_GP; i++)
+				rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
+
+			// Reset pertubed vector
+			stress_vector_dist = Vector(0);
+
+			// undisturb the design variable
+			this->GetGeometry()[j].Y0() -= delta;
+			//end: derive w.r.t. y-coordinate-----------------------------------------------------
+
+			//begin: derive w.r.t. z-coordinate---------------------------------------------------
+			// disturb the design variable
+			this->GetGeometry()[j].Z0() += delta;
+
+			// Compute stress on GP after disturbance
+			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+			// Compute derivative of stress w.r.t. design variable with finite differences
+			stress_vector_dist  -= stress_vector_undist;
+			stress_vector_dist  /= delta;
+
+			for(size_t i = 0; i < OPT_NUM_GP; i++)
+			    rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
+
+			// Reset pertubed vector
+			stress_vector_dist = Vector(0);
+
+			// undisturb the design variable
+			this->GetGeometry()[j].Z0() -= delta;
+			//end: derive w.r.t. z-coordinate-----------------------------------------------------
+
+		}// end loop over element nodes
+	}
+    else
+		KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+
+    KRATOS_CATCH("")
+}                                            
+
+
+
 
 /*void ShellThinAdjointElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
 {

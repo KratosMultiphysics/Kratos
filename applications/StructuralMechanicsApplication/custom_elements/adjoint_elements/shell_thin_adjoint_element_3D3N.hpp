@@ -138,11 +138,22 @@ public:
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo) override;
 
-	void Calculate(const Variable<Matrix >& rVariable, Matrix& Output,
-                           const ProcessInfo& rCurrentProcessInfo) override;    
+    void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
+                           const ProcessInfo& rCurrentProcessInfo) override;                                         
 
-    void Calculate(const Variable<Vector >& rVariable, Vector& Output,
-                           const ProcessInfo& rCurrentProcessInfo) override;                                                                
+	void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
+                           const ProcessInfo& rCurrentProcessInfo) override;   
+
+    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+                                    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);    
+
+    void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
+                                        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+	
+    void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+                                            const Variable<Vector>& rStressVariable,
+                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);                       
+
 
     //void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 

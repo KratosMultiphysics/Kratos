@@ -1,5 +1,5 @@
 import os
-os.environ['OMP_NUM_THREADS'] = "6"
+os.environ['OMP_NUM_THREADS'] = "1"
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_MainKratos

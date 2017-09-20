@@ -77,12 +77,23 @@ namespace Kratos
 											const ProcessInfo& rCurrentProcessInfo) override;
 
 		void Calculate(const Variable<Vector >& rVariable,
-                           Vector& Output,
+                           Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
 
 		void Calculate(const Variable<Matrix >& rVariable,
-                           Matrix& Output,
-                           const ProcessInfo& rCurrentProcessInfo) override;				   
+                           Matrix& rOutput,
+                           const ProcessInfo& rCurrentProcessInfo) override;	
+
+		void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, Matrix& rOutput, 
+												   const ProcessInfo& rCurrentProcessInfo);    
+
+    	void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
+											const Variable<Vector>& rStressVariable, Matrix& rOutput, 
+											const ProcessInfo& rCurrentProcessInfo);
+	
+    	void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+											const Variable<Vector>& rStressVariable,
+                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);   				   			   
 						   
 		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
@@ -90,12 +101,13 @@ namespace Kratos
 
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override;	
-
+					     const ProcessInfo& rCurrentProcessInfo) override;			 
+				 
 		void GetValuesVector(Vector& rValues, int Step = 0);				 
 
-		int Check(const ProcessInfo& rCurrentProcessInfo) override;				 
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;	
 
+	
 		/*Matrix CreateElementStiffnessMatrix_Material();
 		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
 		Matrix CalculateDeformationStiffness();

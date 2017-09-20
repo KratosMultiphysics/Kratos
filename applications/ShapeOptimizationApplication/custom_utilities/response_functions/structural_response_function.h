@@ -776,6 +776,7 @@ protected:
 
             for (auto it = elements_begin; it != elements_end; ++it)
             {
+                //std::cout << ("I compute now sensitivities of element #") << it->Id() << std::endl;
                 Element::GeometryType& r_geom = it->GetGeometry();
                 bool update_sensitivities = false;
                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
@@ -901,6 +902,8 @@ protected:
 
             for (auto it = elements_begin; it != elements_end; ++it)
             {
+                
+                std::cout << ("I compute now sensitivities of element #") << it->Id() << std::endl;
 
                 if (it->GetValue(UPDATE_SENSITIVITIES) == true)
                 {
@@ -1026,80 +1029,8 @@ protected:
     {
         KRATOS_TRY;
 
-        //std::cout << ("I am computing now the partial derivative of element #")<< rAdjointElem.Id()  << std::endl;
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        if(rResponseGradient.size() != 1) 
-            KRATOS_ERROR << "Unexpected gradient size!" << std::endl;   
-
-        const double dist_measure = this->GetDisturbanceMeasure();
-
-        double undisturbed_resp_func_value = this->CalculateValue(mrModelPart);
-        //std::cout << ("Undisturbed value = ") << undisturbed_resp_func_value << std::endl;
-        //double Iz = rAdjointElem.GetProperties()[rVariable];
-        //std::cout << ("Undisturbed Iz = ") << Iz << std::endl;
-
-        if (rAdjointElem.GetProperties().Has(rVariable) == true) 
-		{
-			/*// get property vector of element
-			Properties::Pointer pElemProp = rAdjointElem.pGetProperties();
-
-			// disturb the design variable
-			const double current_property_value = rAdjointElem.GetProperties()[rVariable];
-			pElemProp->SetValue(rVariable, (current_property_value + dist_measure)); //--> changes all elements using this properties
-
-			double disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-            //std::cout << ("Disturbed value = ") << disturbed_resp_func_value << std::endl;
-            //Iz = rAdjointElem.GetProperties()[rVariable];
-            //std::cout << ("Disturbed Iz = ") << Iz << std::endl;
-
-            double part_derivative_value = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-            rResponseGradient[0] = part_derivative_value;
-
-            //std::cout << ("Part derivative value = ") << part_derivative_value << std::endl;
-
-			// undisturb design variable
-			pElemProp->SetValue(rVariable, (current_property_value));
-            //Iz = rAdjointElem.GetProperties()[rVariable];
-            //std::cout << ("Undisturbed Iz = ") << Iz << std::endl; --------------------> old concept*/
-
-            // Save properties and its pointer ------------------------------------------> new concept
-            Properties& global_property = rAdjointElem.GetProperties(); 
-            Properties::Pointer p_global_properties = rAdjointElem.pGetProperties(); 
-
-            // Create new property and assign it to the element
-            Properties::Pointer p_local_property(new Properties(global_property));
-            rAdjointElem.SetProperties(p_local_property);
-            //TODO: ensure that all stuff of elements use new property (e.g. sections of shell)
-
-			// Disturb the design variable
-			const double current_property_value = rAdjointElem.GetProperties()[rVariable];
-            p_local_property->SetValue(rVariable, (current_property_value + dist_measure));
-
-			double disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-            //std::cout << ("Disturbed value = ") << disturbed_resp_func_value << std::endl;
-            //Iz = rAdjointElem.GetProperties()[rVariable];
-            //std::cout << ("Disturbed Iz = ") << Iz << std::endl;
-
-            double part_derivative_value = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-            rResponseGradient[0] = part_derivative_value;
-
-            //std::cout << ("Part derivative value = ") << part_derivative_value << std::endl;
-
-			// Give element original properties back
-            rAdjointElem.SetProperties(p_global_properties);
-            //Iz = rAdjointElem.GetProperties()[rVariable];
-            //std::cout << ("Undisturbed Iz = ") << Iz << std::endl;
-
-            // TODO: ensure that this also works for special DV like the the entries of the 
-            // inertia vector and look that the new local property pointer is known where needed
-		}
-        else
-            KRATOS_THROW_ERROR(std::invalid_argument, "The chosen design variable is not provided by the element!", ""); //TODO: Maybe erase this error
-
-
+        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
+       
         KRATOS_CATCH("");
     }
 
@@ -1133,56 +1064,7 @@ protected:
     {
         KRATOS_TRY;
 
-        //std::cout << ("I am computing now the partial derivative of element #")<< rAdjointElem.Id()  << std::endl;
-      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-        const double dist_measure = this->GetDisturbanceMeasure();
-        double undisturbed_resp_func_value = this->CalculateValue(mrModelPart);
-        double disturbed_resp_func_value = 0.0;
-        const int dimension = rAdjointElem.GetGeometry().WorkingSpaceDimension();
-        const unsigned int NumberOfNodes = rAdjointElem.GetGeometry().size();
-
-
-        if(rVariable == SHAPE_SENSITIVITY) //---> attention do not compute it twice (in element loop and conditon loop)
-        {
-             for(unsigned int node_it = 0; node_it < NumberOfNodes; ++node_it)
-            {
-                // Compute derivative w.r.t. x-coordinate
-                rAdjointElem.GetGeometry()[node_it].X0() += dist_measure;   
-
-                disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-
-                rResponseGradient[0 + node_it*dimension] = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-                rAdjointElem.GetGeometry()[node_it].X0() -= dist_measure;   
-
-                // Compute derivative w.r.t. y-coordinate
-                rAdjointElem.GetGeometry()[node_it].Y0() += dist_measure;   
-
-                disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-
-                rResponseGradient[1 + node_it*dimension] = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-                rAdjointElem.GetGeometry()[node_it].Y0() -= dist_measure; 
-
-                // Compute derivative w.r.t. z-coordinate
-
-                //std::cout <<  ("Undisturbed node = ")   << rAdjointElem.GetGeometry()[node_it].Z0() << std::endl;
-
-                rAdjointElem.GetGeometry()[node_it].Z0() += dist_measure; 
-
-                //std::cout <<("Disturbed node = ")  << rAdjointElem.GetGeometry()[node_it].Z0()  << std::endl;
-
-                disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-
-                rResponseGradient[2 + node_it*dimension] = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-                //std::cout  << ("Derivative = ") << rResponseGradient[2 + node_it*dimension] << std::endl;
-
-                rAdjointElem.GetGeometry()[node_it].Z0() -= dist_measure;   
-            }
-        }
+        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -1195,72 +1077,7 @@ protected:
     {
         KRATOS_TRY;
 
-        //std::cout << ("I am computing now the partial derivative of condition #")<< rAdjointCondition.Id()  << std::endl;
-      	if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-        const double dist_measure = this->GetDisturbanceMeasure(); 
-        double undisturbed_resp_func_value = this->CalculateValue(mrModelPart);
-        double disturbed_resp_func_value = 0.0;
-        const int dimension = rAdjointCondition.GetGeometry().WorkingSpaceDimension();
-        const unsigned int NumberOfNodes = rAdjointCondition.GetGeometry().size();
-
-        const VariableWithComponentsType& rPOINT_LOAD =
-            KratosComponents<VariableWithComponentsType>::Get("POINT_LOAD");
-
-        if(rVariable == rPOINT_LOAD)
-        {
-            const VariableComponentType& rVARIABLE_COMPONENT_X =
-                KratosComponents<VariableComponentType>::Get(rVariable.Name() + std::string("_X"));
-            const VariableComponentType& rVARIABLE_COMPONENT_Y =
-                KratosComponents<VariableComponentType>::Get(rVariable.Name() + std::string("_Y"));
-            const VariableComponentType& rVARIABLE_COMPONENT_Z =
-                KratosComponents<VariableComponentType>::Get(rVariable.Name() + std::string("_Z"));
-
-            for(unsigned int node_it = 0; node_it < NumberOfNodes; ++node_it)
-            {
-                // Compute derivative w.r.t. x-component of variable
-                rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_X) += dist_measure;   
-
-                disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-
-                rResponseGradient[0 + node_it*dimension] = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-                rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_X) -= dist_measure;   
-
-                // Compute derivative w.r.t. y-component of variable
-                rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Y) += dist_measure;   
-
-                disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-
-                rResponseGradient[1 + node_it*dimension] = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-                rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Y) -= dist_measure;  
-
-                // Compute derivative w.r.t. z-component of variable
-
-                //std::cout << ("Undisturbed value = ") << 
-                //rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) << std::endl;
-                rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) += dist_measure;   
-
-                //std::cout << ("Disturbed value = ") << 
-                //rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) << std::endl;
-
-                disturbed_resp_func_value = this->CalculateValue(mrModelPart);
-
-                rResponseGradient[2 + node_it*dimension] = (disturbed_resp_func_value - undisturbed_resp_func_value) / dist_measure;
-
-                //std::cout << ("Derivative = ") << rResponseGradient[2 + node_it*dimension] << std::endl;
-
-                rAdjointCondition.GetGeometry()[node_it].GetSolutionStepValue(rVARIABLE_COMPONENT_Z) -= dist_measure;  
-            }
-
-        }
-        else if(rVariable == SHAPE_SENSITIVITY) //---> attention do not compute it twice (in element loop and conditon loop)
-        {
-            rResponseGradient = ZeroVector(rDerivativesMatrix.size1());
-            // The result is here a zero vector because this partial derivative was already computed in the element loop!!
-        }   
+        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
                         
         KRATOS_CATCH("");
     }

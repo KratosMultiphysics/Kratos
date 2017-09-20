@@ -101,8 +101,6 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_support // Group disp_fix // Subtree DISPLACEMENT
     Begin SubModelPartNodes
         1
-        9
-        17
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -112,6 +110,16 @@ End SubModelPart
 Begin SubModelPart ROTATION_support // Group dirrot // Subtree ROTATION
     Begin SubModelPartNodes
         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_support_1 // Group disp_fix // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        9
+        17
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -210,8 +218,22 @@ End SubModelPart
 
 Begin SubModelPart sensitivity_model_part // Group disp_z // Subtree DISPLACEMENT
     Begin SubModelPartNodes
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
         9
+        10
+        11
+        12
         13
+        14
+        15
+        16
         17
     End SubModelPartNodes
     Begin SubModelPartElements

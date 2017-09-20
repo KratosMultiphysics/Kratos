@@ -122,12 +122,15 @@ public:
 		// get info how and where to treat the stress
 		m_stress_treatment = rParameters["stress_treatment"].GetString();
 		if(m_stress_treatment != "mean" && m_stress_treatment != "GP" && m_stress_treatment != "node")
-			KRATOS_ERROR << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl; 
+			KRATOS_ERROR << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl;
+
 		if(m_stress_treatment == "GP" || m_stress_treatment == "node")
+		{
 			m_id_of_location = rParameters["stress_location"].GetInt();
-		if(m_id_of_location < 1)
-			KRATOS_THROW_ERROR(std::invalid_argument, "Chose a 'stress_location' > 0. Specified 'stress_location': ", m_id_of_location);
-			
+			if(m_id_of_location < 1)
+				KRATOS_THROW_ERROR(std::invalid_argument, "Chose a 'stress_location' > 0. Specified 'stress_location': ", m_id_of_location);
+		}	
+
 		// Initialize member variables to NULL
 		//m_initial_value = 0.0;
 		//m_initial_value_defined = false;
@@ -326,6 +329,7 @@ public:
 
 				}
 				rResponseGradient[dof_it] = (-1) * stress_displ_deriv_value;
+				//std::cout << ("stress_disp_deriv_value = ") << -1*stress_displ_deriv_value << std::endl;
 				stress_displ_deriv_value = 0.0;	
 			}
 		}
@@ -360,7 +364,54 @@ protected:
 
 		if(rAdjointElem.Id() == m_id_of_traced_element)
 		{
-			BaseType::CalculateSensitivityGradient(rAdjointElem, rVariable, rDerivativesMatrix, rResponseGradient, rProcessInfo);
+			rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariable.Name());
+
+			Matrix stress_DV_deriv;
+			if(m_stress_treatment == "mean" || m_stress_treatment == "GP")
+				rAdjointElem.Calculate(STRESS_DV_DERIV_ON_GP, stress_DV_deriv, rProcessInfo);
+			else
+				rAdjointElem.Calculate(STRESS_DV_DERIV_ON_NODE, stress_DV_deriv, rProcessInfo);
+
+		    int num_of_DV = stress_DV_deriv.size1();
+			int num_of_deriv = stress_DV_deriv.size2();
+			double stress_DV_deriv_value = 0.0;
+
+			if(rResponseGradient.size() != stress_DV_deriv.size1())
+				rResponseGradient.resize(stress_DV_deriv.size1(), false);
+			if(rResponseGradient.size() != rDerivativesMatrix.size1())
+				KRATOS_ERROR << "Size of partial stress design variable derivative does not fit!" << std::endl; 
+
+			for (int dv_it = 0 ; dv_it < num_of_DV; dv_it++)
+			{
+				if(m_stress_treatment == "mean")
+				{
+					for(int GP_it = 0; GP_it < num_of_deriv; GP_it++)
+						stress_DV_deriv_value += stress_DV_deriv(dv_it, GP_it);
+
+					stress_DV_deriv_value /= num_of_deriv;	
+				}
+				else if(m_stress_treatment == "GP")
+				{
+					if(num_of_deriv >= m_id_of_location)
+						stress_DV_deriv_value = stress_DV_deriv(dv_it, (m_id_of_location-1));
+					else
+						KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " << 
+									num_of_deriv  << "!"<< std::endl; 
+				}
+				else if(m_stress_treatment == "node")
+				{
+					if(num_of_deriv >= m_id_of_location)
+						stress_DV_deriv_value = stress_DV_deriv(dv_it, (m_id_of_location-1));
+					else
+						KRATOS_ERROR << "Chosen node is not availible. The element has only " << 
+									num_of_deriv  << " nodes."<< std::endl; 
+				}
+				rResponseGradient[dv_it] =  stress_DV_deriv_value;
+				//std::cout << ("partiall derivative (prop) = ") << stress_DV_deriv_value << std::endl;
+				stress_DV_deriv_value = 0.0;	
+			}
+
+			rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, "");
 		}
 		else
 		{
@@ -369,23 +420,7 @@ protected:
 			rResponseGradient.clear();
 		}
 		
-      /*	if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-		
-		Vector zero_adjoint_vector;	  
-		zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
-
-		if(rAdjointElem.Id() == m_id_of_traced_element)
-		{
-			rAdjointElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			noalias(rResponseGradient) = prod(rDerivativesMatrix, zero_adjoint_vector);
-		}
-		else
-		{
-			 noalias(rResponseGradient) = zero_adjoint_vector;
-		}*/
-
-       KRATOS_CATCH("")
+        KRATOS_CATCH("")
 	}
 
 	// ==============================================================================
@@ -397,7 +432,6 @@ protected:
 	{										  
 		KRATOS_TRY;
 
-		//TODO: Rework this. Maybe not always zero vetor.
 		if (rResponseGradient.size() != rDerivativesMatrix.size1())
           		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 		rResponseGradient.clear();	
@@ -412,26 +446,67 @@ protected:
                                       Vector& rResponseGradient,
                                       ProcessInfo& rProcessInfo) override
     {
-      	KRATOS_TRY
-
-		//Vector zero_adjoint_vector;	  
-		//zero_adjoint_vector  = ZeroVector(rDerivativesMatrix.size1());
-
-		// Do it only for traced element in order to prevent e.g. double disturbance if DV are the nodal coordinates
-		if(rAdjointElem.Id() == m_id_of_traced_element) 
+		KRATOS_TRY;
+      	
+		if(rAdjointElem.Id() == m_id_of_traced_element)
 		{
-			BaseType::CalculateSensitivityGradient(rAdjointElem, rVariable, rDerivativesMatrix, rResponseGradient, rProcessInfo);
-			//rAdjointElem.Calculate(ZERO_ADJOINT_LOAD, zero_adjoint_vector, rProcessInfo);
-			//noalias(rResponseGradient) = prod(rDerivativesMatrix, zero_adjoint_vector);
+			rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariable.Name());
+
+			Matrix stress_DV_deriv;
+			if(m_stress_treatment == "mean" || m_stress_treatment == "GP")
+				rAdjointElem.Calculate(STRESS_DV_DERIV_ON_GP, stress_DV_deriv, rProcessInfo);
+			else
+				rAdjointElem.Calculate(STRESS_DV_DERIV_ON_NODE, stress_DV_deriv, rProcessInfo);
+
+		    int num_of_DV = stress_DV_deriv.size1();
+			int num_of_deriv = stress_DV_deriv.size2();
+			double stress_DV_deriv_value = 0.0;
+
+			if(rResponseGradient.size() != stress_DV_deriv.size1())
+				rResponseGradient.resize(stress_DV_deriv.size1(), false);
+			if(rResponseGradient.size() != rDerivativesMatrix.size1())
+				KRATOS_ERROR << "Size of partial stress design variable derivative does not fit!" << std::endl; 
+
+			for (int dv_it = 0 ; dv_it < num_of_DV; dv_it++)
+			{
+				if(m_stress_treatment == "mean")
+				{
+					for(int GP_it = 0; GP_it < num_of_deriv; GP_it++)
+						stress_DV_deriv_value += stress_DV_deriv(dv_it, GP_it);
+
+					stress_DV_deriv_value /= num_of_deriv;	
+				}
+				else if(m_stress_treatment == "GP")
+				{
+					if(num_of_deriv >= m_id_of_location)
+						stress_DV_deriv_value = stress_DV_deriv(dv_it, (m_id_of_location-1));
+					else
+						KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " << 
+									num_of_deriv  << "!"<< std::endl; 
+				}
+				else if(m_stress_treatment == "node")
+				{
+					if(num_of_deriv >= m_id_of_location)
+						stress_DV_deriv_value = stress_DV_deriv(dv_it, (m_id_of_location-1));
+					else
+						KRATOS_ERROR << "Chosen node is not availible. The element has only " << 
+									num_of_deriv  << " nodes."<< std::endl; 
+				}
+				rResponseGradient[dv_it] = stress_DV_deriv_value;
+				//std::cout << ("partiall derivative (shape) = ") << stress_DV_deriv_value << std::endl;
+				stress_DV_deriv_value = 0.0;	
+			}
+
+			rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, "");
 		}
 		else
 		{
 			if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-			rResponseGradient.clear();	  
-		}	
+          			rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+			rResponseGradient.clear();
+		}
 
-      KRATOS_CATCH("")
+		KRATOS_CATCH("");
 	}
 
 	// ==============================================================================
@@ -442,12 +517,10 @@ protected:
                                       ProcessInfo& rProcessInfo)
     {
 		KRATOS_TRY;
-		BaseType::CalculateSensitivityGradient(rAdjointCondition, rVariable, rDerivativesMatrix, rResponseGradient, rProcessInfo);
-        //TODO: Rework this. A zero vector is not the general case. It is valid for e.g. point loads
-		/*
-			if (rResponseGradient.size() != rDerivativesMatrix.size1())
-          		rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-			rResponseGradient.Clear();*/
+	
+		if(rResponseGradient.size() != rDerivativesMatrix.size1())
+          	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+		rResponseGradient.clear();
 
 		KRATOS_CATCH("");
 	}

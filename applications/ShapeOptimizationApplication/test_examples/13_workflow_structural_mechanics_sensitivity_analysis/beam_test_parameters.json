@@ -38,7 +38,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "DISPLACEMENT_support_1", "ROTATION_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
 
     },
@@ -69,6 +69,21 @@
             "is_fixed_x"      : true,
             "is_fixed_y"      : false,
             "is_fixed_z"      : false,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },
+    {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support_1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     }
