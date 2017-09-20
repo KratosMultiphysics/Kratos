@@ -288,8 +288,8 @@ namespace Kratos
             min_volume = std::min(min_volume, trial_tetra.DomainSize());
         }
 
-        bool all_tetrahedra_have_poositive_volume = min_volume > 0.0;
-        return all_tetrahedra_have_poositive_volume;
+        bool all_tetrahedra_have_positive_volume = min_volume > 0.0;
+        return all_tetrahedra_have_positive_volume;
     }
 
 
