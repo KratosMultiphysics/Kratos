@@ -66,7 +66,7 @@ class Algorithm(object):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, varying_parameters = dict()):
+    def __init__(self, varying_parameters = Parameters("{}")):
         sys.stdout = Logger()
         self.StartTimer()
         self.main_path = os.getcwd()
@@ -83,7 +83,7 @@ class Algorithm(object):
 
         self.procedures = self.disperse_phase_algorithm.procedures
         self.KRATOSprint = self.disperse_phase_algorithm.KRATOSprint
-        self.report        = DEM_procedures.Report()
+        self.report = DEM_procedures.Report()
 
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
@@ -99,7 +99,7 @@ class Algorithm(object):
 
     def SetCouplingParameters(self, varying_parameters):
         parameters_file = open("ProjectParametersDEM.json",'r')
-        self.pp.CFD_DEM = Parameters(parameters_file.read())        
+        self.pp.CFD_DEM = Parameters(parameters_file.read())
         self.SetDoSolveDEMVariable()
         self.SetBetaParameters()
         self.SetCustomBetaParameters(varying_parameters)
@@ -146,14 +146,14 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("vorticity_calculation_type").SetInt(5)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_FLUID_ACCEL_PROJECTED_option").SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)   #TODO: not used??    
+        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)   #TODO: not used??
         self.pp.CFD_DEM.AddEmptyValue("print_BASSET_FORCE_option").SetBool(True) #TODO: not used??
         self.pp.CFD_DEM.AddEmptyValue("basset_force_integration_type").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("n_init_basset_steps").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("time_steps_per_quadrature_step").SetInt(1)
         self.pp.CFD_DEM.AddEmptyValue("delta_time_quadrature").SetDouble( self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt() * self.pp.CFD_DEM["MaxTimeStep"].GetDouble() )
         self.pp.CFD_DEM.AddEmptyValue("quadrature_order").SetInt(2)
-        self.pp.CFD_DEM.AddEmptyValue("time_window").SetDouble(0.8)        
+        self.pp.CFD_DEM.AddEmptyValue("time_window").SetDouble(0.8)
         self.pp.CFD_DEM.number_of_exponentials = 10
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM["time_window"].GetDouble() / self.pp.CFD_DEM["delta_time_quadrature"].GetDouble())
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
@@ -197,16 +197,14 @@ class Algorithm(object):
     def SetDoSolveDEMVariable(self):
         self.pp.do_solve_dem = not self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool()
 
-    def SetCustomBetaParameters(self, dictionary): # this method is ugly. The way to go is to have all input parameters as a dictionary
-
-        if len(dictionary) == 0:
-            return
-        else: # assign the specified values to the specified variables
-            var_names = [k for k in dictionary.keys()]
-            var_values = [k for k in dictionary.values()]
-            for name, value in zip(var_names, var_values):
-                setattr(self.pp.CFD_DEM, name, value)
-                print(name, value)
+    def SetCustomBetaParameters(self, custom_parameters): # this method is ugly. The way to go is to have all input parameters as a dictionary
+        custom_parameters.ValidateAndAssignDefaults(self.pp.CFD_DEM)
+        self.pp.CFD_DEM = custom_parameters
+        # TO DO: remove next lines as info is taken from Parameters object everywhere
+        # var_names = [k for k in dictionary.keys()]
+        # var_values = [k for k in dictionary.values()]
+        # for name, value in zip(var_names, var_values):
+        #     self.pp.CFD_DEM.__setitem__(name, value)
 
     def Run(self):
         self.Initialize()

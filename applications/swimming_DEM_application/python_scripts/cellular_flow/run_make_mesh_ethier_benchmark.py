@@ -1,11 +1,12 @@
 import os
 import sys
 sys.path.append(os.getcwd())
-print(os.path.dirname(os.path.realpath(__file__)))
+from KratosMultiphysics import *
 import KratosSwimmingDEM as script
 import sys
 import ProjectParameters as pp
 import DEM_explicit_solver_var as DEM_parameters
+import json
 varying_parameters = dict()
 
 irregular_mesh_sizes = set() #{0.1, 0.2, 0.4}
@@ -18,6 +19,8 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
     for derivatives_type in derivatives_types:
         varying_parameters['material_acceleration_calculation_type'] = derivatives_type
         varying_parameters['laplacian_calculation_type'] = derivatives_type
+        varying_parameters = Parameters(json.dumps(varying_parameters))
+
         import make_mesh_ethier_benchmark_algorithm
         with make_mesh_ethier_benchmark_algorithm.Algorithm(varying_parameters) as algorithm:
             try:

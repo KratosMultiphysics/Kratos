@@ -19,16 +19,18 @@ def num_type(value):
         return None
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, varying_parameters = dict()):
+    def __init__(self, varying_parameters = Parameters("{}")):
         BaseAlgorithm.__init__(self, varying_parameters)
 
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
-        self.pp.CFD_DEM.size_parameter = 0
+        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type")
+        self.pp.CFD_DEM.AddEmptyValue("size_parameter").SetInt(1)
         self.pp.CFD_DEM.store_full_gradient = 1
 
-    def SetCustomBetaParameters(self, dictionary):
-        BaseAlgorithm.SetCustomBetaParameters(self, dictionary)
+    def SetCustomBetaParameters(self, custom_parameters):
+        BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
+        self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetInt()
         # Creating a code for the used input variables
         self.run_code = '_ndiv_' + str(self.pp.CFD_DEM.size_parameter) + '_mat_deriv_type_' + str(self.pp.CFD_DEM.material_acceleration_calculation_type) + '_lapl_type_' + str(self.pp.CFD_DEM.laplacian_calculation_type)
 
