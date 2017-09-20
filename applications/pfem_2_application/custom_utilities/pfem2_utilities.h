@@ -35,6 +35,7 @@
 #include "pfem_2_application.h"
 #include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
+#include "includes/c2c_variables.h"
 #include "includes/deprecated_variables.h"
 
 #include "processes/process.h"
@@ -1295,7 +1296,7 @@ public:
         for(ModelPart::PropertiesContainerType::iterator i_properties = full_model_part.PropertiesBegin() ;
                 i_properties != full_model_part.PropertiesEnd() ; ++i_properties)
         {
-            reduced_model_part.AddProperties(*(i_properties.base()));
+            reduced_model_part.AddProperties(*(i_properties.base()),NumberOfProperties);
 
         }
 	

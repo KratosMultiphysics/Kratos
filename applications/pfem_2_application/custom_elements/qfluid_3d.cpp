@@ -252,39 +252,39 @@ namespace Kratos
     const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
     const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);
-    const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+    //const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
     const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 
     const array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
     const double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
     const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX);
-    const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+    //const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
     const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 
     const array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
     const double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
     const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX);
-    const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+    //const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
     const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
     const array_1d<double, 3 > & fv3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
     const double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
     const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSUREAUX);
-    const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+    //const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
     const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
 
     //calculating avergage density and viscosity
-    double nu = 0.25 * (nu0 + nu1 + nu2 + nu3);
+    //double nu = 0.25 * (nu0 + nu1 + nu2 + nu3);
     double density = 0.25 * (rho0 + rho1 + rho2 + rho3);
-
-#if defined(QCOMP)
-    nu=0.0;	
+    //double nu=0.0;
+    //#if defined(QCOMP)
+    //nu=0.0;	
     
-#else
+    //#else
     density = this->GetValue(DENSITY);
-#endif
+    //#endif
+      
     
-
     double norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1] + vel_gauss[2] * vel_gauss[2];
     norm_u = sqrt(norm_u);
     //double tau = 0.0; 
@@ -367,9 +367,9 @@ namespace Kratos
     if(FractionalStepNumber  == 5) //calculation of stabilization terms
       {
 	
-	const unsigned int number_of_points = 4;
-	const unsigned int dim = 3;
-	unsigned int matsize = number_of_points *dim;
+	//const unsigned int number_of_points = 4;
+	//const unsigned int dim = 3;
+	//unsigned int matsize = number_of_points *dim;
 	
 	//getting data for the given geometry
 	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
@@ -404,7 +404,7 @@ namespace Kratos
 	nu=0.0;	
 #endif
 	
-	double dt = CurrentProcessInfo[DELTA_TIME];
+	//double dt = CurrentProcessInfo[DELTA_TIME];
 	
 	const array_1d<double,3> body_force = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) +	GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE) + GetGeometry()[3].FastGetSolutionStepValue(BODY_FORCE));
         unsigned int number_of_nodes=4;
@@ -599,29 +599,29 @@ namespace Kratos
 
         const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-        const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+        //const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 	const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
 	
         const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
         double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-        const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+        //const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 	const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
 
         const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
         double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-        const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+        //const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 	const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
 
 	const array_1d<double,3>& vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
         double p_n3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
-        const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+        //const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
 	const double k3 = GetGeometry()[3].FastGetSolutionStepValue(BULK_MODULUS);
 
-	double density = 0.25*(rho0 + rho1 + rho2 + rho3);
+	//double density = 0.25*(rho0 + rho1 + rho2 + rho3);
 	
 	double bulk_modulus = 0.25*(k0 + k1 + k2 + k3) * dt;
 	
@@ -635,8 +635,8 @@ namespace Kratos
         noalias(GalerkinRHS) = prod(Mass, ms_temp_vec_np);
 	//KRATOS_WATCH(GalerkinRHS);
 
-        double E_over_R = 24466.81;
-    	double C = 1.4e10; 
+        //double E_over_R = 24466.81;
+    	//double C = 1.4e10; 
  
 	GalerkinRHS *= Area ;
 
@@ -745,9 +745,8 @@ namespace Kratos
     double k=25000.0 * dt; 
   
 #if defined(QCOMP)
-    k=5000.0 * dt; 
-    k=5000.0 * dt; 
-    //k=750.0 * dt; 
+     
+  k=5000.0 * dt; 
 #else
     k=0.0;
 #endif
@@ -765,7 +764,7 @@ namespace Kratos
     boost::numeric::ublas::bounded_matrix<double,6,12> B;
     
   
-    unsigned int start;
+    //unsigned int start;
   
     for(unsigned int i = 0; i<number_of_nodes; i++)
       {
@@ -783,7 +782,7 @@ namespace Kratos
       }
 
     
-    const double& a = nu;
+    //const double& a = nu;
     //constitutive tensor
     ms_constitutive_matrix(0,0) = (4.0/3.0)*viscosity;
     ms_constitutive_matrix(0,1) = -2.0/3.0*viscosity;
