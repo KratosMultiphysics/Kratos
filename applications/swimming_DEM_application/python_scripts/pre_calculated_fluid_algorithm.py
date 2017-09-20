@@ -18,7 +18,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.load_derivatives = 0
         self.pp.CFD_DEM.DEM_steps_per_fluid_load_step = 1
         self.pp.CFD_DEM.store_fluid_in_single_precision = 1
-        self.pp.CFD_DEM.store_fluid_pressure = 1
+        self.pp.CFD_DEM["store_fluid_pressure_option"].SetBool(1)
 
     def PerformZeroStepInitializations(self):
         import hdf5_io_tools

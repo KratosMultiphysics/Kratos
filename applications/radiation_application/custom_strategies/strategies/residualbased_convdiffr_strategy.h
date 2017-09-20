@@ -180,7 +180,7 @@ namespace Kratos
 
 	      //calculate the BDF coefficients
 	      ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-	    double Dt = rCurrentProcessInfo[DELTA_TIME];
+	    //double Dt = rCurrentProcessInfo[DELTA_TIME];
 	    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 	    const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 	    if(mOldDt == 0.00) //needed for the first step
