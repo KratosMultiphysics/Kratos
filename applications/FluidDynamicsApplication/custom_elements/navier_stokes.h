@@ -106,7 +106,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~NavierStokes() {};
+    ~NavierStokes() override {};
 
 
     ///@}
@@ -235,7 +235,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -285,7 +285,7 @@ public:
     }
 
 
-    virtual void Calculate(const Variable<double>& rVariable,
+    void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -318,13 +318,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "NavierStokes #";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -583,12 +583,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

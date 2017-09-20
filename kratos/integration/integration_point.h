@@ -1,15 +1,18 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.4 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                    
 //
-
 
 #if !defined(KRATOS_INTEGRATION_POINT_H_INCLUDED )
 #define  KRATOS_INTEGRATION_POINT_H_INCLUDED
-
 
 
 // System includes
@@ -156,7 +159,7 @@ public:
         : BaseType(rOtherCoordinates), mWeight(NewWeight) {}
 
     /// Destructor.
-    virtual ~IntegrationPoint() {}
+    ~IntegrationPoint() override {}
 
 
     ///@}
@@ -236,7 +239,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << TDimension << " dimensional integration point";
@@ -244,13 +247,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << TDimension << " dimensional integration point";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         if(!TDimension)
             return;

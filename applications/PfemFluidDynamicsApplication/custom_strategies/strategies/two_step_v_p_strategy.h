@@ -764,7 +764,7 @@ public:
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
       
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
 	   i != rModelPart.NodesEnd(); ++i)
@@ -775,34 +775,17 @@ public:
 
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	  
+	  if( i->IsFixed(DISPLACEMENT_X) == false )
+	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];	  
 
-	  this->UpdateDisplacements ( CurrentDisplacement, CurrentVelocity, PreviousDisplacement, PreviousVelocity, timeInterval);
+	  if( i->IsFixed(DISPLACEMENT_Y) == false )
+	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+
+	  if( i->IsFixed(DISPLACEMENT_Z) == false )
+	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
         }
-    }
-
-    inline void UpdateDisplacements(array_1d<double, 3 > & CurrentDisplacement,
-				    const array_1d<double, 3 > & CurrentVelocity,
-				    array_1d<double, 3 > & PreviousDisplacement,
-				    const array_1d<double, 3 > & PreviousVelocity,
-				    Vector& BDFcoeffs)
-    {
-      /* noalias(PreviousDisplacement)=CurrentDisplacement; */
-      noalias(CurrentDisplacement) = -(CurrentVelocity+PreviousVelocity)/BDFcoeffs[1] + PreviousDisplacement ; 
-      // std::cout<<"rBDFCoeffs[0] is "<<BDFcoeffs[0]<<std::endl;//3/(2*delta_t)
-      // std::cout<<"rBDFCoeffs[1] is "<<BDFcoeffs[1]<<std::endl;//-2/(delta_t)
-      // std::cout<<"rBDFCoeffs[2] is "<<BDFcoeffs[2]<<std::endl;//1/(2*delta_t)
-
-    }
-
-
-    inline void UpdateDisplacements(array_1d<double, 3 > & CurrentDisplacement,
-				    const array_1d<double, 3 > & CurrentVelocity,
-				    array_1d<double, 3 > & PreviousDisplacement,
-				    const array_1d<double, 3 > &PreviousVelocity,
-				    const double timeInterval)
-    {
-      noalias(CurrentDisplacement) = 0.5*timeInterval*(CurrentVelocity+PreviousVelocity) + PreviousDisplacement ; 
     }
 
     void ResetActiveToSlivers()

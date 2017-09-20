@@ -10,18 +10,18 @@ import sys
 
 # Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 class Solution:
-    import swimming_DEM_algorithm
-    def __init__(self, algorithm = swimming_DEM_algorithm, varying_parameters = dict()):
-        self.alg = algorithm.Algorithm(varying_parameters)                
+    def __init__(self, algorithm = None, varying_parameters = dict()):
+        self.alg = algorithm
+
+        if self.alg == None:
+            import swimming_DEM_algorithm
+            self.alg = swimming_DEM_algorithm.Algorithm(varying_parameters)
 
 if __name__=="__main__":
     Solution().alg.Run()

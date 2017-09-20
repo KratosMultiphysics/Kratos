@@ -9,13 +9,16 @@
         "echo_level"      : 0
     },
     "structure_solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "3D_Hook"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_3D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -45,10 +48,8 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "3D_Hook"
             },
-            "time_order"                 : 2,
-            "mesh_reform_dofs_each_step" : false,
-            "mesh_compute_reactions"     : true
-    },    
+            "compute_reactions"     : true
+    },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
         "kratos_module" : "KratosMultiphysics",
@@ -61,12 +62,12 @@
             "is_fixed_x"      : true,
             "is_fixed_y"      : true,
             "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]            
+            "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
         "python_module"   : "assign_scalar_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a scalar variable value over a condition",
         "process_name"          : "ApplyScalarOnConditionsProcess",
         "Parameters"            : {
@@ -107,53 +108,55 @@
         "incremental_displacement" : false
     },
     "optimization_settings" : {
-        "objectives" : [{ 
+        "objectives" : [{
                 "identifier"    : "strain_energy",
                 "use_kratos"    : true,
-                "gradient_mode" : "semi_analytic", 
-                "step_size"     : 1e-8 
+                "step_size"     : 1e-5,
+                "gradient_mode" : "semi_analytic",
+                "discretization_weighting": false
         }],
         "constraints" : [{
                 "identifier"    : "mass",
                 "type"          : "equality",
                 "use_kratos"    : true,
-                "gradient_mode" : "finite_differencing", 
-                "step_size"     : 1e-8             
+                "gradient_mode" : "finite_differencing",
+                "step_size"     : 1e-8,
+                "discretization_weighting": false
         }],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing",
             "input_model_part_name"     : "3D_Hook",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 30,
+                "filter_radius"              : 30.0,
                 "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : true 
+                "matrix_free_filtering"      : true
             },
             "damping" : {
                 "perform_damping" : true,
-                "damping_regions" : [{ 
+                "damping_regions" : [{
                         "sub_model_part_name"   : "support",
-                        "damp_X"                : true, 
+                        "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
                         "damping_function_type" : "cosine",
-                        "damping_radius"        : 85
-                    },{ 
+                        "damping_radius"        : 85.0
+                    },{
                         "sub_model_part_name"   : "inner_face",
-                        "damp_X"                : true, 
+                        "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
-                        "damping_function_type" : "cosine", 
-                        "damping_radius"        : 30
-                },{ 
+                        "damping_function_type" : "cosine",
+                        "damping_radius"        : 30.0
+                },{
                         "sub_model_part_name"   : "tip_face",
-                        "damp_X"                : true, 
+                        "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
-                        "damping_function_type" : "linear", 
-                        "damping_radius"        : 20
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 20.0
                 }]
             }
         },
@@ -181,7 +184,7 @@
                                           "SEARCH_DIRECTION",
                                           "DESIGN_UPDATE",
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE_ABSOLUTE" ],            
+                                          "SHAPE_CHANGE_ABSOLUTE" ],
             "output_format" : {
                 "name"                   : "gid",
                 "VolumeOutput"           : true,
@@ -189,7 +192,7 @@
                 "GiDWriteMeshFlag"       : true,
                 "GiDWriteConditionsFlag" : true,
                 "GiDMultiFileFlag"       : "Single"
-            }      
-        }                  
-    }    
+            }
+        }
+    }
 }

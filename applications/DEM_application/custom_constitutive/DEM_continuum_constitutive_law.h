@@ -35,7 +35,7 @@ namespace Kratos {
 
         virtual void Initialize();
 
-        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
         
         virtual std::string GetTypeOfLaw();
 

@@ -95,7 +95,8 @@ namespace Kratos {
         
         mStrategyForContinuum = using_strategy_for_continuum;
         unsigned int& max_Id=creator.mMaxNodeId;
-        CreatePropertiesProxies(mFastProperties, mInletModelPart);      
+        //CreatePropertiesProxies(mFastProperties, mInletModelPart); 
+        mFastProperties = PropertiesProxiesManager().GetPropertiesProxies(r_modelpart);
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         
         if (r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY)) mBallsModelPartHasSphericity = true;        
@@ -373,8 +374,8 @@ namespace Kratos {
                 const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[smp_number];
 
                 if (double_number_of_particles_to_insert < INT_MAX){ // otherwise the precision is not enough to see the residuals
-                    mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
                     number_of_particles_to_insert = std::trunc(double_number_of_particles_to_insert);
+                    mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
                 }
 
                 else {
@@ -479,24 +480,24 @@ namespace Kratos {
                     else {
                         
                         int number_of_added_spheres = 0;
-                        Cluster3D* p_cluster = creator.ClusterCreatorWithPhysicalParameters(r_modelpart, 
-                                                                                            r_clusters_modelpart,
-                                                                                            max_Id+1, 
-                                                                                            valid_elements[random_pos]->GetGeometry()(0),
-                                                                                            valid_elements[random_pos],
-                                                                                           //This only works for random_pos as real position in the vector if 
-                                                                                           //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
-                                                                                            p_properties,
-                                                                                            mp,
-                                                                                            r_reference_element, 
-                                                                                            p_fast_properties, 
-                                                                                            mBallsModelPartHasSphericity, 
-                                                                                            mBallsModelPartHasRotation, 
-                                                                                            smp_it->Elements(),
-                                                                                            number_of_added_spheres,
-                                                                                            mStrategyForContinuum);
+                        creator.ClusterCreatorWithPhysicalParameters(r_modelpart, 
+                                                                    r_clusters_modelpart,
+                                                                    max_Id+1, 
+                                                                    valid_elements[random_pos]->GetGeometry()(0),
+                                                                    valid_elements[random_pos],
+                                                                   //This only works for random_pos as real position in the vector if 
+                                                                   //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
+                                                                    p_properties,
+                                                                    mp,
+                                                                    r_reference_element, 
+                                                                    p_fast_properties, 
+                                                                    mBallsModelPartHasSphericity, 
+                                                                    mBallsModelPartHasRotation, 
+                                                                    smp_it->Elements(),
+                                                                    number_of_added_spheres,
+                                                                    mStrategyForContinuum);
                                                
-                        UpdatePartialThroughput(*p_cluster, smp_number);
+                        //UpdatePartialThroughput(*p_cluster, smp_number);
                         max_Id += number_of_added_spheres;                        
                     }
 

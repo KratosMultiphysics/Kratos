@@ -29,7 +29,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.01
+            "damp_factor_m" :-0.3
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)

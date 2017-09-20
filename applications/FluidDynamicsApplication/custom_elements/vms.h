@@ -24,6 +24,7 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -189,7 +190,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~VMS()
+    ~VMS() override
     {}
 
 
@@ -211,14 +212,14 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
 	return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
     
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
         return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
@@ -233,9 +234,9 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -254,8 +255,8 @@ public:
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -275,8 +276,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -324,7 +325,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -379,9 +380,9 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -434,7 +435,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
     }
 
@@ -451,9 +452,9 @@ public:
      * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
      * @see MarkForRefinement for a use of the error ratio
      */
-    virtual void Calculate(const Variable<double>& rVariable,
+    void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ERROR_RATIO)
         {
@@ -490,9 +491,9 @@ public:
      * @param Output Will be overwritten with the elemental momentum error
      * @param rCurrentProcessInfo Process info instance (unused)
      */
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
@@ -607,30 +608,30 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -642,9 +643,9 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -658,9 +659,9 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
         {
@@ -793,21 +794,21 @@ public:
     }
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     ///@}
@@ -827,7 +828,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -836,34 +837,21 @@ public:
         if(ErrorCode != 0) return ErrorCode;
 
         // Check that all required variables have been registered
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-        if(MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-        if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
-        if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-        if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-        if(VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-        if(OSS_SWITCH.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if the application was correctly registered.","");
-        if(DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
-        if(ADVPROJ.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ADVPROJ Key is 0. Check if the application was correctly registered.","");
-        if(DIVPROJ.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check if the application was correctly registered.","");
-        if(NODAL_AREA.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check if the application was correctly registered.","");
-        if(C_SMAGORINSKY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check if the application was correctly registered.","");
-        if(ERROR_RATIO.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ERROR_RATIO Key is 0. Check if the application was correctly registered.","");
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+        KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
+        KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
+        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
+        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
+        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
+        KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
+        KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
+        KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
+        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
+        KRATOS_CHECK_VARIABLE_KEY(ERROR_RATIO);
         // Additional variables, only required to print results:
         // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
 
@@ -872,20 +860,20 @@ public:
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-                    this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-                    this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+            Node<3> &rNode = this->GetGeometry()[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
+            // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
+
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 
@@ -895,8 +883,7 @@ public:
             for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
                 if (this->GetGeometry()[i].Z() != 0.0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
-            }
+                    KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;            }
         }
 
         return 0;
@@ -914,7 +901,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "VMS #" << Id();
@@ -922,7 +909,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "VMS" << TDim << "D";
     }
@@ -1826,12 +1813,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

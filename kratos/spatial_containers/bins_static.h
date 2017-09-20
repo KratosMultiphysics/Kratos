@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-27 17:02:19 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
+
 
 
 #if !defined(KRATOS_BINS_CONTAINER_H_INCLUDE)
@@ -124,7 +129,7 @@ public:
     //************************************************************************
 
     // destructor
-    virtual ~Bins() { }
+    ~Bins() override { }
 
     //************************************************************************
 
@@ -786,7 +791,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Bin[" << SearchUtils::PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
         for(IteratorConstIterator i_cell = mIndexCell.begin() ; i_cell != mIndexCell.end()-1 ; i_cell++)

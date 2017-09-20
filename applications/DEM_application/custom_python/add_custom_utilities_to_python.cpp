@@ -70,6 +70,78 @@ boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& 
     return Out;
 }
 
+Element::Pointer CreateSphericParticle1(ParticleCreatorDestructor& r_creator_destructor,
+                                                ModelPart& r_modelpart,
+                                                int r_Elem_Id,
+                                                const array_1d<double, 3 >& coordinates, 
+                                                Properties::Pointer r_params,
+                                                const double radius,
+                                                const Element& r_reference_element) {
+    
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, r_reference_element);
+}
+
+Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
+                                              ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const Element& r_reference_element) {
+    
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, r_reference_element);
+}
+
+Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
+                                              ModelPart& r_modelpart,
+                                              int r_Elem_Id,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+    
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, element_name);
+}
+
+Element::Pointer CreateSphericParticle4(ParticleCreatorDestructor& r_creator_destructor,
+                                              ModelPart& r_modelpart,
+                                              Node < 3 > ::Pointer reference_node, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+    
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, reference_node, r_params, radius, element_name);
+}
+
+Element::Pointer CreateSphericParticle5(ParticleCreatorDestructor& r_creator_destructor,
+                                              ModelPart& r_modelpart,
+                                              int r_Elem_Id,  
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+    
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
+}
+
+Element::Pointer CreateSphericParticle6(ParticleCreatorDestructor& r_creator_destructor,
+                                              ModelPart& r_modelpart,
+                                              const array_1d<double, 3 >& coordinates, 
+                                              Properties::Pointer r_params,
+                                              const double radius,
+                                              const std::string& element_name) {
+    
+    return r_creator_destructor.CreateSphericParticle(r_modelpart, coordinates, r_params, radius, element_name);
+}
+
+void CreatePropertiesProxies1(PropertiesProxiesManager& r_properties_proxy_manager, ModelPart& r_modelpart) {
+    r_properties_proxy_manager.CreatePropertiesProxies(r_modelpart); 
+}
+
+void CreatePropertiesProxies2(PropertiesProxiesManager& r_properties_proxy_manager, ModelPart& r_modelpart, ModelPart& r_inlet_modelpart, ModelPart& r_clusters_modelpart) {
+    r_properties_proxy_manager.CreatePropertiesProxies(r_modelpart, r_inlet_modelpart, r_clusters_modelpart); 
+}
+
 void AddCustomUtilitiesToPython() {
     
     using namespace boost::python;
@@ -92,6 +164,12 @@ void AddCustomUtilitiesToPython() {
         .def("FindMaxElementIdInModelPart", &ParticleCreatorDestructor::FindMaxElementIdInModelPart)
         .def("FindMaxConditionIdInModelPart", &ParticleCreatorDestructor::FindMaxConditionIdInModelPart)
         .def("RenumberElementIdsFromGivenValue", &ParticleCreatorDestructor::RenumberElementIdsFromGivenValue)
+        .def("CreateSphericParticle", CreateSphericParticle1)    
+        .def("CreateSphericParticle", CreateSphericParticle2)
+        .def("CreateSphericParticle", CreateSphericParticle3)
+        .def("CreateSphericParticle", CreateSphericParticle4)
+        .def("CreateSphericParticle", CreateSphericParticle5)
+        .def("CreateSphericParticle", CreateSphericParticle6)
         ;
       
     class_<DEM_Inlet, boost::noncopyable >
@@ -218,6 +296,12 @@ void AddCustomUtilitiesToPython() {
         .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<array_1d<double,3> >)    
         .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<std::string>) 
         .def("GetIthSubModelPartNodes", &AuxiliaryUtilities::GetIthSubModelPartNodes)          
+        ;
+    
+    class_<PropertiesProxiesManager, boost::noncopyable >
+        ("PropertiesProxiesManager", init<>())
+        .def("CreatePropertiesProxies", CreatePropertiesProxies1)
+        .def("CreatePropertiesProxies", CreatePropertiesProxies2)
         ;
 
     class_<ExcavatorUtility, boost::noncopyable >("ExcavatorUtility",
