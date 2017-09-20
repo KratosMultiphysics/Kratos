@@ -320,7 +320,6 @@ class ExplicitStrategy:
         pass
 
     def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
-        print("_______AddAdditionalVariables sphere strategy")
         pass
 
     def AddClusterVariables(self, spheres_model_part, DEM_parameters):

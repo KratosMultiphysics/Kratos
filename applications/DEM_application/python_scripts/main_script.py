@@ -245,7 +245,6 @@ class Solution(object):
 
         # Reading the model_part
         spheres_mp_filename   = self.GetMpFilename()  
-        print("2.- Checking model_part_reader entry")       
         model_part_io_spheres = self.model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
         if "do_not_perform_initial_partition" in self.DEM_parameters.keys() and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():

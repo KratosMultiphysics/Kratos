@@ -376,8 +376,7 @@ class Procedures(object):
         self.scheme=scheme
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
-        self.AddMpiVariables(spheres_model_part)
-        print("_______AddAllVariablesInAllModelParts main")        
+        self.AddMpiVariables(spheres_model_part)      
         self.solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
