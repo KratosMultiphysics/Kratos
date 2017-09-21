@@ -35,8 +35,9 @@ class Solution(object):
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
-        self.procedures = self.SetProcedures()       
+        self.procedures = self.SetProcedures()
         #self.SetAnalyticParticleWatcher()
+
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
@@ -166,7 +167,7 @@ class Solution(object):
         self.AddVariables()
 
         self.ReadModelParts()
-    
+
         self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
@@ -179,9 +180,9 @@ class Solution(object):
 
         os.chdir(self.main_path)
         self.KRATOSprint("\nInitializing Problem...")
-        
+
         self.GraphicalOutputInitialize()
-       
+
         # Perform a partition to balance the problem
         self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
         self.solver.BeforeInitialize()
@@ -240,7 +241,7 @@ class Solution(object):
     def GetProblemTypeFilename(self):
         return self.DEM_parameters["problem_name"].GetString()
 
-    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):        
+    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
         os.chdir(self.main_path)
 
         # Reading the model_part
@@ -253,7 +254,7 @@ class Solution(object):
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
 
         os.chdir(self.main_path)
-        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)        
+        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
 
         max_node_Id += self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
@@ -290,7 +291,7 @@ class Solution(object):
 
         self.step           = 0
         self.time           = 0.0
-        self.time_old_print = 0.0                       
+        self.time_old_print = 0.0
         while (self.time < self.final_time):
 
             self.InitializeTimeStep()
@@ -359,7 +360,7 @@ class Solution(object):
         pass
 
     def BeforePrintingOperations(self, time):
-        pass    
+        pass
 
     def AfterSolveOperations(self):
         if "AnalyticParticle" in self.DEM_parameters.keys(): #TODO: Change the name of AnalyticParticle to something more understandable
@@ -378,15 +379,15 @@ class Solution(object):
         self.KRATOSprint("Finalizing execution...")
 
         self.GraphicalOutputFinalize()
-        
+
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
-        
+
 
         os.chdir(self.main_path)
-    
+
     def CleanUpOperations(self):
 
         objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
@@ -400,8 +401,8 @@ class Solution(object):
 
         self.procedures.DeleteFiles()
 
-        self.KRATOSprint(self.report.FinalReport(timer))       
-    
+        self.KRATOSprint(self.report.FinalReport(timer))
+
     def SetGraphicalOutput(self):
         self.demio         = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path)
         
@@ -410,7 +411,7 @@ class Solution(object):
 
         os.chdir(self.post_path)
         self.demio.InitializeMesh(self.all_model_parts)
-        
+
     def PrintResultsForGid(self, time):
         if self.solver.poisson_ratio_option:
             self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, self.DEM_parameters, "Poisson_ratio.txt", time)
@@ -430,11 +431,10 @@ class Solution(object):
 
         self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
         os.chdir(self.main_path)
-        
+
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
 
 if __name__ == "__main__":
     Solution().Run()
-    
