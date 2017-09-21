@@ -76,13 +76,6 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def _apply_material_properties(self,mp):
         #define properties
-#        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,100e3)
-#        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
-#        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
-#        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
-
-        0.005,0,7850,20010000,1301000,0.3,1001000,1001000,1001000,80000,50000,4000,30000,6000,6000,6000
-        
         orthotropic_props = Matrix(4,16)
         
         # Orthotropic mechanical moduli
@@ -210,6 +203,10 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE, mp.ProcessInfo)[0]
 
         print("Element 2 results\n","SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
+        
+        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE, mp.ProcessInfo)[0]
+
+        print("Element 2 results\n","SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
         
         #results of the second element taken
         stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.TSAI_WU_RESERVE_FACTOR, mp.ProcessInfo)[0]
