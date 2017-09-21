@@ -1,13 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
-# ## add the include directories needed for the compilation
-# message("current dir = " ${CMAKE_CURRENT_SOURCE_DIR})
-# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/sources )
-# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/container )
-# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/python )
-
-
 ## generate variables with the sources
 set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
@@ -60,7 +52,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
-     )
+)
 
 set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_banded_matrix_to_python.cpp
@@ -116,11 +108,8 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
-	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;
+)
 
-	# ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
-
-     )
 file(GLOB_RECURSE KRATOS_CORE_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp)
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
 
@@ -136,10 +125,6 @@ target_link_libraries(KratosCore ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost 
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 install(TARGETS KratosCore DESTINATION libs )
 
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-#     SET_TARGET_PROPERTIES( KratosCore PROPERTIES COMPILE_FLAGS -fPIC)
-# endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
@@ -150,9 +135,6 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
-
-#add_executable(KratosTesting  ${CMAKE_CURRENT_SOURCE_DIR}/testing_main.cpp)
-#target_link_libraries(KratosTesting KratosCore)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -165,7 +147,3 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS Kratos DESTINATION libs )
-#install(TARGETS KratosTesting DESTINATION bin )
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("subdir inc_dirs = ${inc_dirs}")
