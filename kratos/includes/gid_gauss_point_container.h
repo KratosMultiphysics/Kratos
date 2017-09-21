@@ -126,7 +126,7 @@ public:
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                      r_model_part.GetProcessInfo() );
 
-					if (isnan(ValuesOnIntPoint[0]))
+					if (std::isnan(ValuesOnIntPoint[0]))
 					{
 						// we aren't getting any new results, break
 						break;
