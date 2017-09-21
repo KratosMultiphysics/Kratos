@@ -100,20 +100,6 @@ public:
 	{
 		ModelPart& r_model_part = this->GetModelPart();
 
-		// Set gradient mode
-		std::string gradientMode = responseSettings["gradient_mode"].GetString();
-
-		// Mode 1: semi-analytic sensitivities
-		if (gradientMode.compare("semi_analytic") == 0)
-		{
-			mGradientMode = 1;
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
-		}
-		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
-	
-
 		// Get id of node where a displacement should be traced
 		m_id_of_traced_node = responseSettings["traced_node"].GetInt();
 
@@ -306,12 +292,6 @@ public:
 
 	///@}
 	// ==============================================================================
-	double GetDisturbanceMeasure() const override
-	{ 
-		return mDelta; 
-	}
-
-	// ==============================================================================
 	void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
@@ -456,9 +436,7 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-	unsigned int mGradientMode;
 	double m_displacement_value; 
-	double mDelta;
 	int m_id_of_traced_node;
 	std::string m_traced_dof_label;
 	PointTypePointer  m_traced_pNode;

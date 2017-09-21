@@ -25,6 +25,7 @@
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 
+
 // Application includes
 
 namespace Kratos
@@ -74,6 +75,19 @@ public:
         mConditionSensitivityVariables.resize(condition_sensitivity_variables.size());
         for (unsigned int i = 0; i < condition_sensitivity_variables.size(); ++i)
 			mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();	
+
+        // Set gradient mode
+		std::string gradientMode = rParameters["gradient_mode"].GetString();
+
+		// Mode 1: semi-analytic sensitivities
+		if (gradientMode.compare("semi_analytic") == 0)
+		{
+			mGradientMode = 1;
+			double delta = rParameters["step_size"].GetDouble();
+			mDelta = delta;
+		}
+		else
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);    
 
 
         KRATOS_CATCH("");
@@ -143,7 +157,19 @@ public:
             for (auto it = conditions_begin; it != conditions_end; ++it)
                 it->SetValue(UPDATE_SENSITIVITIES, true);   
                 
-        }       
+        }  
+
+    if(mGradientMode == 1)
+    {
+#pragma omp parallel
+        {
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
+            for (auto it = elements_begin; it != elements_end; ++it)
+                it->SetValue(DISTURBANCE_MEASURE, mDelta);
+        } 
+    }   //TODO: eventually it is also necessary to give the disturbance measure to the conditions
 
         KRATOS_CATCH("");
     }
@@ -580,12 +606,7 @@ protected:
 
     ///@}
     ///@name Protected Operations
-    ///@{
-
-    virtual double GetDisturbanceMeasure() const //-----------> or make mDelta to member varibale of base class?
-    {
-        return 1e-6; // Default value for disturbance measure
-    }    
+    ///@{ 
 
     /// Calculate and add the sensitivity from the current adjoint and primal solutions.
     /*
@@ -891,6 +912,7 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
+  
         //std::cout << ("I compute now element sensitivities") << std::endl;
 	#pragma omp parallel
         {
@@ -900,17 +922,16 @@ protected:
                                               elements_begin, elements_end);
             int k = OpenMPUtils::ThisThread();
 
+            std::cout << ("Inertia sensitivities:")  << std::endl;
+
             for (auto it = elements_begin; it != elements_end; ++it)
             {
-                
-                std::cout << ("I compute now sensitivities of element #") << it->Id() << std::endl;
-
                 if (it->GetValue(UPDATE_SENSITIVITIES) == true)
                 {
                     // Compute the pseudo load
                     it->CalculateSensitivityMatrix(
             	        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-                
+                        
                     // This part of the sensitivity is computed from the objective
                     // with primal variables treated as constant.
                     this->CalculateSensitivityGradient(
@@ -932,6 +953,7 @@ protected:
                     this->AssembleElementSensitivityContribution(
                   	        rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
 
+                    std::cout <<  sensitivity_vector[k][0] << std::endl;              
                 }
             }
         }
@@ -1180,6 +1202,8 @@ private:
     std::vector<std::string> mNodalSensitivityVariables;
     std::vector<std::string> mElementSensitivityVariables;
 	std::vector<std::string> mConditionSensitivityVariables;
+    unsigned int mGradientMode;
+    double mDelta;
 
     ///@}
     ///@name Private Operators

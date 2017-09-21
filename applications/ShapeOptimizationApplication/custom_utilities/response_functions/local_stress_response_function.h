@@ -97,20 +97,6 @@ public:
 	{
 		ModelPart& r_model_part = this->GetModelPart();
 
-		// Set gradient mode
-		std::string gradientMode = rParameters["gradient_mode"].GetString();
-
-		// Mode 1: semi-analytic sensitivities
-		if (gradientMode.compare("semi_analytic") == 0)
-		{
-			mGradientMode = 1;
-			double delta = rParameters["step_size"].GetDouble();
-			mDelta = delta;
-		}
-		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
-	
-
 		//get traced element
 		m_id_of_traced_element = rParameters["traced_element"].GetInt();
 		m_traced_pElement = r_model_part.pGetElement(m_id_of_traced_element);
@@ -274,12 +260,6 @@ public:
 	///@}
 
 	// ==============================================================================
-	double GetDisturbanceMeasure() const override
-	{ 
-		return mDelta; 
-	}
-
-	// ==============================================================================
 	void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
@@ -407,7 +387,7 @@ protected:
 									num_of_deriv  << " nodes."<< std::endl; 
 				}
 				rResponseGradient[dv_it] =  stress_DV_deriv_value;
-				//std::cout << ("partiall derivative (prop) = ") << stress_DV_deriv_value << std::endl;
+				//std::cout << ("partial derivative (prop) = ") << stress_DV_deriv_value << std::endl;
 				stress_DV_deriv_value = 0.0;	
 			}
 
@@ -548,9 +528,8 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-	unsigned int mGradientMode;
+
 	double m_stress_value; 
-	double mDelta;
 	//double m_initial_value;
 	//bool m_initial_value_defined;
 	unsigned int m_id_of_traced_element;

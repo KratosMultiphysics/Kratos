@@ -114,6 +114,45 @@ namespace Kratos
 		}
 	}
 
+	double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
+	{
+		KRATOS_TRY;
+
+		if (rDesignVariable == IT || rDesignVariable == IY || rDesignVariable == IZ)
+        { 
+			Vector inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
+			double variable_value = rDesignVariable==IT ? inertia[0] : rDesignVariable==IY ? inertia[1] : inertia[2];
+			return variable_value; 
+		}
+		else if ( this->GetProperties().Has(rDesignVariable) ) 
+		{
+			const double variable_value = this->GetProperties()[rDesignVariable];
+			return variable_value;
+		}
+		else
+			return 1.0;
+
+		KRATOS_CATCH("")	
+	}
+
+	double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+	{
+		KRATOS_TRY;
+
+		if(rDesignVariable == SHAPE_SENSITIVITY) 
+		{
+			double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+			double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+			double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+			double L = sqrt(dx*dx + dy*dy + dz*dz);
+			return L;
+		}
+		else
+			return 1.0;
+
+		KRATOS_CATCH("")
+	}
+
 	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo)
 	{
@@ -127,6 +166,11 @@ namespace Kratos
 		this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
 
 		rOutput.resize(1,RHS_undist.size());
+
+		// Get disturbance measure
+        double delta = this->GetValue(DISTURBANCE_MEASURE); 
+		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+		delta *= correction_factor;
 
 		//TODO: reduce code duplication
 
@@ -144,9 +188,6 @@ namespace Kratos
 			Vector& inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
 			double& design_variable = rDesignVariable==IT ? inertia[0] : rDesignVariable==IY ? inertia[1] : inertia[2];
 
-			// Get disturbance measure
-            double delta = design_variable * 0.001; // TODO: get this from outside!
-
 			design_variable += delta;
 
 			// Compute RHS after disturbance
@@ -160,6 +201,9 @@ namespace Kratos
 		
             // Give element original properties back
             this->SetProperties(p_global_properties);
+
+			// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
         }
 		else if ( this->GetProperties().Has(rDesignVariable) ) 
 		{
@@ -171,9 +215,6 @@ namespace Kratos
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(new Properties(r_global_property));
             this->SetProperties(p_local_property);
-
-            // Get disturbance measure
-            double delta = r_global_property[rDesignVariable] * 0.001; // TODO: get this from outside!
 
 			// Disturb the design variable
 			const double current_property_value = this->GetProperties()[rDesignVariable];
@@ -192,6 +233,9 @@ namespace Kratos
 
             // Give element original properties back
             this->SetProperties(p_global_properties);	
+
+			// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
 		}
 		else
 		{
@@ -211,7 +255,11 @@ namespace Kratos
 		Vector RHS_undist;
 		Vector RHS_dist;
 		ProcessInfo testProcessInfo = rCurrentProcessInfo;
-		double delta = 1e-3;	//TODO: get this from outside!
+		
+		// Get disturbance measure
+        double delta = this->GetValue(DISTURBANCE_MEASURE); 
+		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+		delta *= correction_factor;
 
 		if(rDesignVariable == SHAPE_SENSITIVITY) 
 		{
@@ -298,6 +346,9 @@ namespace Kratos
 				this->GetGeometry()[j].Z0() -= delta;
 				// Update CS and transformation matrix after geometry change
 				this->CalculateInitialLocalCS();
+
+				// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
 
 				//end: derive w.r.t. z-coordinate-----------------------------------------------------
 
@@ -458,8 +509,11 @@ namespace Kratos
 		const int num_dofs = num_nodes * dimension * 2;   
     	Vector stress_vector_undist;
     	Vector stress_vector_dist;
-    	double dist_measure = 1e-6; //------------------>TODO: get this from outside
-    	ProcessInfo copy_process_info = rCurrentProcessInfo;		
+		ProcessInfo copy_process_info = rCurrentProcessInfo;	
+		
+		// Get disturbance measure
+        double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 
+		//TODO: is here a correction of delta necessary???
 
     	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 	
@@ -497,8 +551,14 @@ namespace Kratos
         // Define working variables
 		Vector stress_vector_undist;
 		Vector stress_vector_dist;
-		ProcessInfo copy_process_info = rCurrentProcessInfo;	
+		Matrix dummy_LHS;
+		ProcessInfo copy_process_info = rCurrentProcessInfo;
 
+		// Get disturbance measure
+        double delta= this->GetValue(DISTURBANCE_MEASURE); 
+		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+		delta *= correction_factor;	
+	
         // Compute stress before disturbance
 		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
@@ -518,15 +578,10 @@ namespace Kratos
 			// Check which entry of the inertia vector shall be treated as design variable
 			Vector& inertia = this->GetProperties()[LOCAL_INERTIA_VECTOR];
 			double& design_variable = rDesignVariable==IT ? inertia[0] : rDesignVariable==IY ? inertia[1] : inertia[2];
-			
-			// Get disturbance measure
-            double delta = 1e-05;//design_variable * 0.01; // TODO: get this from outside!
-
+	
 			// Disturb Design Variable
 			design_variable += delta;
-
 			// Update stiffness matrix
-			Matrix dummy_LHS;
 			this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
 
 			// Compute stress after disturbance
@@ -537,8 +592,8 @@ namespace Kratos
 			stress_vector_dist  /= delta;
 
 			for(int j = 0; j < stress_vector_size; j++)
-			    rOutput(0, j) = stress_vector_dist[j];
-			
+				 rOutput(0, j) = stress_vector_dist[j];
+			   
             // Give element original properties back
             this->SetProperties(p_global_properties);
 
@@ -555,15 +610,11 @@ namespace Kratos
             Properties::Pointer p_local_property(new Properties(r_global_property));
             this->SetProperties(p_local_property);
 
-            // Get disturbance measure
-            double delta = r_global_property[rDesignVariable] * 0.001; // TODO: get this from outside!
-
 			// Disturb the design variable
 			const double current_property_value = this->GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
 			// Update stiffness matrix
-			Matrix dummy_LHS;
 			this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
 
 			// Compute stress on GP after disturbance
@@ -597,8 +648,13 @@ namespace Kratos
     	// define working variables
 		Vector stress_vector_undist;
 		Vector stress_vector_dist;
+		Matrix dummy_LHS;
 		ProcessInfo copy_process_info = rCurrentProcessInfo;	
-		double delta = 1e-5;	//TODO: get this from outside!
+		
+		// Get disturbance measure
+        double delta= this->GetValue(DISTURBANCE_MEASURE);
+		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+		delta *= correction_factor;	 	
 
 		if(rDesignVariable == SHAPE_SENSITIVITY) 
 		{
@@ -622,7 +678,6 @@ namespace Kratos
 				// Update CS and transformation matrix after geometry change
 				this->CalculateInitialLocalCS(); 
 				// Update stiffness matrix
-				Matrix dummy_LHS;
 				this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
 
 				// Compute stress on GP after disturbance

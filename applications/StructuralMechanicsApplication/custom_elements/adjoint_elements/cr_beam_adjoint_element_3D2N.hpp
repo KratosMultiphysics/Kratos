@@ -68,14 +68,15 @@ namespace Kratos
 			DofsVectorType& rElementalDofList,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		//void Initialize() override;
+		double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
+
+		double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
 
 		void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo) override;
 	
     	void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
 											const ProcessInfo& rCurrentProcessInfo) override;
-
 		void Calculate(const Variable<Vector >& rVariable,
                            Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
@@ -107,6 +108,7 @@ namespace Kratos
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;	
 
+		//void Initialize() override;
 	
 		/*Matrix CreateElementStiffnessMatrix_Material();
 		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
