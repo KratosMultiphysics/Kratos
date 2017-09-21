@@ -47,7 +47,6 @@ KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                  
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )                 // The resultant augmented pressure in the normal direction
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_TANGENT_CONTACT_PRESSURE )                // The resultant augmented pressure in the tangent direction
-KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                      // The scale factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                                    // The proportion between the tangent and normal penalty
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                           // A value used to check if consider normal variation or not
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                             // A value used to check if consider variation or not in the active inactive pairs

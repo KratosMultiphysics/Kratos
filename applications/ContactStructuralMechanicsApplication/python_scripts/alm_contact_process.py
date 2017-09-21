@@ -200,15 +200,15 @@ class ALMContactProcess(python_process.PythonProcess):
             self.alm_var_process.Execute()
             # We don't consider scale factor
             if (self.params["use_scale_factor"].GetBool() == False):
-                self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR] = 1.0
+                self.main_model_part.ProcessInfo[KratosMultiphysics.SCALE_FACTOR] = 1.0
         else:
             # We set the values in the process info
             self.main_model_part.ProcessInfo[KratosMultiphysics.INITIAL_PENALTY] = self.params["penalty"].GetDouble()
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR] = self.params["scale_factor"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SCALE_FACTOR] = self.params["scale_factor"].GetDouble()
             
         # We print the parameters considered
         print("The parameters considered finally are: ")            
-        print("SCALE_FACTOR: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]))
+        print("SCALE_FACTOR: ","{:.2e}".format(self.main_model_part.ProcessInfo[KratosMultiphysics.SCALE_FACTOR]))
         print("INITIAL_PENALTY: ","{:.2e}".format(self.main_model_part.ProcessInfo[KratosMultiphysics.INITIAL_PENALTY]))
             
         #print("MODEL PART AFTER CREATING INTERFACE")

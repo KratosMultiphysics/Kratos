@@ -30,7 +30,7 @@ def CreateMapper( designSurface, optimizationSettings ):
         "domain_size"               : 3,
         "filter" : {
             "filter_function_type"       : "linear",
-            "filter_radius"              : 1,
+            "filter_radius"              : 1.0,
             "max_nodes_in_filter_radius" : 10000,
             "matrix_free_filtering"      : false,
             "integration": {
