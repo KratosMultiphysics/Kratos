@@ -116,6 +116,13 @@ if(NOT DEFINED KRATOS_BUILD_TESTING)
 	SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
+# If install prefix is set, install all the files.
+if(DEFINED KRATOS_INSTALL_PREFIX)
+	SET(INSTALL_TESTING_FILES ON)
+	SET(INSTALL_PYTHON_FILES ON)
+	SET(INSTALL_EMBEDDED_PYTHON ON)
+endif(DEFINED KRATOS_INSTALL_PREFIX)
+
 # Tell the linker to give an error if undefined functions are found
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
