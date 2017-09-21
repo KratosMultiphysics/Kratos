@@ -1,4 +1,6 @@
 cmake_minimum_required (VERSION 2.8.6)
+cmake_policy(OLD)
+
 project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
