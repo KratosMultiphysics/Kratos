@@ -22,7 +22,6 @@ else(GIT_FOUND)
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
 
-
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
   "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
@@ -108,6 +107,12 @@ if(${MSVC14})
   # message("Adding additional flags for MSVC14")
   # Nothing needed right now
 endif(${MSVC14})
+
+# If no test policy enable by default
+if(NOT DEFINED KRATOS_BUILD_TESTING)
+	message("KRATOS_BUILD_TESTING not defined. Setting to ON")
+	SET (KRATOS_BUILD_TESTING ON)
+endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
 # Tell the linker to give an error if undefined functions are found
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
