@@ -34,15 +34,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-
-#   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-#   endif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
+
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
@@ -62,8 +58,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") 	#-lpthread -wd654 -wd10010  ")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") 			#-lpthread -wd654 -wd10010  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
     message("additional default options were set for intel compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -123,20 +119,12 @@ if(DEFINED KRATOS_INSTALL_PREFIX)
 	SET(INSTALL_EMBEDDED_PYTHON ON)
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-# Tell the linker to give an error if undefined functions are found
-# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
 ######################################################################################
 ######################################################################################
 ######################################################################################
-
-# if(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
-#     link_directories(${KRATOS_EXTRA_LINK_PATH})
-#     find_library(EXTRA_LINK_LIBS ${KRATOS_EXTRA_LINK_LIBRARIES} PATH ${KRATOS_EXTRA_LINK_PATH} )
-# endif(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
 
 ## Find all dependencies
 
