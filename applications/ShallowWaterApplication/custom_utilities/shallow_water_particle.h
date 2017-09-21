@@ -39,10 +39,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author:  Miguel Masó Sotomayor$
-//   Date:                $Date:              june 6 2017$
-//   Revision:            $Revision:                  1.0$
-//
+//   Last Modified by:    Miguel Masó Sotomayor
+//   Date:                September 19th 2017
+//   Revision:            2.1
 //
 
 
@@ -100,14 +99,14 @@ namespace Kratos
 @see IntegrationPoint
 */
 //template<std::size_t TDimension, class TDataType = double> //always size 3!
-class SW_Particle : public Point<3>
+class ShallowParticle : public Point<3>
 {
 public: 
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of Point
-    typedef SW_Particle* Pointer;
+    typedef ShallowParticle* Pointer;
     
     typedef double TDataType; 
 
@@ -130,50 +129,62 @@ public:
     ///@{
 
     /// Default constructor.
-    SW_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
+    ShallowParticle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
     {
-		this->ERASE_FLAG=true; //initializing as useless particle
-		this->HEIGHT=0.0;
-		this->VELOCITY=ZeroVector(3);
+        this->ERASE_FLAG=true; //initializing as useless particle
+        this->SCALAR1=0.0;
+        this->VECTOR1=ZeroVector(3);
+        this->VELOCITY=ZeroVector(3);
     }
-    
-    SW_Particle() : Point<3>(0.0, 0.0, 0.0)
-	{
-		this->ERASE_FLAG=true;
-		this->HEIGHT=0.0;
-		this->VELOCITY=ZeroVector(3);
-	}
 
-    ~SW_Particle()
-	{
-	}
+    ShallowParticle() : Point<3>(0.0, 0.0, 0.0)
+    {
+        this->ERASE_FLAG=true;
+        this->SCALAR1=0.0;
+        this->VECTOR1=ZeroVector(3);
+        this->VELOCITY=ZeroVector(3);
+    }
 
-	// Returning references
-	float& GetHeight()
-	{
-		return this->HEIGHT;
-	}
+    ~ShallowParticle()
+    {
+    }
 
-	float& GetVelocity(const unsigned int i)
-	{
-		return this->VELOCITY[i];
-	}
+    // Returning references
+    float& GetScalar1()
+    {
+        return this->SCALAR1;
+    }
 
-	array_1d<float,3>& GetVelocity()
-	{
-		return this->VELOCITY;
-	}
+    float& GetVector1(const unsigned int i)
+    {
+        return this->VECTOR1[i];
+    }
 
-	bool& GetEraseFlag()
-	{
-		return this->ERASE_FLAG;
-	}
-       
-private: 
-	float HEIGHT;
-	array_1d<float,3> VELOCITY;
-	bool ERASE_FLAG;
+    array_1d<float,3>& GetVector1()
+    {
+        return this->VECTOR1;
+    }
 
+    float& GetVelocity(const unsigned int i)
+    {
+        return this->VELOCITY[i];
+    }
+
+    array_1d<float,3>& GetVelocity()
+    {
+        return this->VELOCITY;
+    }
+
+    bool& GetEraseFlag()
+    {
+        return this->ERASE_FLAG;
+    }
+
+private:
+    float SCALAR1;
+    array_1d<float,3> VECTOR1;
+    array_1d<float,3> VELOCITY;
+    bool ERASE_FLAG;
 
 };
 

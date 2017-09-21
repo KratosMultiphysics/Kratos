@@ -123,6 +123,7 @@ class ShallowWaterBaseSolver(object):
 
         # Initialize dry/wet state utility
         #~ self.drybedutility = DryBedUtility(self.model_part)
+        
         # Compute the normals on the body boundary
         normal_util = KratosMultiphysics.BodyNormalCalculationUtils()
         normal_util.CalculateBodyNormals(self.model_part, self.domain_size)
@@ -141,6 +142,8 @@ class ShallowWaterBaseSolver(object):
         # User-defined delta time
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        # Move particles utility needs to access delta_time
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
         return delta_time
 
     #### Specific internal functions ####
