@@ -637,8 +637,8 @@ protected:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         // Allocate memory needed
-        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
         array_1d<double, MatrixSize> rhs_local;
+        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
 
         rData.h = rGeometryData.element_size;
         const unsigned int ngauss = (rGeometryData.N_container).size2();
@@ -666,7 +666,7 @@ protected:
             this->AddSystemBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
 
             // Add the normal component penalty contribution
-            // this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
+            this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
         }
     }
 
@@ -678,7 +678,6 @@ protected:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         // Allocate memory needed
-        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
         array_1d<double, MatrixSize> rhs_local;
 
         rData.h = rGeometryData.element_size;
@@ -735,7 +734,6 @@ protected:
         // Compute the LHS and RHS boundary terms contributions
         array_1d<double, TDim> side_normal; 
         array_1d<double, TNumNodes> aux_cut;
-        const Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
 
         // Contribution coming fron the shear stress operator
         // At the momoent the contribution coming from the stress operator is neglected since it is relatively low and implies the computation of the sh. function gradients in the intersection pts.
@@ -749,7 +747,7 @@ protected:
             aux_cut = row(rGeometryData.N_positive_cut, icut);
 
             // Get the normal according to the positive or negative distance sides
-            side_normal = rGeometryData.intersection_normal;
+            side_normal = -1.0 * rGeometryData.intersection_normal;
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
@@ -757,7 +755,7 @@ protected:
                 {
                     for (unsigned int d = 0; d < TDim; ++d)
                     {
-                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) -= weight * aux_cut(i) * aux_cut(j) * side_normal(d);
+                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) += weight * aux_cut(i) * aux_cut(j) * side_normal(d);
                     }
                 }
             }
@@ -772,7 +770,7 @@ protected:
             aux_cut = row(rGeometryData.N_negative_cut, icut);
 
             // Get the normal according to the positive or negative distance sides
-            side_normal = -rGeometryData.intersection_normal;
+            side_normal = rGeometryData.intersection_normal;
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
@@ -780,7 +778,7 @@ protected:
                 {
                     for (unsigned int d = 0; d < TDim; ++d)
                     {
-                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) -= weight * aux_cut(i) * aux_cut(j) * side_normal(d);
+                        auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) += weight * aux_cut(i) * aux_cut(j) * side_normal(d);
                     }
                 }
             }
@@ -804,7 +802,72 @@ protected:
                                          const ElementDataStruct &rData,
                                          const ElementGeometryDataStruct &rGeometryData)
     {
+        constexpr unsigned int BlockSize = TDim + 1;
+        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
+        // Obtain the previous iteration velocity solution
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+        GetPreviousSolutionVector(rData, prev_sol);
+
+        // Declare auxiliar arrays
+        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
+
+        // Compute the LHS and RHS boundary terms contributions
+        array_1d<double, TDim> side_normal;
+        array_1d<double, TNumNodes> aux_cut;
+
+        // Contribution coming fron the shear stress operator
+        // At the momoent the contribution coming from the stress operator is neglected since it is relatively low and implies the computation of the sh. function gradients in the intersection pts.
+
+        // Contribution coming from the positive side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_positive_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = -1.0 * rGeometryData.intersection_normal;
+
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int d = 0; d < TDim; ++d)
+                    {
+                        auxRightHandSideVector(i * BlockSize + d) += weight * aux_cut(i) * aux_cut(j) * side_normal(d) * prev_sol(j * BlockSize + TDim);
+                    }
+                }
+            }
+        }
+
+        // Contribution coming from the negative side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_negative_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = rGeometryData.intersection_normal;
+
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int d = 0; d < TDim; ++d)
+                    {
+                        auxRightHandSideVector(i * BlockSize + d) += weight * aux_cut(i) * aux_cut(j) * side_normal(d) * prev_sol(j * BlockSize + TDim);
+                    }
+                }
+            }
+        }
+
+
+        // RHS assembly
+        rRightHandSideVector -= auxRightHandSideVector;
     }
 
     /**
@@ -850,46 +913,75 @@ protected:
         }
 
         // Compute the penalty coefficient (TODO: Implement a K depending on the element size)
-        const double pen_coef = 0.1;
+        const double pen_coef = 1000;
 
         // Compute the LHS and RHS penalty contributions
+        array_1d<double, TDim> side_normal;
         array_1d<double, TNumNodes> aux_cut;
-        const Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
-        bounded_matrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize); 
+        bounded_matrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize);
 
+        // Contribution coming from the positive side pressure term
         for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
         {
             const double weight = rGeometryData.cut_edge_areas(icut);
 
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                // Get the shape functions according to the positive or negative distance sides
-                if (elemental_distances[i] > 0.0)
-                {
-                    aux_cut = row(rGeometryData.N_positive_cut, icut);
-                }
-                else
-                {
-                    aux_cut = row(rGeometryData.N_negative_cut, icut);
-                }
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_positive_cut, icut);
 
-                // Compute and assemble the LHS contribution
-                for (unsigned int j=0; j<TNumNodes; ++j)
+            // Get the normal according to the positive or negative distance sides
+            side_normal = -1.0 * rGeometryData.intersection_normal;
+
+            // Compute and assemble the LHS contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
                 {
-                    for (unsigned int m=0; m<TDim; ++m)
+                    for (unsigned int m = 0; m < TDim; ++m)
                     {
-                        const unsigned int row = i*BlockSize + m;
-                        for (unsigned int n=0; n<TDim; ++n)
+                        const unsigned int row = i * BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n)
                         {
-                            const unsigned int col = j*BlockSize + n;
-                            P_gamma(row,col) += pen_coef*weight*aux_cut(i)*rGeometryData.intersection_normal(m)*rGeometryData.intersection_normal(n)*aux_cut(j);
+                            const unsigned int col = j * BlockSize + n;
+                            P_gamma(row, col) += pen_coef * weight * aux_cut(i) * side_normal(m) * side_normal(n) * aux_cut(j);
                         }
                     }
                 }
             }
         }
 
+        // Contribution coming from the negative side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_negative_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = rGeometryData.intersection_normal;
+
+            // Compute and assemble the LHS contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int m = 0; m < TDim; ++m)
+                    {
+                        const unsigned int row = i * BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n)
+                        {
+                            const unsigned int col = j * BlockSize + n;
+                            P_gamma(row, col) += pen_coef * weight * aux_cut(i) * side_normal(m) * side_normal(n) * aux_cut(j);
+                        }
+                    }
+                }
+            }
+        }
+
+        // LHS assembly
         rLeftHandSideMatrix += P_gamma;
+
+        // RHS assembly
         rRightHandSideVector += prod(P_gamma, solution_jump);
 
     }
@@ -935,44 +1027,70 @@ protected:
         }
 
         // Compute the penalty coefficient (TODO: Implement a K depending on the element size)
-        const double pen_coef = 0.0001;
+        const double pen_coef = 1000.0;
 
         // Compute the RHS penalty contributions
+        array_1d<double, TDim> side_normal;
         array_1d<double, TNumNodes> aux_cut;
-        const Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
         array_1d<double, MatrixSize> P_gamma_RHS = ZeroVector(MatrixSize); 
 
-        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++)
+        // Contribution coming from the positive side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
         {
             const double weight = rGeometryData.cut_edge_areas(icut);
 
-            // Compute and assemble the RHS contribution
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                // Get the shape functions according to the positive or negative distance sides
-                if (elemental_distances[i] > 0.0)
-                {
-                    aux_cut = row(rGeometryData.N_positive_cut, icut);
-                }
-                else
-                {
-                    aux_cut = row(rGeometryData.N_negative_cut, icut);
-                }
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_positive_cut, icut);
 
-                for (unsigned int j=0; j<TNumNodes; ++j)
+            // Get the normal according to the positive or negative distance sides
+            side_normal = -1.0 * rGeometryData.intersection_normal;
+
+            // Compute and assemble the LHS contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
                 {
-                    for (unsigned int m=0; m<TDim; ++m)
+                    for (unsigned int m = 0; m < TDim; ++m)
                     {
-                        const unsigned int row = i*BlockSize + m;
-                        for (unsigned int n=0; n<TDim; ++n)
+                        const unsigned int row = i * BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n)
                         {
-                            P_gamma_RHS(row) += pen_coef*weight*aux_cut(i)*rGeometryData.intersection_normal(m)*rGeometryData.intersection_normal(n)*aux_cut(j)*solution_jump(row);
+                            P_gamma_RHS(row) += pen_coef * weight * aux_cut(i) * side_normal(m) * side_normal(n) * aux_cut(j) * solution_jump(row);
                         }
                     }
                 }
             }
         }
 
+        // Contribution coming from the negative side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_negative_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = rGeometryData.intersection_normal;
+
+            // Compute and assemble the LHS contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int m = 0; m < TDim; ++m)
+                    {
+                        const unsigned int row = i * BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n)
+                        {
+                            P_gamma_RHS(row) += pen_coef * weight * aux_cut(i) * side_normal(m) * side_normal(n) * aux_cut(j) * solution_jump(row);
+                        }
+                    }
+                }
+            }
+        }
+
+        // RHS assembly
         rRightHandSideVector += P_gamma_RHS;
 
     }
