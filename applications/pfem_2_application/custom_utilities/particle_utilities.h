@@ -73,6 +73,7 @@ namespace Kratos
       
       void EstimateTime(ModelPart& rEulerianModelPart,const double max_dt)
       {
+	
         KRATOS_TRY
 	  // KRATOS_THROW_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
 	  //initializee dt with max dt
@@ -114,14 +115,11 @@ namespace Kratos
 	    
             double courant= norm_u * max_dt / h;
 	    
-	    
-            double& counter = im->GetValue(POISSON_RATIO);
+	    double& counter = im->GetValue(POISSON_RATIO);
             counter = courant;
 	    
 	  }
-	
-
-        KRATOS_CATCH("");
+	KRATOS_CATCH("");
       }
       
       void VisualizationModelPart(ModelPart& rCompleteModelPart, ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart)
@@ -130,7 +128,6 @@ namespace Kratos
 	
         rCompleteModelPart.Elements() = rEulerianModelPart.Elements();
         rCompleteModelPart.Nodes() = rEulerianModelPart.Nodes();
-	
 	
         unsigned int id;
         if(rEulerianModelPart.Nodes().size()!= 0)
@@ -157,7 +154,6 @@ namespace Kratos
       void TransferToEulerianMesh_Face_Heat_Flux(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart)
       {
         KRATOS_TRY
-	  
 	  //defintions for spatial search
 	  typedef Node < 3 > PointType;
         typedef Node < 3 > ::Pointer PointTypePointer;
@@ -175,7 +171,6 @@ namespace Kratos
 	
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
 	
-	
         //starting calculating time of construction of the kdtree
         boost::timer kdtree_construction;
 	
@@ -183,7 +178,7 @@ namespace Kratos
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
 	  {
 	    PointTypePointer pnode = *(node_it.base());
-	  
+	    
 	    //putting the nodes of the destination_model part in an auxiliary list
 	    list_of_nodes.push_back(pnode);
 	  }
@@ -212,7 +207,7 @@ namespace Kratos
 	
 	for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
 	  {
-	    if((node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)==1 and (node_it)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0)
+	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)>0.5 or (node_it)->FastGetSolutionStepValue(IS_WATER)>0.5 ) 
 	      { //IS_FREE_SURFACE
 		work_point.X() = node_it->X();
 		work_point.Y() = node_it->Y();
@@ -278,13 +273,11 @@ namespace Kratos
 	
         //creating an auxiliary list for the new nodes
         PointVector list_of_nodes;
-
-        //*************
+	//*************
         // Bucket types
         typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
 	
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
-	
 	
         //starting calculating time of construction of the kdtree
         boost::timer kdtree_construction;
@@ -310,7 +303,6 @@ namespace Kratos
         PointVector Results(MaximumNumberOfResults);
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
 	
-	
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
 	  KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
         
@@ -328,7 +320,7 @@ namespace Kratos
 		work_point.Y() = node_it->Y();
 		work_point.Z() = node_it->Z();
 		//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-		double radius = 1.5 * node_it->FastGetSolutionStepValue(NODAL_H);
+		double radius = 2.0 * node_it->FastGetSolutionStepValue(NODAL_H);
 		
             	//find all of the new nodes within the radius
             	int number_of_points_in_radius;
@@ -338,22 +330,16 @@ namespace Kratos
 		
             	if (number_of_points_in_radius > 0)
 		  {
-		    
 		    //double& temperature = (node_it)->FastGetSolutionStepValue(TEMPERATURE);
-		    
 		    double temperature_aux = 0.0;
-		    
 		    double tot_weight = 0.0;
-		    
 		    for (int k = 0; k < number_of_points_in_radius; k++)
 		      {
-			
 			double distance = sqrt(*(SquaredResultsDistances.begin() + k));
 			double weight = SPHCubicKernel(sigma, distance, radius);
-			
 			PointIterator it_found = Results.begin() + k;
-			
-			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE)==1) //MATERIAL_VARIABLE
+			//if((*it_found)->FastGetSolutionStepValue(IS_BOUNDARY)>0.5) //MATERIAL_VARIABLE
+			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) >0.5 or (*it_found)->FastGetSolutionStepValue(IS_WATER) >0.5  ) //MATERIAL_VARIABLE
 			  {
 			    double tempp=0.0;
 			    tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
@@ -388,69 +374,6 @@ namespace Kratos
         KRATOS_CATCH("")
 	  }
       
-      void TransferToEulerianMeshShapeBased_aux_3D(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
-      {
-        KRATOS_TRY
-	  
-	  //defintions for spatial search
-	  //typedef Node < 3 > PointType;
-	  //typedef Node < 3 > ::Pointer PointTypePointer;
-	  
-	  array_1d<double, TDim + 1 > N;
-        const int max_results = 1000;
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-        const int nparticles = rLagrangianModelPart.Nodes().size();
-	
-#pragma omp parallel for firstprivate(results,N)
-        for (int i = 0; i < nparticles; i++)
-	  {
-            ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-	    
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
-            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-	    
-            Element::Pointer pelement;
-	    
-            bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-	    
-            if (is_found == true)
-	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
-		
-                boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
-		
-	    	array_1d<double, 4 > msN;
-		
-	    	double Area=0.0;
-	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
-		
-		
-		array_1d<double, 3 > qrad=ZeroVector(3);
-		
-		double temmp=0.0;
-		for (unsigned int jj = 0; jj < 3; jj++)
-		  {
-		    for (unsigned int kk = 0; kk < 4; kk++)
-		      {
-			temmp=geom[kk].FastGetSolutionStepValue(TEMPERATURE);
-			if(temmp<298.0) temmp=298.0;
-			
-			qrad[jj] += msDN_DX(kk, jj) * temmp;//geom[kk].FastGetSolutionStepValue(TEMPERATURE);
-		      }
-		  }
-		
-		
-        	//double faceheatflux=0.0;
-		
-		
-		(iparticle)->FastGetSolutionStepValue(NORMAL) *=(-1.0);
-		(iparticle)->FastGetSolutionStepValue(FACE_HEAT_FLUX) += fabs( (iparticle)->FastGetSolutionStepValue(NORMAL_X) * qrad[0] + (iparticle)->FastGetSolutionStepValue(NORMAL_Y) * qrad[1] + (iparticle)->FastGetSolutionStepValue(NORMAL_Z) * qrad[2]) *0.0131;
-	      }	     
-	  }	
-        KRATOS_CATCH("")
-	  }
-      
-      
       void TransferToEulerianMeshShapeBased_aux(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
       {
         KRATOS_TRY
@@ -475,13 +398,10 @@ namespace Kratos
             if (is_found == true)
 	      {
                 Geometry<Node<3> >& geom = pelement->GetGeometry();
-                
-                boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
-		
-	    	array_1d<double, 3 > msN;
+		boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
+		array_1d<double, 3 > msN;
 	    	array_1d<double, 3 > N;
-		
-	    	double Area=0.0;
+		double Area=0.0;
 	    	GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
 		
 		int s0=0;
@@ -489,18 +409,13 @@ namespace Kratos
 		int s2=0;
 		int sum=0;
 		if(geom[0].FastGetSolutionStepValue(IS_INTERFACE)>0.5) s0=1; 	//IS_INTERFACE
-		
 		if(geom[1].FastGetSolutionStepValue(IS_INTERFACE)>0.5) s1=1;
-		
 		if(geom[2].FastGetSolutionStepValue(IS_INTERFACE)>0.5) s2=1;
-		
 		sum=s0 + s1 + s2; 
-		
 		array_1d<double, 2 > qrad=ZeroVector(2);
 		array_1d<double, 2 > qrad_P1=ZeroVector(2);
         	array_1d<double,2>  interface_segment=ZeroVector(2);
         	array_1d<double,2>  normaledge1=ZeroVector(2);
-		
 		for (unsigned int jj = 0; jj < 2; jj++)
 		  {
 		    for (unsigned int kk = 0; kk < 3; kk++)
@@ -589,7 +504,8 @@ namespace Kratos
 	KRATOS_CATCH("")
 	  }
       ///3D
-      void CalculateNormal(ModelPart& full_model_part){
+      void CalculateNormal(ModelPart& full_model_part)
+      {
 	KRATOS_TRY
 	  //resetting the normals
 	  array_1d<double,3> zero;
@@ -608,8 +524,8 @@ namespace Kratos
 	
 	for(ModelPart::ElementsContainerType::iterator iii = full_model_part.ElementsBegin(); iii != full_model_part.ElementsEnd(); iii++)
 	  {
-	    if( iii->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[3].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-	      {		
+	    if( iii->GetGeometry()[1].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[2].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[3].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
+	      {
 		v1[0] =  iii->GetGeometry()[1].X() -iii->GetGeometry()[3].X();
 		v1[1] = iii->GetGeometry()[1].Y() - iii->GetGeometry()[3].Y();
 		v1[2] = iii->GetGeometry()[1].Z() - iii->GetGeometry()[3].Z();
@@ -638,127 +554,168 @@ namespace Kratos
 		iii->GetGeometry()[3].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
 		
 	      }
-	    if( iii->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[3].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-	      {
-		v1[0] =  iii->GetGeometry()[0].X() -iii->GetGeometry()[2].X();
-		v1[1] = iii->GetGeometry()[0].Y() - iii->GetGeometry()[2].Y();
-		v1[2] = iii->GetGeometry()[0].Z() - iii->GetGeometry()[2].Z();
+	      if( iii->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[3].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[2].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
+		{
+		  v1[0] =  iii->GetGeometry()[0].X() -iii->GetGeometry()[2].X();
+		  v1[1] = iii->GetGeometry()[0].Y() - iii->GetGeometry()[2].Y();
+		  v1[2] = iii->GetGeometry()[0].Z() - iii->GetGeometry()[2].Z();
 		
-		v2[0] = iii->GetGeometry()[3].X() - iii->GetGeometry()[2].X();
-		v2[1] = iii->GetGeometry()[3].Y() - iii->GetGeometry()[2].Y();
-		v2[2] = iii->GetGeometry()[3].Z() - iii->GetGeometry()[2].Z();
-		MathUtils<double>::CrossProduct(area_normal,v1,v2);
-		//area_normal *= -0.5;
-		array_1d<double,3> msAuxVec = ZeroVector(3);
-		double c0 = fabs(area_normal[0]);
-		double c1 = fabs(area_normal[1]);
-		double c2 = fabs(area_normal[2]);
-		msAuxVec[0]=c0;
-		msAuxVec[1]=c1;
-		msAuxVec[2]=c2;
-		//double norm_c =norm_2(msAuxVec);
+		  v2[0] = iii->GetGeometry()[3].X() - iii->GetGeometry()[2].X();
+		  v2[1] = iii->GetGeometry()[3].Y() - iii->GetGeometry()[2].Y();
+		  v2[2] = iii->GetGeometry()[3].Z() - iii->GetGeometry()[2].Z();
+		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
+		  //area_normal *= -0.5;
+		  array_1d<double,3> msAuxVec = ZeroVector(3);
+		  double c0 = fabs(area_normal[0]);
+		  double c1 = fabs(area_normal[1]);
+		  double c2 = fabs(area_normal[2]);
+		  msAuxVec[0]=c0;
+		  msAuxVec[1]=c1;
+		  msAuxVec[2]=c2;
+		  //double norm_c =norm_2(msAuxVec);
 		
-		double norm_u = msAuxVec[0]*msAuxVec[0] + msAuxVec[1]*msAuxVec[1] + msAuxVec[2]*msAuxVec[2];
-		double norm_c =sqrt(norm_u);
+		  double norm_u = msAuxVec[0]*msAuxVec[0] + msAuxVec[1]*msAuxVec[1] + msAuxVec[2]*msAuxVec[2];
+		  double norm_c =sqrt(norm_u);
 		
-		iii->GetGeometry()[0].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-		iii->GetGeometry()[3].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-		iii->GetGeometry()[2].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-		
-	      }
-	    
-	    if( iii->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[3].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-	      {
-		
-		v1[0] =  iii->GetGeometry()[0].X() -iii->GetGeometry()[3].X();
-		v1[1] = iii->GetGeometry()[0].Y() - iii->GetGeometry()[3].Y();
-		v1[2] = iii->GetGeometry()[0].Z() - iii->GetGeometry()[3].Z();
-		
-		v2[0] = iii->GetGeometry()[1].X() - iii->GetGeometry()[3].X();
-		v2[1] = iii->GetGeometry()[1].Y() - iii->GetGeometry()[3].Y();
-		v2[2] = iii->GetGeometry()[1].Z() - iii->GetGeometry()[3].Z();
-		
-		MathUtils<double>::CrossProduct(area_normal,v1,v2);
-		//area_normal *= -0.5;
-		array_1d<double,3> msAuxVec = ZeroVector(3);
-		double c0 = fabs(area_normal[0]);
-		double c1 = fabs(area_normal[1]);
-		double c2 = fabs(area_normal[2]);
-		msAuxVec[0]=c0;
-		msAuxVec[1]=c1;
-		msAuxVec[2]=c2;
-		
-		double norm_u = msAuxVec[0]*msAuxVec[0] + msAuxVec[1]*msAuxVec[1] + msAuxVec[2]*msAuxVec[2];
-		double norm_c =sqrt(norm_u);
-		
-		iii->GetGeometry()[0].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-		iii->GetGeometry()[1].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-		iii->GetGeometry()[3].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;				
-		
-	      }
-	    if( iii->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0 && iii->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0){
+		  iii->GetGeometry()[0].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		  iii->GetGeometry()[3].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		  iii->GetGeometry()[2].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		}
 	      
-	      v1[0] =  iii->GetGeometry()[0].X() -iii->GetGeometry()[1].X();
-	      v1[1] = iii->GetGeometry()[0].Y() - iii->GetGeometry()[1].Y();
-	      v1[2] = iii->GetGeometry()[0].Z() - iii->GetGeometry()[1].Z();
+	      if( iii->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[1].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[3].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
+		{
+		  v1[0] =  iii->GetGeometry()[0].X() -iii->GetGeometry()[3].X();
+		  v1[1] = iii->GetGeometry()[0].Y() - iii->GetGeometry()[3].Y();
+		  v1[2] = iii->GetGeometry()[0].Z() - iii->GetGeometry()[3].Z();
+		  
+		  v2[0] = iii->GetGeometry()[1].X() - iii->GetGeometry()[3].X();
+		  v2[1] = iii->GetGeometry()[1].Y() - iii->GetGeometry()[3].Y();
+		  v2[2] = iii->GetGeometry()[1].Z() - iii->GetGeometry()[3].Z();
+		  
+		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
+		  //area_normal *= -0.5;
+		  array_1d<double,3> msAuxVec = ZeroVector(3);
+		  double c0 = fabs(area_normal[0]);
+		  double c1 = fabs(area_normal[1]);
+		  double c2 = fabs(area_normal[2]);
+		  msAuxVec[0]=c0;
+		  msAuxVec[1]=c1;
+		  msAuxVec[2]=c2;
+		  
+		  double norm_u = msAuxVec[0]*msAuxVec[0] + msAuxVec[1]*msAuxVec[1] + msAuxVec[2]*msAuxVec[2];
+		  double norm_c =sqrt(norm_u);
+		  
+		  iii->GetGeometry()[0].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		  iii->GetGeometry()[1].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		  iii->GetGeometry()[3].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;				
+		}
+	      if( iii->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[2].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 && iii->GetGeometry()[1].FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
+		{
+		  v1[0] =  iii->GetGeometry()[0].X() -iii->GetGeometry()[1].X();
+		  v1[1] = iii->GetGeometry()[0].Y() - iii->GetGeometry()[1].Y();
+		  v1[2] = iii->GetGeometry()[0].Z() - iii->GetGeometry()[1].Z();
+		  
+		  v2[0] = iii->GetGeometry()[2].X() - iii->GetGeometry()[1].X();
+		  v2[1] = iii->GetGeometry()[2].Y() - iii->GetGeometry()[1].Y();
+		  v2[2] = iii->GetGeometry()[2].Z() - iii->GetGeometry()[1].Z();
+		  
+		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
+		  //area_normal *= -0.5;	
+		  array_1d<double,3> msAuxVec = ZeroVector(3);
+		  double c0 = fabs(area_normal[0]);
+		  double c1 = fabs(area_normal[1]);
+		  double c2 = fabs(area_normal[2]);
+		  msAuxVec[0]=c0;
+		  msAuxVec[1]=c1;
+		  msAuxVec[2]=c2;
+		  //					double norm_c =norm_2(msAuxVec);
+		  
+		  double norm_u = msAuxVec[0]*msAuxVec[0] + msAuxVec[1]*msAuxVec[1] + msAuxVec[2]*msAuxVec[2];
+		  double norm_c =sqrt(norm_u);
+		  
+		  iii->GetGeometry()[0].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		  iii->GetGeometry()[2].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
+		  iii->GetGeometry()[1].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;	
+		}
 	      
-	      v2[0] = iii->GetGeometry()[2].X() - iii->GetGeometry()[1].X();
-	      v2[1] = iii->GetGeometry()[2].Y() - iii->GetGeometry()[1].Y();
-	      v2[2] = iii->GetGeometry()[2].Z() - iii->GetGeometry()[1].Z();
-	      
-	      MathUtils<double>::CrossProduct(area_normal,v1,v2);
-	      //area_normal *= -0.5;	
-	      array_1d<double,3> msAuxVec = ZeroVector(3);
-	      double c0 = fabs(area_normal[0]);
-	      double c1 = fabs(area_normal[1]);
-	      double c2 = fabs(area_normal[2]);
-	      msAuxVec[0]=c0;
-	      msAuxVec[1]=c1;
-	      msAuxVec[2]=c2;
-	      //					double norm_c =norm_2(msAuxVec);
-	      
-	      double norm_u = msAuxVec[0]*msAuxVec[0] + msAuxVec[1]*msAuxVec[1] + msAuxVec[2]*msAuxVec[2];
-	      double norm_c =sqrt(norm_u);
-	      
-	      iii->GetGeometry()[0].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-	      iii->GetGeometry()[2].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;
-	      iii->GetGeometry()[1].FastGetSolutionStepValue(NORMAL) += area_normal/ norm_c;	
-	    }
-	    
 	  }
 	for(ModelPart::NodesContainerType::iterator iii = full_model_part.NodesBegin(); iii != full_model_part.NodesEnd(); iii++)
 	  {
-	    if(iii->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0){
+	    
+	    if(iii->FastGetSolutionStepValue(IS_BOUNDARY)==1.0){
 	      array_1d<double,3>& value_y1 = iii->FastGetSolutionStepValue(NORMAL);
 	      double norm_y1 =norm_2(value_y1);
-	      value_y1 /=norm_y1;
+	      value_y1 /=(norm_y1 + 1e-9);
 	    }	
 	  }
 	
 	KRATOS_CATCH("")	
 	  }
       
+      void TransferToEulerianMeshShapeBased_aux_3D(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+      {
+	KRATOS_TRY
+	//typedef Node < 3 > PointType;
+	//typedef Node < 3 > ::Pointer PointTypePointer;
+	array_1d<double, TDim + 1 > N;
+	const int max_results = 1000;
+	typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	const int nparticles = rLagrangianModelPart.Nodes().size();
+#pragma omp parallel for firstprivate(results,N)
+	for (int i = 0; i < nparticles; i++)
+	  {
+	    ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	    Element::Pointer pelement;
+	    bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	    if (is_found == true)
+	      {
+		Geometry<Node<3> >& geom = pelement->GetGeometry();
+		boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+		array_1d<double, 4 > msN;
+		double Area=0.0;
+		GeometryUtils::CalculateGeometryData(geom, msDN_DX, msN, Area);
+		array_1d<double, 3 > qrad=ZeroVector(3);
+		double temmp=0.0;
+		for (unsigned int jj = 0; jj < 3; jj++)
+		  {
+		    for (unsigned int kk = 0; kk < 4; kk++)
+		      {
+			temmp=geom[kk].FastGetSolutionStepValue(TEMPERATURE);
+			if(temmp<298.0) temmp=298.0;
+			qrad[jj] += msDN_DX(kk, jj) * temmp;//geom[kk].FastGetSolutionStepValue(TEMPERATURE);
+		      }
+		  }
+		//double faceheatflux=0.0;
+		(iparticle)->FastGetSolutionStepValue(NORMAL) *=(-1.0);
+		(iparticle)->FastGetSolutionStepValue(FACE_HEAT_FLUX) += fabs( (iparticle)->FastGetSolutionStepValue(NORMAL_X) * qrad[0] + (iparticle)->FastGetSolutionStepValue(NORMAL_Y) * qrad[1] + (iparticle)->FastGetSolutionStepValue(NORMAL_Z) * qrad[2]) *0.0131;
+			
+	      }
+	  }
+	KRATOS_CATCH("")
+	  }
       //restarting the step from the beginning
       void RestartStep(ModelPart & rModelPart)
       {
-        KRATOS_TRY;
+	KRATOS_TRY;
 	
-        //setting the variables to their value at the beginning of the time step
-        rModelPart.OverwriteSolutionStepData(1, 0);
+	//setting the variables to their value at the beginning of the time step
+	rModelPart.OverwriteSolutionStepData(1, 0);
 	
-        //setting the coordinates to their value at the beginning of the step
-        for (ModelPart::NodesContainerType::iterator node_it = rModelPart.NodesBegin();node_it != rModelPart.NodesEnd(); node_it++)
+	//setting the coordinates to their value at the beginning of the step
+	for (ModelPart::NodesContainerType::iterator node_it = rModelPart.NodesBegin();node_it != rModelPart.NodesEnd(); node_it++)
 	  {
-            array_1d<double, 3 > & coords = node_it->Coordinates();
-            const array_1d<double, 3 > & old_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	    array_1d<double, 3 > & coords = node_it->Coordinates();
+	    const array_1d<double, 3 > & old_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT, 1);
 	    
-            coords[0] = node_it->X0() + old_disp[0];
-            coords[1] = node_it->Y0() + old_disp[1];
-            coords[2] = node_it->Z0() + old_disp[2];
+	    coords[0] = node_it->X0() + old_disp[0];
+	    coords[1] = node_it->Y0() + old_disp[1];
+	    coords[2] = node_it->Z0() + old_disp[2];
 	  }
 	
 	
-        KRATOS_CATCH("");
+	KRATOS_CATCH("");
       }
       
       
@@ -771,7 +728,7 @@ namespace Kratos
 	
 	//do movement
 	array_1d<double, 3 > veulerian;
-	double temperature=0.0;
+	//double temperature=0.0;
 	array_1d<double, 3 > acc_particle;
 	array_1d<double, TDim + 1 > N;
 	const int max_results = 10000;
@@ -780,11 +737,11 @@ namespace Kratos
 	const int nparticles = rModelPart.Nodes().size();
 	
 #pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
-        for (int i = 0; i < nparticles; i++)
+	for (int i = 0; i < nparticles; i++)
 	  {
-            //int substep = 0;
-            int subdivisions = 5;
-	    
+	    //int substep = 0;
+	    int subdivisions = 5;
+	    double temperature=0.0;
 	    ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
 	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
 	    //small_dt = dt / subdivisions;
@@ -826,6 +783,11 @@ namespace Kratos
 			  {
 			    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY,1);
 			  }
+			/*if(iparticle->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==1)
+			  {
+			    veulerian(0)*=0.0;
+			    veulerian(2)*=0.0;
+			  }*/
 			first_time=true;
 			noalias(current_position) += small_dt*veulerian;
 			pparticle->Set(TO_ERASE, false);
@@ -839,7 +801,7 @@ namespace Kratos
 			acc[0] =  0.0;
 			acc[1] = -10.0;
 			acc[2] =  0.0;
-			if( first_time == false && iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 ) 
+			if( first_time == false /*&& iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0*/ ) 
 			  {
 			    noalias(current_position) += small_dt *iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY);
 			    //noalias(current_position) += small_dt * small_dt * acc;	
@@ -854,7 +816,7 @@ namespace Kratos
 			    pparticle->Set(TO_ERASE, false);
 			  }
 			
-		       }
+		      }
 		  }//for
 		
 		//update the displacement BUT DO NOT OVERWRITE THE POSITION!!                
@@ -863,7 +825,7 @@ namespace Kratos
 	      }//move
 	  }
 	//compute mesh velocity
-        for(ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+	for(ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
 	  {
 	    //array_1d<double,3>& dn = it->FastGetSolutionStepValue(DISPLACEMENT,1);
 	    array_1d<double,3>& dn1 = it->FastGetSolutionStepValue(DISPLACEMENT);
@@ -874,122 +836,207 @@ namespace Kratos
       
       void MoveLonelyNodes(ModelPart& ThisModelPart)
       {
-        KRATOS_TRY;
-        double Dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+	KRATOS_TRY;
+	double Dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+	array_1d<double,3> DeltaDisp, acc;
 	
-        array_1d<double,3> DeltaDisp, acc;
-	
-        for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ;
+	for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ;
 	    i != ThisModelPart.NodesEnd() ; ++i)
 	  {
-            if(
+	    if(
 	       (i)->FastGetSolutionStepValue(IS_STRUCTURE) == 0 && 
 	       (i)->GetValue(NEIGHBOUR_ELEMENTS).size() == 0 &&
 	       ((i)->GetDof(VELOCITY_X).IsFixed() == false || (i)->GetDof(VELOCITY_Y).IsFixed() == false || (i)->GetDof(VELOCITY_Z).IsFixed() == false) 
 	       )
 	      {
-                //i->Set(TO_ERASE,true);
-                //set to zero the pressure
-                (i)->FastGetSolutionStepValue(PRESSURE) = 0;
+		//i->Set(TO_ERASE,true);
+		//set to zero the pressure
+		(i)->FastGetSolutionStepValue(PRESSURE) = 0;
 		const array_1d<double,3>& old_vel = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                array_1d<double,3>& vel = (i)->FastGetSolutionStepValue(VELOCITY);
-                //array_1d<double,3>& acc = (i)->FastGetSolutionStepValue(ACCELERATION);
+		array_1d<double,3>& vel = (i)->FastGetSolutionStepValue(VELOCITY);
+		//array_1d<double,3>& acc = (i)->FastGetSolutionStepValue(ACCELERATION);
+		noalias(acc) =  (i)->FastGetSolutionStepValue(BODY_FORCE);
+		acc[0]= 0.0;
+		acc[1]= -10.0;
+		acc[2]= 0.0; 
+		noalias(vel) = old_vel;
+		noalias(vel) += Dt * acc ;
 		
-                noalias(acc) =  (i)->FastGetSolutionStepValue(BODY_FORCE);
-                acc[0]= 0.0;
-	        acc[1]= -10.0;
-                acc[2]= 0.0; 
-                noalias(vel) = old_vel;
-                noalias(vel) += Dt * acc ;
+		//calculate displacements
+		//noalias(DeltaDisp) = Dt * vel;
 		
-                //calculate displacements
-                //noalias(DeltaDisp) = Dt * vel;
-		
-                //array_1d<double,3>& disp = i->FastGetSolutionStepValue(DISPLACEMENT);
-                //noalias(disp) = i->FastGetSolutionStepValue(DISPLACEMENT,1);
-                //noalias(disp) += DeltaDisp;
+		//array_1d<double,3>& disp = i->FastGetSolutionStepValue(DISPLACEMENT);
+		//noalias(disp) = i->FastGetSolutionStepValue(DISPLACEMENT,1);
+		//noalias(disp) += DeltaDisp;
 		noalias(i->Coordinates()) += Dt * Dt * acc;
 		
 	      }
 	    
 	  }
 	
-        KRATOS_CATCH("")
+	KRATOS_CATCH("")
 	  }
       
       
+      void MarkExcessivelyCloseNodes(ModelPart::NodesContainerType& rNodes)
+      {
+	KRATOS_TRY;
+	KRATOS_WATCH("ENTERD Mark close nodes")
+	  //double fact2 = admissible_distance_factor*admissible_distance_factor;
+	  
+	  
+	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+	    {
+	      if(in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) >0.5) //if it is not a wall node i can erase
+		{
+		  int nf=0;	
+		  //loop on neighbours and erase if they are too close
+		  for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+		    {
+		      
+		      if( i->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) <0.5 and i->FastGetSolutionStepValue(IS_FREE_SURFACE) >0.5) //we can erase the current node only if the neighb is not to be erased
+			{
+		      
+			  nf++;
+			  //KRATOS_WATCH(nf)
+			}
+		      if(nf>=2) in->FastGetSolutionStepValue(IS_WATER)= 1;
+		      
+		    }
+		}
+	    }
+	
+	KRATOS_CATCH("")
+	  }
+      
+   double Calculate_Vol(ModelPart & rLagrangianModelPart)
+    {
+        KRATOS_TRY
 
+        //defintions for spatial search
+        typedef Node < 3 > PointType;
+        typedef Node < 3 > ::Pointer PointTypePointer;
+
+
+	//particles
+
+	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
+	  {
+
+	   (node_it)->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
+	  }
+	
+	for (ModelPart::ElementsContainerType::iterator el_it = rLagrangianModelPart.ElementsBegin();el_it != rLagrangianModelPart.ElementsEnd(); el_it++)
+	  {
+	    
+            Geometry<Node < 3 > >& geom = el_it->GetGeometry();
+            double x0 = geom[0].X();
+            double y0 = geom[0].Y();
+            double z0 = geom[0].Z();
+            double x1 = geom[1].X();
+            double y1 = geom[1].Y();
+            double z1 = geom[1].Z();
+	    double x2 = geom[2].X();
+            double y2 = geom[2].Y();
+	    double z2 = geom[2].Z();
+	    double x3 = geom[3].X();
+            double y3 = geom[3].Y();
+	    double z3 = geom[3].Z();	
+	    double area=0.0;	
+
+	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+	    
+	    geom[0].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;
+            geom[1].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;
+            geom[2].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;
+
+	    geom[3].FastGetSolutionStepValue(NODAL_MASS) += area * 0.25;	
+
+        }
+
+	double sum=0.0;
+
+	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
+	  {
+
+	   sum +=(node_it)->FastGetSolutionStepValue(NODAL_MASS) ;
+	  }
+
+	return sum;
+
+        KRATOS_CATCH("")
+    }
     private:
       
       inline double SPHCubicKernel(const double sigma, const double r, const double hmax)
       {
-        double h_half = 0.5 * hmax;
-        const double s = r / h_half;
-        const double coeff = sigma / pow(h_half, static_cast<int>(TDim));
+	double h_half = 0.5 * hmax;
+	const double s = r / h_half;
+	const double coeff = sigma / pow(h_half, static_cast<int>(TDim));
 	
-        if (s <= 1.0)
+	if (s <= 1.0)
 	  return coeff * (1.0 - 1.5 * s * s + 0.75 * s * s * s);
-        else if (s <= 2.0)
+	else if (s <= 2.0)
 	  return 0.25 * coeff * pow(2.0 - s, 3);
-        else
-            return 0.0;
+	else
+	  return 0.0;
       }
       
       inline void CalculateCenterAndSearchRadius(Geometry<Node < 3 > >&geom, double& xc, double& yc, double& zc, double& R, array_1d<double, 3 > & N )
       {
-        double x0 = geom[0].X();
-        double y0 = geom[0].Y();
-        double x1 = geom[1].X();
-        double y1 = geom[1].Y();
-        double x2 = geom[2].X();
-        double y2 = geom[2].Y();
+	double x0 = geom[0].X();
+	double y0 = geom[0].Y();
+	double x1 = geom[1].X();
+	double y1 = geom[1].Y();
+	double x2 = geom[2].X();
+	double y2 = geom[2].Y();
 	
 	xc = 0.3333333333333333333 * (x0 + x1 + x2);
-        yc = 0.3333333333333333333 * (y0 + y1 + y2);
-        zc = 0.0;
+	yc = 0.3333333333333333333 * (y0 + y1 + y2);
+	zc = 0.0;
 	
-        double R1 = (xc - x0)*(xc - x0) + (yc - y0)*(yc - y0);
-        double R2 = (xc - x1)*(xc - x1) + (yc - y1)*(yc - y1);
-        double R3 = (xc - x2)*(xc - x2) + (yc - y2)*(yc - y2);
+	double R1 = (xc - x0)*(xc - x0) + (yc - y0)*(yc - y0);
+	double R2 = (xc - x1)*(xc - x1) + (yc - y1)*(yc - y1);
+	double R3 = (xc - x2)*(xc - x2) + (yc - y2)*(yc - y2);
 	
-        R = R1;
-        if (R2 > R) R = R2;
-        if (R3 > R) R = R3;
+	R = R1;
+	if (R2 > R) R = R2;
+	if (R3 > R) R = R3;
 	
-        R = 1.01 * sqrt(R);
+	R = 1.01 * sqrt(R);
       }
       
       inline void CalculateCenterAndSearchRadius(Geometry<Node < 3 > >&geom, double& xc, double& yc, double& zc, double& R, array_1d<double, 4 > & N )
       {
-        double x0 = geom[0].X();
-        double y0 = geom[0].Y();
-        double z0 = geom[0].Z();
-        double x1 = geom[1].X();
-        double y1 = geom[1].Y();
-        double z1 = geom[1].Z();
-        double x2 = geom[2].X();
-        double y2 = geom[2].Y();
-        double z2 = geom[2].Z();
-        double x3 = geom[3].X();
-        double y3 = geom[3].Y();
-        double z3 = geom[3].Z();
+	double x0 = geom[0].X();
+	double y0 = geom[0].Y();
+	double z0 = geom[0].Z();
+	double x1 = geom[1].X();
+	double y1 = geom[1].Y();
+	double z1 = geom[1].Z();
+	double x2 = geom[2].X();
+	double y2 = geom[2].Y();
+	double z2 = geom[2].Z();
+	double x3 = geom[3].X();
+	double y3 = geom[3].Y();
+	double z3 = geom[3].Z();
 
 	
-        xc = 0.25 * (x0 + x1 + x2 + x3);
-        yc = 0.25 * (y0 + y1 + y2 + y3);
-        zc = 0.25 * (z0 + z1 + z2 + z3);
+	xc = 0.25 * (x0 + x1 + x2 + x3);
+	yc = 0.25 * (y0 + y1 + y2 + y3);
+	zc = 0.25 * (z0 + z1 + z2 + z3);
 	
-        double R1 = (xc - x0)*(xc - x0) + (yc - y0)*(yc - y0) + (zc - z0)*(zc - z0);
-        double R2 = (xc - x1)*(xc - x1) + (yc - y1)*(yc - y1) + (zc - z1)*(zc - z1);
-        double R3 = (xc - x2)*(xc - x2) + (yc - y2)*(yc - y2) + (zc - z2)*(zc - z2);
-        double R4 = (xc - x3)*(xc - x3) + (yc - y3)*(yc - y3) + (zc - z3)*(zc - z3);
+	double R1 = (xc - x0)*(xc - x0) + (yc - y0)*(yc - y0) + (zc - z0)*(zc - z0);
+	double R2 = (xc - x1)*(xc - x1) + (yc - y1)*(yc - y1) + (zc - z1)*(zc - z1);
+	double R3 = (xc - x2)*(xc - x2) + (yc - y2)*(yc - y2) + (zc - z2)*(zc - z2);
+	double R4 = (xc - x3)*(xc - x3) + (yc - y3)*(yc - y3) + (zc - z3)*(zc - z3);
 	
-        R = R1;
-        if (R2 > R) R = R2;
-        if (R3 > R) R = R3;
-        if (R4 > R) R = R4;
+	R = R1;
+	if (R2 > R) R = R2;
+	if (R3 > R) R = R3;
+	if (R4 > R) R = R4;
 
-        R = sqrt(R);
+	R = sqrt(R);
       }
 
       
@@ -1175,8 +1222,7 @@ namespace Kratos
 	M(2, 1) = c1;
 	M(2, 2) = c2;
       }
-      //<-------><-------><-------><-------><-------><-------><-------><-------><-------><-------><------->
-      //<-------><-------><-------><-------><-------><-------><-------><-------><-------><-------><------->
+	      
       void CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface, boost::numeric::ublas::bounded_matrix<double, 2, 2 >& rInterfacePoints)
       {
 	double sign_correction=1.0;
@@ -1407,3 +1453,4 @@ namespace Kratos
 #endif // KRATOS_LAGRANGIAN_PARTICLES_UTILITIES_INCLUDED  defined
 
 
+	

@@ -1182,11 +1182,11 @@ public:
                 if (it->Id() < 1)
                     KRATOS_THROW_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
 		auto it_element = *it;
-                if (typeid (ref_el) != typeid (it_element))
+                /*if (typeid (ref_el) != typeid (it_element))
                 {
                     std::cout << "wrong element found --> " << it->Id() << std::endl;
                     KRATOS_THROW_ERROR(std::logic_error, "Fractional step strategy requires Fluid3D element for the 3D case", "");
-                }
+                }*/
                 it->Check(BaseType::GetModelPart().GetProcessInfo());
             }
 

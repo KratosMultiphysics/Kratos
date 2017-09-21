@@ -171,8 +171,8 @@ class IncompressibleFluidSolver:
         print(self.model_part)
         (self.solver).Solve()
 
-        if(self.compute_reactions):
-            self.solver.ComputeReactions(REACTION)
+        #if(self.compute_reactions):
+        #    self.solver.ComputeReactions(REACTION)
 
 # (self.create_slip_conditions).SetNormalVelocityToZero()
 # (self.create_slip_conditions).ApplyEdgeConstraints()

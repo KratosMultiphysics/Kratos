@@ -168,7 +168,7 @@ namespace Python
 	  .def("CalculateMaxCourantInNegativeElements",&CalculateWaterFraction<3>::CalculateMaxCourantInNegativeElements)
 	  .def("CalculateForce",&CalculateWaterFraction<3>::CalculateForce)
 	  ;
-	
+	/*
 	class_<ParticleUtils < 2 > >("ParticleUtils2D", init<>())
 	  .def("VisualizationModelPart", &ParticleUtils < 2 > ::VisualizationModelPart)
 	  .def("TransferToEulerianMesh", &ParticleUtils < 2 > ::TransferToEulerianMesh)
@@ -177,7 +177,7 @@ namespace Python
 	  .def("TransferToEulerianMeshShapeBased_aux", &ParticleUtils < 2 > ::TransferToEulerianMeshShapeBased_aux)
 	  .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 2 > ::TransferToEulerianMesh_Face_Heat_Flux)
 	  ;
-	
+	*/
 	
 	class_<ParticleUtils < 3 > >("ParticleUtils3D", init<>())
 	  .def("MoveMesh_Streamlines_freesurfaceflows", &ParticleUtils < 3 > ::MoveMesh_Streamlines_freesurfaceflows)
@@ -186,6 +186,8 @@ namespace Python
 	  .def("TransferToEulerianMesh", &ParticleUtils < 3 > ::TransferToEulerianMesh)	
 	  .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 3 > ::TransferToEulerianMesh_Face_Heat_Flux)	
 	  .def("CalculateNormal", &ParticleUtils < 3 > ::CalculateNormal)	
+	  .def("MarkExcessivelyCloseNodes", &ParticleUtils < 3 > ::MarkExcessivelyCloseNodes)	
+	  .def("MoveLonelyNodes", &ParticleUtils < 3 > ::MoveLonelyNodes)	
 	  ;
 	
 	class_<Pfem2ApplyBCProcess, bases<Process> >("Pfem2ApplyBCProcess", init<ModelPart&>());

@@ -763,24 +763,24 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         //getting the velocity on the nodes and other necessary variabless
         const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-        const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+        //const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
         const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
 
         const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
         double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-        const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+        //const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
         const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
 
         const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
         double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-        const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+        //const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 	
         const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
         double bulk_modulus = -0.3333333333333333333333*(k0 + k1 + k2 ) * dt;
-        double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+        //double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
 	
         temp_vec_np[0] = p_n0;
         temp_vec_np[1] = p_n1;
@@ -800,13 +800,13 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
 	C=1.19e15;
 	
         double t1 = GetGeometry()[0].FastGetSolutionStepValue(YCH4);
-        double Arr1 = C * exp(-E_over_R/(t1));
+        //double Arr1 = C * exp(-E_over_R/(t1));
         double t2 = GetGeometry()[1].FastGetSolutionStepValue(YCH4);
-        double Arr2 = C * exp(-E_over_R/(t2));
+        //double Arr2 = C * exp(-E_over_R/(t2));
         double t3 = GetGeometry()[2].FastGetSolutionStepValue(YCH4);
-        double Arr3 = C * exp(-E_over_R/(t3));
+        //double Arr3 = C * exp(-E_over_R/(t3));
 
-        double Aver = 0.33333333333333*(Arr1 + Arr2 + Arr3 );
+        //double Aver = 0.33333333333333*(Arr1 + Arr2 + Arr3 );
 
 	double temp=t1 + t2 + t3;
 	temp *= 0.33333333333333;
@@ -932,7 +932,7 @@ void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
   void QFluid2D::CalculateViscousMatrix( MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& dt, const double& kk)//,const double& bulk )
 {
   
-  double deltat = dt;
+  //double deltat = dt;
   double viscosity=nu;
   
   double k=kk;
