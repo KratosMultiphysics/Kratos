@@ -26,13 +26,17 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type")
         self.pp.CFD_DEM.AddEmptyValue("size_parameter").SetInt(1)
-        self.pp.CFD_DEM.store_full_gradient = 1
+        self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(True)
 
     def SetCustomBetaParameters(self, custom_parameters):
         BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
         self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetInt()
         # Creating a code for the used input variables
-        self.run_code = '_ndiv_' + str(self.pp.CFD_DEM.size_parameter) + '_mat_deriv_type_' + str(self.pp.CFD_DEM.material_acceleration_calculation_type) + '_lapl_type_' + str(self.pp.CFD_DEM.laplacian_calculation_type)
+        self.run_code = '_ndiv_' + str(self.pp.CFD_DEM["size_parameter"].GetDouble()) \
+                                 + '_mat_deriv_type_' \
+                                 + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()) \
+                                 + '_lapl_type_' \
+                                 + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt())
 
     def ReadFluidModelParts(self):
         os.chdir(self.main_path)

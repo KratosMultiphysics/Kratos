@@ -55,7 +55,7 @@ class Algorithm(BaseAlgorithm):
         print(parameters)
         print(mesh_generator_process)
         self.fluid_algorithm.fluid_model_part.CreateSubModelPart("Skin")
-        # __del__(sample_geometry)
+        del sample_geometry
         mesh_generator_process.Execute()
         area_calculator = CalculateNodalAreaProcess(self.fluid_algorithm.fluid_model_part, 3)
         area_calculator.Execute()

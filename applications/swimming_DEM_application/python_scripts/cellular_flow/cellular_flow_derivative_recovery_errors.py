@@ -2,7 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import h5py
 
-regular_mesh = True
+regular_mesh = False
 show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
 mat_deriv_recovery_types = [1, 3, 6, 7]
 laplacian_recovery_types = [1, 3, 6]

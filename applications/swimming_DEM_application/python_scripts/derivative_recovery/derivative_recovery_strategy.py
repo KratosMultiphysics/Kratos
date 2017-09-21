@@ -29,7 +29,7 @@ class DerivativeRecoveryStrategy:
         self.do_pre_recovery = False
         self.must_reconstruct_gradient = self.laplacian_type in {0, 3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
 
-        if pp.CFD_DEM.fluid_already_calculated: # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
+        if pp.CFD_DEM["fluid_already_calculated"].GetInt(): # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
             self.pre_computed_derivatives = pp.CFD_DEM.load_derivatives
         else:
             self.pre_computed_derivatives = False

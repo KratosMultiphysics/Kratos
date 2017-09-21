@@ -66,7 +66,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.pp.CFD_DEM.lift_force_type
+        self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
 
     def Solve(self):
         print("\nSolving for the fluid acceleration...")

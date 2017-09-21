@@ -105,7 +105,7 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         self.FillUpModelPart(self.element_type)
         self.DOFs = self.GetDofs(pp)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.pp.CFD_DEM.lift_force_type
+        self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
 
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
