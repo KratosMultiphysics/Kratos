@@ -22,13 +22,11 @@
 #include "geometries/point.h"
 
 /* Custom includes */
-#include "custom_includes/mortar_operator.h"
-// #include "custom_includes/dual_LM_operators.h" // NOTE: This is expensive, so we wil, use the standard shape function (this is to compute the gap, not to assemble the system, so it is acceptable)
-#include "custom_includes/mortar_kinematic_variables.h"
+#include "includes/mortar_classes.h"
 #include "custom_includes/point_item.h"
 
 /* Custom utilities */
-#include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/contact_utilities.h"
 
 namespace Kratos

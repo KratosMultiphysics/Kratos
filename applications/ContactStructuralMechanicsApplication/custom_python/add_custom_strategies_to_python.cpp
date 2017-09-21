@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/bprinter_utility.h"
 #include "custom_utilities/process_factory_utility.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
@@ -43,8 +42,6 @@
 
 // Builders and solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "custom_strategies/builder_and_solvers/residualbased_block_contact_builder_and_solver.h"
-#include "custom_strategies/builder_and_solvers/residualbased_elimination_contact_builder_and_solver.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -58,7 +55,7 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
-    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
     typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
     
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -88,8 +85,6 @@ void  AddCustomStrategiesToPython()
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     
     // Custom builder and solvers types
-    typedef ResidualBasedEliminationContactBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationContactBuilderAndSolverType;
-    typedef ResidualBasedBlockContactBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockContactBuilderAndSolverType;
     
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
@@ -132,7 +127,7 @@ void  AddCustomStrategiesToPython()
             "MortarAndConvergenceCriteria", 
             init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
-            .def("SetActualizeRHSFlag", &MortarAndConvergenceCriteriaType::SetActualizeRHSFlag)
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool>())
             ;
             
     // Weighted residual values update
@@ -152,6 +147,7 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<double>())
             .def(init<double, TablePrinterPointerType>())
+            .def(init<double, TablePrinterPointerType, bool>())
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -162,6 +158,7 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<double>())
             .def(init<double, TablePrinterPointerType>())
+            .def(init<double, TablePrinterPointerType, bool>())
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
@@ -172,6 +169,7 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -182,7 +180,7 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def("SetEchoLevel", &DisplacementLagrangeMultiplierMixedContactCriteriaType::SetEchoLevel)
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     // Displacement and lagrange multiplier residual Convergence Criterion
@@ -193,19 +191,12 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-
-    // Elimination builder and solver
-    class_< ResidualBasedEliminationContactBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
-        ("ResidualBasedEliminationContactBuilderAndSolver", init< LinearSolverType::Pointer > ());
-    
-    // Block builder and solver
-    class_< ResidualBasedBlockContactBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
-        ("ResidualBasedBlockContactBuilderAndSolver", init< LinearSolverType::Pointer > ());
 }
 
 }  // namespace Python.

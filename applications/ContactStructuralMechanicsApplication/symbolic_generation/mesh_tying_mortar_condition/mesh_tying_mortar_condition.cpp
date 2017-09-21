@@ -22,7 +22,7 @@
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos 
@@ -85,7 +85,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
 //     mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
     
     // Populate of the vector of master elements (it is supposed to be constant)    
-    boost::shared_ptr<ConditionMap>& AllConditionMaps = this->GetValue( CONTACT_MAPS );
+    boost::shared_ptr<ConditionMap>& AllConditionMaps = this->GetValue( MAPPING_PAIRS );
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 

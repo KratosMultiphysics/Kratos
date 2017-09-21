@@ -12,7 +12,7 @@
             "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 4,
+                "filter_radius"              : 4.0,
                 "max_nodes_in_filter_radius" : 100,
                 "matrix_free_filtering"      : false                 
             },
