@@ -447,9 +447,8 @@ namespace Kratos
 
 		//use orientation class 1st constructor
 		double theta_costum = 0.00;
-		if (this->GetProperties().Has(ANG_ROT) == true) {
-			theta_costum = this->GetProperties()[ANG_ROT];
-		}
+		if (this->GetProperties().Has(ANG_ROT)) theta_costum = this->GetProperties()[ANG_ROT];
+			
 
 
 		Orientation element_axis(DirectionVectorX, theta_costum);
