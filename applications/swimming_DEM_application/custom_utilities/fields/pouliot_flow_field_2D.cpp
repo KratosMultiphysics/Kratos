@@ -5,8 +5,8 @@ namespace Kratos
 
 void PouliotFlowField2D::ResizeVectorsForParallelism(const int n_threads)
 {
-    mExpX.resize(n_threads);
-    mExpY.resize(n_threads);
+    mX.resize(n_threads);
+    mY.resize(n_threads);
     mCoordinatesAreUpToDate.resize(n_threads);
     for (int i = 0; i < n_threads; i++){
         mCoordinatesAreUpToDate[i] = false;
@@ -15,16 +15,16 @@ void PouliotFlowField2D::ResizeVectorsForParallelism(const int n_threads)
 void PouliotFlowField2D::UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread)
 {
     if (!mCoordinatesAreUpToDate[i_thread]){
-        mExpX[i_thread] = std::exp(- 25 * coor[0]);
-        mExpY[i_thread] = std::exp(- 25 * coor[1]);
+        mX[i_thread] = coor[0];
+        mY[i_thread] = coor[1];
     }
 }
 
 void PouliotFlowField2D::UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread)
 {
     if (!mCoordinatesAreUpToDate[i_thread]){
-        mExpX[i_thread] = std::exp(- 25 * coor[0]);
-        mExpY[i_thread] = std::exp(- 25 * coor[1]);
+        mX[i_thread] = coor[0];
+        mY[i_thread] = coor[1];
     }
 }
 
@@ -42,7 +42,9 @@ void PouliotFlowField2D::UnlockCoordinates(const int i_thread)
 
 double PouliotFlowField2D::U0(const int i)
 {
-    return mExpX[i] + mExpY[i];
+    const double x = mX[i];
+    const double y = mY[i];
+    return x*x*x + y*y*y;
 }
 double PouliotFlowField2D::U1(const int i)
 {
@@ -61,11 +63,13 @@ double PouliotFlowField2D::U0DT(const int i)
 }
 double PouliotFlowField2D::U0D0(const int i)
 {
-    return - 25 * mExpX[i];
+    const double x = mX[i];
+    return 3*x*x;
 }
 double PouliotFlowField2D::U0D1(const int i)
 {
-    return - 25 * mExpY[i];
+    const double y = mY[i];
+    return 3*y*y;
 }
 double PouliotFlowField2D::U0D2(const int i)
 {
@@ -124,7 +128,8 @@ double PouliotFlowField2D::U0DTD2(const int i)
 }
 double PouliotFlowField2D::U0D0D0(const int i)
 {
-    return 625 * mExpX[i];
+    const double x = mX[i];
+    return 6*x;
 }
 double PouliotFlowField2D::U0D0D1(const int i)
 {
@@ -136,7 +141,8 @@ double PouliotFlowField2D::U0D0D2(const int i)
 }
 double PouliotFlowField2D::U0D1D1(const int i)
 {
-    return 625 * mExpY[i];
+    const double y = mY[i];
+    return 6*y;
 }
 double PouliotFlowField2D::U0D1D2(const int i)
 {

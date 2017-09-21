@@ -58,8 +58,6 @@ class Logger(object):
         #you might want to specify some extra behavior here.
         pass
 
-
-
 class Algorithm(object):
     def __enter__ (self):
         # sys.stdout = Logger()
@@ -68,7 +66,7 @@ class Algorithm(object):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, varying_parameters = dict()):
+    def __init__(self, varying_parameters = Parameters("{}")):
         sys.stdout = Logger()
         self.StartTimer()
         self.main_path = os.getcwd()
@@ -85,7 +83,7 @@ class Algorithm(object):
 
         self.procedures = self.disperse_phase_algorithm.procedures
         self.KRATOSprint = self.disperse_phase_algorithm.KRATOSprint
-        self.report        = DEM_procedures.Report()
+        self.report = DEM_procedures.Report()
 
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
@@ -101,7 +99,7 @@ class Algorithm(object):
 
     def SetCouplingParameters(self, varying_parameters):
         parameters_file = open("ProjectParametersDEM.json",'r')
-        self.pp.CFD_DEM = Parameters(parameters_file.read())        
+        self.pp.CFD_DEM = Parameters(parameters_file.read())
         self.SetDoSolveDEMVariable()
         self.SetBetaParameters()
         self.SetCustomBetaParameters(varying_parameters)
@@ -133,7 +131,7 @@ class Algorithm(object):
         ##############################################################################
 
         #G
-        self.pp.CFD_DEM.fluid_already_calculated = 0
+        self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetInt(0)
         self.pp.CFD_DEM.recovery_echo_level = 1
         self.pp.CFD_DEM.gradient_calculation_type = 1
         self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type").SetInt(1)
@@ -141,21 +139,21 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("store_fluid_pressure_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("laplacian_calculation_type").SetInt(0)
-        self.pp.CFD_DEM.do_search_neighbours = True
+        self.pp.CFD_DEM.AddEmptyValue("do_search_neighbours").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("faxen_terms_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("material_acceleration_calculation_type").SetInt(1)
         self.pp.CFD_DEM.AddEmptyValue("faxen_force_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("vorticity_calculation_type").SetInt(5)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_FLUID_ACCEL_PROJECTED_option").SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)   #TODO: not used??    
+        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)   #TODO: not used??
         self.pp.CFD_DEM.AddEmptyValue("print_BASSET_FORCE_option").SetBool(True) #TODO: not used??
         self.pp.CFD_DEM.AddEmptyValue("basset_force_integration_type").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("n_init_basset_steps").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("time_steps_per_quadrature_step").SetInt(1)
         self.pp.CFD_DEM.AddEmptyValue("delta_time_quadrature").SetDouble( self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt() * self.pp.CFD_DEM["MaxTimeStep"].GetDouble() )
         self.pp.CFD_DEM.AddEmptyValue("quadrature_order").SetInt(2)
-        self.pp.CFD_DEM.AddEmptyValue("time_window").SetDouble(0.8)        
+        self.pp.CFD_DEM.AddEmptyValue("time_window").SetDouble(0.8)
         self.pp.CFD_DEM.number_of_exponentials = 10
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM["time_window"].GetDouble() / self.pp.CFD_DEM["delta_time_quadrature"].GetDouble())
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
@@ -172,7 +170,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("calculate_diffusivity_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_CONDUCTIVITY_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("filter_velocity_option").SetBool(False)
-        self.pp.CFD_DEM.print_PARTICLE_VEL_option = False
+        self.pp.CFD_DEM.AddEmptyValue("print_PARTICLE_VEL_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("apply_time_filter_to_fluid_fraction_option").SetBool(False)
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         # Making the fluid step an exact multiple of the DEM step
@@ -192,21 +190,21 @@ class Algorithm(object):
                                                           [-1.0, -1.0, 0.15],
                                                           [1.0, 1.0, 0.3])
         from math import pi
-        self.pp.CFD_DEM.fluid_domain_volume = 0.5 ** 2 * 2 * pi # write down the volume you know it has
+        self.pp.CFD_DEM.AddEmptyValue("fluid_domain_volume").SetDouble(0.5 ** 2 * 2 * pi) # write down the volume you know it has
 
         self.pp.fluid_fraction_fields.append(field1)
 
     def SetDoSolveDEMVariable(self):
         self.pp.do_solve_dem = not self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool()
 
-    def SetCustomBetaParameters(self, dictionary): # this method is ugly. The way to go is to have all input parameters as a dictionary
-        if len(dictionary) == 0:
-            return
-        else: # assign the specified values to the specified variables
-            var_names = [k for k in dictionary.keys()]
-            var_values = [k for k in dictionary.values()]
-            for name, value in zip(var_names, var_values):
-                setattr(self.pp.CFD_DEM, name, value)
+    def SetCustomBetaParameters(self, custom_parameters): # this method is ugly. The way to go is to have all input parameters as a dictionary
+        custom_parameters.ValidateAndAssignDefaults(self.pp.CFD_DEM)
+        self.pp.CFD_DEM = custom_parameters
+        # TO DO: remove next lines as info is taken from Parameters object everywhere
+        # var_names = [k for k in dictionary.keys()]
+        # var_values = [k for k in dictionary.values()]
+        # for name, value in zip(var_names, var_values):
+        #     self.pp.CFD_DEM.__setitem__(name, value)
 
     def Run(self):
         self.Initialize()
@@ -256,7 +254,10 @@ class Algorithm(object):
                                                                            self.pp.GiDWriteMeshFlag,
                                                                            self.pp.GiDWriteConditionsFlag)
 
-        self.swimming_DEM_gid_io.initialize_swimming_DEM_results(self.disperse_phase_algorithm.spheres_model_part, self.disperse_phase_algorithm.cluster_model_part, self.disperse_phase_algorithm.rigid_face_model_part, self.mixed_model_part)
+        self.swimming_DEM_gid_io.initialize_swimming_DEM_results(self.disperse_phase_algorithm.spheres_model_part,
+                                                                 self.disperse_phase_algorithm.cluster_model_part,
+                                                                 self.disperse_phase_algorithm.rigid_face_model_part,
+                                                                 self.mixed_model_part)
 
         self.SetDragOutput()
 
@@ -266,16 +267,18 @@ class Algorithm(object):
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
-        SDP.ApplySimilarityTransformations(self.fluid_model_part, self.pp.CFD_DEM["similarity_transformation_type"].GetInt() , self.pp.CFD_DEM["model_over_real_diameter_factor"].GetDouble() )
+        SDP.ApplySimilarityTransformations(self.fluid_model_part,
+                                           self.pp.CFD_DEM["similarity_transformation_type"].GetInt(),
+                                           self.pp.CFD_DEM["model_over_real_diameter_factor"].GetDouble())
 
         # creating a Post Utils object that executes several post-related tasks
         self.post_utils = SDP.PostUtils(self.swimming_DEM_gid_io,
-                                                       self.pp,
-                                                       self.fluid_model_part,
-                                                       self.disperse_phase_algorithm.spheres_model_part,
-                                                       self.disperse_phase_algorithm.cluster_model_part,
-                                                       self.disperse_phase_algorithm.rigid_face_model_part,
-                                                       self.mixed_model_part)
+                                        self.pp,
+                                        self.fluid_model_part,
+                                        self.disperse_phase_algorithm.spheres_model_part,
+                                        self.disperse_phase_algorithm.cluster_model_part,
+                                        self.disperse_phase_algorithm.rigid_face_model_part,
+                                        self.mixed_model_part)
 
         # creating an IOTools object to perform other printing tasks
         self.io_tools = SDP.IOTools(self.pp)
@@ -288,6 +291,8 @@ class Algorithm(object):
         # creating a physical calculations module to analyse the DEM model_part
         dem_physics_calculator = SphericElementGlobalPhysicsCalculator(self.disperse_phase_algorithm.spheres_model_part)
 
+        field_utility = self.GetFieldUtility()
+
         if self.pp.CFD_DEM["coupling_level_type"].GetInt():
 
             if self.pp.CFD_DEM["meso_scale_length"].GetDouble() <= 0.0 and self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0) > 0:
@@ -296,8 +301,6 @@ class Algorithm(object):
 
             elif self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0) == 0:
                 self.pp.CFD_DEM.meso_scale_length  = 1.0
-
-            field_utility = self.GetFieldUtility()
 
             self.projection_module = CFD_DEM_coupling.ProjectionModule(self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.disperse_phase_algorithm.rigid_face_model_part, self.pp.domain_size, self.pp, field_utility)
             self.projection_module.UpdateDatabase(self.h_min)
@@ -371,7 +374,7 @@ class Algorithm(object):
         self.print_counter                = self.GetPrintCounter()
         self.debug_info_counter           = self.GetDebugInfo()
         self.particles_results_counter    = self.GetParticlesResultsCounter()
-        self.quadrature_counter           = self.HistoryForceQuadratureCounter()
+        self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
@@ -421,6 +424,7 @@ class Algorithm(object):
         # ANALYTICS END
 
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, self.fluid_model_part, self.derivative_recovery_tool, self.custom_functions_tool)
 
         self.FillHistoryForcePrecalculatedVectors()
@@ -429,9 +433,7 @@ class Algorithm(object):
 
         self.post_utils.Writeresults(self.time)
 
-
     def FluidInitialize(self):
-
         self.fluid_model_part = self.fluid_algorithm.fluid_model_part
         self.fluid_algorithm.vars_man=self.vars_man
 
@@ -449,7 +451,6 @@ class Algorithm(object):
         self.fluid_algorithm.ReadFluidModelPart()
 
     def DispersePhaseInitialize(self):
-
         self.spheres_model_part = self.disperse_phase_algorithm.spheres_model_part
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.spheres_model_part, self.pp.dem_vars)
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.rigid_face_model_part, self.pp.rigid_faces_vars)
@@ -602,7 +603,7 @@ class Algorithm(object):
 
             # coupling checks (debugging)
             if self.debug_info_counter.Tick():
-                self.dem_volume_tool.UpdateDataAndPrint(self.pp.CFD_DEM.fluid_domain_volume)
+                self.dem_volume_tool.UpdateDataAndPrint(self.pp.CFD_DEM["fluid_domain_volume"].GetDouble())
 
             # printing if required
 
@@ -706,11 +707,11 @@ class Algorithm(object):
     def GetParticlesResultsCounter(self):
         return SDP.Counter(self.pp.CFD_DEM["print_particles_results_cycle"].GetInt(), 1, self.pp.CFD_DEM["print_particles_results_option"].GetBool())
 
-    def HistoryForceQuadratureCounter(self):
+    def GetHistoryForceQuadratureCounter(self):
         return SDP.Counter(self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(), 1, self.pp.CFD_DEM["basset_force_type"].GetInt())
 
     def GetVolumeDebugTool(self):
-        return SDP.ProjectionDebugUtils(self.pp.CFD_DEM.fluid_domain_volume, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.custom_functions_tool)
+        return SDP.ProjectionDebugUtils(self.pp.CFD_DEM["fluid_domain_volume"].GetDouble(), self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.custom_functions_tool)
 
     def GetRunCode(self):
         return SDP.CreateRunCode(self.pp)
@@ -749,7 +750,8 @@ class Algorithm(object):
         self.projection_module.ApplyForwardCouplingOfVelocityOnly()
 
     def PerformFinalOperations(self, time = None):
-        pass
+        os.chdir(self.main_path)
+        del self.post_utils
 
     def Finalize(self):
 
@@ -797,8 +799,6 @@ class Algorithm(object):
             #fluid_model_part,
             #variables_dictionary,
             #domain_size)
-
-
 
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
