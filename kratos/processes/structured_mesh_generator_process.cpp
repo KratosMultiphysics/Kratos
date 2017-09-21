@@ -19,6 +19,7 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/geometry.h"
 #include "geometries/point.h"
+#include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "includes/checks.h"
 
@@ -253,7 +254,35 @@ namespace Kratos
     }
 
     bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForQuadrilateral2D4() {
-        return true; // TO DO: write check
+        using triangle_connectivity_in_cell_type = std::array<std::size_t, 3>;
+        constexpr std::size_t number_of_cases = 2;
+
+        std::vector<std::array<double, 3> > cell_points;
+        for (std::size_t i = 0; i < 4; ++i){
+            std::array<double, 3> coordinates{{mrGeometry[i][0], mrGeometry[i][1], mrGeometry[i][2]}};
+            cell_points.push_back(coordinates);
+        }
+
+        constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 1,3,2 }},{{ 1,4,3 }} };
+
+        std::vector<Point<3>::Pointer> my_points(3);
+        double min_area = 1.0;
+
+        for (std::size_t i_case = 0; i_case < number_of_cases; i_case++) {
+            auto connectivity = connectivity_cases[i_case];
+            for (std::size_t i_position = 0; i_position < 3; i_position++)
+            {
+                auto& cell_point = cell_points[connectivity[i_position]];
+                Point<3>::Pointer pPi(new Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                my_points[i_position] = pPi;
+            }
+
+            Triangle2D3<Point<3> > trial_triangle(my_points[0], my_points[1], my_points[2]);
+            min_area = std::min(min_area, trial_triangle.DomainSize());
+        }
+
+        bool all_triangles_have_positive_area = min_area > 0.0;
+        return all_triangles_have_positive_area;
     }
 
 
