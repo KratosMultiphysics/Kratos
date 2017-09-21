@@ -123,6 +123,9 @@ class ShallowWaterBaseSolver(object):
 
         # Initialize dry/wet state utility
         #~ self.drybedutility = DryBedUtility(self.model_part)
+        # Compute the normals on the body boundary
+        normal_util = KratosMultiphysics.BodyNormalCalculationUtils()
+        normal_util.CalculateBodyNormals(self.model_part, self.domain_size)
 
     def Solve(self):
         # Solve equations on mesh
