@@ -400,8 +400,9 @@ namespace Kratos
         
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {   
-            const double detJ0 = CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, integration_method);
-            const double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
+            // NOTE: The integration of the mass matrix is always performed in the initial configuration (Ted Belytschko book 2014 page 91)
+            const double detJ0 = BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, integration_method);
+            const double IntegrationWeight = BaseSolidElement::GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& N = row(Ncontainer,point_number);
             
             for ( unsigned int i = 0; i < number_of_nodes; i++ )
