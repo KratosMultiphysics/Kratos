@@ -62,12 +62,10 @@
 /// This class implements a structural similarity mesh-updating scheme
 /**
  * This mesh-updating scheme treats the mesh as a solid and therefore
- * solves the equations of solid mechanics using a corrotational formulation
- * and a linear elastic consitutive law. The stiffness of the elements
- * depends on their size and can be controlled by the Jacobian Determinant
- * weightened by an exponent. Therefore the current model part is copied and
- * thus it is not necessary to create the mesh moving element explicity in the
- * input file for the geometry. It is implemented for all types of elements.
+ * solves the equations of solid mechanics using a modified linear elastic
+ * consitutive law. The implementation is based on:
+ * K. Stein, et al. Mesh moving techniques for fluid-structure interactions
+ * with large displacements, ASME J. Appl. Mech. 70 (2003) 58-63.
  */
 
 namespace Kratos

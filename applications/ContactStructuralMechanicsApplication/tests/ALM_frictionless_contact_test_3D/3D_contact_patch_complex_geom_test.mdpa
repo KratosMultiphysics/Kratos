@@ -1,0 +1,144 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 3
+    DENSITY   1.00000E-01
+    YOUNG_MODULUS   5.0000000E+1
+    POISSON_RATIO   3.00000E-01 
+End Properties
+
+Begin Properties 4
+    DENSITY   1.00000E-01 
+    YOUNG_MODULUS   5.0000000E+1 
+    POISSON_RATIO   2.90000E-01 
+End Properties
+
+Begin Nodes
+    1   0.2928932188   0.2928932188   2.7071067812
+    2  -0.2071067812  -0.2071067812   2.0000000000
+    3   1.1464466094   0.1464466094   2.2071067812
+    4   0.1464466094   1.1464466094   2.2071067812
+    5   1.0000000000   1.0000000000   1.7071067812
+    6  -0.3535533906   0.6464466094   1.5000000000
+    7   0.6464466094  -0.3535533906   1.5000000000
+    8   0.5000000000   0.5000000000   1.0000000000
+    9   0.0000000000   0.0000000000   1.0000000000
+   10   0.0000000000   1.0000000000   1.0000000000
+   11   1.0000000000   0.0000000000   1.0000000000
+   12   1.0000000000   1.0000000000   1.0000000000
+   13   0.0000000000   0.0000000000   0.0000000000
+   14   1.0000000000   0.0000000000   0.0000000000
+   15   0.0000000000   1.0000000000   0.0000000000
+   16   1.0000000000   1.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements SmallDisplacementElement3D8N// GUI group identifier: Parts Auto1
+         2          3          5          4          6          8          3          1          2          7 
+End Elements
+
+Begin Elements SmallDisplacementElement3D8N// GUI group identifier: Parts Auto2
+         1          4         12         10         15         16         11          9         13         14 
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+    Begin SubModelPartNodes
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        13
+        14
+        15
+        16
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart CONTACT_Contact_Auto1 // Group Contact Auto1 // Subtree CONTACT
+    Begin SubModelPartNodes
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart SelfWeight3D_Self_weight_Auto1 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
