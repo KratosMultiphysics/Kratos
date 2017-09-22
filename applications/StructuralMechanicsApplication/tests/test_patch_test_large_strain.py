@@ -127,40 +127,40 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
         
-    def _solve_and_build(self, mp, lhs, step):
+    def _create_strategy(self, mp):
+        #define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion.SetEchoLevel(0)
         
-        if (step == 1):
-            #define a minimal newton raphson solver
-            linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
-            convergence_criterion.SetEchoLevel(0)
-            
-            max_iters = 1
-            #max_iters = 20
-            compute_reactions = True
-            reform_step_dofs = True
-            move_mesh_flag = True
-            self.strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                            scheme, 
-                                                                            linear_solver, 
-                                                                            convergence_criterion, 
-                                                                            builder_and_solver, 
-                                                                            max_iters, 
-                                                                            compute_reactions, 
-                                                                            reform_step_dofs, 
-                                                                            move_mesh_flag)
-        self.strategy.SetEchoLevel(0)
+        #max_iters = 1
+        max_iters = 20
+        compute_reactions = True
+        reform_step_dofs = True
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
+                                                                        scheme, 
+                                                                        linear_solver, 
+                                                                        convergence_criterion, 
+                                                                        builder_and_solver, 
+                                                                        max_iters, 
+                                                                        compute_reactions, 
+                                                                        reform_step_dofs, 
+                                                                        move_mesh_flag)
+        strategy.SetEchoLevel(0)
         
-        self.strategy.Check()
+        return strategy
         
-        self.strategy.Initialize()
-        self.strategy.InitializeSolutionStep()
-        self.strategy.Predict()
-        self.strategy.SolveSolutionStep()
-        self.strategy.GetDirectSystemMatrix(lhs)
-        self.strategy.FinalizeSolutionStep()
+    def _solve_with_strategy(self, strategy, lhs, step):        
+        strategy.Check()
+        strategy.Initialize()
+        strategy.InitializeSolutionStep()
+        strategy.Predict()
+        strategy.SolveSolutionStep()
+        strategy.GetDirectSystemMatrix(lhs)
+        strategy.FinalizeSolutionStep()
     
     def _check_results(self,mp,A,b):
         
@@ -340,6 +340,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         delta_time = ul_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = ul_mp.ProcessInfo[KratosMultiphysics.TIME]
         
+        tl_strategy = self._create_strategy(tl_mp)
+        ul_strategy = self._create_strategy(ul_mp)
+        
         for iter in range(1, 4):
                         
             time += iter * delta_time
@@ -363,8 +366,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                 #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
                 #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
                 
-            self._solve_and_build(tl_mp, tl_lhs, iter)
-            self._solve_and_build(ul_mp, ul_lhs, iter)
+            self._solve_with_strategy(tl_strategy, tl_lhs, iter)
+            self._solve_with_strategy(ul_strategy, ul_lhs, iter)
             
             # Check displacement
             for i in range(2, 4):
