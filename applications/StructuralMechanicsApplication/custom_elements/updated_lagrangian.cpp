@@ -134,7 +134,7 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
         {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
@@ -147,7 +147,7 @@ namespace Kratos
             );
             
             // Update the element internal variables
-            UpdateHistoricalDatabase(this_kinematic_variables, point_number);
+            this->UpdateHistoricalDatabase(this_kinematic_variables, point_number);
         }
         
         mF0Computed = true;
@@ -169,38 +169,37 @@ namespace Kratos
         const unsigned int PointNumber
         )
     {
-        // NOTE: Doesn't work
-//         mDetF0[PointNumber] = rThisKinematicVariables.detF;
-//         noalias(mF0[PointNumber]) = rThisKinematicVariables.F;
+        mDetF0[PointNumber] = rThisKinematicVariables.detF;
+        noalias(mF0[PointNumber]) = rThisKinematicVariables.F;
         
-        const IntegrationMethod this_integration_method = GetGeometry().GetDefaultIntegrationMethod();
-        
-        // Calculating jacobian
-        Matrix J, J0, InvJ0;
-        double detJ0;
-        J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
-        
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(this_integration_method)[PointNumber];
-        
-        J0.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension());
-        
-        for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-        {
-            const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-            for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
-                {
-                    J0(k,m) += coords[k]*DN_De(i,m);
-                }
-            }
-        }
-        
-        MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-        
-        // Deformation gradient
-        noalias( mF0[PointNumber] ) = prod( J, InvJ0 );
-        mDetF0[PointNumber] = MathUtils<double>::Det(mF0[PointNumber]);
+//         const IntegrationMethod this_integration_method = GetGeometry().GetDefaultIntegrationMethod();
+//         
+//         // Calculating jacobian
+//         Matrix J, J0, InvJ0;
+//         double detJ0;
+//         J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
+//         
+//         const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(this_integration_method)[PointNumber];
+//         
+//         J0.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension());
+//         
+//         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+//         {
+//             const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
+//             for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
+//             {
+//                 for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
+//                 {
+//                     J0(k,m) += coords[k]*DN_De(i,m);
+//                 }
+//             }
+//         }
+//         
+//         MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+//         
+//         // Deformation gradient
+//         noalias( mF0[PointNumber] ) = prod( J, InvJ0 );
+//         mDetF0[PointNumber] = MathUtils<double>::Det(mF0[PointNumber]);
     }
      
     //************************************************************************************
@@ -267,17 +266,17 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
 
             // Calculating weights for integration on the reference configuration
-            double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
+            double int_to_reference_weight = this->GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
 
             if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
             {
-                int_to_reference_weight *= GetProperties()[THICKNESS];
+                int_to_reference_weight *= this->GetProperties()[THICKNESS];
             }
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
@@ -291,7 +290,7 @@ namespace Kratos
             }
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
-            {
+            {                 
                 this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
             }
         }
@@ -308,16 +307,16 @@ namespace Kratos
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         )
     {
-        const IntegrationMethod this_integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
         
         // Shape functions
-        rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
+        rThisKinematicVariables.N = this->GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
         
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
         // Calculating jacobian
         Matrix J, inv_J;
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnCurrentConfiguration(J, inv_J, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnCurrentConfiguration(J, inv_J, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
         if (rThisKinematicVariables.detJ0 < 0.0)
         {
@@ -338,18 +337,18 @@ namespace Kratos
                 DF(2, index) = 0.0;
             }
 
-            rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
+            rThisKinematicVariables.N = this->GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
             const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
             const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
             DF(2, 2) = current_radius/initial_radius;
         }
         
         const double detDF = MathUtils<double>::Det(DF);
-        rThisKinematicVariables.detF = detDF * ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
-        noalias(rThisKinematicVariables.F) = prod(DF, ReferenceConfigurationDeformationGradient(PointNumber));
+        rThisKinematicVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
+        noalias(rThisKinematicVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(PointNumber));
         
         // Calculating operator B
-        CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
+        this->CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
     }
 
     //************************************************************************************
@@ -393,11 +392,11 @@ namespace Kratos
         double detJ0;
         
         Matrix delta_displacement;
-        delta_displacement = CalculateDeltaDisplacement(delta_displacement);
+        delta_displacement = this->CalculateDeltaDisplacement(delta_displacement);
         
-        J0 = GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod, delta_displacement);
+        J0 = this->GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod, delta_displacement);
         
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+        const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
         
         MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
         
@@ -419,8 +418,8 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
+        const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
         // For axisymmetric case
         Vector N;
@@ -428,8 +427,8 @@ namespace Kratos
         
         if ( StrainSize == 4 )
         {
-            N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-            Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
+            N = this->GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
+            Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, this->GetGeometry());
         }
         
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -610,7 +609,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
     
     //************************************************************************************
@@ -622,7 +621,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
         ) 
     {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
     
     //************************************************************************************
