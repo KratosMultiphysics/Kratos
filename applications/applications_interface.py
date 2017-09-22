@@ -43,6 +43,9 @@ Import_ContactMechanicsApplication = False
 Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
 Import_ConstitutiveModelsApplication = False
+Import_ErodibleBedApplication = False
+Import_CustomDEMUtilsApplication = False
+Import_FluidRVELagrangeMultipliersApplication = False
 
 print("Applications Available:")
 print("Import_SolidMechanicsApplication: False")
@@ -85,6 +88,9 @@ print("Import_ContactMechanicsApplication: False")
 print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
 print("Import_ConstitutiveModelsApplication: False")
+print("Import_ErodibleBedApplication: False")
+print("Import_CustomDEMUtilsApplication: False")
+print("Import_FluidRVELagrangeMultipliersApplication: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -130,6 +136,9 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))    
     print("Import_ConstitutiveModelsApplication: " + str(Import_ConstitutiveModelsApplication))
+    print("Import_ErodibleBedApplication: " + str(Import_ErodibleBedApplication))
+    print("Import_CustomDEMUtilsApplication: " + str(Import_CustomDEMUtilsApplication))
+    print("Import_FluidRVELagrangeMultipliersApplication: " + str(Import_FluidRVELagrangeMultipliersApplication))
 
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
@@ -473,7 +482,33 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(constitutive_models_application)
         print("KratosConstitutiveModelsApplication Succesfully imported")
 
+    if(Import_ErodibleBedApplication):
+        print("importing KratosErodibleBedApplication ...")
+        sys.path.append(applications_path + '/erodible_bed_application/python_scripts')
+        sys.path.append(applications_path + '/erodible_bed_application/Linux')
+        from KratosErodibleBedApplication import *
+        erodible_bed_application = KratosErodibleBedApplication()
+        kernel.AddApplication(erodible_bed_application)
+        print("KratosErodibleBedApplication Succesfully imported")
 
+
+    if(Import_CustomDEMUTilsApplication):
+        print("importing KratosCustomDEMUTilsApplication ...")
+        sys.path.append(applications_path + '/custom_DEM_utils_application/python_scripts')
+        sys.path.append(applications_path + '/custom_DEM_utils_application/Linux')
+        from KratosCustomDEMUTilsApplication import *
+        custom_DEM_utils_application = KratosCustomDEMUTilsApplication()
+        kernel.AddApplication(custom_DEM_utils_application)
+        print("KratosErodibleBedApplication Succesfully imported")
+
+    if(Import_FluidRVELagrangeMultipliersApplication):
+        print("importing KratosFluidRVELagrangeMultipliersApplication ...")
+        sys.path.append(applications_path + '/fluid_rve_lagrange_multipliers_application/python_scripts')
+        sys.path.append(applications_path + '/fluid_rve_lagrange_multipliers_application/Linux')
+        from KratosFluidRVELagrangeMultipliersApplication import *
+        fluid_rve_lagrange_multipliers_application = KratosFluidRVELagrangeMultipliersApplication()
+        kernel.AddApplication(fluid_rve_lagrange_multipliers_application)
+        print("KratosFluidRVELagrangeMultipliersApplication Succesfully imported")
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
     if(Import_SolidMechanicsApplication):
@@ -556,7 +591,12 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(mapping_application)    
     if(Import_ConstitutiveModelsApplication):
         kernel.InitializeApplication(constitutive_models_application)
-
+    if(Import_ErodibleBedApplication):
+        kernel.InitializeApplication(erodible_bed_application)
+    if(Import_CustomDEMUtilsApplication):
+        kernel.InitializeApplication(custom_DEM_utils_application)
+    if(Import_FluidRVELagrangeMultipliersApplication):
+        kernel.InitializeApplication(fluid_rve_lagrange_multipliers_application)
 # def ImportApplications(kernel  ):
     # import os.path
     # application_directory = os.path.dirname( os.path.realpath(__file__)  )
