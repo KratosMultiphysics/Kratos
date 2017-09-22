@@ -171,35 +171,6 @@ namespace Kratos
     {
         mDetF0[PointNumber] = rThisKinematicVariables.detF;
         noalias(mF0[PointNumber]) = rThisKinematicVariables.F;
-        
-//         const IntegrationMethod this_integration_method = GetGeometry().GetDefaultIntegrationMethod();
-//         
-//         // Calculating jacobian
-//         Matrix J, J0, InvJ0;
-//         double detJ0;
-//         J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
-//         
-//         const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(this_integration_method)[PointNumber];
-//         
-//         J0.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension());
-//         
-//         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-//         {
-//             const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-//             for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
-//             {
-//                 for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
-//                 {
-//                     J0(k,m) += coords[k]*DN_De(i,m);
-//                 }
-//             }
-//         }
-//         
-//         MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-//         
-//         // Deformation gradient
-//         noalias( mF0[PointNumber] ) = prod( J, InvJ0 );
-//         mDetF0[PointNumber] = MathUtils<double>::Det(mF0[PointNumber]);
     }
      
     //************************************************************************************
