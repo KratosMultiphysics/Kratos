@@ -913,7 +913,7 @@ protected:
         }
 
         // Compute the penalty coefficient (TODO: Implement a K depending on the element size)
-        const double pen_coef = 1000;
+        const double pen_coef = ComputePenaltyCoefficient(rLeftHandSideMatrix, rData, rGeometryData);
 
         // Compute the LHS and RHS penalty contributions
         array_1d<double, TDim> side_normal;
@@ -1026,8 +1026,8 @@ protected:
             solution_jump = - prev_sol;
         }
 
-        // Compute the penalty coefficient (TODO: Implement a K depending on the element size)
-        const double pen_coef = 1000.0;
+        // Compute the penalty coefficient (TODO: Implement a K independent of the LHS)
+        const double pen_coef = 100.0;
 
         // Compute the RHS penalty contributions
         array_1d<double, TDim> side_normal;
@@ -1135,6 +1135,44 @@ protected:
         }
         h = sqrt(h)/static_cast<double>(TNumNodes);
         return h;
+    }
+
+    /**
+    * This function computes the penalty coefficient for the level set BC imposition
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rData: reference to element data structure
+    * @param rGeometryData: reference to the intersection data structure
+    */
+    double ComputePenaltyCoefficient(MatrixType &rLeftHandSideMatrix,
+                                     const ElementDataStruct &rData,
+                                     const ElementGeometryDataStruct &rGeometryData)
+    {
+        constexpr unsigned int BlockSize = TDim + 1;
+        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
+
+        // Compute the penalty coefficient as K*max(LHS(i,i))*IntArea (we integrate P_gamma over the intersection area)
+        double diag_max = 0.0;
+        for (unsigned int i = 0; i < MatrixSize; i++)
+        {
+            if ((std::abs(rLeftHandSideMatrix(i, i)) > diag_max) && ((i+1) % BlockSize != 0.0))
+            {
+                diag_max = std::abs(rLeftHandSideMatrix(i, i)); // Maximum diagonal value (associated to velocity)
+            }
+        }
+
+        // Compute the intersection area
+        double intersection_area = 0.0;
+        for (unsigned int i = 0; i < rGeometryData.ncutpoints; ++i)
+        {
+            intersection_area += rGeometryData.cut_edge_areas(i);
+        }
+
+        // Return the penalty coefficient
+        const double K = 5.0;
+        const double denominator = std::max(0.0001 * rData.h * rData.h, intersection_area);
+        const double pen_coef = K * diag_max / denominator;
+
+        return pen_coef;
     }
 
     /**
