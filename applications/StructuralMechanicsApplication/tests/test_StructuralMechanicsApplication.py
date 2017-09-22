@@ -90,6 +90,8 @@ from NightlyTests import ShellT3IsotropicScordelisTests  as TShellT3IsotropicSco
 ## VALIDATION TESTS
 # SPRISM tests
 #from ValidationTests import SprismPanTests              as TSprismPanTests
+from ValidationTests import PendulusTLTest              as TPendulusTLTest
+from ValidationTests import PendulusULTest              as TPendulusULTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -195,6 +197,8 @@ def AssambleTestSuites():
     validationSuite = suites['validation']
     # SPRISM tests
     ####validationSuite.addTest(TSprismPanTests('test_execution'))
+    validationSuite.addTest(TPendulusTLTest('test_execution'))
+    validationSuite.addTest(TPendulusULTest('test_execution'))
     
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -246,6 +250,8 @@ def AssambleTestSuites():
             TShellT3IsotropicScordelisTests,
             ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ###TSprismPanTests # FIXME: Needs get up to date
+            #TPendulusTLTest,
+            #TPendulusULTest,
         ])
     )
         
