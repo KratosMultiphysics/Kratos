@@ -626,6 +626,17 @@ int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
         if(claw == NULL)
             KRATOS_THROW_ERROR(std::logic_error, "CONSTITUTIVE_LAW not provided for element ", this->Id());
 
+		//Check constitutive law has been verified with Stenberg stabilization
+		//applicable for 5-parameter shells only.
+		ConstitutiveLaw::Features pclFeatures;
+		claw->GetLawFeatures(pclFeatures);
+		if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
+		{
+			std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
+				<< "\nPlease check results carefully."
+				<< std::endl;
+		}
+
         if(!props.Has(THICKNESS))
             KRATOS_THROW_ERROR(std::logic_error, "THICKNESS not provided for element ", this->Id());
         if(props[THICKNESS] <= 0.0)
@@ -1910,20 +1921,6 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     Flags& options = parameters.GetOptions();
     options.Set(ConstitutiveLaw::COMPUTE_STRESS, RHSrequired);
     options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, LHSrequired);
-
-	//Check constitutive law has been verified with Stenberg stabilization
-	if (this->Id() == 1)
-	{
-		ConstitutiveLaw::Pointer pcl = props.GetValue(CONSTITUTIVE_LAW);
-		ConstitutiveLaw::Features pclFeatures;
-		pcl->GetLawFeatures(pclFeatures);
-		if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
-		{
-			std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
-				<< "\nPlease check results carefully."
-				<< std::endl;
-		}
-	}
 
     // Gauss Loop.
     for(int i = 0; i < 4; i++)

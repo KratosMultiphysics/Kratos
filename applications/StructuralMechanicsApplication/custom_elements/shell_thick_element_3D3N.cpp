@@ -461,6 +461,18 @@ namespace Kratos
 				KRATOS_THROW_ERROR(std::logic_error,
 					"CONSTITUTIVE_LAW not provided for element ", this->Id());
 
+			//Check constitutive law has been verified with Stenberg stabilization
+			//applicable for 5-parameter shells only.
+			ConstitutiveLaw::Features pclFeatures;
+			claw->GetLawFeatures(pclFeatures);
+			if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
+			{
+				std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
+					<< "\nPlease check results carefully."
+					<< std::endl;
+			}
+
+
 			if (!props.Has(THICKNESS))
 				KRATOS_THROW_ERROR(std::logic_error,
 					"THICKNESS not provided for element ", this->Id());
@@ -2331,23 +2343,6 @@ namespace Kratos
 		data.CalculateRHS = RHSrequired;
 		InitializeCalculationData(data);
 		CalculateSectionResponse(data);
-
-		//Check constitutive law has been verified with Stenberg stabilization
-		// (already applied in 'InitializeCalculationData')
-		if (this->Id() == 1)
-		{
-			const Properties& props = GetProperties();
-			ConstitutiveLaw::Pointer pcl = props.GetValue(CONSTITUTIVE_LAW);
-			ConstitutiveLaw::Features pclFeatures;
-			pcl->GetLawFeatures(pclFeatures);
-			if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
-			{
-				std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
-					<< "\nPlease check results carefully."
-					<< std::endl;
-			}
-		}
-
 
 		// Calculate element stiffness
 		Matrix BTD = Matrix(18, 8, 0.0);
