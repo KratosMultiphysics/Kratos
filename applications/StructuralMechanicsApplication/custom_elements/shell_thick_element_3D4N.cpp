@@ -616,7 +616,24 @@ int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 	else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
 	{
-		// perform orthotropic check later in shell_cross_section
+		if (!props.Has(CONSTITUTIVE_LAW))
+			KRATOS_THROW_ERROR(std::logic_error, "CONSTITUTIVE_LAW not provided for element ", this->Id());
+		const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
+		if (claw == NULL)
+			KRATOS_THROW_ERROR(std::logic_error, "CONSTITUTIVE_LAW not provided for element ", this->Id());
+
+		//Check constitutive law has been verified with Stenberg stabilization
+		//applicable for 5-parameter shells only.
+		ConstitutiveLaw::Features pclFeatures;
+		claw->GetLawFeatures(pclFeatures);
+		if (pclFeatures.mOptions.IsNot(ConstitutiveLaw::STENBERG_STABILIZATION_SUITABLE))
+		{
+			std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
+				<< "\nPlease check results carefully."
+				<< std::endl;
+		}
+
+		// perform detailed orthotropic check later in shell_cross_section
 	}
     else // ... allow the automatic creation of a homogeneous section from a material and a thickness
     {
