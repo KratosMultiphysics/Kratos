@@ -120,8 +120,10 @@ public:
     //template<unsigned int TDim>
     MoveShallowWaterParticleUtility(ModelPart& model_part, Parameters rParameters) :
         mr_model_part(model_part),
-        mScalarVar1(rParameters["convection_scalar_variable"].GetString()),
-        mVectorVar1(rParameters["convection_vector_variable"].GetString())
+        mScalarVar1(KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
+        mVectorVar1(KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
+        //~ mScalarVar1(rParameters["convection_scalar_variable"].GetString()),
+        //~ mVectorVar1(rParameters["convection_vector_variable"].GetString())
         //~ mmaximum_number_of_particles(maximum_number_of_particles)
     {
         KRATOS_TRY
@@ -303,11 +305,10 @@ public:
 
                 for (unsigned int k = 0; k < (TDim+1); k++)
                 {
-                    scalar1          +=  N(j, k) * geom[k].FastGetSolutionStepValue(mScalarVar1);
-                    noalias(vector1) += (N(j, k) * geom[k].FastGetSolutionStepValue(mVectorVar1));
-                    noalias(convect) += (N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY));
+                    scalar1          += N(j, k) * geom[k].FastGetSolutionStepValue(mScalarVar1);
+                    noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(mVectorVar1);
+                    noalias(convect) += N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY);
                 }
-                
 
                 particle_pointers(j) = &pparticle;
                 number_of_particles++ ;
@@ -603,63 +604,63 @@ public:
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
-          ResultContainerType results(max_results);
+            ResultContainerType results(max_results);
         
-          WeakPointerVector< Element > elements_in_trajectory;
-          elements_in_trajectory.resize(20);
+            WeakPointerVector< Element > elements_in_trajectory;
+            elements_in_trajectory.resize(20);
             
-          for(unsigned int ielem=element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
-          {
-            ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
-            const int old_element_id = old_element->Id();
-
-            ParticlePointerVector& old_element_particle_pointers = mvector_of_particle_pointers_vectors(old_element_id-1);
-            
-            if ( (results.size()) !=max_results )
-                results.resize(max_results);
-
-            unsigned int number_of_elements_in_trajectory=0; //excluding the origin one (current one, ielem)
-
-            for(int ii=0; ii<(mnumber_of_particles_in_elems_aux(ielem)); ii++)
+            for(unsigned int ielem=element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
             {
-                ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
+                ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
+                const int old_element_id = old_element->Id();
 
-                Element::Pointer pcurrent_element( *old_element.base() );
-                ResultIteratorType result_begin = results.begin();
-                bool & erase_flag=pparticle.GetEraseFlag();
-                if (erase_flag==false){
-                    MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
+                ParticlePointerVector& old_element_particle_pointers = mvector_of_particle_pointers_vectors(old_element_id-1);
+                
+                if ( (results.size()) !=max_results )
+                    results.resize(max_results);
 
-                    const int current_element_id = pcurrent_element->Id();
+                unsigned int number_of_elements_in_trajectory=0; //excluding the origin one (current one, ielem)
 
-                    int & number_of_particles_in_current_elem = mnumber_of_particles_in_elems(current_element_id-1);
+                for(int ii=0; ii<(mnumber_of_particles_in_elems_aux(ielem)); ii++)
+                {
+                    ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
 
-                    if (number_of_particles_in_current_elem<mmaximum_number_of_particles && erase_flag==false) 
-                    {
-                        ParticlePointerVector& current_element_particle_pointers = mvector_of_particle_pointers_vectors(current_element_id-1);
+                    Element::Pointer pcurrent_element( *old_element.base() );
+                    ResultIteratorType result_begin = results.begin();
+                    bool & erase_flag=pparticle.GetEraseFlag();
+                    if (erase_flag==false){
+                        MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
 
-                        #pragma omp critical
+                        const int current_element_id = pcurrent_element->Id();
+
+                        int & number_of_particles_in_current_elem = mnumber_of_particles_in_elems(current_element_id-1);
+
+                        if (number_of_particles_in_current_elem<mmaximum_number_of_particles && erase_flag==false) 
                         {
-                            if (number_of_particles_in_current_elem<mmaximum_number_of_particles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
+                            ParticlePointerVector& current_element_particle_pointers = mvector_of_particle_pointers_vectors(current_element_id-1);
+
+                            #pragma omp critical
                             {
-                                current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
-                                number_of_particles_in_current_elem++ ;
-                                if (number_of_particles_in_current_elem > mmaximum_number_of_particles)
-                                    KRATOS_WATCH("MAL");
-                            }
-                            else
-                            {
-                                pparticle.GetEraseFlag()=true; //so we just delete it!
+                                if (number_of_particles_in_current_elem<mmaximum_number_of_particles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
+                                {
+                                    current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
+                                    number_of_particles_in_current_elem++ ;
+                                    if (number_of_particles_in_current_elem > mmaximum_number_of_particles)
+                                        KRATOS_WATCH("MAL");
+                                }
+                                else
+                                {
+                                    pparticle.GetEraseFlag()=true; //so we just delete it!
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        pparticle.GetEraseFlag()=true; //so we just delete it!
+                        else
+                        {
+                            pparticle.GetEraseFlag()=true; //so we just delete it!
+                        }
                     }
                 }
             }
-          }
         }
 
         /*
@@ -771,7 +772,7 @@ public:
                     if (pparticle.GetEraseFlag()==false) 
                     {
                         array_1d<double,3> & position = pparticle.Coordinates();
-                        const float& particle_scalar1 = pparticle.GetScalar1(); 
+                        const float& particle_scalar1 = pparticle.GetScalar1();
                         const array_1d<float,3>& particle_vector1 = pparticle.GetVector1();
 
                         array_1d<double,TDim+1> N;
@@ -813,8 +814,8 @@ public:
                     geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1)   += nodes_added_scalar1[i];
 
                     geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X) += nodes_added_vector1[3*i+0];
-                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X) += nodes_added_vector1[3*i+1];
-                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X) += nodes_added_vector1[3*i+2];
+                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y) += nodes_added_vector1[3*i+1];
+                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Z) += nodes_added_vector1[3*i+2];
 
                     geom[i].FastGetSolutionStepValue(YP) += nodes_added_weights[i];
                     geom[i].UnSetLock();
@@ -1383,7 +1384,7 @@ private:
                 }
             }
 
-            pparticle.GetScalar1()   = scalar1;
+            pparticle.GetScalar1() = scalar1;
             pparticle.GetVector1() = vector1;
         }
         //else {KRATOS_WATCH(position); }
