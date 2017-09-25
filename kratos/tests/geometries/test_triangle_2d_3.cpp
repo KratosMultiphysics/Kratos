@@ -478,7 +478,6 @@ namespace Testing {
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
 
-
     /**
      * Test a non overlaping box and triangle HasIntersection
      */
@@ -487,6 +486,17 @@ namespace Testing {
         Point<3> point_1( 0.6, 0.5, 0.0);
         Point<3> point_2( 1.0, 1.0, 0.0);
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    /**
+     * Test a box outside the triangle plane
+     * HasIntersection should return true, because a 2D-space does not take care about Z-coordinates
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3OutsidePlaneBoxIntersection, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point<3> point_1( 0.2, 0.1, 0.1);
+        Point<3> point_2( 0.3, 0.5, 1.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
 
 } // namespace Testing.
