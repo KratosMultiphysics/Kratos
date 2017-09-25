@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestPatchTestShells(KratosUnittest.TestCase):
+class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
@@ -158,31 +158,6 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self._apply_dirichlet_BCs(bcs_dirichlet)
         self._apply_neumann_BCs(bcs_neumann)
         self._solve(mp)
-        
-        
-        print("\n\n---------------------------------------------------------\n",element_name,"\tDisplacement results:\n")
-        stress_out = mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-        #print("DISP:\t",mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
-        #print("ROT:\t",mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.ROTATION))
-        print("displacement_results = ","[",stress_out[0],", ",stress_out[1],", ",stress_out[2],"]")
-        stress_out = mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.ROTATION)
-        print("rotation_results = ","[",stress_out[0],", ",stress_out[1],", ",stress_out[2],"]")
-
-        
-        
-        print("\n\n---------------------------------------------------------\n",element_name,"\tStress results:\n")
-#        counter = 0
-#        for elem in mp.Elements:
-#            counter +=1
-#            stress_out = elem.CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_STRESS_MIDDLE_SURFACE, mp.ProcessInfo)[0]
-#            print("Element ",counter," results:\t", stress_out[0,0])
-        
-        #results of the second element taken
-        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, mp.ProcessInfo)[0]
-
-        #print("Element 2 results\n","shell_stress_bottom_surface_results = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
-        
-        print("Element 2 results\n","shell_von_mises_result = ",stress_out)
         
         # Check displacements
         self._check_results(mp.Nodes[3],displacement_results, rotation_results)

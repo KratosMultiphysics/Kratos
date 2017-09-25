@@ -5,9 +5,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-orthotropic_props = []
-
-class TestPatchTestShells(KratosUnittest.TestCase):
+class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
@@ -166,7 +164,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self.assertAlmostEqual(stress[2,2], reference_stress_results[5], 10)
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_middle_surface_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, shell_von_mises_result,do_post_processing):
+    def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, tsai_wu_result,do_post_processing):
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.SetBufferSize(2)
 
@@ -189,47 +187,44 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self._solve(mp)
         
         
-        print("\n\n---------------------------------------------------------\n",element_name,"\tDisplacement results:\n")
-        stress_out = mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-        print("displacement_results = ","[",stress_out[0],", ",stress_out[1],", ",stress_out[2],"]")
-        stress_out = mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.ROTATION)
-        print("rotation_results = ","[",stress_out[0],", ",stress_out[1],", ",stress_out[2],"]")
-
-        
-        
-        print("\tStress results:\n")
-        
-        #results of the second element taken
-        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE, mp.ProcessInfo)[0]
-
-        print("Element 2 results\n","SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
-        
-        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE, mp.ProcessInfo)[0]
-
-        print("Element 2 results\n","SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
-        
-        #results of the second element taken
-        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.TSAI_WU_RESERVE_FACTOR, mp.ProcessInfo)[0]
-        
-        print("TSAI_WU_RESERVE_FACTOR = ",stress_out)
+#        print("\n\n---------------------------------------------------------\n",element_name,"\tDisplacement results:\n")
+#        stress_out = mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+#        print("displacement_results = ","[",stress_out[0],", ",stress_out[1],", ",stress_out[2],"]")
+#        stress_out = mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.ROTATION)
+#        print("rotation_results = ","[",stress_out[0],", ",stress_out[1],", ",stress_out[2],"]")
+#
+#        
+#        
+#        print("\tStress results:\n")
+#        
+#        #results of the second element taken
+#        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE, mp.ProcessInfo)[0]
+#
+#        print("Element 2 results\n","SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
+#        
+#        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE, mp.ProcessInfo)[0]
+#
+#        print("Element 2 results\n","SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE = ","[",stress_out[0,0],", ",stress_out[0,1],", ",stress_out[0,2],", ",stress_out[1,1],", ",stress_out[1,2],", ",stress_out[2,2],"]")
+#        
+#        #results of the second element taken
+#        stress_out = mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.TSAI_WU_RESERVE_FACTOR, mp.ProcessInfo)[0]
+#        
+#        print("TSAI_WU_RESERVE_FACTOR = ",stress_out)
         
         # Check displacements
         self._check_results(mp.Nodes[3],displacement_results, rotation_results)
         
         # Check stresses at each surface
-#        self._check_results_stress(mp.Elements[1],
-#                                   StructuralMechanicsApplication.SHELL_STRESS_MIDDLE_SURFACE,
-#                                   shell_stress_middle_surface_results,mp.ProcessInfo)
-#        self._check_results_stress(mp.Elements[1],
-#                                   StructuralMechanicsApplication.SHELL_STRESS_TOP_SURFACE,
-#                                   shell_stress_top_surface_results,mp.ProcessInfo)
-#        self._check_results_stress(mp.Elements[1],
-#                                   StructuralMechanicsApplication.SHELL_STRESS_BOTTOM_SURFACE,
-#                                   shell_stress_bottom_surface_results,mp.ProcessInfo)
-#        
-#        # Check results of doubles on 2nd element @ Gauss Point [0] only
-#        self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, 
-#                               mp.ProcessInfo)[0], shell_von_mises_result, 10)
+        self._check_results_stress(mp.Elements[1],
+                                   StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE,
+                                   shell_stress_top_surface_results,mp.ProcessInfo)
+        self._check_results_stress(mp.Elements[1],
+                                   StructuralMechanicsApplication.SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE,
+                                   shell_stress_bottom_surface_results,mp.ProcessInfo)
+        
+        # Check results of doubles on 2nd element @ Gauss Point [0] only
+        self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.TSAI_WU_RESERVE_FACTOR, 
+                               mp.ProcessInfo)[0], tsai_wu_result, 10)
                     
         if do_post_processing:
             self.__post_process(mp)
@@ -237,77 +232,69 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thin_shell_triangle(self):
         element_name = "ShellThinElementCorotational3D3N"
-        displacement_results = [0.0001967925754 , -0.0002074508275 , 0.0007102373246]
-        rotation_results     = [0.0007200850431 , -0.0005274945235 , -0.0004217630272]
-        shell_stress_middle_surface_results = [0.25899539638307356  ,  2.707180029120507  ,  0.0  ,  -11.81966960463972  ,  0.0  ,  0.0]
-        shell_stress_top_surface_results =  [ -12.07383381852614 ,  -20.247177695843806 ,  0.0 ,  -70.76152753587681 ,  0.0 ,  0.0 ]
-        shell_stress_bottom_surface_results =  [ 12.591824611292282 ,  25.661537754084822 ,  0.0 ,  47.122188326597374 ,  0.0 ,  0.0 ]
-        shell_von_mises_result =  64.7311391504582
+        displacement_results =  [ 0.0030584358098890915 ,  -0.0023435757330126693 ,  0.0031185473927106983 ]
+        rotation_results =  [ 0.004121996123937352 ,  -0.0016014578481286985 ,  -0.005659631319086533 ]
+        shell_stress_top_surface_results =  [ 0.8677118027303852 ,  5.239970870392824 ,  0.0 ,  5.458479391807029 ,  0.0 ,  0.0 ]
+        shell_stress_bottom_surface_results =  [ 2.4424603977815895 ,  -3.941407794942941 ,  0.0 ,  -8.030484439805466 ,  0.0 ,  0.0 ]
+        tsai_wu_result =  9.673893059720848
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
-                                shell_stress_middle_surface_results,
+                                rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
-                                shell_von_mises_result,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
 
     def test_thick_shell_triangle(self):
         element_name = "ShellThickElementCorotational3D3N"
-        displacement_results = [-8.37692736e-05 , -0.0001866547032 , 0.0013194833292]
-        rotation_results     = [0.0009557422766 , -0.0008172919756 , -0.0001582810935]
-        shell_stress_middle_surface_results = [1.283076815157277  ,  7.2488387046371  ,  12.850376963002141  ,  -6.060997105375106  ,  4.164269658572349  ,  0.0]
-        shell_stress_top_surface_results =  [ -0.4308457214682144 ,  -7.655312031416704 ,  0.0 ,  -2.9286449474358367 ,  0.0 ,  0.0 ]
-        shell_stress_bottom_surface_results =  [ 2.996999351782768 ,  22.152989440690906 ,  0.0 ,  -9.193349263314376 ,  0.0 ,  0.0 ]
-        shell_von_mises_result =  39.91637459806218
+        displacement_results =  [ -0.0020376091655285294 ,  -0.002111797305261568 ,  0.02228716026170336 ]
+        rotation_results =  [ 0.012334859280482497 ,  -0.010873020793242233 ,  -0.0001569679156864581 ]
+        shell_stress_top_surface_results =  [ 4.10385008882551 ,  7.665054447303106 ,  3.944609072109664 ,  -2.0590647897139545 ,  1.411446166379739 ,  0.0 ]
+        shell_stress_bottom_surface_results =  [ 3.2912405481215083 ,  0.7649741019715389 ,  3.944609072109664 ,  -1.3979528569250694 ,  1.411446166379739 ,  0.0 ]
+        tsai_wu_result =  7.546175761508479
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
-                                shell_stress_middle_surface_results,
+                                rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
-                                shell_von_mises_result,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
 
     def test_thin_shell_quadrilateral(self):
         element_name = "ShellThinElementCorotational3D4N"
-        displacement_results = [0.0025324078566 , -0.0025556964999 , 0.0010347939593]
-        rotation_results     = [0.0029227371131 , 0.0005461189484 , -0.0073009476025]
-        shell_stress_middle_surface_results = [5.115629891110861  ,  -17.33491344410078  ,  0.0  ,  2.748284695572128  ,  0.0  ,  0.0]
-        shell_stress_top_surface_results =  [ 30.069565917702892 ,  -20.363353385977423 ,  0.0 ,  -19.9770634365775 ,  0.0 ,  0.0 ]
-        shell_stress_bottom_surface_results =  [ -19.838306135481172 ,  -14.30647350222414 ,  0.0 ,  25.473632827721755 ,  0.0 ,  0.0 ]
-        shell_von_mises_result =  56.106701625055585
+        displacement_results =  [ 0.028324544197644595 ,  -0.028004212791980197 ,  0.005819183507034744 ]
+        rotation_results =  [ 0.02562623966199286 ,  0.010203033530205864 ,  -0.07750730506722403 ]
+        shell_stress_top_surface_results =  [ 1.7825139429109182 ,  -5.816144708664789 ,  0.0 ,  6.656606883510429 ,  0.0 ,  0.0 ]
+        shell_stress_bottom_surface_results =  [ 17.91814192958843 ,  -9.248506597807062 ,  0.0 ,  -3.0956520381202655 ,  0.0 ,  0.0 ]  
+        tsai_wu_result =  4.860951226584079
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
                                 rotation_results, 
-                                shell_stress_middle_surface_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
-                                shell_von_mises_result,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
 
     def test_thick_shell_quadrilateral(self):
         element_name = "ShellThickElementCorotational3D4N"
-        displacement_results =  [ 0.00027136365152691065 ,  -0.0006682902441643944 ,  0.0021084790619259235 ]
-        rotation_results =  [ 0.0017763515742804457 ,  -0.000981713367534383 ,  -0.001165116922497465 ]
-        shell_stress_middle_surface_results = [6.921145522180776  ,  -2.785925304755268  ,  -14.526750876637958  ,  15.381301373773823  ,  10.378077258376223  ,  0.0]
-        shell_stress_top_surface_results =  [ 6.921145522180776 ,  -2.785925304755268 ,  0.0 ,  15.381301373773823 ,  0.0 ,  0.0 ]
-        shell_stress_bottom_surface_results =  [ 6.921145522180776 ,  -2.785925304755268 ,  0.0 ,  15.381301373773823 ,  0.0 ,  0.0 ]
-        shell_von_mises_result =  34.02216244466042
+        displacement_results =  [ 0.0010921056093753834 ,  -0.010786255165378924 ,  0.0377492219218906 ]
+        rotation_results =  [ 0.02486239006907997 ,  -0.012527260276340912 ,  -0.01693998229995565 ]
+        shell_stress_top_surface_results =  [ 6.271587609566849 ,  -1.12820161459703 ,  -2.305720987313501 ,  4.863927115578198 ,  2.9325229909436965 ,  0.0 ]
+        shell_stress_bottom_surface_results =  [ 6.271587609566865 ,  -1.1282016145970397 ,  -2.305720987313501 ,  4.863927115578207 ,  2.9325229909436965 ,  0.0 ]
+        tsai_wu_result =  7.047288919615517
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
-                                shell_stress_middle_surface_results,
+                                rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
-                                shell_von_mises_result,
+                                tsai_wu_result,
                                 False) # Do PostProcessing for GiD?
 
         

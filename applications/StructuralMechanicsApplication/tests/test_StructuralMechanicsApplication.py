@@ -21,6 +21,8 @@ except ImportError as e:
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements  as TTestQuadraticElements
+from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
+from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
 # Test loading conditions
 from test_loading_conditions import TestLoadingConditions  as TestLoadingConditions
 # Basic moving mesh test
@@ -127,6 +129,14 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
+    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thin_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thick_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thin_shell_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestShellsStressRec('test_thick_shell_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thin_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thick_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thin_shell_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestShellsOrthotropic('test_thick_shell_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_triangle'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_3D_hexa'))
@@ -232,6 +242,8 @@ def AssambleTestSuites():
             TTestPatchTestSmallStrain,
             TTestPatchTestLargeStrain,
             TTestQuadraticElements,
+            TTestPatchTestShellsStressRec,
+            TTestPatchTestShellsOrthotropic,
             TestLoadingConditions,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
