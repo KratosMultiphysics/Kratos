@@ -140,7 +140,7 @@ public:
 
         m_scalar_var1_name = rParameters["convection_scalar_variable"].GetString();
         m_vector_var1_name = rParameters["convection_vector_variable"].GetString();
-        mmaximum_number_of_particles = rParameters["mmaximum_number_of_particles"].GetDouble();
+        mmaximum_number_of_particles = rParameters["maximum_number_of_particles"].GetDouble();
 
         //~ Variable<double> mScalarVar1 = KratosComponents< Variable<double> >::Get(scalar_var1_name);
         //~ Variable<array_1d<double,3>> mVectorVar1 = KratosComponents< Variable<array_1d<double,3> > >::Get(vector_var1_name);

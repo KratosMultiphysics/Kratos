@@ -22,8 +22,6 @@ class Pfem2PrimitiveVarSolver(shallow_water_base_solver.ShallowWaterBaseSolver):
     def AddVariables(self):
         super(Pfem2PrimitiveVarSolver,self).AddVariables()
         super(Pfem2PrimitiveVarSolver,self)._AddParticleVariables()
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.DELTA_VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.PROJECTED_VELOCITY)
 
     def AddDofs(self):
         super(Pfem2PrimitiveVarSolver,self)._AddPrimitiveDofs()
@@ -33,8 +31,8 @@ class Pfem2PrimitiveVarSolver(shallow_water_base_solver.ShallowWaterBaseSolver):
 
         # Creating the solution strategy for the particle stage
         self.VariableUtils = KratosMultiphysics.VariableUtils()
-        maximum_number_of_particles= 8*self.domain_size
-        self.moveparticles = KratosShallow.MoveShallowWaterParticleUtility(self.model_part,maximum_number_of_particles)  
+        #~ maximum_number_of_particles= 8*self.domain_size
+        self.moveparticles = KratosShallow.MoveShallowWaterParticleUtility(self.model_part, self.settings["pfem2_settings"])
         self.moveparticles.MountBin()
 
     def Solve(self):
