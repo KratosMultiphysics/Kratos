@@ -40,6 +40,11 @@ class ShallowWaterBaseSolver(object):
             "time_stepping"                : {
                 "automatic_time_step" : false,
                 "time_step"           : 0.01
+            },
+            "pfem2_settings"               : {
+                "convection_scalar_variable"    : "HEIGHT",
+                "convection_vector_variable"    : "VELOCITY",
+                "maximum_number_of_particles"   : 16
             }
         }""")
 
@@ -168,8 +173,10 @@ class ShallowWaterBaseSolver(object):
             self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def _AddParticleVariables(self):
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.PROJECTED_HEIGHT);
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.DELTA_HEIGHT);
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.DELTA_SCALAR1)
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.PROJECTED_SCALAR1)
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.DELTA_VECTOR1)
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.PROJECTED_VECTOR1)
         # Specific variables to convect particles
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP);
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.MEAN_SIZE);
