@@ -2277,7 +2277,7 @@ private:
         else return true;
     }
 
-    /** Z-AxisTest
+    /** Y-AxisTest
      * This method return true if there is a separating axis
      * 
      * @param ex, ez: i-edge corrdinates
