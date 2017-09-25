@@ -325,17 +325,17 @@ namespace Kratos
         { 
             rdepth[counter] = 0; 
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X); 
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_MOMENTUM_X); 
+            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X); 
             counter++; 
  
             rdepth[counter] = 0; 
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y); 
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y); 
+            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y); 
             counter++; 
  
             rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY); 
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT); 
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_HEIGHT); 
+            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1); 
             counter++; 
         } 
     } 
