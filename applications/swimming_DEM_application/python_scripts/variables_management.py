@@ -11,10 +11,10 @@ def AddNodalVariables(model_part, variable_list):
         model_part.AddNodalSolutionStepVariable(var)
 
 def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPRECATED!
-    
+
     AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part)
     AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part)
-    
+
 # constructing lists of variables to add
 # * Performing modifications to the input parameters for consistency (provisional until interface does it)
 # * Choosing the variables to be printed
@@ -24,7 +24,7 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPR
 #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
 
 def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
-    
+
     fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
     gravity = Vector(3)
     if pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
@@ -40,9 +40,9 @@ def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
-         
+
 def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
-    
+
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM["coupling_level_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM["buoyancy_force_type"].GetInt())
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM["drag_force_type"].GetInt())
@@ -64,7 +64,7 @@ def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
         dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt())
         dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
         dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, pp.CFD_DEM["quadrature_order"].GetInt())
-    
+
 
 def ConstructListsOfVariables(pp):
 
@@ -96,7 +96,7 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt():
         pp.fluid_vars += [MATERIAL_ACCELERATION]
-        
+
         if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
             if pp.CFD_DEM["store_full_gradient_option"].GetBool():
                 pp.fluid_vars += [VELOCITY_X_GRADIENT]
@@ -164,7 +164,7 @@ def ConstructListsOfVariables(pp):
 
     # inlet variables
     pp.inlet_vars = pp.dem_vars
-   
+
 def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
     pp.clusters_nodal_results = []
@@ -176,13 +176,13 @@ def ConstructListsOfResultsToPrint(pp):
 
     if pp.CFD_DEM["PostAngularVelocity"].GetBool():
         pp.dem_nodal_results += ["ANGULAR_VELOCITY"]
-        
+
     if pp.CFD_DEM["PostElasticForces"].GetBool():
         pp.dem_nodal_results += ["ELASTIC_FORCES"]
-        
+
     if pp.CFD_DEM["PostContactForces"].GetBool():
         pp.dem_nodal_results += ["CONTACT_FORCES"]
-        
+
     if pp.CFD_DEM["PostTotalForces"].GetBool():
         pp.dem_nodal_results += ["TOTAL_FORCES"]
 
@@ -255,7 +255,7 @@ def ConstructListsOfResultsToPrint(pp):
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)
-    
+
     pp.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
 
     pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
@@ -274,19 +274,19 @@ def ConstructListsOfResultsToPrint(pp):
 
     for variable in pp.clusters_nodal_results:
         pp.clusters_printing_vars += [eval(variable)]
-        
+
     for variable in pp.rigid_faces_nodal_results:
         pp.rigid_faces_printing_vars += [eval(variable)]
 
     for variable in pp.mixed_nodal_results:
         pp.dem_printing_vars += [eval(variable)]
         pp.fluid_printing_vars += [eval(variable)]
-        
+
     for var in pp.mixed_nodal_results:
 
         if var in pp.nodal_results:
             pp.nodal_results.remove(var)
-            
+
     if not pp.CFD_DEM["print_PRESSURE_option"].GetBool():
         if "PRESSURE" in pp.nodal_results:
             pp.nodal_results.remove("PRESSURE")
@@ -311,7 +311,7 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0 or pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 or pp.CFD_DEM["drag_force_type"].GetInt() == 4:
         pp.coupling_fluid_vars += [FLUID_FRACTION]
-        
+
         if pp.CFD_DEM["print_DISPERSE_FRACTION_option"].GetBool():
             pp.coupling_fluid_vars += [DISPERSE_FRACTION]
 
@@ -395,7 +395,7 @@ def ConstructListsOfVariablesForCoupling(pp):
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
     pp.nodal_results += ["TORQUE"]
-    if pp.CFD_DEM["store_full_gradient_option"].GetBool() and pp.CFD_DEM["print_VELOCITY_GRADIENT_option"].GetBool():    
+    if pp.CFD_DEM["store_full_gradient_option"].GetBool() and pp.CFD_DEM["print_VELOCITY_GRADIENT_option"].GetBool():
         pp.nodal_results += ["VELOCITY_X_GRADIENT"]
         pp.nodal_results += ["VELOCITY_Y_GRADIENT"]
         pp.nodal_results += ["VELOCITY_Z_GRADIENT"]
@@ -406,7 +406,7 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM["print_FLUID_FRACTION_option"].GetBool():
         pp.nodal_results += ["FLUID_FRACTION"]
 
-    if pp.CFD_DEM.print_PARTICLE_VEL_option:
+    if pp.CFD_DEM["print_PARTICLE_VEL_option"].GetBool():
         pp.nodal_results += ["PARTICLE_VEL_FILTERED"]
 
     if pp.CFD_DEM["print_FLUID_FRACTION_GRADIENT_option"].GetBool():
@@ -449,25 +449,25 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM["print_CONDUCTIVITY_option"].GetBool():
         pp.nodal_results += ["CONDUCTIVITY"]
 
-def ChangeInputDataForConsistency(pp):    
+def ChangeInputDataForConsistency(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() == 0:
         pp.CFD_DEM["project_at_every_substep_option"].SetBool(False)
         pp.CFD_DEM.project_at_every_substep_option = False #TODO: what should we do in these cases?? Discuss
-    
+
     if pp.CFD_DEM["VelocityTrapOption"]:
         pp.velocity_trap_option = 1
-    else: 
+    else:
         pp.velocity_trap_option = 0
 
     if pp.CFD_DEM["flow_in_porous_medium_option"].GetBool():
         pp.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but is externally imposed
 
     pp.CFD_DEM.time_steps_per_stationarity_step = max( 1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt()) ) # it should never be smaller than 1!
-    
+
     if pp.CFD_DEM["coupling_level_type"].GetInt() :
         pp.CFD_DEM["stationary_problem_option"].SetBool(False)
         pp.CFD_DEM.stationary_problem_option = False
-        
+
 
 def EliminateRepeatedValuesFromList(redundant_list):
     clean_list = []

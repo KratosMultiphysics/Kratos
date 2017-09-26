@@ -75,10 +75,11 @@ class ProjectionModule:
     def ApplyForwardCoupling(self, alpha = None):
         if self.do_impose_flow_from_field:
             self.ImposeFluidFlowOnParticles()
-        if alpha == None:
-            self.ProjectFromNewestFluid()
         else:
-            self.ProjectFromFluid(alpha)
+            if alpha == None:
+                self.ProjectFromNewestFluid()
+            else:
+                self.ProjectFromFluid(alpha)
 
     def ApplyForwardCouplingOfVelocityOnly(self):
         if self.do_impose_flow_from_field:
