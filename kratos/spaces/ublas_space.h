@@ -249,22 +249,45 @@ public:
 
     static TDataType TwoNorm(VectorType const& rX)
     {
-        return sqrt(Dot(rX, rX));
+        return std::sqrt(Dot(rX, rX));
     }
 
     static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
 
-        for (unsigned int i = 1; i < rA.size1(); i++)
+        for (std::size_t i = 0; i < rA.size1(); i++)
         {
-            for (unsigned int j = 1; j < rA.size2(); j++)
+            for (std::size_t j = 0; j < rA.size2(); j++)
             {
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
 
         return std::sqrt(aux_sum);
+    }
+    
+    /**
+     * This method computes the Jacobi norm
+     * @param rA: The matrix to compute the Jacobi norm
+     * @return aux_sum: The Jacobi norm
+     */
+    static TDataType JacobiNorm(MatrixType const& rA)
+    {
+        TDataType aux_sum = TDataType();
+
+        for (std::size_t i = 0; i < rA.size1(); i++)
+        {
+            for (std::size_t j = 0; j < rA.size2(); j++)
+            {
+                if (i != j) 
+                {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+
+        return aux_sum;
     }
 
     static void Mult(Matrix& rA, VectorType& rX, VectorType& rY)

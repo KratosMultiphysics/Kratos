@@ -548,7 +548,154 @@ namespace Kratos
             }
             
             KRATOS_CHECK_EQUAL(converged, true);
+        }
+        
+        /** Checks if it calculates the SVD of a matrix 2x2
+         * Checks if it calculates the SVD of a matrix 2x2
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsSVD2x2Test, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
             
+            Matrix a_matrix, u_matrix, s_matrix, v_matrix;
+            
+            a_matrix.resize(2, 2);
+            a_matrix(0,0) = 0.57690;
+            a_matrix(0,1) = 0.28760;
+            a_matrix(1,0) = 0.72886;
+            a_matrix(1,1) = 0.40541;
+            
+            std::size_t iter = MathUtils<double>::SingularValueDecomposition(a_matrix, u_matrix, s_matrix, v_matrix);
+            
+//             Matrix j1(2, 2);
+//             Matrix j2(2, 2);
+//             
+//             MathUtils<double>::Jacobi(j1, j2, a_matrix, 2, 2, 0, 1);
+// 
+//             KRATOS_WATCH(j1)
+//             KRATOS_WATCH(j2)
+
+//             Matrix u, s, v;
+//             
+//             MathUtils<double>::SingularValueDecomposition2x2(a_matrix, u, s, v);
+//             
+// //             KRATOS_WATCH(u)
+// //             KRATOS_WATCH(s)
+// //             KRATOS_WATCH(v)
+//             
+//             const double t = (a_matrix(0, 1) - a_matrix(1, 0))/(a_matrix(0, 0) + a_matrix(1, 1));
+//             const double c = 1.0/std::sqrt(1.0 + t*t);
+//             const double ss = t*c;
+//             Matrix r_matrix(2, 2);
+//             r_matrix(0, 0) =  c;
+//             r_matrix(0, 1) = -ss;
+//             r_matrix(1, 0) =  ss;
+//             r_matrix(1, 1) =  c;
+//             
+//             Matrix m_matrix = prod(r_matrix, a_matrix);
+//             
+//             MathUtils<double>::SingularValueDecomposition2x2Symmetric(m_matrix, u, s, v);
+// 
+//             KRATOS_WATCH(u)
+//             KRATOS_WATCH(r_matrix)
+//             KRATOS_WATCH(prod(trans(r_matrix), u))
+//             
+//             noalias(u) = prod(trans(r_matrix), u);
+
+//             KRATOS_WATCH(r_matrix)
+//             KRATOS_WATCH(u)
+//             KRATOS_WATCH(s)
+//             KRATOS_WATCH(v)
+
+//             // DEBUG
+//             KRATOS_WATCH(iter)
+//             KRATOS_WATCH(u_matrix)
+//             KRATOS_WATCH(s_matrix)
+//             KRATOS_WATCH(v_matrix)
+//             // DEBUG
+            
+            // Check decomposition is correct
+            const Matrix auxmat22 = prod(u_matrix, Matrix(prod(s_matrix,v_matrix)));
+            
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                for (unsigned int j = i; j < 2; j++)
+                {
+                    KRATOS_CHECK_NEAR(auxmat22(i,j), a_matrix(i,j), tolerance);
+                }
+            }
+            
+            // Check SV are correct (value and order)
+            KRATOS_CHECK_NEAR(s_matrix(0,0), 1.053846, tolerance);
+            KRATOS_CHECK_NEAR(s_matrix(1,1), 0.023021, tolerance);
+        }
+        
+        /** Checks if it calculates the SVD of a matrix 3x3
+         * Checks if it calculates the SVD of a matrix 3x3
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsSVD3x3Test, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
+            
+            Matrix a_matrix, u_matrix, s_matrix, v_matrix;
+            
+            a_matrix.resize(3, 3);
+            a_matrix(0,0) = 0.57690;
+            a_matrix(0,1) = 0.28760;
+            a_matrix(0,2) = 0.63942;
+            a_matrix(1,0) = 0.72886;
+            a_matrix(1,1) = 0.40541;
+            a_matrix(1,2) = 0.13415;
+            a_matrix(2,0) = 0.81972;
+            a_matrix(2,1) = 0.54501;
+            a_matrix(2,2) = 0.28974;
+
+            MathUtils<double>::SingularValueDecomposition(a_matrix, u_matrix, s_matrix, v_matrix);
+            
+            // Check decomposition is correct
+            Matrix auxmat33 = prod(u_matrix, Matrix(prod(s_matrix,v_matrix)));
+
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = i; j < 3; j++)
+                {
+                    KRATOS_CHECK_NEAR(auxmat33(i,j), a_matrix(i,j), tolerance);
+                }
+            }
+            
+            // Check SV are correct (value and order)
+            KRATOS_CHECK_NEAR(s_matrix(0,0), 1.554701, tolerance);
+            KRATOS_CHECK_NEAR(s_matrix(1,1), 0.412674, tolerance);
+            KRATOS_CHECK_NEAR(s_matrix(2,2), 0.059198, tolerance);
+        }
+        
+        /** Checks if it calculates the condition number of a matrix
+         * Checks if it calculates the condition number of a matrix
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsConditionNumberTest, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
+            
+            Matrix a_matrix, u_matrix, s_matrix, v_matrix;
+            
+            a_matrix.resize(3, 3);
+            a_matrix(0,0) = 0.57690;
+            a_matrix(0,1) = 0.28760;
+            a_matrix(0,2) = 0.63942;
+            a_matrix(1,0) = 0.72886;
+            a_matrix(1,1) = 0.40541;
+            a_matrix(1,2) = 0.13415;
+            a_matrix(2,0) = 0.81972;
+            a_matrix(2,1) = 0.54501;
+            a_matrix(2,2) = 0.28974;
+
+            const double condition_number = MathUtils<double>::ConditionNumber(a_matrix); // NOTE: Considering the default tolerance
+            
+            // Check condition number is correct
+            KRATOS_CHECK_NEAR(condition_number, 26.263, tolerance);
         }
         
         /** Checks if it calculates the dot product 
