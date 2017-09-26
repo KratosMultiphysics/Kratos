@@ -94,6 +94,13 @@ class DarcyChannelTest(UnitTest.TestCase):
 
     def testReferenceValues(self):
         '''
+        Reference values from K. Zhang (2012) "Liquid Permeability of Ceramic Foam Filters"
+        Master thesis at the Norwegian University of Science and Technology
+        Retrieved from
+        https://daim.idi.ntnu.no/masteroppgaver/008/8358/masteroppgave.pdf
+        '''
+
+        '''
         Table III Dynamic viscosity of water, pure aluminium and A356 alloy.
                                     Water       Pure Aluminium  A356
         Temperature (C)             7           710             710
@@ -164,7 +171,7 @@ class DarcyChannelTest(UnitTest.TestCase):
     def runTestCase(self,fluid,filt,outfile):
         self.rho = fluid.density
         self.nu = fluid.kinematic_viscosity
-        
+
         self.linear_darcy_coefficient = self.rho * self.nu / filt.k1
         self.nonlinear_darcy_coefficient = self.rho / filt.k2
 
