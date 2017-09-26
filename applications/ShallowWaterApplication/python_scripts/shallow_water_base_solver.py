@@ -41,8 +41,14 @@ class ShallowWaterBaseSolver(object):
             "time_stepping"                : {
                 "automatic_time_step" : false,
                 "time_step"           : 0.01
+            },
+            "pfem2_settings"               : {
+                "convection_scalar_variable"    : "HEIGHT",
+                "convection_vector_variable"    : "VELOCITY",
+                "maximum_number_of_particles"   : 16
             }
         }""")
+        default_settings["pfem2_settings"]["maximum_number_of_particles"].SetInt(8*self.domain_size)
 
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
@@ -51,6 +57,9 @@ class ShallowWaterBaseSolver(object):
         ## Construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+
+        # Initialize shallow water variables utility
+        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
 
     def AddVariables(self):
         # Basic variables
@@ -67,7 +76,7 @@ class ShallowWaterBaseSolver(object):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
 
     def AddDofs(self):
-        pass
+        raise Exception("Calling the base class instead of the derived one")
 
     def GetMinimumBufferSize(self):
         return 1
@@ -128,13 +137,11 @@ class ShallowWaterBaseSolver(object):
 
         (self.solver).Initialize()
 
-        print ("Mesh stage solver initialization finished.")
+        # Compute the normals on the body boundary
+        normal_util = KratosMultiphysics.BodyNormalCalculationUtils()
+        normal_util.CalculateBodyNormals(self.model_part, self.domain_size)
 
-        # Initialize shallow water variables utility
-        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
-
-        # Initialize dry/wet state utility
-        #~ self.drybedutility = DryBedUtility(self.model_part)
+        print ("Mesh stage solver initialization finished")
 
     def Solve(self):
         # Solve equations on mesh
@@ -150,6 +157,8 @@ class ShallowWaterBaseSolver(object):
         # User-defined delta time
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        # Move particles utility needs to access delta_time
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
         return delta_time
 
     #### Specific internal functions ####
@@ -160,7 +169,7 @@ class ShallowWaterBaseSolver(object):
             ## Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.model_part)
         else:
-            raise Exception("Other input options are not yet implemented.")
+            raise Exception("Other input options are not yet implemented")
 
     def _ExecuteAfterReading(self):
         ## Check that the input read has the shape we like
@@ -172,13 +181,6 @@ class ShallowWaterBaseSolver(object):
         self.model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
         if(self.GetMinimumBufferSize() > self.model_part.GetBufferSize() ):
             self.model_part.SetBufferSize(self.GetMinimumBufferSize())
-
-    def _AddParticleVariables(self):
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.PROJECTED_HEIGHT);
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.DELTA_HEIGHT);
-        # Specific variables to convect particles
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP);
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.MEAN_SIZE);
 
     def _AddPrimitiveDofs(self):
         for node in self.model_part.Nodes:
@@ -194,31 +196,3 @@ class ShallowWaterBaseSolver(object):
             node.AddDof(KratosShallow.HEIGHT);
         print ("Conserved variables for the SWE solver added correctly")
 
-    def _pfem2_init(self,model_part):
-        # For the pfem2
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
-        (self.neighbour_search).Execute()
-        self.neighbour_elements_search= KratosMultiphysics.FindElementalNeighboursProcess(model_part,self.domain_size,number_of_avg_elems)
-        (self.neighbour_elements_search).Execute()
-
-    def ExecuteParticlesUtilitiesBeforeSolve(self):
-        # Move particles
-        (self.moveparticles).CalculateVelOverElemSize();
-        (self.moveparticles).MoveParticles();
-        pre_minimum_number_of_particles=self.domain_size;
-        (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
-        (self.moveparticles).TransferLagrangianToEulerian();
-        (self.VariableUtils).CopyScalarVar(KratosShallow.PROJECTED_HEIGHT,KratosShallow.HEIGHT,self.model_part.Nodes)
-        (self.VariableUtils).CopyVectorVar(KratosShallow.PROJECTED_VELOCITY,KratosMultiphysics.VELOCITY,self.model_part.Nodes)
-        (self.moveparticles).ResetBoundaryConditions()
-        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(KratosShallow.PROJECTED_HEIGHT,self.model_part.Nodes)
-        #(self.moveparticles).CopyVectorVarToPreviousTimeStep(KratosShallow.PROJECTED_VELOCITY,self.model_part.Nodes)
-
-    def ExecuteParticlesUtilitiesAfetrSolve(self):
-        # Update particles
-        (self.moveparticles).CalculateDeltaVariables();
-        (self.moveparticles).CorrectParticlesWithoutMovingUsingDeltaVariables();
-        post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles);

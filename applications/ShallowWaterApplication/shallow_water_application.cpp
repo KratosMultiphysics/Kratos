@@ -2,7 +2,7 @@
 //   Project Name:        Kratos       
 //   Last Modified by:    Miguel Masó Sotomayor
 //   Date:                April 26th 2017
-//   Revision:            1.4
+//   Revision:            1.5
 //
 // 
 
@@ -27,71 +27,78 @@
 namespace Kratos
 {
 
-	KratosShallowWaterApplication::KratosShallowWaterApplication():
-	
-	mPrimitiveVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mPrimitiveVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-	
-	mConservedVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mConservedVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-	
-	mEulerPrimVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mEulerPrimVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-	
-	mEulerConsVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mEulerConsVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-	
-	mRainCondition2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mRainCondition2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) )
-	
-	{}
-	
-	void KratosShallowWaterApplication::Register()
-	{
-		// Calling base class register to register Kratos components
-		KratosApplication::Register();
-		
-		std::cout << " KRATOS      |          |   |                        " << std::endl;
-		std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
-		std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
-		std::cout << "      ____/ _| _|\\__,_|\\__|\\__|\\___/  _/ _/ WATER" << std::endl;
-		std::cout << "Initializing KratosShallowWaterApplication...        " << std::endl;
+    KratosShallowWaterApplication::KratosShallowWaterApplication():
 
-		KRATOS_REGISTER_VARIABLE(BATHYMETRY)                            // Geometric definition of the problem
-		KRATOS_REGISTER_VARIABLE(RAIN)                                  // Source term
-		KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)                // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
-		
-		KRATOS_REGISTER_VARIABLE(HEIGHT)                                // Main variable
-		KRATOS_REGISTER_VARIABLE(PROJECTED_HEIGHT)                      // Convected variable
-		KRATOS_REGISTER_VARIABLE(DELTA_HEIGHT)                          // Variable to uodate particles
-		KRATOS_REGISTER_VARIABLE(PROJECTED_VELOCITY)
-		KRATOS_REGISTER_VARIABLE(DELTA_VELOCITY)
-		KRATOS_REGISTER_VARIABLE(PROJECTED_MOMENTUM)
-		KRATOS_REGISTER_VARIABLE(DELTA_MOMENTUM)
-		
-		KRATOS_REGISTER_VARIABLE(MEAN_SIZE)                             // Specific variable for PFEM2
-		KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)               // Specific variable for PFEM2
-		
-		KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)
-		KRATOS_REGISTER_VARIABLE(WATER_HEIGHT_UNIT_CONVERTER)
-		KRATOS_REGISTER_VARIABLE(HORIZONTAL_SCALE_UNIT_CONVERTER)
-		KRATOS_REGISTER_VARIABLE(VERTICAL_SCALE_UNIT_CONVERTER)
+    mPrimitiveVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mPrimitiveVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
-		// Registering elements and conditions here
-		KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
-		KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
-		
-		KRATOS_REGISTER_ELEMENT("ConservedVarElement2D3N", mConservedVarElement2D3N)   // mesh stage element
-		KRATOS_REGISTER_ELEMENT("ConservedVarElement2D4N", mConservedVarElement2D4N)   // mesh stage element
-		
-		KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D3N", mEulerPrimVarElement2D3N)   // eulerian element
-		KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D4N", mEulerPrimVarElement2D4N)   // eulerian element
-		
-		KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D3N", mEulerConsVarElement2D3N)   // eulerian element
-		KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D4N", mEulerConsVarElement2D4N)   // eulerian element
-		
-		KRATOS_REGISTER_CONDITION("RainCondition2D3N", mRainCondition2D3N)
-		KRATOS_REGISTER_CONDITION("RainCondition2D4N", mRainCondition2D4N)
-	}
+    mConservedVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mConservedVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+
+    mEulerPrimVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mEulerPrimVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+
+    mEulerConsVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mEulerConsVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+
+    mRainCondition2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mRainCondition2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) )
+
+    {}
+
+    void KratosShallowWaterApplication::Register()
+    {
+        // Calling base class register to register Kratos components
+        KratosApplication::Register();
+        
+        std::cout << " KRATOS      |          |   |                        " << std::endl;
+        std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
+        std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
+        std::cout << "      ____/ _| _|\\__,_|\\__|\\__|\\___/  _/ _/ WATER" << std::endl;
+        std::cout << "Initializing KratosShallowWaterApplication...        " << std::endl;
+
+        // Shallow water variables
+        KRATOS_REGISTER_VARIABLE(HEIGHT)                                // Main variable
+        KRATOS_REGISTER_VARIABLE(BATHYMETRY)                            // Geometric definition of the problem
+        KRATOS_REGISTER_VARIABLE(RAIN)                                  // Source term
+        KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)                // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
+
+        //TODO: REMOVE THIS SET OF VARIABLES
+        KRATOS_REGISTER_VARIABLE(PROJECTED_HEIGHT)                      // Convected variable            //TODO: REMOVE VARIABLE
+        KRATOS_REGISTER_VARIABLE(DELTA_HEIGHT)                          // Variable to uodate particles  //TODO: REMOVE VARIABLE
+        KRATOS_REGISTER_VARIABLE(PROJECTED_VELOCITY)  //TODO: REMOVE VARIABLE
+        KRATOS_REGISTER_VARIABLE(DELTA_VELOCITY)      //TODO: REMOVE VARIABLE
+        KRATOS_REGISTER_VARIABLE(PROJECTED_MOMENTUM)  //TODO: REMOVE VARIABLE
+        KRATOS_REGISTER_VARIABLE(DELTA_MOMENTUM)      //TODO: REMOVE VARIABLE
+
+        // Specific variableS for PFEM2
+        KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
+        KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)
+        KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
+        KRATOS_REGISTER_VARIABLE(DELTA_SCALAR1)
+        KRATOS_REGISTER_VARIABLE(PROJECTED_VECTOR1)
+        KRATOS_REGISTER_VARIABLE(DELTA_VECTOR1)
+
+        KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)
+        KRATOS_REGISTER_VARIABLE(WATER_HEIGHT_UNIT_CONVERTER)
+        KRATOS_REGISTER_VARIABLE(HORIZONTAL_SCALE_UNIT_CONVERTER)
+        KRATOS_REGISTER_VARIABLE(VERTICAL_SCALE_UNIT_CONVERTER)
+
+        // Registering elements and conditions here
+        KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
+        KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
+        
+        KRATOS_REGISTER_ELEMENT("ConservedVarElement2D3N", mConservedVarElement2D3N)   // mesh stage element
+        KRATOS_REGISTER_ELEMENT("ConservedVarElement2D4N", mConservedVarElement2D4N)   // mesh stage element
+        
+        KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D3N", mEulerPrimVarElement2D3N)   // eulerian element
+        KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D4N", mEulerPrimVarElement2D4N)   // eulerian element
+        
+        KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D3N", mEulerConsVarElement2D3N)   // eulerian element
+        KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D4N", mEulerConsVarElement2D4N)   // eulerian element
+        
+        KRATOS_REGISTER_CONDITION("RainCondition2D3N", mRainCondition2D3N)
+        KRATOS_REGISTER_CONDITION("RainCondition2D4N", mRainCondition2D4N)
+    }
 
 }  // namespace Kratos.

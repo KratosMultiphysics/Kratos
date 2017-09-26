@@ -38,28 +38,28 @@ namespace Kratos
 
     /// Default constructor.
     PrimitiveVarElement()
-	: Element()
-	{}
-	
+    : Element()
+    {}
+    
     PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
-	: Element(NewId, pGeometry)
-	{}
+    : Element(NewId, pGeometry)
+    {}
 
-	PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-	: Element(NewId, pGeometry, pProperties)
-	{}
+    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
+    {}
 
     /// Destructor.
     virtual ~ PrimitiveVarElement() {};
 
 //----------------------------------------------------------------------
 
-	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-	{
-		KRATOS_TRY
-		return Element::Pointer(new PrimitiveVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-		KRATOS_CATCH("")
-	}
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Element::Pointer(new PrimitiveVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("")
+    }
 
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
