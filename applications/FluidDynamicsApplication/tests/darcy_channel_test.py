@@ -24,16 +24,22 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         self.xmin = 0.0
         self.xmax = 5.0
+        self.ymin = 0.0
+        self.ymax = 1.0
+        self.zmin = 0.0
+        self.zmax = 1.0
 
         self.dt = 1.0
         self.nsteps = 10
         self.linear_darcy_coefficient = 0.0
         self.nonlinear_darcy_coefficient = 0.0
+        self.dynamic_tau = 1.0
 
         self.rho = 1.0
         self.nu = 1.0
         self.u0 = 2.0
 
+        self.do_check = True
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
@@ -61,7 +67,8 @@ class DarcyChannelTest(UnitTest.TestCase):
             if self.print_output:
                 self.FinalizeOutput()
 
-            self.checkResults()
+            if self.do_check:
+                self.checkResults()
 
     def testDarcyLinear(self):
         self.u0 = 2.0
@@ -85,8 +92,6 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.reference_file = "reference_darcy_density"
         self.testDarcyChannel()
 
-    
-
     def testReferenceValues(self):
         '''
         Table III Dynamic viscosity of water, pure aluminium and A356 alloy.
@@ -106,8 +111,8 @@ class DarcyChannelTest(UnitTest.TestCase):
  
         fluids = [
             Fluid("Water",7,1000,1.38E-06),
-            #Fluid("Pure Aluminium",710,2386,5.25E-07),
-            #Fluid("A356",710,2340,4.41E-07),
+            Fluid("Pure Aluminium",710,2386,5.25E-07),
+            Fluid("A356",710,2340,4.41E-07),
         ]
 
         '''
@@ -127,38 +132,58 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         filters = [
             Filter("30 ppi",4.339E-08,5.086E-04),
-            #Filter("40 ppi",3.099E-08,3.379E-04),
-            #Filter("50 ppi",1.748E-08,1.960E-04),
-            #Filter("80 ppi",6.352E-09,1.094E-04)
+            Filter("40 ppi",3.099E-08,3.379E-04),
+            Filter("50 ppi",1.748E-08,1.960E-04),
+            Filter("80 ppi",6.352E-09,1.094E-04)
         ]
 
-        for fluid in fluids:
-            for filt in filters:
-                self.runTestCase(fluid,filt)
+        self.dt = 1e-6 #1.0
+        self.nsteps = 100
+        self.u0 = 0.5
 
-    def runTestCase(self,fluid,filt):
+        self.xmin = 0.0
+        self.xmax = 0.5
+        self.ymin = 0.0
+        self.ymax = 0.05
+        self.zmin = 0.0
+        self.zmax = 0.05
+
+        self.dynamic_tau = 1.0
+
+        self.work_folder = "TwoFluidDarcyValidation"
+        self.input_file = "darcy_pressure_drop" #_fine"
+        self.reference_file = "pressure_drop.csv"
+
+        with open(self.reference_file,'a') as outfile:
+            outfile.write("#Fluid; Filter; dt (s); Dynamic Tau; Expected Pressure drop (Pa); Measured Pressure drop (Pa); Relative error (%)\n")
+            for fluid in fluids:
+                for filt in filters:
+                    self.runTestCase(fluid,filt,outfile)
+            outfile.write("\n")
+
+    def runTestCase(self,fluid,filt,outfile):
         self.rho = fluid.density
         self.nu = fluid.kinematic_viscosity
-        self.dt = 0.01
-        self.nsteps = 100
-
+        
         self.linear_darcy_coefficient = self.rho * self.nu / filt.k1
         self.nonlinear_darcy_coefficient = self.rho / filt.k2
 
-        # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
+        self.do_check = False # override default verification function
         self.testDarcyChannel()
 
+        # for the mesh in 'TwoFluidDarcyTest', node 13 is in the inlet, node 453 in the outlet
         for node in self.fluid_model_part.Nodes:
-            if node.Id == 13:
+            if node.GetSolutionStepValue(FLAG_VARIABLE) == 1.0:
                 p_in = node.GetSolutionStepValue(PRESSURE)
-            elif node.Id == 435:
+            elif node.GetSolutionStepValue(FLAG_VARIABLE) == 2.0:
                 p_out = node.GetSolutionStepValue(PRESSURE)
 
+
+        # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
         expected_pressure_drop = (self.xmax - self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
         measured_pressure_drop = p_in - p_out
-        print("Expected drop: {0} Measured drop: {1}".format(expected_pressure_drop,measured_pressure_drop))
-
-
+        rel_error = 100. * (measured_pressure_drop-expected_pressure_drop)/expected_pressure_drop
+        outfile.write("{0}; {1}; {2}; {3}; {4}; {5}; {6}\n".format(fluid.name,filt.name,self.dt,self.dynamic_tau,expected_pressure_drop,measured_pressure_drop,rel_error))
 
     def setUpModel(self):
 
@@ -173,6 +198,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
         self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
+        self.fluid_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
@@ -187,9 +213,8 @@ class DarcyChannelTest(UnitTest.TestCase):
         rel_pres_tol = 1e-5
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
+        self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
-        alpha = -0.3
-        move_mesh = 0
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(self.domain_size)
         precond = DiagonalPreconditioner()
         self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
@@ -214,24 +239,17 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.fluid_solver.solver.Check()
 
         self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,oss_switch)
+        self.fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU,self.dynamic_tau)
 
         self.fluid_solver.divergence_clearance_steps = 0
         self.fluid_solver.use_slip_conditions = 0
 
 
     def setUpProblem(self):
-
-        ymin = 0.0
-        ymax = 1.0
-        zmin = 0.0
-        zmax = 1.0
-
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
             node.SetSolutionStepValue(DENSITY,self.rho)
             node.SetSolutionStepValue(VISCOSITY,self.nu)
-            #node.SetSolutionStepValue(DISTANCE,1000.0)
-            #node.SetSolutionStepValue(BODY_FORCE_X,self.rho*self.u0)
 
             if node.X == self.xmin:
                 node.Fix(VELOCITY_X)
@@ -241,12 +259,10 @@ class DarcyChannelTest(UnitTest.TestCase):
             elif node.X == self.xmax:
                 node.Fix(VELOCITY_Y)
                 node.Fix(VELOCITY_Z)
-
-
             else:
-                if node.Y == ymin or node.Y == ymax:
+                if node.Y == self.ymin or node.Y == self.ymax:
                     node.Fix(VELOCITY_Y)
-                if node.Z == zmin or node.Z == zmax:
+                if node.Z == self.zmin or node.Z == self.zmax:
                     node.Fix(VELOCITY_Z)
 
     def runTest(self):
