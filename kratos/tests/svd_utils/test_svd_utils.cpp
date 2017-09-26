@@ -32,7 +32,7 @@ namespace Kratos
          * Checks if it calculates the SVD of a matrix 2x2
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(SVDUtilsSVD2x2Test, KratosCoreSVDUtilsFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(SVDUtilsjacobiSVD2x2Test, KratosCoreSVDUtilsFastSuite) 
         {
             constexpr double tolerance = 1e-6;
             
@@ -44,7 +44,7 @@ namespace Kratos
             a_matrix(1,0) = 0.72886;
             a_matrix(1,1) = 0.40541;
             
-            SVDUtils<double>::SingularValueDecomposition(a_matrix, u_matrix, s_matrix, v_matrix);
+            SVDUtils<double>::JacobiSingularValueDecomposition(a_matrix, u_matrix, s_matrix, v_matrix);
             
             // Check decomposition is correct
             const Matrix auxmat22 = prod(u_matrix, Matrix(prod(s_matrix,v_matrix)));
@@ -66,7 +66,7 @@ namespace Kratos
          * Checks if it calculates the SVD of a matrix 3x3
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(SVDUtilsSVD3x3Test, KratosCoreSVDUtilsFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(SVDUtilsJacobiSVD3x3Test, KratosCoreSVDUtilsFastSuite) 
         {
             constexpr double tolerance = 1e-4;
             
@@ -83,7 +83,7 @@ namespace Kratos
             a_matrix(2,1) = 0.54501;
             a_matrix(2,2) = 0.28974;
 
-            SVDUtils<double>::SingularValueDecomposition(a_matrix, u_matrix, s_matrix, v_matrix);
+            SVDUtils<double>::JacobiSingularValueDecomposition(a_matrix, u_matrix, s_matrix, v_matrix);
             
             // Check decomposition is correct
             Matrix auxmat33 = prod(u_matrix, Matrix(prod(s_matrix,v_matrix)));
@@ -123,7 +123,7 @@ namespace Kratos
             a_matrix(2,1) = 0.54501;
             a_matrix(2,2) = 0.28974;
 
-            const double condition_number = SVDUtils<double>::ConditionNumber(a_matrix); // NOTE: Considering the default tolerance
+            const double condition_number = SVDUtils<double>::SVDConditionNumber(a_matrix); // NOTE: Considering the default tolerance
             
             // Check condition number is correct
             KRATOS_CHECK_NEAR(condition_number, 26.2607, tolerance);

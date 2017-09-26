@@ -257,18 +257,18 @@ public:
     {
         TDataType aux_sum = TDataType();
 #ifndef _OPENMP
-        for (int i = 0; i < rA.size1(); i++)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
-            for (int j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
 #else
         #pragma omp parallel reduction(+:aux_sum)
-        for (int i = 0; i < rA.size1(); i++)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
-            for (int j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
                 aux_sum += rA(i,j) * rA(i,j);
             }
@@ -287,9 +287,9 @@ public:
         TDataType aux_sum = TDataType();
         
 #ifndef _OPENMP
-        for (int i = 0; i < rA.size1(); i++)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
-            for (int j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
                 if (i != j) 
                 {
@@ -299,9 +299,9 @@ public:
         }
 #else
         #pragma omp parallel for reduction(+:aux_sum)
-        for (int i = 0; i < rA.size1(); i++)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
-            for (int j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
                 if (i != j) 
                 {

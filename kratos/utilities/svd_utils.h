@@ -35,7 +35,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -86,6 +86,25 @@ public:
     ///@name Operations
     ///@{
     
+    static inline std::size_t SingularValueDecomposition(
+        const MatrixType& InputMatrix,
+        MatrixType& UMatrix,
+        MatrixType& SMatrix,
+        MatrixType& VMatrix,
+        const std::string TypeSVD = "Jacobi",
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        if (TypeSVD == "Jacobi")
+        {
+            return JacobiSingularValueDecomposition(InputMatrix, UMatrix, SMatrix, VMatrix, Tolerance);
+        }
+        else
+        {
+            KRATOS_ERROR << "SVD Type not implemented" << std::endl;
+        }
+    }
+    
     /**
      * This function gives the Jacobi SVD of a given mxn matrix (m>=n), returns U,S; where A=U*S*V
      * U and V are unitary, and S is a diagonal matrix. 
@@ -99,7 +118,7 @@ public:
      * @return iter: The number of iterations
      */
      
-    static inline std::size_t SingularValueDecomposition(
+    static inline std::size_t JacobiSingularValueDecomposition(
         const MatrixType& InputMatrix,
         MatrixType& UMatrix,
         MatrixType& SMatrix,
@@ -362,13 +381,14 @@ public:
      * @param Tolerance: The tolerance considered
      * @return condition_number: The ratio between the largest SV and the smallest SV
      */
-    static inline TDataType ConditionNumber(
+    static inline TDataType SVDConditionNumber(
         const MatrixType& InputMatrix,
+        const std::string TypeSVD = "Jacobi",
         const TDataType Tolerance = std::numeric_limits<double>::epsilon()
         )
     {        
         MatrixType u_matrix, s_matrix, v_matrix;
-        SingularValueDecomposition(InputMatrix, u_matrix, s_matrix, v_matrix, Tolerance);
+        SingularValueDecomposition(InputMatrix, u_matrix, s_matrix, v_matrix, TypeSVD, Tolerance);
         
         const SizeType size_s = s_matrix.size1();
         const TDataType condition_number = s_matrix(0, 0)/s_matrix(size_s - 1, size_s - 1);
