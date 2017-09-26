@@ -74,6 +74,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/merge_model_parts_process.h"
 #include "custom_processes/save_fluid_only_process.h"
 #include "custom_processes/lagrangian_inlet_process.h"
+#include "custom_processes/remove_and_save_wall_process.h"
+#include "custom_processes/add_wall_process.h"
 
 #include "includes/node.h"
 
@@ -154,6 +156,12 @@ void  AddProcessesToPython()
     class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
             init<ModelPart&, double,  array_1d<double,3> >())
     ;
+    class_<RemoveAndSaveWallNodesProcess, bases<Process> >("RemoveAndSaveWallNodesProcess", init<> ())
+    .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
+    ;     
+    class_<AddWallProcess, bases<Process> >("AddWallProcess", init<> ())
+    .def("AddWall", &AddWallProcess::AddWall)
+    ;  
 }
 
 }  // namespace Python.
