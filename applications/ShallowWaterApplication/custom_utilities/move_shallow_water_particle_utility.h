@@ -296,10 +296,8 @@ public:
                 
                 pparticle.GetEraseFlag()=false;
                 
-                array_1d<float, 3 > & convect = pparticle.GetVelocity();
                 array_1d<float, 3 > & vector1 = pparticle.GetVector1();
                 float & scalar1 = pparticle.GetScalar1();
-                noalias(convect) = ZeroVector(3);
                 noalias(vector1) = ZeroVector(3);
                 scalar1=0.0;
 
@@ -307,7 +305,6 @@ public:
                 {
                     scalar1          += N(j, k) * geom[k].FastGetSolutionStepValue(mScalarVar1);
                     noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(mVectorVar1);
-                    noalias(convect) += N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY);
                 }
 
                 particle_pointers(j) = &pparticle;
@@ -832,10 +829,12 @@ public:
                 double sum_weights = inode->FastGetSolutionStepValue(YP);
                 if (sum_weights>0.00001) 
                 {
-                    //~ double & height = inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
-                    //~ height /=sum_weights; //resetting the scalar1
-                    inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=(inode->FastGetSolutionStepValue(PROJECTED_SCALAR1))/sum_weights; // Resetting the vector1
-                    inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=(inode->FastGetSolutionStepValue(PROJECTED_VECTOR1))/sum_weights; // Resetting the vector1
+                    double & scalar = inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
+                    array_1d<double,3> & vector = inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);
+                    scalar /=sum_weights; // resetting the scalar1
+                    vector /=sum_weights; // resetting the vector1
+                    //~ inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=(inode->FastGetSolutionStepValue(PROJECTED_SCALAR1))/sum_weights; // Resetting the vector1
+                    //~ inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=(inode->FastGetSolutionStepValue(PROJECTED_VECTOR1))/sum_weights; // Resetting the vector1
                 }
                 else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
                 {
@@ -1337,15 +1336,16 @@ private:
         is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
         if(is_found == true)
         {
-            KEEP_INTEGRATING=true;
-            Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+            KEEP_INTEGRATING = true;
+            Geometry< Node<3> >& geom = pelement->GetGeometry(); //the element we're in
+
             scalar1 = 0.0;
             vector1 = ZeroVector(3);
-            vel=ZeroVector(3);
+            vel     = ZeroVector(3);
 
             for(unsigned int j=0; j<(TDim+1); j++)
             {
-                scalar1          += geom[j].FastGetSolutionStepValue(mScalarVar1)*N(j);
+                scalar1          += geom[j].FastGetSolutionStepValue(mScalarVar1)*N[j];
                 noalias(vector1) += geom[j].FastGetSolutionStepValue(mVectorVar1)*N[j];
                 noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
             }
@@ -1360,15 +1360,16 @@ private:
 
             for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
             {
-                if (KEEP_INTEGRATING==true)
+                if (KEEP_INTEGRATING == true)
                 {
                     is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
                     if(is_found == true)
                     {
                         Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
                 
-                        vel=ZeroVector(3);
-                        scalar1=0.0;
+                        scalar1 = 0.0;
+                        vector1 = ZeroVector(3);
+                        vel     = ZeroVector(3);
 
                         for(unsigned int j=0; j<(TDim+1); j++)
                         {
@@ -1377,10 +1378,10 @@ private:
                             noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
                         }
 
-                        only_integral += 1.0;//weight ; //values saved for the current time step
-                        position-=vel*substep_dt;//weight;
+                        only_integral += 1.0; //weight ; //values saved for the current time step
+                        position -= vel*substep_dt; //weight;
                     }
-                    else KEEP_INTEGRATING=false;
+                    else KEEP_INTEGRATING = false;
                 }
             }
 

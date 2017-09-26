@@ -126,9 +126,6 @@ class ShallowWaterBaseSolver(object):
         # Initialize shallow water variables utility
         self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
 
-        # Initialize dry/wet state utility
-        #~ self.drybedutility = DryBedUtility(self.model_part)
-        
         # Compute the normals on the body boundary
         normal_util = KratosMultiphysics.BodyNormalCalculationUtils()
         normal_util.CalculateBodyNormals(self.model_part, self.domain_size)
@@ -211,11 +208,11 @@ class ShallowWaterBaseSolver(object):
         pre_minimum_number_of_particles=self.domain_size;
         (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
         (self.moveparticles).TransferLagrangianToEulerian();
-        (self.VariableUtils).CopyScalarVar(KratosShallow.PROJECTED_HEIGHT,KratosShallow.HEIGHT,self.model_part.Nodes)
-        (self.VariableUtils).CopyVectorVar(KratosShallow.PROJECTED_VELOCITY,KratosMultiphysics.VELOCITY,self.model_part.Nodes)
+        #(self.VariableUtils).CopyScalarVar(KratosShallow.PROJECTED_SCALAR1,KratosShallow.HEIGHT,self.model_part.Nodes)
+        #(self.VariableUtils).CopyVectorVar(KratosShallow.PROJECTED_VECTOR1,KratosMultiphysics.VELOCITY,self.model_part.Nodes)
         (self.moveparticles).ResetBoundaryConditions()
-        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(KratosShallow.PROJECTED_HEIGHT,self.model_part.Nodes)
-        #(self.moveparticles).CopyVectorVarToPreviousTimeStep(KratosShallow.PROJECTED_VELOCITY,self.model_part.Nodes)
+        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(KratosShallow.PROJECTED_SCALAR1,self.model_part.Nodes)
+        #(self.moveparticles).CopyVectorVarToPreviousTimeStep(KratosShallow.PROJECTED_VECTOR1,self.model_part.Nodes)
 
     def ExecuteParticlesUtilitiesAfetrSolve(self):
         # Update particles

@@ -40,11 +40,8 @@ class TestPfem2Solver(shallow_water_base_solver.ShallowWaterBaseSolver):
         super(TestPfem2Solver,self).ExecuteParticlesUtilitiesBeforeSolve()
         # Solve equations on mesh
         #~ (self.solver).Solve()
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KratosShallow.HEIGHT,          node.GetSolutionStepValue(KratosShallow.PROJECTED_SCALAR1) )
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, node.GetSolutionStepValue(KratosShallow.PROJECTED_VECTOR1_X) )
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, node.GetSolutionStepValue(KratosShallow.PROJECTED_VECTOR1_Y) )
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, node.GetSolutionStepValue(KratosShallow.PROJECTED_VECTOR1_Z) )
+        (self.VariableUtils).CopyScalarVar(KratosShallow.PROJECTED_SCALAR1,KratosShallow.HEIGHT,self.model_part.Nodes)
+        (self.VariableUtils).CopyVectorVar(KratosShallow.PROJECTED_VECTOR1,KratosMultiphysics.VELOCITY,self.model_part.Nodes)
         # Compute free surface
         (self.ShallowVariableUtils).ComputeFreeSurfaceElevation()
         # Update particles
