@@ -22,12 +22,16 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.reference_file = "darcy_channel_reference"
         self.work_folder = "TwoFluidDarcyTest"
 
+        self.xmin = 0.0
+        self.xmax = 5.0
+
         self.dt = 1.0
         self.nsteps = 10
         self.linear_darcy_coefficient = 0.0
         self.nonlinear_darcy_coefficient = 0.0
 
         self.rho = 1.0
+        self.nu = 1.0
         self.u0 = 2.0
 
         self.check_tolerance = 1e-6
@@ -81,6 +85,79 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.reference_file = "reference_darcy_density"
         self.testDarcyChannel()
 
+    
+
+    def testReferenceValues(self):
+        '''
+        Table III Dynamic viscosity of water, pure aluminium and A356 alloy.
+                                    Water       Pure Aluminium  A356
+        Temperature (C)             7           710             710
+        Dynamic Viscosity (Pa S)    1.38E-03    1.25E-03        1.03E-03
+        Density (kg/m3)             1000        2386            2340
+        Kinematic Viscosity (m2/s)  1.38E-06    5.25E-07        4.41E-07
+        '''
+
+        class Fluid(object):
+            def __init__(self,name,temperature,density,kinematic_viscosity):
+                self.name = str(name)
+                self.density = float(density)
+                self.temperature = float(temperature)
+                self.kinematic_viscosity = float(kinematic_viscosity)
+ 
+        fluids = [
+            Fluid("Water",7,1000,1.38E-06),
+            #Fluid("Pure Aluminium",710,2386,5.25E-07),
+            #Fluid("A356",710,2340,4.41E-07),
+        ]
+
+        '''
+        Table XII Average value of k1 and k2 for different types of filters
+        Filter Type Forchheimer k1 (m)  Forchheimer k2 (m2)
+        30 ppi      4.339E-08           5.086E-04
+        40 ppi      3.099E-08           3.379E-04
+        50 ppi      1.748E-08           1.960E-04
+        80 ppi      6.352E-09           1.094E-04
+        '''       
+
+        class Filter(object):
+            def __init__(self,name,k1,k2):
+                self.name = str(name)
+                self.k1 = float(k1)
+                self.k2 = float(k2)
+
+        filters = [
+            Filter("30 ppi",4.339E-08,5.086E-04),
+            #Filter("40 ppi",3.099E-08,3.379E-04),
+            #Filter("50 ppi",1.748E-08,1.960E-04),
+            #Filter("80 ppi",6.352E-09,1.094E-04)
+        ]
+
+        for fluid in fluids:
+            for filt in filters:
+                self.runTestCase(fluid,filt)
+
+    def runTestCase(self,fluid,filt):
+        self.rho = fluid.density
+        self.nu = fluid.kinematic_viscosity
+        self.dt = 0.01
+        self.nsteps = 100
+
+        self.linear_darcy_coefficient = self.rho * self.nu / filt.k1
+        self.nonlinear_darcy_coefficient = self.rho / filt.k2
+
+        # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
+        self.testDarcyChannel()
+
+        for node in self.fluid_model_part.Nodes:
+            if node.Id == 13:
+                p_in = node.GetSolutionStepValue(PRESSURE)
+            elif node.Id == 435:
+                p_out = node.GetSolutionStepValue(PRESSURE)
+
+        expected_pressure_drop = (self.xmax - self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
+        measured_pressure_drop = p_in - p_out
+        print("Expected drop: {0} Measured drop: {1}".format(expected_pressure_drop,measured_pressure_drop))
+
 
 
     def setUpModel(self):
@@ -113,7 +190,7 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         alpha = -0.3
         move_mesh = 0
-        self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulent(self.domain_size)
+        self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(self.domain_size)
         precond = DiagonalPreconditioner()
         self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
@@ -143,28 +220,25 @@ class DarcyChannelTest(UnitTest.TestCase):
 
 
     def setUpProblem(self):
-        xmin = 0.0
-        xmax = 5.0
+
         ymin = 0.0
         ymax = 1.0
         zmin = 0.0
         zmax = 1.0
 
-        nu = 1.0
-
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
             node.SetSolutionStepValue(DENSITY,self.rho)
-            node.SetSolutionStepValue(VISCOSITY,nu)
+            node.SetSolutionStepValue(VISCOSITY,self.nu)
             #node.SetSolutionStepValue(DISTANCE,1000.0)
             #node.SetSolutionStepValue(BODY_FORCE_X,self.rho*self.u0)
 
-            if node.X == xmin:
+            if node.X == self.xmin:
                 node.Fix(VELOCITY_X)
                 node.Fix(VELOCITY_Y)
                 node.Fix(VELOCITY_Z)
                 node.SetSolutionStepValue(VELOCITY_X,0,self.u0)
-            elif node.X == xmax:
+            elif node.X == self.xmax:
                 node.Fix(VELOCITY_Y)
                 node.Fix(VELOCITY_Z)
 
@@ -236,9 +310,10 @@ class DarcyChannelTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = DarcyChannelTest()
     test.setUp()
-    #test.print_reference_values = True
+    test.print_reference_values = True
     test.print_output = True
     #test.testDarcyLinear()
     #test.testDarcyNonLinear()
-    test.testDarcyDensity()
+    #test.testDarcyDensity()
+    test.testReferenceValues()
     test.tearDown()
