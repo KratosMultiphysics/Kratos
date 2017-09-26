@@ -1,11 +1,11 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "couette_ausas",
+        "problem_name"    : "couette_ausas_2D",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
-        "domain_size"     : 3,
+        "domain_size"     : 2,
         "start_step"      : 0.0,
-        "end_time"        : 1000.0
+        "end_time"        : 0.29
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,9 +37,9 @@
         "solver_type"                  : "EmbeddedAusas",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "couette_ausas"
+            "input_filename" : "couette_ausas_2D"
         },
-        "maximum_iterations"           : 10,
+        "maximum_iterations"           : 1,
         "dynamic_tau"                  : 0.001,
         "echo_level"                   : 0,
         "time_order"                   : 2,
@@ -51,14 +51,22 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "SuperLUSolver"
+            "solver_type": "AMGCL",
+            "max_iteration": 100,
+            "tolerance": 1e-9,
+            "provide_coordinates": false,
+            "smoother_type": "ilu0",
+            "krylov_type": "lgmres",
+            "coarsening_type": "aggregation",
+            "scaling": false,
+            "verbosity": 2
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Inlet3D","Outlet3D","Top3D","Sides3D"],
+        "skin_parts"                   : ["Inlet2D","Outlet2D","Top2D"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : 100.0
+            "time_step"           : 0.1
         }
     },
     "initial_conditions_process_list"  : [],
@@ -68,21 +76,32 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Outlet3D",
+            "model_part_name" : "Inlet2D",
+            "variable_name"   : "VELOCITY",
+            "value"           : [1.0, 0.0, 0.0],
+            "constrained"     : [true,true,true]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet2D",
             "variable_name"   : "VELOCITY",
             "value"           : [null, 0.0, 0.0],
             "constrained"     : [false,true,true]
         }
     },{
-        "python_module" : "assign_vector_variable_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Sides3D",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, null],
-            "constrained"     : [false,true,false]
+            "model_part_name" : "Outlet2D",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0.0,
+            "constrained"     : true
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -90,7 +109,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Top3D",
+            "model_part_name" : "Top2D",
             "variable_name"   : "VELOCITY",
             "value"           : [1.0, 0.0, 0.0],
             "constrained"     : [true,true,true]

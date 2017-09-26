@@ -50,7 +50,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
-    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests

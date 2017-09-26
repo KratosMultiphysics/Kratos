@@ -17,14 +17,36 @@ class WorkFolderScope:
         os.chdir(self.currentPath)
 
 class EmbeddedAusasCouetteTest(UnitTest.TestCase):
+    def testEmbeddedAusasCouette2D(self):
+        self.distance = 0.3
+        self.work_folder = "EmbeddedAusasCouetteTest2D"   
+        self.settings = "EmbeddedAusasCouetteTestParameters.json"
+
+        with WorkFolderScope(self.work_folder):
+            self.setUp()
+            self.setUpProblem()
+            self.setUpDistanceBoundaryConditions()
+            self.runTest()
+            self.tearDown()
+            self.checkResults()
+
+    def testEmbeddedAusas3DCouette(self):
+        self.distance = 0.6
+        self.work_folder = "EmbeddedAusasCouetteTest3D"   
+        self.settings = "EmbeddedAusasCouetteTestParameters.json"
+
+        with WorkFolderScope(self.work_folder):
+            self.setUp()
+            self.setUpProblem()
+            self.setUpDistanceBoundaryConditions()
+            self.runTest()
+            self.tearDown()
+            self.checkResults()
 
     def setUp(self):
-        self.distance = 0.5
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
-        self.work_folder = "EmbeddedAusasCouetteTest"
-        self.settings = "EmbeddedAusasCouetteTestParameters.json"
 
     def tearDown(self):
         with WorkFolderScope(self.work_folder):
@@ -33,14 +55,6 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
             except FileNotFoundError as e:
                 pass
 
-    def testEmbeddedAusasCouette(self):
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceBoundaryConditions()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
 
     def setUpProblem(self):
         with WorkFolderScope(self.work_folder):
@@ -90,21 +104,8 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
     def setUpDistanceBoundaryConditions(self):
         # Set the distance function
         for node in self.main_model_part.Nodes:
-            distance = node.Z-self.distance
+            distance = node.Y-self.distance
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-
-        # Set the inlet
-        for node in self.main_model_part.GetSubModelPart("Inlet3D").Nodes:
-            if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
-                vel = KratosMultiphysics.Vector(3)
-                vel[0] = (node.Z-self.distance)/(2-self.distance)
-                vel[1] = 0.0
-                vel[2] = 0.0
-
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, vel)   
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):
@@ -198,8 +199,11 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = EmbeddedAusasCouetteTest()
     test.setUp()
+    test.distance = 0.25
     test.print_output = True
     #test.print_reference_values = True
+    test.work_folder = "EmbeddedAusasCouetteTest2D"   
+    test.settings = "EmbeddedAusasCouetteTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceBoundaryConditions()
     test.runTest()
