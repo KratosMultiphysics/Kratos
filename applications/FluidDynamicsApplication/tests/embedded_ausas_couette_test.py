@@ -30,7 +30,7 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
             self.tearDown()
             self.checkResults()
 
-    def testEmbeddedAusas3DCouette(self):
+    def testEmbeddedAusasCouette3D(self):
         self.distance = 0.6
         self.work_folder = "EmbeddedAusasCouetteTest3D"   
         self.settings = "EmbeddedAusasCouetteTestParameters.json"
