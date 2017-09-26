@@ -1585,7 +1585,7 @@ public:
         
         std::size_t iter = 0;
         
-        while (SparseSpaceType::JacobiNorm(SMatrix) > relative_tolerance && iter < m)
+        while (SparseSpaceType::JacobiNorm(SMatrix) > relative_tolerance)
         {
             for (SizeType i = 0; i < n; i++)
             {
@@ -1596,9 +1596,9 @@ public:
                     
                     Jacobi(j1, j2, SMatrix, m, n, i, j);
                     
-                    noalias(SMatrix) = prod(j1, MatrixType(prod(SMatrix, j2)));
-                    noalias(UMatrix) = prod(UMatrix, trans(j1));
-                    noalias(VMatrix) = prod(trans(j2), VMatrix);
+                    SMatrix = prod(j1, MatrixType(prod(SMatrix, j2)));
+                    UMatrix = prod(UMatrix, trans(j1));
+                    VMatrix = prod(trans(j2), VMatrix);
                 }
                 
                 for (SizeType j = n; j < m; j++)
@@ -1607,8 +1607,8 @@ public:
                     
                     Jacobi(j1, SMatrix, m, i, j);
                     
-                    noalias(SMatrix) = prod(j1, SMatrix);
-                    noalias(UMatrix) = prod(UMatrix, trans(j1));
+                    SMatrix = prod(j1, SMatrix);
+                    UMatrix = prod(UMatrix, trans(j1));
                 }
             }
             
@@ -1648,8 +1648,7 @@ public:
         
         SingularValueDecomposition2x2Symmetric(m_matrix, UMatrix, SMatrix, VMatrix);
 
-        UMatrix = prod(trans(r_matrix), UMatrix);  // NOTE: noalias() doesn't work for some reason
-//         noalias(UMatrix) = prod(trans(r_matrix), UMatrix);
+        UMatrix = prod(trans(r_matrix), UMatrix);
     }
     
 	/**
@@ -1704,8 +1703,8 @@ public:
         z_matrix(1, 0) = 0.0;
         z_matrix(1, 1) = Sign(SMatrix(1, 1));
 
-        noalias(UMatrix) = prod(UMatrix, z_matrix);
-        noalias(SMatrix) = prod(z_matrix, SMatrix);
+        UMatrix = prod(UMatrix, z_matrix);
+        SMatrix = prod(z_matrix, SMatrix);
         
         if (SMatrix(0, 0) < SMatrix(1, 1))
         {
@@ -1715,9 +1714,9 @@ public:
             p_matrix(1, 0) = 1.0;
             p_matrix(1, 1) = 0.0;
             
-            noalias(UMatrix) = prod(UMatrix, p_matrix);
-            noalias(SMatrix) = prod(p_matrix, MatrixType(prod(SMatrix, p_matrix)));
-            noalias(VMatrix) = prod(p_matrix, VMatrix);
+            UMatrix = prod(UMatrix, p_matrix);
+            SMatrix = prod(p_matrix, MatrixType(prod(SMatrix, p_matrix)));
+            VMatrix = prod(p_matrix, VMatrix);
         }
     }
     
