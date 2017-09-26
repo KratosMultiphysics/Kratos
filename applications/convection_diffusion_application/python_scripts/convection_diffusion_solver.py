@@ -69,9 +69,9 @@ class ConvectionDiffusionSolver:
         self.domain_size = domain_size
 
         # assignation of parameters to be used
-        self.time_order = 2;
+        self.time_order = 1;
         self.prediction_order = 1;
-        self.ReformDofAtEachIteration = False;
+        self.ReformDofAtEachIteration = True;
 
         self.echo_level = 0
 
