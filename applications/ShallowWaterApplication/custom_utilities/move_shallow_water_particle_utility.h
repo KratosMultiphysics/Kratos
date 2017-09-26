@@ -128,7 +128,7 @@ public:
     {
         KRATOS_TRY
 
-        std::cout << "initializing moveparticle utility for scalar transport" << std::endl;
+        std::cout << "Initializing moveparticle utility for scalar transport" << std::endl;
 
         Parameters default_parameters( R"(
             {
@@ -239,7 +239,7 @@ public:
         int particle_id=0;
         mnelems = mr_model_part.Elements().size();
 
-        std::cout << "about to resize vectors" << std::endl;
+        std::cout << "  about to resize vectors" << std::endl;
 
         //setting the right size to the vector containing the particles assigned to each element	
         //particles vector. this vector contains ALL the particles in the simulation.
@@ -258,7 +258,7 @@ public:
         //int artz;
         //std::cin >> artz;
         int i_int=0; //careful! it's not the id, but the position inside the array!	
-        std::cout << "about to create particles" << std::endl;
+        std::cout << "  about to create particles" << std::endl;
         //now we seed: LOOP IN ELEMENTS
         //using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
         
@@ -315,7 +315,8 @@ public:
         }
 
         m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
-        KRATOS_WATCH(m_nparticles);
+        std::cout << "  [Creating particles : " << m_nparticles << " particles created]" << std::endl;
+        //KRATOS_WATCH(m_nparticles);
         //KRATOS_WATCH(mlast_elem_id);
         mparticle_printing_tool_initialized=false;
         //std::cin >> artz;
@@ -343,7 +344,7 @@ public:
         paux.swap(mpBinsObjectDynamic);
         //BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end ); 
 
-        std::cout << "finished mounting Bins" << std::endl;
+        std::cout << "  finished mounting Bins" << std::endl;
 
         KRATOS_CATCH("")
     }
