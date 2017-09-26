@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
@@ -255,7 +256,7 @@ public:
     static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
-
+#ifndef _OPENMP
         for (std::size_t i = 0; i < rA.size1(); i++)
         {
             for (std::size_t j = 0; j < rA.size2(); j++)
@@ -263,7 +264,17 @@ public:
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
-
+#else
+        #pragma omp parallel for
+        for (std::size_t i = 0; i < rA.size1(); i++)
+        {
+            for (std::size_t j = 0; j < rA.size2(); j++)
+            {
+                #pragma omp atomic
+                aux_sum += rA(i,j) * rA(i,j);
+            }
+        }
+#endif
         return std::sqrt(aux_sum);
     }
     
@@ -275,7 +286,8 @@ public:
     static TDataType JacobiNorm(MatrixType const& rA)
     {
         TDataType aux_sum = TDataType();
-
+        
+#ifndef _OPENMP
         for (std::size_t i = 0; i < rA.size1(); i++)
         {
             for (std::size_t j = 0; j < rA.size2(); j++)
@@ -286,6 +298,20 @@ public:
                 }
             }
         }
+#else
+        #pragma omp parallel for
+        for (std::size_t i = 0; i < rA.size1(); i++)
+        {
+            for (std::size_t j = 0; j < rA.size2(); j++)
+            {
+                if (i != j) 
+                {
+                    #pragma omp atomic
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+#endif
 
         return aux_sum;
     }
