@@ -257,20 +257,19 @@ public:
     {
         TDataType aux_sum = TDataType();
 #ifndef _OPENMP
-        for (std::size_t i = 0; i < rA.size1(); i++)
+        for (int i = 0; i < rA.size1(); i++)
         {
-            for (std::size_t j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < rA.size2(); j++)
             {
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
 #else
-        #pragma omp parallel for
-        for (std::size_t i = 0; i < rA.size1(); i++)
+        #pragma omp parallel reduction(+:aux_sum)
+        for (int i = 0; i < rA.size1(); i++)
         {
-            for (std::size_t j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < rA.size2(); j++)
             {
-                #pragma omp atomic
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
@@ -288,9 +287,9 @@ public:
         TDataType aux_sum = TDataType();
         
 #ifndef _OPENMP
-        for (std::size_t i = 0; i < rA.size1(); i++)
+        for (int i = 0; i < rA.size1(); i++)
         {
-            for (std::size_t j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < rA.size2(); j++)
             {
                 if (i != j) 
                 {
@@ -299,14 +298,13 @@ public:
             }
         }
 #else
-        #pragma omp parallel for
-        for (std::size_t i = 0; i < rA.size1(); i++)
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i = 0; i < rA.size1(); i++)
         {
-            for (std::size_t j = 0; j < rA.size2(); j++)
+            for (int j = 0; j < rA.size2(); j++)
             {
                 if (i != j) 
                 {
-                    #pragma omp atomic
                     aux_sum += std::abs(rA(i,j));
                 }
             }
