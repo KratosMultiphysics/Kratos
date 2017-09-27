@@ -29,21 +29,51 @@ namespace Kratos
   template< unsigned int TNumNodes >
   class RainCondition : public Condition
   {
-    public:
+  public:
      
     /// Counted pointer of RainCondition
     KRATOS_CLASS_POINTER_DEFINITION( RainCondition );
 
 
-    /// Default constructor.
-    RainCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    RainCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    /// Default constructor
+
+    /// Constructor using Geometry
+    RainCondition(IndexType NewId, GeometryType::Pointer pGeometry):
+        Condition(NewId, pGeometry)
+    {
+    }
+
+    /// Constructor using Properties
+    RainCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
+        Condition(NewId, pGeometry, pProperties)
+    {
+    }
+
+    /// Copy constructor
+    RainCondition(RainCondition const& rOther):
+        Condition(rOther)
+    {
+    }
 
     /// Destructor.
-    virtual ~ RainCondition();
+    virtual ~ RainCondition() {};
 
+//----------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    /// Create a new RainCondition object.
+    /**
+      @param NewId Index of the new condition
+      @param ThisNodes An array containing the nodes of the new condition
+      @param pProperties Pointer to the element's properties
+      */
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Condition::Pointer(new RainCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
@@ -57,13 +87,13 @@ namespace Kratos
 
 
 
-    protected:
+  protected:
 
     void CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix);
 
     void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix);
 
-    private:
+  private:
 
     friend class Serializer;
 

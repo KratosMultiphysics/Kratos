@@ -16,172 +16,146 @@
 namespace Kratos
 {
 
+//----------------------------------------------------------------------
 
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	RainCondition<TNumNodes>::RainCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Condition(NewId, pGeometry)
-	{
-	}
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix) 
+    {
+        KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    }
 
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	RainCondition<TNumNodes>::RainCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-		: Condition(NewId, pGeometry, pProperties)
-	{
-	}
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix) 
+    {
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const unsigned int condition_size = number_of_nodes;
+        rMassMatrix  = IdentityMatrix(condition_size, condition_size);
+        rMassMatrix /= number_of_nodes;
+    }
 
-	template< unsigned int TNumNodes >
-	Condition::Pointer RainCondition<TNumNodes>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-	{
-		return Condition::Pointer(new RainCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
-	}
+//----------------------------------------------------------------------
 
-	template< unsigned int TNumNodes >
-	RainCondition<TNumNodes>::~RainCondition()
-	{
-	}
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix) 
-	{
-		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
-	}
-
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix) 
-	{
-		GeometryType& rGeom = GetGeometry();
-		const unsigned int number_of_nodes = rGeom.PointsNumber();
-		const unsigned int condition_size = number_of_nodes;
-		rMassMatrix  = IdentityMatrix(condition_size, condition_size);
-		rMassMatrix /= number_of_nodes;
-	}
-
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-		GeometryType& rGeom = GetGeometry();
-		const unsigned int number_of_nodes = rGeom.PointsNumber();
-		const unsigned int condition_size = number_of_nodes;
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const unsigned int condition_size = number_of_nodes;
     
-		//Resetting the LHS
-		if (rLeftHandSideMatrix.size1() != condition_size)
-			rLeftHandSideMatrix.resize(condition_size, condition_size, false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(condition_size, condition_size);
+        //Resetting the LHS
+        if (rLeftHandSideMatrix.size1() != condition_size)
+            rLeftHandSideMatrix.resize(condition_size, condition_size, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(condition_size, condition_size);
     
-		//Resetting the RHS
-		if (rRightHandSideVector.size() != condition_size)
-			rRightHandSideVector.resize(condition_size, false);
-		noalias(rRightHandSideVector) = ZeroVector(condition_size);
-		CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-		
-		KRATOS_CATCH("")
+        //Resetting the RHS
+        if (rRightHandSideVector.size() != condition_size)
+            rRightHandSideVector.resize(condition_size, false);
+        noalias(rRightHandSideVector) = ZeroVector(condition_size);
+        CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+        
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const unsigned int condition_size = number_of_nodes;
+        if(rRightHandSideVector.size() != condition_size)
+            rRightHandSideVector.resize(condition_size,false);
+
+        // Initialize variables
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> msMass = ZeroMatrix(condition_size,condition_size);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,2> msDN_DX = ZeroMatrix(condition_size,2);
+        array_1d<double,TNumNodes> msNGauss;                            // Dimension = number of nodes. Position of the gauss point
+        array_1d<double,TNumNodes> ms_rain;                             // Nodal rain
+
+        // Getting data for the given geometry
+        double area;
+        area = rGeom.Area();
+        //~ GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msNGauss, Area); // Asking for gradients and other info
+
+        // Reading properties and conditions
+        int counter = 0;
+        for(unsigned int iii = 0; iii<TNumNodes; iii++){
+            ms_rain[counter++] = rGeom[iii].FastGetSolutionStepValue(RAIN);
+        }
+        
+        // Compute parameters and derivatives matrices
+        //~ CalculateConsistentMassMatrix(msMass);
+        CalculateLumpedMassMatrix(msMass);
+        // LHS = M*rain
+        noalias(rRightHandSideVector) = prod(msMass, ms_rain);          // Add <q,rain>         to RHS (Mass Eq.)
+
+        rRightHandSideVector *= area;
+
+        KRATOS_CATCH("")
 	}
 
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
+//----------------------------------------------------------------------
 
-		GeometryType& rGeom = GetGeometry();
-		const unsigned int number_of_nodes = rGeom.PointsNumber();
-		const unsigned int condition_size = number_of_nodes;
-		if(rRightHandSideVector.size() != condition_size)
-			rRightHandSideVector.resize(condition_size,false);
+    // This subroutine calculates the nodal contributions for the explicit steps of the
+    // Fractional step procedure
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
-		// Initialize variables
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> msMass = ZeroMatrix(condition_size,condition_size);
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,2> msDN_DX = ZeroMatrix(condition_size,2);
-		array_1d<double,TNumNodes> msNGauss;                            // Dimension = number of nodes. Position of the gauss point
-		array_1d<double,TNumNodes> ms_rain;                             // Nodal rain
+        KRATOS_CATCH("")
+    }
 
-		// Getting data for the given geometry
-		double Area;
-		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msNGauss, Area); // Asking for gradients and other info
+//----------------------------------------------------------------------
 
-		// Reading properties and conditions
-		int counter = 0;
-		for(unsigned int iii = 0; iii<TNumNodes; iii++){
-			ms_rain[counter++] = rGeom[iii].FastGetSolutionStepValue(RAIN);
-		}
-		
-		// Compute parameters and derivatives matrices
-		//~ CalculateConsistentMassMatrix(msMass);
-		CalculateLumpedMassMatrix(msMass);
-		// LHS = M*rain
-		noalias(rRightHandSideVector) = prod(msMass, ms_rain);          // Add <q,rain>         to RHS (Mass Eq.)
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+        
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const unsigned int condition_size = number_of_nodes;
+        if(rResult.size() != condition_size)
+            rResult.resize(condition_size,false);
 
-		rRightHandSideVector *= Area;
+        int counter=0;
+        for (unsigned int i = 0; i<condition_size; i++){
+            rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
+        }
+        
+        KRATOS_CATCH("")
+    }
 
-		KRATOS_CATCH("")
-	}
+//----------------------------------------------------------------------
 
-	//******************************************************************
-	//******************************************************************
-	// This subroutine calculates the nodal contributions for the explicit steps of the
-	// Fractional step procedure
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
+    template< unsigned int TNumNodes >
+    void RainCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
-		KRATOS_CATCH("")
-	}
-
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-		
-		GeometryType& rGeom = GetGeometry();
-		const unsigned int number_of_nodes = rGeom.PointsNumber();
-		const unsigned int condition_size = number_of_nodes;
-		if(rResult.size() != condition_size)
-			rResult.resize(condition_size,false);
-
-		int counter=0;
-		for (unsigned int i = 0; i<condition_size; i++){
-			rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
-		}
-		
-		KRATOS_CATCH("")
-	}
-
-	//******************************************************************
-	//******************************************************************
-	template< unsigned int TNumNodes >
-	void RainCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-		GeometryType& rGeom = GetGeometry();
-		const unsigned int number_of_nodes = rGeom.PointsNumber();
-		const unsigned int condition_size = number_of_nodes;
-		if(rConditionDofList.size() != condition_size)
-			rConditionDofList.resize(condition_size);
-		
-		int counter=0;
-		for (unsigned int i = 0; i<condition_size; i++){
-			rConditionDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
-		}
-		
-		KRATOS_CATCH("")
-	}
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const unsigned int condition_size = number_of_nodes;
+        if(rConditionDofList.size() != condition_size)
+            rConditionDofList.resize(condition_size);
+        
+        int counter=0;
+        for (unsigned int i = 0; i<condition_size; i++){
+            rConditionDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
+        }
+        
+        KRATOS_CATCH("")
+    }
 
 
 template class RainCondition<3>;
+template class RainCondition<4>;
 
 } // namespace Kratos
