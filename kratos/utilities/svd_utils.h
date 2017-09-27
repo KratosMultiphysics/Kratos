@@ -86,6 +86,20 @@ public:
     ///@name Operations
     ///@{
     
+    /**
+     * This function gives the SVD of a given mxn matrix (m>=n), returns U,S; where A=U*S*V
+     * U and V are unitary, and S is a diagonal matrix. 
+     * Where s_i >= 0, and s_i >= s_i+1 (which means that the biggest number is the first one and the smallest the last one)
+     * TODO: This version is quite innefficient, look for a real and mathematical implementation (not the algorithm found in Wikipedia!!)
+     * @param InputMatrix: The matrix where perform the SVD 
+     * @param UMatrix: The unitary U matrix
+     * @param SMatrix: The diagonal S matrix
+     * @param VMatrix: The unitary V matrix
+     * @param Tolerance: The tolerance considered
+     * @param TypeSVD: The type of SVD algorithm (Jacobi by default) 
+     * @return iter: The number of iterations
+     */
+    
     static inline std::size_t SingularValueDecomposition(
         const MatrixType& InputMatrix,
         MatrixType& UMatrix,
