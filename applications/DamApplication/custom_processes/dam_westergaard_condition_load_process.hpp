@@ -50,7 +50,6 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                              : false,
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
@@ -73,7 +72,6 @@ public:
         
         mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
         mSpecific = rParameters["Spe_weight"].GetDouble();
@@ -137,11 +135,6 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if(mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
                 double y_water =  ref_coord- (it->Coordinate(direction));
                 
                 if (y_water<0.0)
@@ -204,11 +197,6 @@ public:
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if(mIsFixed)
-                {
-                    it->Fix(var);
-                }
                    
                 double y_water =  ref_coord- (it->Coordinate(direction));
                 
@@ -268,7 +256,6 @@ protected:
     std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
-    bool mIsFixed;
     double mReferenceCoordinate;
     double mSpecific;
     double mWaterLevel;
