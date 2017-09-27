@@ -566,19 +566,20 @@ protected:
         unsigned int aux_count = 0;
         for (unsigned int i=0; i<TNumNodes; ++i)
         {
-            const unsigned int j = (i+1 > TDim) ? 0 : i+1;
-
-            i_edges(aux_count) = i; // Construct the edges i-nodes vector
-            j_edges(aux_count) = j; // Construct the edges j-nodes vector
-            cut_edges(aux_count) = 0;
-
-            if ((nodal_distances[i] * nodal_distances[j]) < 0)
+            for (unsigned int j=i+1; j<TNumNodes; ++j)
             {
-                rGeometryData.ncutpoints++;
-                cut_edges(aux_count) = 1; // Flag 1 says that this edge is cut
-            }
+                i_edges(aux_count) = i; // Construct the edges i-nodes vector
+                j_edges(aux_count) = j; // Construct the edges j-nodes vector
+                cut_edges(aux_count) = 0;
 
-            aux_count++;
+                if ((nodal_distances[i] * nodal_distances[j]) < 0)
+                {
+                    rGeometryData.ncutpoints++;
+                    cut_edges(aux_count) = 1; // Flag 1 says that this edge is cut
+                }
+
+                aux_count++;
+            }
         }
 
         if ((rGeometryData.cut_edge_areas).size() != rGeometryData.ncutpoints)
@@ -626,6 +627,7 @@ protected:
                 icut++;
             }
         }
+
     }
 
     void CalculateLocalSystemContribution(MatrixType &rLeftHandSideMatrix,
