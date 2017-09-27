@@ -1030,7 +1030,7 @@ protected:
 
                     // q-u block (velocity divergence)
                     double q_div_u = rShapeFunc[i] * rShapeDeriv(j,m);
-                    double stab_div_u = TauOne*rShapeDeriv(i,m)* ( Density*AGradN[j] );//+ ReactionTerm * rShapeFunc[j] );
+                    double stab_div_u = TauOne*rShapeDeriv(i,m)* ( Density*AGradN[j] + ReactionTerm * rShapeFunc[j] );
                     rDampingMatrix(FirstRow + TDim, FirstCol + m) += Weight * ( q_div_u + stab_div_u );
 
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
