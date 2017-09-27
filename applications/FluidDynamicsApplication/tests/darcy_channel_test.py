@@ -104,7 +104,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         Table III Dynamic viscosity of water, pure aluminium and A356 alloy.
                                     Water       Pure Aluminium  A356
         Temperature (C)             7           710             710
-        Dynamic Viscosity (Pa S)    1.38E-03    1.25E-03        1.03E-03
+        Dynamic Viscosity (Pa s)    1.38E-03    1.25E-03        1.03E-03
         Density (kg/m3)             1000        2386            2340
         Kinematic Viscosity (m2/s)  1.38E-06    5.25E-07        4.41E-07
         '''
@@ -123,13 +123,14 @@ class DarcyChannelTest(UnitTest.TestCase):
         ]
 
         '''
+        These are ceramic filters:
         Table XII Average value of k1 and k2 for different types of filters
-        Filter Type Forchheimer k1 (m)  Forchheimer k2 (m2)
+        Filter Type Forchheimer k1 (m2) Forchheimer k2 (m)
         30 ppi      4.339E-08           5.086E-04
         40 ppi      3.099E-08           3.379E-04
         50 ppi      1.748E-08           1.960E-04
         80 ppi      6.352E-09           1.094E-04
-        '''       
+        '''
 
         class Filter(object):
             def __init__(self,name,k1,k2):
@@ -138,13 +139,19 @@ class DarcyChannelTest(UnitTest.TestCase):
                 self.k2 = float(k2)
 
         filters = [
-            Filter("30 ppi",4.339E-08,5.086E-04),
-            Filter("40 ppi",3.099E-08,3.379E-04),
-            Filter("50 ppi",1.748E-08,1.960E-04),
-            Filter("80 ppi",6.352E-09,1.094E-04)
+            Filter("Ceramic 30 ppi",4.339E-08,5.086E-04),
+            Filter("Ceramic 40 ppi",3.099E-08,3.379E-04),
+            Filter("Ceramic 50 ppi",1.748E-08,1.960E-04),
+            Filter("Ceramic 80 ppi",6.352E-09,1.094E-04),
+            Filter("Cellular 100 csi",3.52E-08,1.41E-02),
+            Filter("Cellular 200 csi",1.87E-08,3.00E-02),
+            Filter("Cellular 300 csi",1.71E-08,8.84E-03),
+            Filter("Foam 10 ppi",2.14E-08,2.66E-03),
+            Filter("Foam 20 ppi",2.62E-08,1.69E-03),
+            Filter("Foam 30 ppi",1.79E-08,1.48E-03),
         ]
 
-        self.dt = 1e-6 #1.0
+        self.dt = 1e-2 #1.0
         self.nsteps = 100
         self.u0 = 0.5
 
@@ -155,7 +162,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.zmin = 0.0
         self.zmax = 0.05
 
-        self.dynamic_tau = 1.0
+        self.dynamic_tau = 0.0
 
         self.work_folder = "TwoFluidDarcyValidation"
         self.input_file = "darcy_pressure_drop" #_fine"
@@ -174,6 +181,8 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         self.linear_darcy_coefficient = self.rho * self.nu / filt.k1
         self.nonlinear_darcy_coefficient = self.rho / filt.k2
+
+        print("A: {0} B: {1}".format(self.linear_darcy_coefficient,self.nonlinear_darcy_coefficient))
 
         self.do_check = False # override default verification function
         self.testDarcyChannel()
