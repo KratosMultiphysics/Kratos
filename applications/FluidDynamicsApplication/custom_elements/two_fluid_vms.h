@@ -1126,13 +1126,15 @@ protected:
         const double VelNorm,
         const double ElemSize,
         const double Density,
-        const double Viscosity,
+        const double DynamicViscosity,
         const double ReactionTerm,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        double InvTau = Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 2.0*VelNorm / ElemSize ) + 4.0*Viscosity/ (ElemSize * ElemSize) + ReactionTerm;
+        const double DynamicTerm = rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME];
+        double InvTau = Density * ( DynamicTerm + 2.0*VelNorm / ElemSize ) + 4.0*DynamicViscosity/ (ElemSize * ElemSize) + ReactionTerm;
         TauOne = 1.0 / InvTau;
-        TauTwo = Viscosity + 0.5 * Density * ElemSize * VelNorm;
+        
+        TauTwo = DynamicViscosity + 0.5 * Density * ElemSize * VelNorm;
     }
 
     ///@}
