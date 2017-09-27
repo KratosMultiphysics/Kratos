@@ -1028,7 +1028,7 @@ protected:
                     double stab_grad_p = StabilizationOperator[i] * rShapeDeriv(j,m);
                     rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (stab_grad_p - div_v_p);
 
-                    // q-u block (velocit divergence)
+                    // q-u block (velocity divergence)
                     double q_div_u = rShapeFunc[i] * rShapeDeriv(j,m);
                     double stab_div_u = TauOne*rShapeDeriv(i,m)* ( Density*AGradN[j] );//+ ReactionTerm * rShapeFunc[j] );
                     rDampingMatrix(FirstRow + TDim, FirstCol + m) += Weight * ( q_div_u + stab_div_u );
@@ -1061,7 +1061,7 @@ protected:
             qF = 0.0;
             for (unsigned int d = 0; d < TDim; ++d)
             {
-                rDampRHS[FirstRow + d] += Weight * StabilizationOperator[i] * BodyForce[d]; // (a * Grad(v) + sigma * N) * TauOne * (Density * BodyForce)
+                rDampRHS[FirstRow + d] += Weight * StabilizationOperator[i] * BodyForce[d]; // (a * Grad(v) - sigma * N) * TauOne * (Density * BodyForce)
                 qF += rShapeDeriv(i, d) * BodyForce[d];
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
@@ -1085,7 +1085,6 @@ protected:
     {
         const unsigned int BlockSize = TDim + 1;
 
-        double Coef = Weight * TauOne;
         unsigned int FirstRow(0), FirstCol(0);
         double K; // Temporary results
 
@@ -1103,14 +1102,14 @@ protected:
             // Loop over columns
             for (unsigned int j = 0; j < TNumNodes; ++j)
             {
-                // Delta(u) * TauOne * [ AdvVel * Grad(v) + sigma * N ] in velocity block
-                K = Coef * StabilizationOperator[i] * Density * rShapeFunc[j];
+                // Delta(u) * TauOne * [ AdvVel * Grad(v) - sigma * N ] in velocity block
+                K = Weight * StabilizationOperator[i] * Density * rShapeFunc[j];
 
                 for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
                 {
                     rLHSMatrix(FirstRow + d, FirstCol + d) += K;
                     // Delta(u) * TauOne * Grad(q) in q * Div(u) block
-                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
+                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Weight * TauOne * rShapeDeriv(i, d) * Density * rShapeFunc[j];
                 }
                 // Update column index
                 FirstCol += BlockSize;
