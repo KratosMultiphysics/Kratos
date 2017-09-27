@@ -30,5 +30,5 @@ class SetVectorProcess(KratosMultiphysics.Process):
         import assign_vector_variable_process
         self.process = assign_vector_variable_process.AssignVectorVariableProcess(Model, settings)
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
         self.process.ExecuteInitializeSolutionStep()

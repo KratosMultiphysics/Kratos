@@ -42,7 +42,10 @@ namespace Kratos
     mEulerConsVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
     mRainCondition2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-    mRainCondition2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) )
+    mRainCondition2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+
+    mWallCondition2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mWallCondition2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) )
 
     {}
 
@@ -99,6 +102,9 @@ namespace Kratos
         
         KRATOS_REGISTER_CONDITION("RainCondition2D3N", mRainCondition2D3N)
         KRATOS_REGISTER_CONDITION("RainCondition2D4N", mRainCondition2D4N)
+        
+        KRATOS_REGISTER_CONDITION("WallCondition2D3N", mWallCondition2D3N)
+        KRATOS_REGISTER_CONDITION("WallCondition2D4N", mWallCondition2D4N)
     }
 
 }  // namespace Kratos.

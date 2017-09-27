@@ -18,6 +18,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_prim_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_cons_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rain_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
 )
 
 ###############################################################

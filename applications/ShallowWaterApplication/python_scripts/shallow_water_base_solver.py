@@ -105,9 +105,9 @@ class ShallowWaterBaseSolver(object):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.settings["convergence_echo_level"].GetInt())
 
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # DomainSize
-                                                                                             #~ self.domain_size+1) # BlockSize
+        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # DomainSize
+                                                                                             self.domain_size+1) # BlockSize
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
@@ -128,18 +128,11 @@ class ShallowWaterBaseSolver(object):
                                                                      #~ self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      #~ self.settings["calculate_norm_dx"].GetBool(),
                                                                      #~ self.settings["move_mesh_flag"].GetBool())
- 
-        # Compute the normals on the body boundary
-        KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part, self.domain_size)
 
         (self.solver).SetEchoLevel(self.settings["solver_echo_level"].GetInt())
-        (self.solver).Check()
+        #~ (self.solver).Check()
 
         (self.solver).Initialize()
-
-        # Compute the normals on the body boundary
-        normal_util = KratosMultiphysics.BodyNormalCalculationUtils()
-        normal_util.CalculateBodyNormals(self.model_part, self.domain_size)
 
         print ("Mesh stage solver initialization finished")
 

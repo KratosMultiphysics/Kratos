@@ -25,7 +25,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         # Compute the normal on the nodes of interest
-        #~ KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
 
         #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         #TODO: Remove the MESH_VELOCITY variable as soon the scheme doesn't use it
