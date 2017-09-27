@@ -1094,7 +1094,7 @@ protected:
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
         array_1d<double, TNumNodes> StabilizationOperator = Density*AGradN;
-        noalias(StabilizationOperator) += ReactionTerm * rShapeFunc;
+        noalias(StabilizationOperator) -= ReactionTerm * rShapeFunc;
         StabilizationOperator *= TauOne;
 
         // Note: Dof order is (vx,vy,[vz,]p) for each node
