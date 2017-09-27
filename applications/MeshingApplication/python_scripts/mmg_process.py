@@ -121,10 +121,10 @@ class MmgProcess(KratosMultiphysics.Process):
                 mean = stat.mean(nodal_h_values)
                 stdev = stat.stdev(nodal_h_values)
                 prob = (self.params["automatic_remesh_parameters"]["min_size_current_percentage"].GetDouble())/100
-                self.params["minimal_size"].SetDouble(_normvalf(prob, mean, stdev))
+                self.params["minimal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the minimal size as a stadistical meaninful value
 
                 prob = (self.params["automatic_remesh_parameters"]["max_size_current_percentage"].GetDouble())/100
-                self.params["maximal_size"].SetDouble(_normvalf(prob, mean, stdev))
+                self.params["maximal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the maximal size as a stadistical meaninful value
 
         # Anisotropic remeshing parameters
         self.anisotropy_remeshing = self.params["anisotropy_remeshing"].GetBool()

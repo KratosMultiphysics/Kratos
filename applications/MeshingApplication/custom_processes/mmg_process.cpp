@@ -687,7 +687,6 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         ConditionsArrayType& sub_conditions_array = r_sub_model_part.Conditions();
         const SizeType sub_num_conditions = sub_conditions_array.end() - sub_conditions_array.begin();
         
-//         #pragma omp parallel for 
         for(IndexType i = 0; i < sub_num_conditions; i++) 
         {
             auto it_cond = sub_conditions_array.begin() + i;
@@ -702,7 +701,6 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         ElementsArrayType& sub_elements_array = r_sub_model_part.Elements();
         const SizeType sub_num_elements = sub_elements_array.end() - sub_elements_array.begin();
         
-//         #pragma omp parallel for 
         for(IndexType i = 0; i < sub_num_elements; i++) 
         {
             auto it_elem = sub_elements_array.begin() + i;
