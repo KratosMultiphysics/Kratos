@@ -66,7 +66,7 @@ class AdjointStructuralSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POINT_LOAD_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(ShapeOptimizationApplication.POINT_LOAD_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD) #Is there a better solution for Neumann BCs? 
 
         #---> is reaction and torque necessary????????????

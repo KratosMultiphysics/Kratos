@@ -47,7 +47,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   # Adding elements for adjoint sensitivity analysis
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
 
   # Solid elements
@@ -77,9 +76,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
-  #fusseder TODO: move this element to other application
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition_for_SA.cpp
-
+ 
   # Adding conditions for adjoint sensitivity analysis
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/point_load_adjoint_condition.cpp
 )

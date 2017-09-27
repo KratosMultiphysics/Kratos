@@ -457,7 +457,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
     rOutput.resize(1,RHS_undist.size());
 
     // Get disturbance measure
-    double delta= this->GetValue(DISTURBANCE_MEASURE); 	
+    double delta = this->GetValue(DISTURBANCE_MEASURE); 	
     double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
 	delta *= correction_factor;
 
@@ -685,18 +685,18 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable, 
     {
         const Variable<std::string> & rDESIGN_VARIABLE_NAME =
            	  KratosComponents<Variable<std::string> >::Get("DESIGN_VARIABLE_NAME");
-        std::string design_varible_name = this->GetValue( rDESIGN_VARIABLE_NAME );	
+        std::string design_variable_name = this->GetValue( rDESIGN_VARIABLE_NAME );	
 
-        if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
+        if (KratosComponents<Variable<double>>::Has(design_variable_name) == true)
         {
             const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(design_varible_name);
+                KratosComponents<Variable<double>>::Get(design_variable_name);
             this->CalculateStressDesignVariableDerivative(r_variable, rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);
         }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_varible_name) == true)
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_variable_name) == true)
         {
             const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(design_varible_name);
+                KratosComponents<Variable<array_1d<double, 3>>>::Get(design_variable_name);
             this->CalculateStressDesignVariableDerivative(r_variable, rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);    
         }      
     }

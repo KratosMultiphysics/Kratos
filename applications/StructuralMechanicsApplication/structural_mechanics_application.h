@@ -35,7 +35,6 @@
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
 /* Adding the adjoint elements */
-#include "custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.hpp" //TODO: remove this
 #include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
@@ -70,9 +69,6 @@
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
-
-//fusseder TODO: move this to another application
-#include "custom_conditions/point_load_condition_for_SA.h"
 
 /* Adding the adjoint conditions */
 #include "custom_conditions/adjoint_conditions/point_load_adjoint_condition.h"
@@ -255,7 +251,6 @@ private:
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
     // Adding adjoint elements
-    const CrBeamElement3D2NForSA mCrBeamElement3D2NForSA; //TODO: remove this
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
@@ -350,9 +345,6 @@ private:
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
 
-    //fusseder TODO: move this to another application
-    const PointLoadConditionForSA mPointLoadCondition3D1NForSA;
-    
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
     // Line load
