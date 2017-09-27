@@ -38,13 +38,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author:  Miguel Masó Sotomayor$
-//   Date:                $Date:              july 6 2017$
-//   Revision:            $Revision:                  1.0$
+
 //
+//   Project Name:        Kratos
+//   Last Modified by:    Miguel Masó Sotomayor
+//   Date:                july 6 2017
+//   Revision:            2.1
 //
 
 
@@ -122,9 +121,6 @@ public:
         mr_model_part(model_part),
         mScalarVar1(KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
         mVectorVar1(KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
-        //~ mScalarVar1(rParameters["convection_scalar_variable"].GetString()),
-        //~ mVectorVar1(rParameters["convection_vector_variable"].GetString())
-        //~ mmaximum_number_of_particles(maximum_number_of_particles)
     {
         KRATOS_TRY
 
@@ -143,9 +139,6 @@ public:
         m_scalar_var1_name = rParameters["convection_scalar_variable"].GetString();
         m_vector_var1_name = rParameters["convection_vector_variable"].GetString();
         mmaximum_number_of_particles = rParameters["maximum_number_of_particles"].GetDouble();
-
-        //~ Variable<double> mScalarVar1 = KratosComponents< Variable<double> >::Get(scalar_var1_name);
-        //~ Variable<array_1d<double,3>> mVectorVar1 = KratosComponents< Variable<array_1d<double,3> > >::Get(vector_var1_name);
 
         Check();
         //storing water and air density and their inverses, just in case it is needed for the streamline integration
