@@ -34,7 +34,7 @@ namespace Kratos {
 	    /** Checks the NavierStokes2D3N element.
 	     * Checks the LHS and RHS computation using a small perturbation.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(TestElementNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
 		{
 
 			ModelPart modelPart("Main");
@@ -165,7 +165,7 @@ namespace Kratos {
 		/** Checks the NavierStokes2D3N element.
 		 * Checks the LHS and RHS stationary solid rigid movements.
 		 */
-	    KRATOS_TEST_CASE_IN_SUITE(TestElementNavierStokes2D3NStationary, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes2D3NStationary, FluidDynamicsApplicationFastSuite)
 		{
 
 			ModelPart modelPart("Main");
@@ -267,7 +267,7 @@ namespace Kratos {
 	    // /** Checks the NavierStokes3D4N element.
 	    //  * Checks the LHS and RHS computation using a small perturbation.
 	    //  */
-	    KRATOS_TEST_CASE_IN_SUITE(TestElementNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
 		{
 
 			ModelPart modelPart("Main");
@@ -398,7 +398,7 @@ namespace Kratos {
 
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(TestElementNavierStokes3D4NStationary, FluidDynamicsApplicationFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(ElementNavierStokes3D4NStationary, FluidDynamicsApplicationFastSuite)
 		{
 
 			ModelPart modelPart("Main");
