@@ -435,7 +435,7 @@ namespace Testing {
     /** 
      * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3EdgeBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
         Point<3> point_1(-0.1, 0.1, 0.0);
         Point<3> point_2( 0.1, 0.3, 0.0);
@@ -453,7 +453,7 @@ namespace Testing {
     /**
      * Test an overlaping box and triangle (intersects a triangle node) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3NodeBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
         Point<3> point_1(-0.5, 0.8, 0.0);
         Point<3> point_2( 0.5, 1.2, 0.0);
@@ -471,7 +471,7 @@ namespace Testing {
     /**
      * Test a box inside a triangle HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3InsideBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
         Point<3> point_1( 0.1, 0.1, 0.0);
         Point<3> point_2( 0.3, 0.4, 0.0);
@@ -481,7 +481,7 @@ namespace Testing {
     /**
      * Test a non overlaping box and triangle HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3BoxNoIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
         Point<3> point_1( 0.6, 0.5, 0.0);
         Point<3> point_2( 1.0, 1.0, 0.0);
@@ -492,7 +492,7 @@ namespace Testing {
      * Test a box outside the triangle plane
      * HasIntersection should return true, because a 2D-space does not take care about Z-coordinates
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3OutsidePlaneBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxOutsidePlane, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle2D3<Node<3>>();
         Point<3> point_1( 0.2, 0.1, 0.1);
         Point<3> point_2( 0.3, 0.5, 1.0);

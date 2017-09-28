@@ -447,7 +447,7 @@ namespace Testing
     /** 
      * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgeBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateEquilateralTriangle3D3<Node<3>>();
         Point<3> point_1( 0.3, 0.3,-0.3);
         Point<3> point_2( 1.0, 1.0, 1.0);
@@ -465,7 +465,7 @@ namespace Testing
     /**
      * Test an overlaping box and triangle (intersects a triangle node) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3NodeBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateEquilateralTriangle3D3<Node<3>>();
         Point<3> point_1(-0.5, 0.8,-0.3);
         Point<3> point_2( 0.5, 1.2, 0.3);
@@ -483,7 +483,7 @@ namespace Testing
     /**
      * Test an overlaping box and triangle (intersects the triangle face) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3PlaneBoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxPlane, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateEquilateralTriangle3D3<Node<3>>();
         Point<3> point_1( 0.0, 0.0, 0.0);
         Point<3> point_2( 0.4, 0.5, 0.6);
@@ -493,7 +493,7 @@ namespace Testing
     /**
      * Test a non overlaping box and triangle HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3BoxNoIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateEquilateralTriangle3D3<Node<3>>();
         Point<3> point_1( 0.4, 0.5, 0.6);
         Point<3> point_2( 1.0, 1.0, 1.0);
