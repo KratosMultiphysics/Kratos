@@ -436,20 +436,20 @@ public:
      * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
      * 
      * @return bool if the triangle overlaps a box
-     * @param r_low_point first corner of the box
-     * @param r_high_point second corner of the box
+     * @param rLowPoint first corner of the box
+     * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point<3, double>& r_low_point, const Point<3, double>& r_high_point ) override 
+    bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint ) override 
     {
         Point<3, double> boxcenter;
         Point<3, double> boxhalfsize;
 
-        boxcenter[0]   = 0.50 * (r_low_point[0] + r_high_point[0]);
-        boxcenter[1]   = 0.50 * (r_low_point[1] + r_high_point[1]);
+        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
         boxcenter[2]   = 0.00;
 
-        boxhalfsize[0] = 0.50 * (r_high_point[0] - r_low_point[0]);
-        boxhalfsize[1] = 0.50 * (r_high_point[1] - r_low_point[1]);
+        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
         boxhalfsize[2] = 0.00;
 
         return TriBoxOverlap(boxcenter, boxhalfsize);
@@ -1879,7 +1879,7 @@ private:
      * 2) normal of the triangle
      * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
      */
-    inline bool TriBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize)
+    inline bool TriBoxOverlap(Point<3, double>& rBoxCenter, Point<3, double>& rBoxHalfSize)
     {
         double fex,fey;
         array_1d<double,3 > v0,v1,v2;
@@ -1887,9 +1887,9 @@ private:
         std::pair<double, double> min_max;
 
         // move everything so that the boxcenter is in (0,0,0)
-        noalias(v0) = this->GetPoint(0) - boxcenter;
-        noalias(v1) = this->GetPoint(1) - boxcenter;
-        noalias(v2) = this->GetPoint(2) - boxcenter;
+        noalias(v0) = this->GetPoint(0) - rBoxCenter;
+        noalias(v1) = this->GetPoint(1) - rBoxCenter;
+        noalias(v2) = this->GetPoint(2) - rBoxCenter;
 
         // compute triangle edges
         noalias(e0) = v1 - v0;
@@ -1903,15 +1903,15 @@ private:
         //    that means there is no separating axis on X,Y-axis tests
         fex = std::abs(e0[0]);
         fey = std::abs(e0[1]);
-        if (!AxisTestZ(e0[0],e0[1],fex,fey,v0,v2,boxhalfsize)) return false;
+        if (!AxisTestZ(e0[0],e0[1],fex,fey,v0,v2,rBoxHalfSize)) return false;
 
         fex = std::abs(e1[0]);
         fey = std::abs(e1[1]);
-        if (!AxisTestZ(e1[0],e1[1],fex,fey,v1,v0,boxhalfsize)) return false;
+        if (!AxisTestZ(e1[0],e1[1],fex,fey,v1,v0,rBoxHalfSize)) return false;
 
         fex = std::abs(e2[0]);
         fey = std::abs(e2[1]);
-        if (!AxisTestZ(e2[0],e2[1],fex,fey,v2,v1,boxhalfsize)) return false;
+        if (!AxisTestZ(e2[0],e2[1],fex,fey,v2,v1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,(z)}-directions
@@ -1921,14 +1921,14 @@ private:
 
         // test in X-direction
         min_max = std::minmax({v0[0],v1[0],v2[0]});
-        if(min_max.first>boxhalfsize[0] || min_max.second<-boxhalfsize[0]) return false;
+        if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
 
         // test in Y-direction
         min_max = std::minmax({v0[1],v1[1],v2[1]});
-        if(min_max.first>boxhalfsize[1] || min_max.second<-boxhalfsize[1]) return false;
+        if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
 
         // test in Z-direction
-        // we do not consider boxhalfsize[2] since we are working in 2D */
+        // we do not consider rBoxHalfSize[2] since we are working in 2D
 
         // Bullet 2:
         //  test if the box intersects the plane of the triangle
@@ -1941,25 +1941,25 @@ private:
     /** AxisTestZ
      * This method return true if there is a separating axis
      * 
-     * @param ex, ey: i-edge corrdinates
-     * @param fex, fey: i-edge fabs coordinates
-     * @param va: i   vertex
-     * @param vb: i+1 vertex (omitted, pa=pb)
-     * @param vc: i+2 vertex
-     * @param boxhalfsize
+     * @param rEdgeX, rEdgeY: i-edge corrdinates
+     * @param rfEdgeX, rfEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, pa=pb)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
      */
-    bool AxisTestZ(double& ex, double& ey, 
-                   double& fex, double& fey,
-                   array_1d<double,3>& va, 
-                   array_1d<double,3>& vc, 
-                   Point<3,double>& boxhalfsize)
+    bool AxisTestZ(double& rEdgeX, double& rEdgeY, 
+                   double& rfEdgeX, double& rfEdgeY,
+                   array_1d<double,3>& rVertA, 
+                   array_1d<double,3>& rVertC, 
+                   Point<3,double>& rBoxHalfSize)
     {
         double pa, pc, rad;
-        pa = ex*va[1] - ey*va[0];
-        pc = ex*vc[1] - ey*vc[0];
+        pa = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
+        pc = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
         std::pair<double, double> min_max = std::minmax(pa,pc);
 
-        rad = fey*boxhalfsize[0] + fex*boxhalfsize[1];
+        rad = rfEdgeY*rBoxHalfSize[0] + rfEdgeX*rBoxHalfSize[1];
 
         if(min_max.first>rad || min_max.second<-rad) return false;
         else return true;
