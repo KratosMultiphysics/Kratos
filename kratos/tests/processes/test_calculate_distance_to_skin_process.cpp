@@ -26,16 +26,16 @@ namespace Kratos {
 	  {
 
 		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		  Point<3>::Pointer p_point1 = boost::make_shared<Point<3>>(0.00, 0.00, 0.00);
-		  Point<3>::Pointer p_point2 = boost::make_shared<Point<3>>(10.00, 0.00, 0.00);
-		  Point<3>::Pointer p_point3 = boost::make_shared<Point<3>>(10.00, 10.00, 0.00);
-		  Point<3>::Pointer p_point4 = boost::make_shared<Point<3>>(0.00, 10.00, 0.00);
-		  Point<3>::Pointer p_point5 = boost::make_shared<Point<3>>(0.00, 0.00, 10.00);
-		  Point<3>::Pointer p_point6 = boost::make_shared<Point<3>>(10.00, 0.00, 10.00);
-		  Point<3>::Pointer p_point7 = boost::make_shared<Point<3>>(10.00, 10.00, 10.00);
-		  Point<3>::Pointer p_point8 = boost::make_shared<Point<3>>(0.00, 10.00, 10.00);
+          Node<3>::Pointer p_point1 = boost::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
+          Node<3>::Pointer p_point2 = boost::make_shared<Node<3>>(2, 10.00, 0.00, 0.00);
+          Node<3>::Pointer p_point3 = boost::make_shared<Node<3>>(3, 10.00, 10.00, 0.00);
+          Node<3>::Pointer p_point4 = boost::make_shared<Node<3>>(4, 0.00, 10.00, 0.00);
+          Node<3>::Pointer p_point5 = boost::make_shared<Node<3>>(5, 0.00, 0.00, 10.00);
+          Node<3>::Pointer p_point6 = boost::make_shared<Node<3>>(6, 10.00, 0.00, 10.00);
+          Node<3>::Pointer p_point7 = boost::make_shared<Node<3>>(7, 10.00, 10.00, 10.00);
+          Node<3>::Pointer p_point8 = boost::make_shared<Node<3>>(8, 0.00, 10.00, 10.00);
 
-		  Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+          Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 		  Parameters mesher_parameters(R"(
             {
@@ -74,16 +74,16 @@ namespace Kratos {
 	  {
 
 		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		  Point<3>::Pointer p_point1 = boost::make_shared<Point<3>>(0.00, 0.00, 0.00);
-		  Point<3>::Pointer p_point2 = boost::make_shared<Point<3>>(10.00, 0.00, 0.00);
-		  Point<3>::Pointer p_point3 = boost::make_shared<Point<3>>(10.00, 10.00, 0.00);
-		  Point<3>::Pointer p_point4 = boost::make_shared<Point<3>>(0.00, 10.00, 0.00);
-		  Point<3>::Pointer p_point5 = boost::make_shared<Point<3>>(0.00, 0.00, 10.00);
-		  Point<3>::Pointer p_point6 = boost::make_shared<Point<3>>(10.00, 0.00, 10.00);
-		  Point<3>::Pointer p_point7 = boost::make_shared<Point<3>>(10.00, 10.00, 10.00);
-		  Point<3>::Pointer p_point8 = boost::make_shared<Point<3>>(0.00, 10.00, 10.00);
+		  Node<3>::Pointer p_point1 = boost::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
+		  Node<3>::Pointer p_point2 = boost::make_shared<Node<3>>(2, 10.00, 0.00, 0.00);
+		  Node<3>::Pointer p_point3 = boost::make_shared<Node<3>>(3, 10.00, 10.00, 0.00);
+		  Node<3>::Pointer p_point4 = boost::make_shared<Node<3>>(4, 0.00, 10.00, 0.00);
+		  Node<3>::Pointer p_point5 = boost::make_shared<Node<3>>(5, 0.00, 0.00, 10.00);
+		  Node<3>::Pointer p_point6 = boost::make_shared<Node<3>>(6, 10.00, 0.00, 10.00);
+		  Node<3>::Pointer p_point7 = boost::make_shared<Node<3>>(7, 10.00, 10.00, 10.00);
+		  Node<3>::Pointer p_point8 = boost::make_shared<Node<3>>(8, 0.00, 10.00, 10.00);
 
-		  Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+		  Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 		  Parameters mesher_parameters(R"(
             {
@@ -123,16 +123,16 @@ namespace Kratos {
 	  {
 
 		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		  Point<3>::Pointer p_point1 = boost::make_shared<Point<3>>(0.00, 0.00, 0.00);
-		  Point<3>::Pointer p_point2 = boost::make_shared<Point<3>>(10.00, 0.00, 0.00);
-		  Point<3>::Pointer p_point3 = boost::make_shared<Point<3>>(10.00, 10.00, 0.00);
-		  Point<3>::Pointer p_point4 = boost::make_shared<Point<3>>(0.00, 10.00, 0.00);
-		  Point<3>::Pointer p_point5 = boost::make_shared<Point<3>>(0.00, 0.00, 10.00);
-		  Point<3>::Pointer p_point6 = boost::make_shared<Point<3>>(10.00, 0.00, 10.00);
-		  Point<3>::Pointer p_point7 = boost::make_shared<Point<3>>(10.00, 10.00, 10.00);
-		  Point<3>::Pointer p_point8 = boost::make_shared<Point<3>>(0.00, 10.00, 10.00);
+		  Node<3>::Pointer p_point1 = boost::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
+		  Node<3>::Pointer p_point2 = boost::make_shared<Node<3>>(2, 10.00, 0.00, 0.00);
+		  Node<3>::Pointer p_point3 = boost::make_shared<Node<3>>(3, 10.00, 10.00, 0.00);
+		  Node<3>::Pointer p_point4 = boost::make_shared<Node<3>>(4, 0.00, 10.00, 0.00);
+		  Node<3>::Pointer p_point5 = boost::make_shared<Node<3>>(5, 0.00, 0.00, 10.00);
+		  Node<3>::Pointer p_point6 = boost::make_shared<Node<3>>(6, 10.00, 0.00, 10.00);
+		  Node<3>::Pointer p_point7 = boost::make_shared<Node<3>>(7, 10.00, 10.00, 10.00);
+		  Node<3>::Pointer p_point8 = boost::make_shared<Node<3>>(8, 0.00, 10.00, 10.00);
 
-		  Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+		  Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 		  Parameters mesher_parameters(R"(
             {

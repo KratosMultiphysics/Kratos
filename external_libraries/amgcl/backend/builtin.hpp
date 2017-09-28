@@ -368,7 +368,7 @@ product(const MatrixA &A, const MatrixB &B, bool sort = false) {
     int nt = 1;
 #endif
 
-    if (nt > 4) {
+    if (nt > 16) {
         spgemm_rmerge(A, B, *C);
     } else {
         spgemm_saad(A, B, *C, sort);
@@ -428,7 +428,10 @@ class numa_vector {
         }
 
         template <class Vector>
-        numa_vector(const Vector &other) : n(other.size()), p(new T[n]) {
+        numa_vector(const Vector &other,
+                typename boost::disable_if<boost::is_integral<Vector>, int>::type = 0
+                ) : n(other.size()), p(new T[n])
+        {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
                 p[i] = other[i];

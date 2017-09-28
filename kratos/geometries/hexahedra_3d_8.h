@@ -244,12 +244,12 @@ public:
     /// Destructor. Does nothing!!!
     ~Hexahedra3D8() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Hexahedra;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Hexahedra3D8;
     }

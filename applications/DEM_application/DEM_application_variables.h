@@ -15,6 +15,7 @@
 #include "utilities/quaternion.h"
 #include "custom_utilities/cluster_information.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
+//#include "custom_utilities/properties_proxies.h"
 
 namespace Kratos
 {
@@ -108,7 +109,8 @@ namespace Kratos
   // *************** Continuum only END ***************
 
   // MATERIAL PARAMETERS
-
+  class PropertiesProxy; //forward declaration
+  KRATOS_DEFINE_VARIABLE(std::vector<PropertiesProxy>, VECTOR_OF_PROPERTIES_PROXIES)
   KRATOS_DEFINE_VARIABLE(double, NODAL_MASS_COEFF)
   KRATOS_DEFINE_VARIABLE(double, PARTICLE_MOMENT_OF_INERTIA)
   KRATOS_DEFINE_VARIABLE(double, ROLLING_FRICTION)
@@ -326,7 +328,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(Vector, RIGID_FACE_COMPUTE_MOVEMENT)
   
   //SLS DEM-FEM
-  KRATOS_DEFINE_VARIABLE(double, WALL_FRICTION)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, WALL_FRICTION)
   KRATOS_DEFINE_VARIABLE(double, SHEAR_STRESS)
   KRATOS_DEFINE_VARIABLE(double, NON_DIMENSIONAL_VOLUME_WEAR)
   KRATOS_DEFINE_VARIABLE(double, IMPACT_WEAR)

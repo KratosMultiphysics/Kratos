@@ -942,7 +942,6 @@ public:
     {
     }
 
-
     /**
      * Calculate Damp matrix and add velocity contribution to RHS
      * @param rDampingMatrix: the velocity-proportional "damping" matrix
@@ -955,6 +954,24 @@ public:
         if (rDampingMatrix.size1() != 0)
 	  rDampingMatrix.resize(0, 0, false);
 
+    }
+
+    /**
+     * Calculate the transposed gradient of the element's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * Calculate the transposed gradient of the element's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
     }
 
 
