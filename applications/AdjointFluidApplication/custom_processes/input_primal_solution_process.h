@@ -114,6 +114,14 @@ public:
             std::cout << mNodalValues[i] << std::endl;
         }
 
+        // nodal value names to intput
+        mProcessInfoValues.resize(rParameters["processinfo_value_list"].size());
+        for( unsigned int i=0; i < mProcessInfoValues.size(); ++i )
+        {
+            mProcessInfoValues[i] = rParameters["processinfo_value_list"].GetArrayItem(i).GetString();
+            std::cout << mProcessInfoValues[i] << std::endl;
+        }
+
         mNumNodes = 0;
 
         KRATOS_CATCH("")
@@ -282,24 +290,42 @@ public:
             {
                 KRATOS_ERROR << "Reading from value " << mNodalValues[i] << " is not implemented right now" << std::endl;
             }
+        } //nodal values
+        KRATOS_WATCH(mrModelPart.GetProcessInfo())
+        
+        std::string procinfo_group_name = "/ProcessInfo";
+        hsize_t procinfo_dims[1];
+        for( std::size_t i = 0; i < mProcessInfoValues.size(); ++i)
+        {
+            std::string dataset_name = procinfo_group_name + "/" + mProcessInfoValues[i];
+            // std::cout << dataset_name << std::endl;
 
+            // File.getObjinfo(dataset_name.c_str(),&status);
+            H5::DataSet procinfo_dataset = File.openDataSet(dataset_name.c_str());
+            procinfo_dataset.getSpace().getSimpleExtentDims(procinfo_dims);
 
-            // else if (KratosComponents< Variable<array_1d<double,3> > >::Has(mVariables[i]))
-            // {
+            if (KratosComponents< Variable<Vector> >::Has(mProcessInfoValues[i]))
+            {
+                const Variable< Vector >& rVariable = KratosComponents< Variable<Vector> >::Get(mProcessInfoValues[i]);
+                
+                std::vector<double> procinfo_data_buffer(procinfo_dims[0]); 
+                procinfo_dataset.read(procinfo_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
+                // auto it_value = std::begin(procinfo_data_buffer);
 
+                // auto& rProcessInfo = mrModelPart.GetProcessInfo();
+                // auto& rData = rProcessInfo[rVariable];
+                // KRATOS_WATCH(procinfo_data_buffer);
 
-            //     std::vector<double> VariableDataBuffer(3 * mrModelPart.Nodes().size());
-            //     VariableDataset.read(VariableDataBuffer.data(), H5::PredType::NATIVE_DOUBLE);
-            //     unsigned int BlockBegin = 0;
-            //     for (auto it = std::begin(mrModelPart.Nodes()); it != std::end(mrModelPart.Nodes()); it++)
-            //     {
-            //         array_1d<double,3>& rData = it->FastGetSolutionStepValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mVariables[i]));
-            //         for (unsigned int k = 0; k < 3; k++)
-            //             rData[k] = VariableDataBuffer[BlockBegin + k];
-            //         BlockBegin += 3;
-            //     }
-            // }
-        }
+                // mrModelPart.GetProcessInfo()[rVariable] = procinfo_data_buffer.data();
+                Vector temp_vector( procinfo_data_buffer.size() );
+                for( size_t j = 0; j < procinfo_data_buffer.size(); ++j )
+                {
+                    temp_vector[j] = procinfo_data_buffer[j];
+                }
+                mrModelPart.GetProcessInfo()[rVariable] = temp_vector;
+            }
+        } //processinfo values
+        KRATOS_WATCH(mrModelPart.GetProcessInfo())
 
         KRATOS_CATCH("")
     }
@@ -467,6 +493,7 @@ private:
     SizeType mNumNodes;
     std::vector<std::string> mVariables;
     std::vector<std::string> mNodalValues;
+    std::vector<std::string> mProcessInfoValues;
 
     ///@}
     ///@name Private Operators

@@ -111,7 +111,15 @@ public:
         for( unsigned int i=0; i < mNodalValues.size(); ++i )
         {
             mNodalValues[i] = rParameters["nodal_value_list"].GetArrayItem(i).GetString();
-            std::cout << mNodalValues[i] << std::endl;
+            // std::cout << mNodalValues[i] << std::endl;
+        }
+
+        // nodal value names to output
+        mProcessInfoValues.resize(rParameters["processinfo_value_list"].size());
+        for( unsigned int i=0; i < mProcessInfoValues.size(); ++i )
+        {
+            mProcessInfoValues[i] = rParameters["processinfo_value_list"].GetArrayItem(i).GetString();
+            std::cout << mProcessInfoValues[i] << std::endl;
         }
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
@@ -330,8 +338,7 @@ public:
         // write the values to the file after finishing the computation
         KRATOS_TRY
 
-        // nodal values
-        if( mNodalValues.size() > 0 )
+        if( mNodalValues.size() > 0 || mProcessInfoValues.size() > 0 )
         {
             // open file to append data
             H5::H5File file(mFilename.c_str(), H5F_ACC_RDWR);
@@ -363,7 +370,7 @@ public:
             if (Delta != 0)
                 KRATOS_THROW_ERROR(std::runtime_error, "detected mismatch of node ids in file: ", mFilename);
             
-            //output the values
+            // output of the nodal values
             // std::stringstream nodal_value_stream;
             // nodal_value_stream << "/NodalData/Values";
             // std::string values_group_name = nodal_value_stream.str();
@@ -422,7 +429,6 @@ public:
                     H5::DataSet value_dataset(file.createDataSet(dataset_name.c_str(), H5::PredType::NATIVE_DOUBLE, value_dataspace));
                     std::vector<double> value_data_buffer(size_1 * size_2 * mrModelPart.Nodes().size());
 
-
                     unsigned int block_begin = 0;
                     for( auto it = std::begin(mrModelPart.Nodes()); it != std::end(mrModelPart.Nodes()); ++it )
                     {
@@ -438,15 +444,7 @@ public:
                             }
                             block_begin += size_1;
                         }
-                        
                     }
-
-
-
-                    // for( std::size_t ii = 0; ii < value_data_buffer.size(); ++ii)
-                    // {
-                    //     value_data_buffer[ii] = ii;
-                    // }
 
                     value_dataset.write(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
                 }
@@ -455,11 +453,43 @@ public:
                 {
                     std::cout << "output_primal_solution_process.h: output of this value type has not yet been implemented!" << std::endl;
                 }
+            } //nodal values
+
+            std::string procinfo_group_name = "/ProcessInfo";
+            file.createGroup(procinfo_group_name.c_str());
+
+            //write each value
+            for( std::size_t i = 0; i < mProcessInfoValues.size(); ++i )
+            {
+                hsize_t procinfo_dims[1];
+                std::string dataset_name = procinfo_group_name + "/" + mProcessInfoValues[i];
+                if( KratosComponents< Variable<Vector> >::Has(mProcessInfoValues[i]) )
+                {
+                    const Variable< Vector >& rVariable = KratosComponents< Variable<Vector> >::Get(mProcessInfoValues[i]);
+
+                    auto& rProcessInfo = mrModelPart.GetProcessInfo();
+                    auto& rData = rProcessInfo[rVariable];
+                    const unsigned int vector_size = rData.size();
+                    std::cout << vector_size << "VECTORSIZE" << std::endl;
+                    
+                    procinfo_dims[0] = vector_size;
+
+                    H5::DataSpace procinfo_dataspace(1, procinfo_dims);
+                    H5::DataSet procinfo_dataset(file.createDataSet(dataset_name.c_str(), H5::PredType::NATIVE_DOUBLE, procinfo_dataspace));
+                    std::vector<double> value_data_buffer(vector_size);
+
+                    for( size_t j = 0; j < vector_size; ++j )
+                    {
+                        value_data_buffer[j] = rData[j];
+                    }
+
+                    //write buffer
+                    procinfo_dataset.write(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
+               
+                }
             }
 
         }
-
-
 
         KRATOS_CATCH("")
     }
@@ -538,6 +568,7 @@ private:
     SizeType mNumNodes;
     std::vector<std::string> mVariables;
     std::vector<std::string> mNodalValues;
+    std::vector<std::string> mProcessInfoValues;
     double mAlphaBossak;
 
     ///@}
