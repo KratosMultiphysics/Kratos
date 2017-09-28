@@ -636,21 +636,21 @@ public:
      * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
      * 
      * @return bool if the triangle overlaps a box
-     * @param rLowPoint first corner of the box
+     * @param r_low_point first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
+    bool HasIntersection( const Point<3, double>& r_low_point, const Point<3, double>& r_high_point) override
     {
         Point<3, double> boxcenter;
         Point<3, double> boxhalfsize;
 
-        boxcenter[0]   = 0.5 * (rLowPoint[0] + rHighPoint[0]);
-        boxcenter[1]   = 0.5 * (rLowPoint[1] + rHighPoint[1]);
-        boxcenter[2]   = 0.5 * (rLowPoint[2] + rHighPoint[2]);
+        boxcenter[0]   = 0.5 * (r_low_point[0] + r_high_point[0]);
+        boxcenter[1]   = 0.5 * (r_low_point[1] + r_high_point[1]);
+        boxcenter[2]   = 0.5 * (r_low_point[2] + r_high_point[2]);
 
-        boxhalfsize[0] = 0.5 * (rHighPoint[0] - rLowPoint[0]);
-        boxhalfsize[1] = 0.5 * (rHighPoint[1] - rLowPoint[1]);
-        boxhalfsize[2] = 0.5 * (rHighPoint[2] - rLowPoint[2]);
+        boxhalfsize[0] = 0.5 * (r_high_point[0] - r_low_point[0]);
+        boxhalfsize[1] = 0.5 * (r_high_point[1] - r_low_point[1]);
+        boxhalfsize[2] = 0.5 * (r_high_point[2] - r_low_point[2]);
 
         return TriBoxOverlap(boxcenter, boxhalfsize);
     }
@@ -2171,23 +2171,23 @@ private:
         fex = std::abs(e0[0]);
         fey = std::abs(e0[1]);
         fez = std::abs(e0[2]);
-        if (!AxisTest_X(e0[1],e0[2],fey,fez,v0,v2,boxhalfsize)) return false;
-        if (!AxisTest_Y(e0[0],e0[2],fex,fez,v0,v2,boxhalfsize)) return false;
-        if (!AxisTest_Z(e0[0],e0[1],fex,fey,v0,v2,boxhalfsize)) return false;
+        if (!AxisTestX(e0[1],e0[2],fey,fez,v0,v2,boxhalfsize)) return false;
+        if (!AxisTestY(e0[0],e0[2],fex,fez,v0,v2,boxhalfsize)) return false;
+        if (!AxisTestZ(e0[0],e0[1],fex,fey,v0,v2,boxhalfsize)) return false;
 
         fex = std::abs(e1[0]);
         fey = std::abs(e1[1]);
         fez = std::abs(e1[2]);
-        if (!AxisTest_X(e1[1],e1[2],fey,fez,v1,v0,boxhalfsize)) return false;
-        if (!AxisTest_Y(e1[0],e1[2],fex,fez,v1,v0,boxhalfsize)) return false;
-        if (!AxisTest_Z(e1[0],e1[1],fex,fey,v1,v0,boxhalfsize)) return false;
+        if (!AxisTestX(e1[1],e1[2],fey,fez,v1,v0,boxhalfsize)) return false;
+        if (!AxisTestY(e1[0],e1[2],fex,fez,v1,v0,boxhalfsize)) return false;
+        if (!AxisTestZ(e1[0],e1[1],fex,fey,v1,v0,boxhalfsize)) return false;
 
         fex = std::abs(e2[0]);
         fey = std::abs(e2[1]);
         fez = std::abs(e2[2]);
-        if (!AxisTest_X(e2[1],e2[2],fey,fez,v2,v1,boxhalfsize)) return false;
-        if (!AxisTest_Y(e2[0],e2[2],fex,fez,v2,v1,boxhalfsize)) return false;
-        if (!AxisTest_Z(e2[0],e2[1],fex,fey,v2,v1,boxhalfsize)) return false;
+        if (!AxisTestX(e2[1],e2[2],fey,fez,v2,v1,boxhalfsize)) return false;
+        if (!AxisTestY(e2[0],e2[2],fex,fez,v2,v1,boxhalfsize)) return false;
+        if (!AxisTestZ(e2[0],e2[1],fex,fey,v2,v1,boxhalfsize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,z}-directions
@@ -2250,7 +2250,7 @@ private:
         return false;
     }
 
-    /** X-AxisTest
+    /** AxisTestX
      * This method return true if there is a separating axis
      * 
      * @param ey, ez: i-edge corrdinates
@@ -2260,11 +2260,11 @@ private:
      * @param vc: i+2 vertex
      * @param boxhalfsize
      */
-    bool AxisTest_X(double& ey, double& ez,
-                    double& fey, double& fez,
-                    array_1d<double,3>& va,
-                    array_1d<double,3>& vc,
-                    Point<3,double>& boxhalfsize)
+    bool AxisTestX(double& ey, double& ez,
+                   double& fey, double& fez,
+                   array_1d<double,3>& va,
+                   array_1d<double,3>& vc,
+                   Point<3,double>& boxhalfsize)
     {
         double pa, pc, rad;
         pa = ey*va[2] - ez*va[1];
@@ -2277,7 +2277,7 @@ private:
         else return true;
     }
 
-    /** Y-AxisTest
+    /** AxisTestY
      * This method return true if there is a separating axis
      * 
      * @param ex, ez: i-edge corrdinates
@@ -2287,11 +2287,11 @@ private:
      * @param vc: i+2 vertex
      * @param boxhalfsize
      */
-    bool AxisTest_Y(double& ex, double& ez,
-                    double& fex, double& fez,
-                    array_1d<double,3>& va,
-                    array_1d<double,3>& vc,
-                    Point<3,double>& boxhalfsize)
+    bool AxisTestY(double& ex, double& ez,
+                   double& fex, double& fez,
+                   array_1d<double,3>& va,
+                   array_1d<double,3>& vc,
+                   Point<3,double>& boxhalfsize)
     {
         double pa, pc, rad;
         pa = ez*va[0] - ex*va[2];
@@ -2304,7 +2304,7 @@ private:
         else return true;
     }
 
-    /** Z-AxisTest
+    /** AxisTestZ
      * This method return true if there is a separating axis
      * 
      * @param ex, ey: i-edge corrdinates
@@ -2314,11 +2314,11 @@ private:
      * @param vc: i+2 vertex
      * @param boxhalfsize
      */
-    bool AxisTest_Z(double& ex, double& ey, 
-                    double& fex, double& fey,
-                    array_1d<double,3>& va, 
-                    array_1d<double,3>& vc, 
-                    Point<3,double>& boxhalfsize)
+    bool AxisTestZ(double& ex, double& ey, 
+                   double& fex, double& fey,
+                   array_1d<double,3>& va, 
+                   array_1d<double,3>& vc, 
+                   Point<3,double>& boxhalfsize)
     {
         double pa, pc, rad;
         pa = ex*va[1] - ey*va[0];
