@@ -5,9 +5,10 @@ from math import *
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignScalarToConditionsProcess(Model, settings["Parameters"])
+    return AssignScalarVariableToConditionsProcess(Model, settings["Parameters"])
 
-class AssignScalarToConditionsProcess(KratosMultiphysics.Process):
+## all the processes python processes should be derived from "python_process"
+class AssignScalarVariableToConditionsProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -23,10 +24,10 @@ class AssignScalarToConditionsProcess(KratosMultiphysics.Process):
             """
             )
 
-        #assign this here since it will change the "interval" prior to validation
+        # assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        #here i do a trick, since i want to allow "value" to be a string or a double value
+        # here i do a trick, since i want to allow "value" to be a string or a double value
         if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
@@ -52,7 +53,7 @@ class AssignScalarToConditionsProcess(KratosMultiphysics.Process):
             params.AddValue("local_axes", settings["local_axes"])
             self.AssignValueProcess = KratosMultiphysics.AssignScalarFieldToConditionsProcess(self.model_part, params)
                 
-        #construct a variable_utils object to speedup fixing
+        # construct a variable_utils object to speedup fixing
         self.step_is_active = False
 
     def ExecuteInitializeSolutionStep(self):

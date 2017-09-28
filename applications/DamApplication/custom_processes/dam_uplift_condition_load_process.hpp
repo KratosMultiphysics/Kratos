@@ -51,7 +51,6 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                              : false,
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
@@ -80,7 +79,6 @@ public:
         
         mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
         mSpecific = rParameters["Spe_weight"].GetDouble();
@@ -183,11 +181,6 @@ public:
                     
                     // Computing the new coordinates                                        
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
-
-					if(mIsFixed)
-					{
-						it->Fix(var);
-					}
 		
                     // We compute the first part of the uplift law 
                     mUpliftPressure = (mSpecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mDistanceDrain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mSpecific*aux_drain;
@@ -223,11 +216,6 @@ public:
                     
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
 
-					if(mIsFixed)
-					{
-						it->Fix(var);
-					}
-				
 					mUpliftPressure = (mSpecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mBaseDam)*(fabs(newCoordinate(0)-reference_vector(0)))));
                     
 					if(mUpliftPressure<0.0)
@@ -309,12 +297,7 @@ public:
                     
                     // Computing the new coordinates                                        
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
-
-					if(mIsFixed)
-					{
-						it->Fix(var);
-					}
-		
+	
                     // We compute the first part of the uplift law 
                     mUpliftPressure = (mSpecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mDistanceDrain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mSpecific*aux_drain;
                     
@@ -348,11 +331,6 @@ public:
                     auxiliar_vector[2] = it->Coordinate(3);
                     
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
-
-					if(mIsFixed)
-					{
-						it->Fix(var);
-					}
 				
 					mUpliftPressure = (mSpecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mBaseDam)*(fabs(newCoordinate(0)-reference_vector(0)))));
                     
@@ -440,7 +418,6 @@ protected:
     std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
-    bool mIsFixed;
     double mReferenceCoordinate;
     double mSpecific;
     double mBaseDam;
