@@ -118,11 +118,17 @@ class schur_pressure_correction {
 
             std::vector<char> pmask;
 
-            params() {}
+            // Approximate Kuu^-1 with inverted diagonal of Kuu during
+            // construction of matrix-less Schur complement.
+            // When false, USolver is used instead.
+            bool approx_schur;
+
+            params() : approx_schur(true) {}
 
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, usolver),
-                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver)
+                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur)
             {
                 void *pm = 0;
                 size_t n = 0;
@@ -141,13 +147,14 @@ class schur_pressure_correction {
 
                 pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
 
-                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size));
+                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size)(approx_schur));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
             {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, usolver);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, psolver);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, approx_schur);
             }
         } prm;
 
@@ -218,8 +225,14 @@ class schur_pressure_correction {
             backend::spmv( alpha, P->system_matrix(), x, beta, y);
 
             backend::spmv(1, *Kup, x, 0, *tmp);
-            backend::clear(*u);
-            (*U)(*tmp, *u);
+
+            if (prm.approx_schur) {
+                backend::vmul(1, *M, *tmp, 0, *u);
+            } else {
+                backend::clear(*u);
+                (*U)(*tmp, *u);
+            }
+
             backend::spmv(-alpha, *Kpu, *u, 1, y);
         }
     private:
@@ -227,6 +240,7 @@ class schur_pressure_correction {
 
         boost::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
         boost::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
+        boost::shared_ptr<typename backend_type::matrix_diagonal> M;
 
         boost::shared_ptr<USolver> U;
         boost::shared_ptr<PSolver> P;
@@ -344,6 +358,9 @@ class schur_pressure_correction {
             p = backend_type::create_vector(np, bprm);
 
             tmp = backend_type::create_vector(nu, bprm);
+
+            if (prm.approx_schur)
+                M = backend_type::copy_vector(diagonal(*Kuu, /*invert = */true), bprm);
 
             // Scatter/Gather matrices
             boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();

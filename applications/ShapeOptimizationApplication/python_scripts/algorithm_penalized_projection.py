@@ -40,8 +40,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
         self.onlyConstraint = optimizationSettings["constraints"][0]["identifier"].GetString()
-        self.typeOfOnlyConstraint = optimizationSettings["constraints"][0]["type"].GetString()          
-        self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
+        self.typeOfOnlyConstraint = optimizationSettings["constraints"][0]["type"].GetString()
+        self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.initialCorrectionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble()
         self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
@@ -61,9 +61,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.__finalizeOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __initializeOptimizationLoop( self ):   
+    def __initializeOptimizationLoop( self ):
         self.timer.startTimer()
-        self.dataLogger.initializeDataLogging() 
+        self.dataLogger.initializeDataLogging()
 
     # --------------------------------------------------------------------------
     def __startOptimizationLoop( self ):
@@ -78,7 +78,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.__callAnalyzerToPerformRequestedAnalyses( optimizationIteration )
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
-            
+
             self.__alignSensitivitiesToLocalSurfaceNormal()
 
             if self.performDamping:
@@ -96,11 +96,11 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.__timeOptimizationStep()
 
             if self.__isAlgorithmConverged( optimizationIteration ):
-                break        
-                
+                break
+
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
-        self.dataLogger.finalizeDataLogging() 
+        self.dataLogger.finalizeDataLogging()
 
     # --------------------------------------------------------------------------
     def __callCoumminicatorToCreateNewRequests( self ):
@@ -108,7 +108,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.communicator.requestFunctionValueOf( self.onlyObjective )
         self.communicator.requestFunctionValueOf( self.onlyConstraint )
         self.communicator.requestGradientOf( self.onlyObjective )
-        self.communicator.requestGradientOf( self.onlyConstraint )    
+        self.communicator.requestGradientOf( self.onlyConstraint )
 
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
@@ -127,14 +127,14 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             gradient = Vector(3)
             gradient[0] = gradients[nodeId][0]
             gradient[1] = gradients[nodeId][1]
-            gradient[2] = gradients[nodeId][2]           
+            gradient[2] = gradients[nodeId][2]
             self.designSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
             self.geometryTools.compute_unit_surface_normals()
             self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
-            self.geometryTools.project_nodal_variable_on_unit_surface_normals( CONSTRAINT_SENSITIVITY )            
+            self.geometryTools.project_nodal_variable_on_unit_surface_normals( CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -146,7 +146,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.__mapSensitivitiesToDesignSpace()
 
         constraintValue = self.communicator.getReportedFunctionValueOf( self.onlyConstraint )
-                        
+
         if self.__isConstraintActive( constraintValue ):
             self.optimizationTools.compute_projected_search_direction()
             self.optimizationTools.correct_projected_search_direction( constraintValue )
@@ -154,7 +154,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.optimizationTools.compute_search_direction_steepest_descent()
 
         self.optimizationTools.compute_design_update()
-        self.__mapDesignUpdateToGeometrySpace() 
+        self.__mapDesignUpdateToGeometrySpace()
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
@@ -168,16 +168,16 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         elif constraintValue > 0:
             return True
         else:
-            return False              
+            return False
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):
-        self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE ) 
+        self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
         self.dampingUtilities.DampNodalVariable( SHAPE_UPDATE )
-        
+
     # --------------------------------------------------------------------------
     def __updateShape( self ):
         self.geometryTools.update_coordinates_according_to_input_variable( SHAPE_UPDATE )
@@ -203,7 +203,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
                 return True
 
             relativeChangeOfObjectiveValue = self.dataLogger.getValue( "RELATIVE_CHANGE_OF_OBJECTIVE_VALUE" )
-            
+
             # Check for relative tolerance
             relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
             if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
