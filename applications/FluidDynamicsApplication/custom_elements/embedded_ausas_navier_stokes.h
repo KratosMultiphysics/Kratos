@@ -665,10 +665,13 @@ protected:
         if (this->Is(TO_SPLIT))
         {
             // Add the intersection boundary fluxes contribution comping from the integration by parts
-            this->AddSystemBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
+            this->AddSystemPressureBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
 
             // Add the normal component penalty contribution
-            this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
+            // this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
+
+            // Use the pressure as a Lagrange multiplier to enforce the no penetration condition
+            this->AddSystemNormalVelocityLagrangeMultiplierContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rGeometryData);
         }
     }
 
@@ -703,7 +706,7 @@ protected:
         if (this->Is(TO_SPLIT))
         {
             // Add the intersection boundary fluxes contribution comping from the integration by parts
-            this->AddRHSBoundaryTermsContribution(rRightHandSideVector, rData, rGeometryData);
+            this->AddRHSPressureBoundaryTermsContribution(rRightHandSideVector, rData, rGeometryData);
 
             // Add the normal component penalty contribution
             this->AddRHSNormalVelocityPenaltyContribution(rRightHandSideVector, rData, rGeometryData);
@@ -711,17 +714,17 @@ protected:
     }
 
     /**
-    * This function adds the local system contribution of the interface boundary terms,
+    * This function adds the local system contribution of the interface pressure boundary terms,
     * coming from the integration by parts.
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     * @param rGeometryData: reference to the intersection data structure
     */
-    void AddSystemBoundaryTermsContribution(MatrixType &rLeftHandSideMatrix,
-                                            VectorType &rRightHandSideVector,
-                                            const ElementDataStruct &rData,
-                                            const ElementGeometryDataStruct &rGeometryData)
+    void AddSystemPressureBoundaryTermsContribution(MatrixType &rLeftHandSideMatrix,
+                                                    VectorType &rRightHandSideVector,
+                                                    const ElementDataStruct &rData,
+                                                    const ElementGeometryDataStruct &rGeometryData)
     {
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
@@ -800,9 +803,9 @@ protected:
     * @param rData: reference to element data structure
     * @param rGeometryData: reference to the intersection data structure
     */
-    void AddRHSBoundaryTermsContribution(VectorType &rRightHandSideVector,
-                                         const ElementDataStruct &rData,
-                                         const ElementGeometryDataStruct &rGeometryData)
+    void AddRHSPressureBoundaryTermsContribution(VectorType &rRightHandSideVector,
+                                                 const ElementDataStruct &rData,
+                                                 const ElementGeometryDataStruct &rGeometryData)
     {
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
@@ -989,6 +992,130 @@ protected:
     }
 
     /**
+    * This function adds the local system contribution of the no penetration imposition,
+    * by means of the pressure acting as a Lagrange multiplier.
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rGeometryData: reference to the intersection data structure
+    */
+    void AddSystemNormalVelocityLagrangeMultiplierContribution(MatrixType &rLeftHandSideMatrix,
+                                                               VectorType &rRightHandSideVector,
+                                                               const ElementDataStruct &rData,
+                                                               const ElementGeometryDataStruct &rGeometryData)
+    {
+        constexpr unsigned int BlockSize = TDim + 1;
+        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
+
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+        array_1d<double, MatrixSize> solution_jump = ZeroVector(MatrixSize);
+
+        // Obtain the previous iteration velocity solution
+        GetPreviousSolutionVector(rData, prev_sol);
+
+        // Compute the velocity diference to penalize
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            const array_1d<double, 3> &embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+
+            for (unsigned int i=0; i<TNumNodes; ++i)
+            {
+                for (unsigned int comp=0; comp<TDim; ++comp)
+                {
+                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
+                }
+            }
+
+            solution_jump = prev_sol - aux_embedded_vel;
+        }
+        else
+        {
+            solution_jump = prev_sol;
+        }
+
+        // Compute the LHS and RHS penalty contributions
+        array_1d<double, TDim> side_normal;
+        array_1d<double, TNumNodes> aux_cut;
+        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+
+        // Drop the pressure rows and columns
+        for (unsigned int i=0; i<TNumNodes; ++i)
+        {   
+            const unsigned int aux = i*BlockSize + TDim;
+            for (unsigned int j=0; j<MatrixSize; ++j)
+            {
+                rLeftHandSideMatrix(aux, j) = 0.0;
+                rLeftHandSideMatrix(j, aux) = 0.0;
+            }
+        }
+
+        // Contribution coming from the positive side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_positive_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = -1.0 * rGeometryData.intersection_normal;
+
+            // Compute and assemble the LHS contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                const unsigned int row = i * BlockSize + TDim;
+
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int m = 0; m < TDim; ++m)
+                    {
+                        const unsigned int col = j * BlockSize + m;
+                        const double aux_value = weight * aux_cut(i) * side_normal(m) * aux_cut(j);
+                        auxLeftHandSideMatrix(row, col) += aux_value;
+                        auxLeftHandSideMatrix(col, row) += aux_value;
+                    }
+                }
+            }
+        }
+
+        // Contribution coming from the negative side pressure term
+        for (unsigned int icut = 0; icut < rGeometryData.ncutpoints; icut++) // Consider the Gauss points as the edge intersection points
+        {
+            const double weight = rGeometryData.cut_edge_areas(icut);
+
+            // Get the shape functions according to the positive or negative distance sides
+            aux_cut = row(rGeometryData.N_negative_cut, icut);
+
+            // Get the normal according to the positive or negative distance sides
+            side_normal = rGeometryData.intersection_normal;
+
+            // Compute and assemble the LHS contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                const unsigned int row = i * BlockSize + TDim;
+
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    for (unsigned int m = 0; m < TDim; ++m)
+                    {
+                        const unsigned int col = j * BlockSize + m;
+                        const double aux_value = weight * aux_cut(i) * side_normal(m) * aux_cut(j);
+                        auxLeftHandSideMatrix(row, col) += aux_value;
+                        auxLeftHandSideMatrix(col, row) += aux_value;
+                    }
+                }
+            }
+        }
+
+        // LHS assembly
+        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+
+        // RHS assembly
+        rRightHandSideVector -= prod(auxLeftHandSideMatrix, solution_jump);
+    }
+
+    /**
     * This function adds the RHS contribution of the penalty no penetration imposition.
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
@@ -1170,9 +1297,10 @@ protected:
         }
 
         // Return the penalty coefficient
-        const double K = 5.0;
-        const double denominator = std::max(0.0001 * rData.h * rData.h, intersection_area);
-        const double pen_coef = K * diag_max / denominator;
+        const double K = 1000.0;
+        // const double denominator = std::max(0.001 * rData.h * rData.h, intersection_area);
+        // const double pen_coef = K * diag_max / denominator;
+        const double pen_coef = K * diag_max / intersection_area;
 
         return pen_coef;
     }
@@ -1311,38 +1439,41 @@ protected:
     }
 
     /**
-    * This functions sets the B strain matrix
+    * This functions sets the B strain matrix with zero value in the pressure rows
     * @param rData: reference to element data structure (it contains the shape functions derivatives)
     * @param rB_matrix: reference to the computed B strain matrix
     */
-    void SetStrainMatrix(const ElementDataStruct &rData,
-                         bounded_matrix<double, (TDim - 1) * 3, TNumNodes * TDim> &rB_matrix)
+    void SetExpandedStrainMatrix(const bounded_matrix<double, TNumNodes, TDim> &rDN_DX,
+                                 bounded_matrix<double, (TDim - 1) * 3, TNumNodes * TDim> &rB_matrix)
     {
+        constexpr unsigned int BlockSize = TDim + 1;
+
         rB_matrix.clear();
 
+        // Set the shape function derivatives values
         if (TDim == 3)
         {
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                rB_matrix(0, i * TDim) = rData.DN_DX(i, 0);
-                rB_matrix(1, i * TDim + 1) = rData.DN_DX(i, 1);
-                rB_matrix(2, i * TDim + 2) = rData.DN_DX(i, 2);
-                rB_matrix(3, i * TDim) = rData.DN_DX(i, 1);
-                rB_matrix(3, i * TDim + 1) = rData.DN_DX(i, 0);
-                rB_matrix(4, i * TDim + 1) = rData.DN_DX(i, 2);
-                rB_matrix(4, i * TDim + 2) = rData.DN_DX(i, 1);
-                rB_matrix(5, i * TDim) = rData.DN_DX(i, 2);
-                rB_matrix(5, i * TDim + 2) = rData.DN_DX(i, 0);
+                rB_matrix(0, i * BlockSize)     = rDN_DX(i, 0);
+                rB_matrix(1, i * BlockSize + 1) = rDN_DX(i, 1);
+                rB_matrix(2, i * BlockSize + 2) = rDN_DX(i, 2);
+                rB_matrix(3, i * BlockSize)     = rDN_DX(i, 1);
+                rB_matrix(3, i * BlockSize + 1) = rDN_DX(i, 0);
+                rB_matrix(4, i * BlockSize + 1) = rDN_DX(i, 2);
+                rB_matrix(4, i * BlockSize + 2) = rDN_DX(i, 1);
+                rB_matrix(5, i * BlockSize)     = rDN_DX(i, 2);
+                rB_matrix(5, i * BlockSize + 2) = rDN_DX(i, 0);    
             }
         }
         else
         {
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                rB_matrix(0, i * TDim) = rData.DN_DX(i, 0);
-                rB_matrix(1, i * TDim + 1) = rData.DN_DX(i, 1);
-                rB_matrix(2, i * TDim) = rData.DN_DX(i, 1);
-                rB_matrix(2, i * TDim + 1) = rData.DN_DX(i, 0);
+                rB_matrix(0, i * BlockSize)     = rDN_DX(i, 0);
+                rB_matrix(1, i * BlockSize + 1) = rDN_DX(i, 1);
+                rB_matrix(2, i * BlockSize)     = rDN_DX(i, 1);
+                rB_matrix(2, i * BlockSize + 1) = rDN_DX(i, 0);
             }
         }
     }
