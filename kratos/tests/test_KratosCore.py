@@ -21,6 +21,7 @@ import test_model
 import test_redistance
 import test_variable_utils
 import test_reorder
+import test_exact_integration
 
 
 def AssambleTestSuites():
@@ -56,6 +57,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_reorder.TestReorder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_exact_integration.TestExactIntegration]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -84,6 +86,7 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_reorder.TestReorder]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_exact_integration.TestExactIntegration]))
 
 
     # Create a test suite that contains all the tests:
@@ -102,7 +105,8 @@ def AssambleTestSuites():
             test_model.TestModel,
             test_redistance.TestRedistance,
             test_variable_utils.TestVariableUtils,
-            test_reorder.TestReorder
+            test_reorder.TestReorder,
+            test_exact_integration.TestExactIntegration
         ])
     )
 

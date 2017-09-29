@@ -10,7 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrándiz
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MATH_UTILS )

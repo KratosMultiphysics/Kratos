@@ -13,8 +13,8 @@ class Algorithm(BaseAlgorithm):
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
-        self.pp.IntegrationScheme = 'TerminalVelocityScheme'
-        self.pp.CFD_DEM.basset_force_type = 0
+        self.pp["IntegrationScheme"].GetString() = 'TerminalVelocityScheme'
+        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)
         self.pp.CFD_DEM.PostCationConcentration = True
         self.pp.initial_concentration = 10
         self.pp.final_concentration = 0.01
@@ -24,7 +24,7 @@ class Algorithm(BaseAlgorithm):
 
     def PerformInitialDEMStepOperations(self, time = None):
         if self.cation_concentration_counter.Tick():
-            self.pp.concentration = self.pp.final_concentration + (self.pp.initial_concentration - self.pp.final_concentration) * math.exp(- self.pp.CFD_DEM.alpha * time / self.pp.CFD_DEM.MaxTimeStep)
+            self.pp.concentration = self.pp.final_concentration + (self.pp.initial_concentration - self.pp.final_concentration) * math.exp(- self.pp.CFD_DEM.alpha * time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble())
             for node in self.spheres_model_part.Nodes:
                 node.SetSolutionStepValue(CATION_CONCENTRATION, self.pp.concentration)
             if self.cation_concentration_counter.SuperTick(1000):

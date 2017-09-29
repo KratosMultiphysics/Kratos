@@ -226,11 +226,11 @@ public:
     /// Destructor. Does nothing!!!
     ~Tetrahedra3D4() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Tetrahedra;
     }
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Tetrahedra3D4;
     }
