@@ -1,0 +1,9 @@
+Could not find platform independent libraries <prefix>
+Could not find platform dependent libraries <exec_prefix>
+Consider setting $PYTHONHOME to <prefix>[:<exec_prefix>]
+Traceback (most recent call last):
+  File "MainKratos.py", line 5, in <module>
+    from KratosMultiphysics.ExternalSolversApplication import *
+  File "/home/pavel/GiDx64/13.1.6d/problemtypes/kratos.gid/exec/Kratos/KratosMultiphysics/ExternalSolversApplication.py", line 2, in <module>
+    from KratosExternalSolversApplication import *
+ImportError: libmvec.so.1: cannot open shared object file: No such file or directory
