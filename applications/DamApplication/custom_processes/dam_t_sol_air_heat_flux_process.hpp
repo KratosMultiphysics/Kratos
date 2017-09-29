@@ -81,15 +81,8 @@ public:
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["table_ambient_temperature"].GetInt();
         
-        KRATOS_WATCH(mTableId)
-
         if(mTableId != 0)
             mpTable = mrModelPart.pGetTable(mTableId);
-
-        KRATOS_WATCH(mpTable)
-        KRATOS_WATCH(mTimeUnitConverter)
-        KRATOS_WATCH(mrModelPart)
-
 
         KRATOS_CATCH("");
     }
@@ -122,7 +115,6 @@ void ExecuteInitialize()
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
             double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-            KRATOS_WATCH(temp_current)
             double heat_flux = mH0*(t_sol_air - temp_current);               
 
             it->FastGetSolutionStepValue(var) = heat_flux;
@@ -149,7 +141,6 @@ void ExecuteInitialize()
         { 
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time/mTimeUnitConverter;
-            KRATOS_WATCH(time)
             mAmbientTemperature = mpTable->GetValue(time);
         }
 
@@ -166,7 +157,6 @@ void ExecuteInitialize()
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-                KRATOS_WATCH(temp_current)
                 double heat_flux = mH0*(t_sol_air - temp_current);               
 
                 it->FastGetSolutionStepValue(var) = heat_flux;
