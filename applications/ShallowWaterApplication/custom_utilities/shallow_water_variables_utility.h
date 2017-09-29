@@ -69,11 +69,12 @@ namespace Kratos
 
         KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterVariablesUtility);
 
-        ShallowWaterVariablesUtility(ModelPart& model_part)
-            : mr_model_part(model_part)  
+        ShallowWaterVariablesUtility(ModelPart& model_part) :
+            mrModelPart(model_part)  
         {
             KRATOS_TRY
             std::cout << "Initializing shallow water variables utility" << std::endl; 
+            mWaterHeightUnitConverter = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
             KRATOS_CATCH("")
         }
 
@@ -87,12 +88,12 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
             #pragma omp parallel for
             for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = rNodes.begin() + i;
-                inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + inode->FastGetSolutionStepValue(BATHYMETRY);
+                inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightUnitConverter;
             }
 
             KRATOS_CATCH("")
@@ -105,12 +106,12 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
             #pragma omp parallel for
             for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = rNodes.begin() + i;
-                inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / inode->FastGetSolutionStepValue(HEIGHT);
+                inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightUnitConverter;
             }
 
             KRATOS_CATCH("")
@@ -120,7 +121,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
             #pragma omp parallel for
             for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
             {
@@ -139,7 +140,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
             #pragma omp parallel for
             for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
             {
@@ -159,7 +160,9 @@ namespace Kratos
 
     private:
 
-        ModelPart& mr_model_part;
+        ModelPart& mrModelPart;
+        
+        double mWaterHeightUnitConverter;
 
     }; // class ShallowWaterVariablesUtility
 

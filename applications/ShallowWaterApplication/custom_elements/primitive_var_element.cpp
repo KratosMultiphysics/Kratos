@@ -125,7 +125,11 @@ namespace Kratos
         
         // Getting gravity
         //~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
-        double gravity = 9.8; //-v_gravity[2];
+        double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        //~ double gravity = 9.8; //-v_gravity[2];
+        
+        // Getting water height unit converter
+        mWaterHeightUnitConverter = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
         
         // Getting the time step (not fixed to allow variable time step)
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -324,7 +328,7 @@ namespace Kratos
             counter++;
 
             rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY);
-            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
+            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT) * mWaterHeightUnitConverter;
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
             counter++;
         }

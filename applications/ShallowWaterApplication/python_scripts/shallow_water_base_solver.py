@@ -151,7 +151,6 @@ class ShallowWaterBaseSolver(object):
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
         # Move particles utility needs to access delta_time
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
         return delta_time
 
     #### Specific internal functions ####

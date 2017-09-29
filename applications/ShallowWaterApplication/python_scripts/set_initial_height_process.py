@@ -27,8 +27,9 @@ class SetInitialHeightProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         if settings["variable_name"].GetString() == "FREE_SURFACE_ELEVATION":
-            eta = settings["value"].GetString()
-            settings["value"].SetString(eta + '-z')
+            time_unit_converter = Model["main_model_part"].ProcessInfo.GetValue(KratosShallow.TIME_UNIT_CONVERTER)
+            free_surface = settings["value"].GetString()
+            settings["value"].SetString(free_surface + '-z*' + str(time_unit_converter))
             settings["variable_name"].SetString("HEIGHT")
 
         import assign_scalar_variable_process
