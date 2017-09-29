@@ -75,6 +75,8 @@ namespace Kratos
             KRATOS_TRY
             std::cout << "Initializing shallow water variables utility" << std::endl; 
             mWaterHeightUnitConverter = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
+            mThreshold = 1e-3;
+            mZeroValue = 1e-6;
             KRATOS_CATCH("")
         }
 
@@ -88,11 +90,11 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
-                ModelPart::NodesContainerType::iterator inode = rNodes.begin() + i;
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightUnitConverter;
             }
 
@@ -106,29 +108,29 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
-                ModelPart::NodesContainerType::iterator inode = rNodes.begin() + i;
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightUnitConverter;
             }
 
             KRATOS_CATCH("")
         }
 
-        void DryWetStateConservedVariables()
+        void CheckDryConservedVariables()
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
-                ModelPart::NodesContainerType::iterator inode = rNodes.begin() + i;
-                if (inode->FastGetSolutionStepValue(HEIGHT) < 1e-3)
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold)
                 {
-                    inode->FastGetSolutionStepValue(HEIGHT)     = 1e-5;
+                    inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
                     inode->FastGetSolutionStepValue(MOMENTUM_X) = 0;
                     inode->FastGetSolutionStepValue(MOMENTUM_Y) = 0;
                 }
@@ -136,18 +138,18 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        void DryWetStatePrimitiveVariables()
+        void CheckDryPrimitiveVariables()
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(rNodes.size()); i++)
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
-                ModelPart::NodesContainerType::iterator inode = rNodes.begin() + i;
-                if (inode->FastGetSolutionStepValue(HEIGHT) < 1e-3)
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold)
                 {
-                    inode->FastGetSolutionStepValue(HEIGHT)     = 1e-5;
+                    inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
                     inode->FastGetSolutionStepValue(VELOCITY_X) = 0;
                     inode->FastGetSolutionStepValue(VELOCITY_Y) = 0;
                 }
@@ -155,14 +157,48 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
+        void SetDryWetState()
+        {
+            KRATOS_TRY
+
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+            // We loop all the nodes to check if they are dry
+            #pragma omp parallel for
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            {
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
+                // If current node is dry, is candidate to be inactive
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold)
+                {
+                    WeakPointerVector< Node<3> >& rneigh = inode->GetValue(NEIGHBOUR_NODES);
+                    // We loop all the neighbour nodes to check if they are dry
+                    // If a neighbour node is wet, current node is candidate to be wet, so it is active
+                    bool neigh_wet = false;
+                    for( WeakPointerVector<Node<3> >::iterator jnode = rneigh.begin(); jnode!=rneigh.end(); jnode++)
+                    {
+                        if (jnode->FastGetSolutionStepValue(HEIGHT) >= mThreshold)
+                            neigh_wet = true;
+                    }
+                    if (neigh_wet == true)
+                        inode->Set(ACTIVE, true);
+                    else
+                        inode->Set(ACTIVE, false);
+                }
+                // If current element is wet, set active
+                else
+                    inode->Set(ACTIVE, true);
+            }
+            KRATOS_CATCH("")
+        }
 
     protected:
 
     private:
 
         ModelPart& mrModelPart;
-        
         double mWaterHeightUnitConverter;
+        double mThreshold;
+        double mZeroValue;
 
     }; // class ShallowWaterVariablesUtility
 
