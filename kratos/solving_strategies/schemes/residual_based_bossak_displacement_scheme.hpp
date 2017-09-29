@@ -8,7 +8,7 @@
 //  Original author:  Josep Maria Carbonell
 //  coming from       SolidMechanicsApplication
 //
-//  Co-author:        Vicente Mataix Ferrándiz
+//  Co-author:        Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )

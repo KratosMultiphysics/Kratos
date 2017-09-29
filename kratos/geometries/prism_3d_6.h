@@ -235,12 +235,12 @@ public:
     /// Destructor. Does nothing!!!
     ~Prism3D6() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Prism;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Prism3D6;
     }

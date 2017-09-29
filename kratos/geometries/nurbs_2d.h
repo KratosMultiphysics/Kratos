@@ -347,12 +347,12 @@ public:
      */
     virtual ~NurbsPatchGeometry2D() {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Quadrilateral;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Triangle3D3;
     }

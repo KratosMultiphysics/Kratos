@@ -39,9 +39,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamAddedMassConditionProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamAddedMassConditionProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -68,12 +68,12 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mspecific = rParameters["Spe_weight"].GetDouble();
-        mwater_level = rParameters["Water_level"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mSpecific = rParameters["Spe_weight"].GetDouble();
+        mWaterLevel = rParameters["Water_level"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -96,23 +96,23 @@ public:
     {
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         double added_mass;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
         
-		double ref_coord = mreference_coordinate + mwater_level;
+		double ref_coord = mReferenceCoordinate + mWaterLevel;
                   
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -126,7 +126,7 @@ public:
                     y_water=0.0;
                 }
                 
-                added_mass = 0.875*mspecific*sqrt(y_water*mwater_level);
+                added_mass = 0.875*mSpecific*sqrt(y_water*mWaterLevel);
 
                 it->FastGetSolutionStepValue(var) = added_mass;
 
@@ -150,23 +150,23 @@ public:
     {
          KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         double added_mass;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
         
-		double ref_coord = mreference_coordinate + mwater_level;
+		double ref_coord = mReferenceCoordinate + mWaterLevel;
                   
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -180,7 +180,7 @@ public:
                     y_water=0.0;
                 }
                 
-                added_mass = 0.875*mspecific*sqrt(y_water*mwater_level);
+                added_mass = 0.875*mSpecific*sqrt(y_water*mWaterLevel);
 
                 it->FastGetSolutionStepValue(var) = added_mass;
 
@@ -221,13 +221,13 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    std::string mgravity_direction;
-    double mreference_coordinate;
-    double mspecific;
-    double mwater_level;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    std::string mGravityDirection;
+    double mReferenceCoordinate;
+    double mSpecific;
+    double mWaterLevel;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

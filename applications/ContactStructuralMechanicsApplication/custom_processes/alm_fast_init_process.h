@@ -114,7 +114,7 @@ public:
         const bool is_frictional = mrThisModelPart.Is(SLIP);
         
         // We initialize the penalty parameter
-        const double& epsilon = mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER];
+        const double& epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
         
         bool init_delta_normal = false;
         Matrix zero_delta_normal;
@@ -142,7 +142,7 @@ public:
             }
             
             // Penalty parameter
-            it_node->SetValue(PENALTY_PARAMETER, epsilon);
+            it_node->SetValue(INITIAL_PENALTY, epsilon);
             
             // Nodal area
             it_node->SetValue(NODAL_AREA, 0.0);
