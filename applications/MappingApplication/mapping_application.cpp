@@ -70,9 +70,5 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
 
-    // Registering the serializer
-    Serializer::Register( "InterfaceObject", mInterfaceObject );
-    Serializer::Register( "InterfaceNode", mInterfaceNode );
-    Serializer::Register( "InterfaceGeometryObject", mInterfaceGeometryObject );
 }
 }  // namespace Kratos.
