@@ -61,7 +61,8 @@ class DamThermoMechanicSolver(object):
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
                 },
-                "problem_domain_sub_model_part_list": [""]
+                "problem_domain_sub_model_part_list": [""],
+                "thermal_loads_sub_model_part_list": []
             },
             "mechanical_solver_settings":{
                 "echo_level": 0,
@@ -321,9 +322,10 @@ class DamThermoMechanicSolver(object):
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("thermal_model_part_name").SetString(self.thermal_model_part_name)
         aux_params.AddValue("thermal_domain_sub_model_part_list",self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"])
+        aux_params.AddValue("thermal_loads_sub_model_part_list",self.settings["thermal_solver_settings"]["thermal_loads_sub_model_part_list"])
+
         aux_params.AddEmptyValue("mechanical_model_part_name").SetString(self.mechanical_model_part_name)
         aux_params.AddValue("mechanical_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["problem_domain_sub_model_part_list"])
-        aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         aux_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
         aux_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
 
