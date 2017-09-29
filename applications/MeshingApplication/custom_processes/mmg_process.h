@@ -510,8 +510,8 @@ private:
     
     void SetMeshSize(
         const SizeType NumNodes,
-        const array_1d<int, TDim - 1> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-        const array_1d<int, TDim - 1> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+        const array_1d<SizeType, TDim - 1> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+        const array_1d<SizeType, TDim - 1> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
         );
     
     /**
