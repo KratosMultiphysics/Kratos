@@ -114,8 +114,8 @@ void ExecuteInitialize()
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-            double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-            double heat_flux = mH0*(t_sol_air - temp_current);               
+            const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
+            const double heat_flux = mH0*(t_sol_air - temp_current);               
 
             it->FastGetSolutionStepValue(var) = heat_flux;
         }            
@@ -134,8 +134,6 @@ void ExecuteInitialize()
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
         
-        KRATOS_WATCH(mTableId)
-
         // Getting the values of table in case that it exist        
         if(mTableId != 0 )
         { 
@@ -156,8 +154,8 @@ void ExecuteInitialize()
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-                double heat_flux = mH0*(t_sol_air - temp_current);               
+                const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
+                const double heat_flux = mH0*(t_sol_air - temp_current);               
 
                 it->FastGetSolutionStepValue(var) = heat_flux;
             }            
