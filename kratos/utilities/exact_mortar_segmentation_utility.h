@@ -250,7 +250,16 @@ public:
             
             if (mDebugGeometries == true)
             {
-                std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{" << decomp_geom[0].X() << "," << decomp_geom[0].Y() << "," << decomp_geom[0].Z()  << "},{" << decomp_geom[1].X() << "," << decomp_geom[1].Y() << "," << decomp_geom[1].Z()  << "},{" << decomp_geom[2].X() << "," << decomp_geom[2].Y() << "," << decomp_geom[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
+                
+                for (unsigned int i = 0; i < 3; i++)
+                {
+                    std::cout << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
+                    
+                    if (i < 2) std::cout << "},{";
+                }
+                
+                std::cout << "}}]}],";// << std::endl;
             }
             
             rArea += decomp_geom.Area();
@@ -320,8 +329,18 @@ public:
         
         if (mDebugGeometries == true)
         {
+            auto this_geom = SlaveCond->GetGeometry();
+            
 //             std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
-            std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << SlaveCond->GetGeometry()[0].X() << "," << SlaveCond->GetGeometry()[0].Y() << "," << SlaveCond->GetGeometry()[0].Z()  << "},{" << SlaveCond->GetGeometry()[1].X() << "," << SlaveCond->GetGeometry()[1].Y() << "," << SlaveCond->GetGeometry()[1].Z()  << "},{" << SlaveCond->GetGeometry()[2].X() << "," << SlaveCond->GetGeometry()[2].Y() << "," << SlaveCond->GetGeometry()[2].Z()  << "}}],Text[Style["<< SlaveCond->Id() <<", Tiny],{"<< SlaveCond->GetGeometry().Center().X() << "," << SlaveCond->GetGeometry().Center().Y() << ","<< SlaveCond->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+            std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
+            
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                std::cout << this_geom[i].X() << "," << this_geom[i].Y() << "," << this_geom[i].Z();
+                
+                 if (i < TNumNodes - 1) std::cout << "},{";
+            }
+            std::cout << "}}],Text[Style["<< SlaveCond->Id() <<", Tiny],{"<< this_geom.Center().X() << "," << this_geom.Center().Y() << ","<< this_geom.Center().Z() << "}]}],";// << std::endl;
         }
         
         for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
@@ -331,7 +350,16 @@ public:
 //                 std::cout << "\n\nID MASTER: " << (it_pair->first)->Id() << std::endl;
                 if ((it_pair->first)->Is(VISITED) == false || (it_pair->first)->IsDefined(VISITED) == false)
                 {
-                    std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << (it_pair->first)->GetGeometry()[0].X() << "," << (it_pair->first)->GetGeometry()[0].Y() << "," << (it_pair->first)->GetGeometry()[0].Z()  << "},{" << (it_pair->first)->GetGeometry()[1].X() << "," << (it_pair->first)->GetGeometry()[1].Y() << "," << (it_pair->first)->GetGeometry()[1].Z()  << "},{" << (it_pair->first)->GetGeometry()[2].X() << "," << (it_pair->first)->GetGeometry()[2].Y() << "," << (it_pair->first)->GetGeometry()[2].Z()  << "}}],Text[Style["<< (it_pair->first)->Id() <<", Tiny],{"<< (it_pair->first)->GetGeometry().Center().X() << "," << (it_pair->first)->GetGeometry().Center().Y() << ","<< (it_pair->first)->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+                    auto this_geom = (it_pair->first)->GetGeometry();
+                    
+                    std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
+                    for (unsigned int i = 0; i < TNumNodes; i++)
+                    {
+                        std::cout << this_geom[i].X() << "," << this_geom[i].Y() << "," << this_geom[i].Z();
+                        
+                        if (i < TNumNodes - 1) std::cout << "},{";
+                    }
+                    std::cout << "}}],Text[Style["<< (it_pair->first)->Id() <<", Tiny],{"<< this_geom.Center().X() << "," << this_geom.Center().Y() << ","<< this_geom.Center().Z() << "}]}],";// << std::endl;
                     
                     (it_pair->first)->Set(VISITED, true);
                 }
@@ -339,6 +367,9 @@ public:
             
             GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area);
         }
+        
+//         // DEBUG
+//         std::cout << "\nTOTAL AREA: " << area << "\tORIGINAL AREA: " << SlaveCond->GetGeometry().Area() << std::endl;
         
         return area;
     }
