@@ -2151,43 +2151,43 @@ private:
      */
     inline bool TriBoxOverlap(Point<3, double>& rBoxCenter, Point<3, double>& rBoxHalfSize)
     {
-        double d,fex,fey,fez;
-        array_1d<double,3 > v0,v1,v2;
-        array_1d<double,3 > normal,e0,e1,e2;
+        double abs_ex, abs_ey, abs_ez, distance;
+        array_1d<double,3 > vert0, vert1, vert2;
+        array_1d<double,3 > edge0, edge1, edge2, normal;
         std::pair<double, double> min_max;
 
         // move everything so that the boxcenter is in (0,0,0)
-        noalias(v0) = this->GetPoint(0) - rBoxCenter;
-        noalias(v1) = this->GetPoint(1) - rBoxCenter;
-        noalias(v2) = this->GetPoint(2) - rBoxCenter;
+        noalias(vert0) = this->GetPoint(0) - rBoxCenter;
+        noalias(vert1) = this->GetPoint(1) - rBoxCenter;
+        noalias(vert2) = this->GetPoint(2) - rBoxCenter;
 
         // compute triangle edges
-        noalias(e0) = v1 - v0;
-        noalias(e1) = v2 - v1;
-        noalias(e2) = v0 - v2;
+        noalias(edge0) = vert1 - vert0;
+        noalias(edge1) = vert2 - vert1;
+        noalias(edge2) = vert0 - vert2;
 
         // Bullet 3:
         // test the 12 tests first (this was faster)
-        fex = std::abs(e0[0]);
-        fey = std::abs(e0[1]);
-        fez = std::abs(e0[2]);
-        if (!AxisTestX(e0[1],e0[2],fey,fez,v0,v2,rBoxHalfSize)) return false;
-        if (!AxisTestY(e0[0],e0[2],fex,fez,v0,v2,rBoxHalfSize)) return false;
-        if (!AxisTestZ(e0[0],e0[1],fex,fey,v0,v2,rBoxHalfSize)) return false;
+        abs_ex = std::abs(edge0[0]);
+        abs_ey = std::abs(edge0[1]);
+        abs_ez = std::abs(edge0[2]);
+        if (!AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
-        fex = std::abs(e1[0]);
-        fey = std::abs(e1[1]);
-        fez = std::abs(e1[2]);
-        if (!AxisTestX(e1[1],e1[2],fey,fez,v1,v0,rBoxHalfSize)) return false;
-        if (!AxisTestY(e1[0],e1[2],fex,fez,v1,v0,rBoxHalfSize)) return false;
-        if (!AxisTestZ(e1[0],e1[1],fex,fey,v1,v0,rBoxHalfSize)) return false;
+        abs_ex = std::abs(edge1[0]);
+        abs_ey = std::abs(edge1[1]);
+        abs_ez = std::abs(edge1[2]);
+        if (!AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
-        fex = std::abs(e2[0]);
-        fey = std::abs(e2[1]);
-        fez = std::abs(e2[2]);
-        if (!AxisTestX(e2[1],e2[2],fey,fez,v2,v1,rBoxHalfSize)) return false;
-        if (!AxisTestY(e2[0],e2[2],fex,fez,v2,v1,rBoxHalfSize)) return false;
-        if (!AxisTestZ(e2[0],e2[1],fex,fey,v2,v1,rBoxHalfSize)) return false;
+        abs_ex = std::abs(edge2[0]);
+        abs_ey = std::abs(edge2[1]);
+        abs_ez = std::abs(edge2[2]);
+        if (!AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,z}-directions
@@ -2196,23 +2196,23 @@ private:
         //  AABB around the triangle against the AABB
 
         // test in X-direction
-        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
         if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
 
         // test in Y-direction
-        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
         if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
 
         // test in Z-direction
-        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
         if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
 
         // Bullet 2:
         //  test if the box intersects the plane of the triangle
-        //  compute plane equation of triangle: normal*x+d=0
-        MathUtils<double>::CrossProduct(normal, e0, e1);
-        d =- inner_prod(normal,v0);
-        if(!PlaneBoxOverlap(normal,d,rBoxHalfSize)) return false;
+        //  compute plane equation of triangle: normal*x+distance=0
+        MathUtils<double>::CrossProduct(normal, edge0, edge1);
+        distance =- inner_prod(normal, vert0);
+        if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
         
         return true;  // box and triangle overlaps
     }
@@ -2223,12 +2223,12 @@ private:
      * 
      * @return bool intersection flagg
      * @param rNormal the plane normal
-     * @param rD      distance to origin
+     * @param rDist   distance to origin
      * @param rMaxBox box corner from the origin
      * 
-     * plane equation: rNormal*x+rD=0
+     * plane equation: rNormal*x+rDist=0
      */
-    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rD, const array_1d<double,3>& rMaxBox)
+    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox)
     {
         array_1d<double,3> vmin, vmax;
         for(int q = 0; q < 3; q++)
@@ -2244,8 +2244,8 @@ private:
                 vmax[q] = -rMaxBox[q];
             }
         }
-        if(inner_prod(rNormal,vmin)+rD >  0.00) return false;
-        if(inner_prod(rNormal,vmax)+rD >= 0.00) return true;
+        if(inner_prod(rNormal, vmin) + rDist >  0.00) return false;
+        if(inner_prod(rNormal, vmax) + rDist >= 0.00) return true;
         
         return false;
     }
@@ -2254,9 +2254,9 @@ private:
      * This method return true if there is a separating axis
      * 
      * @param rEdgeY, rEdgeZ: i-edge corrdinates
-     * @param rAbsEdgeY, rAbsEdgeZ: i-edge fabs coordinates
+     * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
      * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, pa=pb)
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
      * @param rVertC: i+2 vertex
      * @param rBoxHalfSize
      */
@@ -2266,10 +2266,10 @@ private:
                    array_1d<double,3>& rVertC,
                    Point<3,double>& rBoxHalfSize)
     {
-        double pa, pc, rad;
-        pa = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
-        pc = rEdgeY*rVertC[2] - rEdgeZ*rVertC[1];
-        std::pair<double, double> min_max = std::minmax(pa,pc);
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
+        proj_c = rEdgeY*rVertC[2] - rEdgeZ*rVertC[1];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
 
         rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
 
@@ -2283,7 +2283,7 @@ private:
      * @param rEdgeX, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
      * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, pa=pb)
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
      * @param rVertC: i+2 vertex
      * @param rBoxHalfSize
      */
@@ -2293,10 +2293,10 @@ private:
                    array_1d<double,3>& rVertC,
                    Point<3,double>& rBoxHalfSize)
     {
-        double pa, pc, rad;
-        pa = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
-        pc = rEdgeZ*rVertC[0] - rEdgeX*rVertC[2];
-        std::pair<double, double> min_max = std::minmax(pa,pc);
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
+        proj_c = rEdgeZ*rVertC[0] - rEdgeX*rVertC[2];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
 
         rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
 
@@ -2310,7 +2310,7 @@ private:
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
      * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, pa=pb)
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
      * @param rVertC: i+2 vertex
      * @param rBoxHalfSize
      */
@@ -2320,10 +2320,10 @@ private:
                    array_1d<double,3>& rVertC, 
                    Point<3,double>& rBoxHalfSize)
     {
-        double pa, pc, rad;
-        pa = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
-        pc = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
-        std::pair<double, double> min_max = std::minmax(pa,pc);
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
+        proj_c = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
 
         rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 

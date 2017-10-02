@@ -1881,37 +1881,37 @@ private:
      */
     inline bool TriBoxOverlap(Point<3, double>& rBoxCenter, Point<3, double>& rBoxHalfSize)
     {
-        double fex,fey;
-        array_1d<double,3 > v0,v1,v2;
-        array_1d<double,3 > e0,e1,e2;
+        double abs_ex, abs_ey;
+        array_1d<double,3 > vert0, vert1, vert2;
+        array_1d<double,3 > edge0, edge1, edge2;
         std::pair<double, double> min_max;
 
         // move everything so that the boxcenter is in (0,0,0)
-        noalias(v0) = this->GetPoint(0) - rBoxCenter;
-        noalias(v1) = this->GetPoint(1) - rBoxCenter;
-        noalias(v2) = this->GetPoint(2) - rBoxCenter;
+        noalias(vert0) = this->GetPoint(0) - rBoxCenter;
+        noalias(vert1) = this->GetPoint(1) - rBoxCenter;
+        noalias(vert2) = this->GetPoint(2) - rBoxCenter;
 
         // compute triangle edges
-        noalias(e0) = v1 - v0;
-        noalias(e1) = v2 - v1;
-        noalias(e2) = v0 - v2;
+        noalias(edge0) = vert1 - vert0;
+        noalias(edge1) = vert2 - vert1;
+        noalias(edge2) = vert0 - vert2;
 
         // Bullet 3:
         //  test the 9 tests first (this was faster)
         //  We are only interested on z-axis test, which defines the {x,y} plane
         //  Note that projections onto crossproduct tri-{x,y} are always 0:
         //    that means there is no separating axis on X,Y-axis tests
-        fex = std::abs(e0[0]);
-        fey = std::abs(e0[1]);
-        if (!AxisTestZ(e0[0],e0[1],fex,fey,v0,v2,rBoxHalfSize)) return false;
+        abs_ex = std::abs(edge0[0]);
+        abs_ey = std::abs(edge0[1]);
+        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
-        fex = std::abs(e1[0]);
-        fey = std::abs(e1[1]);
-        if (!AxisTestZ(e1[0],e1[1],fex,fey,v1,v0,rBoxHalfSize)) return false;
+        abs_ex = std::abs(edge1[0]);
+        abs_ey = std::abs(edge1[1]);
+        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
-        fex = std::abs(e2[0]);
-        fey = std::abs(e2[1]);
-        if (!AxisTestZ(e2[0],e2[1],fex,fey,v2,v1,rBoxHalfSize)) return false;
+        abs_ex = std::abs(edge2[0]);
+        abs_ey = std::abs(edge2[1]);
+        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,(z)}-directions
@@ -1920,11 +1920,11 @@ private:
         //  the triangle against the AABB 
 
         // test in X-direction
-        min_max = std::minmax({v0[0],v1[0],v2[0]});
+        min_max = std::minmax({vert0[0],vert1[0],vert2[0]});
         if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
 
         // test in Y-direction
-        min_max = std::minmax({v0[1],v1[1],v2[1]});
+        min_max = std::minmax({vert0[1],vert1[1],vert2[1]});
         if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
 
         // test in Z-direction
@@ -1942,24 +1942,24 @@ private:
      * This method return true if there is a separating axis
      * 
      * @param rEdgeX, rEdgeY: i-edge corrdinates
-     * @param rfEdgeX, rfEdgeY: i-edge fabs coordinates
+     * @param rAbsEdgeX, rAbsEdgeY: i-edge abs coordinates
      * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, pa=pb)
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
      * @param rVertC: i+2 vertex
      * @param rBoxHalfSize
      */
     bool AxisTestZ(double& rEdgeX, double& rEdgeY, 
-                   double& rfEdgeX, double& rfEdgeY,
+                   double& rAbsEdgeX, double& rAbsEdgeY,
                    array_1d<double,3>& rVertA, 
                    array_1d<double,3>& rVertC, 
                    Point<3,double>& rBoxHalfSize)
     {
-        double pa, pc, rad;
-        pa = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
-        pc = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
-        std::pair<double, double> min_max = std::minmax(pa,pc);
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
+        proj_c = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
 
-        rad = rfEdgeY*rBoxHalfSize[0] + rfEdgeX*rBoxHalfSize[1];
+        rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 
         if(min_max.first>rad || min_max.second<-rad) return false;
         else return true;
