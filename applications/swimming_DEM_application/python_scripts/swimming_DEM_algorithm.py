@@ -271,14 +271,7 @@ class Algorithm(object):
                                            self.pp.CFD_DEM["similarity_transformation_type"].GetInt(),
                                            self.pp.CFD_DEM["model_over_real_diameter_factor"].GetDouble())
 
-        # creating a Post Utils object that executes several post-related tasks
-        self.post_utils = SDP.PostUtils(self.swimming_DEM_gid_io,
-                                        self.pp,
-                                        self.fluid_model_part,
-                                        self.disperse_phase_algorithm.spheres_model_part,
-                                        self.disperse_phase_algorithm.cluster_model_part,
-                                        self.disperse_phase_algorithm.rigid_face_model_part,
-                                        self.mixed_model_part)
+        self.SetPostUtils()
 
         # creating an IOTools object to perform other printing tasks
         self.io_tools = SDP.IOTools(self.pp)
@@ -459,6 +452,16 @@ class Algorithm(object):
 
         self.disperse_phase_algorithm.Initialize()
 
+    def SetPostUtils(self):
+          # creating a Post Utils object that executes several post-related tasks
+        self.post_utils = SDP.PostUtils(self.swimming_DEM_gid_io,
+                                        self.pp,
+                                        self.fluid_model_part,
+                                        self.disperse_phase_algorithm.spheres_model_part,
+                                        self.disperse_phase_algorithm.cluster_model_part,
+                                        self.disperse_phase_algorithm.rigid_face_model_part,
+                                        self.mixed_model_part)
+
     def SetEmbeddedTools(self):
     # creating a distance calculation process for the embedded technology
         # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
@@ -488,7 +491,7 @@ class Algorithm(object):
 
             # solving the fluid part
 
-            if self.step >= 3 and not self.stationarity:
+            if self.step >= self.GetFirstStepForFluidComputation() and not self.stationarity:
                 print("Solving Fluid... (", self.fluid_model_part.NumberOfElements(0), "elements )")
                 sys.stdout.flush()
 
@@ -612,6 +615,10 @@ class Algorithm(object):
                 #self.graph_printer.PrintGraphs(self.time) #MA: commented out because the constructor was already commented out
                 self.PrintDrag(self.drag_list, self.drag_file_output_list, self.fluid_model_part, self.time)
 
+
+    
+    def GetFirstStepForFluidComputation(self):
+        return 3;
 
     def TransferTimeToFluidSolver(self):
         pass
