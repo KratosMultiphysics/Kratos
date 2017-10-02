@@ -103,7 +103,7 @@ void ExecuteInitialize()
     Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
     
     // Computing the t_soil_air according to t_sol_air criteria
-    double t_sol_air = mAmbientTemperature + (mAbsortion_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
+    double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
 
     if(nnodes != 0)
     {
