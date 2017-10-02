@@ -75,8 +75,8 @@ namespace Kratos
             KRATOS_TRY
             std::cout << "Initializing shallow water variables utility" << std::endl; 
             mWaterHeightUnitConverter = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
-            mThreshold = 1e-3;
-            mZeroValue = 1e-6;
+            mThreshold = 1e-2;
+            mZeroValue = 1e-8;
             KRATOS_CATCH("")
         }
 
