@@ -492,20 +492,12 @@ public:
      */
     double DomainSize() const override
     {
-        // Old
-
-        //return std::abs( DeterminantOfJacobian( PointType() ) ) * 0.5;
-
-        // New - 24/01/2014 - Massimo Petracca
-
         return Area();
     }
 
 
     double Volume() const override
     {
-        // New - 24/01/2014 - Massimo Petracca
-
         return Area();
     }
     
@@ -523,7 +515,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon() 
         ) override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        PrivatePointLocalCoordinates( rResult, rPoint, true );
 
         if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
         {
@@ -542,81 +534,12 @@ public:
      * @param rPoint: The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinates( 
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint 
         ) override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
-        }
-
-        double tol = 1.0e-8;
-        int maxiter = 1000;
-
-        Matrix J = ZeroMatrix( 2, 2 );
-        Matrix invJ = ZeroMatrix( 2, 2 );
-
-        //starting with xi = 0
-        rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
-
-
-        //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
-
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-
-            // Derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
-            noalias(DN) = prod(X,shape_functions_gradients);
-
-            noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
-
-            // Deteminant of Jacobian
-            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
-
-            //filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
-
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += DeltaXi[0];
-            rResult[1] += DeltaXi[1];
-
-            if ( norm_2( DeltaXi ) > 300 )
-            {
-                res[0] = 0.0;
-                res[1] = 0.0;
-            #ifdef KRATOS_DEBUG 
-                std::cout << "detJ =" << det_j << "DeltaX = " << DeltaXi << " stopping calculation and assigning the baricenter" << std::endl;
-            #endif  
-                break;
-            }
-
-            if ( norm_2( DeltaXi ) < tol )
-            {
-                break;
-            }
-        }
-
-        return( rResult );
+        return PrivatePointLocalCoordinates(rResult, rPoint);
     }
 
     ///@}
@@ -647,7 +570,7 @@ public:
     {
         // Getting derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
-        CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
         // Getting values of shape functions
         Matrix shape_functions_values =
         CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
@@ -663,10 +586,10 @@ public:
         // Loop over all integration points
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
-            //defining single jacobian matrix
+            // Defining single jacobian matrix
             Matrix jacobian = ZeroMatrix( 3, 2 );
-            //loop over all nodes
-
+            
+            // Loop over all nodes
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
                 jacobian( 0, 0 ) +=
@@ -684,7 +607,7 @@ public:
             }
 
             rResult[pnt] = jacobian;
-        }//end of loop over all integration points
+        } //end of loop over all integration points
 
         return rResult;
     }
@@ -715,8 +638,8 @@ public:
     {
         // Getting derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
-        CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
+        msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
+        // Getting values of shape functions
         Matrix shape_functions_values = CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
 
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
@@ -785,24 +708,24 @@ public:
         // Setting up size of jacobian matrix
         rResult.resize( 3, 2, false );
         // Derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        Matrix shape_functions_gradients = msGeometryData.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod );
         
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) +=
-                ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[IntegrationPointIndex]( i, 0 ) );
+                ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
             rResult( 0, 1 ) +=
-                ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[IntegrationPointIndex]( i, 1 ) );
+                ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) );
             rResult( 1, 0 ) +=
-                ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[IntegrationPointIndex]( i, 0 ) );
+                ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
             rResult( 1, 1 ) +=
-                ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[IntegrationPointIndex]( i, 1 ) );
+                ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
             rResult( 2, 0 ) +=
-                ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[IntegrationPointIndex]( i, 0 ) );
+                ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 0 ) );
             rResult( 2, 1 ) +=
-                ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[IntegrationPointIndex]( i, 1 ) );
+                ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 1 ) );
         }
 
         return rResult;
@@ -825,11 +748,11 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up size of jacobian matrix
+        // Setting up size of jacobian matrix
         rResult.resize( 3, 2, false );
         noalias(rResult) = ZeroMatrix(3, 2);
 
-        //derivatives of shape functions
+        // Derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rPoint );
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
@@ -875,13 +798,15 @@ public:
         }
 
         JacobiansType jacobian;
-        Jacobian( jacobian, ThisMethod);
+        this->Jacobian( jacobian, ThisMethod);
         
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            const double detJ = std::sqrt(std::pow(jacobian[pnt](0,1),2.0)*(std::pow(jacobian[pnt](1,0),2.0) + std::pow(jacobian[pnt](2,0),2.0)) + std::pow(jacobian[pnt](1,1)*jacobian[pnt](2,0) - jacobian[pnt](1,0)*jacobian[pnt](2,1),2.0) - 2.0*jacobian[pnt](0,0)*jacobian[pnt](0,1)*(jacobian[pnt](1,0)*jacobian[pnt](1,1) + jacobian[pnt](2,0)*jacobian[pnt](2,1)) + std::pow(jacobian[pnt](0,0),2.0)*(std::pow(jacobian[pnt](1,1),2.0) + std::pow(jacobian[pnt](2,1),2.0)));
+            const double detJ = std::pow(jacobian[pnt](0,1),2.0)*(std::pow(jacobian[pnt](1,0),2.0) + std::pow(jacobian[pnt](2,0),2.0)) + std::pow(jacobian[pnt](1,1)*jacobian[pnt](2,0) - jacobian[pnt](1,0)*jacobian[pnt](2,1),2.0) - 2.0*jacobian[pnt](0,0)*jacobian[pnt](0,1)*(jacobian[pnt](1,0)*jacobian[pnt](1,1) + jacobian[pnt](2,0)*jacobian[pnt](2,1)) + std::pow(jacobian[pnt](0,0),2.0)*(std::pow(jacobian[pnt](1,1),2.0) + std::pow(jacobian[pnt](2,1),2.0));
             
-            rResult[pnt] = detJ;
+            if (detJ < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+            
+            rResult[pnt] = std::sqrt(detJ);
         }
         
         return rResult;
@@ -916,11 +841,13 @@ public:
     {
         Matrix jacobian ( 3, 2 );
          
-        Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
+        this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
-        const double detJ = std::sqrt(std::pow(jacobian(0,1),2.0)*(std::pow(jacobian(1,0),2.0) + std::pow(jacobian(2,0),2.0)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2.0) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2.0)*(std::pow(jacobian(1,1),2.0) + std::pow(jacobian(2,1),2.0)));
+        const double detJ = std::pow(jacobian(0,1),2.0)*(std::pow(jacobian(1,0),2.0) + std::pow(jacobian(2,0),2.0)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2.0) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2.0)*(std::pow(jacobian(1,1),2.0) + std::pow(jacobian(2,1),2.0));
             
-        return detJ;
+        if (detJ < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+        
+        return std::sqrt(detJ);
     }
 
     /**
@@ -952,11 +879,13 @@ public:
     {
         Matrix jacobian ( 3, 2 );
          
-        Jacobian( jacobian, rPoint);
+        this->Jacobian( jacobian, rPoint);
         
-        const double detJ = std::sqrt(std::pow(jacobian(0,1),2.0)*(std::pow(jacobian(1,0),2.0) + std::pow(jacobian(2,0),2.0)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2.0) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2.0)*(std::pow(jacobian(1,1),2.0) + std::pow(jacobian(2,1),2.0)));
+        const double detJ = std::pow(jacobian(0,1),2.0)*(std::pow(jacobian(1,0),2.0) + std::pow(jacobian(2,0),2.0)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2.0) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2.0)*(std::pow(jacobian(1,1),2.0) + std::pow(jacobian(2,1),2.0));
         
-        return detJ;
+        if (detJ < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
+            
+        return std::sqrt(detJ);
     }
 
     /**
@@ -1221,7 +1150,6 @@ public:
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
         }
 
-        //workaround by riccardo
         if ( rResult.size() != integration_points_number )
         {
             // KLUDGE: While there is a bug in ublas
@@ -1230,8 +1158,8 @@ public:
             rResult.swap( temp );
         }
 
-        //calculating the local gradients
-        ShapeFunctionsGradientsType locG = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        // Calculating the local gradients
+        ShapeFunctionsGradientsType locG = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
 
         //getting the inverse jacobian matrices
         JacobiansType temp( integration_points_number );
@@ -1315,7 +1243,7 @@ public:
         IntegrationMethod ThisMethod )
     {
         ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
         const int integration_points_number
         = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
@@ -1336,7 +1264,7 @@ public:
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
         const int integration_points_number
         = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
@@ -1460,7 +1388,6 @@ public:
         {
             // KLUDGE: While there is a bug in
             // ublas vector resize, I have to put this beside resizing!!
-//                 ShapeFunctionsGradientsType
             ShapeFunctionsThirdDerivativesType temp( this->PointsNumber() );
             rResult.swap( temp );
         }
@@ -1545,6 +1472,88 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * Returns the local coordinates of a given arbitrary point 
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @param IsInside: THe flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PrivatePointLocalCoordinates( 
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint,
+        const bool IsInside = false
+        )
+    {
+        boost::numeric::ublas::bounded_matrix<double,3,4> X;
+        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
+        for(unsigned int i=0; i<this->size();i++)
+        {
+            X(0,i ) = this->GetPoint( i ).X();
+            X(1,i ) = this->GetPoint( i ).Y();
+            X(2,i ) = this->GetPoint( i ).Z();
+        }
+
+        const double tol = 1.0e-8;
+        const int maxiter = 1000;
+
+        Matrix J = ZeroMatrix( 2, 2 );
+        Matrix invJ = ZeroMatrix( 2, 2 );
+
+        // Starting with xi = 0
+        rResult = ZeroVector( 3 );
+        Vector DeltaXi = ZeroVector( 2 );
+        array_1d<double,3> CurrentGlobalCoords;
+
+        //Newton iteration:
+        for ( int k = 0; k < maxiter; k++ )
+        {
+            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
+            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
+
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+
+            // Derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
+            noalias(DN) = prod(X,shape_functions_gradients);
+
+            noalias(J) = prod(trans(DN),DN);
+            Vector res = prod(trans(DN),CurrentGlobalCoords);
+
+            // Deteminant of Jacobian
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+
+            // Filling matrix
+            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
+            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
+            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
+            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
+
+            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
+
+            rResult[0] += DeltaXi[0];
+            rResult[1] += DeltaXi[1];
+
+            if ( norm_2( DeltaXi ) > 300 )
+            {
+                if (IsInside == false)
+                {
+                    std::cout << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
+                }
+                break;
+            }
+
+            if ( norm_2( DeltaXi ) < tol )
+            {
+                break;
+            }
+        }
+
+        return( rResult );
+    }
+    
     /**
      * TODO: implemented but not yet tested
      */
