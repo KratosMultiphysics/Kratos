@@ -163,10 +163,22 @@ public:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
+        {
             rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
+        }
+        else if (rLeftHandSideMatrix.size2() != MatrixSize)
+        {
+            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
+        }
 
         if (rRightHandSideVector.size() != MatrixSize)
+        {
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
+        }
+
+        // Initialize LHS and RHS
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
 
         // Set the elemental distance vector
         Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
@@ -200,10 +212,6 @@ public:
         ElementGeometryDataStruct geometry_data;
         this->FillElementGeometryData(geometry_data);
 
-        // Initialize LHS and RHS 
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
-
         // Element LHS and RHS contributions computation
         CalculateLocalSystemContribution(rLeftHandSideMatrix, rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
 
@@ -219,7 +227,12 @@ public:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rRightHandSideVector.size() != MatrixSize)
+        {
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
+        }
+
+        // Initialize RHS
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Set the elemental distance vector
         Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
@@ -252,9 +265,6 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);
         ElementGeometryDataStruct geometry_data;
         this->FillElementGeometryData(geometry_data);
-
-        // Initialize RHS
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Element LHS and RHS contributions computation
         CalculateRightHandSideContribution(rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
@@ -1365,13 +1375,25 @@ protected:
         const unsigned int strain_size = (TDim*3)-3;
 
         if(rData.C.size1() != strain_size)
-            rData.C.resize(strain_size,strain_size,false);
-        if(rData.stress.size() != strain_size)
-            rData.stress.resize(strain_size,false);
-        if(rData.strain.size() != strain_size)
-            rData.strain.resize(strain_size,false);
+        {
+            rData.C.resize(strain_size, strain_size, false);
+        }
+        else if(rData.C.size2() != strain_size)
+        {
+            rData.C.resize(strain_size, strain_size, false);
+        }
 
-        ComputeStrain(rData, strain_size);
+        if(rData.stress.size() != strain_size)
+        {
+            rData.stress.resize(strain_size,false);
+        }
+
+        if(rData.strain.size() != strain_size)
+        {
+            rData.strain.resize(strain_size,false);
+        }
+
+        this->ComputeStrain(rData, strain_size);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(this->GetGeometry(), GetProperties(), rCurrentProcessInfo);
