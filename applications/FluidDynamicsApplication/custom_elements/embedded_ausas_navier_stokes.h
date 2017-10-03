@@ -163,10 +163,22 @@ public:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
+        {
             rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
+        }
+        else if (rLeftHandSideMatrix.size2() != MatrixSize)
+        {
+            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
+        }
 
         if (rRightHandSideVector.size() != MatrixSize)
+        {
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
+        }
+
+        // Initialize LHS and RHS
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
 
         // Set the elemental distance vector
         Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
@@ -200,10 +212,6 @@ public:
         ElementGeometryDataStruct geometry_data;
         this->FillElementGeometryData(geometry_data);
 
-        // Initialize LHS and RHS 
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
-
         // Element LHS and RHS contributions computation
         CalculateLocalSystemContribution(rLeftHandSideMatrix, rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
 
@@ -219,7 +227,12 @@ public:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rRightHandSideVector.size() != MatrixSize)
+        {
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
+        }
+
+        // Initialize RHS
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Set the elemental distance vector
         Vector &elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
@@ -252,9 +265,6 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);
         ElementGeometryDataStruct geometry_data;
         this->FillElementGeometryData(geometry_data);
-
-        // Initialize RHS
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Element LHS and RHS contributions computation
         CalculateRightHandSideContribution(rRightHandSideVector, data, geometry_data, rCurrentProcessInfo);
