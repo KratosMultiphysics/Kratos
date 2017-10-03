@@ -49,12 +49,32 @@ class Algorithm(BaseAlgorithm):
         self.all_model_parts.Add(ModelPart("MixedPart"))  
         
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
-        
+
+    def Initialize(self):
+        super(Algorithm,self).Initialize()
+        self.TransferWallsFromPfemToDem()
+
+    def TransferWallsFromPfemToDem(self):
+        destination_model_part = self.disperse_phase_algorithm.rigid_face_model_part
+        bodies_parts_list = self.fluid_algorithm.ProjectParameters["solver_settings"]["bodies_list"]
+        for i in range(bodies_parts_list.size()):
+            body_model_part_type = bodies_parts_list[i]["body_type"].GetString() 
+            if body_model_part_type == "Rigid":
+                body_model_part_name = bodies_parts_list[i]["body_name"].GetString()
+                source_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart(body_model_part_name) 
+                SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
+
     def FluidInitialize(self):
         
         self.fluid_algorithm.vars_man=self.vars_man        
-        self.fluid_algorithm.Initialize()   
-        self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
+        self.fluid_algorithm.Initialize() 
+        bodies_parts_list = self.fluid_algorithm.ProjectParameters["solver_settings"]["bodies_list"]
+        for i in range(bodies_parts_list.size()):
+            body_model_part_type = bodies_parts_list[i]["body_type"].GetString() 
+            if body_model_part_type == "Fluid":
+                body_model_part_name = bodies_parts_list[i]["body_name"].GetString()
+                self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart(body_model_part_name)
+                break
         
     def TransferTimeToFluidSolver(self):
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
