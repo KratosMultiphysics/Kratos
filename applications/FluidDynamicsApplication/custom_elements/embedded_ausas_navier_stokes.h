@@ -1328,7 +1328,7 @@ protected:
     void ComputeIntersectionNormal(ElementGeometryDataStruct& rGeometryData,
                                    const bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
     {
-        array_1d<double, TDim> distances = this->GetValue(ELEMENTAL_DISTANCES);
+        array_1d<double, TNumNodes> distances = this->GetValue(ELEMENTAL_DISTANCES);
         rGeometryData.intersection_normal = prod(trans(rDN_DX), distances);
         rGeometryData.intersection_normal /= norm_2(rGeometryData.intersection_normal);
     }
