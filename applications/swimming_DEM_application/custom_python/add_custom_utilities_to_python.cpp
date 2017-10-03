@@ -79,6 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/statistics/sampling_tool.h"
 #include "custom_utilities/derivative_recovery_meshing_tools.h"
 #include "custom_utilities/inlets/bentonite_force_based_inlet.h"
+#include "custom_utilities/swimming_dem_in_pfem_utils.h"
 
 namespace Kratos{
 
@@ -418,6 +419,10 @@ using namespace boost::python;
 
     class_<Bentonite_Force_Based_Inlet, bases<DEM_Force_Based_Inlet> >
         ("Bentonite_Force_Based_Inlet", init<ModelPart&, array_1d<double, 3>>())
+        ;
+
+    class_<SwimmingDemInPfemUtils >("SwimmingDemInPfemUtils", init<>())
+        .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
     }
