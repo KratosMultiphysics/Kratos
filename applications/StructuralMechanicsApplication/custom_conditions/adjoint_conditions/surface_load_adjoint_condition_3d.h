@@ -6,11 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Martin Fusseder
 //
 
-#if !defined(KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_SURFACE_LOAD_ADJOINT_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_SURFACE_LOAD_ADJOINT_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/surface_load_condition_3d.h"
 #include "includes/ublas_interface.h"
 
 namespace Kratos
@@ -45,39 +45,39 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
-    : public BaseLoadCondition
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SurfaceLoadAdjointCondition3D
+    : public SurfaceLoadCondition3D
 {
 public:
 
     ///@name Type Definitions
     ///@{
     
-    // Counted pointer of SurfaceLoadCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
+    // Counted pointer of SurfaceLoadAdjointCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadAdjointCondition3D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    SurfaceLoadCondition3D();
+    SurfaceLoadAdjointCondition3D();
 
     // Constructor using an array of nodes
-    SurfaceLoadCondition3D( 
+    SurfaceLoadAdjointCondition3D( 
         IndexType NewId, 
         GeometryType::Pointer pGeometry 
         );
 
     // Constructor using an array of nodes with properties
-    SurfaceLoadCondition3D( 
+    SurfaceLoadAdjointCondition3D( 
         IndexType NewId,
         GeometryType::Pointer pGeometry, 
         PropertiesType::Pointer pProperties 
         );
 
     // Destructor
-    ~SurfaceLoadCondition3D() override;
+    ~SurfaceLoadAdjointCondition3D() override;
     
     ///@}
     ///@name Operators
@@ -101,7 +101,24 @@ public:
         PropertiesType::Pointer pProperties 
         ) const override;
 
-    std::string Info() const override; //fusseder needed for sensitivity analysis    
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
+
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+
+    void GetValuesVector(Vector& rValues, int Step = 0 ) override;   
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override; 
+
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override;    
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override; 
+    
 
     ///@}
     ///@name Access
@@ -138,44 +155,6 @@ protected:
     ///@name Protected Operations
     ///@{
     
-    /**
-     * This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix: The LHS
-     * @param rRightHandSideVector: The RHS
-     * @param rCurrentProcessInfo: The current process info instance
-     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
-     */
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        ) override;
-
-    void CalculateAndSubKp(
-        Matrix& K,
-        const array_1d<double, 3>& ge,
-        const array_1d<double, 3>& gn,
-        const Matrix& DN_De,
-        const Vector& N,
-        const double Pressure,
-        const double Weight );
-
-    void MakeCrossMatrix(
-        bounded_matrix<double, 3, 3>& M,
-        const array_1d<double, 3>& U 
-        );
-
-    void CalculateAndAddPressureForce(
-        VectorType& rResidualVector,
-        const Vector& N,
-        const array_1d<double, 3 >& Normal,
-        const double Pressure,
-        const double Weight,
-        const ProcessInfo& rCurrentProcessInfo
-        );
     
     ///@}
     ///@name Protected  Access
@@ -229,16 +208,16 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SurfaceLoadCondition3D );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SurfaceLoadCondition3D);
     }
 
 
-}; // class SurfaceLoadCondition3D.
+}; // class SurfaceLoadAdjointCondition3D.
 
 ///@name Type Definitions
 ///@{
@@ -249,4 +228,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_SURFACE_LOAD_ADJOINT_CONDITION_3D_H_INCLUDED  defined 

@@ -72,6 +72,7 @@
 
 /* Adding the adjoint conditions */
 #include "custom_conditions/adjoint_conditions/point_load_adjoint_condition.h"
+#include "custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -369,6 +370,7 @@ private:
     // Adjoint Conditions
     const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
     const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
+    const SurfaceLoadAdjointCondition3D mSurfaceLoadAdjointCondition3D3N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws

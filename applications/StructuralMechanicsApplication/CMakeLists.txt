@@ -79,6 +79,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
  
   # Adding conditions for adjoint sensitivity analysis
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/point_load_adjoint_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.cpp
 )
 
 ###############################################################
