@@ -74,7 +74,7 @@ namespace Kratos
         {
             KRATOS_TRY
             std::cout << "Initializing shallow water variables utility" << std::endl; 
-            mWaterHeightUnitConverter = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
+            mWaterHeightConvert = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
             mThreshold = 1e-2;
             mZeroValue = 1e-8;
             KRATOS_CATCH("")
@@ -95,7 +95,7 @@ namespace Kratos
             for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightUnitConverter;
+                inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + (inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
             }
 
             KRATOS_CATCH("")
@@ -113,7 +113,7 @@ namespace Kratos
             for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightUnitConverter;
+                inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / (inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
             }
 
             KRATOS_CATCH("")
@@ -196,7 +196,7 @@ namespace Kratos
     private:
 
         ModelPart& mrModelPart;
-        double mWaterHeightUnitConverter;
+        double mWaterHeightConvert;
         double mThreshold;
         double mZeroValue;
 

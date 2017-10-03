@@ -96,13 +96,13 @@ namespace Kratos
         { 
             rElementalDofList[counter++] = rGeom[i].pGetDof(MOMENTUM_X); 
             rElementalDofList[counter++] = rGeom[i].pGetDof(MOMENTUM_Y); 
-            rElementalDofList[counter++] = rGeom[i].pGetDof(HEIGHT); 
-        } 
-         
-        KRATOS_CATCH("") 
+            rElementalDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
+        }
+        
+        KRATOS_CATCH("")
     } 
  
-//---------------------------------------------------------------------- 
+//----------------------------------------------------------------------
  
     template< unsigned int TNumNodes > 
     void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) 
@@ -118,8 +118,10 @@ namespace Kratos
             rRightHandSideVector.resize(element_size,false); 
  
         // Getting gravity 
-        //~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY]; 
-        double gravity = 9.8; //-v_gravity[2]; 
+        double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        
+        // Getting water height unit converter
+        mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
      
         // Getting the time step (not fixed to allow variable time step) 
         const double delta_t = rCurrentProcessInfo[DELTA_TIME]; 
@@ -184,15 +186,17 @@ namespace Kratos
                 N_mom(0,   nnode*3) = N[nnode]; 
                 N_mom(1, 1+nnode*3) = N[nnode]; 
             }
-       
-        noalias(mass_matrix)  += prod(trans(N_mom),N_mom); 
-        noalias(mass_matrix)  += prod(trans(N_height),N_height); 
+            N_height     *= mHeightUnitConvert;
+            DN_DX_height *= mHeightUnitConvert;
+            
+            noalias(mass_matrix)  += prod(trans(N_mom),N_mom); 
+            noalias(mass_matrix)  += prod(trans(N_height),N_height); 
          
-        noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom); 
-        noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height); 
+            noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom); 
+            noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height); 
         
-        noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom); 
-        noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height); 
+            noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom); 
+            noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height); 
         }
         
         //~ CalculateLumpedMassMatrix(mass_matrix);
@@ -361,7 +365,8 @@ namespace Kratos
             rdiv_u  += rDN_DX(i,1) * r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i]; 
         } 
  
-        rheight *= lumping_factor; 
+        rdiv_u /= mHeightUnitConvert;
+        rheight *= lumping_factor * mHeightUnitConvert;
     }
 
 //----------------------------------------------------------------------

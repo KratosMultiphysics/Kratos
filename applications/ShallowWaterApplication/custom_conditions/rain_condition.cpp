@@ -54,6 +54,10 @@ namespace Kratos
         if (rRightHandSideVector.size() != condition_size)
             rRightHandSideVector.resize(condition_size, false);
         noalias(rRightHandSideVector) = ZeroVector(condition_size);
+
+        // Getting water height unit converter
+        mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
+
         CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
         
         KRATOS_CATCH("")
@@ -73,27 +77,27 @@ namespace Kratos
             rRightHandSideVector.resize(condition_size,false);
 
         // Initialize variables
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> msMass = ZeroMatrix(condition_size,condition_size);
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,2> msDN_DX = ZeroMatrix(condition_size,2);
-        array_1d<double,TNumNodes> msNGauss;                            // Dimension = number of nodes. Position of the gauss point
-        array_1d<double,TNumNodes> ms_rain;                             // Nodal rain
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> mass_matrix = ZeroMatrix(condition_size,condition_size);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,2> DN_DX = ZeroMatrix(condition_size,2);
+        array_1d<double,TNumNodes> N;                                   // Dimension = number of nodes. Position of the gauss point
+        array_1d<double,TNumNodes> v_rain;                              // Nodal rain vector
 
         // Getting data for the given geometry
         double area;
         area = rGeom.Area();
-        //~ GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msNGauss, Area); // Asking for gradients and other info
 
         // Reading properties and conditions
         int counter = 0;
         for(unsigned int iii = 0; iii<TNumNodes; iii++){
-            ms_rain[counter++] = rGeom[iii].FastGetSolutionStepValue(RAIN);
+            v_rain[counter++] = rGeom[iii].FastGetSolutionStepValue(RAIN);
         }
         
         // Compute parameters and derivatives matrices
-        //~ CalculateConsistentMassMatrix(msMass);
-        CalculateLumpedMassMatrix(msMass);
+        //~ CalculateConsistentMassMatrix(mass_matrix);
+        CalculateLumpedMassMatrix(mass_matrix);
+        mass_matrix *= mHeightUnitConvert;
         // LHS = M*rain
-        noalias(rRightHandSideVector) = prod(msMass, ms_rain);          // Add <q,rain>         to RHS (Mass Eq.)
+        noalias(rRightHandSideVector) = prod(mass_matrix, v_rain);          // Add <q,rain>         to RHS (Mass Eq.)
 
         rRightHandSideVector *= area;
 

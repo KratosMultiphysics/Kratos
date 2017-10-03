@@ -124,12 +124,10 @@ namespace Kratos
             rRightHandSideVector.resize(element_size,false);             // False says not to preserve existing storage!!
         
         // Getting gravity
-        //~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
         double gravity = rCurrentProcessInfo[GRAVITY_Z];
-        //~ double gravity = 9.8; //-v_gravity[2];
         
         // Getting water height unit converter
-        mWaterHeightUnitConverter = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
+        mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
         
         // Getting the time step (not fixed to allow variable time step)
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -187,6 +185,8 @@ namespace Kratos
                 N_vel(0,   nnode*3) = N[nnode];
                 N_vel(1, 1+nnode*3) = N[nnode];
             }
+            N_height     *= mHeightUnitConvert;
+            DN_DX_height *= mHeightUnitConvert;
             
             noalias(mass_matrix)  += prod(trans(N_vel),N_vel);
             noalias(mass_matrix)  += prod(trans(N_height),N_height);
@@ -328,7 +328,7 @@ namespace Kratos
             counter++;
 
             rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY);
-            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT) * mWaterHeightUnitConverter;
+            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
             counter++;
         }
@@ -351,7 +351,7 @@ namespace Kratos
             rheight += r_nodal_var[2 + 3*i];
         }
 
-        rheight *= lumping_factor;
+        rheight *= lumping_factor * mHeightUnitConvert;
     }
 
 //----------------------------------------------------------------------

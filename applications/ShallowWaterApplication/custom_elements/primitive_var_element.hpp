@@ -37,16 +37,16 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     /// Default constructor.
-    PrimitiveVarElement()
-    : Element()
+    PrimitiveVarElement() :
+        Element()
     {}
     
-    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+        Element(NewId, pGeometry)
     {}
 
-    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    PrimitiveVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+        Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
@@ -84,7 +84,7 @@ namespace Kratos
     
     void GetElementValues(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight);
     
-    double mWaterHeightUnitConverter;
+    double mHeightUnitConvert;
 
 //----------------------------------------------------------------------
 

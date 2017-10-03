@@ -36,16 +36,16 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     /// Default constructor.
-    ConservedVarElement()
-    : Element()
+    ConservedVarElement() :
+        Element()
     {}
     
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+        Element(NewId, pGeometry)
     {}
     
-    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    ConservedVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+        Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
@@ -75,14 +75,16 @@ namespace Kratos
   protected:
 
     void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
-    
+
     double ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX);
-    
+
     void GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, array_1d<double, TNumNodes*3>& runkn, array_1d<double, TNumNodes*3>& rproj);
-    
+
     void GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight, double& rdiv_u);
 
     void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
+
+    double mHeightUnitConvert;
 
   private:
 

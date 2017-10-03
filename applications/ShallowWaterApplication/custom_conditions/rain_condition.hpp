@@ -85,13 +85,17 @@ namespace Kratos
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
+    double mHeightUnitConvert;
 
+//----------------------------------------------------------------------
 
   protected:
 
     void CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix);
 
     void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes>& rMassMatrix);
+
+//----------------------------------------------------------------------
 
   private:
 
