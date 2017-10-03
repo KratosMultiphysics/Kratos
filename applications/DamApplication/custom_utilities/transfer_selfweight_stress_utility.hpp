@@ -58,8 +58,6 @@ public:
         ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
         ModelPart::NodesContainerType::iterator node_begin_selfweight = selfweight_model_part.NodesBegin();             
             
-        Matrix SumMatrix = ZeroMatrix(TDim,TDim);
-        
         #pragma omp parallel for 
         for(int i = 0; i < NNodes; i++)
         {
@@ -73,10 +71,9 @@ public:
             {
                 for (int k=0; k<TDim; k++)
                 {
-                    SumMatrix(j,k) =  NodalStress(j,k) + NodalStressSelfweight(j,k);
+                    NodalStress(j,k) += NodalStressSelfweight(j,k);
                 }
-            }
-            noalias(NodalStress) = SumMatrix;          
+            }         
         }
                 
                            
