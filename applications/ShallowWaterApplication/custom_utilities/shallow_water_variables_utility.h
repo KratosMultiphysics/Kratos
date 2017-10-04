@@ -75,7 +75,7 @@ namespace Kratos
             KRATOS_TRY
             std::cout << "Initializing shallow water variables utility" << std::endl; 
             mWaterHeightConvert = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
-            mThreshold = 1e-2;
+            mThreshold = 1e-3;
             mZeroValue = 1e-8;
             KRATOS_CATCH("")
         }
@@ -168,7 +168,8 @@ namespace Kratos
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 // If current node is dry, is candidate to be inactive
-                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold)
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold && 
+                    inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
                 {
                     WeakPointerVector< Node<3> >& rneigh = inode->GetValue(NEIGHBOUR_NODES);
                     // We loop all the neighbour nodes to check if they are dry
@@ -176,10 +177,11 @@ namespace Kratos
                     bool neigh_wet = false;
                     for( WeakPointerVector<Node<3> >::iterator jnode = rneigh.begin(); jnode!=rneigh.end(); jnode++)
                     {
-                        if (jnode->FastGetSolutionStepValue(HEIGHT) >= mThreshold)
+                        if (jnode->FastGetSolutionStepValue(HEIGHT) >= mThreshold ||
+                            jnode->FastGetSolutionStepValue(RAIN)   >= mThreshold )
                             neigh_wet = true;
                     }
-                    if (neigh_wet == true)
+                    if (neigh_wet)
                         inode->Set(ACTIVE, true);
                     else
                         inode->Set(ACTIVE, false);
