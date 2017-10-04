@@ -142,12 +142,12 @@ namespace Kratos
 		const double Iz = inertia[2];
 
 		double Ay = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
 			Ay = GetProperties()[AREA_EFFECTIVE_Y];
 		}
 
 		double Az = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Z)) {
 			Az = GetProperties()[AREA_EFFECTIVE_Z];
 		}
 		const double Psi_y = this->CalculatePsi(Iy, Az);
@@ -373,12 +373,12 @@ namespace Kratos
 		const double Iz = inertia[2];
 
 		double Ay = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
 			Ay = GetProperties()[AREA_EFFECTIVE_Y];
 		}
 
 		double Az = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Z)) {
 			Az = GetProperties()[AREA_EFFECTIVE_Z];
 		}
 		const double Psi_y = this->CalculatePsi(Iy, Az);
@@ -830,14 +830,14 @@ namespace Kratos
 
 
 
-		if (this->GetProperties().Has(LUMPED_MASS_MATRIX) == true) {
+		if (this->GetProperties().Has(LUMPED_MASS_MATRIX)) {
 			this->mIsLumpedMassMatrix = GetProperties()[LUMPED_MASS_MATRIX];
 		}
 		else this->mIsLumpedMassMatrix = false;
 
 
 
-		if (this->mIsLumpedMassMatrix == true)
+		if (this->mIsLumpedMassMatrix)
 		{
 			this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
 		}
@@ -848,7 +848,7 @@ namespace Kratos
 			bounded_matrix<double,MatSize,MatSize> RotationMatrix = ZeroMatrix(MatSize,MatSize);
 			bounded_matrix<double,MatSize,MatSize> aux_matrix = ZeroMatrix(MatSize,MatSize);
 
-			if (this->mIsLinearElement == true)
+			if (this->mIsLinearElement)
 			{
 				RotationMatrix = this->mRotationMatrix0;
 			}
@@ -1062,7 +1062,7 @@ namespace Kratos
 
 
 		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement == true)
+		if (this->mIsLinearElement)
 		{
 			Vector NodalDeformation = ZeroVector(LocalSize);
 			this->GetValuesVector(NodalDeformation);
@@ -1110,7 +1110,7 @@ namespace Kratos
 		}
 
 		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement == true)
+		if (this->mIsLinearElement)
 		{
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
@@ -1161,7 +1161,7 @@ namespace Kratos
 			Matrix(trans(TransformationMatrix)));
 
 		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement == true)
+		if (this->mIsLinearElement)
 		{
 			TransformationMatrix = this->mRotationMatrix0;
 			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
@@ -1320,7 +1320,7 @@ namespace Kratos
 		Stress = prod(TransformationMatrixS, elementForces_t);
 
 		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement == true)
+		if (this->mIsLinearElement)
 		{
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 			LeftHandSideMatrix = this->mLHS;
@@ -1394,7 +1394,7 @@ namespace Kratos
 			rOutput.resize(3);
 			for (int i = 0; i < 3; ++i) rOutput[i] = ZeroVector(3);
 
-			if (this->mIsLinearElement == true)
+			if (this->mIsLinearElement)
 			{
 				rOutput[0] = this->mNX0;
 				rOutput[1] = this->mNY0;
@@ -1543,22 +1543,22 @@ namespace Kratos
 		const double G = this->CalculateShearModulus();
 
 		double Ay = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
 			Ay = GetProperties()[AREA_EFFECTIVE_Y];
 		}
 
 		double Az = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Z)) {
 			Az = GetProperties()[AREA_EFFECTIVE_Z];
 		}
 
 		double IRy = Iy;
-		if (this->GetProperties().Has(INERTIA_ROT_Y) == true) {
+		if (this->GetProperties().Has(INERTIA_ROT_Y)) {
 			IRy = GetProperties()[INERTIA_ROT_Y];
 		}
 
 		double IRz = Iz;
-		if (this->GetProperties().Has(INERTIA_ROT_Y) == true) {
+		if (this->GetProperties().Has(INERTIA_ROT_Y)) {
 			IRz = GetProperties()[INERTIA_ROT_Z];
 		}
 
