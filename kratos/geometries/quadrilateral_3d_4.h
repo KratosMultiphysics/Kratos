@@ -569,7 +569,7 @@ public:
         ) const override
     {
         // Getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
+        const ShapeFunctionsGradientsType& shape_functions_gradients =
         msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
         // Getting values of shape functions
         Matrix shape_functions_values =
@@ -637,7 +637,7 @@ public:
         ) const override
     {
         // Getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
+        const ShapeFunctionsGradientsType& shape_functions_gradients =
         msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
         // Getting values of shape functions
         Matrix shape_functions_values = CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
@@ -1159,7 +1159,7 @@ public:
         }
 
         // Calculating the local gradients
-        ShapeFunctionsGradientsType locG = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
+        const ShapeFunctionsGradientsType& shape_functions_local_gradient = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
 
         //getting the inverse jacobian matrices
         JacobiansType temp( integration_points_number );
@@ -1176,8 +1176,8 @@ public:
                 for ( int j = 0; j < 2; j++ )
                 {
                     rResult[pnt]( i, j ) =
-                        ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                        + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
+                        ( shape_functions_local_gradient[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
+                        + ( shape_functions_local_gradient[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
                 }
             }
         }//end of loop over integration points
@@ -1242,15 +1242,15 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(
         IntegrationMethod ThisMethod )
     {
-        ShapeFunctionsGradientsType localGradients
+        const ShapeFunctionsGradientsType& shape_function_local_gradient
         = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
-        const int integration_points_number
+        const int& integration_points_number
         = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            Result[pnt] = localGradients[pnt];
+            Result[pnt] = shape_function_local_gradient[pnt];
         }
 
         return Result;
@@ -1263,7 +1263,7 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients
+        const ShapeFunctionsGradientsType& shape_function_local_gradient
         = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
         const int integration_points_number
         = msGeometryData.IntegrationPointsNumber( ThisMethod );
@@ -1271,7 +1271,7 @@ public:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            Result[pnt] = localGradients[pnt];
+            Result[pnt] = shape_function_local_gradient[pnt];
         }
 
         return Result;
