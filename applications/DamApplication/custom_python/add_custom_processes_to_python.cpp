@@ -29,7 +29,7 @@
 #include "custom_processes/dam_construction_process.hpp"
 #include "custom_processes/dam_added_mass_condition_process.hpp"
 #include "custom_processes/dam_t_sol_air_heat_flux_process.hpp"
-
+#include "custom_processes/dam_noorzai_heat_source_process.hpp"
 
 namespace Kratos
 {
@@ -83,6 +83,10 @@ void  AddCustomProcessesToPython()
 
     //Heat Flux by t_sol_air      
     class_< DamTSolAirHeatFluxProcess, bases< Process >, boost::noncopyable > ( "DamTSolAirHeatFluxProcess",
+        init < ModelPart&, Parameters&>());
+
+    //Heat Source According Noorzai      
+    class_< DamNoorzaiHeatFluxProcess, bases< Process >, boost::noncopyable > ( "DamNoorzaiHeatFluxProcess",
         init < ModelPart&, Parameters&>());
     
 }
