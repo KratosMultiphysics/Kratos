@@ -1495,7 +1495,7 @@ private:
         }
 
         const double tol = 1.0e-8;
-        const int maxiter = 1000;
+        const int maxiter = 500;
 
         Matrix J = ZeroMatrix( 2, 2 );
         Matrix invJ = ZeroMatrix( 2, 2 );
