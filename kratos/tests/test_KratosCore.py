@@ -14,6 +14,7 @@ import test_kratos_parameters
 import test_materials_input
 import test_geometries
 import test_linear_solvers
+import test_eigen_solvers
 import test_processes
 import test_importing
 import test_connectivity_preserve_modeler
@@ -79,6 +80,7 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries.TestGeometry]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_eigen_solvers.TestEigenSolvers]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
@@ -99,6 +101,7 @@ def AssambleTestSuites():
             test_materials_input.TestMaterialsInput,
             test_geometries.TestGeometry,
             test_linear_solvers.TestLinearSolvers,
+            test_eigen_solvers.TestEigenSolvers,
             test_processes.TestProcesses,
             test_importing.TestImporting,
             test_connectivity_preserve_modeler.TestConnectivityPreserveModeler,

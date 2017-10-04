@@ -39,9 +39,8 @@
 #include "linear_solvers/ilu0_preconditioner.h"
 #include "linear_solvers/ilu_preconditioner.h"
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
+#include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
-
-
 
 namespace Kratos
 {
@@ -61,6 +60,8 @@ void  AddLinearSolversToPython()
     typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
     typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
+    typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
+    typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
     typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
@@ -98,7 +99,6 @@ void  AddLinearSolversToPython()
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
     .def("Clear",&LinearSolverType::Clear)
-    //.def("",&LinearSolverType::)
     .def(self_ns::str(self))
     ;
 
@@ -111,7 +111,6 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(init<Parameters,  PreconditionerType::Pointer>())
-    //.def("",&LinearSolverType::)
     .def(self_ns::str(self))
     ;
 
@@ -138,6 +137,20 @@ void  AddLinearSolversToPython()
 
     class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("PowerIterationEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
+    .def(init<Parameters, LinearSolverType::Pointer>())
+    .def( "GetEigenValue",&PowerIterationEigenvalueSolverType::GetEigenValue)
+    ;
+
+    class_<PowerIterationHighestEigenvalueSolverType, PowerIterationHighestEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("PowerIterationHighestEigenvalueSolver")
+    .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
+    .def(init<Parameters, LinearSolverType::Pointer>())
+    .def( "GetEigenValue",&PowerIterationHighestEigenvalueSolverType::GetEigenValue)
+    ;
+
+    class_<RayleighQuotientIterationEigenvalueSolverType, RayleighQuotientIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("RayleighQuotientIterationEigenvalueSolver")
+    .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer, double>())
+    .def(init<Parameters, LinearSolverType::Pointer>())
+    .def( "GetEigenValue",&RayleighQuotientIterationEigenvalueSolverType::GetEigenValue)
     ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;
