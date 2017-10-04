@@ -337,7 +337,7 @@ namespace Kratos
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y); 
             counter++; 
  
-            rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY); 
+            rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / mHeightUnitConvert;
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT); 
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1); 
             counter++; 

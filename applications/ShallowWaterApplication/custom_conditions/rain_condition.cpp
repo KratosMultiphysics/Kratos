@@ -95,7 +95,7 @@ namespace Kratos
         // Compute parameters and derivatives matrices
         //~ CalculateConsistentMassMatrix(mass_matrix);
         CalculateLumpedMassMatrix(mass_matrix);
-        mass_matrix *= mHeightUnitConvert;
+        mass_matrix *= mHeightUnitConvert * mHeightUnitConvert;
         // LHS = M*rain
         noalias(rRightHandSideVector) = prod(mass_matrix, v_rain);          // Add <q,rain>         to RHS (Mass Eq.)
 

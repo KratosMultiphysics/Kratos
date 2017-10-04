@@ -149,8 +149,10 @@ namespace Kratos
         array_1d<double, TNumNodes*3> v_depth;
         array_1d<double, TNumNodes*3> v_unknown;
         array_1d<double, TNumNodes*3> v_proj_unknown;
-        double height;
         GetNodalValues(v_depth,v_unknown,v_proj_unknown);
+        
+        // Get element values
+        double height;
         GetElementValues(DN_DX,v_unknown,height);
         
         // Some auxilary definitions
@@ -242,7 +244,7 @@ namespace Kratos
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, v_unknown);
         
         rRightHandSideVector *= Area / static_cast<double>(TNumNodes);
-        rLeftHandSideMatrix *= Area  / static_cast<double>(TNumNodes);
+        rLeftHandSideMatrix  *= Area / static_cast<double>(TNumNodes);
         
         KRATOS_CATCH("")
     }
@@ -327,7 +329,7 @@ namespace Kratos
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
             counter++;
 
-            rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY);
+            rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / mHeightUnitConvert;
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
             counter++;
