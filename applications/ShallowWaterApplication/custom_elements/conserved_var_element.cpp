@@ -126,28 +126,31 @@ namespace Kratos
         // Getting the time step (not fixed to allow variable time step) 
         const double delta_t = rCurrentProcessInfo[DELTA_TIME]; 
         const double dt_inv = 1.0 / delta_t; 
-     
-        // Compute the geometry 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2> DN_DX; 
-        array_1d<double,TNumNodes> N; 
-        double Area; 
-        this-> CalculateGeometry(DN_DX,Area); 
-        double elem_length = this->ComputeElemSize(DN_DX); 
-         
-        // Getting the values of shape functions on Integration Points 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides 
-        const GeometryType& rGeom = this->GetGeometry(); 
-        Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 ); 
-     
-        // Get nodal values for current step and projected variables 
-        array_1d<double, TNumNodes*3> v_depth; 
-        array_1d<double, TNumNodes*3> v_unknown; 
-        array_1d<double, TNumNodes*3> v_proj_unknown; 
-        double height; 
-        double div_u; 
-        GetNodalValues(v_depth,v_unknown,v_proj_unknown); 
-        GetElementValues(DN_DX,v_unknown,height,div_u); 
-     
+        
+        // Compute the geometry
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2> DN_DX;
+        array_1d<double,TNumNodes> N;
+        double Area;
+        this-> CalculateGeometry(DN_DX,Area);
+        double elem_length = this->ComputeElemSize(DN_DX);
+        
+        // Getting the values of shape functions on Integration Points
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
+        const GeometryType& rGeom = this->GetGeometry();
+        Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+        
+        // Get nodal values for current step and projected variables (this function inlcudes the units conversion)
+        array_1d<double, TNumNodes*3> v_depth;
+        array_1d<double, TNumNodes*3> v_rain;
+        array_1d<double, TNumNodes*3> v_unknown;
+        array_1d<double, TNumNodes*3> v_proj_unknown;
+        GetNodalValues(v_depth, v_rain, v_unknown, v_proj_unknown);
+        
+        // Get element values (this function inlcudes the units conversion)
+        double height;
+        double div_u;
+        GetElementValues(DN_DX, v_unknown, height, div_u);
+        
         // Some auxilary definitions 
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for momentum unknown) 
         boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> N_height     = ZeroMatrix(1,TNumNodes*3);  // Shape functions vector (for height unknown) 
@@ -230,21 +233,24 @@ namespace Kratos
         // Build LHS 
         // Cross terms 
         noalias(rLeftHandSideMatrix)  = gravity * height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq. 
- 
+        
         // Inertia terms 
         noalias(rLeftHandSideMatrix) += dt_inv * mass_matrix;           // Add <N,N> to both Eq's 
-     
+        
         // Non linear terms 
         noalias(rLeftHandSideMatrix) += div_u * mass_matrix;             // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq. 
- 
+        
         // Stabilization terms 
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq. 
         noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq. 
-         
+        
         // Build RHS 
         // Source terms (bathymetry contribution) 
         noalias(rRightHandSideVector)  = -gravity * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.) 
-     
+        
+        // Source terms (rain contribution)
+        noalias(rRightHandSideVector) += prod(mass_matrix, v_rain);
+        
         // Inertia terms 
         noalias(rRightHandSideVector) += dt_inv * prod(mass_matrix, v_proj_unknown); 
      
@@ -318,9 +324,10 @@ namespace Kratos
 //---------------------------------------------------------------------- 
  
     template< unsigned int TNumNodes > 
-    void ConservedVarElement<TNumNodes>::GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, 
-                                                        array_1d<double, TNumNodes*3>& runkn,  
-                                                        array_1d<double, TNumNodes*3>& rproj 
+    void ConservedVarElement<TNumNodes>::GetNodalValues(array_1d<double, TNumNodes*3>& rdepth,
+                                                        array_1d<double, TNumNodes*3>& rrain,
+                                                        array_1d<double, TNumNodes*3>& runkn,
+                                                        array_1d<double, TNumNodes*3>& rproj
                                                        ) 
     { 
         GeometryType& rGeom = GetGeometry(); 
@@ -328,16 +335,19 @@ namespace Kratos
         for (unsigned int i = 0; i < TNumNodes; i++) 
         { 
             rdepth[counter] = 0; 
+            rrain[counter]  = 0; 
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X); 
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X); 
             counter++; 
  
             rdepth[counter] = 0; 
+            rrain[counter]  = 0; 
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y); 
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y); 
             counter++; 
  
             rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / mHeightUnitConvert;
+            rrain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN); 
             runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT); 
             rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1); 
             counter++; 
