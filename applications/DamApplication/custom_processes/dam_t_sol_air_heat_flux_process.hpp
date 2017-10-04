@@ -56,7 +56,7 @@ public:
                 "table_ambient_temperature"       : 0,
                 "emisivity"                       : 0.0,
                 "delta_R"                         : 0.0,
-                "absortion_index"                 : 0.0,
+                "absorption_index"                 : 0.0,
                 "total_insolation"                : 0.0               
             }  )" );
         
@@ -64,7 +64,7 @@ public:
         // So that an error is thrown if they don't exist
         rParameters["h_0"];
         rParameters["delta_R"];
-        rParameters["absortion_index"];
+        rParameters["absorption_index"];
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -75,7 +75,7 @@ public:
         mAmbientTemperature = rParameters["ambient_temperature"].GetDouble();
         mEmisivity = rParameters["emisivity"].GetDouble();
         mDeltaR = rParameters["delta_R"].GetDouble();
-        mAbsortion_index = rParameters["absortion_index"].GetDouble();
+        mAbsorption_index = rParameters["absorption_index"].GetDouble();
         mTotalInsolation = rParameters["total_insolation"].GetDouble();
         
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
@@ -103,7 +103,7 @@ void ExecuteInitialize()
     Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
     
     // Computing the t_soil_air according to t_sol_air criteria
-    double t_sol_air = mAmbientTemperature + (mAbsortion_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
+    double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
 
     if(nnodes != 0)
     {
@@ -143,7 +143,7 @@ void ExecuteInitialize()
         }
 
         // Computing the t_soil_air according to t_sol_air criteria
-        double t_sol_air = mAmbientTemperature + (mAbsortion_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
+        double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
 
         if(nnodes != 0)
         {
@@ -195,7 +195,7 @@ protected:
     double mAmbientTemperature;
     double mEmisivity;
     double mDeltaR;
-    double mAbsortion_index;    
+    double mAbsorption_index;    
     double mTotalInsolation;
     double mTimeUnitConverter;    
     TableType::Pointer mpTable;
