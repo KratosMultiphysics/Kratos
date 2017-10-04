@@ -1,11 +1,6 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics 
-from KratosMultiphysics.ExternalSolversApplication import *
-#from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemApplication import *
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-#from KratosMultiphysics.PfemFluidDynamicsApplication import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
 import time as timer
 
