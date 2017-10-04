@@ -227,8 +227,8 @@ public:
         Parameters DefaultParameters = Parameters(R"(
         {
             "solver_type"             : "PowerIterationEigenvalueSolver",
-            "max_iteration"           : 500,
-            "tolerance"               : 1e-9,
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-8,
             "required_eigen_number"   : 1,
             "shifting_convergence"    : 0.25,
             "verbosity"               : 1
@@ -572,8 +572,8 @@ public:
         Parameters DefaultParameters = Parameters(R"(
         {
             "solver_type"             : "PowerIterationHighestEigenvalueSolver",
-            "max_iteration"           : 500,
-            "tolerance"               : 1e-9,
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-8,
             "required_eigen_number"   : 1,
             "shifting_convergence"    : 0.25,
             "verbosity"               : 1
