@@ -3,12 +3,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosPfemFluidDynamicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
+#include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication )
 
-if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
-endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
+#if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
+#    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
+#endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 
 if(NOT (${PFEM_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
@@ -50,7 +50,8 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemFluidDynamicsApplication SHARED ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore)
-target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemApplication)
+#target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore SolidMechanicsApplication KratosPfemApplication)
+target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosPfemApplication)
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )

@@ -10,12 +10,12 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
-import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
-import KratosMultiphysics.PfemApplication           as KratosPfem
-import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
-import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
-import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.PfemApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication     
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PfemSolidMechanicsApplication   
+import KratosMultiphysics.ContactMechanicsApplication
 
 class Solution(object):
 
