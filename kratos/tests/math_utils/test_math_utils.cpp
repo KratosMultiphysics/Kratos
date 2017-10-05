@@ -548,7 +548,6 @@ namespace Kratos
             }
             
             KRATOS_CHECK_EQUAL(converged, true);
-            
         }
         
         /** Checks if it calculates the dot product 
