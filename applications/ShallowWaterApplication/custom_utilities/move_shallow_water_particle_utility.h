@@ -450,8 +450,8 @@ public:
             for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
-                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);
+                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);  //PROJECTED_SCALAR1
+                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);  //PROJECTED_VECTOR1
             }
         }
         KRATOS_CATCH("")
@@ -794,7 +794,7 @@ public:
                                 nodes_added_scalar1[j] += weight*particle_scalar1;
                                 for (int k=0 ; k!=(TDim); k++) //x,y,(z)
                                 {
-                                    nodes_added_vector1[j*3+k] += weight*double(particle_vector1[k]);
+                                    nodes_added_vector1[j*3+k] += weight * double(particle_vector1[k]);
                                 }
                             }
                         }
@@ -2272,10 +2272,10 @@ private:
                 KRATOS_THROW_ERROR(std::logic_error, "Add MEAN_SIZE variable to model part!", "");
 
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_SCALAR1) == false)
-                KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR variable to model part!", "");
+                KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
 
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_VECTOR1) == false)
-                KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR variable to model part!", "");
+                KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR1 variable to model part!", "");
 
         return 0;
 

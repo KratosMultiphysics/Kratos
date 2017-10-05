@@ -122,6 +122,24 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
+        /** 
+         * This method computes the momentum as the VELOCITY * HEIGHT
+         */
+        void ComputeMomentum()
+        {
+            KRATOS_TRY
+
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+            #pragma omp parallel for
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            {
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
+                inode->GetSolutionStepValue(MOMENTUM) = inode->FastGetSolutionStepValue(VELOCITY) * (inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
+            }
+
+            KRATOS_CATCH("")
+        }
+
         void CheckDryConservedVariables()
         {
             KRATOS_TRY
