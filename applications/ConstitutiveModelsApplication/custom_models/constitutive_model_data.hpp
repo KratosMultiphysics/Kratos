@@ -118,6 +118,224 @@ namespace Kratos
     };
 
 
+    template <class T>
+    struct VariableValue
+    {
+    private:
+      
+      const Variable<T> *mpVariable;
+      T *mpValue;
+
+    public:
+
+      //constructors
+      VariableValue(){};
+      VariableValue(const Variable<T>& rVariable, T& rValue){mpVariable = &rVariable; mpValue = &rValue;};
+      
+      //Set Data Pointers
+      void SetVariableValue            (const Variable<T>& rVariable, T& rValue) {mpVariable = &rVariable; mpValue = &rValue;};
+      void SetVariable                 (const Variable<T>& rVariable) {mpVariable = &rVariable;};
+      void SetValue                    (T& rValue) {mpValue = &rValue;};
+
+      //Get Data Pointers
+      
+      //Acces non const Data
+      T&                 rValue        (){return *mpValue;};
+      
+      //Get const Data	
+      const Variable<T>& GetVariable   () const {return *mpVariable;};
+      const T&           GetValue      () const {return *mpValue;};
+    };
+    
+
+    struct VariableValueData
+    {
+    private:
+
+      enum VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6 };
+
+      VarType                                        mType;      
+      VariableValue<int>                    *mpIntVariable;
+      VariableValue<double>              *mpDoubleVariable;
+      VariableValue<Vector>              *mpVectorVariable;
+      VariableValue<Matrix>              *mpMatrixVariable;
+      VariableValue<array_1d<double,3> > *mpArray3Variable;
+      VariableValue<array_1d<double,6> > *mpArray6Variable;
+      
+   public:
+
+      //Constructor
+      VariableValueData()
+      {
+	mpIntVariable    = NULL;
+	mpDoubleVariable = NULL;
+	mpVectorVariable = NULL;
+	mpMatrixVariable = NULL;
+	mpArray3Variable = NULL;
+	mpArray6Variable = NULL;
+      }
+
+      // Destructor
+      ~VariableValueData()
+      {
+	switch(mType)
+	  {
+	  case INTEGER:
+	    delete mpIntVariable;
+	  case DOUBLE:
+	    delete mpDoubleVariable;
+	  case VECTOR:
+	    delete mpVectorVariable;
+	  case MATRIX:
+	    delete mpMatrixVariable;
+	  case ARRAY3:
+	    delete mpArray3Variable;
+	  case ARRAY6:
+	    delete mpArray6Variable;
+	  }
+      }
+      
+      //Set Data
+
+      void SetIntVariableValue(const Variable<int>& rVariable, int& rValue)
+      {
+	mType = INTEGER;
+	typedef VariableValue<int> VariableValueType;
+	mpIntVariable = new VariableValueType(rVariable,rValue);
+      }
+
+      void SetDoubleVariableValue(const Variable<double>& rVariable, double& rValue)
+      {
+	mType = DOUBLE;
+	typedef VariableValue<double> VariableValueType;
+	mpDoubleVariable = new VariableValueType(rVariable,rValue);
+      }
+
+      void SetVectorVariableValue(const Variable<Vector>& rVariable, Vector& rValue)
+      {
+	mType = VECTOR;
+	typedef VariableValue<Vector> VariableValueType;
+	mpVectorVariable = new VariableValueType(rVariable,rValue);
+      }
+      
+      void SetMatrixVariableValue(const Variable<Matrix>& rVariable, Matrix& rValue)
+      {
+	mType = MATRIX;
+	typedef VariableValue<Matrix> VariableValueType;
+	mpMatrixVariable = new VariableValueType(rVariable,rValue);
+      }
+      
+      void SetArray3VariableValue(const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue)
+      {
+	mType = ARRAY3;
+	typedef VariableValue<array_1d<double,3> > VariableValueType;
+	mpArray3Variable = new VariableValueType(rVariable,rValue);
+      }
+      
+      void SetArray6VariableValue(const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue)
+      {
+	mType = ARRAY6;
+	typedef VariableValue<array_1d<double,6> > VariableValueType;
+	mpArray6Variable = new VariableValueType(rVariable,rValue);
+      }
+      
+      //Get Data 
+      template<class T>
+      VariableValue<T> GetVariableValue()
+      {	
+	if( std::is_same<T,int>::value ){
+	  return &mpIntVariable;
+	}
+	else if( std::is_same<T,double>::value ){
+	  return &mpDoubleVariable;
+	}
+	else if( std::is_same<T,Vector>::value ){
+	  return &mpVectorVariable;
+	}
+	else if( std::is_same<T,Matrix>::value ){
+	  return &mpMatrixVariable;
+	}
+	else if( std::is_same<T,array_1d<double,3> >::value ){
+	  return &mpArray3Variable;
+	}
+	else if( std::is_same<T,array_1d<double,6> >::value ){
+	  return &mpArray6Variable;
+	}
+      }
+
+      template<class T>
+      const Variable<T>& GetVariable()
+      {
+	if( std::is_same<T,int>::value ){
+	  return mpIntVariable->GetVariable();
+	}
+	else if( std::is_same<T,double>::value ){
+	  return mpDoubleVariable->GetVariable();
+	}
+	else if( std::is_same<T,Vector>::value ){
+	  return mpVectorVariable->GetVariable();
+	}
+	else if( std::is_same<T,Matrix>::value ){
+	  return mpMatrixVariable->GetVariable();
+	}
+	else if( std::is_same<T,array_1d<double,3> >::value ){
+	  return mpArray3Variable->GetVariable();
+	}
+	else if( std::is_same<T,array_1d<double,6> >::value ){
+	  return mpArray6Variable->GetVariable();
+	}
+      } 
+      
+      template<class T>
+      const T& GetValue()
+      {
+	if( std::is_same<T,int>::value ){
+	  return mpIntVariable->GetValue();
+	}
+	else if( std::is_same<T,double>::value ){
+	  return mpDoubleVariable->GetValue();
+	}
+	else if( std::is_same<T,Vector>::value ){
+	  return mpVectorVariable->GetValue();
+	}
+	else if( std::is_same<T,Matrix>::value ){
+	  return mpMatrixVariable->GetValue();
+	}
+	else if( std::is_same<T,array_1d<double,3> >::value ){
+	  return mpArray3Variable->GetValue();
+	}
+	else if( std::is_same<T,array_1d<double,6> >::value ){
+	  return mpArray6Variable->GetValue();
+	}
+      }     
+
+      //Acces non const Data
+      template<class T>
+      T& rValue()
+      {
+	if( std::is_same<T,int>::value ){
+	  return mpIntVariable->rValue();
+	}
+	else if( std::is_same<T,double>::value ){
+	  return mpDoubleVariable->rValue();
+	}
+	else if( std::is_same<T,Vector>::value ){
+	  return mpVectorVariable->rValue();
+	}
+	else if( std::is_same<T,Matrix>::value ){
+	  return mpMatrixVariable->rValue();
+	}
+	else if( std::is_same<T,array_1d<double,3> >::value ){
+	  return mpArray3Variable->rValue();
+	}
+	else if( std::is_same<T,array_1d<double,6> >::value ){
+	  return mpArray6Variable->rValue();
+	}
+      }     
+      
+    };
+
+    
     struct ConstitutiveLawData
     {
     public:
@@ -137,7 +355,7 @@ namespace Kratos
       MatrixType                   DeltaDeformationMatrix;  //wildcard deformation increment (usually incremental F)
       MatrixType                   TotalDeformationMatrix;  //wildcard total deformation     (usually total F := F0)
     };
-    
+   
     
     struct ModelData
     {
@@ -161,6 +379,7 @@ namespace Kratos
       MatrixType                   StrainMatrix;           //wildcard strain (cauchy green tensors or infinitessimal tensor)
       MaterialData                 MaterialParameters;
 
+      VariableValueData            InternalVariable;       //internal variable to compute and return
        
       //Set Data Pointers
       void SetOptions                      (const Flags&  rOptions)                 {mpOptions = &rOptions;};
@@ -169,6 +388,13 @@ namespace Kratos
       void SetVoigtSize                    (const SizeType& rVoigtSize)             {mVoigtSize = rVoigtSize;};
       void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)       {mIndexVoigtTensor = rIndexVoigtTensor;};
 
+      void SetIntVariableData              (const Variable<int>& rVariable, int& rValue) {InternalVariable.SetIntVariableValue(rVariable,rValue);};
+      void SetDoubleVariableData           (const Variable<double>& rVariable, double& rValue) {InternalVariable.SetDoubleVariableValue(rVariable,rValue);};
+      void SetVectorVariableData           (const Variable<Vector>& rVariable, Vector& rValue) {InternalVariable.SetVectorVariableValue(rVariable,rValue);};
+      void SetMatrixVariableData           (const Variable<Matrix>& rVariable, Matrix& rValue) {InternalVariable.SetMatrixVariableValue(rVariable,rValue);};
+      void SetArray3VariableData           (const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue) {InternalVariable.SetArray3VariableValue(rVariable,rValue);};
+      void SetArray6VariableData           (const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue) {InternalVariable.SetArray6VariableValue(rVariable,rValue);};
+      
       void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;}; 
       void  SetStrainMeasure               (StrainMeasureType Measure)              {mConstitutiveLawData.StrainMeasure = Measure;};
 
@@ -205,8 +431,7 @@ namespace Kratos
       const MaterialData&  GetMaterialParameters           () const {return MaterialParameters;}; 
       
     };
-
-
+  
    
     // struct ThermalParameters
     // {

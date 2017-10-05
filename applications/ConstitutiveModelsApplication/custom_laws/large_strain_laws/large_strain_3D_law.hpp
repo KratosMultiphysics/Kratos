@@ -207,6 +207,26 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+
+    /**
+     * Computes the material response with model data:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponsePK2(Parameters & rValues, ModelDataType& rModelValues) override;
+
+    /**
+     * Computes the material response with model data:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
+    
+    
     /**
      * Initialize ModelData type:
      */
