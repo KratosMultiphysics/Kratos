@@ -17,6 +17,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/integration_point_data.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_data_handler.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dss.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
