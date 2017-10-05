@@ -1538,7 +1538,7 @@ private:
 
             if ( norm_2( DeltaXi ) > 300 )
             {
-                if (IsInside == false)
+                if (IsInside == false && k > 0)
                 {
                     std::cout << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
                 }
