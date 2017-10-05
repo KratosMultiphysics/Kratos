@@ -347,7 +347,15 @@ namespace Kratos
                                                           )
     {
         double lumping_factor = 1 / double(TNumNodes);
+        bool near_dry = false;
         
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            if (rNodalVar[2 + 3*i] < 1e-1)
+                near_dry = true;
+        }
+        
+        // Initialize outputs
         rHeight = 0;
         rHeightGrad = ZeroVector(2);
         rDivU  = 0;
@@ -357,10 +365,19 @@ namespace Kratos
             rHeight += rNodalVar[2 + 3*i]; 
             rHeightGrad[0] += rDN_DX(i,0) * rNodalVar[2 + 3*i];
             rHeightGrad[1] += rDN_DX(i,1) * rNodalVar[2 + 3*i];
-            rDivU  += rDN_DX(i,0) * rNodalVar[  + 3*i];
-            rDivU  += rDN_DX(i,1) * rNodalVar[1 + 3*i];
+            if (near_dry)
+            {
+                rDivU  += rDN_DX(i,0) * rNodalVar[  + 3*i];
+                rDivU  += rDN_DX(i,1) * rNodalVar[1 + 3*i];
+            }
+            else
+            {
+                rDivU  += rDN_DX(i,0) * rNodalVar[  + 3*i] / rNodalVar[2 + 3*i];
+                rDivU  += rDN_DX(i,1) * rNodalVar[1 + 3*i] / rNodalVar[2 + 3*i];
+            }
         }
-        rDivU /= rHeight;
+        if (near_dry)
+            rDivU /= rHeight;
         
         rHeight *= lumping_factor * mHeightUnitConvert;
         rHeightGrad *= mHeightUnitConvert;
