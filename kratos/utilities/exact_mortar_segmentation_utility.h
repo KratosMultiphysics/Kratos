@@ -457,6 +457,80 @@ protected:
     }
     
     /**
+     * This function divides the triangles to enhance the integration 
+     * @param ConditionsPointsSlave: The 
+     */
+    
+    static inline void EnhanceTriangulation(ConditionArrayListType& ConditionsPointsSlave)
+    {
+        ConditionArrayListType aux_conditions_points_slave = ConditionsPointsSlave;
+        
+        ConditionsPointsSlave.clear();
+        
+        for (unsigned int i_geom = 0; i_geom < aux_conditions_points_slave.size(); i_geom++)
+        {
+            PointType& point1 = aux_conditions_points_slave[i_geom][0];
+            PointType& point2 = aux_conditions_points_slave[i_geom][1];
+            PointType& point3 = aux_conditions_points_slave[i_geom][2];
+            
+            // Aux info
+            std::vector<PointType::Pointer> points_array (3); 
+            points_array[0] = boost::make_shared<PointType>(point1);
+            points_array[1] = boost::make_shared<PointType>(point2);
+            points_array[2] = boost::make_shared<PointType>(point3);
+            TriangleType aux_triangle = TriangleType(points_array);
+            Vector N_aux;
+            array_1d<double, 3> aux_coords = ZeroVector(3);
+            
+            // Compute intermediate points
+            // Point 4
+            aux_coords[0] = 0.5;
+            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
+            PointType point4;
+            point4.Coordinates() = N_aux[0] * point1.Coordinates() + N_aux[1] * point2.Coordinates();
+
+            // Point 5
+            aux_coords[1] = 0.5;
+            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
+            PointType point5;
+            point5.Coordinates() = N_aux[1] * point2.Coordinates() + N_aux[2] * point3.Coordinates(); 
+
+            // Point 6
+            aux_coords[0] = 0.0;
+            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
+            PointType point6;
+            point6.Coordinates() = N_aux[2] * point3.Coordinates() + N_aux[0] * point1.Coordinates();
+
+            // New triangles
+            array_1d<PointType, 3> aux_new_triangle;
+
+            // Triangle 1
+            aux_new_triangle[0] = point1;
+            aux_new_triangle[1] = point4;
+            aux_new_triangle[2] = point6;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+
+            // Triangle 2
+            aux_new_triangle[0] = point4;
+            aux_new_triangle[1] = point2;
+            aux_new_triangle[2] = point5;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+
+            // Triangle 3
+            aux_new_triangle[0] = point6;
+            aux_new_triangle[1] = point4;
+            aux_new_triangle[2] = point5;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+
+            // Triangle 4
+            aux_new_triangle[0] = point6;
+            aux_new_triangle[1] = point5;
+            aux_new_triangle[2] = point3;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+        }
+    }
+    
+    /**
      * This function intersects two lines in a 2D plane
      * @param PointOrig: The points from the origin geometry
      * @param PointDest: The points in the destination geometry
@@ -1208,6 +1282,12 @@ private:
             PushBackPoints(point_list, all_inside, master_geometry);
             
             return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            
+//             const bool solution = TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+//             
+//             EnhanceTriangulation(ConditionsPointsSlave);
+//             
+//             return solution;
         }
         else
         {
@@ -1221,6 +1301,12 @@ private:
             PushBackPoints(point_list, all_inside, slave_geometry);
             
             return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            
+//             const bool solution = TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+//             
+//             EnhanceTriangulation(ConditionsPointsSlave);
+//             
+//             return solution;
         }
         
         ConditionsPointsSlave.clear();
