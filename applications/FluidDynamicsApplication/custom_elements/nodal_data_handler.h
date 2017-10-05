@@ -62,6 +62,8 @@ public:
 
     virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo);
 
+	virtual TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement);
+
     ///@}
     ///@name Access
     ///@{

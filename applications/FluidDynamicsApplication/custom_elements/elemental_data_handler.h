@@ -18,6 +18,7 @@
 #include <string>
 
 // External includes
+#include "boost/numeric/ublas/matrix_proxy.hpp"
 
 // Project includes
 #include "containers/variable.h"
@@ -67,8 +68,13 @@ public:
 
     virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo)
     {
-        KRATOS_ERROR << "Accessing base class DataHandler::Initialize() method.";
+        KRATOS_ERROR << "Accessing base class DataHandler::Initialize() method." << std::endl;
     }
+
+	virtual TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement)
+	{
+		KRATOS_ERROR << "Accessing base class DataHandler::Interpolate() method." << std::endl;
+	}
 
     ///@}
     ///@name Access
@@ -76,12 +82,12 @@ public:
 
     virtual void Set(const Element& rElement, const ProcessInfo& rProcessInfo)
     {
-        KRATOS_ERROR << "Accessing base class DataHandler::Set() method.";
+        KRATOS_ERROR << "Accessing base class DataHandler::Set() method." << std::endl;
     }
 
     virtual const TStorageType& Get() const
     {
-        KRATOS_ERROR << "Accessing base class DataHandler::Get() method.";
+        KRATOS_ERROR << "Accessing base class DataHandler::Get() method." << std::endl;
     }
 
     ///@}
