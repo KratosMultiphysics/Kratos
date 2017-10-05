@@ -791,7 +791,7 @@ public:
     {
         
         
-        //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        
 
         
         #pragma omp parallel for
@@ -810,31 +810,11 @@ public:
 			
 			
 		}
-        //std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
-
-		//std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() <<std::endl;
-		//std::cout << "Time difference (sec) = " << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()) /1000000.0 <<std::endl;
         
-        //Set all the grid elements to be inactive
-        //for (ModelPart::ElementIterator i = grid_model_part.ElementsBegin();
-                //i != grid_model_part.ElementsEnd(); ++i)
-        //{
-
-            //i -> Reset(ACTIVE);
-            //i ->GetGeometry()[0].Reset(ACTIVE);
-            //i ->GetGeometry()[1].Reset(ACTIVE);
-            //i ->GetGeometry()[2].Reset(ACTIVE);
-            //if (TDim ==3)
-            //{
-
-                //i ->GetGeometry()[3].Reset(ACTIVE);
-            //}
-            
-        //}
         
 
         //******************SEARCH FOR TRIANGLES************************
-        //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        
 
         if (m_GeometryElement == "Triangle")
         {
@@ -892,43 +872,7 @@ public:
 			}
 		}
 
-            //loop over the material points
-            //for (ModelPart::ElementIterator k = mpm_model_part.ElementsBegin();
-                    //k != mpm_model_part.ElementsEnd(); ++k)
-            //{
-                
-                //array_1d<double,3> xg = k -> GetValue(GAUSS_COORD);
-                //typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                //Element::Pointer pelem;
-
-                ////FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                //bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
-
-                //if (is_found == true)
-                //{
-                    //pelem->Set(ACTIVE);
-                    
-
-                    //k->GetGeometry()(0) = pelem->GetGeometry()(0);
-                    //k->GetGeometry()(1) = pelem->GetGeometry()(1);
-                    //k->GetGeometry()(2) = pelem->GetGeometry()(2);
-
-                    //pelem->GetGeometry()[0].Set(ACTIVE);
-                    //pelem->GetGeometry()[1].Set(ACTIVE);
-                    //pelem->GetGeometry()[2].Set(ACTIVE);
-
-                    //if (TDim ==3)
-                    //{
-
-                        //k->GetGeometry()(3) = pelem->GetGeometry()(3);
-                        //pelem->GetGeometry()[3].Set(ACTIVE);
-                    //}
-                    
-
-
-                //}
-            //}
+            
 
         }
 
@@ -944,17 +888,19 @@ public:
             QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
-
+	    #pragma omp parallel
+			{
             typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
 
 
             //loop over the material points
-            for (ModelPart::ElementIterator k = mpm_model_part.ElementsBegin();
-                    k != mpm_model_part.ElementsEnd(); ++k)
-            {
+            #pragma omp for
+            for(unsigned int i = 0; i < mpm_model_part.Elements().size(); ++i){
+
+		auto elemItr = mpm_model_part.Elements().begin() + i;
                 
-                array_1d<double,3> xg = k -> GetValue(GAUSS_COORD);
+                array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
                 typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
@@ -967,10 +913,10 @@ public:
                     pelem->Set(ACTIVE);
                     
 
-                    k->GetGeometry()(0) = pelem->GetGeometry()(0);
-                    k->GetGeometry()(1) = pelem->GetGeometry()(1);
-                    k->GetGeometry()(2) = pelem->GetGeometry()(2);
-                    k->GetGeometry()(3) = pelem->GetGeometry()(3);
+                    elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                    elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                    elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                    elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
                     
                     
 
@@ -980,11 +926,8 @@ public:
             }
 
         }
-		//std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
-
-		//std::cout << "Time difference to solve (sec) = " << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()) /1000000.0 <<std::endl;
-
-
+		
+       }
         
     }
 
