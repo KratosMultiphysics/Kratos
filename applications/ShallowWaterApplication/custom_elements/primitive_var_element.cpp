@@ -124,7 +124,7 @@ namespace Kratos
             rRightHandSideVector.resize(element_size,false);             // False says not to preserve existing storage!!
         
         // Getting gravity
-        double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        mGravity = rCurrentProcessInfo[GRAVITY_Z];
         
         // Getting water height unit converter
         mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
@@ -154,7 +154,14 @@ namespace Kratos
         
         // Get element values (this function inlcudes the units conversion)
         double height;
-        GetElementValues(DN_DX, v_unknown, height);
+        array_1d<double,2> height_grad;
+        GetElementValues(DN_DX, v_unknown, height, height_grad);
+        
+        // Compute stabilization and discontinuity capturing parameters
+        double tau_u;
+        double tau_h;
+        double k_dc;
+        ComputeStabilizationParameters(height, height_grad, elem_length, tau_u, tau_h, k_dc);
         
         // Some auxilary definitions
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
@@ -201,31 +208,11 @@ namespace Kratos
             noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
         }
         
-        // Compute stabilization parameters
-        bool stabilization = true;
-        double Ctau = 0.002;
-        double tau_u = 0, tau_h = 0;
-        double fheight = fabs(height);
-        if (stabilization && fheight > 1e-6)
-        {
-            tau_u = Ctau/elem_length*pow(gravity/fheight,0.5);
-            tau_h = Ctau/elem_length*pow(fheight/gravity,0.5);
-        }
-        // Compute discontinuity capturing parameters
-        bool discontinuity_capturing = true;
-        double gradient_threshold = 1e-6;
-        //~ double residual;
-        double height_grad_norm = norm_2(prod(DN_DX_height,v_unknown));
-        double k_dc = 0;
-        if(discontinuity_capturing && height_grad_norm > gradient_threshold)
-        {
-            k_dc = 0.5*0.4*elem_length*height_grad_norm;  // Residual formulation
-        }
         
         // Build LHS
         // Cross terms
         noalias(rLeftHandSideMatrix)  = height * aux_q_div_u;           // Add <q*h*div(u)> to Mass Eq.
-        noalias(rLeftHandSideMatrix) += gravity * aux_w_grad_h;         // Add <w*g*grad(h)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += mGravity * aux_w_grad_h;         // Add <w*g*grad(h)> to Momentum Eq.
         
         // Inertia terms
         noalias(rLeftHandSideMatrix) += dt_inv * mass_matrix;           // Add <N,N> to both Eq's
@@ -236,7 +223,7 @@ namespace Kratos
         
         // Build RHS
         // Source term (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -gravity * prod(aux_w_grad_h, v_depth);
+        noalias(rRightHandSideVector)  = -mGravity * prod(aux_w_grad_h, v_depth);
         
         // Source term (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, v_rain);
@@ -294,7 +281,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    double PrimitiveVarElement<TNumNodes>::ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX)
+    double PrimitiveVarElement<TNumNodes>::ComputeElemSize(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX)
     {
         double l = 0.0;
 
@@ -314,32 +301,32 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetNodalValues(array_1d<double, TNumNodes*3>& rdepth,
-                                                        array_1d<double, TNumNodes*3>& rrain, 
-                                                        array_1d<double, TNumNodes*3>& runkn, 
-                                                        array_1d<double, TNumNodes*3>& rproj
+    void PrimitiveVarElement<TNumNodes>::GetNodalValues(array_1d<double, TNumNodes*3>& rDepth,
+                                                        array_1d<double, TNumNodes*3>& rRain, 
+                                                        array_1d<double, TNumNodes*3>& rUnkn, 
+                                                        array_1d<double, TNumNodes*3>& rProj
                                                        )
     {
         GeometryType& rGeom = GetGeometry();
         unsigned int counter = 0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rdepth[counter] = 0;
-            rrain[counter]  = 0;
-            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
+            rDepth[counter] = 0;
+            rRain[counter]  = 0;
+            rUnkn[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
+            rProj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
             counter++;
 
-            rdepth[counter] = 0;
-            rrain[counter]  = 0;
-            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
+            rDepth[counter] = 0;
+            rRain[counter]  = 0;
+            rUnkn[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
+            rProj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
             counter++;
 
-            rdepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / mHeightUnitConvert;
-            rrain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
-            runkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
-            rproj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
+            rDepth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / mHeightUnitConvert;
+            rRain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
+            rUnkn[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
+            rProj[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
             counter++;
         }
     }
@@ -347,21 +334,64 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void PrimitiveVarElement<TNumNodes>::GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
-                                                          array_1d<double, TNumNodes*3>& r_nodal_var,
-                                                          double& rheight
+    void PrimitiveVarElement<TNumNodes>::GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
+                                                          const array_1d<double, TNumNodes*3>& rNodalVar,
+                                                          double& rHeight,
+                                                          array_1d<double,2>& rHeightGrad
                                                          )
     {
         double lumping_factor = 1 / double(TNumNodes);
         
-        rheight = 0;
+        rHeight = 0;
+        rHeightGrad = ZeroVector(2);
         
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rheight += r_nodal_var[2 + 3*i];
+            rHeight += rNodalVar[2 + 3*i];
+            rHeightGrad[0] += rDN_DX(i,0) * rNodalVar[2 + 3*i];
+            rHeightGrad[1] += rDN_DX(i,1) * rNodalVar[2 + 3*i];
         }
 
-        rheight *= lumping_factor * mHeightUnitConvert;
+        rHeight *= lumping_factor * mHeightUnitConvert;
+        rHeightGrad *= mHeightUnitConvert;
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void PrimitiveVarElement<TNumNodes>::ComputeStabilizationParameters(const double& rHeight,
+                                                                        const array_1d<double,2>& rHeightGrad,
+                                                                        const double& rElemSize,
+                                                                        double& rTauU,
+                                                                        double& rTauH,
+                                                                        double& rKdc)
+    {
+        // Initialize outputs
+        rTauU = 0;
+        rTauH = 0;
+        rKdc  = 0;
+        
+        // Get element values
+        double height_grad_norm = norm_2(rHeightGrad);
+        
+        // Compute stabilization parameters
+        bool stabilization = true;
+        double Ctau = 0.002;
+        double fheight = fabs(rHeight);
+        if (stabilization && fheight > 1e-6)
+        {
+            rTauU = Ctau/rElemSize*pow(mGravity/fheight,0.5);
+            rTauH = Ctau/rElemSize*pow(fheight/mGravity,0.5);
+        }
+        
+        // Compute discontinuity capturing parameters
+        bool discontinuity_capturing = true;
+        double gradient_threshold = 1e-6;
+        //~ double residual;
+        if (discontinuity_capturing && height_grad_norm > gradient_threshold)
+        {
+            rKdc = 0.5*0.4*rElemSize*height_grad_norm;  // Residual formulation
+        }
     }
 
 //----------------------------------------------------------------------
