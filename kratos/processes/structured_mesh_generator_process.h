@@ -41,7 +41,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class StructuredMeshGeneratorProcess : public Process
+  class KRATOS_API(KRATOS_CORE) StructuredMeshGeneratorProcess : public Process
     {
     public:
         using GeometryType = Geometry<Node<3> >;
