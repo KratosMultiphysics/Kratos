@@ -53,7 +53,8 @@ namespace Kratos {
 
 			TestHandler.Initialize(r_element, model_part.GetProcessInfo());
 
-			KRATOS_CHECK_NEAR(2.0, TestHandler.Interpolate(row(NContainer, 0), &r_element), 1e-6);
+            boost::numeric::ublas::matrix_row< Matrix > the_row = row(NContainer,0);
+			KRATOS_CHECK_NEAR(2.0, TestHandler.Interpolate(the_row, &r_element), 1e-6);
         }
     }
 }
