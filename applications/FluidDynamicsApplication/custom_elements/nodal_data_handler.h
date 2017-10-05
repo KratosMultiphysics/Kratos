@@ -54,21 +54,21 @@ public:
     NodalDataHandler(const Variable<TDataType>& rVariable);
 
     /// Destructor.
-    virtual ~NodalDataHandler();
+    ~NodalDataHandler() override;
 
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo);
+    void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override;
 
-	virtual TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement);
+	TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual TStorageType& Get();
+    TStorageType& Get() override;
 
     ///@}
     ///@name Inquiry
@@ -79,7 +79,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NodalDataHandler for " << this->mrVariable.Name() << std::endl;
@@ -87,13 +87,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NodalDataHandler for " << this->mrVariable.Name() << std::endl;
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
     }
