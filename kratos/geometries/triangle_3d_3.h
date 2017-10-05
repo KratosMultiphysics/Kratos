@@ -628,6 +628,32 @@ public:
 
 	}
 
+    /**
+     * Check if an axis-aliged bounding box (AABB) intersects a triangle
+     * 
+     * Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox3.txt
+     * and the article "A Fast Triangle-Triangle Intersection Test", SIGGRAPH '05 ACM, Art.8, 2005:
+     * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
+     * 
+     * @return bool if the triangle overlaps a box
+     * @param rLowPoint first corner of the box
+     * @param rHighPoint second corner of the box
+     */
+    bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
+    {
+        Point<3, double> boxcenter;
+        Point<3, double> boxhalfsize;
+
+        boxcenter[0]   = 0.5 * (rLowPoint[0] + rHighPoint[0]);
+        boxcenter[1]   = 0.5 * (rLowPoint[1] + rHighPoint[1]);
+        boxcenter[2]   = 0.5 * (rLowPoint[2] + rHighPoint[2]);
+
+        boxhalfsize[0] = 0.5 * (rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.5 * (rHighPoint[1] - rLowPoint[1]);
+        boxhalfsize[2] = 0.5 * (rHighPoint[2] - rLowPoint[2]);
+
+        return TriBoxOverlap(boxcenter, boxhalfsize);
+    }
 
     /// Quality functions
 
@@ -2111,6 +2137,199 @@ private:
 		}
 		return false;
 	}
+
+//*************************************************************************************
+//*************************************************************************************
+
+    /** 
+     * @see HasIntersection
+     * use separating axis theorem to test overlap between triangle and box
+     * need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     */
+    inline bool TriBoxOverlap(Point<3, double>& rBoxCenter, Point<3, double>& rBoxHalfSize)
+    {
+        double abs_ex, abs_ey, abs_ez, distance;
+        array_1d<double,3 > vert0, vert1, vert2;
+        array_1d<double,3 > edge0, edge1, edge2, normal;
+        std::pair<double, double> min_max;
+
+        // move everything so that the boxcenter is in (0,0,0)
+        noalias(vert0) = this->GetPoint(0) - rBoxCenter;
+        noalias(vert1) = this->GetPoint(1) - rBoxCenter;
+        noalias(vert2) = this->GetPoint(2) - rBoxCenter;
+
+        // compute triangle edges
+        noalias(edge0) = vert1 - vert0;
+        noalias(edge1) = vert2 - vert1;
+        noalias(edge2) = vert0 - vert2;
+
+        // Bullet 3:
+        // test the 12 tests first (this was faster)
+        abs_ex = std::abs(edge0[0]);
+        abs_ey = std::abs(edge0[1]);
+        abs_ez = std::abs(edge0[2]);
+        if (!AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+
+        abs_ex = std::abs(edge1[0]);
+        abs_ey = std::abs(edge1[1]);
+        abs_ez = std::abs(edge1[2]);
+        if (!AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+
+        abs_ex = std::abs(edge2[0]);
+        abs_ey = std::abs(edge2[1]);
+        abs_ez = std::abs(edge2[2]);
+        if (!AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+
+        // Bullet 1:
+        //  first test overlap in the {x,y,z}-directions
+        //  find min, max of the triangle for each direction, and test for
+        //  overlap in that direction -- this is equivalent to testing a minimal
+        //  AABB around the triangle against the AABB
+
+        // test in X-direction
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
+
+        // test in Y-direction
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
+
+        // test in Z-direction
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
+
+        // Bullet 2:
+        //  test if the box intersects the plane of the triangle
+        //  compute plane equation of triangle: normal*x+distance=0
+        MathUtils<double>::CrossProduct(normal, edge0, edge1);
+        distance =- inner_prod(normal, vert0);
+        if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
+        
+        return true;  // box and triangle overlaps
+    }
+
+    /**
+     * Check if a plane intersects a box
+     * @see TriBoxOverlap
+     * 
+     * @return bool intersection flagg
+     * @param rNormal the plane normal
+     * @param rDist   distance to origin
+     * @param rMaxBox box corner from the origin
+     * 
+     * plane equation: rNormal*x+rDist=0
+     */
+    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox)
+    {
+        array_1d<double,3> vmin, vmax;
+        for(int q = 0; q < 3; q++)
+        {
+            if(rNormal[q] > 0.00)
+            {
+                vmin[q] = -rMaxBox[q];
+                vmax[q] =  rMaxBox[q];
+            }
+            else
+            {
+                vmin[q] =  rMaxBox[q];
+                vmax[q] = -rMaxBox[q];
+            }
+        }
+        if(inner_prod(rNormal, vmin) + rDist >  0.00) return false;
+        if(inner_prod(rNormal, vmax) + rDist >= 0.00) return true;
+        
+        return false;
+    }
+
+    /** AxisTestX
+     * This method return true if there is a separating axis
+     * 
+     * @param rEdgeY, rEdgeZ: i-edge corrdinates
+     * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
+     */
+    bool AxisTestX(double& rEdgeY, double& rEdgeZ,
+                   double& rAbsEdgeY, double& rAbsEdgeZ,
+                   array_1d<double,3>& rVertA,
+                   array_1d<double,3>& rVertC,
+                   Point<3,double>& rBoxHalfSize)
+    {
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
+        proj_c = rEdgeY*rVertC[2] - rEdgeZ*rVertC[1];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+        rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
+
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
+    }
+
+    /** AxisTestY
+     * This method return true if there is a separating axis
+     * 
+     * @param rEdgeX, rEdgeZ: i-edge corrdinates
+     * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
+     */
+    bool AxisTestY(double& rEdgeX, double& rEdgeZ,
+                   double& rAbsEdgeX, double& rAbsEdgeZ,
+                   array_1d<double,3>& rVertA,
+                   array_1d<double,3>& rVertC,
+                   Point<3,double>& rBoxHalfSize)
+    {
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
+        proj_c = rEdgeZ*rVertC[0] - rEdgeX*rVertC[2];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+        rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
+
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
+    }
+
+    /** AxisTestZ
+     * This method return true if there is a separating axis
+     * 
+     * @param rEdgeX, rEdgeY: i-edge corrdinates
+     * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
+     */
+    bool AxisTestZ(double& rEdgeX, double& rEdgeY, 
+                   double& rAbsEdgeX, double& rAbsEdgeY,
+                   array_1d<double,3>& rVertA, 
+                   array_1d<double,3>& rVertC, 
+                   Point<3,double>& rBoxHalfSize)
+    {
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
+        proj_c = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+        rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
+
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
+    }
 
 
 	// TODO: I should move this class to a separate file but is out of scope of this branch
