@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 // External includes 
 
@@ -73,10 +74,12 @@ namespace Kratos
             mrModelPart(model_part)  
         {
             KRATOS_TRY
+            
             std::cout << "Initializing shallow water variables utility" << std::endl; 
             mWaterHeightConvert = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
             mThreshold = 1e-3;
             mZeroValue = 1e-8;
+            
             KRATOS_CATCH("")
         }
 
@@ -160,36 +163,68 @@ namespace Kratos
         void SetDryWetState()
         {
             KRATOS_TRY
+            
+            //~ int expected_neigh_elems = 6;
+            //~ int expected_neigh_nodes = 6;
+            //~ FindNodalNeighboursProcess find_nodes_process(mrModelPart, expected_neigh_elems, expected_neigh_nodes);
+            //~ find_nodes_process.Execute();
 
-            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
-            // We loop all the nodes to check if they are dry
+            //~ ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+            //~ // We loop all the nodes to check if they are dry
+            //~ #pragma omp parallel for
+            //~ for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            //~ {
+                //~ ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
+                //~ // If current node is dry, is candidate to be inactive
+                //~ if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold && 
+                    //~ inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
+                //~ {
+                    //~ WeakPointerVector< Node<3> >& rneigh = inode->GetValue(NEIGHBOUR_NODES);
+                    //~ // We loop all the neighbour nodes to check if they are dry
+                    //~ // If a neighbour node is wet, current node is candidate to be wet, so it is active
+                    //~ bool neigh_wet = false;
+                    //~ for( WeakPointerVector<Node<3> >::iterator jnode = rneigh.begin(); jnode!=rneigh.end(); jnode++)
+                    //~ {
+                        //~ if (jnode->FastGetSolutionStepValue(HEIGHT) >= mThreshold ||
+                            //~ jnode->FastGetSolutionStepValue(RAIN)   >= mThreshold )
+                            //~ neigh_wet = true;
+                    //~ }
+                    //~ if (neigh_wet)
+                        //~ inode->Set(ACTIVE, true);
+                    //~ else
+                        //~ inode->Set(ACTIVE, false);
+                //~ }
+                //~ // If current element is wet, set active
+                //~ else
+                    //~ inode->Set(ACTIVE, true);
+            //~ }
+            
+            // Way B: elements
+            
+            // Getting the elements from the model
+            const unsigned int nelements = static_cast<int>(mrModelPart.Elements().size());
+            int nnodes;
+            bool wet_node;
+            
+            // And now, if an element has all nodes dry, it is not active
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(unsigned int k = 0; k < nelements; k++)
             {
-                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                // If current node is dry, is candidate to be inactive
-                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold && 
-                    inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
+                ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + k;
+                nnodes = it->GetGeometry().size();
+                wet_node = false;
+                for(int l = 0; l < nnodes; l++)
                 {
-                    WeakPointerVector< Node<3> >& rneigh = inode->GetValue(NEIGHBOUR_NODES);
-                    // We loop all the neighbour nodes to check if they are dry
-                    // If a neighbour node is wet, current node is candidate to be wet, so it is active
-                    bool neigh_wet = false;
-                    for( WeakPointerVector<Node<3> >::iterator jnode = rneigh.begin(); jnode!=rneigh.end(); jnode++)
-                    {
-                        if (jnode->FastGetSolutionStepValue(HEIGHT) >= mThreshold ||
-                            jnode->FastGetSolutionStepValue(RAIN)   >= mThreshold )
-                            neigh_wet = true;
-                    }
-                    if (neigh_wet)
-                        inode->Set(ACTIVE, true);
-                    else
-                        inode->Set(ACTIVE, false);
+                    if (it->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mThreshold ||
+                        it->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mThreshold )
+                        wet_node = true;  // It means there is almost a wet node
                 }
-                // If current element is wet, set active
+                if (wet_node)
+                    it->Set(ACTIVE, true);
                 else
-                    inode->Set(ACTIVE, true);
+                    it->Set(ACTIVE, false);
             }
+            
             KRATOS_CATCH("")
         }
 

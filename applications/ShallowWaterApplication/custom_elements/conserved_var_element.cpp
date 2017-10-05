@@ -357,13 +357,14 @@ namespace Kratos
             rHeight += rNodalVar[2 + 3*i]; 
             rHeightGrad[0] += rDN_DX(i,0) * rNodalVar[2 + 3*i];
             rHeightGrad[1] += rDN_DX(i,1) * rNodalVar[2 + 3*i];
-            rDivU  += rDN_DX(i,0) * rNodalVar[  + 3*i] / rNodalVar[2 + 3*i];
-            rDivU  += rDN_DX(i,1) * rNodalVar[1 + 3*i] / rNodalVar[2 + 3*i];
+            rDivU  += rDN_DX(i,0) * rNodalVar[  + 3*i];
+            rDivU  += rDN_DX(i,1) * rNodalVar[1 + 3*i];
         }
+        rDivU /= rHeight;
         
         rHeight *= lumping_factor * mHeightUnitConvert;
         rHeightGrad *= mHeightUnitConvert;
-        rDivU /= mHeightUnitConvert;
+        rDivU /= (mHeightUnitConvert);
     }
 
 //----------------------------------------------------------------------
