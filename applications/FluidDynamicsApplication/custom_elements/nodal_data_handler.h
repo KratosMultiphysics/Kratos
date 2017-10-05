@@ -68,7 +68,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual const TStorageType& Get() const; // NOTE: can this method be const? see embedded problems
+    virtual TStorageType& Get();
 
     ///@}
     ///@name Inquiry

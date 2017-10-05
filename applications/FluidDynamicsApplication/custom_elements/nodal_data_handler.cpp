@@ -47,7 +47,7 @@ double NodalDataHandler<double, 3, array_1d<double, 3>>::Interpolate(boost::nume
 
 
 template <>
-const array_1d<double, 3>& NodalDataHandler<double, 3, array_1d<double, 3>>::Get() const
+array_1d<double, 3>& NodalDataHandler<double, 3, array_1d<double, 3>>::Get()
 {
     return mValues;
 }
@@ -79,7 +79,7 @@ array_1d<double, 3> NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ub
 }
 
 template <>
-const boost::numeric::ublas::bounded_matrix<double, 2, 3>& NodalDataHandler<array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 2, 3>>::Get() const
+boost::numeric::ublas::bounded_matrix<double, 2, 3>& NodalDataHandler<array_1d<double, 3>, 3, boost::numeric::ublas::bounded_matrix<double, 2, 3>>::Get()
 {
     return mValues;
 }

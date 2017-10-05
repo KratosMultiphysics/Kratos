@@ -85,7 +85,7 @@ public:
         KRATOS_ERROR << "Accessing base class DataHandler::Set() method." << std::endl;
     }
 
-    virtual const TStorageType& Get() const
+    virtual TStorageType& Get()
     {
         KRATOS_ERROR << "Accessing base class DataHandler::Get() method." << std::endl;
     }
