@@ -872,10 +872,11 @@ protected:
      * @return If there is intersection or not (true/false)
      */
     
+    template<class TGeometryType = GeometryNodeType>
     inline bool TriangleIntersections(
         ConditionArrayListType& ConditionsPointsSlave,
         PointListType& PointList,
-        GeometryNodeType& OriginalSlaveGeometry,
+        TGeometryType& OriginalSlaveGeometry,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
         const array_1d<double, 3>& SlaveTangentXi,
@@ -1214,7 +1215,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
@@ -1246,12 +1247,14 @@ private:
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (4);
+        std::vector<PointType::Pointer> points_array_slave_not_rotated  (4);
         std::vector<PointType::Pointer> points_array_master (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
             PointType aux_point;
             
             aux_point = MortarUtilities::FastProject( slave_center,  OriginalSlaveGeometry[i_node], SlaveNormal);
+            points_array_slave_not_rotated[i_node] = boost::make_shared<PointType>(aux_point);
             MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
             points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
             
@@ -1261,8 +1264,9 @@ private:
         }
         
         Quadrilateral3D4 <PointType> slave_geometry(  points_array_slave  );
+        Quadrilateral3D4 <PointType> slave_geometry_not_rotated(  points_array_slave_not_rotated  );
         Quadrilateral3D4 <PointType> master_geometry( points_array_master );
-        
+ 
         // No we project both nodes from the slave side and the master side
         array_1d<bool, 4> all_inside;
         
@@ -1281,9 +1285,9 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
             
-//             const bool solution = TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+//             const bool solution = TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
 //             
 //             EnhanceTriangulation(ConditionsPointsSlave);
 //             
@@ -1300,9 +1304,9 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
             
-//             const bool solution = TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+//             const bool solution = TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
 //             
 //             EnhanceTriangulation(ConditionsPointsSlave);
 //             
@@ -1556,7 +1560,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry, Slave);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
@@ -1588,12 +1592,14 @@ private:
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (4);
+        std::vector<PointType::Pointer> points_array_slave_not_rotated  (4);
         std::vector<PointType::Pointer> points_array_master (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
             PointType aux_point;
             
             aux_point = MortarUtilities::FastProject( slave_center,  OriginalSlaveGeometry[i_node], SlaveNormal);
+            points_array_slave_not_rotated[i_node] = boost::make_shared<PointType>(aux_point);
             MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
             points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
             
@@ -1603,6 +1609,7 @@ private:
         }
         
         Quadrilateral3D4 <PointType> slave_geometry(  points_array_slave  );
+        Quadrilateral3D4 <PointType> slave_geometry_not_rotated(  points_array_slave_not_rotated  );
         Quadrilateral3D4 <PointType> master_geometry( points_array_master );
         
         // No we project both nodes from the slave side and the master side
@@ -1623,7 +1630,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry, Master);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
         }
         else
         {
@@ -1636,7 +1643,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry, Slave);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
