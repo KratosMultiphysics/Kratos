@@ -15,7 +15,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
-#include "custom_elements/nodal_data_list.h"
+#include "custom_elements/nodal_data_handler.h"
 
 namespace Kratos {
     namespace Testing {
@@ -41,13 +41,19 @@ namespace Kratos {
             InitializeTestModelpart(model_part);
 
             Element& r_element = *(model_part.ElementsBegin());
+			Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
 
-            //std::vector< DataHandler
+			for (unsigned int i = 0; i < 3; i++) {
+				r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 1.0 + i;
+			}
 
-            //NodalDataList element_data(r_element.GetGeometry(),DataHandlers);
+			Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-            //NodalDataList< DataHandler< array_1d<double,3> >, DataHandler< array_1d<double,3> >, DataHandler<double> > elemental_data(r_element.GetGeometry());
+			NodalDataHandler<double, 3, array_1d<double, 3>> TestHandler(PRESSURE);
 
+			TestHandler.Initialize(r_element, model_part.GetProcessInfo());
+
+			KRATOS_CHECK_NEAR(2.0, TestHandler.Interpolate(row(NContainer, 0), &r_element), 1e-6);
         }
     }
 }
