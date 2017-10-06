@@ -27,6 +27,7 @@
 #include "custom_processes/dam_nodal_young_modulus_process.hpp"
 #include "custom_processes/dam_temperature_by_device_process.hpp"
 #include "custom_processes/dam_construction_process.hpp"
+#include "custom_processes/dam_thermal_construction_process.hpp"
 #include "custom_processes/dam_added_mass_condition_process.hpp"
 #include "custom_processes/dam_t_sol_air_heat_flux_process.hpp"
 #include "custom_processes/dam_noorzai_heat_source_process.hpp"
@@ -72,6 +73,10 @@ void  AddCustomProcessesToPython()
     // Construction Process     
     class_< DamConstructionProcess, bases< Process >, boost::noncopyable > ( "DamConstructionProcess",
         init < ModelPart&, Parameters&>());
+
+    // Thermo-mechanical Construction Process     
+    class_< DamThermalConstructionProcess, bases< Process >, boost::noncopyable > ( "DamThermalConstructionProcess",
+    init < ModelPart&, Parameters&>());
 
     // Added Mass Distribution     
     class_< DamAddedMassConditionProcess, bases< Process >, boost::noncopyable > ( "DamAddedMassConditionProcess",
