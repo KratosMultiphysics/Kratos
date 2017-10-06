@@ -29,7 +29,7 @@ void NodalDataHandler<double, 3, array_1d<double, 3>>::Initialize(const Element&
     const Geometry<Node<3>> r_geometry = rElement.GetGeometry();
     for (unsigned int i = 0; i < 3; i++) // NOTE: TNumNodes
     {
-        mValues[i] = r_geometry[i];
+        mValues[i] = r_geometry[i].FastGetSolutionStepValue(this->mrVariable);
     }
 }
 
