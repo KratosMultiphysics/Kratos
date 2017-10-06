@@ -303,8 +303,8 @@ class Solution(object):
         from gid_output_process import GiDOutputProcess
         self.output_settings = self.ProjectParameters["output_configuration"]
         self.graphical_output = GiDOutputProcess(self.computing_model_part,
-                                      self.problem_name,
-                                      self.output_settings)        
+                                                 self.problem_name,
+                                                 self.output_settings)
 
     def GraphicalOutputExecuteInitialize(self):
         self.graphical_output.ExecuteInitialize() 

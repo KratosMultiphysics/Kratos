@@ -230,10 +230,8 @@ namespace Kratos
 	  bool perform_search = true;
 	  for(unsigned int i=0; i<size; i++)
 	    {
-	      if( rConditionGeometry[i].SolutionStepsDataHas(RIGID_WALL) ){
-		if( rConditionGeometry[i].FastGetSolutionStepValue(RIGID_WALL) ) //if is a rigid wall do not search else do search
-		  perform_search = false;
-	      }
+	      if( rConditionGeometry[i].Is(RIGID) ) //if is a rigid wall do not search else do search
+		perform_search = false;	     
 	    }		   		     
 
 
@@ -263,8 +261,10 @@ namespace Kratos
 			  {
 			    WeakPointerVector< Element > MasterElements;
 			    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
-			    if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-			      std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;			    
+			    if( mEchoLevel >= 1 ){
+			      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+				std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+			    }
 			    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 			    
 			    Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
@@ -289,9 +289,11 @@ namespace Kratos
 			    if(found){		    
 			      WeakPointerVector< Node<3> > MasterNodes;
 			      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
-			      if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
-				std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
-			      i_cond->SetValue(MASTER_NODES,MasterNodes);
+			      if( mEchoLevel >= 1 ){
+				if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+				  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+				i_cond->SetValue(MASTER_NODES,MasterNodes);
+			      }
 			    }
 			    else{						 
 			      std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;			  
@@ -327,8 +329,10 @@ namespace Kratos
 			    
 				    WeakPointerVector< Element > MasterElements;
 				    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
-				    if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-				      std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+				    if( mEchoLevel >= 1 ){
+				      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+					std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+				    }
 				    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 					 
 				    Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
@@ -353,8 +357,10 @@ namespace Kratos
 				    if(found){		    
 				      WeakPointerVector< Node<3> > MasterNodes;
 				      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
-				      if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
-					std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+				      if( mEchoLevel >= 1 ){
+					if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+					  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+				      }
 				      i_cond->SetValue(MASTER_NODES,MasterNodes);
 				    }
 				    else{						 
