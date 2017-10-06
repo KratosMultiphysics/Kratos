@@ -145,9 +145,9 @@ namespace Kratos
 
           void Generate3DMesh();
 
-		  void GenerateNodes2D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint);
+		  void GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint);
 
-		  void GenerateNodes3D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint);
+		  void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
 
 		  void GenerateTriangularElements();
 
@@ -157,7 +157,7 @@ namespace Kratos
 
 		  std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
 
-		  void GetLocalCoordinatesRange(Point<3>& rMinPoint, Point<3>& rMaxPoint);
+		  void GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint);
 
           void Check();
 
