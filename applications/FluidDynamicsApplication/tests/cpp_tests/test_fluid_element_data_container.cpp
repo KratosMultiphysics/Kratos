@@ -46,14 +46,16 @@ namespace Kratos {
 			for (unsigned int i = 0; i < 3; i++) {
 				r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 1.0 + i;
                 r_geometry[i].FastGetSolutionStepValue(VELOCITY_Y) = 3.0 * i;
+                r_geometry[i].FastGetSolutionStepValue(VELOCITY_Z) = i - 5.0;
             }
 
             Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
 			NodalDataHandler<double, 3, array_1d<double, 3>> PressureHandler(PRESSURE);
-			NodalDataHandler<array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,2,3>> VelocityHandler(VELOCITY);
+			NodalDataHandler<array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2>> VelocityHandler(VELOCITY);
 
 			PressureHandler.Initialize(r_element, model_part.GetProcessInfo());
+            VelocityHandler.Initialize(r_element, model_part.GetProcessInfo());
 
             boost::numeric::ublas::matrix_row< Matrix > shape_functions = row(NContainer,0);
 			KRATOS_CHECK_NEAR(2.0, PressureHandler.Interpolate(shape_functions, &r_element), 1e-6);
@@ -61,6 +63,7 @@ namespace Kratos {
             array_1d<double,3> velocity = VelocityHandler.Interpolate(shape_functions, &r_element);
             KRATOS_CHECK_NEAR(0.0, velocity[0], 1e-6);
 			KRATOS_CHECK_NEAR(3.0, velocity[1], 1e-6);
+            KRATOS_CHECK_NEAR(0.0, velocity[2], 1e-6); // Note: velocity Z is not stored in the 2D handler, so it should return 0
         }
 
         KRATOS_TEST_CASE_IN_SUITE(FluidElementGaussPointData, FluidDynamicsApplicationFastSuite)
