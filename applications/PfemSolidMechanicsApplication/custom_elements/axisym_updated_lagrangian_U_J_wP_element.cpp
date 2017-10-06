@@ -418,10 +418,20 @@ namespace Kratos
 
             //verify that the variables are correctly initialized
 
-            if ( WATER_PRESSURE.Key() == 0 )
+      if ( WATER_PRESSURE.Key() == 0 )
          KRATOS_THROW_ERROR( std::invalid_argument, "WATER PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
-                  return correct;
+      if ( this->GetProperties().Has(THICKNESS) ) {
+	      double thickness = this->GetProperties()[THICKNESS];
+	      if ( thickness <= 0.0) {
+		      this->GetProperties()[THICKNESS] = 1.0;
+	      }
+      } else {
+	     this->GetProperties()[THICKNESS] = 1.0;
+      } 
+
+
+      return correct;
 
       KRATOS_CATCH( "" );
    }
@@ -570,6 +580,7 @@ HMVariables.ConstrainedModulus = ConstrainedModulus;
       AxisymUpdatedLagrangianUJElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+
       // Reshape the BaseClass RHS and Add the Hydro Part
       AxisymWaterPressureJacobianUtilities WaterUtility;
       Matrix TotalF = prod( rVariables.F, rVariables.F0);

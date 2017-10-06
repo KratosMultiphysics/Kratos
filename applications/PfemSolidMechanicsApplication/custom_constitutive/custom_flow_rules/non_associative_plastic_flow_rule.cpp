@@ -52,7 +52,7 @@ void NonAssociativePlasticFlowRule::InitializeMaterial(YieldCriterionPointer pYi
 {
     FlowRule::InitializeMaterial(pYieldCriterionPointer, pHardeningPointer, rProp);
     //mTrialEigenValues = ZeroVector(3);
-    //mEigenVectors = ZeroMatrix(3,3);
+    //mEigenVectors = ZeroMatrix(3);
     mElasticPrincipalStrain = ZeroVector(3);
 
     mLargeStrainBool = true; 
@@ -64,40 +64,35 @@ void NonAssociativePlasticFlowRule::InitializeMaterial(YieldCriterionPointer pYi
 // rStressMatrix es la matrix de tensiones que devuelve
 // rStrainMatrix son las deformaciones que se imponen
 // mElasticPrincipalStrain almacena las deformaciones elasticas en los ejes principales (para luego calcular be)
-bool NonAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+bool NonAssociativePlasticFlowRule::CalculateReturnMapping(RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, const Vector& rPrincipalStrainTrial)
 {
 
    bool PlasticityActive = false; 
    rReturnMappingVariables.Options.Set(PLASTIC_REGION,false); 
    //1.-Compute Principal Axis
+//   Vector PrincipalStrain = ZeroVector(3); 
 
    //Computes the polar decomposition and Gives the PrincipalStrain
    // mTrialEigenValues and mEigenValues are computed and stored (crec que és una guarrada, pero ...)
-   Vector MainStrain      = ZeroVector(3); 
-   // Matrix EigenVectors    = ZeroMatrix(3,3);
-   // this-> ComputePrincipalAxisStrain(rReturnMappingVariables, rNewElasticLeftCauchyGreen, MainStrain, EigenVectors);
-
-   for (unsigned int i = 0; i<3; ++i)
-     MainStrain[i] = rNewElasticLeftCauchyGreen(i,i);
-
-   double YoungModulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-   double PoissonCoefficient  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-
-   double LameLambda         = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
-   double LameMu             =  YoungModulus/(2*(1+PoissonCoefficient));
+//   this->ComputePrincipalAxisStrain(rReturnMappingVariables, rStrainMatrix, PrincipalStrain);
 
    //2.-Compute ElasticMatrix &  Trial State
    Matrix ElasticMatrix = ZeroMatrix(3,3);
-   for (unsigned int i = 0; i<3; ++i)
-   {  
-     for (unsigned int j = 0; j<3; ++j)
-       ElasticMatrix(i,j) = LameLambda + 2.0/3.0*LameMu;
-
-     ElasticMatrix(i,i) += 2.0*LameMu;
+   const double& Young = rReturnMappingVariables.YoungModulus;
+   const double& Nu    = rReturnMappingVariables.PoissonCoefficient;
+   for (unsigned int i = 0; i<3; ++i)   { 
+        for (unsigned int j = 0; j<3; ++j)  {
+           if (i == j)   {
+               ElasticMatrix(i,j) = Young / (1.0+Nu) / (1.0-2.0*Nu)*(1.0-Nu)   ;
+           }
+           else {
+               ElasticMatrix(i,j) = Young / (1.0+Nu) / (1.0-2.0*Nu)*(Nu);
+           }
+        }
    }
  
    Vector PrincipalStress = ZeroVector(3);
-   PrincipalStress = prod(ElasticMatrix, MainStrain);
+   PrincipalStress = prod(ElasticMatrix, rPrincipalStrainTrial);
 
    //3.- Check for the yield Condition
    InternalVariables PlasticVariables = mInternalVariables;
@@ -107,7 +102,7 @@ bool NonAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariable
    if (rReturnMappingVariables.TrialStateFunction < 0.0)
    {
       PlasticVariables.DeltaPlasticStrain = 0;
-      mElasticPrincipalStrain = MainStrain;
+      mElasticPrincipalStrain = rPrincipalStrainTrial;
       PlasticityActive = false; 
       rReturnMappingVariables.Options.Set(PLASTIC_REGION,false); 
    }
@@ -117,7 +112,7 @@ bool NonAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariable
       Matrix InverseElasticMatrix = ZeroMatrix(3,3);
       CalculateInverseElasticMatrix(rReturnMappingVariables, InverseElasticMatrix);
 
-      mElasticPrincipalStrain = MainStrain;
+      mElasticPrincipalStrain = rPrincipalStrainTrial;
       bool converged = this->CalculateConsistencyCondition(rReturnMappingVariables, PlasticVariables, InverseElasticMatrix, PrincipalStress, mElasticPrincipalStrain);
       if (!converged)
          std::cout<<" Constit Law Did Not Converge "<<std::endl;
@@ -126,10 +121,10 @@ bool NonAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariable
       rReturnMappingVariables.Options.Set(PLASTIC_REGION,true); 
    }
 
-   this->ReturnStressFromPrincipalAxis(rReturnMappingVariables.MainDirections, PrincipalStress, rStressMatrix);
+   this->ReturnStressFromPrincipalAxis(rReturnMappingVariables.EigenVectors, PrincipalStress, rStressMatrix);
 
    rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED,true);
-      
+
    return PlasticityActive; 
 
 
@@ -138,15 +133,10 @@ bool NonAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariable
 
 void NonAssociativePlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix)
 {
-
-        double YoungModulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-	double PoissonCoefficient  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-
-	double LameLambda         = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
-	double LameMu             =  YoungModulus/(2*(1+PoissonCoefficient));
-
-	double Diagonal    = (LameLambda + LameMu)/(LameMu*(3.0*LameLambda+2.0*LameMu));
-	double NonDiagonal = (-LameLambda)/( 2.0*LameMu*(3.0*LameLambda + 2.0*LameMu));
+	const double& Young = rReturnMappingVariables.YoungModulus;
+	const double& Nu = rReturnMappingVariables.PoissonCoefficient;
+	double Diagonal = 1.0/Young;
+	double NonDiagonal = -Nu/Young;
 
 	for (unsigned int i = 0; i<3; ++i)
 	{
@@ -167,23 +157,24 @@ bool NonAssociativePlasticFlowRule::CalculateConsistencyCondition(RadialReturnVa
 
 	//Set convergence parameters
 	unsigned int iter   = 0;
-	double Tolerance    = 1e-3;
+	double Tolerance    = 1e-6;
         double MaxIterations= 80;
 
 	// start
 	double DeltaGamma = 0.0;
         double DeltaDeltaGamma    = 0.0;
-	//double DeltaStateFunction = 0;
+        double DeltaStateFunction = 0;
         rReturnMappingVariables.DeltaGamma  = 0;
 
 	double StateFunction     = rReturnMappingVariables.TrialStateFunction;
-	//double InitialEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain;
+	double InitialEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain;
 	
 	Vector PlasticStrain = ZeroVector(3);
 	Vector DeltaPlasticStrain = ZeroVector(3);
 	Vector DeltaStress = ZeroVector(3);
 	Vector Residual = ZeroVector(3);
         AuxiliarDerivativesStructure AuxiliarDerivatives;
+
 
 	while (fabs(StateFunction) >= Tolerance && iter<=MaxIterations)
 	{
@@ -208,6 +199,7 @@ bool NonAssociativePlasticFlowRule::CalculateConsistencyCondition(RadialReturnVa
 		DeltaStress = prod(Ainverse, AuxiliarVector);
 		DeltaPlasticStrain = prod( rInverseElasticMatrix, DeltaStress);
 
+
 		// 3.  ACUMULAR Y CERRAR.
 		DeltaGamma   += DeltaDeltaGamma; 
 		PlasticStrain += DeltaPlasticStrain;
@@ -217,6 +209,7 @@ bool NonAssociativePlasticFlowRule::CalculateConsistencyCondition(RadialReturnVa
 	}
 	rReturnMappingVariables.DeltaGamma = DeltaGamma;
         rPrincipalStrain -= PlasticStrain;
+
 	if (iter> MaxIterations)
 		return false;
 	
@@ -226,10 +219,11 @@ bool NonAssociativePlasticFlowRule::CalculateConsistencyCondition(RadialReturnVa
 
 
 
-  void NonAssociativePlasticFlowRule::ComputePrincipalAxisStrain(RadialReturnVariables& rReturnMappingVariables, const Matrix& rStrainMatrix, Vector& rPrincipalStrain, Matrix& rEigenVectors)
+void NonAssociativePlasticFlowRule::ComputePrincipalAxisStrain(RadialReturnVariables& rReturnMappingVariables, const Matrix& rStrainMatrix, Vector& rPrincipalStrain)
 {
 
    Matrix StrainMatrix = ZeroMatrix(3,3);
+   mLargeStrainBool = true;
    if (mLargeStrainBool)
    {
       StrainMatrix = rStrainMatrix;
@@ -238,20 +232,16 @@ bool NonAssociativePlasticFlowRule::CalculateConsistencyCondition(RadialReturnVa
    // Aquí sha de posar StrainMatrix = epsilon;
    }
    
-   rEigenVectors    =  ZeroMatrix(3,3);
-   Vector EigenValues     =  ZeroVector(3);
-
-   SolidMechanicsMathUtilities<double>::EigenVectors(StrainMatrix, rEigenVectors, EigenValues);
-
+   SolidMechanicsMathUtilities<double>::EigenVectors(StrainMatrix, rReturnMappingVariables.EigenVectors, rReturnMappingVariables.TrialEigenValues);
    if (mLargeStrainBool)
    {
       for (unsigned int i = 0; i<3; ++i)
-         rPrincipalStrain[i] = 0.50*std::log(EigenValues[i]);
+         rPrincipalStrain(i) = 0.50*std::log(rReturnMappingVariables.TrialEigenValues(i));
    
    } else 
    {
        for (unsigned int i = 0; i<3; ++i)
-          rPrincipalStrain[i] = EigenValues[i];
+          rPrincipalStrain(i) = rReturnMappingVariables.TrialEigenValues(i);
    }
 
 
@@ -260,56 +250,140 @@ bool NonAssociativePlasticFlowRule::CalculateConsistencyCondition(RadialReturnVa
 
 void NonAssociativePlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix)
 {
-   rStressMatrix = ZeroMatrix(3,3); //Esto seguro que está prohibido
-   Vector auxN = ZeroVector(3);
-   Matrix auxM = ZeroMatrix(3,3);
-   for (unsigned int i = 0; i<3; ++i)
-   {
-      for (unsigned int j = 0; j<3; ++j)
-         auxN(j) = rEigenVectors(j,i);
-      auxM = MathUtils<double>::TensorProduct3(auxN, auxN);
-      rStressMatrix += rPrincipalStress(i)*auxM;
+    rStressMatrix = ZeroMatrix(3,3); //Esto seguro que está prohibido
+    Matrix Aux = ZeroMatrix(3,3);
+ 
+    for (unsigned int j = 0; j<3; ++j)
+        Aux(j,j) = rPrincipalStress(j);
+
+    rStressMatrix = prod(Aux, (rEigenVectors));
+    rStressMatrix = prod(trans(rEigenVectors), rStressMatrix);
+
+}
+
+
+void NonAssociativePlasticFlowRule::UpdateDerivatives(const Vector& rPrincipalStress, AuxiliarDerivativesStructure& rAuxiliarDerivatives)
+{
+   this->CalculatePlasticPotentialDerivatives(rPrincipalStress, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD);
+   mpYieldCriterion->CalculateYieldFunctionDerivative(rPrincipalStress, rAuxiliarDerivatives.YieldFunctionD);
+   rAuxiliarDerivatives.YieldFunctionD = rAuxiliarDerivatives.PlasticPotentialD;
+}
+
+void NonAssociativePlasticFlowRule::UpdateDerivatives(const Matrix& rEigenVectors, const Matrix& rStressMatrix, AuxiliarDerivativesStructure& rAuxiliarDerivatives)
+{
+
+    // STEP 1. Compute the Stress In Principal Axis
+    Matrix AuxiliarStressMatrix ;
+    AuxiliarStressMatrix = prod( rStressMatrix, trans(rEigenVectors) );
+    AuxiliarStressMatrix = prod( rEigenVectors, AuxiliarStressMatrix);
+
+    Vector StressVector = ZeroVector(3);
+
+    for (unsigned int i = 0; i < 3; ++i)
+        StressVector(i) = AuxiliarStressMatrix(i,i);
+ 
+    // STEP 2. Compute Principal Axis Derivatives
+    AuxiliarDerivativesStructure PrincipalAxisDerivatives;
+    this->UpdateDerivatives(StressVector, PrincipalAxisDerivatives);
+
+    // STEP3. Reconvert to the Cartesian Axis
+
+    Matrix YieldDerivative = ZeroMatrix(3,3);
+    for (unsigned int i = 0; i <3; ++i)
+        YieldDerivative(i,i) = PrincipalAxisDerivatives.YieldFunctionD(i);
+
+    YieldDerivative = prod( YieldDerivative, rEigenVectors);
+    YieldDerivative = prod( trans(rEigenVectors), YieldDerivative);
+
+    rAuxiliarDerivatives.YieldFunctionD = MathUtils<double>::StrainTensorToVector( YieldDerivative, 6);
+    rAuxiliarDerivatives.PlasticPotentialD = rAuxiliarDerivatives.YieldFunctionD;
+
+}
+
+
+void NonAssociativePlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables,  Matrix& rElasticMatrix)
+{
+  
+   rElasticMatrix = ZeroMatrix(6,6);
+
+   const double& Young = rReturnMappingVariables.YoungModulus;
+   const double& Nu    = rReturnMappingVariables.PoissonCoefficient;
+
+   for (unsigned int i = 0; i<3; ++i)   { 
+        for (unsigned int j = 0; j<3; ++j)  {
+           if (i == j)   {
+               rElasticMatrix(i,j) = Young / (1.0+Nu) / (1.0-2.0*Nu)*(1.0-Nu)   ;
+           }
+           else {
+               rElasticMatrix(i,j) = Young / (1.0+Nu) / (1.0-2.0*Nu)*(Nu);
+           }
+        }
    }
+
+   for (unsigned int i = 3; i <6; ++i)
+          rElasticMatrix(i,i) = Young / ( 1.0 + Nu) / 2.0;
+
 }
 
 void NonAssociativePlasticFlowRule::CalculatePrincipalAxisAlgorithmicTangent(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rStressMatrix, Matrix& rConsistMatrix)
 {
-  Matrix InverseElasticMatrix = ZeroMatrix(3,3);
-  this->CalculateInverseElasticMatrix(rReturnMappingVariables, InverseElasticMatrix);
-  AuxiliarDerivativesStructure AuxiliarDerivatives;
-  Vector PrincipalStress = ZeroVector(3);
-  {
-        Matrix aux=ZeroMatrix(3,3);
-	aux = prod(trans(rReturnMappingVariables.MainDirections), rStressMatrix);
-	aux = prod(aux, rReturnMappingVariables.MainDirections);
-	for (unsigned int i = 0; i<3; ++i)
-           PrincipalStress(i) = aux(i,i);
+
+
+  Matrix ElasticMatrix = ZeroMatrix(3,3);
+  //this->CalculateInverseElasticMatrix(rReturnMappingVariables, InverseElasticMatrix);
+  this->CalculateElasticMatrix(rReturnMappingVariables, ElasticMatrix) ; 
+  if ( ! rReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION))  {
+
+    rConsistMatrix = ElasticMatrix;
+
+    return;    
+
   }
-  this->UpdateDerivatives(PrincipalStress, AuxiliarDerivatives);
 
-  InverseElasticMatrix += rReturnMappingVariables.DeltaGamma * AuxiliarDerivatives.PlasticPotentialDD;
-  Matrix ConsistElastic = ZeroMatrix(3,3);
-  double detA;
-  MathUtils<double>::InvertMatrix(InverseElasticMatrix, rConsistMatrix, detA);
+  // TO DO: SECOND DERIVATIVE INVERSE ....
 
-  Vector auxF = ZeroVector(3);
-  Vector auxG = ZeroVector(3);
+  AuxiliarDerivativesStructure AuxiliarDerivatives; 
+  this->UpdateDerivatives( rReturnMappingVariables.EigenVectors, rStressMatrix, AuxiliarDerivatives);
+
+  rConsistMatrix = ElasticMatrix;
+
+  Vector auxF; 
+  Vector auxG; 
  
   auxG = prod(rConsistMatrix, AuxiliarDerivatives.PlasticPotentialD);
   auxF = prod(AuxiliarDerivatives.YieldFunctionD, rConsistMatrix);
-  double denominador;
-  denominador = MathUtils<double>::Dot3(auxF, AuxiliarDerivatives.PlasticPotentialD);
-  if (fabs(denominador) > 1){
-	  rConsistMatrix -= (1/denominador)*MathUtils<double>::TensorProduct3(auxG, auxF);
+
+  double denominador = 0.0;
+
+  for (unsigned int i = 0; i < 6; ++i )
+      denominador += auxF(i)*AuxiliarDerivatives.PlasticPotentialD(i);
+
+  //denominador = MathUtils<double>::Dot3(auxF, AuxiliarDerivatives.PlasticPotentialD);
+
+  if (fabs(denominador) > 1e-8){
+        for (unsigned int i = 0; i < 6; ++i)  {
+           for (unsigned j = 0; j <6; ++j)   {
+               rConsistMatrix(i,j) -= (1/denominador)* auxG(i)*auxF(j) ;
+           }
+       }
+	 // rConsistMatrix -= (1/denominador)*MathUtils<double>::TensorProduct3(auxG, auxF);
   }
- 
+
+
 }
+
+
+
+
+
+
+
 
 
 //Vector& NonAssociativePlasticFlowRule::GetStressVectorFromMatrix(const Matrix& rStressMatrix)
 //{
 //   Vector OutPut = ZeroVector(3);
-//   Matrix auxMatrix = ZeroMatrix(3,3);
+//   Matrix auxMatrix = ZeroMatrix(3);
 //   auxMatrix = prod( rStressMatrix, mEigenVectors);
 //   auxMatrix = prod( trans(mEigenVectors), auxMatrix);
 //   for (unsigned int i = 0; i<3; ++i)
@@ -323,25 +397,25 @@ Matrix NonAssociativePlasticFlowRule::GetElasticLeftCauchyGreen(const RadialRetu
 {
 
    Vector Landa2 = ZeroVector(3);
+   mLargeStrainBool = true;
    if (mLargeStrainBool)
    {   
        for (unsigned int i = 0; i<3; ++i)
             Landa2(i) = std::exp(2.0*mElasticPrincipalStrain(i));
    } 
    else {
-       Landa2 = mElasticPrincipalStrain;
+       for (unsigned int i = 0; i<3; ++i)
+       Landa2(i) = std::exp(2.0*mElasticPrincipalStrain(i)); //mElasticPrincipalStrain;
    }
    Matrix OutPut = ZeroMatrix(3,3);
-   this->ReturnStressFromPrincipalAxis(rReturnMappingVariables.MainDirections, Landa2, OutPut);
+
+   this->ReturnStressFromPrincipalAxis(rReturnMappingVariables.EigenVectors, Landa2, OutPut);
+
    return OutPut;
 
+
 }
 
-void NonAssociativePlasticFlowRule::UpdateDerivatives(const Vector& rPrincipalStress, AuxiliarDerivativesStructure& rAuxiliarDerivatives)
-{
-   this->CalculatePlasticPotentialDerivatives(rPrincipalStress, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD);
-   mpYieldCriterion->CalculateYieldFunctionDerivative(rPrincipalStress, rAuxiliarDerivatives.YieldFunctionD);
-}
 
 
 void NonAssociativePlasticFlowRule::save( Serializer& rSerializer ) const
@@ -360,13 +434,15 @@ bool NonAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnVariabl
 	
 	//mInternalVariables.EquivalentPlasticStrainOld  = PlasticVariables.EquivalentPlasticStrain;
         mInternalVariables.EquivalentPlasticStrainOld = 0.0;
+   
+        mInternalVariables.EquivalentPlasticStrain *= 0.9;
 
 	mInternalVariables.DeltaPlasticStrain          = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 
 	mInternalVariables.EquivalentPlasticStrain    += mInternalVariables.DeltaPlasticStrain;
 
 	mInternalVariables.DeltaPlasticStrain         *= ( 1.0/rReturnMappingVariables.DeltaTime );
- 	
+
 	return true;
 }
 

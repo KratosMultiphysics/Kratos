@@ -29,7 +29,7 @@
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
         "scheme_type"                        : "Linear",
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
-        "shceme_type"                        : "Non-Linear",
+        "scheme_type"                        : "Non-Linear",
 *endif
 *endif
         "model_import_settings"              : {
@@ -63,6 +63,9 @@
 *if(strcmp(GenData(DOFS),"U-J-wP")==0)
         "jacobian_dofs"                      : true,
         "water_pressure_dofs"                : true,
+*endif
+*if(strcmp(GenData(DOFS),"U-J")==0)
+        "jacobian_dofs"                      : true,
 *endif
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
@@ -504,6 +507,9 @@
 *set var Counter = 0
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
+*if(strcmp(GenData(Set_initial_state),"True")==0)
+*set var numberconstraints(int)=Operation(numberconstraints(int)+1)
+*endif
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
      	{
@@ -589,6 +595,25 @@
 	},
 *endif
 *end groups
+*if(strcmp(GenData(Set_initial_state),"True")==0)
+        {
+        "help"            : "This process tries to set the initial state of the soil",
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "assign_initial_HM_state_process",
+        "process_name"    : "SetInitialStateProcess",
+        "Parameters"      : {
+             "model_part_name": "Main_Domain",
+*if(strcmp(GenData(Constant_weight),"True")==0)
+             "gravity_active":              false,
+             "constant_horizontal_stress":  *GenData(SX), 
+             "constant_vertical_stress":    *GenData(SY),
+             "constant_water_pressure":     *GenData(WP)
+*else 
+             "gravity_active":   true
+*endif
+             }
+         }
+*endif
     ],
     "loads_process_list"       : [
 *set var numberloads= 0
@@ -799,6 +824,10 @@
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0)
+				      "WATER_PRESSURE",
+				      "JACOBIAN",
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0)
 				      "WATER_PRESSURE",

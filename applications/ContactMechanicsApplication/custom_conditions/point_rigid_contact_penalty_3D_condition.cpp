@@ -371,21 +371,6 @@ namespace Kratos
     
     rVariables.ContactStressVector = MathUtils<double>::StressTensorToVector( NormalForceModulus * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) , rVariables.ContactStressVector.size() );
         
-    if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE )) { 
-
-      double EffectiveNormalModulus = NormalForceModulus * (-1) / rIntegrationWeight;
-
-      EffectiveNormalModulus = CalculateEffectiveNormalForceModulus( EffectiveNormalModulus, rVariables );
-      
-      EffectiveNormalModulus *= (-1) * rIntegrationWeight;
- 
-      array_1d<double, 3 >& EffectiveContactForce = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_FORCE);
-      
-      for (unsigned int j = 0; j < dimension; j++) {
-	EffectiveContactForce[j] = EffectiveNormalModulus * rVariables.Surface.Normal[j];
-      }
-      
-    }
 
     GetGeometry()[0].UnSetLock();
 
@@ -418,12 +403,7 @@ namespace Kratos
       ContactForce[i] += TangentForceModulus * rVariables.Surface.Tangent[i];
     }
 
-    if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE )) { 
-      array_1d<double, 3 > & EffectiveContactForce = GetGeometry()[0].FastGetSolutionStepValue( EFFECTIVE_CONTACT_FORCE );
-      for (unsigned int i = 0; i < dimension ; ++i) {
-	EffectiveContactForce[i] += TangentForceModulus * rVariables.Surface.Tangent[i];
-      }
-    }
+
 
       rVariables.ContactStressVector += MathUtils<double>::StressTensorToVector( TangentForceModulus * ( outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ) , rVariables.ContactStressVector.size() );
     

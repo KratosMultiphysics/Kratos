@@ -20,7 +20,6 @@
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
-
 namespace Kratos
 {
 /**

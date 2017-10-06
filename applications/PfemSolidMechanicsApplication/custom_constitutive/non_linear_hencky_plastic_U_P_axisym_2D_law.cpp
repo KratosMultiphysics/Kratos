@@ -108,6 +108,8 @@ Matrix NonLinearHenckyElasticPlasticUPAxisym2DLaw::SetConstitutiveMatrixToApprop
          }
      }
 
+     double det =  MathUtils<double>::Det( mElasticLeftCauchyGreen);
+     mElasticLeftCauchyGreen /= pow( det, 1/3);
      return Result;
 
 }

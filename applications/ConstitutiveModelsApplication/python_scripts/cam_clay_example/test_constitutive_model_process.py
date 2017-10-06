@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
 import importlib
 
+
 def CreateProcess(custom_settings):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -219,8 +220,8 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
             import numpy as np
             import matplotlib.pyplot as plt
 
-            nSize = 20;
-            final = 0.042;
+            nSize = 30;
+            final = 0.05;
             pStrain = np.arange( float(nSize) )
             pStress = np.arange( float(nSize) )
             pStrain2 = np.arange( float(nSize) )
@@ -243,7 +244,25 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
                 self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
                 self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
                 stress = self.parameters.GetStressVector();
+
+                #Compute Green Lagrange Tensor (my way)
                 strain = self.parameters.GetStrainVector();
+                FTranspose = self.F;
+                for ab in range(0, 3):
+                    for cd in range(0,3):
+                        FTranspose[ab,cd] = self.F[cd,ab]
+
+
+
+                GreenLagrangeTensor = FTranspose * self.F
+                for ab in range(0,3):
+                    GreenLagrangeTensor[ab,ab] = GreenLagrangeTensor[ab,ab] - 1.0;
+                    strain[ab] = GreenLagrangeTensor[ab,ab]
+                strain[3] = GreenLagrangeTensor[0,1]
+                strain[4] = GreenLagrangeTensor[0,2]
+                strain[5] = GreenLagrangeTensor[1,2]
+
+                
                 pStrain[t] = strain[0];
                 pStress[t] = stress[0];
                 pStrain2[t] = strain[3];

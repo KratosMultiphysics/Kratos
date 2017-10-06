@@ -718,6 +718,27 @@ namespace Kratos
    }
 
 
+   int AxisymUpdatedLagrangianUwPElement::Check( const ProcessInfo & rCurrentProcessInfo )
+   {
+	KRATOS_TRY
+	int correct = 0;
+
+	correct = AxisymmetricUpdatedLagrangianElement::Check( rCurrentProcessInfo );
+
+
+      if ( this->GetProperties().Has(THICKNESS) ) {
+	      double thickness = this->GetProperties()[THICKNESS];
+	      if ( thickness <= 0.0) {
+		      this->GetProperties()[THICKNESS] = 1.0;
+	      }
+      } else {
+	     this->GetProperties()[THICKNESS] = 1.0;
+      } 
+
+	return correct;
+	KRATOS_CATCH("");
+
+   }
    //************************************************************************************
    //************************************************************************************
 

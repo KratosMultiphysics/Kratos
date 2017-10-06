@@ -71,14 +71,14 @@ namespace Kratos
 
    double& BorjaHenckyCamClayPlasticPlaneStrain2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue)
    {
-/*      if ( rThisVariable == PLASTIC_STRESS_LIKE)
-      {
-         rValue = this->GetValue( PRECONSOLIDATION, rValue);
-      }
-      else if ( rThisVariable == PLASTIC_STRESS_LIKE)
-      {
-         rValue = this->GetValue( VOLUMETRIC_PLASTIC, rValue);
-      }*/
+      /*      if ( rThisVariable == PLASTIC_STRESS_LIKE)
+              {
+              rValue = this->GetValue( PRECONSOLIDATION, rValue);
+              }
+              else if ( rThisVariable == PLASTIC_STRESS_LIKE)
+              {
+              rValue = this->GetValue( VOLUMETRIC_PLASTIC, rValue);
+              }*/
       if ( rThisVariable == PENALTY_PARAMETER)
       {
       }
@@ -94,16 +94,27 @@ namespace Kratos
 
          rValue = K + 4.0*G / 3.0;
       }
-      else if ( rThisVariable == EQUIVALENT_YOUNG_MODULUS)
+      else if ( ( rThisVariable == YOUNG_MODULUS) || ( rThisVariable == SHEAR_MODULUS ) || (rThisVariable == BULK_MODULUS ) )
       {
          double Swelling = mpYieldCriterion->GetHardeningLaw().GetProperties()[ SWELLING_SLOPE ];
          double MeanStress ;
          MeanStress = this->GetValue( STRESS_INV_P, MeanStress);
          double K = MeanStress/Swelling;
+         if ( rThisVariable == BULK_MODULUS) 
+         {
+            rValue = K;
+            return rValue;
+         }
 
          double Alpha = mpYieldCriterion->GetHardeningLaw().GetProperties()[ ALPHA_SHEAR ];
          double G = mpYieldCriterion->GetHardeningLaw().GetProperties()[ INITIAL_SHEAR_MODULUS ];
          G += Alpha*MeanStress;  // this modulus is approximated (not the real one)
+
+         if ( rThisVariable == SHEAR_MODULUS)
+         {
+            rValue = G;
+            return rValue;
+         }
 
          rValue = 9.0*K*G / ( 3.0*K + G);
 
@@ -112,31 +123,32 @@ namespace Kratos
       {
          rValue = NonLinearHenckyElasticPlasticPlaneStrain2DLaw::GetValue( rThisVariable, rValue);
       }
+
       return rValue;
    }
 
    void BorjaHenckyCamClayPlasticPlaneStrain2DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
-/*      if ( rThisVariable == PLASTIC_STRESS_LIKE )
-      {
-         double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
-         const double OtherSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[NORMAL_COMPRESSION_SLOPE];
-         double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
-         double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
-         ReferencePressure *= OCR;
+      /*      if ( rThisVariable == PLASTIC_STRESS_LIKE )
+              {
+              double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+              const double OtherSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[NORMAL_COMPRESSION_SLOPE];
+              double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
+              double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
+              ReferencePressure *= OCR;
 
-         double PreconsolidationStress = rValue;
-         double VolumetricPlasticDef = - (OtherSlope - SwellingSlope) * std::log(-PreconsolidationStress / ReferencePressure);
-         FlowRule::RadialReturnVariables ReturnMappingVariables;
-         ReturnMappingVariables.DeltaGamma = VolumetricPlasticDef;
-         mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
-      }
-      else if ( rThisVariable == PLASTIC_STRAIN_LIKE)
-      {
-         FlowRule::RadialReturnVariables ReturnMappingVariables;
-         ReturnMappingVariables.DeltaGamma = rValue;
-         mpFlowRule->UpdateInternalVariables( ReturnMappingVariables );
-      }*/
+              double PreconsolidationStress = rValue;
+              double VolumetricPlasticDef = - (OtherSlope - SwellingSlope) * std::log(-PreconsolidationStress / ReferencePressure);
+              FlowRule::RadialReturnVariables ReturnMappingVariables;
+              ReturnMappingVariables.DeltaGamma = VolumetricPlasticDef;
+              mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
+              }
+              else if ( rThisVariable == PLASTIC_STRAIN_LIKE)
+              {
+              FlowRule::RadialReturnVariables ReturnMappingVariables;
+              ReturnMappingVariables.DeltaGamma = rValue;
+              mpFlowRule->UpdateInternalVariables( ReturnMappingVariables );
+              }*/
       if ( rThisVariable == PENALTY_PARAMETER)
       {
       }
@@ -258,13 +270,19 @@ namespace Kratos
          PreconsolidationStress = Objective(0) + pow ( StressQ / ShearM, 2) / Objective(0); 
          ReferencePressure *= OCR;
 
-         if ( PreconsolidationStress > -40.0 ) {
-            PreconsolidationStress = -40.0; // a treure;
+         PreconsolidationStress *= OCR;
+         PreconsolidationStress = rStressVector(1)*OCR;
+         if ( PreconsolidationStress > -5.0 ) {
+            PreconsolidationStress = -5.0; // a treure;
+         }
+         else {
          }
 
          double VolumetricPlasticDef = - (OtherSlope - SwellingSlope) * std::log(-PreconsolidationStress / ReferencePressure);
          FlowRule::RadialReturnVariables ReturnMappingVariables;
          ReturnMappingVariables.DeltaGamma = VolumetricPlasticDef;
+         ReturnMappingVariables.DeltaTime = 1.0;
+         ReturnMappingVariables.DeltaBeta = 0.0;
          mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
 
 
@@ -275,5 +293,13 @@ namespace Kratos
       }
 
    }
+
+
+   int BorjaHenckyCamClayPlasticPlaneStrain2DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+   {
+
+      return 0;
+   }
+
 
 } // Namespace Kratos
