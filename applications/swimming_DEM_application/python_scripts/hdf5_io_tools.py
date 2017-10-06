@@ -32,12 +32,12 @@ class FluidHDF5Loader:
     def __init__(self, fluid_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
-        self.store_pressure = pp.CFD_DEM.store_fluid_pressure
-        self.store_gradient = pp.CFD_DEM.store_full_gradient
+        self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
+        self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
 
         number_of_variables = 3
 
-        if pp.CFD_DEM.store_fluid_pressure:
+        if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
         if pp.CFD_DEM.load_derivatives:
             number_of_variables += 9

@@ -39,9 +39,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    BofangConditionTemperatureProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    BofangConditionTemperatureProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -76,34 +76,34 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        msurface_temp = rParameters["Surface_Temp"].GetDouble();
-        mbottom_temp = rParameters["Bottom_Temp"].GetDouble();
-        mheight = rParameters["Height_Dam"].GetDouble();
-        mamplitude = rParameters["Temperature_Amplitude"].GetDouble();
-        mday = rParameters["Day_Ambient_Temp"].GetInt();
-        mwater_level = rParameters["Water_level"].GetDouble();
-        mouter_temp = rParameters["Outer_temp"].GetDouble();
-        mmonth = rParameters["Month"].GetDouble();
-        mfreq = 0.52323;
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mIsFixed = rParameters["is_fixed"].GetBool();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mSurfaceTemp = rParameters["Surface_Temp"].GetDouble();
+        mBottomTemp = rParameters["Bottom_Temp"].GetDouble();
+        mHeight = rParameters["Height_Dam"].GetDouble();
+        mAmplitude = rParameters["Temperature_Amplitude"].GetDouble();
+        mDay = rParameters["Day_Ambient_Temp"].GetInt();
+        mWaterLevel = rParameters["Water_level"].GetDouble();
+        mOuterTemp = rParameters["Outer_temp"].GetDouble();
+        mMonth = rParameters["Month"].GetDouble();
+        mFreq = 0.52323;
 
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableIdWater = rParameters["Water_level_Table"].GetInt();
         mTableIdOuter = rParameters["Outer_temp_Table"].GetInt();
         mTableIdMonth = rParameters["Month_Table"].GetInt();
         
         if(mTableIdWater != 0)
-            mpTableWater = model_part.pGetTable(mTableIdWater);
+            mpTableWater = mrModelPart.pGetTable(mTableIdWater);
             
         if(mTableIdOuter != 0)
-            mpTableOuter = model_part.pGetTable(mTableIdOuter);
+            mpTableOuter = mrModelPart.pGetTable(mTableIdOuter);
         
         if(mTableIdMonth != 0)
-            mpTableMonth = model_part.pGetTable(mTableIdMonth);
+            mpTableMonth = mrModelPart.pGetTable(mTableIdMonth);
         
         KRATOS_CATCH("");
     }
@@ -121,13 +121,13 @@ public:
         
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
@@ -135,29 +135,29 @@ public:
                 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
         
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
-                if(mis_fixed)
+                if(mIsFixed)
                 {
                     it->Fix(var);
                 }
                 
-                double aux = (mreference_coordinate + mwater_level) - it->Coordinate(direction);
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
                 if(aux >= 0.0)
                 {
-                    double aux1 = ((mbottom_temp-(msurface_temp*exp(-0.04*mheight)))/(1-(exp(-0.04*mheight))));
-                    double Temperature = (aux1+((msurface_temp-aux1)*(exp(-0.04*aux)))+(mamplitude*(exp(-0.018*aux))*(cos(mfreq*(mmonth-(mday/30.0)-2.15+(1.30*exp(-0.085*aux)))))));
+                    double aux1 = ((mBottomTemp-(mSurfaceTemp*exp(-0.04*mHeight)))/(1-(exp(-0.04*mHeight))));
+                    double Temperature = (aux1+((mSurfaceTemp-aux1)*(exp(-0.04*aux)))+(mAmplitude*(exp(-0.018*aux))*(cos(mFreq*(mMonth-(mDay/30.0)-2.15+(1.30*exp(-0.085*aux)))))));
                     
                     it->FastGetSolutionStepValue(var) = Temperature;
                     
                 }
                 else
-                    it->FastGetSolutionStepValue(var) = mouter_temp;
+                    it->FastGetSolutionStepValue(var) = mOuterTemp;
             }
         }
         
@@ -171,36 +171,36 @@ public:
         
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
         
         // Getting the values of table in case that it exist        
         if(mTableIdWater != 0)
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mwater_level = mpTableWater->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mWaterLevel = mpTableWater->GetValue(time);
         }
         
         if(mTableIdOuter != 0)
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mouter_temp = mpTableOuter->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mOuterTemp = mpTableOuter->GetValue(time);
         }
         
         if(mTableIdMonth != 0)
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mmonth = mpTableMonth->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mMonth = mpTableMonth->GetValue(time);
         }
 
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
@@ -208,29 +208,29 @@ public:
                 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
         
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
-                if(mis_fixed)
+                if(mIsFixed)
                 {
                     it->Fix(var);
                 }
                 
-                double aux = (mreference_coordinate + mwater_level) - it->Coordinate(direction);
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
                 if(aux >= 0.0)
                 {
-                    double aux1 = ((mbottom_temp-(msurface_temp*exp(-0.04*mheight)))/(1-(exp(-0.04*mheight))));
-                    double Temperature = (aux1+((msurface_temp-aux1)*(exp(-0.04*aux)))+(mamplitude*(exp(-0.018*aux))*(cos(mfreq*(mmonth-(mday/30.0)-2.15+(1.30*exp(-0.085*aux)))))));
+                    double aux1 = ((mBottomTemp-(mSurfaceTemp*exp(-0.04*mHeight)))/(1-(exp(-0.04*mHeight))));
+                    double Temperature = (aux1+((mSurfaceTemp-aux1)*(exp(-0.04*aux)))+(mAmplitude*(exp(-0.018*aux))*(cos(mFreq*(mMonth-(mDay/30.0)-2.15+(1.30*exp(-0.085*aux)))))));
                     
                     it->FastGetSolutionStepValue(var) = Temperature;
                     
                 }
                 else
-                    it->FastGetSolutionStepValue(var) = mouter_temp;
+                    it->FastGetSolutionStepValue(var) = mOuterTemp;
             }
         }
         
@@ -260,22 +260,22 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    std::string mgravity_direction;
-    bool mis_fixed;
-    double mreference_coordinate;
-    double msurface_temp;
-    double mbottom_temp;
-    double mheight;
-    double mamplitude;
-    int mday;    
-    double mmonth;
-    double mwater_level;
-    double mouter_temp;
-    double mfreq;
-    double mtime_unit_converter;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    std::string mGravityDirection;
+    bool mIsFixed;
+    double mReferenceCoordinate;
+    double mSurfaceTemp;
+    double mBottomTemp;
+    double mHeight;
+    double mAmplitude;
+    int mDay;    
+    double mMonth;
+    double mWaterLevel;
+    double mOuterTemp;
+    double mFreq;
+    double mTimeUnitConverter;
     TableType::Pointer mpTableWater;
     TableType::Pointer mpTableOuter;
     TableType::Pointer mpTableMonth;

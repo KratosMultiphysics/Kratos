@@ -18,12 +18,10 @@
 
 /* Project includes */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #if !defined(_WIN32)
-    #include "custom_utilities/color_utilities.h"
-//#else
-//     #include "custom_external_libraries/colorwin/colorwin.hpp"
+    #include "utilities/color_utilities.h"
 #endif
 
 namespace Kratos
@@ -79,7 +77,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<BprinterUtility>                   TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -88,10 +86,12 @@ public:
     /// Default constructors
     ALMFrictionlessMortarConvergenceCriteria(
         double Tolerance = std::numeric_limits<double>::epsilon(),
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr,
+        const bool PrintingOutput = false 
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mTolerance(Tolerance),
         mpTable(pTable),
+        mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
@@ -99,6 +99,9 @@ public:
     ///Copy constructor 
     ALMFrictionlessMortarConvergenceCriteria( ALMFrictionlessMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
+      ,mpTable(rOther.mpTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
+      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
 
@@ -132,7 +135,7 @@ public:
         // Defining the convergence
         unsigned int is_converged = 0;
         
-//         const double& epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+//         const double& epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double& scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
@@ -143,7 +146,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             
-            const double& epsilon = it_node->GetValue(PENALTY_PARAMETER);
+            const double& epsilon = it_node->GetValue(INITIAL_PENALTY);
             
             // Check if the node is slave
             bool node_is_slave = true;
@@ -188,6 +191,8 @@ public:
                 auto& table = mpTable->GetTable();
                 if (is_converged == 0)
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         table << BOLDFONT(FGRN("       Achieved"));
                     #else
@@ -195,9 +200,16 @@ public:
                         //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
                         //Table << &ThisStream;
                     #endif
+                    }
+                    else
+                    {
+                        table << "Achieved";
+                    }
                 }
                 else
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         table << BOLDFONT(FRED("   Not achieved"));
                     #else
@@ -205,25 +217,40 @@ public:
                         //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
                         //Table << (&ThisStream);
                     #endif
+                    }
+                    else
+                    {
+                        table << "Not achieved";
+                    }
                 }
             }
             else
             {
                 if (is_converged == 0)
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     #else
                         std::cout << "\tActive set convergence is achieved" << std::endl;
                     #endif
+                    }
                 }
                 else
                 {
+                    if (mPrintingOutput == false)
+                    {
                     #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     #else
                         std::cout << "\tActive set convergence is not achieved" << std::endl;
                     #endif
+                    }
+                    else
+                    {
+                        std::cout << "\tActive set convergence is not achieved" << std::endl;
+                    }
                 }
             }
         }
@@ -383,6 +410,7 @@ private:
     double mTolerance;               // Tolerance considered in contact check
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mPrintingOutput;            // If the colors and bold are printed
     bool mTableIsInitialized;        // If the table is already initialized
     
     ///@}

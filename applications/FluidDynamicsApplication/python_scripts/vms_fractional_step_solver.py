@@ -255,9 +255,9 @@ class IncompressibleFluidSolver:
 # self.solver.ApplyFractionalVelocityFixity()
             (self.neighbour_search).Execute()
 # self.slip_conditions_initialized = False
-            if self.use_slip_conditions:
-                self.normal_util.CalculateOnSimplex(
-                    self.model_part, self.domain_size, IS_STRUCTURE)
+        if self.use_slip_conditions:
+            self.normal_util.CalculateOnSimplex(
+                self.model_part, self.domain_size, IS_STRUCTURE)
 
         if self.divergence_clearance_steps > 0:
             self.do_divergence_clearance()

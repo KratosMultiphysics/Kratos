@@ -203,12 +203,12 @@ public:
     /// Destructor. Do nothing!!!
     ~Sphere3D1() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Point;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Sphere3D1;
     }

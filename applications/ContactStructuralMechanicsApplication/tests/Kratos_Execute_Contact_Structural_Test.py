@@ -1,6 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 import os
 import process_factory
@@ -10,6 +13,15 @@ class Kratos_Execute_Test:
     def __init__(self, ProjectParameters):
 
         self.ProjectParameters = ProjectParameters
+        
+        self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+        self.parallel_type = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
+
+        ## Import parallel modules if needed
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.mpi as mpi
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
@@ -17,8 +29,8 @@ class Kratos_Execute_Test:
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
         # Construct the solver (main setting methods are located in the solver_module)
-        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+        import python_solvers_wrapper_contact_structural
+        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, ProjectParameters)
 
         # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers
@@ -64,11 +76,18 @@ class Kratos_Execute_Test:
         # ### Output settings start ####
         self.output_post = ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
-            from gid_output_process import GiDOutputProcess
-            output_settings = ProjectParameters["output_configuration"]
-            self.gid_output = GiDOutputProcess(self.computing_model_part,
-                                               self.problem_name,
-                                               output_settings)
+            if (self.parallel_type == "OpenMP"):
+                from gid_output_process import GiDOutputProcess
+                output_settings = ProjectParameters["output_configuration"]
+                self.gid_output = GiDOutputProcess(self.computing_model_part,
+                                                   self.problem_name,
+                                                   output_settings)
+            elif (self.parallel_type == "MPI"):
+                from gid_output_process_mpi import GiDOutputProcessMPI
+                output_settings = ProjectParameters["output_configuration"]
+                self.gid_output = GiDOutputProcessMPI(self.computing_model_part,
+                                                      self.problem_name,
+                                                      output_settings)
             self.gid_output.ExecuteInitialize()
             
         # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer

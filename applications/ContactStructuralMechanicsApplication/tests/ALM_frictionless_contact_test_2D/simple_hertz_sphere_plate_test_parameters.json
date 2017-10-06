@@ -3,13 +3,14 @@
         "problem_name"    : "simple_hertz_popp_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 0.11,
         "start_time"      : 0.0,
         "end_time"        : 0.1,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "contact_structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {

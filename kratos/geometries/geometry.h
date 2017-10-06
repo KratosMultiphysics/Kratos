@@ -318,12 +318,12 @@ public:
     /// Destructor. Do nothing!!!
     ~Geometry() override {}
 
-    virtual GeometryData::KratosGeometryFamily GetGeometryFamily()
+    virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
         return GeometryData::Kratos_generic_family;
     }
 
-    virtual GeometryData::KratosGeometryType GetGeometryType()
+    virtual GeometryData::KratosGeometryType GetGeometryType() const
     {
         return GeometryData::Kratos_generic_type;
     }
@@ -1175,7 +1175,7 @@ public:
     ///@name Jacobian
     ///@{
 
-    virtual CoordinatesArrayType& GlobalCoordinates( CoordinatesArrayType& rResult, CoordinatesArrayType const& LocalCoordinates )
+    virtual CoordinatesArrayType& GlobalCoordinates( CoordinatesArrayType& rResult, CoordinatesArrayType const& LocalCoordinates ) const
     {
 		if (rResult.size() != 3)
 			rResult.resize(3, false);

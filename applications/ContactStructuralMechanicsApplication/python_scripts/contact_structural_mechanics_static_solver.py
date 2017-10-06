@@ -37,10 +37,15 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 "mortar_type": "",
                 "contact_tolerance": 0.0e0,
                 "fancy_convergence_criterion": true,
+                "print_convergence_criterion": false,
                 "ensure_contact": false,
                 "adaptative_strategy": false,
                 "split_factor": 10.0,
-                "max_number_splits": 3
+                "max_number_splits": 3,
+                "contact_displacement_relative_tolerance": 1.0e-4,
+                "contact_displacement_absolute_tolerance": 1.0e-9,
+                "contact_residual_relative_tolerance": 1.0e-4,
+                "contact_residual_absolute_tolerance": 1.0e-9
             }
         }
         """)
@@ -105,133 +110,27 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         self.processes_list = ContactStructuralMechanicsApplication.ProcessFactoryUtility(processes_list)
         
     def _create_convergence_criterion(self):
-        if "Contact" in self.settings["convergence_criterion"].GetString():
-            D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-            D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-            R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-            R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-            contact_tolerance = self.contact_settings["contact_tolerance"].GetDouble()
-            fancy_convergence_criterion = self.contact_settings["fancy_convergence_criterion"].GetBool()
-            ensure_contact = self.contact_settings["ensure_contact"].GetBool()
-            echo_level = self.settings["echo_level"].GetInt()
-            
-            if (fancy_convergence_criterion == True):
-                table = ContactStructuralMechanicsApplication.BprinterUtility()
-            
-            if(self.settings["convergence_criterion"].GetString() == "Contact_Displacement_criterion"):
-                if (fancy_convergence_criterion == True):
-                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact, table)
-                else:
-                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact)
-                convergence_criterion.SetEchoLevel(echo_level)
-                
-            elif(self.settings["convergence_criterion"].GetString() == "Contact_Residual_criterion"):
-                if (fancy_convergence_criterion == True):
-                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact, table)
-                else:
-                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
-                convergence_criterion.SetEchoLevel(echo_level)
-                
-            elif(self.settings["convergence_criterion"].GetString() == "Contact_Mixed_criterion"):
-                if (fancy_convergence_criterion == True):
-                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact, table)
-                else:
-                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
-                convergence_criterion.SetEchoLevel(echo_level)
-                    
-            elif(self.settings["convergence_criterion"].GetString() == "Contact_And_criterion"):
-                if (fancy_convergence_criterion == True):
-                    Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact, table)
-                    Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact, table)
-                else:
-                    Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact)
-                    Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
-                
-                Displacement.SetEchoLevel(echo_level)
-                Residual.SetEchoLevel(echo_level)
-                convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-                
-            elif(self.settings["convergence_criterion"].GetString() == "Contact_Or_criterion"):
-                if (fancy_convergence_criterion == True):
-                    Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT,ensure_contact, table)
-                    Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact, table)
-                else:
-                    Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT,ensure_contact)
-                    Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
-                
-                Displacement.SetEchoLevel(echo_level)
-                Residual.SetEchoLevel(echo_level)
-                convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            
-            # Adding the mortar criteria
-            if  (self.contact_settings["mortar_type"].GetString() == "ALMContactFrictionless"):
-                if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(contact_tolerance, table)
-                else:
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(contact_tolerance)
-            elif  (self.contact_settings["mortar_type"].GetString() == "ALMContactFrictional"):
-                if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(contact_tolerance, table)
-                else:
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(contact_tolerance)
-            elif ("MeshTying" in self.contact_settings["mortar_type"].GetString()):
-                if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria(table)
-                else:
-                    Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria()
-            
-            Mortar.SetEchoLevel(self.echo_level)
-
-            if (fancy_convergence_criterion == True):
-                convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(convergence_criterion, Mortar, table)
-            else:
-                convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(convergence_criterion, Mortar)
-            convergence_criterion.SetEchoLevel(self.echo_level)
-            convergence_criterion.SetActualizeRHSFlag(True)
-            
-            return convergence_criterion
-        
-        else: # Standard criteria (same as solid and structural mechanics application)
-            # Creation of an auxiliar Kratos parameters object to store the convergence settings
-            conv_params = KratosMultiphysics.Parameters("{}")
-            conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-            conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-            conv_params.AddValue("echo_level",self.settings["echo_level"])
-            conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-            conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-            conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-            conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-            
-            # Construction of the class convergence_criterion
-            import convergence_criteria_factory
-            convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
-        
-            # Adding the mortar criteria
-            if  (self.contact_settings["mortar_type"].GetString() == "ALMContactFrictionless"):
-                Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
-                Mortar.SetEchoLevel(self.echo_level)
-                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
-                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
-            elif  (self.contact_settings["mortar_type"].GetString() == "ALMContactFrictional"):
-                Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
-                Mortar.SetEchoLevel(self.echo_level)
-                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
-                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
-            elif ("MeshTying" in self.contact_settings["mortar_type"].GetString()):
-                Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria()
-                Mortar.SetEchoLevel(self.echo_level)
-                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
-                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
-            
-            return convergence_criterion.mechanical_convergence_criterion
-        
-    def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
-        if(self.settings["block_builder"].GetBool() == True):
-            builder_and_solver = ContactStructuralMechanicsApplication.ResidualBasedBlockContactBuilderAndSolver(linear_solver)
-        else:
-            builder_and_solver = ContactStructuralMechanicsApplication.ResidualBasedEliminationContactBuilderAndSolver(linear_solver)
-        return builder_and_solver
+        # Create an auxiliary Kratos parameters object to store the convergence settings.
+        conv_params = KratosMultiphysics.Parameters("{}")
+        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
+        conv_params.AddValue("echo_level",self.settings["echo_level"])
+        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
+        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        conv_params.AddValue("contact_displacement_relative_tolerance",self.contact_settings["contact_displacement_relative_tolerance"])
+        conv_params.AddValue("contact_displacement_absolute_tolerance",self.contact_settings["contact_displacement_absolute_tolerance"])
+        conv_params.AddValue("contact_residual_relative_tolerance",self.contact_settings["contact_residual_relative_tolerance"])
+        conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
+        conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
+        conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
+        conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
+        conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
+        conv_params.AddValue("ensure_contact",self.contact_settings["ensure_contact"])
+        import contact_convergence_criteria_factory
+        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_params)
+        return convergence_criterion.mechanical_convergence_criterion
         
     def _create_mechanical_solver(self):
         if(self.settings["line_search"].GetBool()):
