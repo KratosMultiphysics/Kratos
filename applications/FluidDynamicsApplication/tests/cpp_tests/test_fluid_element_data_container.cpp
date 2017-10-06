@@ -35,7 +35,7 @@ namespace Kratos {
 			rModelPart.CreateNewElement("VMS2D", 1, element_nodes, p_properties);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FluidElementGaussPointData, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FluidElementNodalDataHandler, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
             InitializeTestModelpart(model_part);
@@ -45,16 +45,33 @@ namespace Kratos {
 
 			for (unsigned int i = 0; i < 3; i++) {
 				r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 1.0 + i;
-			}
+                r_geometry[i].FastGetSolutionStepValue(VELOCITY_Y) = 3.0 * i;
+            }
 
-			Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+            Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-			NodalDataHandler<double, 3, array_1d<double, 3>> TestHandler(PRESSURE);
+			NodalDataHandler<double, 3, array_1d<double, 3>> PressureHandler(PRESSURE);
+			NodalDataHandler<array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,2,3>> VelocityHandler(VELOCITY);
 
-			TestHandler.Initialize(r_element, model_part.GetProcessInfo());
+			PressureHandler.Initialize(r_element, model_part.GetProcessInfo());
 
-            boost::numeric::ublas::matrix_row< Matrix > the_row = row(NContainer,0);
-			KRATOS_CHECK_NEAR(2.0, TestHandler.Interpolate(the_row, &r_element), 1e-6);
+            boost::numeric::ublas::matrix_row< Matrix > shape_functions = row(NContainer,0);
+			KRATOS_CHECK_NEAR(2.0, PressureHandler.Interpolate(shape_functions, &r_element), 1e-6);
+
+            array_1d<double,3> velocity = VelocityHandler.Interpolate(shape_functions, &r_element);
+            KRATOS_CHECK_NEAR(0.0, velocity[0], 1e-6);
+			KRATOS_CHECK_NEAR(3.0, velocity[1], 1e-6);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(FluidElementGaussPointData, FluidDynamicsApplicationFastSuite)
+        {
+            ModelPart model_part("Test");
+            InitializeTestModelpart(model_part);
+
+            Element& r_element = *(model_part.ElementsBegin());
+			Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+
+            // Data container tests go here
         }
     }
 }
