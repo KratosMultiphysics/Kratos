@@ -190,8 +190,6 @@ namespace Kratos
 
       //master conditions must be deleted and set them again in the build
       this->ClearMasterEntities(rModelPart, rTemporaryConditions);
-
-      std::cout<<" Hej "<<std::endl;
       
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
