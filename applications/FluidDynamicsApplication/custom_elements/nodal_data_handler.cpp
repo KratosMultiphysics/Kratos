@@ -62,14 +62,11 @@ void NodalDataHandler< array_1d<double, 3>, 3, boost::numeric::ublas::bounded_ma
     for (unsigned int i = 0; i < 3; i++) // NOTE: TNumNodes
     {
         const array_1d<double,3>& r_nodal_values = r_geometry[i].FastGetSolutionStepValue(this->mrVariable);
-        KRATOS_WATCH(r_nodal_values)
         for (unsigned int j = 0; j < mValues.size2(); j++)
         {
             mValues(i,j) = r_nodal_values[j];
         }
     }
-
-    KRATOS_WATCH(mValues)
 }
 
 template <>
