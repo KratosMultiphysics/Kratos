@@ -151,7 +151,7 @@ namespace Kratos
 
             //*******************************************************************************
             //*******************************************************************************
-            // Calcualte Stress and constitutive tensor
+            // Calculate Stress and constitutive tensor
             virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
             {
                KRATOS_TRY
@@ -341,21 +341,17 @@ namespace Kratos
                if ( rConstitutiveMatrix.size1() == 6) {
                   noalias( rConstitutiveMatrix ) = rConstMatrixBig;
                } else if ( rConstitutiveMatrix.size1() == 3 ) {
-                  for (unsigned int i = 0; i < 2; i++) {
-                     for (unsigned int j = 0; j < 2; j++) {
-                        rConstitutiveMatrix(0,0) = rConstMatrixBig(0,0);
-                        rConstitutiveMatrix(0,1) = rConstMatrixBig(0,1);
-                        rConstitutiveMatrix(0,2) = rConstMatrixBig(0,3);
+                  rConstitutiveMatrix(0,0) = rConstMatrixBig(0,0);
+                  rConstitutiveMatrix(0,1) = rConstMatrixBig(0,1);
+                  rConstitutiveMatrix(0,2) = rConstMatrixBig(0,3);
 
-                        rConstitutiveMatrix(1,0) = rConstMatrixBig(1,0);
-                        rConstitutiveMatrix(1,1) = rConstMatrixBig(1,1);
-                        rConstitutiveMatrix(1,2) = rConstMatrixBig(1,3);
+                  rConstitutiveMatrix(1,0) = rConstMatrixBig(1,0);
+                  rConstitutiveMatrix(1,1) = rConstMatrixBig(1,1);
+                  rConstitutiveMatrix(1,2) = rConstMatrixBig(1,3);
 
-                        rConstitutiveMatrix(2,0) = rConstMatrixBig(3,0);
-                        rConstitutiveMatrix(2,1) = rConstMatrixBig(3,1);
-                        rConstitutiveMatrix(2,2) = rConstMatrixBig(3,3);
-                     }
-                  }
+                  rConstitutiveMatrix(2,0) = rConstMatrixBig(3,0);
+                  rConstitutiveMatrix(2,1) = rConstMatrixBig(3,1);
+                  rConstitutiveMatrix(2,2) = rConstMatrixBig(3,3);
 
                } else if ( rConstitutiveMatrix.size1() == 4 ) {
                   for (unsigned int i = 0; i < 4; i++) {
