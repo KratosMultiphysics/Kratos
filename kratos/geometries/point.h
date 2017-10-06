@@ -63,14 +63,20 @@ namespace Kratos
 */
 class Point : public array_1d<double, 3>
 {
-  public:
+    static constexpr int mDimension = 3;
+
+public:
+    ///@name Constants
+    ///@{
+
+    ///@}
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of Point
     KRATOS_CLASS_POINTER_DEFINITION(Point);
 
-    typedef array_1d<double, Dimension> BaseType;
+    typedef array_1d<double, mDimension> BaseType;
 
     typedef BaseType CoordinatesArrayType;
 
@@ -79,23 +85,17 @@ class Point : public array_1d<double, 3>
     typedef typename std::size_t IndexType;
 
     ///@}
-    ///@name Constants
-    ///@{
-
-    constexpr int Dimension = 3;
-
-    ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Point() : BaseType(Dimension)
+    Point() : BaseType(mDimension)
     {
         SetAllCoordinates();
     }
 
     /// 3d constructor.
-    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType(Dimension)
+    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType(mDimension)
     {
         this->operator()(0) = NewX;
         this->operator()(1) = NewY;
@@ -120,10 +120,10 @@ class Point : public array_1d<double, 3>
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Point(std::vector<double> const &rOtherCoordinates) : BaseType(Dimension)
+    Point(std::vector<double> const &rOtherCoordinates) : BaseType(mDimension)
     {
         SizeType size = rOtherCoordinates.size();
-        size = (Dimension < size) ? Dimension : size;
+        size = (mDimension < size) ? mDimension : size;
         for (IndexType i = 0; i < size; i++)
             this->operator[](i) = rOtherCoordinates[i];
     }
@@ -157,7 +157,7 @@ class Point : public array_1d<double, 3>
 
     static constexpr IndexType Dimension()
     {
-        return Dimension;
+        return 3;
     }
 
     /** Returns X coordinate */
@@ -201,7 +201,7 @@ class Point : public array_1d<double, 3>
     */
     double Coordinate(IndexType CoordinateIndex) const
     {
-        KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]"
+        KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]";
         return this->operator[](CoordinateIndex - 1);
     }
 
@@ -211,7 +211,7 @@ class Point : public array_1d<double, 3>
     */
     double &Coordinate(IndexType CoordinateIndex)
     {
-        KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]"
+        KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]";
         return this->operator[](CoordinateIndex - 1);
     }
 
@@ -258,7 +258,7 @@ class Point : public array_1d<double, 3>
 
     void SetAllCoordinates(double const &Value = double())
     {
-        for (IndexType i = 0; i < Dimension; i++)
+        for (IndexType i = 0; i < mDimension; i++)
             this->operator()(i) = Value;
     }
 
@@ -270,12 +270,12 @@ class Point : public array_1d<double, 3>
 
     virtual void save(Serializer &rSerializer) const
     {
-        rSerializer.save_base("BaseClass", *static_cast<const array_1d<double, Dimension> *>(this));
+        rSerializer.save_base("BaseClass", *static_cast<const array_1d<double, mDimension> *>(this));
     }
 
     virtual void load(Serializer &rSerializer)
     {
-        rSerializer.load_base("BaseClass", *static_cast<array_1d<double, Dimension> *>(this));
+        rSerializer.load_base("BaseClass", *static_cast<array_1d<double, mDimension> *>(this));
     }
 
     ///@}
@@ -294,14 +294,14 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
 ///@{
 
 /// input stream function
-template <std::size_t Dimension, class double>
 inline std::istream &operator>>(std::istream &rIStream,
-                                Point<Dimension, double> &rThis){}
+                                Point &rThis){
+                                    return rIStream;
+                                }
 
 /// output stream function
-template <std::size_t Dimension, class double>
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const Point<Dimension, double> &rThis)
+                                const Point &rThis)
 {
     rThis.PrintInfo(rOStream);
     rThis.PrintData(rOStream);
