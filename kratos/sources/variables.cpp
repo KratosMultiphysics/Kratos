@@ -27,11 +27,9 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
-#include "geometries/line_gl_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/point.h"
 #include "geometries/point_2d.h"
