@@ -756,7 +756,7 @@ class Procedures(object):
             sys.exit("\nExecution was aborted.\n")
         '''
 
-        shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files'), ignore_errors = True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors = True)
         shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'    ), ignore_errors = True)
 
         for directory in [post_path, data_and_results, graphs_path, MPI_results]:
