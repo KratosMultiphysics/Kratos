@@ -1,5 +1,8 @@
 cmake_minimum_required (VERSION 2.8.6)
-cmake_policy(SET CMP0054 OLD)
+
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 OLD)
+endif(POLICY CMP0054)
 
 project (KratosMultiphysics)
 

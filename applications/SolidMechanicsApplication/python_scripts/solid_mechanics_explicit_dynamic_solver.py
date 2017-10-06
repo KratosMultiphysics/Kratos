@@ -59,7 +59,7 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             if(self.settings["rotation_dofs"].GetBool() == True):
                 self.nodal_variables = self.nodal_variables + ['INERTIA_DYADIC','MOMENT_RESIDUAL','POSITION_MOMENTUM','ROTATION_MOMENTUM', 'RESIDUAL_LYAPUNOV', 'TANGENT_LYAPUNOV']
                 
-        print("::[Mechanical Solver]:: Explicit Variables ADDED")
+        print("::[Explicit_Mechanical_Solver]:: Explicit Variables ADDED")
 
 
     #### Specific internal functions ####

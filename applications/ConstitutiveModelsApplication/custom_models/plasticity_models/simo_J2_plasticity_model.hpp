@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_VON_MISES_LINEAR_ELASTIC_PLASTICITY_MODEL_H_INCLUDED )
-#define  KRATOS_VON_MISES_LINEAR_ELASTIC_PLASTICITY_MODEL_H_INCLUDED
+#if !defined(KRATOS_SIMO_J2_PLASTICITY_MODEL_H_INCLUDED )
+#define  KRATOS_SIMO_J2_PLASTICITY_MODEL_H_INCLUDED
 
 // System includes
 
@@ -18,7 +18,7 @@
 #include "custom_models/plasticity_models/non_linear_associative_plasticity_model.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/mises_huber_yield_surface.hpp"
 #include "custom_models/plasticity_models/hardening_rules/simo_exponential_hardening_rule.hpp"
-#include "custom_models/elasticity_models/linear_elastic_model.hpp"
+#include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 
 namespace Kratos
 {
@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesLinearElasticPlasticityModel : public NonLinearAssociativePlasticityModel<LinearElasticModel, MisesHuberYieldSurface<SimoExponentialHardeningRule> >
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoJ2PlasticityModel : public NonLinearAssociativePlasticityModel<IncompressibleNeoHookeanModel, MisesHuberYieldSurface<SimoExponentialHardeningRule> >
   {
   public:
     
@@ -55,13 +55,13 @@ namespace Kratos
     ///@{
 
     //elasticity model
-    typedef LinearElasticModel                             ElasticityModelType;
-    typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
+    typedef IncompressibleNeoHookeanModel                   ElasticityModelType;
+    typedef typename ElasticityModelType::Pointer        ElasticityModelPointer;
 
     //yield surface
-    typedef SimoExponentialHardeningRule                     HardeningRuleType;
-    typedef MisesHuberYieldSurface<HardeningRuleType>         YieldSurfaceType;
-    typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
+    typedef SimoExponentialHardeningRule                      HardeningRuleType;
+    typedef MisesHuberYieldSurface<HardeningRuleType>          YieldSurfaceType;
+    typedef typename YieldSurfaceType::Pointer              YieldSurfacePointer;
 
     //base type
     typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
@@ -77,40 +77,34 @@ namespace Kratos
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
 
 
-    /// Pointer definition of VonMisesLinearElasticPlasticityModel
-    KRATOS_CLASS_POINTER_DEFINITION( VonMisesLinearElasticPlasticityModel );
+    /// Pointer definition of SimoJ2PlasticityModel
+    KRATOS_CLASS_POINTER_DEFINITION( SimoJ2PlasticityModel );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    VonMisesLinearElasticPlasticityModel() : BaseType()
-      {
-	mPlasticStrainVector.clear();
-      }
+    SimoJ2PlasticityModel() : BaseType() {}
     
     /// Copy constructor.
-    VonMisesLinearElasticPlasticityModel(VonMisesLinearElasticPlasticityModel const& rOther)
-      :BaseType(rOther)
-      ,mPlasticStrainVector(rOther.mPlasticStrainVector){}
+    SimoJ2PlasticityModel(SimoJ2PlasticityModel const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    VonMisesLinearElasticPlasticityModel& operator=(VonMisesLinearElasticPlasticityModel const& rOther)
+    SimoJ2PlasticityModel& operator=(SimoJ2PlasticityModel const& rOther)
     {
       BaseType::operator=(rOther);
-      mPlasticStrainVector = rOther.mPlasticStrainVector;
       return *this;
     }
 
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( VonMisesLinearElasticPlasticityModel::Pointer(new VonMisesLinearElasticPlasticityModel(*this)) );
+      return ( SimoJ2PlasticityModel::Pointer(new SimoJ2PlasticityModel(*this)) );
     }
     
     /// Destructor.
-    virtual ~VonMisesLinearElasticPlasticityModel() {}
+    virtual ~SimoJ2PlasticityModel() {}
 
 
     ///@}
@@ -128,12 +122,32 @@ namespace Kratos
     ///@{
 
     /**
+     * method to ask the constitutive model the list of variables (dofs) needed from the domain
+     * @param rScalarVariables : list of scalar dofs
+     * @param rComponentVariables :  list of vector dofs
+     */
+    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    {
+      KRATOS_TRY
+
+      PlasticityModel::GetDomainVariablesList(rScalarVariables, rComponentVariables);
+
+      //rScalarVariables.push_back(TEMPERATURE);
+ 	
+      KRATOS_CATCH(" ")
+    }
+    
+    /**
      * Has Values
      */   
     virtual bool Has(const Variable<double>& rThisVariable) override
     {
       if(rThisVariable == PLASTIC_STRAIN || rThisVariable == DELTA_PLASTIC_STRAIN )
 	return true;
+
+      // if(rThisVariable == PLASTIC_DISSIPATION || rThisVariable == DELTA_PLASTIC_DISSIPATION )
+      // 	return true;
 
       return false;
     }
@@ -158,6 +172,16 @@ namespace Kratos
 	  rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
 	}
 
+      // if (rThisVariable==PLASTIC_DISSIPATION)
+      // 	{
+      // 	  rValue = this->mThermalVariables.PlasticDissipation;
+      // 	}
+
+
+      // if (rThisVariable==DELTA_PLASTIC_DISSIPATION)
+      // 	{
+      // 	  rValue = this->mThermalVariables.DeltaPlasticDissipation;
+      // 	}
       
       return rValue;
     }
@@ -175,20 +199,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "VonMisesLinearElasticPlasticityModel" ;
+      buffer << "SimoJ2PlasticityModel" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "VonMisesLinearElasticPlasticityModel";
+      rOStream << "SimoJ2PlasticityModel";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "VonMisesLinearElasticPlasticityModel Data";
+      rOStream << "SimoJ2PlasticityModel Data";
     }
 
     ///@}
@@ -217,51 +241,6 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Initialize variables
-     */    
-    virtual void InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables) override
-    {
-      KRATOS_TRY
-
-      BaseType::InitializeVariables(rValues,rVariables);
-
-      //elastic strain
-      VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
-
-      StrainVector -= mPlasticStrainVector;
-
-      rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
-      
-      KRATOS_CATCH(" ")
-    }
-    
-    /**
-     * Update internal variables
-     */    
-    virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix) override
-    {
-      KRATOS_TRY
-      
-      double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
-      double& rEquivalentPlasticStrain     = mInternal.Variables[0];
-      double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
-      
-      //update mechanical variables
-      rEquivalentPlasticStrainOld  = rEquivalentPlasticStrain;
-      rEquivalentPlasticStrain    += sqrt(2.0/3.0) * rDeltaGamma;
-
-      const MaterialDataType& rMaterial    = rVariables.GetMaterialParameters();
-      
-      //update plastic strain measure
-      rValues.StrainMatrix  = ConstitutiveModelUtilities::StrainVectorToTensor(mPlasticStrainVector, rValues.StrainMatrix);
-      rValues.StrainMatrix += rDeltaGamma *  rStressMatrix / (rVariables.StressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma);
-      mPlasticStrainVector  = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, mPlasticStrainVector);
-      
-      KRATOS_CATCH(" ")    
-    }
-        
     
     ///@}
     ///@name Protected  Access
@@ -288,8 +267,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-
-    VectorType mPlasticStrainVector;
+	
 	
     ///@}
     ///@name Private Operators
@@ -333,7 +311,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class VonMisesLinearElasticPlasticityModel
+  }; // Class SimoJ2PlasticityModel
 
   ///@}
 
@@ -358,6 +336,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_LINEAR_ELASTIC_PLASTICITY_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_J2_PLASTICITY_MODEL_H_INCLUDED  defined 
 
 

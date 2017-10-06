@@ -535,28 +535,36 @@ class Algorithm(object):
             print("Solving DEM... (", self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0), "elements )")
             sys.stdout.flush()
             first_dem_iter = True
+            
+            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
+            coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
+            project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
+            coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
+            integration_scheme = self.pp.CFD_DEM["IntegrationScheme"].GetString()
+            basset_force_type = self.pp.CFD_DEM["basset_force_type"].GetInt()
+            dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
 
             for self.time_dem in self.yield_DEM_time(self.time_dem, time_final_DEM_substepping, self.Dt_DEM):
                 self.DEM_step += 1   # this variable is necessary to get a good random insertion of particles
                 self.disperse_phase_algorithm.spheres_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
                 self.disperse_phase_algorithm.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
                 self.disperse_phase_algorithm.cluster_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
-
+                
                 self.PerformInitialDEMStepOperations(self.time_dem)
 
-                if self.time >= self.pp.CFD_DEM["interaction_start_time"].GetDouble() and self.pp.CFD_DEM["coupling_level_type"].GetInt() and (self.pp.CFD_DEM["project_at_every_substep_option"].GetBool() or first_dem_iter):
+                if self.time >= interaction_start_time and coupling_level_type and (project_at_every_substep_option or first_dem_iter):
 
-                    if self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedDEM":
+                    if coupling_scheme_type == "UpdatedDEM":
                         self.ApplyForwardCoupling()
 
                     else:
                         self.ApplyForwardCoupling((time_final_DEM_substepping - self.time_dem) / self.Dt)
 
-                        if self.pp.CFD_DEM["IntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
+                        if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
                             self.DEMSolve(self.time_dem)
                             self.ApplyForwardCouplingOfVelocityOnly(self.time_dem)
                         else:
-                            if self.pp.CFD_DEM["basset_force_type"].GetInt() > 0:
+                            if basset_force_type > 0:
                                 node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
                                 node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
@@ -577,12 +585,12 @@ class Algorithm(object):
                 #### TIME CONTROL ##################################
 
                 # adding DEM elements by the inlet:
-                if self.pp.CFD_DEM["dem_inlet_option"].GetBool():
+                if dem_inlet_option:
                     self.disperse_phase_algorithm.DEM_inlet.CreateElementsFromInletMesh(self.disperse_phase_algorithm.spheres_model_part, self.disperse_phase_algorithm.cluster_model_part, self.disperse_phase_algorithm.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-                if self.output_time <= self.out and self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedFluid":
+                if self.output_time <= self.out and coupling_scheme_type == "UpdatedFluid":
 
-                    if self.pp.CFD_DEM["coupling_level_type"].GetInt():
+                    if coupling_level_type:
                         self.projection_module.ComputePostProcessResults(self.disperse_phase_algorithm.spheres_model_part.ProcessInfo)
 
                     self.post_utils.Writeresults(self.time_dem)
@@ -593,7 +601,7 @@ class Algorithm(object):
 
                 # applying DEM-to-fluid coupling
 
-                if self.DEM_to_fluid_counter.Tick() and self.time >= self.pp.CFD_DEM["interaction_start_time"].GetDouble():
+                if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
                     self.projection_module.ProjectFromParticles()
 
             #### PRINTING GRAPHS ####

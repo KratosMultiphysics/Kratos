@@ -70,11 +70,12 @@ namespace Kratos {
     Serializer::Register( "BorjaModel", mBorjaModel );
     
     //plasticity models
-    Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
-    Serializer::Register( "CamClayModel", mCamClayModel );
     Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );
-    
-    
+    Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
+    Serializer::Register( "SimoJ2PlasticityModel", mSimoJ2PlasticityModel );
+    Serializer::Register( "CamClayModel", mCamClayModel );
+    Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
+	
     //yield criteria
     Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
     Serializer::Register( "MisesHuberThermalYieldSurface", mMisesHuberThermalYieldSurface );      
@@ -91,6 +92,8 @@ namespace Kratos {
     Serializer::Register( "ExponentialDamageHardeningRule", mExponentialDamageHardeningRule );
     Serializer::Register( "ModifiedExponentialDamageHardeningRule", mModifiedExponentialDamageHardeningRule );
     Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
+    Serializer::Register( "SimoJuExponentialDamageModel", mSimoJuExponentialDamageModel );
+    Serializer::Register( "SimoJuModifiedExponentialDamageModel", mSimoJuModifiedExponentialDamageModel );
       
 
   }

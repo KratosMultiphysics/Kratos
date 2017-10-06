@@ -110,7 +110,7 @@ namespace Kratos
       const ModelDataType& rModelData = rVariables.GetModelData();
 
       // Compute I1
-      const MatrixType& rStrainMatrix = rModelData.GetStrainMatrix();
+      const MatrixType& rStrainMatrix = rVariables.GetStrainMatrix();
       double I1 = 0.0;
     
       for(unsigned int i=0; i<3; i++)

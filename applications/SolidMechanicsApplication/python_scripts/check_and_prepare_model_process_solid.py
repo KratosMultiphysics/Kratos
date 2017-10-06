@@ -167,4 +167,4 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #    self.main_model_part.RemoveSubModelPart(part)
         #    print("Removed SubModelPart:", part.Name)
           
-        print("::[Model_Prepare]::",computing_model_part)       
+        #print("::[Model_Prepare]::",computing_model_part)       

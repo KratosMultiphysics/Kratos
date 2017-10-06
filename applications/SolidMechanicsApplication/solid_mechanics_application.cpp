@@ -79,7 +79,17 @@ namespace Kratos
     mSmallDisplacementElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) ),
 
     mSmallDisplacementBbarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mSmallDisplacementBbarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSmallDisplacementBbarElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSmallDisplacementBbarElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSmallDisplacementBbarElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
     mSmallDisplacementBbarElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSmallDisplacementBbarElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSmallDisplacementBbarElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSmallDisplacementBbarElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
+    mSmallDisplacementBbarElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) ),
+    mSmallDisplacementBbarElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
+    mSmallDisplacementBbarElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) ),
 
     mAxisymSmallDisplacementElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymSmallDisplacementElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -321,9 +331,20 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D15N", mSmallDisplacementElement3D15N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D20N", mSmallDisplacementElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D27N", mSmallDisplacementElement3D27N )
-
+      
+    //B-bar
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D3N", mSmallDisplacementBbarElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D6N", mSmallDisplacementBbarElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D8N", mSmallDisplacementBbarElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D9N", mSmallDisplacementBbarElement2D9N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D4N", mSmallDisplacementBbarElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D6N", mSmallDisplacementBbarElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D8N", mSmallDisplacementBbarElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D10N", mSmallDisplacementBbarElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D15N", mSmallDisplacementBbarElement3D15N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D20N", mSmallDisplacementBbarElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D27N", mSmallDisplacementBbarElement3D27N )
       
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D3N", mAxisymSmallDisplacementElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D4N", mAxisymSmallDisplacementElement2D4N )

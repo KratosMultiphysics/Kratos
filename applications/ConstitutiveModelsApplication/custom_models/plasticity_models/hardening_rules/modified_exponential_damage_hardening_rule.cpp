@@ -76,7 +76,7 @@ namespace Kratos
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
     const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
     const double& rSofteningSlope         = rMaterialProperties[SOFTENING_SLOPE];
-    const double& rStateVariable          = rVariables.GetDeltaInternalVariables()[0];
+    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
     
     //Compute Damage variable from the internal historical variable
     rHardening  = 1.0-rDamageThreshold*(1.0-rResidualStrength)/rStateVariable;
@@ -110,7 +110,7 @@ namespace Kratos
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
     const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
     const double& rSofteningSlope         = rMaterialProperties[SOFTENING_SLOPE];
-    const double& rStateVariable          = rVariables.GetDeltaInternalVariables()[0];
+    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
     
     //Damage derivative with respect to the internal historical variable
     rDeltaHardening  = rDamageThreshold*(1.0-rResidualStrength)/(rStateVariable*rStateVariable);

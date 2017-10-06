@@ -53,13 +53,15 @@
 #include "custom_models/elasticity_models/borja_model.hpp"
 
 //plasticity models
+#include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
 #include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
+#include "custom_models/plasticity_models/simo_J2_plasticity_model.hpp"
 #include "custom_models/plasticity_models/simo_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
-#include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
- 
+#include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
+#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
 
 namespace Kratos
@@ -202,13 +204,18 @@ namespace Kratos
        	;
       
       //plasticity models
+      class_< VonMisesLinearElasticPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "VonMisesLinearElasticPlasticityModel",
+       	  init<>() )
+       	;
+      
       class_< VonMisesNeoHookeanPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
        	( "VonMisesNeoHookeanPlasticityModel",
        	  init<>() )
        	;
       
-      class_< VonMisesLinearElasticPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
-       	( "VonMisesLinearElasticPlasticityModel",
+      class_< SimoJ2PlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "SimoJ2PlasticityModel",
        	  init<>() )
        	;
 
@@ -231,9 +238,16 @@ namespace Kratos
        	( "CamClayModel",
        	  init<>() )
        	;
-
-
       
+      class_< SimoJuExponentialDamageModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "SimoJuExponentialDamageModel",
+       	  init<>() )
+       	;
+
+      class_< SimoJuModifiedExponentialDamageModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "SimoJuModifiedExponentialDamageModel",
+       	  init<>() )
+       	;
     }
 
   }  // namespace Python.

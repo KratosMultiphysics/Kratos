@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
+import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
 import importlib
 
 def Factory(custom_settings, Model):
@@ -42,7 +42,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
-            variable = self._GetItemFromModule(key)
+            my_key = "KratosMultiphysics."+key
+            variable = self._GetItemFromModule(my_key)
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
             elif( value.IsArray() ):
@@ -81,7 +82,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         self._AssignMaterialProperties()
 
-        print(" Material ", self.material_name, " assigned " )
+        print("::[Material_Assigned]::", self.material_name)
         
     #
     def ExecuteFinalize(self):
@@ -92,7 +93,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
     def _AssignMaterialProperties(self):
 
         # Check dimension
-        self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
         
         if(self.material_law.WorkingSpaceDimension() != self.dimension):
             raise Exception( "mismatch between the ConstitutiveLaw dimension and the dimension of the space")
@@ -111,10 +112,10 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         if(len(splitted) == 0):
             raise Exception("something wrong. Trying to split the string "+my_string)
         if(len(splitted) == 1):
-            material_law = "KratosMaterialModels."+my_string+"()"
+            material_law = "KratosMaterials."+my_string+"()"
             return eval(material_law)
         elif(len(splitted) == 2):
-            material_law = "KratosMaterialModels."+splitted[0]+"(KratosMaterialModels."+splitted[1]+"())"
+            material_law = "KratosMaterials."+splitted[0]+"(KratosMaterials."+splitted[1]+"())"
             return eval(material_law)
         elif(len(splitted) == 3):
             module_name = ""

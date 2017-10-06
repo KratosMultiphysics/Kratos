@@ -54,7 +54,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
-        print("::[EigenSolver]:: Construction finished")
+        print("::[Eigen_Solver]:: Construction finished")
 
     #### Private functions ####
 

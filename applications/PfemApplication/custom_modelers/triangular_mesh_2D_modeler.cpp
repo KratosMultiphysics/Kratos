@@ -507,24 +507,26 @@ namespace Kratos
     KRATOS_TRY
 
     //always for "out":
-    delete [] tr.trianglelist;
-    delete [] tr.triangleattributelist;
-    delete [] tr.trianglearealist;
+    if(tr.numberoftriangles){
+      if(tr.trianglelist) trifree(tr.trianglelist);
+      if(tr.triangleattributelist) trifree(tr.triangleattributelist);
+      if(tr.trianglearealist) trifree(tr.trianglearealist);
+      if(tr.neighborlist) trifree(tr.neighborlist);
+    }
 
-    //in case of n switch not used
-    delete [] tr.neighborlist;
-    
     //if p is switched then in and out are pointed:(free only once)
-    delete [] tr.segmentlist;
-    delete [] tr.segmentmarkerlist;
+    if(tr.segmentlist) trifree(tr.segmentlist);
+    if(tr.segmentmarkerlist) trifree(tr.segmentmarkerlist);
 
-    delete [] tr.holelist;
-    delete [] tr.regionlist;      
+    if(tr.holelist) trifree(tr.holelist);
 
-    delete [] tr.edgelist;
-    delete [] tr.edgemarkerlist;
-    delete [] tr.normlist;
+    if(tr.regionlist) trifree(tr.regionlist);
 
+    if(tr.edgelist) trifree(tr.edgelist);
+    if(tr.edgemarkerlist) trifree(tr.edgemarkerlist);
+    if(tr.normlist) trifree(tr.normlist);
+      
+       
     KRATOS_CATCH(" ")
   }
 
@@ -533,42 +535,14 @@ namespace Kratos
 
   void TriangularMesh2DModeler::DeletePointsList (struct triangulateio& tr)
   {
+
     KRATOS_TRY
 
-    delete [] tr.pointlist;
-    delete [] tr.pointmarkerlist;
-    delete [] tr.pointattributelist;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void TriangularMesh2DModeler::FreeTrianglesList(struct triangulateio& tr)
-  {
-    KRATOS_TRY
-
-    if(tr.pointlist) free(tr.pointlist );
-    if(tr.pointattributelist) free(tr.pointattributelist );
-    if(tr.pointmarkerlist) free(tr.pointmarkerlist   );
-     
-    if(tr.trianglelist) free(tr.trianglelist  );
-    if(tr.triangleattributelist) free(tr.triangleattributelist );
-    if(tr.trianglearealist) free(tr.trianglearealist );
-    if(tr.neighborlist) free(tr.neighborlist   );
-
-    if(tr.segmentlist) free(tr.segmentlist    );
-    if(tr.segmentmarkerlist) free(tr.segmentmarkerlist   );
-
-    if(tr.holelist) free(tr.holelist      );
-
-    if(tr.regionlist) free(tr.regionlist  );
-
-    if(tr.edgelist) free(tr.edgelist   );
-    if(tr.edgemarkerlist) free(tr.edgemarkerlist   );
-    if(tr.normlist) free(tr.normlist  );
+    if(tr.numberofpoints){
+      if(tr.pointlist) trifree(tr.pointlist);
+      if(tr.pointattributelist) trifree(tr.pointattributelist);
+      if(tr.pointmarkerlist) trifree(tr.pointmarkerlist);
+    }
 
     KRATOS_CATCH(" ")
   }

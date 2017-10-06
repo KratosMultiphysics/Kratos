@@ -168,6 +168,15 @@ namespace Kratos
     ///@}
 
     /**
+     * Computes the material response with model data:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     * @param rModelValues
+     */
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
+
+    /**
      * Initialize ModelData type:
      */
     virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;	

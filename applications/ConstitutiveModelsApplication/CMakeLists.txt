@@ -25,7 +25,6 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#large strain laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_laws/large_strain_3D_law.cpp
 
-
 	#general constitutive models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/constitutive_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/constitutive_model_data.cpp
