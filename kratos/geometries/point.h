@@ -147,25 +147,6 @@ class Point : public array_1d<double, 3>
         return std::equal(this->begin(), this->end(), rOther.begin());
     }
 
-    /// Assignment operator.
-    template <SizeType TOtherDimension>
-    Point &operator=(const Point<TOtherDimension> &rOther)
-    {
-        KRATOS_TRY_LEVEL_4
-        IndexType size = (Dimension < TOtherDimension) ? Dimension : TOtherDimension;
-        IndexType i;
-
-        for (i = 0; i < size; i++)
-            this->operator[](i) = rOther[i];
-
-        for (i = size; i < Dimension; i++)
-            this->operator[](i) = double();
-
-        return *this;
-
-        KRATOS_CATCH_LEVEL_4(*this)
-    }
-
     ///@}
     ///@name Operations
     ///@{
@@ -174,7 +155,7 @@ class Point : public array_1d<double, 3>
     ///@name Access
     ///@{
 
-    static IndexType Dimension()
+    static constexpr IndexType Dimension()
     {
         return Dimension;
     }
@@ -182,48 +163,36 @@ class Point : public array_1d<double, 3>
     /** Returns X coordinate */
     double X() const
     {
-        KRATOS_TRY_LEVEL_4
         return this->operator[](0);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     /** Returns Y coordinate */
     double Y() const
     {
-        KRATOS_TRY_LEVEL_4
         return this->operator[](1);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     /** Returns Z coordinate */
     double Z() const
     {
-        KRATOS_TRY_LEVEL_4
         return this->operator[](2);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     double &X()
     {
-        KRATOS_TRY_LEVEL_4
         return this->operator[](0);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     /** Returns Y coordinate */
     double &Y()
     {
-        KRATOS_TRY_LEVEL_4
         return this->operator[](1);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     /** Returns Z coordinate */
     double &Z()
     {
-        KRATOS_TRY_LEVEL_4
         return this->operator[](2);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     /** This is an access method to point's coordinate by indices. For example this
@@ -232,9 +201,8 @@ class Point : public array_1d<double, 3>
     */
     double Coordinate(IndexType CoordinateIndex) const
     {
-        KRATOS_TRY_LEVEL_4
+        KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]"
         return this->operator[](CoordinateIndex - 1);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     /** This is an access method to get a reference to point's coordinate by
@@ -243,9 +211,8 @@ class Point : public array_1d<double, 3>
     */
     double &Coordinate(IndexType CoordinateIndex)
     {
-        KRATOS_TRY_LEVEL_4
+        KRATOS_DEBUG_ERROR_IF((CoordinateIndex > 3)||(CoordinateIndex == 0)) << "Coordinate index = " << CoordinateIndex << " is out of range [1..3]"
         return this->operator[](CoordinateIndex - 1);
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     CoordinatesArrayType const &Coordinates() const
@@ -259,98 +226,40 @@ class Point : public array_1d<double, 3>
     }
 
     ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        std::stringstream buffer;
-        buffer << Dimension << " dimensional point";
-        return buffer.str();
+        return "Point";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << Dimension << " dimensional point";
+        rOStream << this->Info();
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const
     {
-        if (!Dimension)
-            return;
-
-        rOStream << "(" << this->operator[](0);
-
-        for (IndexType i = 1; i < Dimension; i++)
-            rOStream << " , " << this->operator[](i);
-        rOStream << ")";
+        rOStream << "(" << this->operator[](0)
+                        << this->operator[](1)  
+                        << this->operator[](2) 
+                 << ")";
     }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
     ///@}
 
   private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
     ///@name Private Operations
     ///@{
 
     void SetAllCoordinates(double const &Value = double())
     {
-        KRATOS_TRY_LEVEL_4
         for (IndexType i = 0; i < Dimension; i++)
             this->operator()(i) = Value;
-        KRATOS_CATCH_LEVEL_4(*this)
     }
 
     ///@}
