@@ -15,12 +15,12 @@
 
 // System includes
 #include <iostream>
+#include <iomanip>
+#include <math.h> 
 
 // External includes
 
 // Project includes
-#include <math.h> 
-
 #include "includes/mortar_classes.h"
 
 // The geometry of the triangle for the "tessellation"
@@ -254,7 +254,7 @@ public:
                 
                 for (unsigned int i = 0; i < 3; i++)
                 {
-                    std::cout << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
+                    std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
                     
                     if (i < 2) std::cout << "},{";
                 }
@@ -322,7 +322,7 @@ public:
      */
     
     double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond)
-    {
+    {        
         // Initalize values
         double area = 0.0;
         boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( MAPPING_PAIRS );
@@ -553,7 +553,8 @@ protected:
         
         const double denom = s_orig1_orig2_x * s_dest1_dest2_y - s_dest1_dest2_x * s_orig1_orig2_y;
     
-        const double tolerance = 1.0e-12; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
+
         if (std::abs(denom) < tolerance) // NOTE: Collinear
         {
             return false;
@@ -1158,7 +1159,7 @@ private:
         MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
         
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (3);
@@ -1235,7 +1236,7 @@ private:
         )
     {        
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType slave_center = OriginalSlaveGeometry.Center();
@@ -1503,7 +1504,7 @@ private:
         MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
         
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (3);
@@ -1580,7 +1581,7 @@ private:
         )
     {        
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType slave_center = OriginalSlaveGeometry.Center();
