@@ -58,7 +58,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template<std::size_t TDimension, class TDataType = double, class TWeightType = double>
-class IntegrationPoint : public Point<TDimension, TDataType>
+class IntegrationPoint : public Point
 {
 public:
     ///@name Type Definitions

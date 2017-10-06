@@ -271,26 +271,12 @@ class Point : public array_1d<double, 3>
     virtual void save(Serializer &rSerializer) const
     {
         rSerializer.save_base("BaseClass", *static_cast<const array_1d<double, Dimension> *>(this));
-        //rSerializer.save_base("BaseData",*dynamic_cast<const array_1d<double, Dimension>*>(this));
     }
 
     virtual void load(Serializer &rSerializer)
     {
         rSerializer.load_base("BaseClass", *static_cast<array_1d<double, Dimension> *>(this));
-        //	  rSerializer.load_base("BaseData",*dynamic_cast<array_1d<double, Dimension>*>(this));
     }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 
@@ -298,7 +284,7 @@ class Point : public array_1d<double, 3>
 
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3, double>>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
 
 ///@name Type Definitions
 ///@{
@@ -310,7 +296,7 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3, double>>;
 /// input stream function
 template <std::size_t Dimension, class double>
 inline std::istream &operator>>(std::istream &rIStream,
-                                Point<Dimension, double> &rThis);
+                                Point<Dimension, double> &rThis){}
 
 /// output stream function
 template <std::size_t Dimension, class double>
