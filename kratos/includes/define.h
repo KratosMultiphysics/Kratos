@@ -349,14 +349,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
- scope().attr(#flag) = boost::ref(flag);      \
+    scope().attr(#flag) = boost::ref(flag)      \
  
 #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag)   \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag);
 
 
 namespace Kratos
