@@ -1,9 +1,14 @@
 cmake_minimum_required (VERSION 2.8.6)
+
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 OLD)
+endif(POLICY CMP0054)
+
 project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 5)
-set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Get subversion data. This is done automagically by the cmakes
@@ -22,7 +27,6 @@ else(GIT_FOUND)
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
 
-
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
   "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
@@ -37,6 +41,7 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
+
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
@@ -56,8 +61,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") 	#-lpthread -wd654 -wd10010  ")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") 			#-lpthread -wd654 -wd10010  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
     message("additional default options were set for intel compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -104,8 +109,17 @@ if(${MSVC14})
   # Nothing needed right now
 endif(${MSVC14})
 
-# Tell the linker to give an error if undefined functions are found
-# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+# If no test policy enable by default
+if(NOT DEFINED KRATOS_BUILD_TESTING)
+	message("KRATOS_BUILD_TESTING not defined. Setting to ON")
+	SET (KRATOS_BUILD_TESTING ON)
+endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If install prefix is set, install all the files.
+if(DEFINED KRATOS_INSTALL_PREFIX)
+	SET(INSTALL_TESTING_FILES ON)
+	SET(INSTALL_PYTHON_FILES ON)
+endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
@@ -113,11 +127,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 ######################################################################################
 ######################################################################################
 ######################################################################################
-
-# if(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
-#     link_directories(${KRATOS_EXTRA_LINK_PATH})
-#     find_library(EXTRA_LINK_LIBS ${KRATOS_EXTRA_LINK_LIBRARIES} PATH ${KRATOS_EXTRA_LINK_PATH} )
-# endif(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
 
 ## Find all dependencies
 

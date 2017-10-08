@@ -87,17 +87,24 @@ public:
 
     /**
      * Flags related to the Parameters of the Contitutive Law
-     */
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN );
+     */   
+    KRATOS_DEFINE_LOCAL_FLAG( USE_ELEMENT_PROVIDED_STRAIN );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRESS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_CONSTITUTIVE_TENSOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN_ENERGY );
-
+    
     KRATOS_DEFINE_LOCAL_FLAG( ISOCHORIC_TENSOR_ONLY );
     KRATOS_DEFINE_LOCAL_FLAG( VOLUMETRIC_TENSOR_ONLY );
+    
+    KRATOS_DEFINE_LOCAL_FLAG( MECHANICAL_RESPONSE_ONLY );
+    KRATOS_DEFINE_LOCAL_FLAG( THERMAL_RESPONSE_ONLY );
 
-    KRATOS_DEFINE_LOCAL_FLAG( TOTAL_TENSOR );
+    KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_STRAIN_MEASURE );
 
+    
+    ///the next two flags are designed for internal use within the constitutive law.
+    ///please DO NOT use them from the API
+    KRATOS_DEFINE_LOCAL_FLAG( INITIALIZE_MATERIAL_RESPONSE );    
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
 
 
@@ -186,7 +193,7 @@ public:
 
      * @param mDeterminantF copy of the determinant of the Current DeformationGradient (although Current F  is also included as a matrix) (input data)
      * @param mpDeformationGradientF  pointer to the current deformation gradient (can be an empty matrix if a linear strain measure is used) (input data)
-     * @param mpStrainVector pointer to the current strains (total strains) (input data) (*can be also OUTPUT with COMPUTE_STRAIN flag)
+     * @param mpStrainVector pointer to the current strains (total strains) (input data) (*can be also OUTPUT with USE_ELEMENT_PROVIDED_STRAIN flag)
      * @param mpStressVector pointer to the current stresses (*OUTPUT with COMPUTE_STRESS flag)
      * @param mpConstitutiveMatrix pointer to the material tangent matrix (*OUTPUT with COMPUTE_CONSTITUTIVE_TENSOR flag)
 
@@ -450,7 +457,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~ConstitutiveLaw(){};
+    ~ConstitutiveLaw() override{};
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -627,15 +634,60 @@ public:
                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * Is called to check whether the provided material parameters in the Properties
-     * match the requirements of current constitutive model.
-     * @param rMaterialProperties the current Properties to be validated against.
-     * @return true, if parameters are correct; false, if parameters are insufficient / faulty
-     * NOTE: this has to be implemented by each constitutive model. Returns false in base class since
-     * no valid implementation is contained here.
-     */
-    virtual bool ValidateInput(const Properties& rMaterialProperties);
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */    
+    virtual int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue);
 
+    /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */    
+    virtual double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
+
+    /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */    
+    virtual Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue);
+
+    /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */  
+    virtual Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue);
+
+    /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 3 > >& rVariable,
+						  array_1d<double, 3 > & rValue);
+
+    /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return the value of the specified variable
+     */
+    virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
+						  array_1d<double, 6 > & rValue);
+    
     /**
      * returns the expected strain measure of this constitutive law (by default linear strains)
      * @return the expected strain measure
@@ -762,8 +814,47 @@ public:
     virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
 
 
+
     /**
-     * Updates the material response,  called by the element in FinalizeSolutionStep.
+     * Initialize the material response,  called by the element in FinalizeSolutionStep.
+     * @see Parameters
+     * @see StressMeasures
+     */
+    void InitializeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
+
+
+    /**
+     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponsePK1 (Parameters& rValues);
+
+    /**
+     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponsePK2 (Parameters& rValues);
+
+    /**
+     * Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponseKirchhoff (Parameters& rValues);
+
+    /**
+     * Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponseCauchy (Parameters& rValues);
+
+
+    
+    /**
+     * Finalize the material response,  called by the element in FinalizeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
@@ -771,28 +862,28 @@ public:
 
 
     /**
-     * Updates the material response in terms of 1st Piola-Kirchhoff stresses
+     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
 
     virtual void FinalizeMaterialResponsePK1 (Parameters& rValues);
 
     /**
-     * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
+     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
 
     virtual void FinalizeMaterialResponsePK2 (Parameters& rValues);
 
     /**
-     * Updates the material response in terms of Kirchhoff stresses
+     * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
 
     virtual void FinalizeMaterialResponseKirchhoff (Parameters& rValues);
 
     /**
-     * Updates the material response in terms of Cauchy stresses
+     * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
 
@@ -1056,7 +1147,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ConstitutiveLaw";
@@ -1064,13 +1155,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ConstitutiveLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "ConstitutiveLaw has no data";
     }
@@ -1207,12 +1298,12 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     }

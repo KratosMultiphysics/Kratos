@@ -131,7 +131,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~SpalartAllmaras()
+    ~SpalartAllmaras() override
     {}
 
     ///@}
@@ -144,18 +144,18 @@ public:
     ///@{
 
     /// Create a new SpalartAllmaras element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const override;
 
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */
-    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculate Shape function derivatives for the element
-    virtual void Initialize();
+    void Initialize() override;
 
     /// Calculates the projection term for stabilization
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 //    /// Compute projection of convective term for stabilization
 //    virtual void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
@@ -166,21 +166,21 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 //    {
 //        KRATOS_THROW_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
 //    }
 
     /// Fill given array with containing the element's degrees of freedom
-    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
-    virtual void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Fill given vector with nodal values of the problem variable (TURBULENT_VISCOSITY)
-    virtual void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     ///@}
     ///@name Access
@@ -197,7 +197,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SpalartAllmaras" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id();
@@ -205,7 +205,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SpalartAllmaras" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
@@ -213,7 +213,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         this->PrintInfo(rOStream);
         rOStream << "Geometry Data: " << std::endl;
@@ -349,7 +349,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -382,7 +382,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,Element);

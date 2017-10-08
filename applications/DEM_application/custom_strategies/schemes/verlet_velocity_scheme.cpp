@@ -3,8 +3,8 @@
 
 namespace Kratos {
     
-    void VerletVelocityScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-            std::cout << "Assigning VerletVelocityScheme to properties " << pProp->Id() << std::endl;
+    void VerletVelocityScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+            if(verbose) std::cout << "\nAssigning VerletVelocityScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 

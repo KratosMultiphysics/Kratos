@@ -49,8 +49,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// MPI-Parallel Verison of the Entity that manages the InterfaceObjects
+/** It implements the functions that are only needed if the mapper is a mpi-parallel mapper. 
+* These functions are implemented as virtual functions in the BaseClass. Besides handeling 
+* buffers it also computes the communication graph and the buffer sizes.
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceObjectManagerParallel : public InterfaceObjectManagerBase
 {
@@ -116,7 +119,7 @@ public:
                 }
             }
 
-            if (mEchoLevel > 3)
+            if (mEchoLevel >= 4)
             {
                 PrintCandidatePartitions(interface_obj, partition_list); // For debugging
             }
@@ -127,7 +130,7 @@ public:
                 if (!interface_obj->GetIsBeingSent())
                 {
                     // Send interface_obj to all Partitions
-                    if (mEchoLevel > 1)
+                    if (mEchoLevel >= 2)
                     {
                         std::cout << "MAPPER WARNING, Rank " << mCommRank
                                   << ", interface_obj [ "

@@ -50,10 +50,12 @@
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* Adding solid elements */
+#include "custom_elements/small_displacement.h"
+#include "custom_elements/axisym_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/axisym_total_lagrangian.h"
-#include "custom_elements/kinematic_linear.h"
-#include "custom_elements/axisym_kinematic_linear.h"
+#include "custom_elements/updated_lagrangian.h"
+#include "custom_elements/axisym_updated_lagrangian.h"
 
 /* CONDITIONS */
 #include "custom_conditions/point_moment_3D_condition.hpp"
@@ -70,6 +72,8 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 
 /* UTILITIES */
 // Cross sections
@@ -234,14 +238,14 @@ private:
 
     /* ELEMENTS */
 
-	// Adding the truss element
-	const TrussElement3D2N mTrussElement3D2N; 
-	const TrussElement3D2N mTrussLinearElement3D2N;
+    // Adding the truss element
+    const TrussElement3D2N mTrussElement3D2N; 
+    const TrussElement3D2N mTrussLinearElement3D2N;
 
     // Adding the beam element 
     const SmallDisplacementBeamElement3D2N mSmallDisplacementBeamElement3D2N;
     const CrBeamElement3D2N mCrBeamElement3D2N;
-	const CrBeamElement3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
 
     // Adding the shells elements 
@@ -267,24 +271,24 @@ private:
     const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     // Linear kinematic elements
-    const KinematicLinear mKinematicLinear2D3N;
-    const KinematicLinear mKinematicLinear2D4N;
-    const KinematicLinear mKinematicLinear2D6N;
-    const KinematicLinear mKinematicLinear2D8N;
-    const KinematicLinear mKinematicLinear2D9N;
-    const KinematicLinear mKinematicLinear3D4N;
-    const KinematicLinear mKinematicLinear3D6N;
-    const KinematicLinear mKinematicLinear3D8N;
-    const KinematicLinear mKinematicLinear3D10N;
-    const KinematicLinear mKinematicLinear3D15N;
-    const KinematicLinear mKinematicLinear3D20N;
-    const KinematicLinear mKinematicLinear3D27N;
+    const SmallDisplacement mSmallDisplacement2D3N;
+    const SmallDisplacement mSmallDisplacement2D4N;
+    const SmallDisplacement mSmallDisplacement2D6N;
+    const SmallDisplacement mSmallDisplacement2D8N;
+    const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D6N;
+    const SmallDisplacement mSmallDisplacement3D8N;
+    const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D15N;
+    const SmallDisplacement mSmallDisplacement3D20N;
+    const SmallDisplacement mSmallDisplacement3D27N;
     
-    const AxisymKinematicLinear mAxisymKinematicLinear2D3N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D4N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D6N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D8N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D9N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
     
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
@@ -305,6 +309,26 @@ private:
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D6N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D8N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D9N;
+    
+    // Updated lagrangian
+    const UpdatedLagrangian mUpdatedLagrangian2D3N;
+    const UpdatedLagrangian mUpdatedLagrangian2D4N;
+    const UpdatedLagrangian mUpdatedLagrangian2D6N;
+    const UpdatedLagrangian mUpdatedLagrangian2D8N;
+    const UpdatedLagrangian mUpdatedLagrangian2D9N;
+    const UpdatedLagrangian mUpdatedLagrangian3D4N;
+    const UpdatedLagrangian mUpdatedLagrangian3D6N;
+    const UpdatedLagrangian mUpdatedLagrangian3D8N;
+    const UpdatedLagrangian mUpdatedLagrangian3D10N;
+    const UpdatedLagrangian mUpdatedLagrangian3D15N;
+    const UpdatedLagrangian mUpdatedLagrangian3D20N;
+    const UpdatedLagrangian mUpdatedLagrangian3D27N;
+    
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D3N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D4N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D6N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D8N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
     
     // Adding the spring damper element
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
@@ -341,6 +365,8 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
 
     ///@}
     ///@name Private Operators

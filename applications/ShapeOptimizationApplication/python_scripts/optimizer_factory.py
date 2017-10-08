@@ -4,7 +4,7 @@
 #  License:         BSD License
 #                   license: ShapeOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 #
 # ==============================================================================
 
@@ -107,15 +107,16 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def __getdampingRegionsFromInputModelPart( self ):
         dampingRegions = {}
-        print("> The following damping regions are defined: \n")
-        for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
-            regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-            if self.inputModelPart.HasSubModelPart(regionName):
-                print(regionName)
-                dampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
-            else:
-                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
-        print("")    
+        if(self.optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()):
+            print("> The following damping regions are defined: \n")
+            for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
+                regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
+                if self.inputModelPart.HasSubModelPart(regionName):
+                    print(regionName)
+                    dampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
+                else:
+                    raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
+            print("")    
         return dampingRegions               
 
 # ==============================================================================

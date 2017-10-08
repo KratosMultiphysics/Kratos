@@ -141,7 +141,7 @@ namespace Kratos {
 
         /** Destructor.
          */
-        virtual ~ResidualBasedPredictorCorrectorBDFSchemeTurbulent() {
+        ~ResidualBasedPredictorCorrectorBDFSchemeTurbulent() override {
         }
 
 
@@ -155,11 +155,11 @@ namespace Kratos {
          */
         //***************************************************************************
 
-        virtual void Update(ModelPart& r_model_part,
+        void Update(ModelPart& r_model_part,
                             DofsArrayType& rDofSet,
                             TSystemMatrixType& A,
                             TSystemVectorType& Dv,
-                            TSystemVectorType& b)
+                            TSystemVectorType& b) override
         {
             KRATOS_TRY;
 
@@ -210,11 +210,11 @@ namespace Kratos {
         //***************************************************************************
         //predicts the solution at the current step as
         // v = vold
-        virtual void Predict(ModelPart& rModelPart,
+        void Predict(ModelPart& rModelPart,
                              DofsArrayType& rDofSet,
                              TSystemMatrixType& A,
                              TSystemVectorType& Dv,
-                             TSystemVectorType& b)
+                             TSystemVectorType& b) override
         {
             ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
             double Dt = rCurrentProcessInfo[DELTA_TIME];
@@ -283,7 +283,7 @@ namespace Kratos {
                                           LocalSystemMatrixType& LHS_Contribution,
                                           LocalSystemVectorType& RHS_Contribution,
                                           Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
 
@@ -306,7 +306,7 @@ namespace Kratos {
         void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                         LocalSystemVectorType& RHS_Contribution,
                                         Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        ProcessInfo& CurrentProcessInfo) override
         {
             //Initializing the non linear iteration for the current element
             (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
@@ -326,11 +326,11 @@ namespace Kratos {
         /** functions totally analogous to the precedent but applied to
         the "condition" objects
          */
-        virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+        void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo)
+                                                            ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
 
@@ -347,10 +347,10 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+        void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo)
+                                                          ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
 
@@ -375,7 +375,7 @@ namespace Kratos {
         void InitializeSolutionStep(ModelPart& r_model_part,
                                     TSystemMatrixType& A,
                                     TSystemVectorType& Dx,
-                                    TSystemVectorType& b)
+                                    TSystemVectorType& b) override
         {
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -409,10 +409,10 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        virtual void InitializeNonLinIteration(ModelPart& r_model_part,
+        void InitializeNonLinIteration(ModelPart& r_model_part,
                                                TSystemMatrixType& A,
                                                TSystemVectorType& Dx,
-                                               TSystemVectorType& b)
+                                               TSystemVectorType& b) override
         {
             KRATOS_TRY
 
@@ -422,7 +422,7 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -469,7 +469,7 @@ namespace Kratos {
             }
         }
 
-        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
 			ComputeReactions(rModelPart, A, Dx, b);
             //Element::EquationIdVectorType EquationId;

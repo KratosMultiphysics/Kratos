@@ -48,8 +48,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Node on the Interface for Searching
+/** This class Is the "wrapper" for nodes on the interface. It selects the best result by the closest distance to the 
+* point of which neighbor have to be found
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceNode : public InterfaceObject
 {
@@ -65,9 +67,10 @@ public:
     ///@{
 
     /// Default constructor.
-    InterfaceNode(Node<3>& rNode) : mpNode(&rNode)
+    InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
+        mEchoLevel = EchoLevel;
     }
 
     /// Destructor.

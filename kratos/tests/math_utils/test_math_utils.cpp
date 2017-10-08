@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -548,7 +548,6 @@ namespace Kratos
             }
             
             KRATOS_CHECK_EQUAL(converged, true);
-            
         }
         
         /** Checks if it calculates the dot product 

@@ -143,11 +143,12 @@ protected:
 
         array_1d<double,TNumNodes> phi;
         array_1d<double,TNumNodes> phi_old;
+        array_1d<double,TNumNodes> volumetric_source;
         array_1d< array_1d<double,3 >, TNumNodes> v;
         array_1d< array_1d<double,3 >, TNumNodes> vold;
     };
 
-    void InitializeEulerianElement(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+    void InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume);
 

@@ -7,7 +7,10 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
+//  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
+//                   Daniel Baumgaertner
+//                   Johannes Wolf
 //
 
 #if !defined(KRATOS_CALCULATE_EMBEDDED_SIGNED_DISTANCE_TO_3D_SKIN_PROCESS_H_INCLUDED )
@@ -75,7 +78,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CalculateEmbeddedSignedDistanceTo3DSkinProcess()
+    ~CalculateEmbeddedSignedDistanceTo3DSkinProcess() override
     {
     }
 
@@ -92,7 +95,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
+    void Execute() override
     {
         // Create a pointer to the discontinuous or continuos distance calculation process
         CalculateDiscontinuousDistanceToSkinProcess::Pointer pdistance_calculator;
@@ -141,19 +144,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "CalculateEmbeddedSignedDistanceTo3DSkinProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateEmbeddedSignedDistanceTo3DSkinProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

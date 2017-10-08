@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //                    
 //
 
@@ -79,7 +79,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~FastTransferBetweenModelPartsProcess() {}
+    ~FastTransferBetweenModelPartsProcess() override {}
 
     ///@}
     ///@name Operators
@@ -98,7 +98,7 @@ public:
 
 
     /// Execute method is used to execute the FastTransferBetweenModelPartsProcess algorithms.
-    virtual void Execute() override
+    void Execute() override
     {
         KRATOS_TRY;
         
@@ -141,19 +141,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "FastTransferBetweenModelPartsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FastTransferBetweenModelPartsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

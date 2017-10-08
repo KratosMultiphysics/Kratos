@@ -60,7 +60,7 @@ namespace Kratos
 	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
 
 	  /// Destructor.
-      virtual ~CalculateDistanceToSkinProcess();
+      ~CalculateDistanceToSkinProcess() override;
 
 	  ///@}
 	  ///@name Deleted
@@ -78,9 +78,9 @@ namespace Kratos
 	  ///@}
       ///@name Operations
       ///@{
-      virtual void Initialize() override;
+      void Initialize() override;
 
-      virtual void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
+      void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
 
       virtual void InitializeNodalDistances();
 
@@ -100,20 +100,20 @@ namespace Kratos
 
       virtual int IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
-	  virtual void Execute() override;
+	  void Execute() override;
 
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override;
+      void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 

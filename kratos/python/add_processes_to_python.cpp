@@ -38,6 +38,7 @@
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/translation_operation.h"
 #include "processes/rotation_operation.h"
+#include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
@@ -148,6 +149,10 @@ void  AddProcessesToPython()
             init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
     ;
 
+    class_<StructuredMeshGeneratorProcess, bases<Process>, boost::noncopyable >("StructuredMeshGeneratorProcess",
+            init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()[with_custodian_and_ward<1, 2>()])
+    ;
+
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
             init<ModelPart&, bool>())
     .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
@@ -179,7 +184,6 @@ void  AddProcessesToPython()
 			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
     ;
 
-
     class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
             init<ModelPart&, Parameters>())
             .def(init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
@@ -208,21 +212,41 @@ void  AddProcessesToPython()
             init<ModelPart&, Parameters>())
     ;
 
+    /* Historical */
     // DOUBLE
-    class_<ComputeNodalGradientProcess<2, Variable<double>> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess2D",
+    class_<ComputeNodalGradientProcess<2, Variable<double>, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess2D",
             init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    class_<ComputeNodalGradientProcess<3, Variable<double>> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess3D",
+    class_<ComputeNodalGradientProcess<3, Variable<double>, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess3D",
             init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
     // COMPONENT
-    class_<ComputeNodalGradientProcess<2, component_type> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp2D",
+    class_<ComputeNodalGradientProcess<2, component_type, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp2D",
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    class_<ComputeNodalGradientProcess<3, component_type> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp3D",
+    class_<ComputeNodalGradientProcess<3, component_type, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp3D",
+            init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+    
+    /* Non-Historical */
+    // DOUBLE
+    class_<ComputeNodalGradientProcess<2, Variable<double>, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcess2D",
+            init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+            ;
+
+    class_<ComputeNodalGradientProcess<3, Variable<double>, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcess3D",
+            init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+            ;
+
+    // COMPONENT
+    class_<ComputeNodalGradientProcess<2, component_type, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcessComp2D",
+            init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+
+    class_<ComputeNodalGradientProcess<3, component_type, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcessComp3D",
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 

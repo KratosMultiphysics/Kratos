@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 #import kratos core and applications
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
@@ -129,7 +128,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.updateMeshForAnalysis( currentDesign )
             print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
-            print("\n> Starting SolidMechanicsApplication to solve structure")
+            print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
             self.solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")

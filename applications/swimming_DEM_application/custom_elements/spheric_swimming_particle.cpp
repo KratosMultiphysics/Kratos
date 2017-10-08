@@ -775,11 +775,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
     array_1d<double, 3> slip_rot_cross_slip_vel;
     SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, mSlipVel, slip_rot_cross_slip_vel)
 
-    if (mMagnusForceType == 1){ // Rubinow and Keller, 1961 (very small Re)
-        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) *  mFluidDensity * slip_rot_cross_slip_vel;
+    if (mMagnusForceType == 1){ // Rubinow and Keller, 1961 (Re_p < 0.1; nondimensional_slip_rot_vel < 0.1)
+        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
     }
 
-    else if (mMagnusForceType == 2){ // Oesterle and Bui Dihn, 1998 Re < 140
+    else if (mMagnusForceType == 2){ // Oesterle and Bui Dihn, 1998 (Re_p < 140)
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double reynolds;
         double rot_reynolds;
@@ -794,6 +794,17 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
             const double lift_coeff = 0.45  + (rot_reynolds / reynolds - 0.45) * exp(- 0.05684 * pow(rot_reynolds, 0.4) * pow(reynolds, 0.3));
             noalias(lift_force) = 0.5 *  mFluidDensity * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot_cross_slip_vel / norm_of_slip_rot;
         }
+    }
+
+    else if (mMagnusForceType == 3){ // Loth, 2008 (Re_p < 2000; nondimensional_slip_rot_vel < 20)
+        // calculate as in Rubinow and Keller, 1963
+        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
+        // correct coefficient
+        double reynolds;
+        ComputeParticleReynoldsNumber(reynolds);
+        const double nondimensional_slip_rot_vel = ComputeNondimensionalRotVelocity(slip_rot);
+        const double coeff = 1 - (0.675 + 0.15 * (1 + std::tanh(0.28 * (nondimensional_slip_rot_vel - 2)))) * std::tanh(0.18 * std::sqrt(reynolds));
+        noalias(lift_force) = coeff * lift_force;
     }
 
     else {
@@ -812,7 +823,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
         return;
     }
 
-    else if (mHydrodynamicTorqueType == 1){
+    else if (mHydrodynamicTorqueType == 1 || mHydrodynamicTorqueType == 2){
         const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;
@@ -827,7 +838,12 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
+        if (mHydrodynamicTorqueType == 2){ // Loth, 2008 (Re_rot < 2000, Re_p < 20)
+            rotational_coeff *= 1.0 + 5 / (64 * KRATOS_M_PI) * std::pow(rot_reynolds, 0.6);
+        }
+
         noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * slip_rot;
+
     }
 
     else {
@@ -869,6 +885,13 @@ template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeParticleReynoldsNumber(double& reynolds)
 {
     reynolds = 2 * mRadius * mNormOfSlipVel / mKinematicViscosity;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+double SphericSwimmingParticle<TBaseElement>::ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity)
+{
+    return 2.0 * mRadius * mNormOfSlipVel / std::sqrt(SWIMMING_INNER_PRODUCT_3(slip_rot_velocity, slip_rot_velocity));
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1424,9 +1447,11 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mHasVirtualMassForceNodalVar = node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
     mHasBassetForceNodalVar      = node.SolutionStepsDataHas(BASSET_FORCE);
     mHasLiftForceNodalVar        = node.SolutionStepsDataHas(LIFT_FORCE);
+        
     
-    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){
-        mSphericity = node.FastGetSolutionStepValue(PARTICLE_SPHERICITY);
+    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){ 
+        node.FastGetSolutionStepValue(PARTICLE_SPHERICITY) = this->GetProperties()[PARTICLE_SPHERICITY];
+        mSphericity = node.FastGetSolutionStepValue(PARTICLE_SPHERICITY); //TODO: remove member var mSphericity from everywhere. Care with the occasions when PARTICLE_SPHERICITY is not added to the nodes!
     }
     else {
         mSphericity = 1.0;
