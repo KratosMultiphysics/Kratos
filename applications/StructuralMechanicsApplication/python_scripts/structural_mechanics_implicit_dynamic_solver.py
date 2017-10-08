@@ -88,6 +88,14 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         else:
             raise Exception("Unsupported scheme_type: " + scheme_type)
         return mechanical_scheme
+    
+    def get_builder_and_solver(self):
+        if self.settings["multi_point_constraints_used"].GetBool():
+            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.get_linear_solver())
+        else:
+            builder_and_solver = super(StaticMechanicalSolver,self).get_builder_and_solver()
+
+        return builder_and_solver
 
     def _create_mechanical_solver(self):
         computing_model_part = self.GetComputingModelPart()
