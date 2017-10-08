@@ -2211,7 +2211,7 @@ private:
         //  test if the box intersects the plane of the triangle
         //  compute plane equation of triangle: normal*x+distance=0
         MathUtils<double>::CrossProduct(normal, edge0, edge1);
-        distance =- inner_prod(normal, vert0);
+        distance = -inner_prod(normal, vert0);
         if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
         
         return true;  // box and triangle overlaps
