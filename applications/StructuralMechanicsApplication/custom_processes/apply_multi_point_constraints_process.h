@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 // Application includes
 #include "custom_utilities/multipoint_constraint_data.hpp"
@@ -113,118 +114,67 @@ class ApplyMultipointConstraintsProcess : public Process
     {
         ModelPart &master_model_part = mr_model_part.GetSubModelPart(m_parameters["master_sub_model_part_name"].GetString());
         ModelPart &slave_model_part = mr_model_part.GetSubModelPart(m_parameters["slave_sub_model_part_name"].GetString());
+
+        ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
+        int &dim = info->GetValue(DOMAIN_SIZE);
+
         std::string interpolationType = m_parameters["interpolation_type"].GetString();
         int numVars = m_parameters["variable_names"].size();
         Parameters mapper_parameters = m_parameters["interpolation_settings"];
 
-        MapperCommunicator::Pointer mpMapperCommunicator = MapperCommunicator::Pointer(
-            new MapperCommunicator(master_model_part,
-                                   slave_model_part,
-                                   mapper_parameters));
-
-        // KratosComponents< Variable<double> >::Get( mvariable_name )
-        if (interpolationType == "nearest_node")
+        if (dim == 2)
         {
-            mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
-            mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
-            mpMapperCommunicator->Initialize();
+            ApplyConstraints<2>(master_model_part, slave_model_part);
         }
-        else if (interpolationType == "nearest_element")
+        else if (dim == 3)
         {
-            mpMapperCommunicator->InitializeOrigin(MapperUtilities::Condition_Center);
-            mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
-            mpMapperCommunicator->Initialize();
-        }
-
-        for (int i = 0; i < numVars; i++)
-        {
-            std::string varName = m_parameters["variable_names"][i].GetString();
-
-            // Create the mapper based on the type of interpolation
-            // Creating the function pointers for the InterfaceObjects
-            if (interpolationType == "nearest_node")
-            {
-
-                if (KratosComponents<Variable<double>>::Has(varName)) //case of double variable
-                {
-
-                    VariableType rVar = KratosComponents<Variable<double>>::Get(m_parameters["variable_names"][i].GetString());
-
-                    auto function_pointer_origin = std::bind(&GetMasterRelationInformationFromNodeScalarVariable,
-                                                             std::placeholders::_1,
-                                                             rVar,
-                                                             std::placeholders::_2);
-
-                    auto function_pointer_destination = std::bind(&SetMpcDataAtNodeScalarVariable<void *>,
-                                                                  std::placeholders::_1,
-                                                                  rVar,
-                                                                  std::placeholders::_2,
-                                                                  pMpc);
-
-                    mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                                                               function_pointer_destination);
-                }
-                if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(varName)) //case of component variable
-                {
-                    VariableComponentType rVar = KratosComponents<VariableComponentType>::Get(m_parameters["variable_names"][i].GetString());
-
-                    auto function_pointer_origin = std::bind(&GetMasterRelationInformationFromNodeVectorVariable,
-                                                             std::placeholders::_1,
-                                                             rVar,
-                                                             std::placeholders::_2);
-
-                    auto function_pointer_destination = std::bind(&SetMpcDataAtNodeVectorVariable<void *>,
-                                                                  std::placeholders::_1,
-                                                                  rVar,
-                                                                  std::placeholders::_2,
-                                                                  pMpc);
-
-                    mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                                                               function_pointer_destination);
-                }
-            }
-            else if (interpolationType == "nearest_element")
-            {
-                if (KratosComponents<Variable<double>>::Has(varName)) //case of double variable
-                {
-                    VariableType rVar = KratosComponents<Variable<double>>::Get(m_parameters["variable_names"][i].GetString());
-
-                    auto function_pointer_origin = std::bind(&GetMasterRelationInformationFromElementScalarVariable,
-                                                             std::placeholders::_1,
-                                                             rVar,
-                                                             std::placeholders::_2);
-                    auto function_pointer_destination = std::bind(&SetMpcDataAtNodeScalarVariable<void *>,
-                                                                  std::placeholders::_1,
-                                                                  rVar,
-                                                                  std::placeholders::_2,
-                                                                  pMpc);
-
-                    mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                                                               function_pointer_destination);
-                }
-
-                if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(varName)) //case of component variable
-                {
-
-                    VariableComponentType rVar = KratosComponents<VariableComponentType>::Get(m_parameters["variable_names"][i].GetString());
-                    auto function_pointer_origin = std::bind(&GetMasterRelationInformationFromElementVectorVariable,
-                                                             std::placeholders::_1,
-                                                             rVar,
-                                                             std::placeholders::_2);
-                    auto function_pointer_destination = std::bind(&SetMpcDataAtNodeVectorVariable<void *>,
-                                                                  std::placeholders::_1,
-                                                                  rVar,
-                                                                  std::placeholders::_2,
-                                                                  pMpc);
-
-                    mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                                                               function_pointer_destination);
-                }
-            }
+            ApplyConstraints<3>(master_model_part, slave_model_part);
         }
     }
 
     // Functions which use two variable components
+    template <int TDim> 
+    void ApplyConstraints(ModelPart &master_model_part, ModelPart &slave_model_part)
+    {
+        BinBasedFastPointLocator<TDim> *p_point_locator = new BinBasedFastPointLocator<TDim>(master_model_part);
+        int numVars = m_parameters["variable_names"].size();
+        // iterating over slave nodes to find the corresponding masters
+        const int n_slave_nodes = slave_model_part.Nodes().size();
+        array_1d<double, TDim + 1> N; // This is only for triangular meshes
+        const int max_results = 100;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+        for (int i = 0; i < n_slave_nodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = slave_model_part.NodesBegin() + i;
+            Node<3>::Pointer p_slave_node = *(iparticle.base());
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+            Element::Pointer pMasterElement;
+            bool is_found = false;
+            is_found = p_point_locator->FindPointOnMesh(p_slave_node->Coordinates(), N, pMasterElement, result_begin, max_results);
+            if (is_found == true)
+            {
+                for (int i = 0; i < numVars; i++)
+                {
+                    std::string varName = m_parameters["variable_names"][i].GetString();
+                    Geometry<Node<3>> &geom = pMasterElement->GetGeometry();
+                    for (unsigned int i = 0; i < geom.size(); i++)
+                    {
+                        if (KratosComponents<Variable<double>>::Has(varName))
+                        { //case of double variable
+                            VariableType rVar = KratosComponents<Variable<double>>::Get(m_parameters["variable_names"][i].GetString());
+                            this->AddMasterSlaveRelationWithNodesAndVariable(geom[i], rVar, *p_slave_node, rVar, N[i], 0.0);
+                        }
+                        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(varName))
+                        {
+                            VariableComponentType rVar = KratosComponents<VariableComponentType>::Get(m_parameters["variable_names"][i].GetString());
+                            this->AddMasterSlaveRelationWithNodesAndVariableComponents(geom[i], rVar, *p_slave_node, rVar, N[i], 0.0);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
 		Applies the MPC condition using two nodes, one as master and other as slave, and with the given weight
@@ -353,7 +303,7 @@ class ApplyMultipointConstraintsProcess : public Process
     void Clear()
     {
         pMpc->Clear();
-    }    
+    }
 
   protected:
     ///@name Protected static Member Variables
