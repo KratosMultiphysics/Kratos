@@ -107,8 +107,6 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(Vector, SURFACE_LOADS_VECTOR )
     KRATOS_CREATE_VARIABLE(Vector, POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_CREATE_VARIABLE(Vector, NEGATIVE_FACE_PRESSURES_VECTOR )
-
-    KRATOS_CREATE_VARIABLE(MpcDataPointerType, MPC_POINTER) // Amap of the master nodes to their corresponding weights
-    
+   
     KRATOS_CREATE_VARIABLE(MpcDataPointerVectorType, MPC_DATA_CONTAINER)
 }
