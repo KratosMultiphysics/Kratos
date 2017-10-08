@@ -153,9 +153,9 @@ def AssambleTestSuites():
             ## VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
-            TLargeDisplacementPatchTestHexa,
-            TALMLargeDisplacementPatchTestTetra,
-            TALMLargeDisplacementPatchTestHexa,
+            #TLargeDisplacementPatchTestHexa,
+            #TALMLargeDisplacementPatchTestTetra,
+            #TALMLargeDisplacementPatchTestHexa,
         ])
     )
 
