@@ -124,11 +124,11 @@ public:
         // We recalculate the penalty parameter
         if (rModelPart.GetProcessInfo()[ADAPT_PENALTY] == true)
         {
-            CalculateContactReactions(rModelPart, rDofSet, b);
-            
             AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart );
             aalm_adaptation_of_penalty.Execute();
         }
+        
+        ResetWeightedGap(rModelPart);
         
         return true;
     }
@@ -274,39 +274,21 @@ protected:
     ///@{
     
     /**
-     * This method calculates the reactions concerning the contact (residual of the contact)
+     * This method resets the weighted gap in the nodes of the problem
      * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param b: The residual vector
      */
     
-    void CalculateContactReactions(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemVectorType& b
-        )
+    void ResetWeightedGap(ModelPart& rModelPart)
     {       
-        const double ScaleFactor = (rModelPart.GetProcessInfo()[SCALE_FACTOR] > 0.0) ? rModelPart.GetProcessInfo()[SCALE_FACTOR] : 1.0;
-              
-        const int numDof = rDofSet.end() - rDofSet.begin();
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const std::size_t num_nodes = static_cast<std::size_t>(nodes_array.size());
 
-//         #pragma omp parallel for
-        for (int i = 0; i < numDof; i++)
+        #pragma omp parallel for 
+        for(std::size_t i = 0; i < num_nodes; i++) 
         {
-            typename DofsArrayType::iterator itDoF = rDofSet.begin() + i;
-
-            if ((itDoF)->IsFixed() == false) // TODO: Ask Riccardo how the elimination builder and solver orders the DoFs 
-            {
-                const std::size_t j = (itDoF)->EquationId();
-
-                if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
-                {
-                    (itDoF)->GetSolutionStepReactionValue() = -b[j] / ScaleFactor;
-                }
-                else if ((itDoF)->GetReaction().Name() != "NONE") // The others
-                {
-                    (itDoF)->GetSolutionStepReactionValue() = -b[j];
-                }
-            }
+            auto it_node = nodes_array.begin() + i;
+            
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
         }
     }
     

@@ -114,16 +114,16 @@ public:
         
         // We iterate over the node
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
+        const std::size_t num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
+        for(std::size_t i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
             
             // Weighted values
             const double& current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-            const double& previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP,1);
+            const double& previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1);
             
             // Nodal H
             const double& nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);

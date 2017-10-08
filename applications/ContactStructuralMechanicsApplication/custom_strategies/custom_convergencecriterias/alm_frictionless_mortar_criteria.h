@@ -111,7 +111,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-        
+    
     /**
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
@@ -130,8 +130,6 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
-        
         // Defining the convergence
         unsigned int is_converged = 0;
         
@@ -139,10 +137,10 @@ public:
         const double& scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
+        const std::size_t num_nodes = static_cast<std::size_t>(nodes_array.size());
 
         #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
+        for(std::size_t i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
             
@@ -172,8 +170,6 @@ public:
                 }
                 else
                 {
-                    (it_node)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
-                    
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);

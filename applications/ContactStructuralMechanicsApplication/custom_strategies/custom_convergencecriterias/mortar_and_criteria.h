@@ -13,6 +13,7 @@
 #define  KRATOS_MORTAR_AND_CRITERIA_H
 
 /* System includes */
+#include <algorithm>    // std::sort
 
 /* External includes */
 
@@ -24,6 +25,9 @@
 #if !defined(_WIN32)
     #include "utilities/color_utilities.h"
 #endif
+#include "utilities/svd_utils.h"
+#include "linear_solvers/linear_solver.h"
+#include "../ExternalSolversApplication/custom_utilities/feast_condition_number_utility.h"
 
 namespace Kratos
 {
@@ -86,6 +90,14 @@ public:
 
     typedef TSparseSpace                                  SparseSpaceType;
 
+    typedef typename TSparseSpace::MatrixType            SparseMatrixType;
+
+    typedef typename TSparseSpace::VectorType            SparseVectorType;
+
+    typedef typename TDenseSpace::MatrixType              DenseMatrixType;
+
+    typedef typename TDenseSpace::VectorType              DenseVectorType;
+    
     typedef typename BaseType::TDataType                        TDataType;
 
     typedef typename BaseType::DofsArrayType                DofsArrayType;
@@ -93,8 +105,22 @@ public:
     typedef typename BaseType::TSystemMatrixType        TSystemMatrixType;
 
     typedef typename BaseType::TSystemVectorType        TSystemVectorType;
-
+    
     typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
+    
+    typedef std::complex<double>                              ComplexType;
+    
+    typedef compressed_matrix<ComplexType>        ComplexSparseMatrixType;
+
+    typedef matrix<ComplexType>                    ComplexDenseMatrixType;
+
+    typedef vector<ComplexType>                         ComplexVectorType;
+
+    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
+
+    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
+
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
     ///@}
     ///@name Life Cycle
@@ -107,11 +133,15 @@ public:
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
         TablePrinterPointerType pTable = nullptr,
-        const bool PrintingOutput = false 
+        const bool PrintingOutput = false,
+        const bool ComputeConditionNumber = false,
+        ComplexLinearSolverType::Pointer pLinearSolver = nullptr
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
         mpTable(pTable),
         mPrintingOutput(PrintingOutput),
+        mComputeConditionNumber(ComputeConditionNumber),
+        mpLinearSolver(pLinearSolver),
         mTableIsInitialized(false)
     {
     }
@@ -124,6 +154,8 @@ public:
       ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
+      ,mComputeConditionNumber(rOther.mComputeConditionNumber)
+      ,mpLinearSolver(rOther.mpLinearSolver)
      {
          BaseType::mpFirstCriterion   =  rOther.mpFirstCriterion;
          BaseType::mpSecondCriterion  =  rOther.mpSecondCriterion;      
@@ -166,6 +198,37 @@ public:
         
         bool criterion_result = BaseType::PostCriteria(rModelPart,rDofSet,A,Dx,b);
         
+        if (mComputeConditionNumber == true)
+        {
+        #if defined(INCLUDE_FEAST)
+            const double condition_number = FEASTConditionNumberUtility<TSparseSpace, TDenseSpace>::ConditionNumber(A, mpLinearSolver);
+        #else
+            const double condition_number = SVDUtils<double>::SVDConditionNumber(A);
+        #endif
+            
+            if (mpTable != nullptr)
+            {
+                std::cout.precision(4);
+                auto& Table = mpTable->GetTable();
+                Table  << condition_number;
+            }
+            else
+            {
+                if (mPrintingOutput == false)
+                {
+                #if !defined(_WIN32)
+                    std::cout << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
+                #else
+                    std::cout << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
+                #endif
+                }
+                else
+                {
+                    std::cout << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
+                }
+            }
+        }
+        
         if (criterion_result == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             if (mpTable != nullptr)
@@ -191,7 +254,13 @@ public:
             mTableIsInitialized = true;
         }
         
-         BaseType::Initialize(rModelPart);
+        BaseType::Initialize(rModelPart);
+         
+        if (mpTable != nullptr && mComputeConditionNumber == true)
+        {
+            auto& table = mpTable->GetTable();
+            table.AddColumn("COND.NUM.", 10);
+        }
     }
 
     /**
@@ -313,9 +382,11 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
-    bool mPrintingOutput;            // If the colors and bold are printed
-    bool mTableIsInitialized;        // If the table is already initialized
+    TablePrinterPointerType mpTable;                 // Pointer to the fancy table 
+    bool mPrintingOutput;                            // If the colors and bold are printed
+    bool mComputeConditionNumber;                    // If the condition number is computed
+    ComplexLinearSolverType::Pointer mpLinearSolver; // The pointer to the linear solver
+    bool mTableIsInitialized;                        // If the table is already initialized
     
     ///@}
     ///@name Private Operators

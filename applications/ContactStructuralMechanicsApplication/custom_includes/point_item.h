@@ -68,7 +68,7 @@ public:
     PointItem(Condition::Pointer Cond):
         mpOriginCond(Cond)
     {
-        UpdatePoint();
+        UpdatePoint(0.0);
     }
     
     PointItem(
@@ -142,9 +142,19 @@ public:
      * @return Coordinates: The coordinates of the item
      */
 
-    void UpdatePoint()
-    {
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+    void UpdatePoint(const double& DeltaTime)
+    {        
+        Point<3> center;
+        if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true)
+        {
+            Point<3> center = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
+        }
+        else
+        {
+            center = mpOriginCond->GetGeometry().Center(); // NOTE: Real center
+        }
+        
+        this->Coordinates() = center.Coordinates();
     }
 
 protected:

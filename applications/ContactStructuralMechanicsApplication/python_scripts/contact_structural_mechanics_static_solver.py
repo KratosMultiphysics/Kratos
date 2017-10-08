@@ -34,18 +34,19 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         {
             "contact_settings" :
             {
-                "mortar_type": "",
-                "contact_tolerance": 0.0e0,
-                "fancy_convergence_criterion": true,
-                "print_convergence_criterion": false,
-                "ensure_contact": false,
-                "adaptative_strategy": false,
-                "split_factor": 10.0,
-                "max_number_splits": 3,
+                "mortar_type"                            : "",
+                "contact_tolerance"                      : 0.0e0,
+                "condn_convergence_criterion"            : false,
+                "fancy_convergence_criterion"            : true,
+                "print_convergence_criterion"            : false,
+                "ensure_contact"                         : false,
+                "adaptative_strategy"                    : false,
+                "split_factor"                           : 10.0,
+                "max_number_splits"                      : 3,
                 "contact_displacement_relative_tolerance": 1.0e-4,
                 "contact_displacement_absolute_tolerance": 1.0e-9,
-                "contact_residual_relative_tolerance": 1.0e-4,
-                "contact_residual_absolute_tolerance": 1.0e-9
+                "contact_residual_relative_tolerance"    : 1.0e-4,
+                "contact_residual_absolute_tolerance"    : 1.0e-9
             }
         }
         """)
@@ -125,6 +126,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
         conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
+        conv_params.AddValue("condn_convergence_criterion",self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact",self.contact_settings["ensure_contact"])

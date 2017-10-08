@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
+import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -24,6 +25,7 @@ class convergence_criterion:
             CR_RT = convergence_criterion_parameters["contact_residual_relative_tolerance"].GetDouble()
             CR_AT = convergence_criterion_parameters["contact_residual_absolute_tolerance"].GetDouble()
             contact_tolerance = convergence_criterion_parameters["contact_tolerance"].GetDouble()
+            condn_convergence_criterion = convergence_criterion_parameters["condn_convergence_criterion"].GetBool()
             fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
             print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
@@ -100,7 +102,17 @@ class convergence_criterion:
             Mortar.SetEchoLevel(echo_level)
 
             if (fancy_convergence_criterion == True):
-                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion)
+                solver_settings = KratosMultiphysics.Parameters("""
+                {
+                    "solver_type": "skyline",
+                    "echo_level": 0
+                }
+                """)
+                if (solver_settings["solver_type"].GetString() == "pastix"):
+                    linear_solver = ExternalSolversApplication.PastixComplexSolver(solver_settings)
+                else:
+                    linear_solver = None
+                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion, condn_convergence_criterion, linear_solver)
             else:
                 self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)

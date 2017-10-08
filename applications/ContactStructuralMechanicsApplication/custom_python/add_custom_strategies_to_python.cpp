@@ -84,6 +84,15 @@ void  AddCustomStrategiesToPython()
     typedef DisplacementLagrangeMultiplierMixedContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierMixedContactCriteriaType;
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     
+    // Linear solvers
+    typedef std::complex<double>                              ComplexType;
+    typedef compressed_matrix<ComplexType>        ComplexSparseMatrixType;
+    typedef matrix<ComplexType>                    ComplexDenseMatrixType;
+    typedef vector<ComplexType>                         ComplexVectorType;
+    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
+    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
+    
     // Custom builder and solvers types
     
     //********************************************************************
@@ -128,6 +137,8 @@ void  AddCustomStrategiesToPython()
             init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool, bool>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool, bool, ComplexLinearSolverType::Pointer>())
             ;
             
     // Weighted residual values update
