@@ -81,7 +81,7 @@
             "modulus"           : "5.0e-1*t/1.1"
         }
     }],
-    "contact_processes" :[
+    "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
         "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",

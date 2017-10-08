@@ -306,10 +306,10 @@ protected:
     {        
         // Now we iterate over all the nodes
         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size()); 
+        const std::size_t numNodes = static_cast<std::size_t>(NodesArray.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++) 
+        for(std::size_t i = 0; i < numNodes; i++) 
         {
             auto itNode = NodesArray.begin() + i;
     
@@ -347,10 +347,10 @@ protected:
     {        
         // Now we iterate over all the nodes
         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size()); 
+        const std::size_t numNodes = static_cast<std::size_t>(NodesArray.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++) 
+        for(std::size_t i = 0; i < numNodes; i++) 
         {
             auto itNode = NodesArray.begin() + i;
     

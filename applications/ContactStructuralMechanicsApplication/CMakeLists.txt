@@ -35,6 +35,16 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_axisym_condition.cpp # Frictional axisym
 )
 
+if(${INCLUDE_FEAST} MATCHES ON)
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/ExternalSolversApplication )
+  if (NOT DEFINED FEAST_ROOT)
+    set(FEAST_ROOT ${CMAKE_SOURCE_DIR}/applications/ExternalSolversApplication/custom_external_libraries/FEAST/3.0 )
+  endif(NOT DEFINED FEAST_ROOT)
+  include_directories( ${FEAST_ROOT}/include )
+  add_definitions(-DINCLUDE_FEAST)
+  set(FEAST_LINK_LIBS feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
+endif(${INCLUDE_FEAST} MATCHES ON)
+
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -42,7 +52,8 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosContactStructuralMechanicsApplication SHARED ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES})
-target_link_libraries(KratosContactStructuralMechanicsApplication KratosCore KratosStructuralMechanicsApplication)
+
+target_link_libraries(KratosContactStructuralMechanicsApplication KratosCore KratosStructuralMechanicsApplication ${FEAST_LINK_LIBS})
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosContactStructuralMechanicsApplication DESTINATION libs )

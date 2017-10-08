@@ -119,9 +119,7 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
         ) override
-    {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
-        
+    {        
         if (mpTable != nullptr)
         {
             // TODO: Add somethig if necessary

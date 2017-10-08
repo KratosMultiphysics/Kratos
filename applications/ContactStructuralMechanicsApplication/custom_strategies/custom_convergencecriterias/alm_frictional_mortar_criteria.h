@@ -113,6 +113,31 @@ public:
     ///@{
     
     /**
+     * Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    
+    bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        BaseType::PreCriteria(rModelPart, rDofSet, A, Dx, b);
+        
+        ResetWeightedSlip(rModelPart);
+        
+        return true;
+    }
+    
+    /**
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -130,8 +155,6 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
-        
         // Defining the convergence
         unsigned int is_converged_active = 0;
         unsigned int is_converged_slip = 0;
@@ -143,10 +166,10 @@ public:
         const array_1d<double,3> zero_vector(0.0);
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
+        const std::size_t num_nodes = static_cast<std::size_t>(nodes_array.size());
 
         #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
+        for(std::size_t i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
             
@@ -212,8 +235,6 @@ public:
                 }
                 else
                 {
-                    (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = zero_vector; // NOTE: To clear the value (can affect future iterations)
-                    
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);
@@ -488,6 +509,25 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * This method resets the weighted slip in the nodes of the problem
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     */
+    
+    void ResetWeightedSlip(ModelPart& rModelPart)
+    {       
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const std::size_t num_nodes = static_cast<std::size_t>(nodes_array.size());
+
+        #pragma omp parallel for 
+        for(std::size_t i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            
+            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
