@@ -23,12 +23,12 @@
 #include "boost/smart_ptr.hpp"
 
 #include "utilities/timer.h"
+#include "containers/multipoint_constraint_data.h"
 
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "includes/model_part.h"
-#include "custom_utilities/multipoint_constraint_data.hpp"
 
 // #define USE_GOOGLE_HASH
 #ifdef USE_GOOGLE_HASH
@@ -903,31 +903,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             {
                 if (mpcData->IsActive())
                 {
-                    for (auto slaveMasterDofMap : mpcData->mDofConstraints)
-                    {
-                        SlavePairType slaveDofMap = slaveMasterDofMap.first;
-                        MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-                        unsigned int slaveNodeId = slaveDofMap.first;
-                        unsigned int slaveDofKey = slaveDofMap.second;
-                        NodeType &node = r_model_part.Nodes()[slaveNodeId];
-                        Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-                        unsigned int slaveEquationId = it->EquationId();
-
-                        for (auto masterDofMapElem : masterDofMap)
-                        {
-                            unsigned int masterNodeId;
-                            double constant;
-                            unsigned int masterEquationId;
-                            unsigned int masterDofKey;
-                            double weight = masterDofMapElem.second;
-                            std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                            NodeType &masterNode = r_model_part.Nodes()[masterNodeId];
-                            Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
-                            masterEquationId = itMaster->EquationId();
-                            //
-                            mpcData->AddConstraint(slaveEquationId, masterEquationId, weight, constant);
-                        }
-                    }
+                    mpcData->FormulateEquationIdRelationMap(r_model_part);
                 }
             }
         }

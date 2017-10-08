@@ -52,6 +52,7 @@
 #include "processes/assign_scalar_field_to_conditions_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "processes/apply_multi_point_constraints_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -267,6 +268,17 @@ void  AddProcessesToPython()
             init<ModelPart&, Parameters >())
     ;
 
+
+        /// Processes
+    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
+                .def(init< ModelPart&, Parameters& >())
+                .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
+                .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
+                .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
+                .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
+                .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
+                .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData)
+                ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;

@@ -28,7 +28,7 @@
 #include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
 
 //Processes
-#include "custom_processes/apply_multi_point_constraints_process.h"
+//#include "custom_processes/apply_multi_point_constraints_process.h"
 
 
 namespace Kratos
@@ -74,7 +74,7 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",TransferEigenvector2)
     ;
 
-    /// Processes
+/*    /// Processes
     class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
     .def(init< ModelPart&, Parameters& >())
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
@@ -82,7 +82,7 @@ void  AddCustomUtilitiesToPython()
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
     .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
     .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
-    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
+    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);*/
 
 }
 
