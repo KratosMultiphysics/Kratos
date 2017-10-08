@@ -553,7 +553,8 @@ protected:
         
         const double denom = s_orig1_orig2_x * s_dest1_dest2_y - s_dest1_dest2_x * s_orig1_orig2_y;
     
-        const double tolerance = std::numeric_limits<double>::epsilon();
+        const double tolerance = 1.0e-12;
+//         const double tolerance = std::numeric_limits<double>::epsilon();
 
         if (std::abs(denom) < tolerance) // NOTE: Collinear
         {
