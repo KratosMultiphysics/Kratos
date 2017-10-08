@@ -78,6 +78,7 @@
 /* UTILITIES */
 // Cross sections
 #include "custom_utilities/shell_cross_section.hpp"
+#include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
