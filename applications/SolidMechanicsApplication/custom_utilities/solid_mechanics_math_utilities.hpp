@@ -1691,7 +1691,7 @@ public:
                     if(is_visible)
                         temp_results.push_back(result_points[subj_edge]);
 
-                    temp_results.push_back(new Point<3>((*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])))));
+                    temp_results.push_back(newPoint((*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])))));
 
                     is_visible= !is_visible;
 
