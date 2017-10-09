@@ -2219,63 +2219,30 @@ private:
     virtual int Check()
     {
         KRATOS_TRY
-        //~ ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-        //~ if (rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)==false)
-            //~ KRATOS_THROW_ERROR(std::logic_error, "no CONVECTION_DIFFUSION_SETTINGS in model_part", "");
-        //std::cout << "ConvDiff::Check(). If crashes, check CONVECTION_DIFFUSION_SETTINGS is defined" << std::endl;
-        
-        //~ ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        // Unknown variables
+        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(mScalarVar1) == false)
+            KRATOS_THROW_ERROR(std::logic_error, "Add ScalarVariable to the model part!", "");
 
-        //~ //UNKNOWN VARIABLE
-        //~ if(my_settings->IsDefinedUnknownVariable()==true) 
-        //~ {
-            //~ if (mrModelPart.NodesBegin()->SolutionStepsDataHas(my_settings->GetUnknownVariable()) == false)
-                //~ KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Unknown Variable defined but not contained in the model part", "");
-        //~ }
-        //~ else
-            //~ KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Unknown Variable not defined!", "");
-        //~ 
+        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(mVectorVar1) == false)
+            KRATOS_THROW_ERROR(std::logic_error, "Add ScalarVariable to the model part!", "");
 
-        //~ //PROJECTION VARIABLE
-        //~ //used as intermediate variable, is the variable at time n+1 but only accounting for the convective term.
-        //~ if(my_settings->IsDefinedProjectionVariable()==true) 
-        //~ {
-            //~ if (mrModelPart.NodesBegin()->SolutionStepsDataHas(my_settings->GetProjectionVariable()) == false)
-                //~ KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Projection Variable defined but not contained in the model part", "");
-        //~ }
-        //~ else
-            //~ KRATOS_THROW_ERROR(std::logic_error, "No Projection variable assigned for ConvDiff!", "");
-
-
-        //CONVECTION VELOCITY VARIABLE
-        //CURRENTLY WE ARE USING (VELOCITY -MESH_VELOCITY) TO CONVECT, so the ConvectionVariable must not be used:
-        //if(my_settings->IsDefinedConvectionVariable()==true) 
-        //{
-        //	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetConvectionVariable()) == false)
-        //		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Convection Variable defined but not contained in the model part", "");
-        //}
-        //else
-        //	std::cout << "No Projection variable assigned for ConvDiff. Assuming Convection=0" << std::endl;
-        //~ if(my_settings->IsDefinedConvectionVariable()==true) 
-            //~ KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ConvectionVariable not used. Use VelocityVariable instead", "");
-
-        //~ //VELOCITY VARIABLE	
-        //~ if(my_settings->IsDefinedVelocityVariable()==true) 
-        //~ {
-            //~ if (mrModelPart.NodesBegin()->SolutionStepsDataHas(my_settings->GetVelocityVariable()) == false)
-                //~ KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Velocity Variable defined but not contained in the model part", "");
-        //~ }
-        //~ else
-            //~ KRATOS_THROW_ERROR(std::logic_error, "No Velocity variable assigned for ConvDiff!", "");
+        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false)
+            KRATOS_THROW_ERROR(std::logic_error, "Add VELOCITY variable to the model part!", "");
 
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(MEAN_SIZE) == false)
-                KRATOS_THROW_ERROR(std::logic_error, "Add MEAN_SIZE variable to model part!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add MEAN_SIZE variable to model part!", "");
 
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_SCALAR1) == false)
-                KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
 
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_VECTOR1) == false)
-                KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR1 variable to model part!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR1 variable to model part!", "");
+
+        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(PROJECTED_SCALAR1) == false)
+            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
+
+        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(PROJECTED_VECTOR1) == false)
+            KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VECTOR1 variable to model part!", "");
 
         return 0;
 
