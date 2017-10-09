@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti
+//  Main authors:    Author Julio Marti.
 //
 
 
@@ -28,6 +28,7 @@ namespace Kratos
 
   QFluid3D::QFluid3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
+
   {
     //DO NOT ADD DOFS HERE!!!
   }

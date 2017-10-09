@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti
+//  Main authors:    Author Julio Marti.
 //
 
 #if !defined(KRATOS_PARTICLES_UTILITIES_INCLUDED )
