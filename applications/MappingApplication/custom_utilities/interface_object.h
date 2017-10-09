@@ -61,7 +61,7 @@ namespace Kratos
 * objects of this type have to be created
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceObject : public Point<3>
+class InterfaceObject : public Point
 {
 public:
     ///@name Type Definitions
@@ -85,7 +85,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z)   // constuct from coordinates
+    InterfaceObject(double X, double Y, double Z) : Point(X, Y, Z)   // constuct from coordinates
     {
         SetInitialValuesToMembers();
     }
@@ -254,7 +254,7 @@ protected:
     ///@{
 
     // This constructor is called by its derived classes
-    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)
+    InterfaceObject() : Point(0.0f, 0.0f, 0.0f)
     {
         SetInitialValuesToMembers();
     }
