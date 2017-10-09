@@ -126,6 +126,9 @@ namespace Kratos
         // Getting gravity
         mGravity = rCurrentProcessInfo[GRAVITY_Z];
         
+        // Getting properties
+        double manning2 = pow( GetProperties()[MANNING], 2 );
+        
         // Getting water height unit converter
         mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
         
@@ -153,9 +156,11 @@ namespace Kratos
         GetNodalValues(v_depth, v_rain, v_unknown, v_proj_unknown);
         
         // Get element values (this function inlcudes the units conversion)
+        array_1d<double,2> velocity;
         double height;
         array_1d<double,2> height_grad;
-        GetElementValues(DN_DX, v_unknown, height, height_grad);
+        GetElementValues(DN_DX, v_unknown, velocity, height, height_grad);
+        double abs_vel = norm_2(velocity);
         
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -169,6 +174,8 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double,1,TNumNodes*3> DN_DX_vel    = ZeroMatrix(1,TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
         //
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_u  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
@@ -198,8 +205,8 @@ namespace Kratos
             N_height     *= mHeightUnitConvert;
             DN_DX_height *= mHeightUnitConvert;
             
-            noalias(mass_matrix)  += prod(trans(N_vel),N_vel);
-            noalias(mass_matrix)  += prod(trans(N_height),N_height);
+            noalias(mass_matrix_w)+= prod(trans(N_vel),N_vel);
+            noalias(mass_matrix_q)+= prod(trans(N_height),N_height);
             
             noalias(aux_q_div_u)  += prod(trans(N_height),DN_DX_vel);
             noalias(aux_w_grad_h) += prod(trans(N_vel),DN_DX_height);
@@ -207,12 +214,12 @@ namespace Kratos
             noalias(aux_u_diffus) += prod(trans(DN_DX_vel),DN_DX_vel);
             noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
         }
-        
+        noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
         
         // Build LHS
         // Cross terms
         noalias(rLeftHandSideMatrix)  = height * aux_q_div_u;           // Add <q*h*div(u)> to Mass Eq.
-        noalias(rLeftHandSideMatrix) += mGravity * aux_w_grad_h;         // Add <w*g*grad(h)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += mGravity * aux_w_grad_h;        // Add <w*g*grad(h)> to Momentum Eq.
         
         // Inertia terms
         noalias(rLeftHandSideMatrix) += dt_inv * mass_matrix;           // Add <N,N> to both Eq's
@@ -220,6 +227,9 @@ namespace Kratos
         // Stabilization terms
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
         noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;  // Add art. diff. to Momentum Eq.
+        
+        // Friction term
+        noalias(rLeftHandSideMatrix) += mGravity * manning2 * abs_vel / height * mass_matrix_w;
         
         // Build RHS
         // Source term (bathymetry contribution)
@@ -336,22 +346,27 @@ namespace Kratos
     template< unsigned int TNumNodes >
     void PrimitiveVarElement<TNumNodes>::GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
                                                           const array_1d<double, TNumNodes*3>& rNodalVar,
+                                                          array_1d<double,2>& rVelocity,
                                                           double& rHeight,
                                                           array_1d<double,2>& rHeightGrad
                                                          )
     {
         double lumping_factor = 1 / double(TNumNodes);
         
+        rVelocity = ZeroVector(2);
         rHeight = 0;
         rHeightGrad = ZeroVector(2);
         
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+            rVelocity[0] += rNodalVar[  + 3*i];
+            rVelocity[1] += rNodalVar[1 + 3*i];
             rHeight += rNodalVar[2 + 3*i];
             rHeightGrad[0] += rDN_DX(i,0) * rNodalVar[2 + 3*i];
             rHeightGrad[1] += rDN_DX(i,1) * rNodalVar[2 + 3*i];
         }
 
+        rVelocity *= lumping_factor;
         rHeight *= lumping_factor * mHeightUnitConvert;
         rHeightGrad *= mHeightUnitConvert;
     }

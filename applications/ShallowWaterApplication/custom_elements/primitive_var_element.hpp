@@ -82,7 +82,7 @@ namespace Kratos
     
     void GetNodalValues(array_1d<double, TNumNodes*3>& rDepth, array_1d<double,TNumNodes*3>& rRain, array_1d<double,TNumNodes*3>& rUnkn, array_1d<double, TNumNodes*3>& rProj);
     
-    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, const array_1d<double,TNumNodes*3>& rNodalVar, double& rHeight, array_1d<double,2>& rHeightGrad);
+    void GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, const array_1d<double,TNumNodes*3>& rNodalVar, array_1d<double,2>& rVelocity, double& rHeight, array_1d<double,2>& rHeightGrad);
     
     void ComputeStabilizationParameters(const double& rHeight, const array_1d<double,2>& rHeightGrad, const double& rElemSize, double& rTauU, double& rTauH, double& rKdc);
     
