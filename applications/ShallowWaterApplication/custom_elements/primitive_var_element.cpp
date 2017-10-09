@@ -161,6 +161,7 @@ namespace Kratos
         array_1d<double,2> height_grad;
         GetElementValues(DN_DX, v_unknown, velocity, height, height_grad);
         double abs_vel = norm_2(velocity);
+        double height43 = pow( height, 1.33333 );
         
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -229,7 +230,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;  // Add art. diff. to Momentum Eq.
         
         // Friction term
-        noalias(rLeftHandSideMatrix) += mGravity * manning2 * abs_vel / height * mass_matrix_w;
+        noalias(rLeftHandSideMatrix) += mGravity * manning2 * abs_vel / height43 * mass_matrix_w;
         
         // Build RHS
         // Source term (bathymetry contribution)

@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_WALL_CONDITION_H_INCLUDED)
-#define  KRATOS_WALL_CONDITION_H_INCLUDED 
+#if !defined(KRATOS_NOTHING_CONDITION_H_INCLUDED)
+#define  KRATOS_NOTHING_CONDITION_H_INCLUDED 
 
 // System includes 
 
@@ -27,17 +27,17 @@ namespace Kratos
 {
 
   template< unsigned int TNumNodes >
-  class WallCondition : public Condition
+  class NothingCondition : public Condition
   {
   public:
      
-    /// Counted pointer of WallCondition
-    KRATOS_CLASS_POINTER_DEFINITION( WallCondition );
+    /// Counted pointer of NothingCondition
+    KRATOS_CLASS_POINTER_DEFINITION( NothingCondition );
 
 //----------------------------------------------------------------------
 
     /// Default constructor
-    WallCondition():
+    NothingCondition():
         Condition()
     {
     }
@@ -47,7 +47,7 @@ namespace Kratos
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    WallCondition(IndexType NewId, GeometryType::Pointer pGeometry):
+    NothingCondition(IndexType NewId, GeometryType::Pointer pGeometry):
         Condition(NewId, pGeometry)
     {
     }
@@ -58,23 +58,23 @@ namespace Kratos
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    WallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
+    NothingCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
         Condition(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor
-    WallCondition(WallCondition const& rOther):
+    NothingCondition(NothingCondition const& rOther):
         Condition(rOther)
     {
     }
 
     /// Destructor.
-    virtual ~ WallCondition() {};
+    virtual ~ NothingCondition() {};
 
 //----------------------------------------------------------------------
 
-    /// Create a new WallCondition object.
+    /// Create a new NothingCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -83,7 +83,7 @@ namespace Kratos
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-        return Condition::Pointer(new WallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Condition::Pointer(new NothingCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("")
     }
 
@@ -109,8 +109,8 @@ namespace Kratos
 
     friend class Serializer;
 
-  }; // class WallCondition
+  }; // class NothingCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_WALL_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_NOTHING_CONDITION_H_INCLUDED  defined

@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/wall_condition.hpp"
+#include "custom_conditions/nothing_condition.hpp"
 #include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -65,7 +65,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void WallCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -88,7 +88,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void WallCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -111,7 +111,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void WallCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -133,7 +133,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void WallCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -149,7 +149,6 @@ namespace Kratos
 
 //----------------------------------------------------------------------
 
-template class WallCondition<3>;
-template class WallCondition<4>;
+template class NothingCondition<2>;
 
 } // namespace Kratos

@@ -34,7 +34,7 @@
 #include "custom_elements/euler_prim_var_element.hpp"
 #include "custom_elements/euler_cons_var_element.hpp"
 #include "custom_conditions/rain_condition.hpp"
-#include "custom_conditions/wall_condition.hpp"
+#include "custom_conditions/nothing_condition.hpp"
 
 
 namespace Kratos
@@ -205,8 +205,7 @@ namespace Kratos
         const RainCondition<3> mRainCondition2D3N;
         const RainCondition<4> mRainCondition2D4N;
         //
-        const WallCondition<3> mWallCondition2D3N;
-        const WallCondition<4> mWallCondition2D4N;
+        const NothingCondition<2> mNothingCondition2D2N;
 
 
         ///@} 

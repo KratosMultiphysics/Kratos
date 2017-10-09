@@ -130,7 +130,7 @@ class ShallowWaterBaseSolver(object):
                                                                      #~ self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["solver_echo_level"].GetInt())
-        #~ (self.solver).Check()
+        (self.solver).Check()
 
         (self.solver).Initialize()
 
