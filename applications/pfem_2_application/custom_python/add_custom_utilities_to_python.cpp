@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/pfem2_utilities.h"
 #include "custom_utilities/mark_outer_nodes_process.h"
 #include "custom_utilities/mark_fluid_process.h"
+#include "custom_utilities/save_lagrangian_surface_process.h"
 namespace Kratos
 {
 	
@@ -210,6 +211,12 @@ namespace Python
 	  ;
 	
  	class_<MarkFluidProcess, bases<Process> >("MarkFluidProcess", init<ModelPart&>());
+
+   	class_<SaveLagrangianSurfaceProcess, bases<Process> >("SaveLagrangianSurfaceProcess", init<> ())
+    	.def("SaveSurfaceConditions", &SaveLagrangianSurfaceProcess::SaveSurfaceConditions)
+    	;
+
+
 	
   }
 
