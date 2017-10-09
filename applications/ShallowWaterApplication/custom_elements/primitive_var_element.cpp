@@ -156,9 +156,9 @@ namespace Kratos
         GetNodalValues(v_depth, v_rain, v_unknown, v_proj_unknown);
         
         // Get element values (this function inlcudes the units conversion)
-        array_1d<double,2> velocity;
         double height;
         array_1d<double,2> height_grad;
+        array_1d<double,2> velocity;
         GetElementValues(DN_DX, v_unknown, velocity, height, height_grad);
         double abs_vel = norm_2(velocity);
         double height43 = pow( height, 1.33333 );

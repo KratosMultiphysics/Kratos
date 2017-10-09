@@ -120,6 +120,9 @@ namespace Kratos
         // Getting gravity 
         mGravity = rCurrentProcessInfo[GRAVITY_Z];
         
+        // Getting properties
+        double manning2 = pow( GetProperties()[MANNING], 2 );
+        
         // Getting water height unit converter
         mHeightUnitConvert = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
      
@@ -149,8 +152,11 @@ namespace Kratos
         // Get element values (this function inlcudes the units conversion)
         double height;
         array_1d<double,2> height_grad;
+        array_1d<double,2> momentum;
         double div_u;
-        GetElementValues(DN_DX, v_unknown, height, height_grad, div_u);
+        GetElementValues(DN_DX, v_unknown, momentum, div_u, height, height_grad);
+        double abs_mom = norm_2(momentum);
+        double height73 = pow( height, 2.33333 );
         
         // Compute stabilization and discontinuity capturing parameters
         double tau_m;
@@ -165,6 +171,8 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradient matrix (for height unknown)
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> grad_mom     = ZeroMatrix(2,TNumNodes*3);  // Shaoe functions gradient vector (for momentum unknown)
         //
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_m  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
@@ -199,8 +207,8 @@ namespace Kratos
             N_height     *= mHeightUnitConvert;
             DN_DX_height *= mHeightUnitConvert;
             
-            noalias(mass_matrix)  += prod(trans(N_mom),N_mom);
-            noalias(mass_matrix)  += prod(trans(N_height),N_height);
+            noalias(mass_matrix_w)+= prod(trans(N_mom),N_mom);
+            noalias(mass_matrix_q)+= prod(trans(N_height),N_height);
          
             noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom);
             noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height);
@@ -208,9 +216,7 @@ namespace Kratos
             noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom);
             noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
         }
-        
-        //~ CalculateLumpedMassMatrix(mass_matrix);
-        
+        noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
         
         // Build LHS 
         // Cross terms 
@@ -225,6 +231,9 @@ namespace Kratos
         // Stabilization terms 
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq. 
         noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq. 
+        
+        // Friction term
+        noalias(rLeftHandSideMatrix) += mGravity * manning2 * abs_mom / height73 * mass_matrix_w;
         
         // Build RHS 
         // Source terms (bathymetry contribution) 
@@ -340,10 +349,11 @@ namespace Kratos
  
     template< unsigned int TNumNodes > 
     void ConservedVarElement<TNumNodes>::GetElementValues(const boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX, 
-                                                          const array_1d<double, TNumNodes*3>& rNodalVar, 
+                                                          const array_1d<double, TNumNodes*3>& rNodalVar,
+                                                          array_1d<double,2>& rMomentum,
+                                                          double& rDivU,
                                                           double& rHeight,
-                                                          array_1d<double,2>& rHeightGrad,
-                                                          double& rDivU 
+                                                          array_1d<double,2>& rHeightGrad
                                                           )
     {
         double lumping_factor = 1 / double(TNumNodes);
@@ -356,12 +366,15 @@ namespace Kratos
         }
         
         // Initialize outputs
+        rMomentum = ZeroVector(2);
+        rDivU = 0;
         rHeight = 0;
         rHeightGrad = ZeroVector(2);
-        rDivU  = 0;
         
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+            rMomentum[0] += rNodalVar[  + 3*i];
+            rMomentum[1] += rNodalVar[1 + 3*i];
             rHeight += rNodalVar[2 + 3*i]; 
             rHeightGrad[0] += rDN_DX(i,0) * rNodalVar[2 + 3*i];
             rHeightGrad[1] += rDN_DX(i,1) * rNodalVar[2 + 3*i];
@@ -379,9 +392,10 @@ namespace Kratos
         if (near_dry)
             rDivU /= rHeight;
         
+        rMomentum *= lumping_factor;
+        rDivU /= mHeightUnitConvert;
         rHeight *= lumping_factor * mHeightUnitConvert;
         rHeightGrad *= mHeightUnitConvert;
-        rDivU /= (mHeightUnitConvert);
     }
 
 //----------------------------------------------------------------------
@@ -405,7 +419,7 @@ namespace Kratos
         
         // Compute stabilization parameters
         bool stabilization = true;
-        double Ctau = 0.01;       // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) 
+        double Ctau = 0.002;       // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) 
         double fheight = fabs(rHeight);
         if (stabilization && fheight > 1e-6)
         {
@@ -415,11 +429,12 @@ namespace Kratos
         
         // Compute discontinuity capturing parameters
         bool discontinuity_capturing = true;
+        double alpha = 0.6;
         double gradient_threshold = 1e-6;
         //~ double residual;
         if (discontinuity_capturing && height_grad_norm > gradient_threshold)
         {
-            rKdc = 0.5*0.4*rElemSize*height_grad_norm;  // Residual formulation
+            rKdc = 0.5*alpha*rElemSize*height_grad_norm;  // Residual formulation
         }
     }
 
