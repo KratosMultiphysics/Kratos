@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_VON_MISES_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED )
-#define  KRATOS_VON_MISES_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED
+#if !defined(KRATOS_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED )
+#define  KRATOS_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -46,36 +46,36 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesSmallStrainUmatModel : public SmallStrainUmatModel
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LargeStrainUmatModel : public SmallStrainUmatModel
    {
-
-
       public:
 
          ///@name Type Definitions
          ///@{
+         typedef SmallStrainUmatModel::UmatModelData              UmatDataType;
 
-         /// Pointer definition of VonMisesSmallStrainUmatModel
-         KRATOS_CLASS_POINTER_DEFINITION( VonMisesSmallStrainUmatModel );
+
+         /// Pointer definition of LargeStrainUmatModel
+         KRATOS_CLASS_POINTER_DEFINITION( LargeStrainUmatModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.    
-         VonMisesSmallStrainUmatModel();
+         LargeStrainUmatModel();
 
          /// Copy constructor.
-         VonMisesSmallStrainUmatModel(VonMisesSmallStrainUmatModel const& rOther);
+         LargeStrainUmatModel(LargeStrainUmatModel const& rOther);
 
          /// Clone.
          virtual ConstitutiveModel::Pointer Clone() const override;
 
          /// Assignment operator.
-         VonMisesSmallStrainUmatModel& operator=(VonMisesSmallStrainUmatModel const& rOther);
+         LargeStrainUmatModel& operator=(LargeStrainUmatModel const& rOther);
 
          /// Destructor.
-         virtual ~VonMisesSmallStrainUmatModel();
+         virtual ~LargeStrainUmatModel();
 
 
          ///@}
@@ -85,6 +85,11 @@ namespace Kratos
 
          ///@}
          ///@name Operations
+         ///@{
+
+
+         ///@}
+         ///@name Access
          ///@{
 
 
@@ -101,20 +106,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "VonMisesSmallStrainUmatModel";
+            buffer << "LargeStrainUmatModel";
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "VonMisesSmallStrainUmatModel";
+            rOStream << "LargeStrainUmatModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "VonMisesSmallStrainUmatModel Data";
+            rOStream << "LargeStrainUmatModel Data";
          }
 
 
@@ -134,7 +139,6 @@ namespace Kratos
          ///@name Protected member Variables
          ///@{
 
-
          ///@}
          ///@name Protected Operators
          ///@{
@@ -144,33 +148,21 @@ namespace Kratos
          ///@name Protected Operations
          ///@{
 
-         /*
-            Get the dimension of StateVariables 
-          */
-
-         virtual unsigned int GetNumberOfStateVariables() override {
-            return 13;
-         };
-
-         
-         /*
-            Create the vector with constitutive parameters value
-          */
-         virtual void CreateConstitutiveParametersVector(double* & pVector, int & rNumberParameters, const Properties & rMaterialProperties) override {
-            rNumberParameters = 3;
-            pVector = new double[rNumberParameters];
-            pVector[0] = rMaterialProperties[YOUNG_MODULUS]; // young
-            pVector[1] = rMaterialProperties[POISSON_RATIO]; // poisson
-            pVector[2] = rMaterialProperties[YIELD_STRESS]; // yield
-         };
 
          /*
-            Number of the constitutive equation in the fortran wrapper
+            Create strain_n and incremental strain
+            ( for large strains should be overrided ) 
           */
-         virtual int GetConstitutiveEquationNumber()
-         {
-            return 0;
-         }
+
+         virtual void CreateStrainsVectors( UmatDataType & rVariables, double* & rpStrain, double* & rpIncrementalStrain) override;
+
+         /* 
+            Create stress_n
+            ( for large strains should be overrided )
+          */
+         virtual void CreateStressAtInitialState( UmatDataType & rVariables, double* & rpStressVector) override;
+
+
          ///@}
          ///@name Protected  Access
          ///@{
@@ -240,7 +232,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class VonMisesSmallStrainUmatModel
+   }; // Class LargeStrainUmatModel
 
    ///@}
 
@@ -258,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
 
 

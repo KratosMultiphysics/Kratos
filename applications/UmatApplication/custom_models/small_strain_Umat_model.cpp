@@ -43,7 +43,6 @@ namespace Kratos
    SmallStrainUmatModel::SmallStrainUmatModel(const SmallStrainUmatModel& rOther)
       : ConstitutiveModel(rOther), mInitializedModel(rOther.mInitializedModel)
    {
-         this->mInitializedModel = rOther.mInitializedModel; 
    }
 
    //********************************CLONE***********************************************
@@ -92,7 +91,6 @@ namespace Kratos
       }
       mInitializedModel = true;
 
-
       KRATOS_CATCH(" ")
    }
 
@@ -108,7 +106,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void SmallStrainUmatModel::InitializeElasticData(ModelDataType& rValues, ElasticDataType& rVariables)
+   void SmallStrainUmatModel::InitializeElasticData(ModelDataType& rValues, UmatDataType& rVariables)
    {
       KRATOS_TRY
 
@@ -128,6 +126,9 @@ namespace Kratos
       }
 
       rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+
+      rVariables.TotalStrainMatrix = rValues.StrainMatrix;
+      rVariables.IncrementalDeformation = rValues.GetDeltaDeformationMatrix();
 
       KRATOS_CATCH(" ")
    }
@@ -181,11 +182,9 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      ElasticDataType Variables;
-      this->InitializeElasticData(rValues,Variables);
 
-      VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+      UmatDataType Variables;
+      this->InitializeElasticData(rValues,Variables);
 
       // allocate variables
       int ndi = 3, nshr = 3, ntens = 6; // number of stress and strain components
@@ -196,7 +195,6 @@ namespace Kratos
             pConstitutiveMatrix[i][j] = 0;
          }
       }
-
 
       // time
       const ModelDataType& rModelData = Variables.GetModelData();
@@ -224,16 +222,15 @@ namespace Kratos
       // C. Create incremental strain vector
       double* pStrain;
       double* pDeltaStrain;
-      this->CreateStrainsVectors( pStrain, pDeltaStrain, StrainVector);
+      this->CreateStrainsVectors( Variables, pStrain, pDeltaStrain);
 
       // D. Stress at the initial step
       double* pStressVector;
-      this->CreateStressAtInitialState( pStressVector);
+      this->CreateStressAtInitialState( Variables, pStressVector);
 
 
       // E. Set Umat constitutive law number
-      int material_number = 0;
-
+      int material_number = this->GetConstitutiveEquationNumber();
 
       umat_wrapper_( pStressVector, pStateVariables, (double**) pConstitutiveMatrix, NULL, SPD,
          NULL, NULL, NULL, NULL, NULL, pStrain, pDeltaStrain,
@@ -241,18 +238,26 @@ namespace Kratos
 		   NULL, NULL, NULL, NULL, NULL, NULL, NULL, &npt, NULL, NULL, NULL, NULL, &material_number );
 
 
+      // Save stress vector
       VectorType StressVector = ZeroVector(6);
       for (unsigned int i = 0; i < 6; i++)
          StressVector(i) = pStressVector[i];
 
       rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
 
-      for (unsigned int i = 0; i < 6; i++)
-         for (unsigned int j = 0; j < 6; j++)
-            rConstitutiveMatrix(i,j) = pConstitutiveMatrix[i][j];
+      // Save constitutive matrix
+      Matrix rMatrix = ZeroMatrix(6);
+      for (unsigned int i = 0; i < 6; i++) {
+         for (unsigned int j = 0; j< 6; j++) {
+            rMatrix(i,j) = pConstitutiveMatrix[i][j];
+         }
+      }
+      SetConstitutiveMatrix( rConstitutiveMatrix, rMatrix);
 
+
+      // update internal variables
       if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
-         this->UpdateVariables( pStressVector, StrainVector, pStateVariables);
+         this->UpdateVariables(Variables, pStressVector, pStateVariables);
 
 
       KRATOS_CATCH(" ")
@@ -262,6 +267,31 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
+   void SmallStrainUmatModel::SetConstitutiveMatrix( Matrix & rC, const Matrix & rpCBig)
+   {
+      KRATOS_TRY
+
+      if ( rC.size1() == 6 ) {
+         for (unsigned int i = 0; i < 6; i++)
+            for (unsigned int j = 0; j < 6; j++)
+               rC(i,j) = rpCBig(i,j);
+
+      } else if ( rC.size1() == 3) {
+         rC(0,0) = rpCBig(0,0); rC(0,1) = rpCBig(0,1); rC(0,2) = rpCBig(0,3);
+         rC(1,0) = rpCBig(1,0); rC(1,1) = rpCBig(1,1); rC(1,2) = rpCBig(1,3);
+         rC(2,0) = rpCBig(3,0); rC(2,1) = rpCBig(3,1); rC(2,2) = rpCBig(3,3);
+
+      } else {
+         for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+               rC(i,j) = rpCBig(i,j);
+            }
+         }
+      }
+
+
+      KRATOS_CATCH("")
+   }
    int SmallStrainUmatModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY

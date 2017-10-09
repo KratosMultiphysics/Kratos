@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_VON_MISES_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED )
-#define  KRATOS_VON_MISES_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED
+#if !defined(KRATOS_VON_MISES_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED )
+#define  KRATOS_VON_MISES_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/small_strain_Umat_model.hpp"
+#include "custom_models/large_strain_Umat_model.hpp"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesSmallStrainUmatModel : public SmallStrainUmatModel
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesLargeStrainUmatModel : public LargeStrainUmatModel
    {
 
 
@@ -55,27 +55,27 @@ namespace Kratos
          ///@name Type Definitions
          ///@{
 
-         /// Pointer definition of VonMisesSmallStrainUmatModel
-         KRATOS_CLASS_POINTER_DEFINITION( VonMisesSmallStrainUmatModel );
+         /// Pointer definition of VonMisesLargeStrainUmatModel
+         KRATOS_CLASS_POINTER_DEFINITION( VonMisesLargeStrainUmatModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.    
-         VonMisesSmallStrainUmatModel();
+         VonMisesLargeStrainUmatModel();
 
          /// Copy constructor.
-         VonMisesSmallStrainUmatModel(VonMisesSmallStrainUmatModel const& rOther);
+         VonMisesLargeStrainUmatModel(VonMisesLargeStrainUmatModel const& rOther);
 
          /// Clone.
          virtual ConstitutiveModel::Pointer Clone() const override;
 
          /// Assignment operator.
-         VonMisesSmallStrainUmatModel& operator=(VonMisesSmallStrainUmatModel const& rOther);
+         VonMisesLargeStrainUmatModel& operator=(VonMisesLargeStrainUmatModel const& rOther);
 
          /// Destructor.
-         virtual ~VonMisesSmallStrainUmatModel();
+         virtual ~VonMisesLargeStrainUmatModel();
 
 
          ///@}
@@ -101,20 +101,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "VonMisesSmallStrainUmatModel";
+            buffer << "VonMisesLargeStrainUmatModel";
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "VonMisesSmallStrainUmatModel";
+            rOStream << "VonMisesLargeStrainUmatModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "VonMisesSmallStrainUmatModel Data";
+            rOStream << "VonMisesLargeStrainUmatModel Data";
          }
 
 
@@ -240,7 +240,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class VonMisesSmallStrainUmatModel
+   }; // Class VonMisesLargeStrainUmatModel
 
    ///@}
 
@@ -258,6 +258,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_SMALL_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_VON_MISES_LARGE_STRAIN_UMAT_MODEL_H_INCLUDED  defined 
 
 

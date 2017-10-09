@@ -50,7 +50,7 @@ namespace Kratos
    {
       protected:
 
-         struct ElasticModelData
+         struct UmatModelData
          {
             private:
 
@@ -59,7 +59,8 @@ namespace Kratos
 
             public:
 
-               bounded_matrix<double,6,6>   ConstitutiveTensor;
+               MatrixType IncrementalDeformation;
+               MatrixType TotalStrainMatrix;
 
                //Set Data Pointers
                void SetState           (Flags& rState)                    {mpState = &rState;};
@@ -82,7 +83,7 @@ namespace Kratos
 
          ///@name Type Definitions
          ///@{
-         typedef ElasticModelData              ElasticDataType;
+         typedef UmatModelData              UmatDataType;
 
 
          /// Pointer definition of SmallStrainUmatModel
@@ -278,7 +279,7 @@ namespace Kratos
 
          //************//
 
-         void InitializeElasticData(ModelDataType& rValues, ElasticDataType& rVariables);   
+         void InitializeElasticData(ModelDataType& rValues, UmatDataType& rVariables);   
 
          /*
             Get the dimension of StateVariables 
@@ -315,14 +316,18 @@ namespace Kratos
             ( for large strains should be overrided ) 
           */
 
-         virtual void CreateStrainsVectors( double* & rpStrain, double* & rpIncrementalStrain, VectorType & rStrainVector)
+         virtual void CreateStrainsVectors( UmatDataType & rVariables, double* & rpStrain, double* & rpIncrementalStrain)
          {
+
+            VectorType StrainVector;
+            StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+
             rpStrain = new double[6];
             rpIncrementalStrain = new double[6];
 
             for (unsigned int i = 0; i < 6; i++) {
                rpStrain[i] = mpStrainVectorFinalized[i];
-               rpIncrementalStrain[i] = ( rStrainVector(i) - mpStrainVectorFinalized[i] );
+               rpIncrementalStrain[i] = ( StrainVector(i) - mpStrainVectorFinalized[i] );
 
             }
 
@@ -332,7 +337,7 @@ namespace Kratos
             Create stress_n
             ( for large strains should be overrided )
           */
-         virtual void CreateStressAtInitialState( double* & rpStressVector)
+         virtual void CreateStressAtInitialState( UmatDataType & rVariables, double* & rpStressVector)
          {
 
             rpStressVector = new double[6];
@@ -345,11 +350,14 @@ namespace Kratos
          /* 
             Update constitutive model variables
           */
-         virtual void UpdateVariables( double* & rpStressVector, VectorType & rStrainVector, double* & rpStateVariables)
+         virtual void UpdateVariables( UmatDataType & rVariables, double* & rpStressVector, double* & rpStateVariables)
          {
+            VectorType StrainVector;
+            StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+
             for (unsigned int i = 0; i < 6; i++) {
                mpStressVectorFinalized[i] = rpStressVector[i];
-               mpStrainVectorFinalized[i] =  rStrainVector[i];
+               mpStrainVectorFinalized[i] =  StrainVector(i);
             }
 
             int nStateVariables = this->GetNumberOfStateVariables();
@@ -358,6 +366,16 @@ namespace Kratos
 
          }
 
+         /*
+            Number of the constitutive equation in the fortran wrapper
+          */
+         virtual int GetConstitutiveEquationNumber()
+         {
+            KRATOS_ERROR << " Calling the base case of GetConstitutiveEquationNumber " << std::endl;
+            return 0;
+         }
+
+         void SetConstitutiveMatrix( Matrix & rC, const Matrix & rCBig);
          ///@}
          ///@name Protected  Access
          ///@{
