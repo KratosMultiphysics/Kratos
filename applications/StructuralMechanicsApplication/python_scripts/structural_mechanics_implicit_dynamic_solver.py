@@ -93,7 +93,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if self.settings["multi_point_constraints_used"].GetBool():
             builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.get_linear_solver())
         else:
-            builder_and_solver = super(StaticMechanicalSolver,self).get_builder_and_solver()
+            builder_and_solver = super(ImplicitMechanicalSolver,self).get_builder_and_solver()
 
         return builder_and_solver
 
