@@ -1,95 +1,145 @@
-/* 
-============================================================================== 
-KratosShallowWaterApplication 
-A library based on: 
-Kratos 
-A General Purpose Software for Multi-Physics Finite Element Analysis 
-Version 1.0 (Released on march 05, 2007). 
- 
-Copyright 2007 
-Pooyan Dadvand, Riccardo Rossi 
-pooyan@cimne.upc.edu 
-rrossi@cimne.upc.edu 
-- CIMNE (International Center for Numerical Methods in Engineering), 
-Gran Capita' s/n, 08034 Barcelona, Spain 
- 
- 
-Permission is hereby granted, free  of charge, to any person obtaining 
-a  copy  of this  software  and  associated  documentation files  (the 
-"Software"), to  deal in  the Software without  restriction, including 
-without limitation  the rights to  use, copy, modify,  merge, publish, 
-distribute,  sublicense and/or  sell copies  of the  Software,  and to 
-permit persons to whom the Software  is furnished to do so, subject to 
-the following condition: 
- 
-Distribution of this code for  any  commercial purpose  is permissible 
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS. 
- 
-The  above  copyright  notice  and  this permission  notice  shall  be 
-included in all copies or substantial portions of the Software. 
- 
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND, 
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF 
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY 
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT, 
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE 
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
- 
-============================================================================== 
-*/ 
-// 
-//   Project Name:        Kratos 
-//   Last modified by:    Miguel Masó Sotomayor 
-//   Date:                July 3rd 2017 
-//   Revision:            1.2 
-// 
-// 
- 
-// Project includes 
-#include "includes/define.h" 
-#include "custom_elements/conserved_var_element.hpp" 
-#include "shallow_water_application.h" 
-#include "utilities/math_utils.h" 
-#include "utilities/geometry_utilities.h" 
- 
-namespace Kratos 
-{ 
- 
-//---------------------------------------------------------------------- 
- 
-    template< unsigned int TNumNodes > 
-    void ConservedVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) 
-    { 
-        KRATOS_TRY 
-         
-        unsigned int element_size = TNumNodes*3; 
-        if(rResult.size() != element_size) 
-            rResult.resize(element_size,false);                         // False says not to preserve existing storage!! 
- 
-        GeometryType& rGeom = GetGeometry(); 
-        int counter=0; 
-        for (unsigned int i = 0; i < TNumNodes; i++) 
-        { 
-            rResult[counter++] = rGeom[i].GetDof(MOMENTUM_X).EquationId(); 
-            rResult[counter++] = rGeom[i].GetDof(MOMENTUM_Y).EquationId(); 
-            rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId(); 
-        } 
-         
-        KRATOS_CATCH("") 
-    } 
- 
-//---------------------------------------------------------------------- 
- 
-    template< unsigned int TNumNodes > 
-    void ConservedVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) 
-    { 
-        KRATOS_TRY 
-         
-        unsigned int element_size = TNumNodes*3; 
-        if(rElementalDofList.size() != element_size) 
-            rElementalDofList.resize(element_size); 
- 
+/*
+==============================================================================
+KratosShallowWaterApplication
+A library based on:
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
+
+Copyright 2007
+Pooyan Dadvand, Riccardo Rossi
+pooyan@cimne.upc.edu
+rrossi@cimne.upc.edu
+- CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+*/
+//
+//   Project Name:        Kratos
+//   Last modified by:    Miguel Masó Sotomayor
+//   Date:                July 3rd 2017
+//   Revision:            1.2
+//
+//
+
+// Project includes
+#include "includes/define.h"
+#include "custom_elements/conserved_var_element.hpp"
+#include "shallow_water_application.h"
+#include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
+
+namespace Kratos
+{
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    int ConservedVarElement<TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+    {
+        KRATOS_TRY
+        
+        const GeometryType& rGeom = this->GetGeometry();
+        const PropertiesType& rProp = this->GetProperties();
+        
+        // verify nodal variables and dofs
+        for ( unsigned int i = 0; i < TNumNodes; i++ )
+        {
+            // Verify basic variables
+            if (rGeom[i].SolutionStepsDataHas( HEIGHT ) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable HEIGHT on node ", rGeom[i].Id() )
+            
+            if ( rGeom[i].SolutionStepsDataHas( MOMENTUM ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable MOMENTUM on node ", rGeom[i].Id() )
+            
+            if ( rGeom[i].SolutionStepsDataHas( VELOCITY ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", rGeom[i].Id() )
+            
+            // Verify auxiliar variables
+            if (rGeom[i].SolutionStepsDataHas( BATHYMETRY ) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable BATHYMETRY on node ", rGeom[i].Id() )
+            
+            if (rGeom[i].SolutionStepsDataHas( RAIN ) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable RAIN on node ", rGeom[i].Id() )
+            
+            // Verify degrees of freedom
+            if (rGeom[i].HasDofFor( HEIGHT ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable HEIGHT on node ", rGeom[i].Id() )
+            
+            if (rGeom[i].HasDofFor( MOMENTUM_X ) == false ||
+                rGeom[i].HasDofFor( MOMENTUM_Y ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable MOMENTUM on node ", rGeom[i].Id() )
+        }
+        
+        // Verify properties
+        if (MANNING.Key() == 0 ||
+            rProp.Has( MANNING ) == false ||
+            rProp[MANNING] < 0.0 )
+            KRATOS_THROW_ERROR( std::invalid_argument,"MANNING has Key zero, is not defined or has an invalid value at element", this->Id() )
+        
+        return 0;
+        
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void ConservedVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+        
+        unsigned int element_size = TNumNodes*3;
+        if(rResult.size() != element_size)
+            rResult.resize(element_size,false);                         // False says not to preserve existing storage!!
+
+        GeometryType& rGeom = GetGeometry();
+        int counter=0;
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            rResult[counter++] = rGeom[i].GetDof(MOMENTUM_X).EquationId();
+            rResult[counter++] = rGeom[i].GetDof(MOMENTUM_Y).EquationId();
+            rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
+        }
+        
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void ConservedVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+        
+        unsigned int element_size = TNumNodes*3;
+        if(rElementalDofList.size() != element_size)
+            rElementalDofList.resize(element_size);
+
         GeometryType& rGeom = GetGeometry(); 
         int counter=0; 
         for (unsigned int i = 0; i < TNumNodes; i++) 

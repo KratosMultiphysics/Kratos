@@ -65,6 +65,53 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
+    int PrimitiveVarElement<TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+    {
+        KRATOS_TRY
+        
+        const GeometryType& rGeom = this->GetGeometry();
+        const PropertiesType& rProp = this->GetProperties();
+        
+        // verify nodal variables and dofs
+        for ( unsigned int i = 0; i < TNumNodes; i++ )
+        {
+            // Verify basic variables
+            if (rGeom[i].SolutionStepsDataHas( HEIGHT ) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable HEIGHT on node ", rGeom[i].Id() )
+            
+            if ( rGeom[i].SolutionStepsDataHas( VELOCITY ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", rGeom[i].Id() )
+            
+            // Verify auxiliar variables
+            if (rGeom[i].SolutionStepsDataHas( BATHYMETRY ) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable BATHYMETRY on node ", rGeom[i].Id() )
+            
+            if (rGeom[i].SolutionStepsDataHas( RAIN ) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable RAIN on node ", rGeom[i].Id() )
+            
+            // Verify degrees of freedom
+            if (rGeom[i].HasDofFor( HEIGHT ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable HEIGHT on node ", rGeom[i].Id() )
+            
+            if (rGeom[i].HasDofFor( VELOCITY_X ) == false ||
+                rGeom[i].HasDofFor( VELOCITY_Y ) == false )
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable VELOCITY on node ", rGeom[i].Id() )
+        }
+        
+        // Verify properties
+        if (MANNING.Key() == 0 ||
+            rProp.Has( MANNING ) == false ||
+            rProp[MANNING] < 0.0 )
+            KRATOS_THROW_ERROR( std::invalid_argument,"MANNING has Key zero, is not defined or has an invalid value at element", this->Id() )
+        
+        return 0;
+        
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
     void PrimitiveVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY

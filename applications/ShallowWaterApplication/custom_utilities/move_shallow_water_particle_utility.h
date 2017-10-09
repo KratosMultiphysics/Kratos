@@ -2219,6 +2219,7 @@ private:
     virtual int Check()
     {
         KRATOS_TRY
+
         // Unknown variables
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(mScalarVar1) == false)
             KRATOS_THROW_ERROR(std::logic_error, "Add ScalarVariable to the model part!", "");
@@ -2226,12 +2227,18 @@ private:
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(mVectorVar1) == false)
             KRATOS_THROW_ERROR(std::logic_error, "Add ScalarVariable to the model part!", "");
 
+        // Convection variable
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false)
             KRATOS_THROW_ERROR(std::logic_error, "Add VELOCITY variable to the model part!", "");
 
+        // Auxiliar variables
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(MEAN_SIZE) == false)
             KRATOS_THROW_ERROR(std::logic_error, "Add MEAN_SIZE variable to model part!", "");
 
+        if (mrModelPart.NodesBegin()->SolutionStepsDataHas(YP) == false)
+            KRATOS_THROW_ERROR(std::logic_error, "Add YP variable to model part!", "");
+
+        // Delta and projection variables
         if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DELTA_SCALAR1) == false)
             KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
 

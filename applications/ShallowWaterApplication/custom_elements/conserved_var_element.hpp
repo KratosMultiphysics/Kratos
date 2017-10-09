@@ -60,6 +60,8 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    int Check(const ProcessInfo& rCurrentProcessInfo);
+
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
