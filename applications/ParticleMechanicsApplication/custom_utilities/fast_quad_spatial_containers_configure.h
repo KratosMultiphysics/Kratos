@@ -64,7 +64,7 @@ public:
     /// Pointer definition of FastQuadSpatialContainersConfigure
     KRATOS_CLASS_POINTER_DEFINITION(FastQuadSpatialContainersConfigure);
 
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
