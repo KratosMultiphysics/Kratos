@@ -46,7 +46,7 @@ double IntegrationPointGetWeight(TIntegrationPointType& ThisIntegrationPoint)
 
 void  AddIntegrationPointsToPython()
 {
-    BoundedVectorPythonInterface<IntegrationPoint<1>, 1>::CreateInterfaceWithBase("IntegrationPoint1D", Point<1>())
+    BoundedVectorPythonInterface<IntegrationPoint<1>, 1>::CreateInterfaceWithBase("IntegrationPoint1D", Point())
     .def(init<double>())
     .def(init<Point, double>())
     .def(init<vector_expression<vector<double> > >())
@@ -59,7 +59,7 @@ void  AddIntegrationPointsToPython()
     .def(VectorVectorOperatorPython<IntegrationPoint<1>, vector<double>, IntegrationPoint<1> >())
     ;
 
-    BoundedVectorPythonInterface<IntegrationPoint<2>, 2>::CreateInterfaceWithBase("IntegrationPoint2D", Point<2>())
+    BoundedVectorPythonInterface<IntegrationPoint<2>, 2>::CreateInterfaceWithBase("IntegrationPoint2D", Point())
     .def(init<double>())
     .def(init<double, double>())
     .def(init<Point, double>())
@@ -73,7 +73,7 @@ void  AddIntegrationPointsToPython()
     .def(VectorVectorOperatorPython<IntegrationPoint<2>, vector<double>, IntegrationPoint<2> >())
     ;
 
-    BoundedVectorPythonInterface<IntegrationPoint<3>, 3>::CreateInterfaceWithBase("IntegrationPoint3D", Point<3>())
+    BoundedVectorPythonInterface<IntegrationPoint<3>, 3>::CreateInterfaceWithBase("IntegrationPoint3D", Point())
     .def(init<double>())
     .def(init<double, double>())
     .def(init<double, double, double>())
