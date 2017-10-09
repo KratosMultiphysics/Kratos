@@ -271,7 +271,7 @@ public:
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
     {
-        rZ.Update(A, rX, B, rY, 1.0);
+        rZ.Update(A, rX, B, rY, 0.0);
     }
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
