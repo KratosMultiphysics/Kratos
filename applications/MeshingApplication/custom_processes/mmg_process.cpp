@@ -311,7 +311,10 @@ void MmgProcess<TDim>::InitializeMeshData()
     bool to_check_elem = false;
     if (num_conditions > 0)
     {
-        mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
+        const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
+        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
+//         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
         to_check_cond = true;
     }
     if (num_elements > 0)
