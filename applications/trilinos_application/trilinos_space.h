@@ -391,7 +391,6 @@ public:
     inline static void SetToZero(VectorType& rX)
     {
         rX.PutScalar(0.0);
-        ;
     }
 
     /// TODO: creating the the calculating reaction version
