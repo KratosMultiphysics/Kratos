@@ -392,7 +392,7 @@ public:
                 {
                     if (mSearchTreeType == KdtreeInRadius)
                     {                        
-                        const Point<3> center = it_cond->GetGeometry().Center();
+                        const Point center = it_cond->GetGeometry().Center();
                         const double search_radius = mSearchFactor * Radius(it_cond->GetGeometry());
 
                         number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), mAllocationSize);
@@ -790,7 +790,7 @@ protected:
     static inline double Radius(GeometryType& ThisGeometry) 
     { 
         double radius = 0.0; 
-        const Point<3>& center = ThisGeometry.Center(); 
+        const Point& center = ThisGeometry.Center(); 
          
         for(unsigned int i_node = 0; i_node < ThisGeometry.PointsNumber(); i_node++) 
         { 
