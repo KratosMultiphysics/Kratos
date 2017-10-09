@@ -17,11 +17,11 @@ class DamActivationConstructionProcess(Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         settings.AddEmptyValue("is_fixed").SetBool(True)
 
-        if "Thermal" in settings["model_part_name"].GetString():
-            self.process = DamThermalConstructionProcess(self.model_part, settings) 
+        ##if "Thermal" in settings["model_part_name"].GetString():
+        self.process = DamThermalConstructionProcess(self.model_part, settings) 
 
-        if "Parts" in settings["model_part_name"].GetString():
-            self.process = DamConstructionProcess(self.model_part, settings) 
+        ##if "Parts" in settings["model_part_name"].GetString():
+        ##    self.process = DamConstructionProcess(self.model_part, settings) 
 
 
                  
@@ -32,3 +32,7 @@ class DamActivationConstructionProcess(Process):
     def ExecuteInitializeSolutionStep(self):
 
         self.process.ExecuteInitializeSolutionStep()
+
+    def ExecuteAfterOutputStep(self):
+
+        self.process.ExecuteAfterOutputStep()

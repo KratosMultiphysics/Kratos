@@ -33,6 +33,8 @@ class DamThermalConstructionProcess : public Process
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DamThermalConstructionProcess);
+
+    typedef std::size_t IndexType;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -136,8 +138,8 @@ public:
         double time = mrModelPart.GetProcessInfo()[TIME];
         time = time/mTimeUnitConverter;
         double current_height = mReferenceCoordinate + (mHeight/mPhases)*time;  
-        double value;
-        int j = 1000;
+        double position;
+        int j = 1000000;
         std::vector<std::size_t> ConditionNodeIds(3);
 
         if (nelements != 0)
@@ -150,13 +152,13 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;                    
                 if( mGravityDirection == "X")
-                    value = it->X();
+                    position = it->X();
                 else if( mGravityDirection == "Y")
-                    value = it->Y();
+                    position = it->Y();
                 else
-                    value = it->Z();
+                    position = it->Z();
                 
-                if((value >= mReferenceCoordinate) && (value <= (current_height+0.00001) ))
+                if((position >= mReferenceCoordinate) && (position <= (current_height+0.00001) ))
                 {
                     it->Set(ACTIVE,true);
                 }
@@ -199,22 +201,212 @@ public:
                             for  (unsigned int m = 0; m < number_of_points; m++)
                             {
                                 ConditionNodeIds[m] = (*it).GetGeometry().Faces()[i_face][m].Id();
-                                KRATOS_WATCH(ConditionNodeIds[m])
                             }
-                            KRATOS_WATCH("OTROOOOOOOOOOOOOOOo")                            
-                            //mrModelPart.GetSubModelPart("Thermal_Part_Auto_1").CreateNewCondition("FluxCondition3D3N", j+1, ConditionNodeIds, 0);
+
+                            this->ActiveFaceHeatFluxStep(ConditionNodeIds);
+                            mrModelPart.CreateNewCondition("FluxCondition3D3N", j+1, ConditionNodeIds, 0);
+                            j++;
+                        }
+                    }
+                }
+            }
+            KRATOS_WATCH(mrModelPart)
+        }
+
+        // Updating Heat Fluxes and Face Heat FLuxes
+        this->ActiveHeatFlux();
+                
+        KRATOS_CATCH("");
+    }
+   
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteAfterOutputStep()
+    {
+        const int nelements = mrModelPart.GetMesh(mMeshId).Elements().size();
+        std::vector<std::size_t> ConditionNodeIds(3);
+        int j = 1000000;  
+        if (nelements != 0)
+        {
+            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();               
+            
+            #pragma omp parallel for
+            for(int k = 0; k<nelements; k++)
+            {
+                ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                // Elements
+                if((it)->Is(ACTIVE) == false)
+                {
+                    for (unsigned int i_face = 0; i_face < (*it).GetGeometry().FacesNumber(); i_face++)
+                    {
+                        const unsigned int number_of_points = (*it).GetGeometry().Faces()[i_face].PointsNumber();
+                        unsigned int count = 0;
+                        for (unsigned int i_node = 0; i_node < number_of_points; i_node++)
+                        {
+                            if ((*it).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
+                            {
+                                count++;
+                            }
+                        }
+
+                        if (count == number_of_points)
+                        {
+                            for  (unsigned int m = 0; m < number_of_points; m++)
+                            {
+                                ConditionNodeIds[m] = (*it).GetGeometry().Faces()[i_face][m].Id();
+                            }
+                            this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
+                            mrModelPart.RemoveConditionFromAllLevels(j+1, 0);
                             j++;
                         }
                     }
                 }
             }
 
-            KRATOS_WATCH(mrModelPart)
         }
+    }
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ActiveHeatFlux()
+    {
+
+        KRATOS_TRY;
         
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get("HEAT_FLUX");
+    
+        Vector time_vector(10);
+        time_vector[0] = 0.0;
+        time_vector[1] = 3600;
+        time_vector[2] = 7200;
+        time_vector[3] = 10800;
+        time_vector[4] = 14400;
+        time_vector[5] = 18000;
+        time_vector[6] = 21600;
+        time_vector[7] = 25200;
+        time_vector[8] = 28800;
+        time_vector[9] = 32400;
+        
+        
+        double time = mrModelPart.GetProcessInfo()[TIME];        
+        double position;
+
+        if(nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+    
+            for(int j = 0; j<10; j++)
+            {
+                double real_time = time - time_vector[j];
+                
+                // This formulation is developed using hours as temporal variable
+                real_time = real_time/3600.0;
+                KRATOS_WATCH(real_time)
+
+                if (real_time > 0)
+                {
+                    double current_height = mReferenceCoordinate + (mHeight/mPhases)*(j+1);
+                    double previous_height =mReferenceCoordinate + (mHeight/mPhases)*(j);
+
+                    // Computing the value of heat flux according the time
+                    //double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*time));
+                    double value = 2400*1*0.025*18*(exp(-0.025*real_time));
+                    
+                    #pragma omp parallel for
+                    for(int i = 0; i<nnodes; i++)
+                    {
+                        ModelPart::NodesContainerType::iterator it = it_begin + i; 
+
+                        if( mGravityDirection == "X")
+                            position = it->X();
+                        else if( mGravityDirection == "Y")
+                            position = it->Y();
+                        else
+                            position = it->Z();
+
+                        if((position >= previous_height) && (position <= (current_height+0.00001) ))
+                        {
+                            it->FastGetSolutionStepValue(var) = value;
+                        }
+                    }
+                }
+            }            
+        }
+
         KRATOS_CATCH("");
     }
-   
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ActiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
+    {
+        KRATOS_TRY;
+
+        const int size = ConditionNodeIds.size();
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+        Variable<double> var = KratosComponents< Variable<double> >::Get("FACE_HEAT_FLUX");        
+
+        double mH0=8.0;
+        double t_sol_air = 10.0;
+
+        if(size != 0)
+        {
+            for(int j = 0; j<size; j++ )
+            {
+                #pragma omp parallel for
+                for(int i = 0; i<nnodes; i++) 
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    if (it->Id() == ConditionNodeIds[j]) 
+                    {
+                        const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
+                        const double heat_flux = mH0*(t_sol_air - temp_current);               
+            
+                        it->FastGetSolutionStepValue(var) = heat_flux; 
+                    }
+
+                }
+            }    
+        }
+
+        KRATOS_CATCH("");
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    void DeactiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
+    {
+        KRATOS_TRY;
+
+        const int size = ConditionNodeIds.size();
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+        Variable<double> var = KratosComponents< Variable<double> >::Get("FACE_HEAT_FLUX");        
+
+        if(size != 0)
+        {
+            for(int j = 0; j<size; j++ )
+            {
+                #pragma omp parallel for
+                for(int i = 0; i<nnodes; i++) 
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    if (it->Id() == ConditionNodeIds[j]) 
+                    {   
+                        //Setting to 0 the fluxes since in the next step 
+                        it->FastGetSolutionStepValue(var) = 0.0; 
+                    }
+
+                }
+            }    
+        }
+
+        KRATOS_CATCH("");
+    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
