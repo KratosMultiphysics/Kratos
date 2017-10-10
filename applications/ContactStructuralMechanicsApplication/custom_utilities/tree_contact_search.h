@@ -421,7 +421,7 @@ public:
                         Point<3> center;
                         if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) == true)
                         {
-                            Point<3> center = ContactUtilities::GetHalfJumpCenter(it_cond->GetGeometry(), delta_time); // NOTE: Center in half delta time
+                            center = ContactUtilities::GetHalfJumpCenter(it_cond->GetGeometry(), delta_time); // NOTE: Center in half delta time
                         }
                         else
                         {
@@ -448,8 +448,8 @@ public:
                         it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
                         it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
                     
-                        const array_1d<double,3> normal_min = ContactUtilities::GaussPointNormal(N_min, it_cond->GetGeometry());
-                        const array_1d<double,3> normal_max = ContactUtilities::GaussPointNormal(N_max, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_min = MortarUtilities::GaussPointNormal(N_min, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_max = MortarUtilities::GaussPointNormal(N_max, it_cond->GetGeometry());
                         
                         ContactUtilities::ScaleNode<Node<3>>(min_point, normal_min, length_search);
                         ContactUtilities::ScaleNode<Node<3>>(max_point, normal_max, length_search);

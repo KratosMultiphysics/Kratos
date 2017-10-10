@@ -359,6 +359,31 @@ public:
     }
     
     /**
+     * This function calculates the normal in a specific GP with a given shape function
+     * @param N: The shape function considered
+     * @param Geom: The geometry of condition of interest
+     */
+
+    static inline array_1d<double,3> GaussPointNormal(
+        const Vector& N,
+        const GeometryType& Geom
+        )
+    {
+        array_1d<double,3> normal = ZeroVector(3);
+        for( unsigned int i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
+        {
+            normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
+        }
+        
+        if (norm_2(normal) > std::numeric_limits<double>::epsilon())
+        {
+            normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+        }
+        
+        return normal;
+    }
+    
+    /**
      * This function gives you the indexes needed to order a vector 
      * @param vect: The vector to order
      * @return idx: The vector of indexes
