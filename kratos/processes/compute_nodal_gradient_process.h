@@ -46,10 +46,10 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    #if !defined(HISTORICAL_VALUES)
-    #define HISTORICAL_VALUES
-        enum HistoricalValues {Historical = 0, NonHistorical = 1};
-    #endif
+#if !defined(HISTORICAL_VALUES)
+#define HISTORICAL_VALUES
+    enum HistoricalValues {Historical = 0, NonHistorical = 1};
+#endif
     
 ///@}
 ///@name  Functions

@@ -114,10 +114,10 @@ public:
         
         // We iterate over the node
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-        const std::size_t num_nodes = static_cast<int>(nodes_array.size());
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(std::size_t i = 0; i < num_nodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
             
