@@ -11,6 +11,19 @@ set (KratosMultiphysics_MAJOR_VERSION 5)
 set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
+# Define custom compiler build types
+SET( CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug;FullDebug" )
+SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+#SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
+#SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
+
+# Define internal CMake flags needed
+SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
+SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
@@ -26,6 +39,13 @@ else(GIT_FOUND)
   message("Git was not found on your system. SHA1 number will be set to 0.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
+
+set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
+  set (KratosMultiphysics_BUILD_SUFFIX "")
+else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
+  set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
@@ -61,8 +81,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") 	#-lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") 			#-lpthread -wd654 -wd10010  ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
     message("additional default options were set for intel compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -287,17 +307,6 @@ include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
-
-if(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    message("*************** ATTENTION AVOIDING DEFINING NDEBUG --- EXTREMELY SLOW!! ***************************")
-else(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    add_definitions( -DNDEBUG )
-endif(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-
-if(${KRATOS_DEBUG} MATCHES ON )
-    message("*************** DEFINING KRATOS_DEBUG --- VERY SLOW!! ***************************")
-    add_definitions( -DKRATOS_DEBUG )
-endif(${KRATOS_DEBUG} MATCHES ON )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
