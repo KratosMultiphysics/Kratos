@@ -60,8 +60,9 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         super().__init__(self.main_model_part, self.settings)
         
         # Setting reactions true by default
-        self.settings["compute_reactions"].SetBool(True)
-        
+        self.settings["clear_storage"].SetBool(True)
+        self.settings["reform_dofs_at_each_step"].SetBool(True)
+
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
     
