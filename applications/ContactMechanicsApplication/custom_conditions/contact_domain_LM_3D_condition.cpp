@@ -785,8 +785,7 @@ namespace Kratos
     //std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
 
     // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front().Id()<<" "<<GetValue(MASTER_NODES).back().Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
-
-    
+  
 
     if( this->Is(SELECTED) )
       CalculateExplicitFactorsEdgeType(rVariables, rCurrentProcessInfo); 
@@ -807,9 +806,9 @@ namespace Kratos
 
 
     // if(rVariables.Contact.Options.Is(ACTIVE))
-    //   std::cout<<" ELEMENT ACTIVE "<<std::endl;
+    //   std::cout<<"["<<this->Id()<<"] ELEMENT ACTIVE "<<std::endl;
     // else
-    //   std::cout<<" ELEMENT NOT ACTIVE "<<std::endl;
+    //   std::cout<<"["<<this->Id()<<"] ELEMENT NOT ACTIVE "<<std::endl;
 
       
     if(mContactVariables.IterationCounter < 1)

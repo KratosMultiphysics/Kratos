@@ -20,7 +20,6 @@
 #include "custom_utilities/modeler_utilities.hpp"
 
 ///VARIABLES used:
-//Data:     DOMAIN_LABEL(nodes)(set)
 //StepData: NODAL_H, NORMAL, CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) BOUNDARY, 
 //          (set)     BOUNDARY(nodes), TO_ERASE(conditions), NEW_ENTITY(conditions,nodes)(set),
@@ -76,7 +75,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {     
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -108,7 +106,7 @@ public:
 
       if( this->mEchoLevel > 0 ){
         std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
-	//std::cout<<"   Nodes and Conditions : "<<mrModelPart.Nodes(mMeshId).size()<<", "<<mrModelPart.Conditions(mMeshId).size()<<std::endl;
+	//std::cout<<"   Nodes and Conditions : "<<mrModelPart.Nodes().size()<<", "<<mrModelPart.Conditions().size()<<std::endl;
       }
 
 
@@ -116,8 +114,8 @@ public:
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
       
-      mrRemesh.Info->InsertedBoundaryConditions = mrModelPart.NumberOfConditions(mMeshId);
-      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId);
+      mrRemesh.Info->InsertedBoundaryConditions = mrModelPart.NumberOfConditions();
+      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes();
 
 
      //if the insert switches are activated, we check if the boundaries got too coarse
@@ -148,11 +146,11 @@ public:
      } // REFINE END;
 
 
-     mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId)-mrRemesh.Info->InsertedBoundaryNodes;
+     mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes()-mrRemesh.Info->InsertedBoundaryNodes;
 
      if( this->mEchoLevel > 0 ){
-        std::cout<<"   [ CONDITIONS ( total : "<<mrModelPart.NumberOfConditions(mMeshId)<<" ) ]"<<std::endl;
-        std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" total: "<<mrModelPart.NumberOfNodes(mMeshId)<<" ) ]"<<std::endl;
+        std::cout<<"   [ CONDITIONS ( total : "<<mrModelPart.NumberOfConditions()<<" ) ]"<<std::endl;
+        std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" total: "<<mrModelPart.NumberOfNodes()<<" ) ]"<<std::endl;
 
 	if( this->mEchoLevel >=1 ){
 	  mrRemesh.Refine->Info.BoundaryConditionsRefined.EchoStats();
@@ -259,8 +257,6 @@ public:
 
     ModelerUtilities mModelerUtilities;
   
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
   
     ///@}
@@ -728,7 +724,7 @@ public:
       //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
       
       bool refine_candidate = false;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(mMeshId); i_cond!= rModelPart.ConditionsEnd(mMeshId); i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
 	{
 
 	  refine_candidate = false;
@@ -804,7 +800,7 @@ public:
       double radius = 0;
 
       //assign data to dofs
-      NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes(mMeshId).front().GetDofs();
+      NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
 
       VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
@@ -816,7 +812,7 @@ public:
       unsigned int size  = 0;
       unsigned int count = 0;
       
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(mMeshId); i_cond!= rModelPart.ConditionsEnd(mMeshId); i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
 	{
 	  if( i_cond->Is(TO_REFINE) )
 	    {	            

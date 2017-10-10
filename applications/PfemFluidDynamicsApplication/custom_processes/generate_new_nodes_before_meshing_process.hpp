@@ -26,7 +26,7 @@
 
 ///VARIABLES used:
 //Data:      
-//StepData: DOMAIN_LABEL, CONTACT_FORCE, DISPLACEMENT
+//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) 
 //          (set)     
 //          (modified)  
@@ -70,7 +70,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -140,9 +139,9 @@ public:
 	    BiggestVolumes[nn]=-1.0;
 	  }
 
- 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+ 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
  	// const unsigned int nds = element_begin->GetGeometry().size();
- 	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(mMeshId); ie++)
+ 	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
  	  {
 		
  	    const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
@@ -271,8 +270,6 @@ private:
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 
@@ -681,7 +678,7 @@ private:
   { 
     KRATOS_TRY
 
-      const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
     double NodeIdParent = ModelerUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
@@ -722,9 +719,6 @@ private:
 	      
  	// //set buffer size
  	pnode->SetBufferSize(mrModelPart.GetBufferSize());
-
- 	if(mMeshId!=0)
- 	  mrModelPart.AddNode(pnode,mMeshId);
 
 	// Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
 	Node<3>::DofsContainerType& reference_dofs = NewDofs[nn];
@@ -774,16 +768,14 @@ private:
  	//correct contact_normal interpolation
  	if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
  	  noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
-		    
- 	(*it)->SetValue(DOMAIN_LABEL,mMeshId);
-	  
+		    	  
       }
 
 
 
     KRATOS_CATCH( "" )
 
-      }
+  }
 
 
 

@@ -97,7 +97,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -106,7 +106,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -120,7 +120,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    //int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -163,7 +163,7 @@ protected:
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             ElementVariables& rVariables,
-                            double& rIntegrationWeight);
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -172,18 +172,18 @@ protected:
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                             ElementVariables& rVariables,
                             Vector& rVolumeForce,
-                            double& rIntegrationWeight);
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Total Mass of the Element
      */
-    double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo);
+    double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -191,7 +191,7 @@ protected:
      * Calculate Element Kinematics
      */
     void CalculateKinematics(ElementVariables& rVariables,
-                             const double& rPointNumber);
+                             const double& rPointNumber) override;
 
 
     /**
@@ -229,7 +229,7 @@ protected:
      * Calculation of the Infinitesimal Strain Vector
      */
     void CalculateInfinitesimalStrain(const Matrix& rH,
-                                      Vector& rStrainVector);
+                                      Vector& rStrainVector) override;
 
 
     ///@}
@@ -274,9 +274,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

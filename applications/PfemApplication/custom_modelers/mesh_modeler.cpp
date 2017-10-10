@@ -81,7 +81,7 @@ namespace Kratos
       Transfer = true;
 
     if( mEchoLevel > 0 )
-      std::cout<<"  SetRemeshData ["<<mpMeshingVariables->MeshId<<"]: [ RefineFlag: "<<Refine<<" RemeshFlag: "<<Remesh<<" TransferFlag: "<<Transfer<<" ] "<<std::endl;
+      std::cout<<"  SetRemeshData: [ RefineFlag: "<<Refine<<" RemeshFlag: "<<Remesh<<" TransferFlag: "<<Transfer<<" ] "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -211,10 +211,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int& MeshId = mpMeshingVariables->MeshId;
 
     if( GetEchoLevel() > 0 ){
-      std::cout<<" [ GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mpMeshingVariables->Options.Is(ModelerUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(ModelerUtilities::REMESH)<<" ] ]"<<std::endl;
+      std::cout<<" [ GetRemeshData: [ RefineFlag: "<<mpMeshingVariables->Options.Is(ModelerUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(ModelerUtilities::REMESH)<<" ] ]"<<std::endl;
     }
   
     // bool out_buffer_active = true;
@@ -236,7 +235,7 @@ namespace Kratos
 
     if(mpMeshingVariables->Options.Is( ModelerUtilities::REFINE )){
       ModelerUtilities ModelerUtils;
-      ModelerUtils.CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius, MeshId);
+      ModelerUtils.CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius);
     }
     
     // if(!out_buffer_active){
@@ -256,11 +255,6 @@ namespace Kratos
 	
     // Located in the begining of the assignation:
 
-    //set properties in all meshes
-    if(rModelPart.NumberOfProperties(MeshId)!=rModelPart.NumberOfProperties())
-      rModelPart.GetMesh(MeshId).SetProperties(rModelPart.GetMesh().pProperties());
-
-
     //generate mesh
     this->Generate(rModelPart,*(mpMeshingVariables));
    
@@ -271,26 +265,24 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
   void MeshModeler::StartEcho(ModelPart& rSubModelPart,
-			      std::string GenerationMessage, 
-			      ModelPart::IndexType MeshId)
+			      std::string GenerationMessage)
   {
 
     if( this->GetEchoLevel() > 0 ){
       std::cout<<" [ [ [ ] ] ]"<<std::endl;
       std::cout<<" [ "<<GenerationMessage <<" ]"<<std::endl;
-      std::cout<<" [ PREVIOUS MESH ["<<rSubModelPart.Name()<<"] (Elements: "<<rSubModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rSubModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rSubModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH ["<<rSubModelPart.Name()<<"] (Elements: "<<rSubModelPart.NumberOfElements()<<" Nodes: "<<rSubModelPart.NumberOfNodes()<<" Conditions: "<<rSubModelPart.NumberOfConditions()<<") ]"<<std::endl;
     }
   }
 
   //*******************************************************************************************
   //*******************************************************************************************
   void MeshModeler::EndEcho(ModelPart& rSubModelPart,
-			    std::string GenerationMessage, 
-			    ModelPart::IndexType MeshId)
+			    std::string GenerationMessage)
   {
 
     if( this->GetEchoLevel() > 0 ){
-      std::cout<<" [ NEW MESH ["<<rSubModelPart.Name()<<"] (Elements: "<<rSubModelPart.Elements(MeshId).size()<<" Nodes: "<<rSubModelPart.Nodes(MeshId).size()<<" Conditions: "<<rSubModelPart.Conditions(MeshId).size()<<") ]  MESH_ID: ["<<MeshId<<"]"<<std::endl;
+      std::cout<<" [ NEW MESH ["<<rSubModelPart.Name()<<"] (Elements: "<<rSubModelPart.Elements().size()<<" Nodes: "<<rSubModelPart.Nodes().size()<<" Conditions: "<<rSubModelPart.Conditions().size()<<") ]"<<std::endl;
       std::cout<<" [ "<<GenerationMessage <<" ]"<<std::endl;
       std::cout<<" [ Finished Remeshing ] "<<std::endl;
       std::cout<<" [ [ [ ] ] ]"<<std::endl;
@@ -338,21 +330,19 @@ namespace Kratos
 				  MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
-
-    unsigned int& MeshId = rMeshingVariables.MeshId;
         
     //*********************************************************************
     //input mesh: NEIGHBOURELEMENTS
-    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
     const unsigned int nds          = element_begin->GetGeometry().size();
 
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
 
-    InMesh.CreateElementNeighbourList(rModelPart.Elements(MeshId).size(), nds);
+    InMesh.CreateElementNeighbourList(rModelPart.Elements().size(), nds);
 
     int* ElementNeighbourList      = InMesh.GetElementNeighbourList();   
 
-    for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
+    for(unsigned int el = 0; el<rModelPart.Elements().size(); el++)
       {
 	WeakPointerVector<Element >& rE = (element_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -377,18 +367,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
     if( this->GetEchoLevel() > 0 ){
       std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
-      std::cout<<"   Initial Faces : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+      std::cout<<"   Initial Faces : "<<rModelPart.Conditions().size()<<std::endl;
     }
 
-    ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin(MeshId);
+    ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin();
 	
     int facecounter=0;
-    for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(MeshId);
-	iii != rModelPart.ElementsEnd(MeshId); iii++)
+    for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin();
+	iii != rModelPart.ElementsEnd(); iii++)
       {
 
 	int Id= iii->Id() - 1;
@@ -442,9 +430,7 @@ namespace Kratos
   {
     KRATOS_TRY
     
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
-    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
           
     //*********************************************************************
     //input mesh: ELEMENTS
@@ -455,10 +441,10 @@ namespace Kratos
     ModelerUtilities::MeshContainer& OutMesh = rMeshingVariables.OutMesh;
     double* OutPointList = OutMesh.GetPointList();
 
-    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
 
     int base=0;
-    for(unsigned int i = 0; i<rModelPart.Nodes(MeshId).size(); i++)
+    for(unsigned int i = 0; i<rModelPart.Nodes().size(); i++)
       { 
 	   
 	if( (nodes_begin + i)->Is(BOUNDARY) ){

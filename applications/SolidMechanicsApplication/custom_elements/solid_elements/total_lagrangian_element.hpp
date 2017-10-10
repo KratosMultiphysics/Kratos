@@ -94,7 +94,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -104,7 +104,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -112,7 +112,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
 
 
     //************************************************************************************
@@ -124,8 +124,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    //int Check(const ProcessInfo& rCurrentProcessInfo);
-
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -176,7 +175,7 @@ protected:
      * Calculate Element Kinematics
      */
     void CalculateKinematics(ElementVariables& rVariables,
-                             const double& rPointNumber);
+                             const double& rPointNumber) override;
 
 
     /**
@@ -191,19 +190,19 @@ protected:
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( ElementVariables& rVariables, 
-				 const double& rPointNumber );
+				 const double& rPointNumber ) override;
 
 
     /**
      * Calculation of the Total Mass of the Element
      */
-    double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo);
+    double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
+    double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
 
 
     ///@}
@@ -241,9 +240,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

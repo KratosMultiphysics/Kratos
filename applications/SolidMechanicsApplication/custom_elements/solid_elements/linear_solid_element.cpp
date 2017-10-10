@@ -1171,49 +1171,41 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = Element::Check(rCurrentProcessInfo);
 
-    //verify that the nodal variables are correctly initialized
-    if ( VELOCITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+      
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
+    
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
+	if( rCurrentProcessInfo[DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
+      }
 
-    if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
 
-    if ( ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-    if ( DENSITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
-
-
-    if ( VOLUME_ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VOLUME_ACCELERATION on node ", this->GetGeometry()[i].Id() )
-    }
-
-
-    //verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
-
-        if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
-    }
-
-    //verify that the constitutive law exists
+    // Check that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
         KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
-    //verify compatibility with the constitutive law
+    // Check compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
@@ -1228,19 +1220,14 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
       KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
 
 
-    //verify that the constitutive law has the correct dimension
+    // Check that the constitutive law has the correct dimension
+    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    
     if ( dimension == 2 )
     {
         if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )
 	  KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element expected plane state or axisymmetric ", this->Id() )	      
 	
-        // if ( THICKNESS.Key() == 0 )
-        //   KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
-
-	// if ( this->GetProperties().Has( THICKNESS ) == false )
-	//   KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-
-
     }
     else
     {
@@ -1251,7 +1238,7 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     //check constitutive law
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" );
 }

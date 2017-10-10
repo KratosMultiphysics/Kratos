@@ -68,8 +68,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -224,8 +222,6 @@ private:
 
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
 
     ///@}
@@ -239,14 +235,14 @@ private:
     {
       KRATOS_TRY
 
-	for(ModelPart::ElementsContainerType::const_iterator i_elem = rModelPart.ElementsBegin(mMeshId);
-	    i_elem != rModelPart.ElementsEnd(mMeshId); i_elem++)
+	for(ModelPart::ElementsContainerType::const_iterator i_elem = rModelPart.ElementsBegin();
+	    i_elem != rModelPart.ElementsEnd(); i_elem++)
 	  {
 	    i_elem->Set(TO_SPLIT,false);
 	  }
 
-	for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin(mMeshId);
-	    i_node != rModelPart.NodesEnd(mMeshId); i_node++)
+	for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin();
+	    i_node != rModelPart.NodesEnd(); i_node++)
 	  {
 	    i_node->Set(TO_SPLIT,false);
 	  }
@@ -265,8 +261,8 @@ private:
       KRATOS_TRY
 	
 	bool is_full_boundary = false;
-	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(mMeshId);
-	    i_elem != rModelPart.ElementsEnd(mMeshId); i_elem++)
+	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin();
+	    i_elem != rModelPart.ElementsEnd(); i_elem++)
 	  {
 	    Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
 
@@ -291,8 +287,8 @@ private:
 	    
 	  }
 
-	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(mMeshId);
-	    i_cond != rModelPart.ConditionsEnd(mMeshId); i_cond++)
+	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin();
+	    i_cond != rModelPart.ConditionsEnd(); i_cond++)
 	  {
 	    if( i_cond->Is(BOUNDARY) ){
 		
@@ -429,7 +425,7 @@ private:
       double radius = 0;
 
       //assign data to dofs
-      Node<3>::DofsContainerType& ReferenceDofs = rModelPart.Nodes(mMeshId).front().GetDofs();
+      Node<3>::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
 
       VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 

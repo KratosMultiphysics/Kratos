@@ -2472,75 +2472,49 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    //verify that nodal variables are correctly initialized
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = Element::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
       
-    if ( DISPLACEMENT.Key() == 0 )
-      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
 
-    if ( VELOCITY.Key() == 0 )
-      KRATOS_ERROR <<  "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
-        
-    if ( ACCELERATION.Key() == 0 )
-      KRATOS_ERROR <<  "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(VON_MISES_STRESS);
+    KRATOS_CHECK_VARIABLE_KEY(NORM_ISOCHORIC_STRESS);
+    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_TENSOR);
+    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_TENSOR);
+    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_TENSOR);
+    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_TENSOR);
+    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_MATRIX);
+    KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT);
+    KRATOS_CHECK_VARIABLE_KEY(STRAIN_ENERGY);
+
     
-    if ( DENSITY.Key() == 0 )
-      KRATOS_ERROR <<  "DENSITY has Key zero! (check if the application is correctly registered)" << std::endl;
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
+	if( rCurrentProcessInfo[DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
+      }
 
-    if ( VOLUME_ACCELERATION.Key() == 0 )
-      KRATOS_ERROR <<  "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    //verify that elemental variables are correctly initialized 
-
-    if ( VON_MISES_STRESS.Key() == 0 )
-      KRATOS_ERROR <<  "VON_MISES_STRESS has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( NORM_ISOCHORIC_STRESS.Key() == 0 )
-      KRATOS_ERROR <<  "NORM_ISOCHORIC_STRESS has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( CAUCHY_STRESS_TENSOR.Key() == 0 )
-      KRATOS_ERROR <<  "CAUCHY_STRESS_TENSOR has Key zero! (check if the application is correctly registered)" << std::endl;        
-    
-    if ( CAUCHY_STRESS_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "CAUCHY_STRESS_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;       
-    
-    if ( PK2_STRESS_TENSOR.Key() == 0 )
-      KRATOS_ERROR <<  "PK2_STRESS_TENSOR has Key zero! (check if the application is correctly registered)" << std::endl;       
-    
-    if ( PK2_STRESS_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "PK2_STRESS_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;       
-
-    if ( GREEN_LAGRANGE_STRAIN_TENSOR.Key() == 0 )
-      KRATOS_ERROR <<  "GREEN_LAGRANGE_STRAIN_TENSOR has Key zero! (check if the application is correctly registered)" << std::endl;       
-	  
-    if ( GREEN_LAGRANGE_STRAIN_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "GREEN_LAGRANGE_STRAIN_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
-      
-    if ( ALMANSI_STRAIN_TENSOR.Key() == 0 )
-      KRATOS_ERROR <<  "ALMANSI_STRAIN_TENSOR has Key zero! (check if the application is correctly registered)" << std::endl;
-      
-    if ( ALMANSI_STRAIN_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "ALMANSI_STRAIN_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;       
-
-    if ( CONSTITUTIVE_MATRIX.Key() == 0 )
-      KRATOS_ERROR <<  "CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered)" << std::endl;       
-
-    if ( DEFORMATION_GRADIENT.Key() == 0 )
-      KRATOS_ERROR <<  "DEFORMATION_GRADIENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( STRAIN_ENERGY.Key() == 0 )
-      KRATOS_ERROR <<  "STRAIN_ENERGY has Key zero! (check if the application is correctly registered)" << std::endl;       
-
-    //verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-	  KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-
-        if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-	  KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-    }
-
-    //verify that the constitutive law exists
+    // Check that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
       KRATOS_ERROR << "constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
@@ -2551,12 +2525,12 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
       if( dimension == 3 &&  this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )	
 	KRATOS_ERROR <<  "wrong constitutive law used. This is a 3D element. Expected strain size is 6 :: element id " << this->Id() << std::endl;
 
-      //check constitutive law
+      // Check constitutive law
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     }
     
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" )
 }

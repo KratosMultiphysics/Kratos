@@ -25,7 +25,6 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         {
              "help" : "This process assigns a rotation to nodes given by a rotation vector, modulus and direction",
              "model_part_name": "MODEL_PART_NAME",
-             "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",             
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 1.0],
@@ -55,7 +54,6 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         ###assign scalar process
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
-        params.AddValue("mesh_id", self.settings["mesh_id"])
         params.AddValue("variable_name",self.settings["variable_name"])
         params.AddValue("value", self.settings["modulus"])
         params.AddValue("constrained", self.settings["constrained"])

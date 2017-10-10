@@ -126,7 +126,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         #select_mesh_elements  = KratosPfem.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
         #rebuild elements
-        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
 
@@ -137,7 +137,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             self.mesher.SetPostMeshingProcess(select_refine_elements)
 
       #rebuild elements
-        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
@@ -149,7 +149,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         #self.mesher.SetPostMeshingProcess(inlet_management)
 
         #if( refining_options.Is(KratosPfem.ModelerUtilities.REFINE_INSERT_NODES) ):
-            #select_refine_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+            #select_refine_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.echo_level)
             #self.mesher.SetPostMeshingProcess(select_refine_elements)
 
 

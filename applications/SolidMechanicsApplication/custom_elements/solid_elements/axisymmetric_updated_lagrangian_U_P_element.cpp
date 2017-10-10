@@ -1238,6 +1238,23 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateVolumeChange( double& r
 
 //************************************************************************************
 //************************************************************************************
+  
+int AxisymmetricUpdatedLagrangianUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = LargeDisplacementUPElement::Check(rCurrentProcessInfo);     
+
+    return ErrorCode;
+
+    KRATOS_CATCH( "" );
+}
+  
+//************************************************************************************
+//************************************************************************************
+  
 void AxisymmetricUpdatedLagrangianUPElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementUPElement )

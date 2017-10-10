@@ -92,17 +92,17 @@ namespace Kratos
 
          void SetInitialMechanicalStateConstant(ModelPart& rModelPart, double S1, double S2, double WaterPressure, int EchoLevel = 0);
 
-         void SetMechanicalState(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalState(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateUwP(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalStateUwP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateU(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalStateU(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateUP(ModelPart& rModelPart, const unsigned int& rMeshId, int& EchoLevel, const double& rYmax);
+         void SetMechanicalStateUP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax);
 
-         void SetMechanicalStateConstantUP(ModelPart& rModelPart, const unsigned int& rMeshId, const double& rS1, const double& rS2, int& EchoLevel);
+         void SetMechanicalStateConstantUP(ModelPart& rModelPart, const double& rS1, const double& rS2, int& EchoLevel);
 
-         void SetMechanicalStateConstant(ModelPart& rModelPart, const unsigned int& rMeshId, const double& rS1, const double& rS2, const double& rWaterPressure, int& EchoLevel);
+         void SetMechanicalStateConstant(ModelPart& rModelPart, const double& rS1, const double& rS2, const double& rWaterPressure, int& EchoLevel);
 
       private:
 

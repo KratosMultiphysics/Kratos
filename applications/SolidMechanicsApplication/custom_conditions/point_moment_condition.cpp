@@ -250,27 +250,17 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    MomentCondition::Check(rCurrentProcessInfo);
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
     
-    //verify that nodal variables are correctly initialized
-    
-    if ( ROTATION.Key() == 0 )
-      KRATOS_ERROR <<  "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( POINT_MOMENT.Key() == 0 )
-      KRATOS_ERROR <<  "POINT_MOMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( POINT_MOMENT_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "POINT_MOMENT_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(POINT_MOMENT);
+    KRATOS_CHECK_VARIABLE_KEY(POINT_MOMENT_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(PLANE_POINT_MOMENT);
+    KRATOS_CHECK_VARIABLE_KEY(PLANE_POINT_MOMENT_VECTOR);
 
-    if ( PLANE_POINT_MOMENT.Key() == 0 )
-      KRATOS_ERROR <<  "PLANE_POINT_MOMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( PLANE_POINT_MOMENT_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "PLANE_POINT_MOMENT_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
-
-    
-    return 0;
+    return ErrorCode;
     
     KRATOS_CATCH( "" )
   }

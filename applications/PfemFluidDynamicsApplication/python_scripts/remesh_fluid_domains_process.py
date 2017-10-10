@@ -150,9 +150,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             
     def BuildMeshBoundaryForFluids(self):
 
-              # set building options:
-        mesh_id = 0
-
+        # set building options:
+        
         # define building utility
         model_part_name = self.settings["model_part_name"].GetString()
         skin_build = KratosPfem.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)

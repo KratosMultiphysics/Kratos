@@ -141,7 +141,6 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo);
 
-
     ///@}
     ///@name Access
     ///@{

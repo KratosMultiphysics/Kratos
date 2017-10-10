@@ -360,6 +360,22 @@ double& TotalLagrangianElement::CalculateVolumeChange( double& rVolumeChange, El
 //************************************************************************************
 //************************************************************************************
 
+int TotalLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
+    
+    return ErrorCode;
+
+    KRATOS_CATCH( "" );
+}
+  
+//************************************************************************************
+//************************************************************************************
+
 
 void TotalLagrangianElement::save( Serializer& rSerializer ) const
 {

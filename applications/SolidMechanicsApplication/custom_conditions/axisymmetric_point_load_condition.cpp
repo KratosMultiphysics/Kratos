@@ -154,7 +154,15 @@ namespace Kratos
 
   int AxisymmetricPointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
-    return 0;
+    KRATOS_TRY
+
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = PointLoadCondition::Check(rCurrentProcessInfo);
+
+    return ErrorCode;
+    
+    KRATOS_CATCH( "" )
   }
 
   //***********************************************************************************

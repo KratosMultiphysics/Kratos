@@ -610,7 +610,8 @@ class tetgenio {
 
   // Constructor & destructor.
   tetgenio() {initialize();}
-  ~tetgenio() {deinitialize();}
+  ~tetgenio() { //deinitialize();
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1255,24 +1255,21 @@ int  LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    int correct = 0;
-
-    correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
-
-
-    //verify compatibility with the constitutive law
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
+    
+    // Check compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW))
-	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
+      KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
 
-    //verify that the variables are correctly initialized
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
 
-    if ( PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
-
-    return correct;
+    return ErrorCode;
 
     KRATOS_CATCH( "" );
 }

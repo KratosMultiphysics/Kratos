@@ -431,9 +431,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    BeamElement::Check(rCurrentProcessInfo);
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = BeamElement::Check(rCurrentProcessInfo);
 
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" )
   }

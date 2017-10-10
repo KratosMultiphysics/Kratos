@@ -21,7 +21,6 @@ class ModelerUtility:
 
         # mesh modeler vector
         self.counter = 1
-        self.mesh_ids = []
         self.mesh_modelers = []
 
         # mesh modeler parameters
@@ -75,10 +74,9 @@ class ModelerUtility:
         # set search options:
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        mesh_id = 0
 
         # define search utility
-        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
+        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -90,10 +88,9 @@ class ModelerUtility:
 
         # set search options:
         number_of_avg_elems = 10
-        mesh_id = 0
          
         # define search utility
-        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -120,11 +117,10 @@ class ModelerUtility:
 
         print("::[Modeler_Utility]:: Build Mesh Boundary ")
         # set building options:
-        mesh_id = 0
 
         # define building utility
-        # skin_build = BuildMeshBoundary(self.model_part, self.dimension, self.echo_level, mesh_id)
-        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
+        # skin_build = BuildMeshBoundary(self.model_part, self.dimension, self.echo_level)
+        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, self.echo_level)
 
         # execute building:
         skin_build.Execute()
@@ -149,14 +145,13 @@ class ModelerUtility:
         #
     def ComputeAverageMeshParameters(self):
      
-        mesh_id = 0
         for domain in self.meshing_domains:
             if(domain.Active()):
                 domain.ComputeAverageMeshParameters()       
 #
     def ComputeInitialAverageMeshParameters(self):
      
-        mesh_id = 0
+
         for domain in self.meshing_domains:
             if(domain.Active()):
                 domain.ComputeInitialAverageMeshParameters()       
@@ -196,7 +191,6 @@ class ModelerUtility:
         # set the domain labels to mesh modeler
         self.modeler_utils.SetDomainLabels(self.model_part)
 
-        mesh_id = 0
 
         for parameters in configuration.mesh_conditions:
 

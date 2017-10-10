@@ -26,7 +26,6 @@ class ParametricWall(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "python_module": "parametric_wall",
-            "mesh_id": 0,
             "model_part_name" : "WallDomain",
             "rigid_body_settings":{
                "rigid_body_element_type": "TranslatoryRigidElement3D1N",

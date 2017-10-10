@@ -94,35 +94,35 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
     /**
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
   
       /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -134,7 +134,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
     //on integration points:
@@ -143,7 +143,7 @@ public:
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
 				      std::vector<double>& rOutput, 
-				      const ProcessInfo& rCurrentProcessInfo);
+				      const ProcessInfo& rCurrentProcessInfo) override;
 
  
     /**
@@ -151,7 +151,7 @@ public:
      */
     void CalculateOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
                                        std::vector< array_1d<double, 3 > >& Output,
-                                       const ProcessInfo& rCurrentProcessInfo);
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -163,7 +163,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
   
     ///@}
     ///@name Access
@@ -176,7 +176,7 @@ public:
     ///@{
   
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam Element #" << Id();
@@ -184,13 +184,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -280,7 +280,7 @@ protected:
      * Calculates the elemental dynamic contributions
       */
     virtual void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					 ProcessInfo& rCurrentProcessInfo );
+					 ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
@@ -298,7 +298,7 @@ protected:
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementVariables& rVariables,
-                                     const unsigned int& rPointNumber);
+                                     const unsigned int& rPointNumber) override;
 
     /**   
      * Calculate Element Frame
@@ -317,13 +317,13 @@ protected:
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables);
+    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables) override;
 
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber);
+    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
@@ -331,7 +331,7 @@ protected:
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      ElementVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     double& rIntegrationWeight) override;
 
 
 
@@ -340,7 +340,7 @@ protected:
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      ElementVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     double& rIntegrationWeight) override;
 
     virtual void CalculateAndAddKuug2(MatrixType& rLeftHandSideMatrix,
                                      ElementVariables& rVariables,
@@ -369,7 +369,7 @@ protected:
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
 					       ElementVariables& rVariables,
 					       Vector& rVolumeForce,
-					       double& rIntegrationWeight);
+					       double& rIntegrationWeight) override;
 
 
 
@@ -379,7 +379,7 @@ protected:
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
-					   double& rIntegrationWeight);
+					   double& rIntegrationWeight) override;
 
     /**
       * Calculation of the Inertial Forces Vector
@@ -387,14 +387,14 @@ protected:
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
-					   double& rIntegrationWeight);
+					   double& rIntegrationWeight) override;
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
 					       ElementVariables & rVariables,
-					       double& rIntegrationWeight);
+					       double& rIntegrationWeight) override;
 
 
     /**
@@ -521,9 +521,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

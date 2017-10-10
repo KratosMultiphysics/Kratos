@@ -434,9 +434,11 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    SolidElement::Check(rCurrentProcessInfo);     
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = SolidElement::Check(rCurrentProcessInfo);     
 
-    //verify compatibility with the constitutive law
+    // Check compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
@@ -450,7 +452,7 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if( correct_strain_measure == false )
       KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
-    //verify that the constitutive law has the correct dimension
+    // Check that the constitutive law has the correct dimension
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {
@@ -458,7 +460,7 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	KRATOS_ERROR <<  "wrong constitutive law used. This is a 2D element. Expected plane state or axisymmetric :: element id = " << this->Id() << std::endl;
     }
     
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" );
 }

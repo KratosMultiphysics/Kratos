@@ -78,7 +78,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
     //************************************************************************************
@@ -90,7 +90,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Access
     ///@{
@@ -102,7 +102,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Small Displacement Beam Element #" << Id();
@@ -110,13 +110,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Small Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -144,13 +144,13 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**   
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementVariables& rVariables,
-                                     const unsigned int& rPointNumber);
+                                     const unsigned int& rPointNumber) override;
 
     /**   
      * Calculate Deformation Matrix
@@ -161,13 +161,13 @@ protected:
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables);
+    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables) override;
 
 
      /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber);
+    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
  
     /**
      * Calculation of the Rotation tensor
@@ -178,12 +178,12 @@ protected:
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable);
+    virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable) override;
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector);
+    virtual void MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector) override;
   
 
 
@@ -193,7 +193,7 @@ protected:
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      ElementVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     double& rIntegrationWeight) override;
 
 
     /**
@@ -207,7 +207,7 @@ protected:
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
 					       ElementVariables & rVariables,
-					       double& rIntegrationWeight);
+					       double& rIntegrationWeight) override;
 
   
    ///@}
@@ -247,12 +247,12 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

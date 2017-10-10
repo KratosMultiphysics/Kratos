@@ -94,7 +94,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -104,7 +104,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
   
     // //************* GETTING METHODS
@@ -114,7 +114,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //GET:
@@ -122,7 +122,7 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -132,7 +132,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
 
     //************************************************************************************
     //************************************************************************************
@@ -143,8 +143,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    //int Check(const ProcessInfo& rCurrentProcessInfo);
-
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -157,7 +156,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Updated Lagrangian Element #" << Id();
@@ -165,13 +164,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Updated Lagrangian Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -209,7 +208,7 @@ protected:
      * Initialize Element General Variables
      */
     virtual void InitializeElementVariables(ElementVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
+					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -217,14 +216,14 @@ protected:
      * Finalize Element Internal Variables
      */
     virtual void FinalizeStepVariables(ElementVariables & rVariables, 
-				       const double& rPointNumber );
+				       const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementVariables& rVariables,
-                                     const double& rPointNumber);
+                                     const double& rPointNumber) override;
 
     /**
      * Calculation of the Deformation Gradient F
@@ -244,12 +243,12 @@ protected:
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( ElementVariables& rVariables, 
-				 const double& rPointNumber );
+				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -285,9 +284,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

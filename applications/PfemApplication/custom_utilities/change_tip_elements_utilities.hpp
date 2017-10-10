@@ -94,14 +94,14 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    bool SwapDiagonals(ModelPart& rModelPart,ModelPart::IndexType MeshId=0)
+    bool SwapDiagonals(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
 	  
         bool any_swap_performed = false;
 
-	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
 	  {
 	   		   
 	    PointsArrayType& vertices= (ie)->GetGeometry().Points();
@@ -263,13 +263,13 @@ public:
 		      //Change elements Conectivities preserving the closest center (gauss_point)	 		      
 		      if(option==1){
 
-			vertices(0) =  NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_1[0] )).base());
-			vertices(1) =  NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_1[1] )).base());
-			vertices(2) =  NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_1[2] )).base());
+			vertices(0) =  NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_1[0] )).base());
+			vertices(1) =  NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_1[1] )).base());
+			vertices(2) =  NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_1[2] )).base());
 
-			neighb_vertices(0) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_2[0] )).base());
-			neighb_vertices(1) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_2[1] )).base());
-			neighb_vertices(2) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_2[2] )).base());
+			neighb_vertices(0) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_2[0] )).base());
+			neighb_vertices(1) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_2[1] )).base());
+			neighb_vertices(2) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_2[2] )).base());
 
 			// vertices        = new_vertices_1;		 
 			// neighb_vertices = new_vertices_2;
@@ -283,13 +283,13 @@ public:
 		      }
 		      else{
 
-			vertices(0) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_2[0] )).base());
-			vertices(1) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_2[1] )).base());
-			vertices(2) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_2[2] )).base());
+			vertices(0) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_2[0] )).base());
+			vertices(1) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_2[1] )).base());
+			vertices(2) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_2[2] )).base());
 		  
-			neighb_vertices(0) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_1[0] )).base());
-			neighb_vertices(1) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_1[1] )).base());
-			neighb_vertices(2) = NodeType::Pointer(*(rModelPart.Nodes(MeshId).find( new_vertices_1[2] )).base());
+			neighb_vertices(0) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_1[0] )).base());
+			neighb_vertices(1) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_1[1] )).base());
+			neighb_vertices(2) = NodeType::Pointer(*(rModelPart.Nodes().find( new_vertices_1[2] )).base());
 
 			// vertices        = new_vertices_2;		 
 			// neighb_vertices = new_vertices_1;
@@ -441,7 +441,7 @@ public:
 		//3.- Find condition asocied to this tip and change the Master Elements and Nodes
 		if( swap_performed ){
 		 
-		  for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+		  for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 		    {
 		      Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 		      PointsArrayType& vertices_1= (ie)->GetGeometry().Points();                  //element1
@@ -561,13 +561,13 @@ public:
 
     // Swap Diagonals using the mesher output
 
-  bool SwapDiagonals(ModelPart& rModelPart, struct triangulateio &out, std::vector<int>& PreservedElements, ModelPart::IndexType MeshId=0)
+  bool SwapDiagonals(ModelPart& rModelPart, struct triangulateio &out, std::vector<int>& PreservedElements)
     {
         KRATOS_TRY
 
 	  
         bool any_swap_performed = false;
-	ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+	ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
 
 	for(int el = 0; el<out.numberoftriangles; el++)
 	  {

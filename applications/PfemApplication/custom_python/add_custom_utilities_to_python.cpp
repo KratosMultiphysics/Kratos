@@ -70,9 +70,9 @@ namespace Kratos
 
 
     // transfer methods
-    void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, ModelerUtilities::RefiningParameters& rRefiningParameters, ModelPart& rModelPart, int MeshId)
+    void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, ModelerUtilities::RefiningParameters& rRefiningParameters, ModelPart& rModelPart)
     {
-      rMeshDataTransfer.TransferNodalValuesToElements( rTransferParameters, rRefiningParameters.GetThresholdVariable(), rRefiningParameters.GetReferenceThreshold(), rModelPart, MeshId );
+      rMeshDataTransfer.TransferNodalValuesToElements( rTransferParameters, rRefiningParameters.GetThresholdVariable(), rRefiningParameters.GetReferenceThreshold(), rModelPart );
     }
 
     void SetDoubleVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<double>& rVariable)
@@ -114,7 +114,6 @@ namespace Kratos
 
       //***************DOMAIN SET**************//
       class_< ModelerUtilities, boost::noncopyable > ("ModelerUtilities", init<>())
-	.def("SetDomainLabels",&ModelerUtilities::SetDomainLabels)
 	.def("SetModelPartNameToConditions",&ModelerUtilities::SetModelPartNameToConditions)
 	.def("SetModelPartNameToNodes",&ModelerUtilities::SetModelPartNameToNodes)
 	.def("CheckCriticalRadius",&ModelerUtilities::CheckCriticalRadius)
@@ -173,9 +172,9 @@ namespace Kratos
 
       //***************TRANSFER UTILITIES**************//
 
-      typedef  void (MeshDataTransferUtilities::*TransferElementalValuesToNodes)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
-      typedef  void (MeshDataTransferUtilities::*TransferNodalValuesToElements)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
-      typedef  void (MeshDataTransferUtilities::*TransferBoundaryData)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
+      typedef  void (MeshDataTransferUtilities::*TransferElementalValuesToNodes)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&);
+      typedef  void (MeshDataTransferUtilities::*TransferNodalValuesToElements)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&);
+      typedef  void (MeshDataTransferUtilities::*TransferBoundaryData)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&);
 
       TransferElementalValuesToNodes   TransferElementsToNodes  = &MeshDataTransferUtilities::TransferElementalValuesToNodes;
       TransferNodalValuesToElements    TransferNodesToElements  = &MeshDataTransferUtilities::TransferNodalValuesToElements;
@@ -261,7 +260,6 @@ namespace Kratos
 	.def("Set",&ModelerUtilities::MeshingParameters::Set)
 	.def("Reset",&ModelerUtilities::MeshingParameters::Reset)
 	.def("SetOptions",&ModelerUtilities::MeshingParameters::SetOptions)
-	.def("SetMeshId",&ModelerUtilities::MeshingParameters::SetMeshId)
 	.def("SetSubModelPartName",&ModelerUtilities::MeshingParameters::SetSubModelPartName)
 	.def("SetExecutionOptions",&ModelerUtilities::MeshingParameters::SetExecutionOptions)
 	.def("SetTessellationFlags",&ModelerUtilities::MeshingParameters::SetTessellationFlags)
@@ -279,7 +277,6 @@ namespace Kratos
 	.def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)
 	.def("GetTransferParameters",&ModelerUtilities::MeshingParameters::GetTransferParameters)
 	.def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
-	.def("GetMeshId",&ModelerUtilities::MeshingParameters::GetMeshId)
 	.def("GetSubModelPartName",&ModelerUtilities::MeshingParameters::GetSubModelPartName)
 	.def("GetOptions",&ModelerUtilities::MeshingParameters::GetOptions)
 	.def("InitializeMeshing",&ModelerUtilities::MeshingParameters::InitializeMeshing)

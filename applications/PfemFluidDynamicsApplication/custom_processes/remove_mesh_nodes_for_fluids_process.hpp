@@ -80,8 +80,6 @@ public:
 	mrRemesh(rRemeshingParameters)
     {
       std::cout<<" remove_mesh_nodes_process_for_fluids "<<std::endl;
-
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -116,8 +114,8 @@ public:
 	std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
       }
 
-    double RemovedConditions = mrModelPart.NumberOfConditions(mMeshId);
-    // double NumberOfNodes = mrModelPart.NumberOfNodes(mMeshId);
+    double RemovedConditions = mrModelPart.NumberOfConditions();
+    // double NumberOfNodes = mrModelPart.NumberOfNodes();
 
     bool any_node_removed      = false;
     bool any_condition_removed = false;
@@ -165,14 +163,14 @@ public:
 	  
 
 	if(any_node_removed)
-	  this->CleanRemovedNodes(mrModelPart,mMeshId);
+	  this->CleanRemovedNodes(mrModelPart);
 
 	if(any_condition_removed){
 	  //Clean Conditions
 	  ModelPart::ConditionsContainerType RemoveConditions;
 
 	  //id = 0;
-	  for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(mMeshId); ic!= mrModelPart.ConditionsEnd(mMeshId); ic++)
+	  for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
 	    {
 
 	      if(ic->IsNot(TO_ERASE)){
@@ -186,7 +184,7 @@ public:
 	      }
 	    }
 
-          mrModelPart.Conditions(mMeshId).swap(RemoveConditions);
+          mrModelPart.Conditions().swap(RemoveConditions);
 
 	}
 
@@ -195,11 +193,11 @@ public:
 
       
     // number of removed nodes:
-    // mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes(mMeshId);
+    // mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
     mrRemesh.Info->RemovedNodes +=  error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
     int distance_remove =  inside_nodes_removed + boundary_nodes_removed;
       
-    RemovedConditions -= mrModelPart.NumberOfConditions(mMeshId);
+    RemovedConditions -= mrModelPart.NumberOfConditions();
       
     if( mEchoLevel > 1 ){
       std::cout<<"  remove_mesh_nodes_process_for_fluids  [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
@@ -207,7 +205,7 @@ public:
       std::cout<<"   [ Error(removed: "<<error_nodes_removed<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
 
 
-      //std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
+      //std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes().size()<<std::endl;
       std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
     }
 
@@ -306,8 +304,6 @@ private:
 
   ModelerUtilities mModelerUtilities;  
 
-  ModelPart::IndexType mMeshId; 
-
   int mEchoLevel;
 
   ///@}
@@ -317,24 +313,24 @@ private:
   //**************************************************************************
   //**************************************************************************
 
-  void CleanRemovedNodes(ModelPart& rModelPart,ModelPart::IndexType MeshId)
+  void CleanRemovedNodes(ModelPart& rModelPart)
   {
     KRATOS_TRY
 
       //MESH 0 total domain mesh
       ModelPart::NodesContainerType temporal_nodes;
-    temporal_nodes.reserve(rModelPart.Nodes(MeshId).size());
+    temporal_nodes.reserve(rModelPart.Nodes().size());
 	
-    temporal_nodes.swap(rModelPart.Nodes(MeshId));
+    temporal_nodes.swap(rModelPart.Nodes());
 	
     for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
       {
 	if( i_node->IsNot(TO_ERASE) ){
-	  (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
+	  (rModelPart.Nodes()).push_back(*(i_node.base()));	
 	}
       }
 	
-    rModelPart.Nodes(MeshId).Sort();
+    rModelPart.Nodes().Sort();
 	
 	
     KRATOS_CATCH( "" )
@@ -359,9 +355,9 @@ private:
     std::vector<int>    nodes_ids;
 
 	      
-    MeshErrorDistribution.NodalErrorCalculation(mrModelPart,NodalError,nodes_ids,mMeshId,mrRemesh.Refine->GetErrorVariable());
+    MeshErrorDistribution.NodalErrorCalculation(mrModelPart,NodalError,nodes_ids,mrRemesh.Refine->GetErrorVariable());
 
-    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
       {
 
 	WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
@@ -410,7 +406,7 @@ private:
   {
     KRATOS_TRY
 	 
-      const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double initialMeanRadius=0;
@@ -437,8 +433,8 @@ private:
        
     //create the list of the nodes to be check during the search
     std::vector<Node<3>::Pointer> list_of_nodes;
-    list_of_nodes.reserve(mrModelPart.NumberOfNodes(mMeshId));
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+    list_of_nodes.reserve(mrModelPart.NumberOfNodes());
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
       {
 	(list_of_nodes).push_back(*(i_node.base()));
       }
@@ -460,7 +456,7 @@ private:
     unsigned int n_points_in_radius;
        
        
-    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
       {
 	if(in->Is(TO_ERASE)){
 	  any_node_removed = true;
@@ -709,8 +705,8 @@ private:
       }
 
     unsigned int erased_nodes=0;
-    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(mMeshId);
-	ie != mrModelPart.ElementsEnd(mMeshId); ie++)
+    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
+	ie != mrModelPart.ElementsEnd(); ie++)
       {
 	unsigned int rigidNodes=0;
 	//coordinates
@@ -1063,7 +1059,7 @@ private:
   bool CheckForMovingLayerNodes( Node < 3 >&  CheckedNode,const double wallLength)
   { 
     KRATOS_TRY
-      const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     WeakPointerVector< Node < 3 > >& neighb_nodes = CheckedNode.GetValue(NEIGHBOUR_NODES);
     bool eraseNode=true;

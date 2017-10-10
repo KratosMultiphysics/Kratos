@@ -22,7 +22,7 @@ namespace Kratos
 
    // crec que la solució és
 
-   void MeshDataTransferUtilities::PerformAnAdvancedTransfer( ElementsContainerType& rTemporal_elements, ModelPart& rModelPart, ModelPart::IndexType MeshId, const int& rLeastSquareInterpolation)
+   void MeshDataTransferUtilities::PerformAnAdvancedTransfer( ElementsContainerType& rTemporal_elements, ModelPart& rModelPart, const int& rLeastSquareInterpolation)
    {
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -35,7 +35,7 @@ namespace Kratos
 
       struct triangulateio Mesh2;
       std::vector< std::vector<int> > EdgeNeigh2;
-      ElementsContainerType& rSecondMesh = rModelPart.Elements(MeshId);
+      ElementsContainerType& rSecondMesh = rModelPart.Elements();
       ConvertAnElementContainerToTriangulate( rSecondMesh, Mesh2, EdgeNeigh2);
       std::cout << "   Mesh2Written: " << Mesh2.numberofpoints << " nodes "<<  std::endl;
 

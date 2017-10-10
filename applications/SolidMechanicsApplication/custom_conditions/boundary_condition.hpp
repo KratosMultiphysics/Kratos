@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/condition.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
@@ -267,7 +268,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -278,7 +279,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -287,17 +288,17 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void Initialize();
+    void Initialize() override;
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each iteration
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* GETTING METHODS
@@ -306,31 +307,31 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo );
+		    ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo );
+			  ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0 );
+			 int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0 );
+				   int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0 );
+				    int Step = 0 ) override;
 
 
     //************* COMPUTING  METHODS
@@ -345,7 +346,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo );
+			      ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -361,7 +362,7 @@ public:
 			      const std::vector< Variable< MatrixType > >& rLHSVariables,
 			      std::vector< VectorType >& rRightHandSideVectors,
 			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo);
+			      ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -370,7 +371,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo );
+				ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -382,7 +383,7 @@ public:
      */
     void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo);
+				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -391,7 +392,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
-			       ProcessInfo& rCurrentProcessInfo);
+			       ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -400,7 +401,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-			     ProcessInfo& rCurrentProcessInfo );
+			     ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -409,7 +410,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-				ProcessInfo& rCurrentProcessInfo );
+				ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -424,7 +425,7 @@ public:
     virtual void AddExplicitContribution(const VectorType& rRHS, 
 					 const Variable<VectorType>& rRHSVariable, 
 					 Variable<array_1d<double,3> >& rDestinationVariable, 
-					 const ProcessInfo& rCurrentProcessInfo);
+					 const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -432,14 +433,14 @@ public:
      */
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, 
 				     std::vector<double>& rValues, 
-				     const ProcessInfo& rCurrentProcessInfo );
+				     const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Calculate a double Variable
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
 				      std::vector<double>& rOutput, 
-				      const ProcessInfo& rCurrentProcessInfo);
+				      const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -452,7 +453,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -640,9 +641,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
 
 }; // class BoundaryCondition.

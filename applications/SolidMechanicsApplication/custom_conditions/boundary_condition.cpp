@@ -1007,7 +1007,12 @@ namespace Kratos
 
   int BoundaryCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
-    return 0;
+
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = Condition::Check(rCurrentProcessInfo);
+    
+    return ErrorCode;
   }
 
   //***********************************************************************************

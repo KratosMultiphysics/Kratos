@@ -81,8 +81,9 @@ class ContactModeler(mesh_modeler.MeshModeler):
         elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
-                #modeler_flags = "pMYYCJFu0"
-                modeler_flags = "pJFBMYYCCQu0"
+                #modeler_flags = "pMYYCJFu0"     #tetgen 1.5.0
+                modeler_flags = "pJFBMYYCCQu0"  #tetgen 1.4.3
+                #modeler_flags = "pJFBMYYCCQ"  #tetgen 1.5.0
             else:
                 modeler_flags = "JFMQO4/4"
 

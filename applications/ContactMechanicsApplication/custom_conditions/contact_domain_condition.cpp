@@ -929,8 +929,8 @@ namespace Kratos
   {
     KRATOS_TRY
       
-      //create local system components
-      LocalSystemComponents LocalSystem;
+    //create local system components
+    LocalSystemComponents LocalSystem;
 
     //calculation flags
     LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
@@ -1757,29 +1757,30 @@ namespace Kratos
     KRATOS_TRY
 
     
-      //verify that the variables are correctly initialized
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = Condition::Check(rCurrentProcessInfo);
+        
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
 
-      if ( VELOCITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 
-	  if ( DISPLACEMENT.Key() == 0 )
-	    KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-
-	      if ( ACCELERATION.Key() == 0 )
-		KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-		  if ( THICKNESS.Key() == 0 )
-		    KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
-
-		      //verify that the dofs exist
-		      for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-			{
-			  if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-			    KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
-
-			      if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-				KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
-				  }
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
+	if( rCurrentProcessInfo[DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
+      }
 
     // Commented checks to the constitutive law, the one used if from the MasterElements and MasterConditions
     
@@ -1815,7 +1816,7 @@ namespace Kratos
     //check if it is in the XY plane for 2D case
 
 
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" )
   }
@@ -1824,38 +1825,12 @@ namespace Kratos
 
   void ContactDomainCondition::save( Serializer& rSerializer ) const
   {
-    // to check serialization
-    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
-    // std::cout<<" MASTER CONDITION "<<this->GetValue(MASTER_CONDITION)<<std::endl;
-    // std::cout<<" MASTER NODES    "<<this->GetValue(MASTER_NODES)<<std::endl;
-    // std::cout<<" MASTER ELEMENTS "<<this->GetValue(MASTER_ELEMENTS)<<std::endl;
-
-  
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
-    // int IntMethod = (int)mThisIntegrationMethod;
-    // rSerializer.save("IntegrationMethod",IntMethod);
-    // rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
-    // rSerializer.save("ContactVariables",mContactVariables);
   }
 
   void ContactDomainCondition::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
-
-      // to check serialization
-      // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
-      // std::cout<<" MASTER CONDITION "<<this->GetValue(MASTER_CONDITION)<<std::endl;
-      // Vector StressVector;
-      // StressVector = this->GetValue(MASTER_CONDITION)->GetValue(CAUCHY_STRESS_VECTOR);
-      // std::cout<<" StressVector "<<StressVector<<std::endl;
-      // std::cout<<" MASTER NODES    "<<this->GetValue(MASTER_NODES)<<std::endl;
-      // std::cout<<" MASTER ELEMENTS "<<this->GetValue(MASTER_ELEMENTS)<<std::endl;
-    
-      // int IntMethod;
-      // rSerializer.load("IntegrationMethod",IntMethod);
-      // mThisIntegrationMethod = IntegrationMethod(IntMethod);
-      // rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
-      // rSerializer.load("ContactVariables",mContactVariables);
   }
 
 

@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/element.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 

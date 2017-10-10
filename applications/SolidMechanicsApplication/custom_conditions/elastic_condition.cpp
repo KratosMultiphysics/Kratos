@@ -231,20 +231,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    BoundaryCondition::Check(rCurrentProcessInfo);
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = BoundaryCondition::Check(rCurrentProcessInfo);
       
-    //verify that nodal variables are correctly initialized
-    
-    if ( DISPLACEMENT.Key() == 0 )
-      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( VELOCITY.Key() == 0 )
-      KRATOS_ERROR <<  "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
         
-    if ( ACCELERATION.Key() == 0 )
-      KRATOS_ERROR <<  "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    return 0;
+    return ErrorCode;
     
     KRATOS_CATCH( "" )
   }

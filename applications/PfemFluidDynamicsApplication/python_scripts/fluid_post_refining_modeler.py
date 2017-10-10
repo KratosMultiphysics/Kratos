@@ -120,7 +120,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             print("::[fluid_post_refining_modeler]:: -START SetPostMeshingProcesses-")
 
         #select mesh elements
-        #generate_particles  = KratosPfem.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #generate_particles  = KratosPfem.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPostMeshingProcess(generate_particles)
 
         #select mesh elements
@@ -131,7 +131,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
 
 
         #rebuild elements
-        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 

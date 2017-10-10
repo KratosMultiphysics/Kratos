@@ -325,21 +325,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    LoadCondition::Check(rCurrentProcessInfo);
-      
-    //verify that nodal variables are correctly initialized
-    
-    if ( DISPLACEMENT.Key() == 0 )
-      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( LINE_LOAD.Key() == 0 )
-      KRATOS_ERROR <<  "LINE_LOAD has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( LINE_LOAD_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "LINE_LOAD_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    return 0;
-    
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(LINE_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(LINE_LOAD_VECTOR);
+        
+    return ErrorCode;
+
     KRATOS_CATCH( "" )
   }
 

@@ -30,7 +30,6 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         {
              "help" : "This process assigns a modulus and direction value to a conditions vector variable",
              "model_part_name": "MODEL_PART_NAME",
-             "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
@@ -127,7 +126,6 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         # set processes
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
-        params.AddValue("mesh_id", self.settings["mesh_id"])
 
         params.AddEmptyValue("value")
         params.__setitem__("value", self.settings["direction"])

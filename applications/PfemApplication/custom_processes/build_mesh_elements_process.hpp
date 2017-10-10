@@ -82,8 +82,7 @@ namespace Kratos
 			     int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
-    { 
-      mMeshId = mrRemesh.MeshId;
+    {
       mEchoLevel = EchoLevel;
     }
 
@@ -130,7 +129,7 @@ namespace Kratos
 
       //*******************************************************************
       //setting new elements
-      //(mrModelPart.Elements(MeshId)).reserve(mrRemesh.Info->NumberOfElements);
+      //(mrModelPart.Elements()).reserve(mrRemesh.Info->NumberOfElements);
 
 		
       //*******************************************************************
@@ -141,7 +140,7 @@ namespace Kratos
       // 	std::cout<<"[   AVOID TIP ELEMENTS START ]"<<std::endl;
 
       //   ChangeTipElementsUtilities TipElements;
-      //   //TipElements.SwapDiagonals(mrModelPart,out,mrRemesh.PreservedElements,MeshId);
+      //   //TipElements.SwapDiagonals(mrModelPart,out,mrRemesh.PreservedElements);
       
       //   if( mEchoLevel > 0 )
       // 	std::cout<<"[   AVOID TIP ELEMENTS END ]"<<std::endl;
@@ -151,10 +150,10 @@ namespace Kratos
 
       //properties to be used in the generation
       int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
-      Properties::Pointer properties = mrModelPart.GetParentModelPart()->GetMesh(mMeshId).pGetProperties(number_properties-1);
-      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+      Properties::Pointer properties = mrModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
+      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
       
-      ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+      ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 
       // properties->PrintData(std::cout);
       // std::cout<<std::endl;
@@ -193,7 +192,7 @@ namespace Kratos
 		{
 		  //note that OutElementList, starts from node 1, not from node 0, it can be directly assigned to mrRemesh.NodalPreIds.
 		  vertices.push_back(*(nodes_begin + OutElementList[el*nds+i]-1).base());
-		  //vertices.push_back(mrModelPart.pGetNode(OutElementList[el*3+pn],MeshId));
+		  //vertices.push_back(mrModelPart.pGetNode(OutElementList[el*3+pn]));
 		  
 		  if(vertices.back().Is(TO_ERASE))
 		    std::cout<<" WARNING:: mesh vertex RELEASED "<<vertices.back().Id()<<std::endl;		  
@@ -278,22 +277,22 @@ namespace Kratos
 	int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 	LaplacianSmoothing  MeshGeometricSmoothing(mrModelPart);
 	MeshGeometricSmoothing.SetEchoLevel(mEchoLevel);
-	MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,OutElementList,OutNumberOfPoints,mMeshId);
+	MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,OutElementList,OutNumberOfPoints);
       }
       //*******************************************************************
       
       
       //*******************************************************************
       //6) Pass  rReferenceElement and transfer variables
-      DataTransferUtilities.TransferData(mrModelPart,rReferenceElement,list_of_element_centers,list_of_element_vertices,MeshDataTransferUtilities::ELEMENT_TO_ELEMENT,mMeshId);
+      DataTransferUtilities.TransferData(mrModelPart,rReferenceElement,list_of_element_centers,list_of_element_vertices,MeshDataTransferUtilities::ELEMENT_TO_ELEMENT);
       //*******************************************************************
       
       
       //*******************************************************************w
-      //std::cout<<" Number of Nodes "<<mrModelPart.Nodes(MeshId).size()<<" Number Of Ids "<<mrRemesh.NodalPreIds.size()<<std::endl;
+      //std::cout<<" Number of Nodes "<<mrModelPart.Nodes().size()<<" Number Of Ids "<<mrRemesh.NodalPreIds.size()<<std::endl;
       
       //7) Restore global ID's
-      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(mMeshId) ; in != mrModelPart.NodesEnd(mMeshId) ; in++)
+      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin() ; in != mrModelPart.NodesEnd() ; in++)
 	{
 	  //std::cout<<" node (local:"<<in->Id()<<", global:"<<mrRemesh.NodalPreIds[ in->Id() ]<<")"<<std::endl;
 	  in->SetId( mrRemesh.NodalPreIds[ in->Id() ] );
@@ -405,7 +404,6 @@ namespace Kratos
 
     ModelerUtilities::MeshingParameters& mrRemesh;
 
-    int mMeshId;
     int mEchoLevel;
 
     ///@}
@@ -422,10 +420,10 @@ namespace Kratos
 
 	if( mEchoLevel > 0 ){
 	  std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
-	  std::cout<<"   Initial Faces : "<<rModelPart.Conditions(mMeshId).size()<<std::endl;
+	  std::cout<<"   Initial Faces : "<<rModelPart.Conditions().size()<<std::endl;
 	}
 
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();	  
 
       const unsigned int nds = element_begin->GetGeometry().size();
 
@@ -433,8 +431,8 @@ namespace Kratos
 
       int facecounter=0;
       int Id = 0;
-      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(mMeshId);
-	  ie != rModelPart.ElementsEnd(mMeshId); ie++)
+      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin();
+	  ie != rModelPart.ElementsEnd(); ie++)
 	{
 	  
 	  for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)

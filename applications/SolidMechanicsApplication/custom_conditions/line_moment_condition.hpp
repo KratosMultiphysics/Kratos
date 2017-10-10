@@ -79,7 +79,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -90,7 +90,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
 
 
@@ -104,7 +104,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -138,18 +138,18 @@ protected:
      * Initialize System Matrices
      */
     virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
+					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
     virtual void CalculateKinematics(ConditionVariables& rVariables, 
-				     const double& rPointNumber);
+				     const double& rPointNumber) override;
 
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalMoment(ConditionVariables& rVariables);
+    virtual void CalculateExternalMoment(ConditionVariables& rVariables) override;
 
  
     /**
@@ -157,7 +157,7 @@ protected:
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight);
+				     double& rIntegrationWeight) override;
 
 
     ///@}
@@ -211,9 +211,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
 
 }; // class LineMomentCondition.

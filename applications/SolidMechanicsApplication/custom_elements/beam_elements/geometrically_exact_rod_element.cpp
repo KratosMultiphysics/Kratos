@@ -2122,9 +2122,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    LargeDisplacementBeamEMCElement::Check(rCurrentProcessInfo);
+    // Perform base element checks      
+    int ErrorCode = 0;
+    ErrorCode = LargeDisplacementBeamEMCElement::Check(rCurrentProcessInfo);
 
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" )
   }

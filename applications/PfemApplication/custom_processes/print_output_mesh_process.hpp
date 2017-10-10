@@ -86,7 +86,7 @@ namespace Kratos
 
       if( mEchoLevel > 0 ){
 	std::cout<<" [ PRINT OUTPUT FROM MESHER: "<<std::endl;
-	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
+	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
       }
 
       PrintPointsXYZ();

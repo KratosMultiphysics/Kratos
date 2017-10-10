@@ -122,6 +122,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  
     ///@}
     ///@name Access
     ///@{

@@ -30,9 +30,7 @@ namespace Kratos
 
     KRATOS_TRY
  
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
-    this->StartEcho(rModelPart,"PFEM Remesh",MeshId);
+    this->StartEcho(rModelPart,"PFEM Remesh");
     
     //*********************************************************************
 
@@ -104,7 +102,7 @@ namespace Kratos
        DeleteOutContainer(rMeshingVariables.OutMesh,out);
 
     
-    this->EndEcho(rModelPart,"PFEM Remesh",MeshId);
+    this->EndEcho(rModelPart,"PFEM Remesh");
 
     KRATOS_CATCH( "" )
 
@@ -248,8 +246,6 @@ namespace Kratos
   {
      KRATOS_TRY
 
-     unsigned int& MeshId = rMeshingVariables.MeshId;
-
      //*********************************************************************
 
      if(in.segmentlist){
@@ -272,16 +268,16 @@ namespace Kratos
 
 
      //PART 2: faced list (we can have holes in facets != area holes)
-     in.numberofsegments           = rModelPart.NumberOfConditions(MeshId);
+     in.numberofsegments           = rModelPart.NumberOfConditions();
      in.segmentmarkerlist          = new int[in.numberofsegments];
      in.segmentlist                = new int[in.numberofsegments*2];
      
      
-      ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin(MeshId);
+      ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
       
       
       int base = 0;
-      for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
+      for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
 	{
 	  if( (conditions_begin + i)->Is(TO_ERASE) )
 	    std::cout<<" ERROR: condition to erase present "<<std::endl;
@@ -323,7 +319,7 @@ namespace Kratos
       // std::cout<<" region list [x:"<<in.regionlist[0]<<",y:"<<in.regionlist[1]<<"]"<<std::endl;
       
       //region attribute (regional attribute or marker "A" must be switched)
-      in.regionlist[2] = MeshId; 
+      in.regionlist[2] = 0; 
 
       //region maximum volume attribute (maximum area attribute "a" (with no number following) must be switched)
       in.regionlist[3] = -1;

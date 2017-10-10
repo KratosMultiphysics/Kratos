@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/kratos_flags.h"

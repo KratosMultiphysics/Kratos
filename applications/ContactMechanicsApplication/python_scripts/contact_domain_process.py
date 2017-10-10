@@ -24,7 +24,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id": 0,
+            "echo_level"            : 1,
             "model_part_name"       : "Solid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -37,7 +37,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = 1
+        self.echo_level        = self.settings["echo_level"].GetInt()
         self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         

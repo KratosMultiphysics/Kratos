@@ -26,7 +26,7 @@
 
 ///VARIABLES used:
 //Data:      
-//StepData: DOMAIN_LABEL, CONTACT_FORCE, DISPLACEMENT
+//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) 
 //          (set)     
 //          (modified)  
@@ -72,7 +72,6 @@ public:
     {
       std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
 
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -217,8 +216,6 @@ private:
 
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
 
     ///@}
@@ -240,10 +237,10 @@ private:
 
       if( mEchoLevel > 1 )
 	std::cout<<" CheckAndCreateNewInletLayer "<<std::endl;
-    const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=mrRemesh.Refine->CriticalRadius;
 
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
       {
     	// if(i_node->Is(RIGID) && i_node->IsNot(SOLID) && i_node->Is(INLET) ){
     	if(i_node->Is(INLET) ){
@@ -282,7 +279,7 @@ private:
 
       }
 
-    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(mMeshId); ic!= mrModelPart.ConditionsEnd(mMeshId); ic++)
+    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
       {
 
     	Geometry< Node<3> >& rGeometry = ic->GetGeometry();
@@ -329,7 +326,7 @@ private:
 
 		  pnode->Set(INLET); //inlet node
 		  mrRemesh.NodalPreIds.push_back( pnode->Id() );
-		  mrModelPart.AddNode(pnode,mMeshId);
+		  mrModelPart.AddNode(pnode);
 
 		  rGeometry[n].Reset(INLET);
 		  rGeometry[n].Reset(RIGID);
@@ -382,9 +379,9 @@ private:
   {
     KRATOS_TRY
       std::cout<<" SET INLET NODES "<<std::endl;
-     const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
       {
 	if(i_node->Is(RIGID) && i_node->IsNot(SOLID) ){
 	  double velocityX= i_node->FastGetSolutionStepValue(VELOCITY_X);

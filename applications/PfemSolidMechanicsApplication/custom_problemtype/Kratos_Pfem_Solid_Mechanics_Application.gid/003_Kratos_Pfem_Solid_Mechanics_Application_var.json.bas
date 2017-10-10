@@ -171,7 +171,6 @@
 *set var Counter=operation(Counter+1)
             {
 		"python_module": "meshing_domain",
-		"mesh_id": 0,
 		"model_part_name": "*cond(Structural_Type)_*GroupName",
 		"alpha_shape": 2.4,
 		"offset_factor": *GenData(Offset_Factor),
@@ -254,7 +253,6 @@
         "python_module"    : "contact_domain_process",
         "process_name"     : "ContactDomainProcess",
         "Parameters"       : {
-            "mesh_id"               : 0,
 	    "model_part_name"       : "Main_Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 0.0,
@@ -332,7 +330,6 @@
 *set var Counter=operation(Counter+1)
 		{
 		    "python_module": "parametric_wall",
-		    "mesh_id": 0,
 		    "model_part_name" : "*cond(Structural_Type)_*GroupName",
 		    "rigid_body_settings":{
 			"rigid_body_element_type": "*cond(Rigid_Element)",
@@ -518,7 +515,6 @@
         "python_module"   : "assign_vector_components_to_nodes_process",
         "process_name"    : "AssignVectorComponentsToNodesProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -573,7 +569,6 @@
         "python_module"   : "assign_scalar_to_nodes_process",
         "process_name"    : "AssignScalarToNodesProcess",
 	"Parameters"      : {
-	   "mesh_id": 0,
 	   "variable_name":    "WATER_PRESSURE",
            "model_part_name":  "*GroupName",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -638,7 +633,6 @@
         "python_module"   : "assign_modulus_and_direction_to_conditions_process",
         "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -671,7 +665,6 @@
         "python_module"   : "assign_modulus_and_direction_to_conditions_process",
         "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
             "variable_name"   : "*cond(Variable)_VECTOR",
@@ -707,7 +700,6 @@
         "python_module"   : "assign_modulus_and_direction_to_nodes_process",
         "process_name"    : "AssignModulusAndDirectionToNodesProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
@@ -740,7 +732,6 @@
         "python_module"   : "assign_scalar_to_conditions_process",
         "process_name"    : "AssignScalarToConditionsProcess",
         "Parameters"      : {
-            "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
 *if(strcmp(cond(by_function),"True")==0 )	    
             "variable_name"   : "*cond(Variable)_VECTOR",

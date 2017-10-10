@@ -216,20 +216,17 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticCondition::Check(rCurrentProcessInfo);
-      
-    //verify that nodal variables are correctly initialized
-        
-    if ( POINT_STIFFNESS.Key() == 0 )
-      KRATOS_ERROR <<  "POINT_STIFFNESS has Key zero! (check if the application is correctly registered)" << std::endl;
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
     
-    if ( POINT_STIFFNESS_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "POINT_STIFFNESS_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    return 0;
-    
-    KRATOS_CATCH( "" )   
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(POINT_STIFFNESS);
+    KRATOS_CHECK_VARIABLE_KEY(POINT_STIFFNESS_VECTOR);
 
+    return ErrorCode;
+    
+    KRATOS_CATCH( "" )
   }
 
   //***********************************************************************************

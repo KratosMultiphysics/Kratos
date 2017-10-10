@@ -231,17 +231,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticCondition::Check(rCurrentProcessInfo);
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
       
-    //verify that nodal variables are correctly initialized
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(LINE_STIFFNESS);
+    KRATOS_CHECK_VARIABLE_KEY(LINE_STIFFNESS_VECTOR);
         
-    if ( LINE_STIFFNESS.Key() == 0 )
-      KRATOS_ERROR <<  "LINE_STIFFNESS has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    if ( LINE_STIFFNESS_VECTOR.Key() == 0 )
-      KRATOS_ERROR <<  "LINE_STIFFNESS_VECTOR has Key zero! (check if the application is correctly registered)" << std::endl;
-    
-    return 0;
+    return ErrorCode;
     
     KRATOS_CATCH( "" )
   }

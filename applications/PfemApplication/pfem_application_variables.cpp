@@ -30,7 +30,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool, INITIALIZED_DOMAINS )
   KRATOS_CREATE_VARIABLE(bool, MESHING_STEP_PERFORMED )
   KRATOS_CREATE_VARIABLE(std::string, MODEL_PART_NAME )
-  KRATOS_CREATE_VARIABLE(unsigned int, DOMAIN_LABEL )
 
   //boundary definition
   KRATOS_CREATE_VARIABLE(int,                               RIGID_WALL )

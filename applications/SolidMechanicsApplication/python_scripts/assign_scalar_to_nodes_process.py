@@ -32,7 +32,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         {
              "help" : "This process assigns a scalar value to a scalar variable",
              "model_part_name": "MODEL_PART_NAME",
-             "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",
              "value": 0.0,
              "constrained": true,
@@ -115,7 +114,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
-        params.AddValue("mesh_id", self.settings["mesh_id"])
         params.AddValue("variable_name", self.settings["variable_name"])
         
         if( self.interval_string != "initial" and self.constrained == True ):

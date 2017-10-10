@@ -378,7 +378,19 @@ namespace Kratos
 
   int SurfaceElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
-    return 0;
+    KRATOS_TRY
+
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
+      
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(SURFACE_STIFFNESS);
+    KRATOS_CHECK_VARIABLE_KEY(SURFACE_STIFFNESS_VECTOR);
+        
+    return ErrorCode;
+
+    KRATOS_CATCH( "" )
   }
 
   //***********************************************************************************

@@ -1622,47 +1622,44 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //verify that the variables are correctly initialized
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = Element::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
       
-    if ( DISPLACEMENT.Key() == 0 )
-      KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
-
-    if ( VELOCITY.Key() == 0 )
-      KRATOS_ERROR <<  "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
-        
-    if ( ACCELERATION.Key() == 0 )
-      KRATOS_ERROR <<  "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
+    KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
     
-    if ( DENSITY.Key() == 0 )
-      KRATOS_ERROR <<  "DENSITY has Key zero! (check if the application is correctly registered)" << std::endl;
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
+	if( rCurrentProcessInfo[DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
 
-    if ( VOLUME_ACCELERATION.Key() == 0 )
-      KRATOS_ERROR <<  "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;   
-
-    if ( ROTATION.Key() == 0)
-      KRATOS_ERROR <<  "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
-
-    if ( ANGULAR_VELOCITY.Key() == 0 )
-      KRATOS_ERROR <<  "ANGULAR_VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
-        
-    if ( ANGULAR_ACCELERATION.Key() == 0 )
-      KRATOS_ERROR <<  "ANGULAR_ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
-
-    //verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-	  KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-
-        if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-	  KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-
-	if ( this->GetGeometry()[i].SolutionStepsDataHas( ROTATION ) == false )
-	  KRATOS_ERROR << "Missing variable ROTATION on node " << this->GetGeometry()[i].Id() << std::endl;
-
-        if ( this->GetGeometry()[i].HasDofFor( ROTATION_X ) == false || this->GetGeometry()[i].HasDofFor( ROTATION_Y ) == false || this->GetGeometry()[i].HasDofFor( ROTATION_Z ) == false )
-	  KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-    }
+	KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,rNode);
+	if( rCurrentProcessInfo[DIMENSION] == 3){
+	  KRATOS_CHECK_DOF_IN_NODE(ROTATION_X,rNode);
+	  KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,rNode);
+	}
+      }
     
     //verify that the area is given by properties
     if ( this->GetProperties().Has(CROSS_SECTION_AREA) == false )
@@ -1675,13 +1672,9 @@ namespace Kratos
       {
         if( this->GetProperties()[LOCAL_INERTIA_TENSOR](1,1) == 0.0 )
 	  KRATOS_ERROR << "LOCAL_INERTIA_TENSOR not provided for this element " << this->Id() << std::endl;
-		  
-	// if ( LOCAL_CONSTITUTIVE_MATRIX.Key() == 0)
-	//   KRATOS_ERROR <<  "LOCAL_CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered)" << std::endl;
-
       }
 
-    return 0;
+    return ErrorCode;
 
     KRATOS_CATCH( "" )
   }

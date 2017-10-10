@@ -54,8 +54,6 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
     def Initialize(self,meshing_parameters,dimension):
 
         #parameters
-        self.mesh_id = meshing_parameters.GetMeshId()
-
         self.echo_level = 1
         
         #meshing parameters
@@ -131,7 +129,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
             transfer_options.Set(KratosPfem.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
             transfer_parameters.SetOptions(transfer_options)
         
-            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
+            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part)
 
         # set flags for the transfer needed for the contact domain
         transfer_options.Set(KratosPfem.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, False)
@@ -173,7 +171,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         #if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
         #transfer_parameters = self.MeshingParameters.GetTransferParameters()
         #model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-        #self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,model_part,self.mesh_id)
+        #self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,model_part)
 
     #
     def FinalizeMeshGeneration(self):

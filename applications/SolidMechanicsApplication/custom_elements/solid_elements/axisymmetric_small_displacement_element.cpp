@@ -423,10 +423,25 @@ void AxisymmetricSmallDisplacementElement::CalculateInfinitesimalStrain(const Ma
 
 }
 
+//************************************************************************************
+//************************************************************************************
+  
+int AxisymmetricSmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
 
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = SmallDisplacementElement::Check(rCurrentProcessInfo);     
+
+    return ErrorCode;
+
+    KRATOS_CATCH( "" );
+}
 
 //************************************************************************************
 //************************************************************************************
+
 void AxisymmetricSmallDisplacementElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement )

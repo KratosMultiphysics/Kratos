@@ -265,7 +265,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void UpdateBoxPosition(const double & rCurrentTime)
+    void UpdateBoxPosition(const double & rCurrentTime) override
     {
 
       KRATOS_TRY
@@ -285,7 +285,7 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0) override
     {
       
       KRATOS_TRY
@@ -314,7 +314,7 @@ public:
     //************************************************************************************
     //************************************************************************************
     
-    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
@@ -355,7 +355,7 @@ public:
     //************************************************************************************
 
     //Plane
-    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {
       KRATOS_TRY
 	
@@ -482,19 +482,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "PlaneBoundingBox";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }

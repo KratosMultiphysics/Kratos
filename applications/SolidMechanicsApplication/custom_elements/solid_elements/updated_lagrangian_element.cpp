@@ -474,7 +474,22 @@ double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, 
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
 
+int UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Perform base element checks
+    int ErrorCode = 0;
+    ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
+    
+    return ErrorCode;
+
+    KRATOS_CATCH( "" );
+}
+  
 //************************************************************************************
 //************************************************************************************
 

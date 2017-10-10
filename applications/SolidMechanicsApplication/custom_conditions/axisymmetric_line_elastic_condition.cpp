@@ -198,7 +198,15 @@ namespace Kratos
 
   int AxisymmetricLineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
   {
-    return 0;
+    KRATOS_TRY
+
+    // Perform base condition checks
+    int ErrorCode = 0;
+    ErrorCode = LineElasticCondition::Check(rCurrentProcessInfo);
+
+    return ErrorCode;
+    
+    KRATOS_CATCH( "" )
   }
 
   //***********************************************************************************
