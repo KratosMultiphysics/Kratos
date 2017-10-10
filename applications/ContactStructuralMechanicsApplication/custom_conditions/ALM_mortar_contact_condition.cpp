@@ -540,7 +540,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     
                     DecompositionType decomp_geom( points_array );
                     
-                    const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
                     
                     if (bad_shape == false)
                     {
@@ -632,8 +632,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
                 
                 // Current coordinates 
-                const bounded_matrix<double, TNumNodes, TDim> x1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry());
-                const bounded_matrix<double, TNumNodes, TDim> x2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(mThisMasterElements[pair_index]->GetGeometry());
+                const bounded_matrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry());
+                const bounded_matrix<double, TNumNodes, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(mThisMasterElements[pair_index]->GetGeometry());
         
                 const bounded_matrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2); 
                 
@@ -649,8 +649,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 if (TFrictional == true) // TODO: Check this!!!
                 {
                     // Old coordinates 
-                    const bounded_matrix<double, TNumNodes, TDim> x1_old = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false, 1);
-                    const bounded_matrix<double, TNumNodes, TDim> x2_old = ContactUtilities::GetCoordinates<TDim,TNumNodes>(mThisMasterElements[pair_index]->GetGeometry(), false, 1);
+                    const bounded_matrix<double, TNumNodes, TDim> x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false, 1);
+                    const bounded_matrix<double, TNumNodes, TDim> x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(mThisMasterElements[pair_index]->GetGeometry(), false, 1);
             
                     const bounded_matrix<double, TNumNodes, TDim> D_x1_old_M_x2_old = prod(DOperator, x1_old) - prod(MOperator, x2_old); 
                     
@@ -725,7 +725,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         
         DecompositionType decomp_geom( points_array );
         
-        const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
         
         if (bad_shape == false)
         {
@@ -819,11 +819,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     GeometryType& master_geometry = mThisMasterElements[PairIndex]->GetGeometry();
 
     PointType projected_gp_global;
-    const array_1d<double,3> gp_normal = ContactUtilities::GaussPointNormal(rVariables.NSlave, GetGeometry());
+    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointNormal(rVariables.NSlave, GetGeometry());
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    ContactUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
+    MortarUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
     
     GeometryType::CoordinatesArrayType projected_gp_local;
     
