@@ -41,8 +41,6 @@ namespace Kratos {
                 "element_name": "Element3D4N"
             }  )");
 
-			std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
-
 			ModelPart volume_part("Volume");
 			ModelPart skin_part("Boundaries");
 			skin_part.CreateNewNode(1, 1., .2, 0.);
