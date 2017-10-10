@@ -74,7 +74,7 @@ public:
 	// Define an auxiliary structure to hold a pointer to the element of interest and a position in space to be searched for.
 	// This is needed to know the neighbours and where the element is for the filter.
 
-	class ElementPositionItem: public Point<3>
+	class ElementPositionItem: public Point
 	{
 	public:
 
