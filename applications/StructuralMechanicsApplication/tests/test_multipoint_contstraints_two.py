@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
 
-class TestMultipointConstraints(KratosUnittest.TestCase):
+class TestMultipointConstraintsTwo(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
@@ -202,7 +202,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         return mp
 
 
-    def test_MPC_Constraints(self):
+    def test_2_MPC_Constraints(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")    
         mp = self._apply_material_properties(mp,dim)            
