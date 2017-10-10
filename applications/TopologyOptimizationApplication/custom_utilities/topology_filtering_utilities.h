@@ -81,13 +81,13 @@ public:
 		KRATOS_CLASS_POINTER_DEFINITION( ElementPositionItem );
 
 		ElementPositionItem(): // This Constructor is used by the tree
-			Point<3>(),
+			Point(),
 			mpElement()
 			{
 			}
 
 		ElementPositionItem(array_1d<double,3> Coords, Element::Pointer pElement):
-			Point<3>(Coords),
+			Point(Coords),
 			mpElement(pElement)
 			{}
 

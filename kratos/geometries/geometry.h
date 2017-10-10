@@ -390,21 +390,21 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-    // virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+    // virtual boost::shared_ptr< Geometry< Point > > Clone() const
     // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
+    //     Geometry< Point >::PointsArrayType NewPoints;
 
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
 
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(boost::make_shared< Point >((*this)[i]));
     //     }
 
-    //     //NewPoints[i] = typename Point<3>::Pointer(new Point<3>(*mPoints[i]));
+    //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
 
     //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Geometry< Point<3> >( NewPoints ) );
+    //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
 
     //     p_clone->ClonePoints();
 

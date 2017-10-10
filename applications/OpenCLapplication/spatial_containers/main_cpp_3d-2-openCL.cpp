@@ -44,7 +44,7 @@ public:
             coord[i] = rrandom();
     }
 
-    void operator=(Point<dim_type> const& Other)
+    void operator=(Point const& Other)
     {
         for(std::size_t i = 0; i < dim_type; i++)
             coord[i] = Other.coord[i];

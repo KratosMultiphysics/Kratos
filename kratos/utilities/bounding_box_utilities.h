@@ -681,7 +681,7 @@ public:
        {
 
       const std::size_t dimension = 2;
-      typedef Point<dimension, double>                         PointType;
+      typedef Point                         PointType;
            typedef ModelPart::ElementsContainerType::ContainerType  ElementsArrayType;
       typedef ElementsArrayType::value_type                    PointerType;
       typedef ElementsArrayType::iterator                      ElementsArrayTypeIterator;
