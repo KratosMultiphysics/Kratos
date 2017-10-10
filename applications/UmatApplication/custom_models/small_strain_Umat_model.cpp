@@ -82,12 +82,8 @@ namespace Kratos
          for (int i = 0; i < number_state_variables; i++)
             mpStateVariablesFinalized[i] = 0.0;
 
-         mpStressVectorFinalized = new double[6];
-         mpStrainVectorFinalized = new double[6];
-         for (unsigned int i = 0; i < 6; i++) {
-            mpStressVectorFinalized[i] = 0.0;
-            mpStrainVectorFinalized[i] = 0.0;
-         }
+         mStressVectorFinalized.clear();
+         mStrainVectorFinalized.clear();
       }
       mInitializedModel = true;
 

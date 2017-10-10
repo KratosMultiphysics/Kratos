@@ -66,19 +66,17 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      Matrix AuxMatrix = rVariables.IncrementalDeformation;
-      Matrix StrainMatrix;
+      MatrixType StrainMatrix;
       double det;
-
-      MathUtils<double>::InvertMatrix( AuxMatrix, StrainMatrix, det);
+      ConstitutiveModelUtilities::InvertMatrix3( rVariables.IncrementalDeformation, StrainMatrix, det);
 
       StrainMatrix = prod( trans(StrainMatrix), StrainMatrix);
       for (unsigned int i = 0; i < 3; i++)
          StrainMatrix(i,i) -= 1.0;
       StrainMatrix *= (-0.5);
 
-      Vector StrainVector = ZeroVector(6);
-      StrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, 6);
+      VectorType StrainVector;
+      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(StrainMatrix, StrainVector);
 
       rpIncrementalStrain = new double[6];
       rpStrain = new double[6];
@@ -98,15 +96,13 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      Vector PreviousStressVector = ZeroVector(6);
-      for (unsigned int i = 0; i < 6; i++)
-         PreviousStressVector(i) = mpStressVectorFinalized[i];
 
-      Matrix PreviousStressTensor;
-      PreviousStressTensor = MathUtils<double>::StressVectorToTensor( PreviousStressVector);
+      MatrixType PreviousStressTensor;
+      PreviousStressTensor = ConstitutiveModelUtilities::StressVectorToTensor( mStressVectorFinalized, PreviousStressTensor);
       PreviousStressTensor = prod( rVariables.IncrementalDeformation, Matrix( prod( PreviousStressTensor, trans(rVariables.IncrementalDeformation) ) ) );
 
-      PreviousStressVector = MathUtils<double>::StressTensorToVector( PreviousStressTensor, 6);
+      Vector PreviousStressVector(6);
+      PreviousStressVector = ConstitutiveModelUtilities::StressTensorToVector(PreviousStressTensor, PreviousStressVector);
 
       rpStressVector = new double[6];
       for (unsigned int i = 0; i < 6; i++)

@@ -263,8 +263,8 @@ namespace Kratos
          bool mInitializedModel;
 
          double* mpStateVariablesFinalized;
-         double* mpStressVectorFinalized;
-         double* mpStrainVectorFinalized;
+         VectorType mStressVectorFinalized;
+         VectorType mStrainVectorFinalized;
 
 
          ///@}
@@ -326,8 +326,8 @@ namespace Kratos
             rpIncrementalStrain = new double[6];
 
             for (unsigned int i = 0; i < 6; i++) {
-               rpStrain[i] = mpStrainVectorFinalized[i];
-               rpIncrementalStrain[i] = ( StrainVector(i) - mpStrainVectorFinalized[i] );
+               rpStrain[i] = mStrainVectorFinalized(i);
+               rpIncrementalStrain[i] = ( StrainVector(i) - mStrainVectorFinalized(i) );
 
             }
 
@@ -342,7 +342,7 @@ namespace Kratos
 
             rpStressVector = new double[6];
             for (unsigned int i = 0; i < 6; i++) {
-               rpStressVector[i] = mpStressVectorFinalized[i];
+               rpStressVector[i] = mStressVectorFinalized(i);
             }
 
          }
@@ -354,10 +354,10 @@ namespace Kratos
          {
             VectorType StrainVector;
             StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+            mStrainVectorFinalized = StrainVector;
 
             for (unsigned int i = 0; i < 6; i++) {
-               mpStressVectorFinalized[i] = rpStressVector[i];
-               mpStrainVectorFinalized[i] =  StrainVector(i);
+               mStressVectorFinalized(i) = rpStressVector[i];
             }
 
             int nStateVariables = this->GetNumberOfStateVariables();
