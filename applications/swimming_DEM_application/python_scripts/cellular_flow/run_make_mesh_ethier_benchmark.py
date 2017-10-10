@@ -14,6 +14,7 @@ regular_mesh_n_points = {10}
 derivatives_types = [6]
 combinations_that_failed = []
 errors = []
+
 for size in irregular_mesh_sizes.union(regular_mesh_n_points):
     varying_parameters['size_parameter'] = size
     for derivatives_type in derivatives_types:

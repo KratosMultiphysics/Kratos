@@ -208,9 +208,9 @@ class Algorithm(BaseAlgorithm):
         size_parameter = self.pp.CFD_DEM.size_parameter
         with h5py.File(file_name) as f:
             mat_deriv_grp = f.require_group('material derivative')
-            mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(self.pp.CFD_DEM.material_acceleration_calculation_type))
+            mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()))
             laplacian_grp = f.require_group('laplacian')
-            laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(self.pp.CFD_DEM.laplacian_calculation_type))
+            laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt()))
 
             if num_type(size_parameter) == 'int':
                 mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('regular mesh')
@@ -232,10 +232,10 @@ class Algorithm(BaseAlgorithm):
             size_parameter_name = '_ndiv_'
         elif num_type(size_parameter) == 'float':
             size_parameter_name = '_h_'
-        with open('../errors_recorded/mat_deriv_errors' + size_parameter_name + str(self.pp.CFD_DEM.size_parameter) + '_type_' + str(self.pp.CFD_DEM.material_acceleration_calculation_type) + '.txt', 'w') as mat_errors_file:
+        with open('../errors_recorded/mat_deriv_errors' + size_parameter_name + str(self.pp.CFD_DEM.size_parameter) + '_type_' + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()) + '.txt', 'w') as mat_errors_file:
             for error in self.mat_deriv_errors:
                 mat_errors_file.write(str(error) + '\n')
-        with open('../errors_recorded/laplacian_errors' + size_parameter_name + str(size_parameter) + '_type_' + str(self.pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
+        with open('../errors_recorded/laplacian_errors' + size_parameter_name + str(size_parameter) + '_type_' + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt()) + '.txt', 'w') as laplacian_errors_file:
             for error in self.laplacian_errors:
                 laplacian_errors_file.write(str(error) + '\n')
         sys.stdout.flush()
