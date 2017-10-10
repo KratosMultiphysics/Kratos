@@ -253,6 +253,9 @@ class DamThermoMechanicSolver(object):
     
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
+
+    def GetComputingThermalModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
     
     def GetOutputVariables(self):
         pass

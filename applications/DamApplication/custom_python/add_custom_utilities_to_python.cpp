@@ -24,6 +24,8 @@
 #include "custom_utilities/streamlines_output_3D_utilities.hpp"
 #include "custom_utilities/global_joint_stress_utility.hpp"
 #include "custom_utilities/transfer_selfweight_stress_utility.hpp"
+#include "custom_utilities/construction_utility.hpp"
+
 
 namespace Kratos
 {
@@ -47,6 +49,13 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",&TransferSelfweightStressUtility::Transfer)
     ;
     
+    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, Parameters&>())
+    .def("Initialize",&ConstructionUtility::Initialize)
+    .def("InitializeSolutionStep",&ConstructionUtility::InitializeSolutionStep)
+    .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep)
+    ;
+    
+
 }
 
 }  // namespace Python.
