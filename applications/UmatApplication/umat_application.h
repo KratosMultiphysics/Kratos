@@ -38,6 +38,9 @@
 #include "custom_laws/small_strain_umat_3D_law.hpp"
 #include "custom_laws/large_strain_umat_3D_law.hpp"
 
+#include "custom_models/small_strain_Umat_model.hpp"
+#include "custom_models/von_mises_Umat_small_strain_model.hpp"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -180,6 +183,8 @@ private:
 
 	const SmallStrainUmat3DLaw  mSmallStrainUmat3DLaw;
 	const LargeStrainUmat3DLaw  mLargeStrainUmat3DLaw;
+   const SmallStrainUmatModel  mSmallStrainUmatModel;
+   const VonMisesSmallStrainUmatModel mVonMisesSmallStrainUmatModel;
 	
 	///@}
 	///@name Member Variables
