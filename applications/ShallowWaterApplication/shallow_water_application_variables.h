@@ -32,6 +32,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, RAIN)                                 // Source term
     KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, FREE_SURFACE_ELEVATION)               // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
     KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, MANNING)                              // Friction coefficient
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, DYNAMIC_TAU)                          // Stabilization parameter
 
     // Specific variables for PFEM2
     KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, MEAN_SIZE)

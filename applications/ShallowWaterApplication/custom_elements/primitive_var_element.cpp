@@ -214,7 +214,7 @@ namespace Kratos
         double tau_u;
         double tau_h;
         double k_dc;
-        ComputeStabilizationParameters(height, height_grad, elem_length, tau_u, tau_h, k_dc);
+        ComputeStabilizationParameters(height, height_grad, elem_length, tau_u, tau_h, k_dc, rCurrentProcessInfo);
         
         // Some auxilary definitions
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
@@ -427,7 +427,8 @@ namespace Kratos
                                                                         const double& rElemSize,
                                                                         double& rTauU,
                                                                         double& rTauH,
-                                                                        double& rKdc)
+                                                                        double& rKdc,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
     {
         // Initialize outputs
         rTauU = 0;
@@ -439,7 +440,7 @@ namespace Kratos
         
         // Compute stabilization parameters
         bool stabilization = true;
-        double Ctau = 0.002;
+        double Ctau = 0.002; //rCurrentProcessInfo[DYNAMIC_TAU];  // 0.005 ~ 0.002
         double fheight = fabs(rHeight);
         if (stabilization && fheight > 1e-6)
         {

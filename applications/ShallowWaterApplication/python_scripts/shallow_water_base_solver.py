@@ -27,6 +27,7 @@ class ShallowWaterBaseSolver(object):
             "convergence_echo_level"       : 1,
             "solver_echo_level"            : 0,
             "buffer_size"                  : 2,
+            "dynamic_tau"                  : 0.005,
             "relative_tolerance"           : 1e-6,
             "absolute_tolerance"           : 1e-9,
             "maximum_iterations"           : 20,
@@ -120,14 +121,8 @@ class ShallowWaterBaseSolver(object):
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
-        #~ self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.model_part,
-                                                                     #~ self.time_scheme,
-                                                                     #~ self.linear_solver,
-                                                                     #~ builder_and_solver,
-                                                                     #~ self.settings["compute_reactions"].GetBool(),
-                                                                     #~ self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     #~ self.settings["calculate_norm_dx"].GetBool(),
-                                                                     #~ self.settings["move_mesh_flag"].GetBool())
+        
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         (self.solver).SetEchoLevel(self.settings["solver_echo_level"].GetInt())
         (self.solver).Check()
