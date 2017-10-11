@@ -299,7 +299,7 @@ def main():
 
     sys.stderr.flush()
 
-    # Run the internal cpp (does the same as run_cpp_tests.py)
+    # Run the cpp (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
     try:
         Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
