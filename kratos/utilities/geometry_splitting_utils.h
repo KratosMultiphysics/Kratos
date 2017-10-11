@@ -166,16 +166,12 @@ public:
     int mSplitEdgesNumber;  // Number of split edges
     int mDivisionsNumber;   // Number of generated subdivisions
 
-    int mEdgeNodeI[];
-    int mEdgeNodeJ[];
-    int mSplitEdges[];
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    GeometrySplittingUtils(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
+    GeometrySplittingUtils(GeometryType& rInputGeometry, Vector& rNodalDistances);
 
     /// Destructor
     ~GeometrySplittingUtils();
@@ -209,9 +205,9 @@ public:
     ///@name Operations
     ///@{
 
-    GeometryType GetInputGeometry() const;
+    Vector GetNodalDistances() const ;
 
-    Vector GetNodalDistances() const;
+    GeometryType GetInputGeometry() const;
 
     /**
      * Divides the input geometry according to the provided distance data.
@@ -249,6 +245,9 @@ protected:
     * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
     */
     void SetIntersectionPointsCondensationMatrix(Matrix& rIntPointCondMatrix,
+                                                 const int rEdgeNodeI[],
+                                                 const int rEdgeNodeJ[],
+                                                 const int rSplitEdges[],
                                                  const unsigned int splitEdgesNumber);
 
     ///@}
@@ -277,8 +276,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    const GeometryType& mrInputGeometry;
-    const Vector& mrNodalDistances;
+    GeometryType& mrInputGeometry;
+    Vector& mrNodalDistances;
 
     ///@}
     ///@name Serialization
@@ -324,12 +323,16 @@ public:
     /// Pointer definition of TriangleSplittingUtils
     KRATOS_CLASS_POINTER_DEFINITION(TriangleSplittingUtils);
 
+    int mEdgeNodeI[3] = {0, 1, 2};
+    int mEdgeNodeJ[3] = {1, 2, 0};
+    int mSplitEdges[6] = {0, 1, 2, -1, -1, -1};
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    TriangleSplittingUtils(const GeometryType& rInputGeometry, const array_1d< double, 3 >& rNodalDistances);
+    TriangleSplittingUtils(GeometryType& rInputGeometry, Vector& rNodalDistances);
 
     /// Destructor
     ~TriangleSplittingUtils();
