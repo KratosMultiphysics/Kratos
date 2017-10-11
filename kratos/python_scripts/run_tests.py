@@ -299,13 +299,13 @@ def main():
 
     sys.stderr.flush()
 
-    # Run the internal tests (does the same as run_cpp_tests.py)
-    print('Running internal tests', file=sys.stderr)
+    # Run the internal cpp (does the same as run_cpp_tests.py)
+    print('Running cpp tests', file=sys.stderr)
     try:
         Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
         Tester.RunAllTestCases()
     except:
-        print('[Warning]: Internal tests were unable to run', file=sys.stderr)
+        print('[Warning]: Cpp tests were unable to run', file=sys.stderr)
 
     sys.exit(commander.exitCode)
 
