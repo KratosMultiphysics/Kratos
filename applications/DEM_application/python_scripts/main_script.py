@@ -367,8 +367,8 @@ class Solution(object):
         pass
 
     def BeforeSolveOperations(self):
-        if (hasattr(DEM_parameters, "PostNormalImpactVelocity")):
-            if (DEM_parameters.PostNormalImpactVelocity):
+       if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
                 self.FillAnalyticSubModelPartsWithNewParticles()
 
     def AfterSolveOperations(self):
