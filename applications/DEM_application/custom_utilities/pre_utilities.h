@@ -93,7 +93,7 @@ class PreUtilities
         temporal_vector_of_ids.resize(mNumberOfThreads);
 
         #pragma omp parallel for
-        for (int k = 0; k < (int)pElements.size(); k+=10) {
+        for (int k = 0; k < (int)pElements.size(); k++) {
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             int analytic_particle_id = it->Id();
             temporal_vector_of_ids[OpenMPUtils::ThisThread()].push_back(analytic_particle_id);
