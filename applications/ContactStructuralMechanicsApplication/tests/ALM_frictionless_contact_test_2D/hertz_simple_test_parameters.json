@@ -56,11 +56,11 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "assign_scalar_to_conditions_process",
+        "python_module"   : "assign_scalar_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignScalarToConditionsProcess",
+        "process_name"          : "AssignScalarVariableToConditionsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_bc_pressure",
