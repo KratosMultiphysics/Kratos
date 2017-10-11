@@ -118,7 +118,9 @@ void ExecuteInitialize()
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
             const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-            const double heat_flux = mH0*(t_sol_air - temp_current);               
+            const double heat_flux = mH0*(t_sol_air - temp_current); 
+            
+            KRATOS_WATCH(heat_flux)
 
             it->FastGetSolutionStepValue(var) = heat_flux;
         }            
@@ -144,9 +146,12 @@ void ExecuteInitialize()
             time = time/mTimeUnitConverter;
             mAmbientTemperature = mpTable->GetValue(time);
         }
-
+    
         // Computing the t_soil_air according to t_sol_air criteria
         double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
+
+        mH0=8.0;
+        t_sol_air = 10.0;
 
         if(nnodes != 0)
         {
@@ -159,6 +164,9 @@ void ExecuteInitialize()
 
                 const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
                 const double heat_flux = mH0*(t_sol_air - temp_current);               
+
+                KRATOS_WATCH(heat_flux)
+                
 
                 it->FastGetSolutionStepValue(var) = heat_flux;
             }            

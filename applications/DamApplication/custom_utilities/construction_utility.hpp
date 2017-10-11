@@ -88,16 +88,12 @@ void Initialize()
         }
 
         // Same nodes for both computing model part
-        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.NodesBegin();
-        //ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.NodesBegin();
-        
+        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.NodesBegin();        
         #pragma omp parallel for
         for(unsigned int i = 0; i<nnodes; i++)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
-            //ModelPart::NodesContainerType::iterator it_thermal = it_begin_thermal + i;
             it->Set(ACTIVE,false);
-            //it_thermal->Set(ACTIVE,false);     
         }
 
     }
@@ -112,7 +108,6 @@ void InitializeSolutionStep()
     KRATOS_TRY;
     
     const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
-    const unsigned int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();            
     int direction;
     
     if( mGravityDirection == "X")
@@ -125,37 +120,11 @@ void InitializeSolutionStep()
     double time = mrMechanicalModelPart.GetProcessInfo()[TIME];
     time = time/mTimeUnitConverter;
     double current_height = mReferenceCoordinate + (mHeight/mPhases)*time;  
-    double position;
     int j = 1000000;
-    std::vector<std::size_t> ConditionNodeIds(3);
+    std::vector<std::size_t> ConditionNodeIds(2);
 
     if (nelements != 0)
     {
-        // NODES
-        // Nodes are common so it is not necessary to active two times
-        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.NodesBegin();
-        //ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.NodesBegin();
-    
-        #pragma omp parallel for
-        for(unsigned int i = 0; i<nnodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            //ModelPart::NodesContainerType::iterator it_thermal = it_begin_thermal + i;                    
-            
-            if( mGravityDirection == "X")
-                position = it->X();
-            else if( mGravityDirection == "Y")
-                position = it->Y();
-            else
-                position = it->Z();
-            
-            if((position >= mReferenceCoordinate) && (position <= (current_height+0.00001) ))
-            {
-                it->Set(ACTIVE,true);
-                //it_thermal->Set(ACTIVE,true);
-            }
-        }
-
         // ELEMENTS
         ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.ElementsBegin();
         ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();
@@ -165,13 +134,18 @@ void InitializeSolutionStep()
         {
             ModelPart::ElementsContainerType::iterator it = el_begin + k;
             ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-            
-            const Geometry< Node<3> >& geom = it->GetGeometry();
-            array_1d<double,3> central_position = geom.Center();
+            array_1d<double,3> central_position = it->GetGeometry().Center();
+
             if((central_position(direction) >= mReferenceCoordinate) && (central_position(direction) <= current_height) )
             {
                 it->Set(ACTIVE,true);
                 it_thermal->Set(ACTIVE,true);
+
+                const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
+                for(unsigned int i = 0; i<number_of_points; i++)
+                {
+                    it->GetGeometry()[i].Set(ACTIVE,true);                    
+                }
             }
         }
 
@@ -205,10 +179,16 @@ void InitializeSolutionStep()
                         }                       
 
                         this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-
-                        /// ES POSIBLE QUE DEBERIA HABER UN OMP_CRITICAL
-                        mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", j+1, ConditionNodeIds, 0);
-                        j++;
+                        if(number_of_points==3)
+                        {/// ES POSIBLE QUE DEBERIA HABER UN OMP_CRITICAL
+                            mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", j+1, ConditionNodeIds, 0);
+                            j++;
+                        }
+                        else 
+                        {
+                            mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", j+1, ConditionNodeIds, 0);
+                            j++;
+                        }
                     }
                 }
             }
@@ -227,7 +207,7 @@ void InitializeSolutionStep()
 void AfterOutputStep()
 {
     const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
-    std::vector<std::size_t> ConditionNodeIds(3);
+    std::vector<std::size_t> ConditionNodeIds(2);
     int j = 1000000;  
     if (nelements != 0)
     {
@@ -275,38 +255,44 @@ void ActiveHeatFlux()
 {
     KRATOS_TRY;
     
-    const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-    Variable<double> var = KratosComponents< Variable<double> >::Get("HEAT_FLUX");
+    const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();    
 
     Vector time_vector(10);
     time_vector[0] = 0.0;
     time_vector[1] = 3600;
     time_vector[2] = 7200;
-    //time_vector[3] = 10800;
-    //time_vector[4] = 14400;
-    //time_vector[5] = 18000;
-    //time_vector[6] = 21600;
-    //time_vector[7] = 25200;
-    //time_vector[8] = 28800;
-    //time_vector[9] = 32400;
+    time_vector[3] = 10800;
+    time_vector[4] = 14400;
+    time_vector[5] = 18000;
+    time_vector[6] = 21600;
+    time_vector[7] = 25200;
+    time_vector[8] = 28800;
+    time_vector[9] = 32400;
     
     
     double time = mrMechanicalModelPart.GetProcessInfo()[TIME];        
-    double position;
 
-    if(nnodes != 0)
+    int direction;
+    if( mGravityDirection == "X")
+        direction = 0;
+    else if( mGravityDirection == "Y")
+        direction = 1;
+    else
+        direction = 2;
+
+
+    if(nelements != 0)
     {
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
-
-        for(unsigned int j = 0; j<3; j++)
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();               
+        
+        for(unsigned int j = 0; j<10; j++)
         {
             double real_time = time - time_vector[j];
             
             // This formulation is developed using hours as temporal variable
             real_time = real_time/3600.0;
-            KRATOS_WATCH(real_time)
 
-            if (real_time > 0)
+            if (real_time > 0.000001)
             {
                 double current_height = mReferenceCoordinate + (mHeight/mPhases)*(j+1);
                 double previous_height =mReferenceCoordinate + (mHeight/mPhases)*(j);
@@ -316,20 +302,18 @@ void ActiveHeatFlux()
                 double value = 2400*1*0.025*18*(exp(-0.025*real_time));
                 
                 #pragma omp parallel for
-                for(unsigned int i = 0; i<nnodes; i++)
+                for(unsigned int k = 0; k<nelements; k++)
                 {
-                    ModelPart::NodesContainerType::iterator it_thermal = it_begin_thermal + i; 
+                    ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+                    array_1d<double,3> central_position = it_thermal->GetGeometry().Center();
 
-                    if( mGravityDirection == "X")
-                        position = it_thermal->X();
-                    else if( mGravityDirection == "Y")
-                        position = it_thermal->Y();
-                    else
-                        position = it_thermal->Z();
-
-                    if((position >= previous_height) && (position <= (current_height+0.00001) ))
+                    if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height) )
                     {
-                        it_thermal->FastGetSolutionStepValue(var) = value;
+                        const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
+                        for(unsigned int i = 0; i<number_of_points; i++)
+                        {
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) = value;                    
+                        }
                     }
                 }
             }
@@ -348,7 +332,6 @@ void ActiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
     const unsigned int size = ConditionNodeIds.size();
     const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
     ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
-    Variable<double> var = KratosComponents< Variable<double> >::Get("FACE_HEAT_FLUX");        
 
     double mH0=8.0;
     double t_sol_air = 10.0;
@@ -364,14 +347,9 @@ void ActiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
                 if (it_thermal->Id() == ConditionNodeIds[j]) 
                 {
                     const double temp_current = it_thermal->FastGetSolutionStepValue(TEMPERATURE);
-
-                    KRATOS_WATCH(temp_current)
-
-                    const double heat_flux = mH0*(t_sol_air - temp_current);               
-        
-                    it_thermal->FastGetSolutionStepValue(var) = heat_flux; 
+                    const double heat_flux = mH0*(t_sol_air - temp_current);
+                    it_thermal->FastGetSolutionStepValue(FACE_HEAT_FLUX) = heat_flux; 
                 }
-
             }
         }    
     }
@@ -388,7 +366,6 @@ void DeactiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
     const unsigned int size = ConditionNodeIds.size();
     const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
     ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
-    Variable<double> var = KratosComponents< Variable<double> >::Get("FACE_HEAT_FLUX");        
 
     if(size != 0)
     {
@@ -401,9 +378,8 @@ void DeactiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
                 if (it_thermal->Id() == ConditionNodeIds[j]) 
                 {   
                     //Setting to 0 the fluxes since in the next step 
-                    it_thermal->FastGetSolutionStepValue(var) = 0.0; 
+                    it_thermal->FastGetSolutionStepValue(FACE_HEAT_FLUX) = 0.0; 
                 }
-
             }
         }    
     }
