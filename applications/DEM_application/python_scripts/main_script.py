@@ -366,7 +366,9 @@ class Solution(object):
     def BeforeSolveOperations(self):
        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
-                self.FillAnalyticSubModelPartsWithNewParticles()
+                time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
+                if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
+                    self.FillAnalyticSubModelPartsWithNewParticles()
 
     def BeforePrintingOperations(self, time):
         pass
