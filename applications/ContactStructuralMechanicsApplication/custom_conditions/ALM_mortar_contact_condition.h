@@ -26,12 +26,7 @@
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
-
-/* Custom includes */
-#include "custom_includes/mortar_operator.h"
-#include "custom_includes/dual_LM_operators.h"
-#include "custom_includes/mortar_kinematic_variables.h"
-#include "custom_includes/point_belong.h"
+#include "includes/mortar_classes.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"

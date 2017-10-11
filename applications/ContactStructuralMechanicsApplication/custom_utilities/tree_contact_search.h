@@ -182,8 +182,8 @@ public:
         {
             auto it_cond = conditions_array.begin() + i;
 
-            it_cond->GetValue(CONTACT_MAPS) = boost::shared_ptr<ConditionMap>(new ConditionMap); 
-//             it_cond->GetValue(CONTACT_MAPS)->reserve(mAllocationSize); 
+            it_cond->GetValue(MAPPING_PAIRS) = boost::shared_ptr<ConditionMap>(new ConditionMap); 
+//             it_cond->GetValue(MAPPING_PAIRS)->reserve(mAllocationSize); 
         }
     }
     
@@ -429,7 +429,7 @@ public:
                     
                     if (number_points_found > 0)
                     {                           
-                        boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
+                        boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
                         Condition::Pointer p_cond_slave = (*it_cond.base()); // MASTER
                         const array_1d<double, 3>& contact_normal_origin = p_cond_slave->GetValue(NORMAL);
                         const double active_check_length = p_cond_slave->GetGeometry().Length() * p_cond_slave->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
@@ -610,7 +610,7 @@ public:
             auto it_cond = conditions_array.begin() + i;
             if ( (it_cond)->Is(ACTIVE) == true )
             {
-                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
+                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
                 
                 // Initialize geometries
                 const array_1d<double, 3>& contact_normal = it_cond->GetValue(NORMAL);
@@ -670,7 +670,7 @@ public:
                 KRATOS_WATCH(it_cond->Id());
                 KRATOS_WATCH(it_cond->GetGeometry());
                 
-                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
+                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
                 KRATOS_WATCH(conditions_pointers_destination->size());
                 conditions_pointers_destination->print();
             }
@@ -765,7 +765,7 @@ protected:
 
         if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
         {
-            auto& condition_pointers2 = pCond2->GetValue(CONTACT_MAPS);
+            auto& condition_pointers2 = pCond2->GetValue(MAPPING_PAIRS);
             
             if (condition_pointers2->find(pCond1) != condition_pointers2->end())
             {
@@ -824,7 +824,7 @@ protected:
             {
                 it_cond->Set(ACTIVE, false);
                 
-                auto& condition_pointers = it_cond->GetValue(CONTACT_MAPS);
+                auto& condition_pointers = it_cond->GetValue(MAPPING_PAIRS);
                 
                 if (condition_pointers != nullptr)
                 {

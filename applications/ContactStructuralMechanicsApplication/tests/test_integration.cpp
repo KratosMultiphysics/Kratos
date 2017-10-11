@@ -33,7 +33,7 @@
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos 
 {

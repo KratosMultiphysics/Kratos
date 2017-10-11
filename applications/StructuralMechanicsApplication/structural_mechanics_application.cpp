@@ -383,11 +383,15 @@ void KratosStructuralMechanicsApplication::Register()
     // Torque moment condition
     KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
 
+    // For MPC implementations
+    KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
     // Register linear elastics laws
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
     Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
     Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic);
+    Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D);
+    Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
     
 }
 

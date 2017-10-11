@@ -33,12 +33,12 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(Structured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Test");
 
@@ -92,12 +92,12 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(PerturbedStructured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Test");
 
@@ -155,12 +155,12 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(RedistributedStructured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Test");
 
@@ -223,16 +223,16 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(Structured3DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(10.00, 0.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point5(new Point<3>(0.00, 0.00, 10.00));
-			Point<3>::Pointer p_point6(new Point<3>(10.00, 0.00, 10.00));
-			Point<3>::Pointer p_point7(new Point<3>(10.00, 10.00, 10.00));
-			Point<3>::Pointer p_point8(new Point<3>(0.00, 10.00, 10.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
+			Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
+			Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
+			Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
 
-			Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+			Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 			ModelPart model_part("Test");
 

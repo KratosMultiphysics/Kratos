@@ -12,7 +12,8 @@
 
 namespace Kratos
 {
-typedef array_1d<double,3> Vector3;
+    typedef array_1d<double,3> Vector3;
+    typedef MpcData::Pointer MpcDataPointerType;
 
     // Generalized eigenvalue problem
     KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
@@ -109,4 +110,6 @@ typedef array_1d<double,3> Vector3;
     KRATOS_CREATE_VARIABLE(Vector, SURFACE_LOADS_VECTOR )
     KRATOS_CREATE_VARIABLE(Vector, POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_CREATE_VARIABLE(Vector, NEGATIVE_FACE_PRESSURES_VECTOR )
+   
+    KRATOS_CREATE_VARIABLE(MpcDataPointerVectorType, MPC_DATA_CONTAINER)
 }
