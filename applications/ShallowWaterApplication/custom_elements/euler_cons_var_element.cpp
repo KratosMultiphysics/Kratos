@@ -118,8 +118,10 @@ namespace Kratos
             rRightHandSideVector.resize(element_size,false);
 
         // Getting gravity
-        //~ array_1d<double,3> v_gravity = rCurrentProcessInfo[GRAVITY];
-        double gravity = 9.8; //-v_gravity[2];
+        double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        
+        // Getting properties
+        double manning2 = pow( GetProperties()[MANNING], 2 );
         
         // Getting the time step (not fixed to allow variable time step)
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -139,13 +141,19 @@ namespace Kratos
         
         // Get nodal values for current and previous step
         array_1d<double, TNumNodes*3> v_depth;
+        array_1d<double, TNumNodes*3> v_rain;
         array_1d<double, TNumNodes*3> v_unknown;
         array_1d<double, TNumNodes*3> v_unknown_n;
+        GetNodalValues(v_depth, v_unknown, v_unknown_n );
+        
+        // Get element values
         double height;
+        array_1d<double,2> momentum;
         array_1d<double,2> velocity;
         boost::numeric::ublas::bounded_matrix<double,2,2> grad_u;
-        GetNodalValues(v_depth,v_unknown,v_unknown_n);
-        GetElementValues(DN_DX,v_unknown,height,velocity,grad_u);
+        GetElementValues(DN_DX, v_unknown, momentum, height, velocity, grad_u);
+        double height73 = pow(height, 2.33333);
+        double abs_mom = norm_2(momentum);
         
         // Some auxilary definitions
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for momentum unknown)
@@ -155,6 +163,8 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> grad_mom_1   = ZeroMatrix(2,TNumNodes*3);  // Shape functions for vector gradient (for momentum unknown)
         boost::numeric::ublas::bounded_matrix<double,2,TNumNodes*3> grad_mom_2   = ZeroMatrix(2,TNumNodes*3);  // Shape functions for vector gradient (for momentum unknown)
         //
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_convect  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_non_lin  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
@@ -188,8 +198,8 @@ namespace Kratos
                 N_mom(0,   nnode*3) = N[nnode];
                 N_mom(1, 1+nnode*3) = N[nnode];
             }
-            noalias(mass_matrix)  += prod(trans(N_mom),N_mom);
-            noalias(mass_matrix)  += prod(trans(N_height),N_height);
+            noalias(mass_matrix_w)+= prod(trans(N_mom),N_mom);
+            noalias(mass_matrix_q)+= prod(trans(N_height),N_height);
             
             noalias(aux_convect)  += velocity[0] * prod(trans(N_mom),grad_mom_1);
             noalias(aux_convect)  += velocity[1] * prod(trans(N_mom),grad_mom_2);
@@ -202,8 +212,7 @@ namespace Kratos
             noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom);
             noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
         }
-
-        //~ CalculateLumpedMassMatrix(mass_matrix);
+        noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
 
         // Copmute stabilization parameters
         bool stabilization = true;
@@ -225,10 +234,6 @@ namespace Kratos
         {
             // Residual formulation
             k_dc = 0.5*0.4*elem_length*height_grad_norm;
-            // Print values on Gauss points
-            //~ this->SetValue(RESIDUAL_NORM,residual);
-            this->SetValue(MIU,height_grad_norm);
-            this->SetValue(PR_ART_VISC,k_dc);
         }
 
         // Build LHS
@@ -238,7 +243,7 @@ namespace Kratos
         // Convective and non linear terms
         noalias(rLeftHandSideMatrix) += aux_convect;                    // Add <w,u*grad(hu)> to Momentum Eq.
         noalias(rLeftHandSideMatrix) += aux_non_lin;                    // Add <w,drad(u)*hu> to Momentum Eq.
-        
+
         // Cross terms
         noalias(rLeftHandSideMatrix) += aux_q_div_m;                     // Add <q,div(hu)> to Mass Eq.
         noalias(rLeftHandSideMatrix) += gravity * height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
@@ -246,10 +251,16 @@ namespace Kratos
         // Stabilization terms
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
         noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq.
-        
+
+        // Friction term
+        noalias(rLeftHandSideMatrix) += gravity * manning2 * abs_mom / height73 * mass_matrix_w;
+
         // Build RHS
         // Source terms (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -gravity * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+        noalias(rRightHandSideVector)  = -gravity * height * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+
+        // Source terms (rain contribution)
+        noalias(rRightHandSideVector) += prod(mass_matrix, v_rain);
 
         // Inertia terms
         noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(mass_matrix, v_unknown_n);
@@ -354,30 +365,60 @@ namespace Kratos
 
     template< unsigned int TNumNodes >
     void EulerConsVarElement<TNumNodes>::GetElementValues(boost::numeric::ublas::bounded_matrix<double,TNumNodes, 2>& rDN_DX,
-                                                          array_1d<double, TNumNodes*3>& r_nodal_var,
-                                                          double& rheight,
-                                                          array_1d<double,2>& rvel,
-                                                          boost::numeric::ublas::bounded_matrix<double,2,2>& rgrad_u
+                                                          array_1d<double,TNumNodes*3>& rNodalVar,
+                                                          array_1d<double,2>& rMom,
+                                                          double& rHeight,
+                                                          array_1d<double,2>& rVel,
+                                                          boost::numeric::ublas::bounded_matrix<double,2,2>& rGradU
                                                          )
     {
         double lumping_factor = 1 / double(TNumNodes);
-        
-        rheight = 0;
-        rvel    = ZeroVector(2);
-        rgrad_u = ZeroMatrix(2,2);
+        bool near_dry = false;
         
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rvel[0] += r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
-            rvel[1] += r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
-            rheight += r_nodal_var[2 + 3*i];
-            rgrad_u(0,0) += rDN_DX(i,0) * r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
-            rgrad_u(0,1) += rDN_DX(i,0) * r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
-            rgrad_u(1,0) += rDN_DX(i,1) * r_nodal_var[  + 3*i] / r_nodal_var[2 + 3*i];
-            rgrad_u(1,1) += rDN_DX(i,1) * r_nodal_var[1 + 3*i] / r_nodal_var[2 + 3*i];
+            if (rNodalVar[2 + 3*i] < 1e-1)
+                near_dry = true;
         }
-        rvel    *= lumping_factor;
-        rheight *= lumping_factor;
+        
+        rMom = ZeroVector(2);
+        rHeight = 0;
+        rVel = ZeroVector(2);
+        rGradU = ZeroMatrix(2,2);
+        
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            rMom[0] += rNodalVar[  + 3*i];
+            rMom[1] += rNodalVar[1 + 3*i];
+            rHeight += rNodalVar[2 + 3*i];
+            if (near_dry)
+            {
+                rVel[0] += rNodalVar[  + 3*i];
+                rVel[1] += rNodalVar[1 + 3*i];
+                rGradU(0,0) += rDN_DX(i,0) * rNodalVar[  + 3*i];
+                rGradU(1,1) += rDN_DX(i,0) * rNodalVar[1 + 3*i];
+                rGradU(0,0) += rDN_DX(i,1) * rNodalVar[  + 3*i];
+                rGradU(1,1) += rDN_DX(i,1) * rNodalVar[1 + 3*i];
+            }
+            else
+            {
+                rVel[0] += rNodalVar[  + 3*i] / rNodalVar[2 + 3*i];
+                rVel[1] += rNodalVar[1 + 3*i] / rNodalVar[2 + 3*i];
+                rGradU(0,0) += rDN_DX(i,0) * rNodalVar[  + 3*i] / rNodalVar[2 + 3*i];
+                rGradU(0,1) += rDN_DX(i,0) * rNodalVar[1 + 3*i] / rNodalVar[2 + 3*i];
+                rGradU(1,0) += rDN_DX(i,1) * rNodalVar[  + 3*i] / rNodalVar[2 + 3*i];
+                rGradU(1,1) += rDN_DX(i,1) * rNodalVar[1 + 3*i] / rNodalVar[2 + 3*i];
+            }
+        }
+        if (near_dry)
+        {
+            rVel /= rHeight;
+            rGradU /= rHeight;
+        }
+        
+        rMom    *= lumping_factor;
+        rHeight *= lumping_factor;
+        rVel    *= lumping_factor;
     }
 
 //----------------------------------------------------------------------

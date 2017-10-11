@@ -80,7 +80,7 @@ namespace Kratos
     
     void GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, array_1d<double, TNumNodes*3>& runkn, array_1d<double, TNumNodes*3>& rproj);
     
-    void GetElementValues(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight, array_1d<double,2>& rvel, boost::numeric::ublas::bounded_matrix<double,2,2>& rdiv_u);
+    void GetElementValues(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& rNodalVar, array_1d<double,2>& rMom, double& rHeight, array_1d<double,2>& rVel, boost::numeric::ublas::bounded_matrix<double,2,2>& rDivU);
 
     void CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
 
