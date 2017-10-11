@@ -147,7 +147,7 @@ public:
         Point<3> center;
         if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true)
         {
-            Point<3> center = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
+            center = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
         }
         else
         {

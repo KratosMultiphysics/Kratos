@@ -145,7 +145,7 @@ def AssambleTestSuites():
             TALMMeshMovingMatchingTestContact,
             TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
-            #TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error (if VELOCITY and ACCELERATION are not added this problem doesn't appear)
+            TALMTaylorPatchDynamicTestContact,
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
