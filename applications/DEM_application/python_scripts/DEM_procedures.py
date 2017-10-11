@@ -1471,7 +1471,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostTangentialImpactVelocity,      TANGENTIAL_IMPACT_VELOCITY,   self.spheres_variables)
         self.PushPrintVar(self.PostFaceNormalImpactVelocity,      FACE_NORMAL_IMPACT_VELOCITY,       self.spheres_variables)
         self.PushPrintVar(self.PostFaceTangentialImpactVelocity,      FACE_TANGENTIAL_IMPACT_VELOCITY,   self.spheres_variables)
-        self.PushPrintVar(self.PostLinearImpulse,      LINEAR_IMPULSE,   self.spheres_variables)
+        #self.PushPrintVar(self.PostLinearImpulse,      LINEAR_IMPULSE,   self.spheres_variables)
         
 
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
