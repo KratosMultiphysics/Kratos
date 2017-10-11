@@ -16,11 +16,12 @@
 #include "includes/model_part.h"
 
 #include "custom_elements/nodal_data_handler.h"
+#include "custom_elements/integration_point_data_container.h"
 
 namespace Kratos {
     namespace Testing {
 
-        void InitializeTestModelpart(ModelPart& rModelPart)
+        void InitializeTestModelPart(ModelPart& rModelPart)
         {
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -38,7 +39,7 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(FluidElementNodalDataHandler, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            InitializeTestModelpart(model_part);
+            InitializeTestModelPart(model_part);
 
             Element& r_element = *(model_part.ElementsBegin());
 			Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
@@ -69,12 +70,25 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(FluidElementGaussPointData, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
-            InitializeTestModelpart(model_part);
+            InitializeTestModelPart(model_part);
 
             Element& r_element = *(model_part.ElementsBegin());
 			Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
 
+            for (unsigned int i = 0; i < 3; i++) {
+				r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 1.0 + i;
+                r_geometry[i].FastGetSolutionStepValue(VELOCITY_Y) = 3.0 * i;
+                r_geometry[i].FastGetSolutionStepValue(VELOCITY_Z) = i - 5.0;
+            }
+
             // Data container tests go here
+            IntegrationPointDataContainer DataPoint;
+
+            DataPoint.Initialize(r_element,model_part.GetProcessInfo());
+
+            Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+            boost::numeric::ublas::matrix_row< Matrix > shape_functions = row(NContainer,0);
+			KRATOS_CHECK_NEAR(2.0, DataPoint.GetPressure().Interpolate(shape_functions, &r_element), 1e-6);
         }
     }
 }
