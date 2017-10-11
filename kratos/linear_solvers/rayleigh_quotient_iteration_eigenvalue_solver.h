@@ -109,12 +109,13 @@ public:
     {
         Parameters DefaultParameters = Parameters(R"(
             {
-                "solver_type"             : "RayleighQuotientIterationEigenvalueSolver",
+                "solver_type"             : "rayleigh_quotient_iteration_eigenvalue_solver",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "required_eigen_number"   : 1,
                 "shifting_convergence"    : 0.25,
-                "verbosity"               : 1
+                "verbosity"               : 1,
+                "linear_solver_settings"  : {}
             })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);

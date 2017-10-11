@@ -40,7 +40,8 @@ def ConstructSolver(configuration):
         linear_solver = KratosMultiphysics.MixedUPLinearSolver(configuration)
     elif(solver_type == "SkylineLUFactorizationSolver"):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver(configuration)
-
+    elif(solver_type == "complex_skyline_lu_solver"):
+        linear_solver = KratosMultiphysics.ComplexSkylineLUSolver(configuration)
 
     ################################## following solvers need importing the ExternalSolversApplication
     elif(solver_type == "GMRESSolver"):
@@ -59,16 +60,14 @@ def ConstructSolver(configuration):
         linear_solver = KratosMultiphysics.AMGCLSolver(configuration)
     elif(solver_type == "AMGCL_NS_Solver"):
         linear_solver = KratosMultiphysics.AMGCL_NS_Solver(configuration)
-        
-        
-        
+    elif(solver_type == "complex_pastix_solver"):
+        import KratosMultiphysics.ExternalSolversApplication
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixComplexSolver(configuration)
  
     ################################## following solvers need importing the MKLSolversApplication
     elif (solver_type == "ParallelMKLPardisoSolver"):
         import KratosMultiphysics.MKLSolversApplication
         linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(configuration)
-
-
 
     ###################################### FAILED TO FIND solver_type
     else:

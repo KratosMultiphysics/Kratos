@@ -27,10 +27,12 @@
 #include "linear_solvers/tfqmr_solver.h"
 #include "includes/dof.h"
 #include "spaces/ublas_space.h"
+#include "includes/ublas_complex_interface.h"
 
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "linear_solvers/scaling_solver.h"
 #include "linear_solvers/mixedup_linear_solver.h"
 
@@ -47,6 +49,15 @@ namespace Kratos
 
 namespace Python
 {
+    template <class TDataType>
+    using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+    template <class TDataType>
+    using TLocalSpaceType = UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+    template <class TDataType>
+    using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+    template <class TDataType>
+    using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+
 void  AddLinearSolversToPython()
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
@@ -64,8 +75,15 @@ void  AddLinearSolversToPython()
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
     typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
 
-    bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
+    typedef TSpaceType<std::complex<double>> ComplexSparseSpaceType;
+    typedef TLocalSpaceType<std::complex<double>> ComplexDenseSpaceType;
+    typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
+    typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
+    typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
 
+    bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
+    bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
+    
     using namespace boost::python;
 
     //****************************************************************************************************
@@ -99,6 +117,13 @@ void  AddLinearSolversToPython()
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
     .def("Clear",&LinearSolverType::Clear)
+    .def(self_ns::str(self))
+    ;
+
+    class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer, boost::noncopyable>("ComplexLinearSolver")
+    .def("Initialize",&ComplexLinearSolverType::Initialize)
+    .def("Solve",pointer_to_complex_solve)
+    .def("Clear",&ComplexLinearSolverType::Clear)
     .def(self_ns::str(self))
     ;
 
@@ -171,9 +196,21 @@ void  AddLinearSolversToPython()
     .def(self_ns::str(self))
     ;
 
+    class_<ComplexDirectSolverType, ComplexDirectSolverType::Pointer, bases<ComplexLinearSolverType>, boost::noncopyable >("ComplexDirectSolver")
+    .def( init< >() )
+    .def(init<Parameters>())
+    .def(self_ns::str(self))
+    ;
+
     class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, bases<DirectSolverType>, boost::noncopyable >("SkylineLUFactorizationSolver")
     .def(init< >())
     .def(init<Parameters>())
+    .def(self_ns::str(self))
+    ;
+
+    class_<ComplexSkylineLUSolverType, ComplexSkylineLUSolverType::Pointer, bases<ComplexDirectSolverType>, boost::noncopyable >("ComplexSkylineLUSolver")
+    .def(init< >())
+    .def(init<Parameters&>())
     .def(self_ns::str(self))
     ;
 

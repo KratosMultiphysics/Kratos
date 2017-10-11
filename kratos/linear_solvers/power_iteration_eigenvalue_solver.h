@@ -226,12 +226,13 @@ public:
     {
         Parameters DefaultParameters = Parameters(R"(
         {
-            "solver_type"             : "PowerIterationEigenvalueSolver",
+            "solver_type"             : "power_iteration_eigenvalue_solver",
             "max_iteration"           : 10000,
             "tolerance"               : 1e-8,
             "required_eigen_number"   : 1,
             "shifting_convergence"    : 0.25,
-            "verbosity"               : 1
+            "verbosity"               : 1,
+            "linear_solver_settings"  : {}
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -571,12 +572,13 @@ public:
     {
         Parameters DefaultParameters = Parameters(R"(
         {
-            "solver_type"             : "PowerIterationHighestEigenvalueSolver",
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
             "max_iteration"           : 10000,
             "tolerance"               : 1e-8,
             "required_eigen_number"   : 1,
             "shifting_convergence"    : 0.25,
-            "verbosity"               : 1
+            "verbosity"               : 1,
+            "linear_solver_settings"  : {}
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);

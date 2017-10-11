@@ -50,16 +50,14 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "eigen_solver_settings"      : {
-                            "solver_type"             : "PowerIterationEigenvalueSolver",
-                            "max_iteration"           : 10000,
-                            "tolerance"               : 1e-8,
-                            "required_eigen_number"   : 1,
-                            "shifting_convergence"    : 0.25,
-                            "verbosity"               : 0
-                        },
+                        "solver_type"             : "power_iteration_eigenvalue_solver",
+                        "max_iteration"           : 10000,
+                        "tolerance"               : 1e-8,
+                        "required_eigen_number"   : 1,
+                        "shifting_convergence"    : 0.25,
+                        "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                        "solver_type"             : "SuperLUSolver",
+                            "solver_type"             : "SuperLUSolver",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -75,14 +73,12 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "eigen_solver_settings"      : {
-                        "solver_type"                 : "PowerIterationHighestEigenvalueSolver",
-                            "max_iteration"           : 10000,
-                            "tolerance"               : 1e-8,
-                            "required_eigen_number"   : 1,
-                            "shifting_convergence"    : 0.25,
-                            "verbosity"               : 0
-                        },
+                        "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+                        "max_iteration"           : 10000,
+                        "tolerance"               : 1e-8,
+                        "required_eigen_number"   : 1,
+                        "shifting_convergence"    : 0.25,
+                        "verbosity"               : 0,
                         "linear_solver_settings"      : {
                         "solver_type"             : "SuperLUSolver",
                             "max_iteration"           : 500,
@@ -100,14 +96,12 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "eigen_solver_settings"      : {
-                            "solver_type"             : "RayleighQuotientIterationEigenvalueSolver",
-                            "max_iteration"           : 10000,
-                            "tolerance"               : 1e-9,
-                            "required_eigen_number"   : 1,
-                            "shifting_convergence"    : 0.25,
-                            "verbosity"               : 0
-                        },
+                        "solver_type"             : "rayleigh_quotient_iteration_eigenvalue_solver",
+                        "max_iteration"           : 10000,
+                        "tolerance"               : 1e-9,
+                        "required_eigen_number"   : 1,
+                        "shifting_convergence"    : 0.25,
+                        "verbosity"               : 0,
                         "linear_solver_settings"      : {
                             "solver_type"             : "SkylineLUFactorizationSolver",
                             "max_iteration"           : 500,
