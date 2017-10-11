@@ -84,7 +84,6 @@ class Solution(main_script.Solution):
 
     def Setdt(self):       
         self.dt = dt
-        #print("setdt", self.dt )
         #return self.dt
 
     def Initialize(self):
@@ -122,7 +121,7 @@ class Solution(main_script.Solution):
         return 'benchmark' + str(benchmark_number)
 
     def BeforeSolveOperations(self, time): 
-        super().BeforeSolveOperations(time)     
+        super().BeforeSolveOperations()     
         benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):

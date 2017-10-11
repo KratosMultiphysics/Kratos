@@ -393,6 +393,10 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LINEAR_IMPULSE)
+        
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -514,6 +518,10 @@ class Procedures(object):
             for node in mesh_nodes:
                 node.SetSolutionStepValue(NORMAL_IMPACT_VELOCITY, 0.0)
                 node.SetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY, 0.0)
+                node.SetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY, 0.0)
+                node.SetSolutionStepValue(FACE_TANGENTIAL_IMPACT_VELOCITY, 0.0)
+                node.SetSolutionStepValue(LINEAR_IMPULSE, 0.0)
+                
     
     def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
         spheres_model_part.SetBufferSize(spheres_b_size)
@@ -1365,6 +1373,9 @@ class DEMIo(object):
         self.PostBrokenRatio              = getattr(self.DEM_parameters, "PostBrokenRatio", 0)
         self.PostNormalImpactVelocity     = getattr(self.DEM_parameters, "PostNormalImpactVelocity", 0)
         self.PostTangentialImpactVelocity = getattr(self.DEM_parameters, "PostTangentialImpactVelocity", 0)
+        #self.PostFaceNormalImpactVelocity     = getattr(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
+        #self.PostFaceTangentialImpactVelocity = getattr(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
+        self.PostLinearImpulse            = getattr(self.DEM_parameters, "PostLinearImpulse", 0)
 
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
@@ -1396,11 +1407,16 @@ class DEMIo(object):
         
         #Analytic
         if not (hasattr(self.DEM_parameters, "PostNormalImpactVelocity")):
-            PostNormalImpactVelocity = 0
-            PostTangentialImpactVelocity = 0
+            self.PostNormalImpactVelocity = 0
+            self.PostTangentialImpactVelocity = 0
+            self.PostFaceNormalImpactVelocity = 0
+            self.PostFaceTangentialImpactVelocity = 0
         else:
-            PostNormalImpactVelocity = Var_Translator(self.DEM_parameters.PostNormalImpactVelocity)
-            PostTangentialImpactVelocity = Var_Translator(self.DEM_parameters.PostTangentialImpactVelocity)
+            self.PostNormalImpactVelocity = Var_Translator(self.DEM_parameters.PostNormalImpactVelocity)
+            self.PostTangentialImpactVelocity = Var_Translator(self.DEM_parameters.PostTangentialImpactVelocity)
+            self.PostFaceNormalImpactVelocity = 1
+            self.PostFaceTangentialImpactVelocity = 1
+            
 
         # Ice
         if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
@@ -1471,6 +1487,10 @@ class DEMIo(object):
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
         self.PushPrintVar(self.PostNormalImpactVelocity,      NORMAL_IMPACT_VELOCITY,       self.spheres_variables)
         self.PushPrintVar(self.PostTangentialImpactVelocity,      TANGENTIAL_IMPACT_VELOCITY,   self.spheres_variables)
+        self.PushPrintVar(self.PostFaceNormalImpactVelocity,      FACE_NORMAL_IMPACT_VELOCITY,       self.spheres_variables)
+        self.PushPrintVar(self.PostFaceTangentialImpactVelocity,      FACE_TANGENTIAL_IMPACT_VELOCITY,   self.spheres_variables)
+        self.PushPrintVar(self.PostLinearImpulse,      LINEAR_IMPULSE,   self.spheres_variables)
+        
 
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging

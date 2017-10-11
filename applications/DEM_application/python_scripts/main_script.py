@@ -23,7 +23,7 @@ else:
 
 class Solution(object):
 
-    def __init__(self, DEM_parameters):
+    def __init__(self, DEM_parameters=DEM_parameters):
         print("entering _init_ main_script")
         if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
@@ -32,12 +32,12 @@ class Solution(object):
             def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
                 #return ModelPartIO(modelpart)                
                 return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-
+        self.model_part_reader = model_part_reader
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()       
-        #self.SetAnalyticParticleWatcher()
+        self.SetAnalyticParticleWatcher()
         self.procedures.CheckInputParameters(DEM_parameters)
         self.PreUtilities = PreUtilities()
 
@@ -237,8 +237,7 @@ class Solution(object):
        
         #self.SetFinalTime()
         #self.Setdt()
-        self.report.total_steps_expected = int(self.final_time / self.dt)
-        print("main script1 - self.dt, self.final_time,", self.dt, self.final_time)  
+        self.report.total_steps_expected = int(self.final_time / self.dt)       
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def GetMpFilename(self):               
@@ -319,7 +318,7 @@ class Solution(object):
 
             self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time,self.dt,self.step)
 
-            self.BeforeSolveOperations(self.time)
+            self.BeforeSolveOperations()
 
             #### SOLVE #########################################
             self.solver.Solve()
@@ -390,6 +389,7 @@ class Solution(object):
                 time_to_print = self.time - self.time_old_print
                 if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * self.dt):
                     self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                    self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
                     #self.particle_watcher.MakeMeasurements(self.all_model_parts.Get('AnalyticParticlesPart'))
 
     def FinalizeTimeStep(self, time):
