@@ -25,6 +25,10 @@
 
 namespace Kratos
 {
+	//const values
+	constexpr int number_of_nodes = 2;
+	constexpr int dimension = 3;
+	constexpr unsigned int local_size = number_of_nodes * dimension;
 
 	class TrussElement3D2N : public Element
 	{
