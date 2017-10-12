@@ -141,6 +141,9 @@ public:
     {
         KRATOS_TRY;
 
+        // We compute the nodal area
+        ComputeNodalArea();
+        
         // Create and initialize condition variables:
         MortarKinematicVariables<TNumNodes> rVariables;
     
@@ -191,7 +194,7 @@ public:
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                         
                     IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
-
+                    
                     // Reading integration points
                     std::vector<array_1d<PointType,TDim>> conditions_points_slave;
                     const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
@@ -258,18 +261,18 @@ public:
                                     
                                     rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
                                 }
-                                
-                                double aux_det;
-                                const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = MathUtils<double>::InvertMatrix<TNumNodes>(rThisMortarConditionMatrices.DOperator, aux_det);
-                                const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = prod(inv_d_operator, rThisMortarConditionMatrices.MOperator); 
-                                
-                                Matrix var_origin_matrix;
-                                MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
-                
-                                const Matrix var_destiny_matrix = prod(p_operator, var_origin_matrix);
-                                MortarUtilities::AddValue<TVarType, THist>(master_geometry, mDestinyVariable, var_destiny_matrix);
                             }
                         }
+                        
+                        double aux_det;
+                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = MathUtils<double>::InvertMatrix<TNumNodes>(rThisMortarConditionMatrices.DOperator, aux_det);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = prod(inv_d_operator, rThisMortarConditionMatrices.MOperator); 
+                        
+                        Matrix var_origin_matrix;
+                        MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
+        
+                        const Matrix var_destiny_matrix = prod(p_operator, var_origin_matrix);
+                        MortarUtilities::AddValue<TVarType, THist>(master_geometry, mDestinyVariable, var_destiny_matrix);
                     }
                 }
             }
@@ -383,6 +386,39 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    void ComputeNodalArea()
+    {
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
+        
+        // We set to zero
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetValue(NODAL_AREA, 0.0);
+        }
+        
+        // Sum all the nodes areas
+        ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
+        
+        #pragma omp parallel for
+        for(int i = 0; i < num_conditions; i++) 
+        {
+            auto it_cond = conditions_array.begin() + i;
+            
+            const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
+            const double& rArea = it_cond->GetGeometry().Area()/number_nodes;
+            
+            for (unsigned int i = 0; i < number_nodes; i++)
+            {
+                #pragma omp atomic
+                it_cond->GetGeometry()[i].GetValue(NODAL_AREA) += rArea;
+            }
+        }
+    }
     
     ///@}
     ///@name Private  Access

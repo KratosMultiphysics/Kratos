@@ -797,9 +797,12 @@ inline void MortarUtilities::AddValue<Variable<double>, Historical>(
         const Matrix& ThisValue
         )
 {
+    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
+    
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
     {
-        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
+        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
+        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
     }
 }
 
@@ -810,9 +813,12 @@ inline void MortarUtilities::AddValue<component_type, Historical>(
         const Matrix& ThisValue
         )
 {
+    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
+    
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
     {
-        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
+        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
+        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
     }
 }
 
@@ -823,10 +829,13 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, Historical>
         const Matrix& ThisValue
         )
 {
+    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
+    
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
     {
+        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         auto& aux_vector = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
-        aux_vector += row(ThisValue, i_node);
+        aux_vector += area_coeff * row(ThisValue, i_node);
     }
 }
 template<> 
@@ -836,9 +845,12 @@ inline void MortarUtilities::AddValue<Variable<double>, NonHistorical>(
         const Matrix& ThisValue
         )
 {
+    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
+    
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
     {
-        ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
+        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
+        ThisGeometry[i_node].GetValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
     }
 }
 
@@ -849,9 +861,12 @@ inline void MortarUtilities::AddValue<component_type, NonHistorical>(
         const Matrix& ThisValue
         )
 {
+    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
+    
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
     {
-        ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
+        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
+        ThisGeometry[i_node].GetValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
     }
 }
 
@@ -862,10 +877,13 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, NonHistoric
         const Matrix& ThisValue
         )
 {
+    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
+    
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
     {
+        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         auto& aux_vector = ThisGeometry[i_node].GetValue(ThisVariable);
-        aux_vector += row(ThisValue, i_node);
+        aux_vector += area_coeff * row(ThisValue, i_node);
     }
 }
 
