@@ -95,11 +95,11 @@ namespace Kratos
 
 
 
-	Matrix TrussElement3D2N::CreateElementStiffnessMatrix(
+	bounded_matrix<double,local_size,local_size> TrussElement3D2N::CreateElementStiffnessMatrix(
 		ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
-		Matrix LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		bounded_matrix<double,local_size,local_size> LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
 
 		if (this->ReturnIfIsCable() == true && this->mIsCompressed == true)
 		{
@@ -112,7 +112,7 @@ namespace Kratos
 				rCurrentProcessInfo);
 			if (this->mIsLinearElement == false) 
 			{
-				Matrix K_geo = ZeroMatrix(local_size, local_size);
+				bounded_matrix<double,local_size,local_size> K_geo = ZeroMatrix(local_size, local_size);
 				this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
 				LocalStiffnessMatrix += K_geo;
@@ -202,7 +202,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	Vector TrussElement3D2N::CalculateBodyForces(){
+	bounded_vector<double,local_size> TrussElement3D2N::CalculateBodyForces(){
 
 		KRATOS_TRY
 		//getting shapefunctionvalues 
@@ -216,7 +216,7 @@ namespace Kratos
 
 		double TotalMass = A * L * rho;
 		bounded_vector<double,dimension> BodyForcesNode = ZeroVector(dimension);
-		Vector BodyForcesGlobal = ZeroVector(local_size);
+		bounded_vector<double,local_size> BodyForcesGlobal = ZeroVector(local_size);
 
 		//assemble global Vector
 		for (int i = 0; i < number_of_nodes; ++i) {
@@ -293,7 +293,7 @@ namespace Kratos
 
 		KRATOS_TRY
 		//calculate internal forces
-		Vector InternalForces = ZeroVector(local_size);
+		bounded_vector<double,local_size> InternalForces = ZeroVector(local_size);
 		this->UpdateInternalForces(InternalForces);
 		//resizing the matrices + create memory for LHS
 		rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
@@ -330,7 +330,7 @@ namespace Kratos
 		KRATOS_TRY
 		rRightHandSideVector = ZeroVector(local_size);
 
-		Vector InternalForces = ZeroVector(local_size);
+		bounded_vector<double,local_size> InternalForces = ZeroVector(local_size);
 		this->UpdateInternalForces(InternalForces);
 		rRightHandSideVector -= InternalForces;
 
@@ -526,10 +526,10 @@ namespace Kratos
 		return l;
 		KRATOS_CATCH("")
 	}
-	void TrussElement3D2N::UpdateInternalForces(Vector& rinternalForces){
+	void TrussElement3D2N::UpdateInternalForces(bounded_vector<double,local_size>& rinternalForces){
 
 		KRATOS_TRY
-		Matrix TransformationMatrix = ZeroMatrix(local_size, local_size);
+		bounded_matrix<double,local_size,local_size> TransformationMatrix = ZeroMatrix(local_size, local_size);
 		this->CreateTransformationMatrix(TransformationMatrix);
 		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
 		const double l = this->CalculateCurrentLength();
@@ -556,7 +556,7 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
-	void TrussElement3D2N::CreateTransformationMatrix(Matrix& rRotationMatrix){
+	void TrussElement3D2N::CreateTransformationMatrix(bounded_matrix<double,local_size,local_size>& rRotationMatrix){
 
 		KRATOS_TRY
 		//1st calculate transformation matrix
@@ -663,7 +663,7 @@ namespace Kratos
 	}
 
 
-	void TrussElement3D2N::CalculateGeometricStiffnessMatrix(Matrix& rGeometricStiffnessMatrix,
+	void TrussElement3D2N::CalculateGeometricStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rGeometricStiffnessMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
@@ -758,7 +758,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void TrussElement3D2N::CalculateElasticStiffnessMatrix(Matrix& rElasticStiffnessMatrix,
+	void TrussElement3D2N::CalculateElasticStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rElasticStiffnessMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;

@@ -75,7 +75,7 @@ namespace Kratos
 
 		void Initialize() override;
 
-		Matrix CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+		bounded_matrix<double,local_size,local_size> CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
@@ -87,8 +87,8 @@ namespace Kratos
 			std::vector<double>& rValues,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		void UpdateInternalForces(Vector& rinternalForces);
-		void CreateTransformationMatrix(Matrix& rRotationMatrix);
+		void UpdateInternalForces(bounded_vector<double,local_size>& rinternalForces);
+		void CreateTransformationMatrix(bounded_matrix<double,local_size,local_size>& rRotationMatrix);
 		double CalculateCurrentLength();
 
 		void CalculateOnIntegrationPoints(
@@ -149,14 +149,14 @@ namespace Kratos
 		double CalculateGreenLagrangeStrain();
 		double CalculateReferenceLength();
 
-		Vector CalculateBodyForces();  
+		bounded_vector<double,local_size> CalculateBodyForces();  
 
 		bool ReturnIfIsCable();
 
-		void CalculateGeometricStiffnessMatrix(Matrix& rGeometricStiffnessMatrix,
+		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
-		void CalculateElasticStiffnessMatrix(Matrix& rElasticStiffnessMatrix,
+		void CalculateElasticStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rElasticStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
 
