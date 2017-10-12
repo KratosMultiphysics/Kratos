@@ -141,6 +141,9 @@ public:
     {
         KRATOS_TRY;
 
+        // Defining tolerance
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        
         // We compute the nodal area
         ComputeNodalArea();
         
@@ -269,9 +272,15 @@ public:
                             }
                         }
                         
-                        double aux_det;
-                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = MathUtils<double>::InvertMatrix<TNumNodes>(rThisMortarConditionMatrices.DOperator, aux_det);
-                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = prod(inv_d_operator, rThisMortarConditionMatrices.MOperator); 
+                        // We compute the norm
+                        const double norm_D = norm_frobenius(rThisMortarConditionMatrices.DOperator);
+                        
+                        // Now we normalize the matrix
+                        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_D = rThisMortarConditionMatrices.DOperator/norm_D;
+                        
+                        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_D);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (std::abs(aux_det) < tolerance) ? ZeroMatrix(TNumNodes) : MathUtils<double>::InvertMatrix<TNumNodes>(normalized_D, aux_det, tolerance);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = 1.0/norm_D * prod(inv_d_operator, rThisMortarConditionMatrices.MOperator); 
                         
                         Matrix var_origin_matrix;
                         MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
