@@ -116,6 +116,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;    
+
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
@@ -471,14 +473,16 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 // For each node check if it is a slave or not If it is .. we change the Transformation matrix
                 for (unsigned int j = 0; j < number_of_nodes; j++)
                 {
+                    DofsVectorType elementDofs;
+                    rCurrentElement->GetDofList(elementDofs, CurrentProcessInfo);
+                    int numDofsPerNode = elementDofs.size() / number_of_nodes;
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { //temporary, will be checked once at the beginning only
                         // Necessary data for iterating and modifying the matrix
-                        Node<3>::DofsContainerType nodeDofs = rCurrentElement->GetGeometry()[j].GetDofs();
                         unsigned int slaveEquationId;
-                        for (auto dof : nodeDofs)
-                        {
-                            slaveEquationId = dof.EquationId();
+                        int startPositionNodeDofs = numDofsPerNode*(j);  
+                        for (int i=0; i<numDofsPerNode; i++){
+                            slaveEquationId = elementDofs[startPositionNodeDofs + i] -> EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
@@ -511,14 +515,16 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 // For each node check if it is a slave or not If it is .. we change the Transformation matrix
                 for (unsigned int j = 0; j < number_of_nodes; j++)
                 {
+                    DofsVectorType conditionDofs;
+                    rCurrentCondition->GetDofList(conditionDofs, CurrentProcessInfo);
+                    int numDofsPerNode = conditionDofs.size() / number_of_nodes;                    
                     if (rCurrentCondition->GetGeometry()[j].Is(SLAVE))
                     { //temporary, will be checked once at the beginning only
                         // Necessary data for iterating and modifying the matrix
-                        Node<3>::DofsContainerType nodeDofs = rCurrentCondition->GetGeometry()[j].GetDofs();
                         unsigned int slaveEquationId;
-                        for (auto dof : nodeDofs)
-                        {
-                            slaveEquationId = dof.EquationId();
+                        int startPositionNodeDofs = numDofsPerNode*(j);  
+                        for (int i=0; i<numDofsPerNode; i++){
+                            slaveEquationId = conditionDofs[startPositionNodeDofs + i] -> EquationId();                        
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
@@ -574,7 +580,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 std::vector<double> WeightsCorrespondingToMasters;
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
                 // Formulating the local slave equationId vector
-                for (int i = 0; i < EquationId.size(); ++i)
+                for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
                     localEquationIds.push_back(i);
                     if (mpcData->mEquationIdToWeightsMap.count(EquationId[i]) > 0)
@@ -590,13 +596,16 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     std::vector<int> slaveEquationIds;
                     int totalNumberOfSlaves = 0;
                     int totalNumberOfMasters = 0;
+                    DofsVectorType elementDofs;
+                    rCurrentElement->GetDofList(elementDofs, CurrentProcessInfo);
+                    int numDofsPerNode = elementDofs.size() / number_of_nodes;
+
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { // If the node has a slave DOF
-                        Node<3>::DofsContainerType nodeDofs = rCurrentElement->GetGeometry()[j].GetDofs();
+                        int startPositionNodeDofs = numDofsPerNode*(j);  
                         unsigned int slaveEquationId;
-                        for (auto dof : nodeDofs)
-                        {
-                            slaveEquationId = dof.EquationId();
+                        for (int i=0; i<numDofsPerNode; i++){
+                            slaveEquationId = elementDofs[startPositionNodeDofs + i] -> EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 totalNumberOfSlaves++;
@@ -749,7 +758,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 std::vector<double> WeightsCorrespondingToMasters;
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
                 // Formulating the local slave equationId vector
-                for (int i = 0; i < EquationId.size(); ++i)
+                for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
                     localEquationIds.push_back(i);
                     if (mpcData->mEquationIdToWeightsMap.count(EquationId[i]) > 0)
@@ -765,13 +774,17 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                     std::vector<int> slaveEquationIds;
                     int totalNumberOfSlaves = 0;
                     int totalNumberOfMasters = 0;
+                    DofsVectorType elementDofs;
+                    rCurrentElement->GetDofList(elementDofs, CurrentProcessInfo);
+                    int numDofsPerNode = elementDofs.size() / number_of_nodes;
+
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { // If the node has a slave DOF
-                        Node<3>::DofsContainerType nodeDofs = rCurrentElement->GetGeometry()[j].GetDofs();
+                        int startPositionNodeDofs = numDofsPerNode*(j);  
                         unsigned int slaveEquationId;
-                        for (auto dof : nodeDofs)
-                        {
-                            slaveEquationId = dof.EquationId();
+                        for (int i=0; i<numDofsPerNode; i++){
+                            slaveEquationId = elementDofs[startPositionNodeDofs + i] -> EquationId();
+                            if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
                             {
                                 totalNumberOfSlaves++;
@@ -932,53 +945,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             }
         }
     }
-
-    /*    void ReconstructSlaveDofForIterationStep(
-        ModelPart &r_model_part,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b)
-    {
-
-        unsigned int n_nodes = r_model_part.Nodes().size();
-        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-        MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
-        DofsArrayType &dofsArray = this->GetDofSet();
-
-        for (auto mpcData : (*mpcDataVector))
-        {
-            if (mpcData->IsActive())
-            {
-                for (unsigned int i = 0; i < n_nodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
-                    Node<3>::Pointer p_node = *(inode.base());
-                    if (p_node->Is(SLAVE))
-                    {
-                        Node<3>::DofsContainerType nodeDofs = p_node->GetDofs();
-                        unsigned int slaveEquationId;
-                        for (auto dof : nodeDofs)
-                        {
-                            slaveEquationId = dof.EquationId();
-                            if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0) /// TODO: This is expensive operation
-                            {
-                                Dx[slaveEquationId] = 0.0;
-                                MasterIdWeightMapType masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
-                                for (auto master : masterWeightsMap)
-                                {
-
-                                    Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, master.first) * master.second;
-                                }
-                                //std::cout<<"::::::: Update :: "<< mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId]<<std::endl;
-                                Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId];
-                                mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationId] = 0.0;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }*/
 
     void ReconstructSlaveDofForIterationStep(
         ModelPart &r_model_part,
