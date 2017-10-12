@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 # Exact integration tests
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
+from test_mortar_mapper import TestMortarMapping as TTestMortarMapping
 
 # Mesh tying tests
 from SmallTests import SimplePatchTestTwoDMeshTying      as TSimplePatchTestTwoDMeshTying
@@ -69,6 +70,13 @@ def AssambleTestSuites():
     # Exact integration tests
     smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration'))
     
+    # Mortar mapping
+    smallSuite.addTest(TTestMortarMapping('test_basic_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_less_basic_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_simple_curvature_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_triangle'))
+    smallSuite.addTest(TTestMortarMapping('test_mortar_mapping_quad'))
+    
     # Mesh tying tests 
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestTwoDMeshTying('test_execution'))
@@ -115,6 +123,7 @@ def AssambleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             ## SMALL
             TTestDoubleCurvatureIntegration,
+            TTestMortarMapping,
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,

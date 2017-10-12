@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
 
-class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
+class TestMortarMapping(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
