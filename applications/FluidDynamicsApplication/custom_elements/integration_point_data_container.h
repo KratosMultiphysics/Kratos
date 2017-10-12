@@ -23,6 +23,10 @@
 #include "fluid_dynamics_application_variables.h"
 #include "fluid_element_data.h"
 
+#define FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES \
+X(mVelocityHandler,VELOCITY,NodalDataHandler) \
+X(mPressureHandler,PRESSURE,NodalDataHandler)
+
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication
@@ -36,12 +40,16 @@ public:
     ///@name Life Cycle
     ///@{
 
+#define X(Name,Variable,Handler) Name(Variable),
+
     IntegrationPointDataContainer():
-    mVelocityHandler(VELOCITY),
-    mPressureHandler(PRESSURE)
+    FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
+    dummy(0)
     {
 
     }
+
+#undef X
 
     ///@}
     ///@name Public members
@@ -55,8 +63,9 @@ public:
     template< unsigned int N > void ConstructHandler();
 
     void Initialize(Element& rElement, const ProcessInfo& rProcessInfo) {
-        mVelocityHandler.Initialize(rElement,rProcessInfo);
-        mPressureHandler.Initialize(rElement,rProcessInfo);
+        #define X(Name,Variable,Handler) Name.Initialize(rElement,rProcessInfo);
+        FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
+        #undef X
     }
 
     ///@}
@@ -74,6 +83,8 @@ public:
     {
         return mPressureHandler;
     }
+
+    const int dummy;
 
 private:
     ///@name Un accessible methods
