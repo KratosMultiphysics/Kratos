@@ -73,7 +73,7 @@ from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadT
 from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
 # Multipoint constraint tests
 from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
-from test_multipoint_contstraints_two import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
+from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
 
 
 
@@ -183,8 +183,8 @@ def AssambleTestSuites():
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
     
     # Multipoint tests
-    smallSuite.addTest(TTestMultipointConstraints('test_1_MPC_Constraints'))
-    smallSuite.addTest(TTestMultipointConstraintsTwo('test_2_MPC_Constraints'))
+    smallSuite.addTest(TTestMultipointConstraints('test_MPC_Constraints'))
+    smallSuite.addTest(TTestMultipointConstraintsTwo('test_MPC_Constraints'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
