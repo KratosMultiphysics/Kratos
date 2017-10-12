@@ -241,22 +241,19 @@ public:
                                     PointType gp_global;
                                     decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                                     slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
-                                    
-                                    // Calculate the kinematic variables
-                                    const PointType& local_point = integration_points_slave[point_number].Coordinates();
-
+           
                                     /// SLAVE CONDITION ///
-                                    slave_geometry.ShapeFunctionsValues( rVariables.NSlave, local_point.Coordinates() );
+                                    slave_geometry.ShapeFunctionsValues( rVariables.NSlave, local_point_parent.Coordinates() );
                                     rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
-                                    rVariables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point );
+                                    rVariables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
                                     
                                     /// MASTER CONDITION ///
                                     PointType projected_gp_global;
                                     const array_1d<double,3> gp_normal = MortarUtilities::GaussPointNormal(rVariables.NSlave, slave_geometry);
                                     
                                     GeometryType::CoordinatesArrayType slave_gp_global;
-                                    slave_geometry.GlobalCoordinates( slave_gp_global, local_point );
-                                    MortarUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, master_normal, -gp_normal ); // The opposite direction
+                                    slave_geometry.GlobalCoordinates( slave_gp_global, local_point_parent );
+                                    MortarUtilities::FastProjectDirection( master_geometry, gp_global, projected_gp_global, master_normal, -gp_normal ); // The opposite direction
                                     
                                     GeometryType::CoordinatesArrayType projected_gp_local;
                                     
@@ -401,6 +398,9 @@ private:
     ///@name Private Operations
     ///@{
     
+    /**
+     * This method computes the nodal area
+     */
     void ComputeNodalArea()
     {
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();

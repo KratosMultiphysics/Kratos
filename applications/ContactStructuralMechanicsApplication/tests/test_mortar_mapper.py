@@ -172,7 +172,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_quadrilateral"
-        #self._mapper_tests(input_filename, 4)
+        self._mapper_tests(input_filename, 4)
         
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
