@@ -71,6 +71,11 @@ from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCabl
 from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+# Multipoint constraint tests
+from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
+from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
+
+
 
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
@@ -176,6 +181,10 @@ def AssambleTestSuites():
             smallSuite.addTest(TSpringDamperElementTests('test_execution'))
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+    
+    # Multipoint tests
+    smallSuite.addTest(TTestMultipointConstraints('test_MPC_Constraints'))
+    smallSuite.addTest(TTestMultipointConstraintsTwo('test_MPC_Constraints'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -242,6 +251,8 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+            TTestMultipointConstraints,
+            TTestMultipointConstraintsTwo,
             ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ###TSprismPanTests # FIXME: Needs get up to date
         ])
