@@ -65,8 +65,11 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
-    if pp.CFD_DEM["coupling_level_type"].GetInt():
+    checker = VariableChecker()
+
+    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
