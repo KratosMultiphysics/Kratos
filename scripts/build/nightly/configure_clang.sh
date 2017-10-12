@@ -24,7 +24,7 @@ cmake .. \
 -DMESHING_APPLICATION=ON                                                                        \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
--DPFEM_BASE_APPLICATION=ON                                                                      \
+-DPFEM_APPLICATION=ON                                                                           \
 -DCONTACT_MECHANICS_APPLICATION=ON                                                              \
 -DPFEM_FLUID_DYNAMICS_APPLICATION=ON                                                            \
 -DPFEM_SOLID_MECHANICS_APPLICATION=ON                                                           \

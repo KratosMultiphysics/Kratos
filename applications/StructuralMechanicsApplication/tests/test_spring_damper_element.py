@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics 
 
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -18,10 +17,10 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)      
-        mp.AddNodalSolutionStepVariable(SolidMechanicsApplication.POINT_LOAD)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
     def _apply_material_properties(self,mp):
-        cl = SolidMechanicsApplication.LinearElasticPlaneStress2DLaw()
+        cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
 
     def _add_dofs(self,node):
@@ -42,15 +41,15 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
     def _apply_harmonic_cosine_load(self,amplitude,frequency,nodes,time):
         for node in nodes:
             force = amplitude * cos(2*pi*frequency*time)
-            node.SetSolutionStepValue(SolidMechanicsApplication.POINT_LOAD,0,[0,force,0])
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[0,force,0])
 
     def _apply_harmonic_sine_load(self,amplitude,frequency,nodes,time):
         for node in nodes:
             force = amplitude * sin(2*pi*frequency*time)
-            node.SetSolutionStepValue(SolidMechanicsApplication.POINT_LOAD,0,[0,force,0])
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[0,force,0])
         
     def _solve(self,mp):
-        
+
         #define a minimal newton raphson dynamic solver
         damp_factor_m = -0.01
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
@@ -59,7 +58,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
         convergence_criterion.SetEchoLevel(0)
-        
+
         max_iters = 20
         compute_reactions = False
         reform_step_dofs = True
@@ -76,6 +75,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         strategy.SetEchoLevel(0)
         
         strategy.Check()
+        
         strategy.Solve()
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
@@ -99,19 +99,30 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp = KratosMultiphysics.ModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
-
+        
         #create nodes
         n01 = mp.CreateNewNode(1,0.0,20.0,0.0)
         n02 = mp.CreateNewNode(2,0.0,10.0,0.0)
         n03 = mp.CreateNewNode(3,0.0,0.0,0.0)
 
         #create elements
-        e01 = mp.CreateNewElement("NodalConcentratedElement3D1N",1,[1],mp.GetProperties()[1])
-        e02 = mp.CreateNewElement("SpringDamperElement3D2N",2,[1,2],mp.GetProperties()[1])
-        e03 = mp.CreateNewElement("NodalConcentratedElement3D1N",3,[2],mp.GetProperties()[1])
-        e04 = mp.CreateNewElement("SpringDamperElement3D2N",4,[2,3],mp.GetProperties()[1])
-        e05 = mp.CreateNewElement("SpringDamperElement3D2N", 5, [1,3], mp.GetProperties()[1])
+        e01 = mp.CreateNewElement("NodalConcentratedElement3D1N",1, [1],  mp.GetProperties()[1])
+        e02 = mp.CreateNewElement("SpringDamperElement3D2N",     2, [1,2],mp.GetProperties()[1])
+        e03 = mp.CreateNewElement("NodalConcentratedElement3D1N",3, [2],  mp.GetProperties()[1])
+        e04 = mp.CreateNewElement("SpringDamperElement3D2N",     4, [2,3],mp.GetProperties()[1])
+        e05 = mp.CreateNewElement("SpringDamperElement3D2N",     5, [1,3],mp.GetProperties()[1])
 
+        e01.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e01.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
+        e02.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e02.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
+        e03.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e03.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
+        e04.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e04.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
+        e05.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e05.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
+        
         #add dofs and set bcs
         for node in mp.Nodes:
             self._add_dofs(node)
@@ -130,8 +141,13 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         n02 = mp.CreateNewNode(2,0.0,0.0,0.0)
         
         #create elements
-        mp.CreateNewElement("NodalConcentratedElement3D1N",1,[1],mp.GetProperties()[1])
-        mp.CreateNewElement("SpringDamperElement3D2N",2,[1,2],mp.GetProperties()[1])
+        e01 = mp.CreateNewElement("NodalConcentratedElement3D1N",1,[1],mp.GetProperties()[1])
+        e02 = mp.CreateNewElement("SpringDamperElement3D2N",2,[1,2],mp.GetProperties()[1])
+
+        e01.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e01.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
+        e02.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
+        e02.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
 
         #create condition
         mp.CreateNewCondition("PointLoadCondition3D1N",1,[1],mp.GetProperties()[1])
@@ -145,7 +161,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         return mp
         
    
-    def test_undamped_mdof_system_dynamic(self):
+    def _test_undamped_mdof_system_dynamic(self):
         mp = self._set_up_mdof_system()
 
         #set parameters
@@ -191,9 +207,8 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             current_analytical_displacement_y_2 = phi21 * (K11*cos(omega_E_1*time) + K12*sin(omega_E_1*time)) \
                 + phi22 * (K21*cos(omega_E_2*time) + K22*sin(omega_E_2*time))
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0),current_analytical_displacement_y_2,delta=1e-2)
-            
 
-    def test_undamped_sdof_system_harmonic(self):
+    def _test_undamped_sdof_system_harmonic(self):
         mp = self._set_up_sdof_system()
 
         #set parameters
@@ -207,7 +222,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         init_v = 0.0
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,mass)
         mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,stiffness,0.0])
-
+        
         #time integration parameters
         dt = 0.01
         time = 0.0
@@ -233,15 +248,15 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
                 current_analytical_displacement_y,delta=5e-3)
             
         
-    def test_damped_mdof_system_dynamic(self):
+    def _test_damped_mdof_system_dynamic(self):
         mp = self._set_up_mdof_system()
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,1.0)
-        mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,2.0)
         mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,1.0,0.0])
-        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,2.0,0.0])
         mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0.0,0.05,0.0])
+        mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,2.0)
+        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,2.0,0.0])
         mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0.0,0.4,0.0])
         mp.Elements[5].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0.0,0.15,0.0])
 
@@ -271,7 +286,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
 
-    def test_undamped_mdof_system_eigen(self):
+    def _test_undamped_mdof_system_eigen(self):
         import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
         if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver") \
             or not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
@@ -281,10 +296,10 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,20.0)
-        mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,40.0)
         mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[200.0,200.0,200.0])
+        mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,40.0)
         mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[400.0,400.0,400.0])
-
+        
         #create solver
         eigen_solver_parameters = KratosMultiphysics.Parameters("""
             {
@@ -319,10 +334,10 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(current_eigenvalues[ev], analytical_eigenvalues[ev])
 
     def test_execution(self):
-        self.test_undamped_mdof_system_dynamic()
-        self.test_undamped_sdof_system_harmonic()
-        self.test_damped_mdof_system_dynamic()
-        self.test_undamped_mdof_system_eigen()
+        self._test_undamped_mdof_system_dynamic()
+        self._test_undamped_sdof_system_harmonic()
+        self._test_damped_mdof_system_dynamic()
+        self._test_undamped_mdof_system_eigen()
 
 if __name__ == '__main__':
     KratosUnittest.main()

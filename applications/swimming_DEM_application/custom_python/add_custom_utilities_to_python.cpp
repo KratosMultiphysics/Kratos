@@ -73,11 +73,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
+#include "custom_utilities/fields/pouliot_flow_field_2D.h"
 #include "custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.h"
 #include "custom_utilities/basset_force_tools.h"
 #include "custom_utilities/statistics/sampling_tool.h"
 #include "custom_utilities/derivative_recovery_meshing_tools.h"
 #include "custom_utilities/inlets/bentonite_force_based_inlet.h"
+#include "custom_utilities/swimming_dem_in_pfem_utils.h"
 
 namespace Kratos{
 
@@ -189,6 +191,9 @@ using namespace boost::python;
         ;
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
+        ;
+
+    class_<PouliotFlowField2D, bases<VelocityField> > ("PouliotFlowField2D", init<>())
         ;
 
     class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
@@ -380,6 +385,7 @@ using namespace boost::python;
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidCouplingVariable)
         .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMVariablesToImpose)
+        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered)
         ;
 
     class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> >
@@ -396,10 +402,15 @@ using namespace boost::python;
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
         .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMVariablesToImpose)
+        .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidVariableToBeTimeFiltered)
         ;
 
-    class_<DerivativeRecoveryMeshingTools> ("DerivativeRecoveryMeshingTools", init<>())
-        .def("FillUpEdgesModelPartFromTetrahedraModelPart", &DerivativeRecoveryMeshingTools::FillUpEdgesModelPartFromTetrahedraModelPart)
+    class_<DerivativeRecoveryMeshingTools<2> > ("DerivativeRecoveryMeshingTools2D", init<>())
+        .def("FillUpEdgesModelPartFromSimplicesModelPart", &DerivativeRecoveryMeshingTools<2>::FillUpEdgesModelPartFromSimplicesModelPart)
+        ;
+
+    class_<DerivativeRecoveryMeshingTools<3> > ("DerivativeRecoveryMeshingTools3D", init<>())
+        .def("FillUpEdgesModelPartFromSimplicesModelPart", &DerivativeRecoveryMeshingTools<3>::FillUpEdgesModelPartFromSimplicesModelPart)
         ;
 
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())
@@ -408,6 +419,10 @@ using namespace boost::python;
 
     class_<Bentonite_Force_Based_Inlet, bases<DEM_Force_Based_Inlet> >
         ("Bentonite_Force_Based_Inlet", init<ModelPart&, array_1d<double, 3>>())
+        ;
+
+    class_<SwimmingDemInPfemUtils >("SwimmingDemInPfemUtils", init<>())
+        .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
     }

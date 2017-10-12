@@ -1395,7 +1395,7 @@ private:
                         ElementDamage += DamageVector[i];
                     }
                     ElementDamage *= InvNumGPoints;
-                    if (ElementDamage >= 0.5*PropagationDamage)
+                    if (ElementDamage >= PropagationDamage)
                         PropagateTop = true;
                 }
             }
@@ -1430,7 +1430,7 @@ private:
                         ElementDamage += DamageVector[i];
                     }
                     ElementDamage *= InvNumGPoints;
-                    if (ElementDamage >= 0.5*PropagationDamage)
+                    if (ElementDamage >= PropagationDamage)
                         PropagateBot = true;
                 }
             }

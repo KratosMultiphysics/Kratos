@@ -152,16 +152,19 @@ namespace Kratos
 		}
 	      }
 	    if(dimension==2 && freesurfaceNodes==2){
-	      array_1d<double,2> CoorDifference(3,0.0);
+	      array_1d<double,3> CoorDifference(3,0.0);
 	      if(ie->GetGeometry()[0].Is(BOUNDARY) && ie->GetGeometry()[0].IsNot(RIGID) &&
 		 ie->GetGeometry()[1].Is(BOUNDARY) && ie->GetGeometry()[1].IsNot(RIGID))
-		CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
+		noalias(CoorDifference) = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
+		// CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
 	      if(ie->GetGeometry()[0].Is(BOUNDARY) && ie->GetGeometry()[0].IsNot(RIGID) &&
 		 ie->GetGeometry()[2].Is(BOUNDARY) && ie->GetGeometry()[2].IsNot(RIGID))
-		CoorDifference = ie->GetGeometry()[2].Coordinates() - ie->GetGeometry()[0].Coordinates();
+		noalias(CoorDifference) = ie->GetGeometry()[2].Coordinates() - ie->GetGeometry()[0].Coordinates();
+		// CoorDifference = ie->GetGeometry()[2].Coordinates() - ie->GetGeometry()[0].Coordinates();
 	      if(ie->GetGeometry()[1].Is(BOUNDARY) && ie->GetGeometry()[1].IsNot(RIGID) &&
 		 ie->GetGeometry()[2].Is(BOUNDARY) && ie->GetGeometry()[2].IsNot(RIGID))
-		CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[2].Coordinates();
+		noalias(CoorDifference) = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[2].Coordinates();
+		// CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[2].Coordinates();
 
 	      double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
 	      freeSurfaceElementalSize=sqrt(SquaredLength);
@@ -212,7 +215,6 @@ namespace Kratos
 	  {
 	    if(i_node->Is(BOUNDARY) && i_node->IsNot(RIGID)){
 	      array_1d<double, 3>  Normal(3,0.0);
-	      Normal.clear();	 
 	      Normal    =i_node->FastGetSolutionStepValue(NORMAL);
 	      i_node->X()+=Normal[0]*offset;
 	      i_node->Y()+=Normal[1]*offset;

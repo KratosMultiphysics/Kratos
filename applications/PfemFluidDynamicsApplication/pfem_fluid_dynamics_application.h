@@ -31,7 +31,7 @@
 
 // Core applications
 #include "solid_mechanics_application.h"
-#include "pfem_base_application.h"
+#include "pfem_application.h"
 
 //conditions
 

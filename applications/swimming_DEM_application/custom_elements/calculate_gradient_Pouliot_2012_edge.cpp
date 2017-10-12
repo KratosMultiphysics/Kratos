@@ -88,14 +88,12 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    array_1d<double, 3> le; // vector from node 0 to node 1, normalized
     const GeometryType& rGeom = this->GetGeometry();
-    noalias(le) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-    //const double h_edge_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
-    //le *= h_edge_inv;
-    const double epsilon = 1e-5 * std::sqrt((le[0] * le[0] + le[1] * le[1] + le[2] * le[2]));
+    const array_1d<double, 3> le = rGeom[1].Coordinates() - rGeom[0].Coordinates(); // vector from node 0 to node 1
+    const double h_edge = std::sqrt(SWIMMING_INNER_PRODUCT_3(le, le));
+    const double h_edge_inv_2 = 1.0 / (h_edge * h_edge);
 
+    const double epsilon = 1e-6;//1e-3 * h_edge;
     for (unsigned int node_e = 0; node_e < TNumNodes; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             for (unsigned int node_f = 0; node_f < TNumNodes; ++node_f){
@@ -104,7 +102,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixTy
                     if (i == j){
                         stab = node_e == node_f ? epsilon : - epsilon;
                     }
-                    rLeftHandSideMatrix(TDim * node_e + i, TDim * node_f + j) += le[i] * le[j] + stab;
+                    rLeftHandSideMatrix(TDim * node_e + i, TDim * node_f + j) = h_edge_inv_2 * le[i] * le[j] + stab;
                 }
             }
         }
@@ -118,10 +116,9 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
 {
     KRATOS_TRY
 
-    array_1d<double, 3> le; // vector from node 0 to node 1, normalized
     const GeometryType& rGeom = this->GetGeometry();
-    noalias(le) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-    //const double h_edge_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
+    const array_1d<double, 3> le = rGeom[1].Coordinates() - rGeom[0].Coordinates(); // vector from node 0 to node 1
+    const double h_edge_inv_2 = 1.0 / SWIMMING_INNER_PRODUCT_3(le, le);
     //le *= h_edge_inv;
 
     double vel_component_variation_along_edge;
@@ -141,7 +138,8 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
     for (unsigned int node_e = 0; node_e < TNumNodes; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             //F(TDim * node_e + i) += 2.0 * h_edge_inv * le[i] * vel_component_variation_along_edge;
-            F(TDim * node_e + i) += 2.0 * le[i] * vel_component_variation_along_edge;
+            F(TDim * node_e + i) = 2.0 * h_edge_inv_2 * le[i] * vel_component_variation_along_edge;
+            KRATOS_WATCH(vel_component_variation_along_edge)
         }
     }
     KRATOS_CATCH("");
@@ -178,5 +176,6 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
 }
 
 // Explicit instantiations
+template class ComputeGradientPouliot2012Edge<2, 2>;
 template class ComputeGradientPouliot2012Edge<3, 2>;
 } // namespace Kratos

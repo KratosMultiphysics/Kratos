@@ -17,6 +17,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "eigen_test/Eigen_TL_3D8N_Cube"
         },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_TL_3D8N_Cube_test_materials.json"
+        },
 	"eigensolver_settings":{
         "solver_type": "FEAST",
         "print_feast_output": false,

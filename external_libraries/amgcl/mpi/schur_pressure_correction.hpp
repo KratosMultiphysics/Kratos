@@ -77,11 +77,17 @@ class schur_pressure_correction {
 
             std::vector<char> pmask;
 
-            params() {}
+            // Approximate Kuu^-1 with inverted diagonal of Kuu during
+            // construction of matrix-less Schur complement.
+            // When false, USolver is used instead.
+            bool approx_schur;
+
+            params() : approx_schur(true) {}
 
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, usolver),
-                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver)
+                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur)
             {
                 void *pm = 0;
                 size_t n = 0;
@@ -100,13 +106,14 @@ class schur_pressure_correction {
 
                 pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
 
-                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size));
+                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size)(approx_schur));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
             {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, usolver);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, psolver);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, approx_schur);
             }
         } prm;
 
@@ -233,7 +240,7 @@ class schur_pressure_correction {
             Kup_loc->set_size(nu, np, true);
 
             Kpu_rem->set_size(np, 0, true);
-            Kup_rem->set_size(np, 0, true);
+            Kup_rem->set_size(nu, 0, true);
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < n; ++i) {
@@ -411,6 +418,23 @@ class schur_pressure_correction {
 
             tmp = backend_type::create_vector(nu, bprm);
 
+            if (prm.approx_schur) {
+                M = backend_type::create_vector(nu, bprm);
+
+#pragma omp parallel
+                for(ptrdiff_t i = 0; i < nu; ++i) {
+                    // Keep in mind Kuu has global column numeration:
+                    ptrdiff_t dia = i + u_beg;
+                    value_type v = math::zero<value_type>();
+                    for(ptrdiff_t j = Kuu->ptr[i], e = Kuu->ptr[i+1]; j < e; ++j) {
+                        if (Kuu->col[j] == dia) {
+                            v = math::inverse(Kuu->val[j]);
+                        }
+                    }
+                    (*M)[i] = v;
+                }
+            }
+
             // Scatter/Gather matrices
             boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> x2p = boost::make_shared<build_matrix>();
@@ -471,6 +495,7 @@ class schur_pressure_correction {
 
                         u2x->col[u2x_head] = j;
                         u2x->val[u2x_head] = math::identity<value_type>();
+                        ++u2x_head;
                     }
                 }
             }
@@ -495,53 +520,57 @@ class schur_pressure_correction {
 #endif
                 ) const
         {
-            TIC("split variables");
+            AMGCL_TIC("split variables");
             backend::spmv(1, *x2u, rhs, 0, *rhs_u);
             backend::spmv(1, *x2p, rhs, 0, *rhs_p);
-            TOC("split variables");
+            AMGCL_TOC("split variables");
 
             // Ai u = rhs_u
-            TIC("solve U");
+            AMGCL_TIC("solve U");
             backend::clear(*u);
             report("U1", (*U)(*rhs_u, *u));
-            TOC("solve U");
+            AMGCL_TOC("solve U");
 
             // rhs_p -= Kpu u
-            TIC("solve P");
+            AMGCL_TIC("solve P");
             backend::spmv(-1, *Kpu, *u, 1, *rhs_p);
 
             // S p = rhs_p
             backend::clear(*p);
             report("P", (*P)(*this, *rhs_p, *p));
-            TOC("solve P");
+            AMGCL_TOC("solve P");
 
             // rhs_u -= Kup p
-            TIC("Update U");
+            AMGCL_TIC("Update U");
             backend::spmv(-1, *Kup, *p, 1, *rhs_u);
 
             // Ai u = rhs_u
             backend::clear(*u);
             report("U2", (*U)(*rhs_u, *u));
-            TOC("Update U");
+            AMGCL_TOC("Update U");
 
-            TIC("merge variables");
+            AMGCL_TIC("merge variables");
             backend::clear(x);
             backend::spmv(1, *u2x, *u, 1, x);
             backend::spmv(1, *p2x, *p, 1, x);
-            TOC("merge variables");
+            AMGCL_TOC("merge variables");
         }
 
         template <class Alpha, class Vec1, class Beta, class Vec2>
         void spmv(Alpha alpha, const Vec1 &x, Beta beta, Vec2 &y) const {
             // y = beta y + alpha S x, where S = Kpp - Kpu Kuu^-1 Kup
-            TIC("matrix-free spmv");
+            AMGCL_TIC("matrix-free spmv");
             backend::spmv(alpha, P->system_matrix(), x, beta, y);
 
             backend::spmv(1, *Kup, x, 0, *tmp);
-            backend::clear(*u);
-            (*U)(*tmp, *u);
+            if (prm.approx_schur) {
+                backend::vmul(1, *M, *tmp, 0, *u);
+            } else {
+                backend::clear(*u);
+                (*U)(*tmp, *u);
+            }
             backend::spmv(-alpha, *Kpu, *u, 1, y);
-            TOC("matrix-free spmv");
+            AMGCL_TOC("matrix-free spmv");
         }
     private:
         typedef comm_pattern<backend_type> CommPattern;
@@ -553,6 +582,7 @@ class schur_pressure_correction {
         boost::shared_ptr<bmatrix>  x2p, x2u, p2x, u2x;
         boost::shared_ptr<matrix> K, Kpu, Kup;
         boost::shared_ptr<vector>  rhs_u, rhs_p, u, p, tmp;
+        boost::shared_ptr<typename backend_type::matrix_diagonal> M;
 
         boost::shared_ptr<USolver> U;
         boost::shared_ptr<PSolver> P;

@@ -45,34 +45,18 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
-#include "utilities/connectivity_preserve_modeler.h"
 #include "utilities/cutting_utility.h"
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/table_stream_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
 
 namespace Python
 {
-
-
-
-
-void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
-{
-    if( !KratosComponents< Element >::Has( ElementName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", ElementName);
-    if( !KratosComponents< Condition >::Has( ConditionName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
-
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(ElementName),
-                         KratosComponents<Condition>::Get(ConditionName));
-
-}
-
 
 
 void AddUtilitiesToPython()
@@ -136,6 +120,8 @@ void AddUtilitiesToPython()
     .def("AddDof", &VariableUtils::AddDof< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< Variable<double> > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+	.def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
+	.def("CheckDofs", &VariableUtils::CheckDofs)
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -319,10 +305,6 @@ void AddUtilitiesToPython()
     .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
     ;
 
-    class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
-    .def("GenerateModelPart", GenerateModelPart)
-    ;
-
     class_<CuttingUtility >("CuttingUtility", init< >())
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
@@ -334,6 +316,31 @@ void AddUtilitiesToPython()
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Adding table from table stream to python
+    class_<TableStreamUtility>("TableStreamUtility", init<>())
+    .def(init< bool >())
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
 }
 

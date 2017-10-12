@@ -120,22 +120,26 @@ public:
     if(ElementsToRefine>0 && mEchoLevel > 1)
       std::cout<<" I will look for "<<ElementsToRefine <<" new nodes"<<std::endl;
 
-    std::vector<array_1d<double,3> > NewPositions;
-    std::vector<double > BiggestVolumes;
-    std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;
-
-    int CountNodes=0;
-
-    NewPositions.resize(ElementsToRefine);
-    BiggestVolumes.resize(ElementsToRefine);
-    NodesIDToInterpolate.resize(ElementsToRefine);
-    for(int nn= 0; nn< ElementsToRefine; nn++)
-      {
-    	BiggestVolumes[nn]=-1.0;
-      }
 
     if(ElementsToRefine>0 )
       {
+	std::vector<array_1d<double,3> > NewPositions;
+	std::vector<double > BiggestVolumes;
+	std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;
+	std::vector<Node<3>::DofsContainerType > NewDofs;
+
+	int CountNodes=0;
+
+	NewPositions.resize(ElementsToRefine);
+	BiggestVolumes.resize(ElementsToRefine);
+	NodesIDToInterpolate.resize(ElementsToRefine);
+	NewDofs.resize(ElementsToRefine);
+
+	for(int nn= 0; nn< ElementsToRefine; nn++)
+	  {
+	    BiggestVolumes[nn]=-1.0;
+	  }
+
  	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
  	// const unsigned int nds = element_begin->GetGeometry().size();
  	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(mMeshId); ie++)
@@ -144,31 +148,28 @@ public:
  	    const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
  	    //////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
- 	    if(dimension==2)
- 	      {
- 		SelectEdgeToRefine2D(ie->GetGeometry(),NewPositions,BiggestVolumes,NodesIDToInterpolate,CountNodes,ElementsToRefine);
-	      }
- 	    else if(dimension==3){
-	      SelectEdgeToRefine3D(ie->GetGeometry(),NewPositions,BiggestVolumes,NodesIDToInterpolate,CountNodes,ElementsToRefine);
-
- 	    } //2D and 3D cases
+ 	    if(dimension==2){
+	      SelectEdgeToRefine2D(ie->GetGeometry(),NewPositions,BiggestVolumes,NodesIDToInterpolate,NewDofs,CountNodes,ElementsToRefine);
+	    } else if(dimension==3){
+	      SelectEdgeToRefine3D(ie->GetGeometry(),NewPositions,BiggestVolumes,NodesIDToInterpolate,NewDofs,CountNodes,ElementsToRefine);
+ 	    }
 
     	  }// elements loop
 	 
+
+	mrRemesh.Info->RemovedNodes -=ElementsToRefine;
+	if(CountNodes<ElementsToRefine){
+	  mrRemesh.Info->RemovedNodes +=ElementsToRefine-CountNodes;
+	  NewPositions.resize(CountNodes);
+	  BiggestVolumes.resize(CountNodes);
+	  NodesIDToInterpolate.resize(CountNodes);
+	  NewDofs.resize(CountNodes);
+	}
+
+
+	CreateAndAddNewNodes(NewPositions,NodesIDToInterpolate,NewDofs,ElementsToRefine);
+
       }//if ElementsToRefine>0
-
-
-
-    mrRemesh.Info->RemovedNodes -=ElementsToRefine;
-    if(CountNodes<ElementsToRefine){
-      mrRemesh.Info->RemovedNodes +=ElementsToRefine-CountNodes;
-      NewPositions.resize(CountNodes);
-      BiggestVolumes.resize(CountNodes);
-      NodesIDToInterpolate.resize(CountNodes);
-    }
-
-
-    CreateAndAddNewNodes(NewPositions,NodesIDToInterpolate,ElementsToRefine);
 
     mrRemesh.InputInitializedFlag=false;
 
@@ -289,6 +290,7 @@ private:
 			     std::vector<array_1d<double,3> >& NewPositions,
 			     std::vector<double >& BiggestVolumes,
 			     std::vector<array_1d< unsigned int,4 > >& NodesIDToInterpolate,
+			     std::vector<Node<3>::DofsContainerType >& NewDofs,
 			     int &CountNodes,
 			     int ElementsToRefine)
   { 
@@ -335,8 +337,10 @@ private:
     array_1d<unsigned int,3> FirstEdgeNode(3,0);
     array_1d<unsigned int,3> SecondEdgeNode(3,0);
     double WallCharacteristicDistance=0;
-    array_1d<double,2> CoorDifference(2,0.0);
-    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    array_1d<double,3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    // array_1d<double,3> CoorDifference(3,0.0);   
+    // noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+    // CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -348,7 +352,8 @@ private:
     for (unsigned int i = 2; i < nds; i++){
       for(unsigned int j = 0; j < i; j++)
 	{
-	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+	  // CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 	  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
 	  Counter+=1;
 	  Edges[Counter]=sqrt(SquaredLength);
@@ -386,7 +391,7 @@ private:
 
     if(dangerousElement==false && toEraseNodeFound==false){
 
-      array_1d<double,2> NewPosition(2,0.0);
+      // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=3;
       double LargestEdge=0;
 
@@ -399,10 +404,18 @@ private:
 	}
 
       if(CountNodes<ElementsToRefine && LargestEdge>limitEdgeLength){
-
-	NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	array_1d<double,3> NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
+	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
+	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
+	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
+	  NewDofs[CountNodes]=Element[FirstEdgeNode[maxCount]].GetDofs();  
+	}else{
+	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
+	}
 	BiggestVolumes[CountNodes]=ElementalVolume;
 	NewPositions[CountNodes]=NewPosition;
 	CountNodes++;
@@ -417,8 +430,9 @@ private:
 
 	      bool suitableElement=true;
 	      if(maxCount<3 && LargestEdge>limitEdgeLength){
-
-		NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+		array_1d<double,3> NewPosition=(Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+		// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+		// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
 		for(int j= 0; j< ElementsToRefine; j++)
 		  {
 		    if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1]){
@@ -428,6 +442,13 @@ private:
 		if(suitableElement==true){	    
 		  NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
 		  NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
+		  if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
+		    NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
+		  }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
+		    NewDofs[nn]=Element[FirstEdgeNode[maxCount]].GetDofs();  
+		  }else{
+		    std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
+		  }
 		  BiggestVolumes[nn]=ElementalVolume;
 		  NewPositions[nn]=NewPosition;
 		}
@@ -453,6 +474,7 @@ private:
 			     std::vector<array_1d<double,3> >& NewPositions,
 			     std::vector<double >& BiggestVolumes,
 			     std::vector<array_1d< unsigned int,4 > >& NodesIDToInterpolate,
+			     std::vector<Node<3>::DofsContainerType >& NewDofs,
 			     int &CountNodes,
 			     int ElementsToRefine)
   { 
@@ -502,8 +524,10 @@ private:
     array_1d<unsigned int,6> FirstEdgeNode(6,0);
     array_1d<unsigned int,6> SecondEdgeNode(6,0);
     double WallCharacteristicDistance=0;
-    array_1d<double,3> CoorDifference(3,0.0);
-    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    array_1d<double,3> CoorDifference  = Element[1].Coordinates() - Element[0].Coordinates();
+    // array_1d<double,3> CoorDifference(3,0.0);
+    // noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+    // CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1]  + CoorDifference[2]*CoorDifference[2];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -515,7 +539,8 @@ private:
     for (unsigned int i = 2; i < nds; i++){
       for(unsigned int j = 0; j < i; j++)
 	{
-	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+	  // CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 	  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
 	  Counter+=1;
 	  Edges[Counter]=sqrt(SquaredLength);
@@ -538,6 +563,10 @@ private:
 	// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
 	//   Edges[i]=0;
 	// }
+	if((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID))  && 
+	   (Element[SecondEdgeNode[i]].Is(FREE_SURFACE)|| Element[SecondEdgeNode[i]].Is(RIGID))){
+	  Edges[i]=0;
+	}
       }
 
     }else if(rigidNodes==1){
@@ -570,7 +599,7 @@ private:
     //just to fill the vector
     if(dangerousElement==false && toEraseNodeFound==false){
 
-      array_1d<double,3> NewPosition(3,0.0);
+      // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=6;
       double LargestEdge=0;
 			
@@ -583,10 +612,18 @@ private:
 	}
 
       if(CountNodes<ElementsToRefine && LargestEdge>limitEdgeLength){
-
-	NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	array_1d<double,3> NewPosition= (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
+	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
+	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
+	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
+	  NewDofs[CountNodes]=Element[FirstEdgeNode[maxCount]].GetDofs();  
+	}else{
+	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
+	}
 	BiggestVolumes[CountNodes]=ElementalVolume;
 	NewPositions[CountNodes]=NewPosition;
 	CountNodes++;
@@ -601,8 +638,9 @@ private:
 	      bool suitableElement=true;
 
 	      if(maxCount<6 && LargestEdge>limitEdgeLength){
-
-		NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+		array_1d<double,3> NewPosition= (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+		// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+		// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 		for(int j= 0; j< ElementsToRefine; j++)
 		  {
 		    if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1] && NewPositions[j][2]==NewPosition[2]){
@@ -612,6 +650,13 @@ private:
 		if(suitableElement==true){	    
 		  NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
 		  NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
+		  if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
+		    NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
+		  }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
+		    NewDofs[nn]=Element[FirstEdgeNode[maxCount]].GetDofs();  
+		  }else{
+		    std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
+		  }
 		  BiggestVolumes[nn]=ElementalVolume;
 		  NewPositions[nn]=NewPosition;
 		}
@@ -630,8 +675,9 @@ private:
 
 
   void CreateAndAddNewNodes(std::vector<array_1d<double,3> >& NewPositions,
-			     std::vector<array_1d< unsigned int,4 > >& NodesIDToInterpolate,
-			     int ElementsToRefine)
+			    std::vector<array_1d< unsigned int,4 > >& NodesIDToInterpolate,
+			    std::vector<Node<3>::DofsContainerType >& NewDofs,
+			    int ElementsToRefine)
   { 
     KRATOS_TRY
 
@@ -680,17 +726,14 @@ private:
  	if(mMeshId!=0)
  	  mrModelPart.AddNode(pnode,mMeshId);
 
- 	//generating the dofs
- 	// if(DofsFound==false){
- 	//   reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
- 	// }
-	Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+	// Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+	Node<3>::DofsContainerType& reference_dofs = NewDofs[nn];
 
  	for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
  	  {
  	    Node<3>::DofType& rDof = *iii;
  	    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
- 	    (p_new_dof)->FreeDof();
+ 	    // (p_new_dof)->FreeDof();
  	  }
 
  	Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
@@ -766,8 +809,8 @@ private:
 		//getting the data of the solution step
 		double& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		double& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		double& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		node_data = (0.5*node0_data + 0.5*node1_data);
 		  
@@ -781,10 +824,11 @@ private:
 		//getting the data of the solution step
 		array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		const array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		const array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
-		node_data = (0.5*node0_data + 0.5*node1_data);		  
+		noalias(node_data) = (0.5*node0_data + 0.5*node1_data);		  
+		// node_data = (0.5*node0_data + 0.5*node1_data);		  
 	      }
 
 	  }
@@ -814,7 +858,8 @@ private:
 		  if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
 		      node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
 		      
-		    node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
+		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
 		  }
 		}
 	      }
@@ -836,7 +881,8 @@ private:
 		  if( node_data.size() == node0_data.size() &&
 		      node_data.size() == node1_data.size()) {
 		      
-		    node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
+		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
 		  }
 		}
 	      }

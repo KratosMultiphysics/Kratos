@@ -176,7 +176,7 @@ public:
 
     /// Destructor.
 
-    virtual ~Element()
+    ~Element() override
     {
     }
 
@@ -876,18 +876,15 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        if (this->Id() < 1)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "Element found with Id 0 or negative","")
-        }
-        if (this->GetGeometry().Area() <= 0)
-        {
-            std::cout << "error on element -> " << this->Id() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
-        }
+
+        KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
+
+        const double domain_size = this->GetGeometry().DomainSize();
+        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
+
         return 0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     //METHODS TO BE CLEANED: DEPRECATED start
@@ -945,7 +942,6 @@ public:
     {
     }
 
-
     /**
      * Calculate Damp matrix and add velocity contribution to RHS
      * @param rDampingMatrix: the velocity-proportional "damping" matrix
@@ -958,6 +954,24 @@ public:
         if (rDampingMatrix.size1() != 0)
 	  rDampingMatrix.resize(0, 0, false);
 
+    }
+
+    /**
+     * Calculate the transposed gradient of the element's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * Calculate the transposed gradient of the element's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
     }
 
 
@@ -1081,7 +1095,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Element #" << Id();
@@ -1090,14 +1104,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Element #" << Id();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         pGetGeometry()->PrintData(rOStream);
     }
@@ -1159,7 +1173,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
@@ -1167,7 +1181,7 @@ private:
         rSerializer.save("Properties", mpProperties);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );

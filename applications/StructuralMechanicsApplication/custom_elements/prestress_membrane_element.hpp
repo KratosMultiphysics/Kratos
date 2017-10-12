@@ -46,7 +46,7 @@ namespace Kratos
     PrestressMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~PrestressMembraneElement();
+    ~PrestressMembraneElement() override;
 
 
     // Name Operations
@@ -54,57 +54,57 @@ namespace Kratos
     Element::Pointer Create(
       IndexType NewId,
       NodesArrayType const& ThisNodes,
-      PropertiesType::Pointer pProperties) const;
+      PropertiesType::Pointer pProperties) const override;
 
     void EquationIdVector(
       EquationIdVectorType& rResult,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(
       DofsVectorType& ElementalDofList,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize();
+    void Initialize() override;
 
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
       const Variable<Matrix>& rVariable,
       std::vector<Matrix>& Output,
-      const ProcessInfo& rCurrentProcessInfo);
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(
       MatrixType& rMassMatrix,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(
       MatrixType& rDampingMatrix,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
       Vector& values,
-      int Step = 0);
+      int Step = 0) override;
 
     void GetFirstDerivativesVector(
       Vector& values,
-      int Step = 0);
+      int Step = 0) override;
 
     void GetSecondDerivativesVector(
       Vector& values,
-      int Step = 0);
+      int Step = 0) override;
 
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-      std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+      std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   protected:
@@ -121,7 +121,6 @@ namespace Kratos
 
     double mTotalDomainInitialSize;
     double mdensity;
-    double mThickness0; //thickness in the reference configuration
     double mThickness;									// thickness in actual configuration
 
     std::vector< array_1d<double, 3> > mStrainsVector;	//container of Strain
@@ -287,7 +286,7 @@ namespace Kratos
         array_1d<double, 2> par_g1_1);
 
 
-    int  Check(const ProcessInfo& rCurrentProcessInfo);
+    int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Serialization
@@ -298,7 +297,7 @@ namespace Kratos
     // A private default constructor necessary for serialization
     PrestressMembraneElement() {}
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
         rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
@@ -306,18 +305,16 @@ namespace Kratos
       rSerializer.save("DetJ0", mDetJ0);
       rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
       rSerializer.save("density", mdensity);
-      rSerializer.save("Thickness0", mThickness0);
       rSerializer.save("Thickness", mThickness);
       rSerializer.save("StrainsVector", mStrainsVector);
       rSerializer.save("StressesVector", mStressesVector);
       rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.save("Thickness0", mThickness0);
       rSerializer.save("V1", mV1);
       rSerializer.save("V2", mV2);
       rSerializer.save("G_Vector", mG_Vector);
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
         rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
@@ -325,12 +322,10 @@ namespace Kratos
       rSerializer.load("DetJ0", mDetJ0);
       rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
       rSerializer.load("density", mdensity);
-      rSerializer.load("Thickness0", mThickness0);
       rSerializer.load("Thickness", mThickness);
       rSerializer.load("StrainsVector", mStrainsVector);
       rSerializer.load("StressesVector", mStressesVector);
       rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.load("Thickness0", mThickness0);
       rSerializer.load("V1", mV1);
       rSerializer.load("V2", mV2);
       rSerializer.load("G_Vector", mG_Vector);

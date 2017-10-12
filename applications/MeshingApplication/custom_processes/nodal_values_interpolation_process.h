@@ -116,7 +116,7 @@ public:
          }
      }
     
-    virtual ~NodalValuesInterpolationProcess(){};
+    ~NodalValuesInterpolationProcess() override= default;;
 
     ///@}
     ///@name Operators
@@ -135,7 +135,7 @@ public:
      * We execute the search relative to the old and new model part
      */
     
-    virtual void Execute()
+    void Execute() override
     {
         // We create the locator
         BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
@@ -154,7 +154,7 @@ public:
             Vector ShapeFunctions;
             Element::Pointer pElement;
             
-            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults);
+            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults, 5.0e-2);
             
             if (IsFound == false)
             {
@@ -205,7 +205,7 @@ public:
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
     
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "NodalValuesInterpolationProcess";
     }
@@ -213,7 +213,7 @@ public:
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
     
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }

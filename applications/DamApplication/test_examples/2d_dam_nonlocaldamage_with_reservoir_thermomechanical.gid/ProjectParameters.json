@@ -41,7 +41,8 @@
                 "coarsening_type"     : "aggregation",
                 "scaling"             : false
             },
-            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"]
+            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"],
+            "thermal_loads_sub_model_part_list"  : []
         },
         "mechanical_solver_settings"    : {
             "solution_type"                      : "Quasi-Static",
@@ -142,7 +143,7 @@
             "table"           : 0
         }
     },{
-        "python_module" : "impose_bofang_condition_process",
+        "python_module" : "impose_reservoir_temperature_condition_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the given scalar variable",
         "process_name"  : "ImposeBofangConditionProcess",
@@ -162,7 +163,7 @@
             "Water_level_Table"                                : 0,
             "Outer_temp"                                       : 5.0,
             "Outer_temp_Table"                                 : 0,
-            "Month"                                            : 6,
+            "Month"                                            : 6.0,
             "Month_Table"                                      : 0
         }
     }],

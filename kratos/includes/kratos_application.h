@@ -89,13 +89,15 @@ public:
 
 
     void RegisterVariables();
-    
+
     ///////////////////////////////////////////////////////////////////
     void RegisterDeprecatedVariables(); //TODO: remove, this variables should not be there
     void RegisterC2CVariables(); //TODO: move to application
     void RegisterCFDVariables(); //TODO: move to application
     void RegisterALEVariables(); //TODO: move to application
+    void RegisterMappingVariables(); //TODO: move to application
     void RegisterDEMVariables(); //TODO: move to application
+    void RegisterFSIVariables(); //TODO: move to application
     void RegisterMATVariables(); //TODO: move to application
     void RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
@@ -138,7 +140,7 @@ public:
     {
         return *mpArray1DVariables;
     }
-    
+
     KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType& GetComponents(Variable<Quaternion<double> >  const& rComponentType)
     {
         return *mpQuaternionVariables;
@@ -375,7 +377,7 @@ protected:
     const Condition  mCondition3D9N;
     //deprecated conditions end
 
-    // Periodic Condition 
+    // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
     const PeriodicCondition mPeriodicConditionEdge;
     const PeriodicCondition mPeriodicConditionCorner;
@@ -384,13 +386,13 @@ protected:
     //general elements must be defined
     const Element  mElement;
     const Element  mElement2D2N;
-    const Element  mElement2D3N;	
-    const Element  mElement2D4N;	
+    const Element  mElement2D3N;
+    const Element  mElement2D4N;
 
-    const Element  mElement3D2N;	
-    const Element  mElement3D3N;	
+    const Element  mElement3D2N;
+    const Element  mElement3D3N;
     const Element  mElement3D4N;
-    const Element  mElement3D6N;	
+    const Element  mElement3D6N;
     const Element  mElement3D8N;
     const Element  mElement3D10N;
 
@@ -405,7 +407,7 @@ protected:
     KratosComponents<Variable<double> >::ComponentsContainerType* mpDoubleVariables;
 
     KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType* mpArray1DVariables;
-    
+
     KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType* mpQuaternionVariables;
 
     KratosComponents<Variable<Vector> >::ComponentsContainerType* mpVectorVariables;
@@ -622,9 +624,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 
-#endif // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined 
-
-
-
-
-
+#endif // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined

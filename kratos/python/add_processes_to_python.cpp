@@ -23,6 +23,7 @@
 
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
@@ -33,9 +34,11 @@
 #include "processes/condition_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
+#include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/translation_operation.h"
 #include "processes/rotation_operation.h"
+#include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
@@ -47,8 +50,8 @@
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/assign_scalar_variable_to_conditions_process.h"
 #include "processes/assign_scalar_field_to_conditions_process.h"
-#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -68,8 +71,6 @@ void  AddProcessesToPython()
 {
     using namespace boost::python;
 
-
-
     class_<Process>("Process")
     .def("Execute",&Process::Execute)
     .def("ExecuteInitialize",&Process::ExecuteInitialize)
@@ -82,9 +83,14 @@ void  AddProcessesToPython()
     .def(self_ns::str(self))
     ;
 
+    class_<FastTransferBetweenModelPartsProcess, bases<Process> >("FastTransferBetweenModelPartsProcess",init<ModelPart&, ModelPart&, const std::string>())
+    .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
+    ;
+    
     class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
     .def("Execute",&FindNodalHProcess::Execute)
     ;
+    
     class_<FindNodalNeighboursProcess, bases<Process> >("FindNodalNeighboursProcess",
             init<ModelPart&, int, int>())
     .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
@@ -126,7 +132,12 @@ void  AddProcessesToPython()
     .def("MappingPressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::MappingPressureToStructure)
     ;
 
-    class_<CalculateSignedDistanceTo3DConditionSkinProcess, bases<Process> >("CalculateSignedDistanceTo3DConditionSkinProcess",
+    class_<CalculateEmbeddedSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateEmbeddedSignedDistanceTo3DSkinProcess",
+            init< ModelPart&, ModelPart& >())
+    .def(init< ModelPart&, ModelPart&, bool>())
+    ;
+
+   class_<CalculateSignedDistanceTo3DConditionSkinProcess, bases<Process> >("CalculateSignedDistanceTo3DConditionSkinProcess",
             init<ModelPart&, ModelPart&>())
     ;
 
@@ -136,6 +147,10 @@ void  AddProcessesToPython()
 
     class_<RotationOperation, bases<Process> >("RotationOperation",
             init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
+    ;
+
+    class_<StructuredMeshGeneratorProcess, bases<Process>, boost::noncopyable >("StructuredMeshGeneratorProcess",
+            init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()[with_custodian_and_ward<1, 2>()])
     ;
 
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
@@ -165,29 +180,28 @@ void  AddProcessesToPython()
     ;
     class_<LevelSetConvectionProcess<3> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess3D",
             init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
-    .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
-    .def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+            .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
+			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
     ;
-
 
     class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
             init<ModelPart&, Parameters>())
-    .def(init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
-    .def(init< ModelPart&, Parameters& >())
-    .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
-    .def(init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
-    .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
-    .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
-    .def_readonly("VARIABLE_IS_FIXED", &ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)
+            .def(init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
+            .def(init< ModelPart&, Parameters& >())
+            .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
+            .def(init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
+            .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
+            .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
+            .def_readonly("VARIABLE_IS_FIXED", &ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)
     ;
 
     class_<ApplyConstantVectorValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantVectorValueProcess",
             init<ModelPart&, Parameters>())
-    .def(init<ModelPart&, const Variable<array_1d<double, 3 > >& , const double, const Vector , std::size_t, Flags>())
-    .def(init< ModelPart&, Parameters& >())
-    .def_readonly("X_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::X_COMPONENT_FIXED)
-    .def_readonly("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
-    .def_readonly("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
+            .def(init<ModelPart&, const Variable<array_1d<double, 3 > >& , const double, const Vector , std::size_t, Flags>())
+            .def(init< ModelPart&, Parameters& >())
+            .def_readonly("X_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::X_COMPONENT_FIXED)
+            .def_readonly("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
+            .def_readonly("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
     ;
 
     class_<CheckSkinProcess , bases<Process>, boost::noncopyable >("CheckSkinProcess",
@@ -198,27 +212,48 @@ void  AddProcessesToPython()
             init<ModelPart&, Parameters>())
     ;
 
+    /* Historical */
     // DOUBLE
-    class_<ComputeNodalGradientProcess<2, Variable<double>> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess2D",
+    class_<ComputeNodalGradientProcess<2, Variable<double>, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess2D",
+            init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+
+    class_<ComputeNodalGradientProcess<3, Variable<double>, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess3D",
+            init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+
+    // COMPONENT
+    class_<ComputeNodalGradientProcess<2, component_type, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp2D",
+            init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+
+    class_<ComputeNodalGradientProcess<3, component_type, Historical> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp3D",
+            init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+    
+    /* Non-Historical */
+    // DOUBLE
+    class_<ComputeNodalGradientProcess<2, Variable<double>, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcess2D",
             init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
             ;
 
-    class_<ComputeNodalGradientProcess<3, Variable<double>> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess3D",
+    class_<ComputeNodalGradientProcess<3, Variable<double>, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcess3D",
             init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
             ;
 
     // COMPONENT
-    class_<ComputeNodalGradientProcess<2, component_type> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp2D",
+    class_<ComputeNodalGradientProcess<2, component_type, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcessComp2D",
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    class_<ComputeNodalGradientProcess<3, component_type> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp3D",
+    class_<ComputeNodalGradientProcess<3, component_type, NonHistorical> , bases<Process>, boost::noncopyable >("ComputeNonHistoricalNodalGradientProcessComp3D",
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
     class_<CalculateDiscontinuousDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDiscontinuousDistanceToSkinProcess",
             init<ModelPart&, ModelPart&>())
             ;
+
     class_<ReorderAndOptimizeModelPartProcess, bases<Process>, boost::noncopyable >("ReorderAndOptimizeModelPartProcess",
             init<ModelPart&, Parameters>())
             ;
@@ -246,4 +281,3 @@ void  AddProcessesToPython()
 }  // namespace Python.
 
 } // Namespace Kratos
-

@@ -18,15 +18,19 @@ class ApplyInletProcess(KratosMultiphysics.Process):
             "variable_name"   : "VELOCITY",
             "modulus"         : 0.0,
             "constrained"     : true,
-            "direction"       : "automatic_inwards_normal",
+            "direction"       : [1.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
         """)
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
-        if(settings.Has("modulus")):
-            if(settings["modulus"].IsString()):
+        if (settings.Has("modulus")):
+            if (settings["modulus"].IsString()):
                 default_settings["modulus"].SetString("0.0")
+
+        if (settings.Has("direction")):
+            if (settings["direction"].IsString()):
+                default_settings["direction"].SetString("automatic_inwards_normal")
 
         settings.ValidateAndAssignDefaults(default_settings)
 

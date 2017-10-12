@@ -77,6 +77,9 @@ namespace Kratos
     mSmallDisplacementElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
     mSmallDisplacementElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) ),
 
+    mSmallDisplacementBbarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mSmallDisplacementBbarElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+
     mAxisymSmallDisplacementElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymSmallDisplacementElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mAxisymSmallDisplacementElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
@@ -159,13 +162,16 @@ namespace Kratos
     
     //Register Variables (variables created in solid_mechanics_application_variables.cpp)
 
+    // Generalized eigenvalue problem
+    KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
+    KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )
+    KRATOS_REGISTER_VARIABLE( EIGENVECTOR_MATRIX )
+
     //explicit schemes
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
-    KRATOS_REGISTER_VARIABLE( COMPUTE_DYNAMIC_TANGENT )
     KRATOS_REGISTER_VARIABLE( WRITE_ID )
-    KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
       
@@ -241,6 +247,9 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D20N", mSmallDisplacementElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D27N", mSmallDisplacementElement3D27N )
 
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D3N", mSmallDisplacementBbarElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D4N", mSmallDisplacementBbarElement3D4N )
+      
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D3N", mAxisymSmallDisplacementElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D4N", mAxisymSmallDisplacementElement2D4N )
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D6N", mAxisymSmallDisplacementElement2D6N )

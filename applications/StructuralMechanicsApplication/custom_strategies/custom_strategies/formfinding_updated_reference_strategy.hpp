@@ -15,11 +15,11 @@
 #define  KRATOS_FORMFINDING_UPDATED_REFERENCE_STRATEGY
 // System includes
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -33,29 +33,29 @@
 namespace Kratos
 {
 
-    ///@name Kratos Globals 
+    ///@name Kratos Globals
     ///@{
 
 
     ///@}
-    ///@name Type Definitions 
+    ///@name Type Definitions
     ///@{
 
     ///@}
 
 
-    ///@name  Enum's 
+    ///@name  Enum's
     ///@{
 
 
     ///@}
-    ///@name  Functions 
+    ///@name  Functions
     ///@{
 
 
 
     ///@}
-    ///@name Kratos Classes 
+    ///@name Kratos Classes
     ///@{
 
     /// Short class definition.
@@ -88,11 +88,11 @@ namespace Kratos
         : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
-        ///@name Type Definitions 
+        ///@name Type Definitions
         ///@{
         typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
-        // Counted pointer of ClassName 
+        // Counted pointer of ClassName
         KRATOS_CLASS_POINTER_DEFINITION(FormfindingUpdatedReferenceStrategy);
 
         typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -216,7 +216,7 @@ namespace Kratos
             SetMaxIterationNumber(MaxIterations);
             mCalculateReactionsFlag = CalculateReactions;
 
-            mReformDofSetAtEachStep = mReformDofSetAtEachStep;
+            mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
             //saving the convergence criteria to be used
             mpConvergenceCriteria = pNewConvergenceCriteria;
@@ -262,7 +262,7 @@ namespace Kratos
         * Destructor.
         */
 
-        virtual ~FormfindingUpdatedReferenceStrategy()
+        ~FormfindingUpdatedReferenceStrategy() override
         {
         }
 
@@ -337,7 +337,7 @@ namespace Kratos
         // 3 -> Print of debug informations:
         //		Echo of stiffness matrix, Dx, b...
 
-        virtual void SetEchoLevel(int Level) override
+        void SetEchoLevel(int Level) override
         {
             BaseType::mEchoLevel = Level;
             GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -351,7 +351,7 @@ namespace Kratos
          * values of the solution step of interest are assumed equal to the old values
          */
 
-        virtual void Predict() override
+        void Predict() override
         {
             KRATOS_TRY
             // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
@@ -387,7 +387,7 @@ namespace Kratos
         * Initialization of member variables and prior operations
         */
 
-        virtual void Initialize() override
+        void Initialize() override
         {
             KRATOS_TRY;
 
@@ -435,7 +435,7 @@ namespace Kratos
          * All those functions can otherwise be called separately.
          */
 
-        virtual double Solve() override
+        double Solve() override
         {
             Initialize();
             InitializeSolutionStep();
@@ -449,7 +449,7 @@ namespace Kratos
          * Clears the internal storage
          */
 
-        virtual void Clear() override
+        void Clear() override
         {
             KRATOS_TRY
 
@@ -488,7 +488,7 @@ namespace Kratos
          * analysis - the convergence criteria used is the one used inside the "solve" step
          */
 
-        virtual bool IsConverged() override
+        bool IsConverged() override
         {
             KRATOS_TRY;
 
@@ -511,10 +511,10 @@ namespace Kratos
          * (e.g. stresses)
          * Need to be calculated given the solution of the step
          * This operations should be called only when needed, before printing as it can involve a non
-         * negligible cost        
+         * negligible cost
          */
 
-        virtual void CalculateOutputData() override
+        void CalculateOutputData() override
         {
             TSystemMatrixType& A = *mpA;
             TSystemVectorType& Dx = *mpDx;
@@ -526,10 +526,10 @@ namespace Kratos
         /**
          * Performs all the required operations that should be done (for each step)
          * before solving the solution step.
-         * A member variable should be used as a flag to make sure this function is called only once per step.      
+         * A member variable should be used as a flag to make sure this function is called only once per step.
          */
 
-        virtual void InitializeSolutionStep() override
+        void InitializeSolutionStep() override
         {
             KRATOS_TRY;
 
@@ -592,7 +592,7 @@ namespace Kratos
 
                 ////***************************************************
                 //// Update reference configuration for formfinding
-                //// Initialize the Elements 
+                //// Initialize the Elements
                 //pScheme->InitializeElements(BaseType::GetModelPart());
 
                 mSolutionStepIsInitialized = true;
@@ -600,7 +600,7 @@ namespace Kratos
 
             //***************************************************
             // Update reference configuration for formfinding
-            // Initialize the Elements 
+            // Initialize the Elements
             pScheme->InitializeElements(BaseType::GetModelPart());
 
             KRATOS_CATCH("");
@@ -609,10 +609,10 @@ namespace Kratos
         /**
          * Performs all the required operations that should be done (for each step)
          * after solving the solution step.
-         * A member variable should be used as a flag to make sure this function is called only once per step     
+         * A member variable should be used as a flag to make sure this function is called only once per step
          */
 
-        virtual void FinalizeSolutionStep() override
+        void FinalizeSolutionStep() override
         {
             KRATOS_TRY;
 
@@ -621,10 +621,10 @@ namespace Kratos
 
 
         /**
-         * Solves the current step. This function returns true if a solution has been found, false otherwise        
+         * Solves the current step. This function returns true if a solution has been found, false otherwise
          */
 
-        virtual bool SolveSolutionStep() override
+        bool SolveSolutionStep() override
         {
             // Pointers needed in the solution
             typename TSchemeType::Pointer pScheme = GetScheme();
@@ -728,14 +728,14 @@ namespace Kratos
                 {
                     std::cout << "ATTENTION: no free DOFs!! " << std::endl;
                 } // checking if there are free DOFs
-            
+
                 // Debugging info
                 EchoInfo(iteration_number);
 
                 // Updating the results stored in the database
                 UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
 
-                pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);        
+                pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
 
                 ResidualIsUpdated = false;
 
@@ -791,12 +791,12 @@ namespace Kratos
           ///@{
 
           ///@}
-          ///@name Operations 
+          ///@name Operations
           ///@{
 
 
           ///@}
-          ///@name Access 
+          ///@name Access
 
           ///@{
 
@@ -820,12 +820,12 @@ namespace Kratos
 
 
     private:
-        ///@name Protected static Member Variables 
+        ///@name Protected static Member Variables
         ///@{
 
 
         ///@}
-        ///@name Protected member Variables 
+        ///@name Protected member Variables
         ///@{
 
 
@@ -841,17 +841,17 @@ namespace Kratos
 
 
         ///@}
-        ///@name Protected  Access 
+        ///@name Protected  Access
         ///@{
 
 
         ///@}
-        ///@name Protected Inquiry 
+        ///@name Protected Inquiry
         ///@{
 
 
         ///@}
-        ///@name Protected LifeCycle 
+        ///@name Protected LifeCycle
         ///@{
 
 
@@ -859,12 +859,12 @@ namespace Kratos
         ///@}
 
     protected:
-        ///@name Static Member Variables 
+        ///@name Static Member Variables
         ///@{
 
 
         ///@}
-        ///@name Member Variables 
+        ///@name Member Variables
         ///@{
 
         typename TSchemeType::Pointer mpScheme;
@@ -1000,7 +1000,7 @@ namespace Kratos
         * It is designed to be called ONCE to verify that the input is correct.
         */
 
-        virtual int Check() override
+        int Check() override
         {
             KRATOS_TRY
 
@@ -1024,17 +1024,17 @@ namespace Kratos
 
 
         ///@}
-        ///@name Private  Access 
+        ///@name Private  Access
         ///@{
 
 
         ///@}
-        ///@name Private Inquiry 
+        ///@name Private Inquiry
         ///@{
 
 
         ///@}
-        ///@name Un accessible methods 
+        ///@name Un accessible methods
         ///@{
 
         /**
@@ -1051,7 +1051,7 @@ namespace Kratos
 
        ///@}
 
-       ///@name Type Definitions 
+       ///@name Type Definitions
        ///@{
 
 
