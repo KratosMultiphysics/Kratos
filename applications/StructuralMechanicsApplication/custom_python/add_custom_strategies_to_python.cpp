@@ -39,7 +39,6 @@
 
 // Builder and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -160,13 +159,6 @@ void  AddCustomStrategiesToPython()
             .def(init< double, double>())
             ;
             
-    //********************************************************************
-    //*************************BUILDER AND SOLVER*************************
-    //********************************************************************
-    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-                bases< ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >,
-                boost::noncopyable >
-                ("ResidualBasedBlockBuilderAndSolverWithMpc", init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.

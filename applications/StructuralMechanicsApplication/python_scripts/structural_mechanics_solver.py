@@ -410,7 +410,10 @@ class MechanicalSolver(object):
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
         if(self.settings["block_builder"].GetBool() == True):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            if self.settings["multi_point_constraints_used"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithMpc(linear_solver)
+            else :
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver

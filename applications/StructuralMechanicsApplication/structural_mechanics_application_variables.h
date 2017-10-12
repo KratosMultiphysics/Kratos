@@ -30,9 +30,6 @@
 namespace Kratos
 {
     typedef array_1d<double, 3> Vector3;
-/*    typedef MpcData::Pointer MpcDataPointerType;
-    typedef std::vector<MpcDataPointerType>*  MpcDataPointerVectorType;*/
-
 
     // Generalized eigenvalue problem
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, BUILD_LEVEL )
@@ -130,8 +127,6 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, NEGATIVE_FACE_PRESSURES_VECTOR )
 
-    // For MPC implementations
-    /*KRATOS_DEFINE_VARIABLE(MpcDataPointerVectorType, MPC_DATA_CONTAINER)*/
 }
 
 #endif /* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

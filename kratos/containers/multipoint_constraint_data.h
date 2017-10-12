@@ -24,13 +24,11 @@
 // project includes
 #include <boost/functional/hash.hpp>
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/dof.h"
 #include "includes/node.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
-
 
 namespace Kratos
 {
@@ -53,6 +51,9 @@ class MpcData
     typedef std::pair<unsigned int, unsigned int> SlavePairType;
     typedef std::tuple<unsigned int, unsigned int, double> key_tupple;
     typedef Kratos::Variable<double> VariableType;
+    typedef Node<3> NodeType;
+
+    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
     struct key_hash_tuple : public std::unary_function<key_tupple, std::size_t>
     {
@@ -102,7 +103,6 @@ class MpcData
 
     typedef std::unordered_map<const key_tupple, double, key_hash_tuple, key_equal_tuple> MasterDofWeightMapType;
     //typedef std::unordered_map<std::tuple<unsigned int, VariableComponentType, int>, double> ;
-    typedef Node<3> NodeType;
     ///@name Life Cycle
     ///@{
 
@@ -130,7 +130,7 @@ class MpcData
     /**
 		Clears the maps contents
 		*/
-    void Clear()
+    virtual void Clear()
     {
         mSlaveEquationIdConstantsMap.clear();
         mEquationIdToWeightsMap.clear();
@@ -150,7 +150,7 @@ class MpcData
 		*/
 
     // Takes in a slave dof equationId and a master dof equationId
-    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, double constant = 0.0)
+    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight = 0.0, double constant = 0.0)
     {
         mEquationIdToWeightsMap[SlaveDofEquationId].insert(std::pair<unsigned int, double>(MasterDofEquationId, weight));
         mSlaveEquationIdConstantsMap.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
@@ -158,7 +158,7 @@ class MpcData
     }
 
     // Takes in a slave dof and a master dof
-    void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, double constant = 0.0)
+    void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight = 0.0, double constant = 0.0)
     {
         //here we can get the dof since we are sure that such dof exist
         //auto &slave_dof = mp_model_part.Nodes(SlaveNodeId).GetDof(SlaveVariable);
@@ -197,7 +197,7 @@ class MpcData
         }
     }
 
-    void FormulateEquationIdRelationMap(ModelPart& r_model_part)
+    virtual void FormulateEquationIdRelationMap(NodesContainerType &Nodes)
     {
         for (auto slaveMasterDofMap : this->mDofConstraints)
         {
@@ -205,7 +205,7 @@ class MpcData
             MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
             unsigned int slaveNodeId = slaveDofMap.first;
             unsigned int slaveDofKey = slaveDofMap.second;
-            NodeType &node = r_model_part.Nodes()[slaveNodeId];
+            NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
             unsigned int slaveEquationId = it->EquationId();
 
@@ -217,12 +217,47 @@ class MpcData
                 unsigned int masterDofKey;
                 double weight = masterDofMapElem.second;
                 std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                NodeType &masterNode = r_model_part.Nodes()[masterNodeId];
+                NodeType &masterNode = Nodes[masterNodeId];
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
                 masterEquationId = itMaster->EquationId();
                 //
                 this->AddConstraint(slaveEquationId, masterEquationId, weight, constant);
             }
+        }
+    }
+
+    virtual void UpdateConstraintEquationsAfterIteration(
+        NodesContainerType& Nodes)
+    {
+
+        for (auto slaveMasterDofMap : this->mDofConstraints)
+        {
+            SlavePairType slaveDofMap = slaveMasterDofMap.first;
+            MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+            unsigned int slaveNodeId = slaveDofMap.first;
+            unsigned int slaveDofKey = slaveDofMap.second;
+            NodeType &node = Nodes[slaveNodeId];
+            Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
+            unsigned int slaveEquationId = it->EquationId();
+            double slaveDofValue = it->GetSolutionStepValue();
+            double slaveDofValueCalc = 0.0;
+
+            for (auto masterDofMapElem : masterDofMap)
+            {
+                unsigned int masterNodeId;
+                double constant;
+                unsigned int masterDofKey;
+                double weight = masterDofMapElem.second;
+                std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                NodeType &masterNode = Nodes[masterNodeId];
+                Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
+
+                slaveDofValueCalc += itMaster->GetSolutionStepValue() * weight;
+            }
+            slaveDofValueCalc += this->mSlaveEquationIdConstantsMap[slaveEquationId];
+
+            double dConstant = slaveDofValueCalc - slaveDofValue;
+            this->mSlaveEquationIdConstantsUpdate[slaveEquationId] = dConstant;
         }
     }
 

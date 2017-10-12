@@ -74,7 +74,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         #define a minimal newton raphson solver
         self.linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         #self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.linear_solver)
+        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithMpc(self.linear_solver)
         self.scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(-0.01)
         self.convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8, 1e-10)
         self.convergence_criterion.SetEchoLevel(0)
@@ -221,7 +221,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         # Applying boundary conditions
         mp = self._apply_BCs(mp)
         # Applying constraints
-        cm = KratosMultiphysics.StructuralMechanicsApplication.ApplyMultipointConstraintsProcess(mp)
+        cm = KratosMultiphysics.ApplyMultipointConstraintsProcess(mp)
         mp, cm = self._apply_mpc_constraints(mp,cm)
         # Solving the system of equations        
         self._setup_solver(mp)
