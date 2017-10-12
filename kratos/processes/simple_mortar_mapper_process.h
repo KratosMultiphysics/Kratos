@@ -193,6 +193,9 @@ public:
                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                         
+                    const double total_master_area = master_geometry.Area();
+                    double master_area = 0.0;
+                    
                     IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
                     
                     // Reading integration points
@@ -223,6 +226,8 @@ public:
                             
                             if (bad_shape == false)
                             {
+                                master_area += decomp_geom.Area();
+                                
                                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                                 
                                 // Integrating the mortar operators
@@ -271,7 +276,7 @@ public:
                         Matrix var_origin_matrix;
                         MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
         
-                        const Matrix var_destiny_matrix = prod(p_operator, var_origin_matrix);
+                        const Matrix var_destiny_matrix = (master_area/total_master_area) * prod(p_operator, var_origin_matrix);
                         MortarUtilities::AddValue<TVarType, THist>(master_geometry, mDestinyVariable, var_destiny_matrix);
                     }
                 }

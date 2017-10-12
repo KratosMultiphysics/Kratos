@@ -151,7 +151,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
 
-        ### DEBUG
+        ## DEBUG
         #self.__post_process()
                     
     def test_basic_mortar_mapping_triangle(self):
@@ -164,11 +164,11 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         
     def test_simple_curvature_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
-        #self._mapper_tests(input_filename, 3)
+        self._mapper_tests(input_filename, 3)
         
     def test_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_triangle"
-        #self._mapper_tests(input_filename, 3)
+        self._mapper_tests(input_filename, 3)
         
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_quadrilateral"
