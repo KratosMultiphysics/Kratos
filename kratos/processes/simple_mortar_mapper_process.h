@@ -148,10 +148,10 @@ public:
         ComputeNodalArea();
         
         // Create and initialize condition variables:
-        MortarKinematicVariables<TNumNodes> rVariables;
+        MortarKinematicVariables<TNumNodes> this_kinematic_variables;
     
         // Create the mortar operators
-        MortarOperator<TNumNodes> rThisMortarConditionMatrices;
+        MortarOperator<TNumNodes> this_mortar_condition_matrices;
         
         // We call the exact integration utility
         ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
@@ -163,17 +163,14 @@ public:
             
             if (it_cond->Is(SLAVE) == true)
             {
-                boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS );
+                boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
                 
                 for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
                 {
                     Condition::Pointer p_cond_master = (it_pair->first); // MASTER
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                     
-                    for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-                    {
-                        MortarUtilities::ResetValue<TVarType, THist>(master_geometry[i_node], mDestinyVariable);
-                    }
+                    MortarUtilities::ResetValue<TVarType, THist>(master_geometry, mDestinyVariable);
                 }
             }
         }
@@ -188,7 +185,7 @@ public:
                 const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
                 GeometryType& slave_geometry = it_cond->GetGeometry();
                 
-                boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS );
+                boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
                 
                 for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
                 {
@@ -208,10 +205,10 @@ public:
                     if (is_inside == true)
                     {
                         // Initialize general variables for the current master element
-                        rVariables.Initialize();
+                        this_kinematic_variables.Initialize();
                 
                         // Initialize the mortar operators
-                        rThisMortarConditionMatrices.Initialize();
+                        this_mortar_condition_matrices.Initialize();
                         
                         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                         {
@@ -243,13 +240,13 @@ public:
                                     slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
            
                                     /// SLAVE CONDITION ///
-                                    slave_geometry.ShapeFunctionsValues( rVariables.NSlave, local_point_parent.Coordinates() );
-                                    rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
-                                    rVariables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
+                                    slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
+                                    this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
+                                    this_kinematic_variables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
                                     
                                     /// MASTER CONDITION ///
                                     PointType projected_gp_global;
-                                    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointNormal(rVariables.NSlave, slave_geometry);
+                                    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointNormal(this_kinematic_variables.NSlave, slave_geometry);
                                     
                                     GeometryType::CoordinatesArrayType slave_gp_global;
                                     slave_geometry.GlobalCoordinates( slave_gp_global, local_point_parent );
@@ -260,24 +257,24 @@ public:
                                     master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
                                     
                                     // SHAPE FUNCTIONS 
-                                    master_geometry.ShapeFunctionsValues( rVariables.NMaster, projected_gp_local );    
+                                    master_geometry.ShapeFunctionsValues( this_kinematic_variables.NMaster, projected_gp_local );    
                                     
                                     const double integration_weight = integration_points_slave[point_number].Weight();
                                     
-                                    rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
+                                    this_mortar_condition_matrices.CalculateMortarOperators(this_kinematic_variables, integration_weight);   
                                 }
                             }
                         }
                         
                         // We compute the norm
-                        const double norm_D = norm_frobenius(rThisMortarConditionMatrices.DOperator);
+                        const double norm_D = norm_frobenius(this_mortar_condition_matrices.DOperator);
                         
                         // Now we normalize the matrix
-                        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_D = rThisMortarConditionMatrices.DOperator/norm_D;
+                        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_D = this_mortar_condition_matrices.DOperator/norm_D;
                         
                         double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_D);
                         const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (std::abs(aux_det) < tolerance) ? ZeroMatrix(TNumNodes) : MathUtils<double>::InvertMatrix<TNumNodes>(normalized_D, aux_det, tolerance);
-                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = 1.0/norm_D * prod(inv_d_operator, rThisMortarConditionMatrices.MOperator); 
+                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = 1.0/norm_D * prod(inv_d_operator, this_mortar_condition_matrices.MOperator); 
                         
                         Matrix var_origin_matrix;
                         MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
