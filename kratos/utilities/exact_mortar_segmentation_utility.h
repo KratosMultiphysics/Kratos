@@ -15,12 +15,12 @@
 
 // System includes
 #include <iostream>
+#include <iomanip>
+#include <math.h> 
 
 // External includes
 
 // Project includes
-#include <math.h> 
-
 #include "includes/mortar_classes.h"
 
 // The geometry of the triangle for the "tessellation"
@@ -250,7 +250,16 @@ public:
             
             if (mDebugGeometries == true)
             {
-                std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{" << decomp_geom[0].X() << "," << decomp_geom[0].Y() << "," << decomp_geom[0].Z()  << "},{" << decomp_geom[1].X() << "," << decomp_geom[1].Y() << "," << decomp_geom[1].Z()  << "},{" << decomp_geom[2].X() << "," << decomp_geom[2].Y() << "," << decomp_geom[2].Z()  << "}}]}],";// << std::endl;
+                std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
+                
+                for (unsigned int i = 0; i < 3; i++)
+                {
+                    std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
+                    
+                    if (i < 2) std::cout << "},{";
+                }
+                
+                std::cout << "}}]}],";// << std::endl;
             }
             
             rArea += decomp_geom.Area();
@@ -313,15 +322,25 @@ public:
      */
     
     double TestGetExactAreaIntegration(Condition::Pointer& SlaveCond)
-    {
+    {        
         // Initalize values
         double area = 0.0;
         boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( MAPPING_PAIRS );
         
         if (mDebugGeometries == true)
         {
+            auto this_geom = SlaveCond->GetGeometry();
+            
 //             std::cout << "\n\nID: " << SlaveCond->Id() << std::endl;
-            std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Triangle[{{" << SlaveCond->GetGeometry()[0].X() << "," << SlaveCond->GetGeometry()[0].Y() << "," << SlaveCond->GetGeometry()[0].Z()  << "},{" << SlaveCond->GetGeometry()[1].X() << "," << SlaveCond->GetGeometry()[1].Y() << "," << SlaveCond->GetGeometry()[1].Z()  << "},{" << SlaveCond->GetGeometry()[2].X() << "," << SlaveCond->GetGeometry()[2].Y() << "," << SlaveCond->GetGeometry()[2].Z()  << "}}],Text[Style["<< SlaveCond->Id() <<", Tiny],{"<< SlaveCond->GetGeometry().Center().X() << "," << SlaveCond->GetGeometry().Center().Y() << ","<< SlaveCond->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+            std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
+            
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                std::cout << this_geom[i].X() << "," << this_geom[i].Y() << "," << this_geom[i].Z();
+                
+                 if (i < TNumNodes - 1) std::cout << "},{";
+            }
+            std::cout << "}}],Text[Style["<< SlaveCond->Id() <<", Tiny],{"<< this_geom.Center().X() << "," << this_geom.Center().Y() << ","<< this_geom.Center().Z() << "}]}],";// << std::endl;
         }
         
         for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
@@ -331,7 +350,16 @@ public:
 //                 std::cout << "\n\nID MASTER: " << (it_pair->first)->Id() << std::endl;
                 if ((it_pair->first)->Is(VISITED) == false || (it_pair->first)->IsDefined(VISITED) == false)
                 {
-                    std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Triangle[{{" << (it_pair->first)->GetGeometry()[0].X() << "," << (it_pair->first)->GetGeometry()[0].Y() << "," << (it_pair->first)->GetGeometry()[0].Z()  << "},{" << (it_pair->first)->GetGeometry()[1].X() << "," << (it_pair->first)->GetGeometry()[1].Y() << "," << (it_pair->first)->GetGeometry()[1].Z()  << "},{" << (it_pair->first)->GetGeometry()[2].X() << "," << (it_pair->first)->GetGeometry()[2].Y() << "," << (it_pair->first)->GetGeometry()[2].Z()  << "}}],Text[Style["<< (it_pair->first)->Id() <<", Tiny],{"<< (it_pair->first)->GetGeometry().Center().X() << "," << (it_pair->first)->GetGeometry().Center().Y() << ","<< (it_pair->first)->GetGeometry().Center().Z() << "}]}],";// << std::endl;
+                    auto this_geom = (it_pair->first)->GetGeometry();
+                    
+                    std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
+                    for (unsigned int i = 0; i < TNumNodes; i++)
+                    {
+                        std::cout << this_geom[i].X() << "," << this_geom[i].Y() << "," << this_geom[i].Z();
+                        
+                        if (i < TNumNodes - 1) std::cout << "},{";
+                    }
+                    std::cout << "}}],Text[Style["<< (it_pair->first)->Id() <<", Tiny],{"<< this_geom.Center().X() << "," << this_geom.Center().Y() << ","<< this_geom.Center().Z() << "}]}],";// << std::endl;
                     
                     (it_pair->first)->Set(VISITED, true);
                 }
@@ -339,6 +367,9 @@ public:
             
             GetExactAreaIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), (it_pair->first)->GetGeometry(), (it_pair->first)->GetValue(NORMAL), area);
         }
+        
+//         // DEBUG
+//         std::cout << "\nTOTAL AREA: " << area << "\tORIGINAL AREA: " << SlaveCond->GetGeometry().Area() << std::endl;
         
         return area;
     }
@@ -426,6 +457,80 @@ protected:
     }
     
     /**
+     * This function divides the triangles to enhance the integration 
+     * @param ConditionsPointsSlave: The 
+     */
+    
+    static inline void EnhanceTriangulation(ConditionArrayListType& ConditionsPointsSlave)
+    {
+        ConditionArrayListType aux_conditions_points_slave = ConditionsPointsSlave;
+        
+        ConditionsPointsSlave.clear();
+        
+        for (unsigned int i_geom = 0; i_geom < aux_conditions_points_slave.size(); i_geom++)
+        {
+            PointType& point1 = aux_conditions_points_slave[i_geom][0];
+            PointType& point2 = aux_conditions_points_slave[i_geom][1];
+            PointType& point3 = aux_conditions_points_slave[i_geom][2];
+            
+            // Aux info
+            std::vector<PointType::Pointer> points_array (3); 
+            points_array[0] = boost::make_shared<PointType>(point1);
+            points_array[1] = boost::make_shared<PointType>(point2);
+            points_array[2] = boost::make_shared<PointType>(point3);
+            TriangleType aux_triangle = TriangleType(points_array);
+            Vector N_aux;
+            array_1d<double, 3> aux_coords = ZeroVector(3);
+            
+            // Compute intermediate points
+            // Point 4
+            aux_coords[0] = 0.5;
+            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
+            PointType point4;
+            point4.Coordinates() = N_aux[0] * point1.Coordinates() + N_aux[1] * point2.Coordinates();
+
+            // Point 5
+            aux_coords[1] = 0.5;
+            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
+            PointType point5;
+            point5.Coordinates() = N_aux[1] * point2.Coordinates() + N_aux[2] * point3.Coordinates(); 
+
+            // Point 6
+            aux_coords[0] = 0.0;
+            N_aux = aux_triangle.ShapeFunctionsValues(N_aux, aux_coords);
+            PointType point6;
+            point6.Coordinates() = N_aux[2] * point3.Coordinates() + N_aux[0] * point1.Coordinates();
+
+            // New triangles
+            array_1d<PointType, 3> aux_new_triangle;
+
+            // Triangle 1
+            aux_new_triangle[0] = point1;
+            aux_new_triangle[1] = point4;
+            aux_new_triangle[2] = point6;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+
+            // Triangle 2
+            aux_new_triangle[0] = point4;
+            aux_new_triangle[1] = point2;
+            aux_new_triangle[2] = point5;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+
+            // Triangle 3
+            aux_new_triangle[0] = point6;
+            aux_new_triangle[1] = point4;
+            aux_new_triangle[2] = point5;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+
+            // Triangle 4
+            aux_new_triangle[0] = point6;
+            aux_new_triangle[1] = point5;
+            aux_new_triangle[2] = point3;
+            ConditionsPointsSlave.push_back(aux_new_triangle);
+        }
+    }
+    
+    /**
      * This function intersects two lines in a 2D plane
      * @param PointOrig: The points from the origin geometry
      * @param PointDest: The points in the destination geometry
@@ -448,7 +553,9 @@ protected:
         
         const double denom = s_orig1_orig2_x * s_dest1_dest2_y - s_dest1_dest2_x * s_orig1_orig2_y;
     
-        const double tolerance = 1.0e-12; // std::numeric_limits<double>::epsilon();
+        const double tolerance = 1.0e-12;
+//         const double tolerance = std::numeric_limits<double>::epsilon();
+
         if (std::abs(denom) < tolerance) // NOTE: Collinear
         {
             return false;
@@ -767,10 +874,11 @@ protected:
      * @return If there is intersection or not (true/false)
      */
     
+    template<class TGeometryType = GeometryNodeType>
     inline bool TriangleIntersections(
         ConditionArrayListType& ConditionsPointsSlave,
         PointListType& PointList,
-        GeometryNodeType& OriginalSlaveGeometry,
+        TGeometryType& OriginalSlaveGeometry,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
         const array_1d<double, 3>& SlaveTangentXi,
@@ -1052,7 +1160,7 @@ private:
         MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
         
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (3);
@@ -1109,7 +1217,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
@@ -1129,7 +1237,7 @@ private:
         )
     {        
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType slave_center = OriginalSlaveGeometry.Center();
@@ -1141,12 +1249,14 @@ private:
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (4);
+        std::vector<PointType::Pointer> points_array_slave_not_rotated  (4);
         std::vector<PointType::Pointer> points_array_master (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
             PointType aux_point;
             
             aux_point = MortarUtilities::FastProject( slave_center,  OriginalSlaveGeometry[i_node], SlaveNormal);
+            points_array_slave_not_rotated[i_node] = boost::make_shared<PointType>(aux_point);
             MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
             points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
             
@@ -1156,8 +1266,9 @@ private:
         }
         
         Quadrilateral3D4 <PointType> slave_geometry(  points_array_slave  );
+        Quadrilateral3D4 <PointType> slave_geometry_not_rotated(  points_array_slave_not_rotated  );
         Quadrilateral3D4 <PointType> master_geometry( points_array_master );
-        
+ 
         // No we project both nodes from the slave side and the master side
         array_1d<bool, 4> all_inside;
         
@@ -1176,7 +1287,13 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            
+//             const bool solution = TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+//             
+//             EnhanceTriangulation(ConditionsPointsSlave);
+//             
+//             return solution;
         }
         else
         {
@@ -1189,7 +1306,13 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            
+//             const bool solution = TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+//             
+//             EnhanceTriangulation(ConditionsPointsSlave);
+//             
+//             return solution;
         }
         
         ConditionsPointsSlave.clear();
@@ -1382,7 +1505,7 @@ private:
         MathUtils<double>::CrossProduct(slave_tangent_eta, SlaveNormal, slave_tangent_xi);
         
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (3);
@@ -1439,7 +1562,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry, Slave);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();
@@ -1459,7 +1582,7 @@ private:
         )
     {        
         // We define the tolerance
-        const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType slave_center = OriginalSlaveGeometry.Center();
@@ -1471,12 +1594,14 @@ private:
         
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> points_array_slave  (4);
+        std::vector<PointType::Pointer> points_array_slave_not_rotated  (4);
         std::vector<PointType::Pointer> points_array_master (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
             PointType aux_point;
             
             aux_point = MortarUtilities::FastProject( slave_center,  OriginalSlaveGeometry[i_node], SlaveNormal);
+            points_array_slave_not_rotated[i_node] = boost::make_shared<PointType>(aux_point);
             MortarUtilities::RotatePoint( aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
             points_array_slave[i_node] = boost::make_shared<PointType>(aux_point);
             
@@ -1486,6 +1611,7 @@ private:
         }
         
         Quadrilateral3D4 <PointType> slave_geometry(  points_array_slave  );
+        Quadrilateral3D4 <PointType> slave_geometry_not_rotated(  points_array_slave_not_rotated  );
         Quadrilateral3D4 <PointType> master_geometry( points_array_master );
         
         // No we project both nodes from the slave side and the master side
@@ -1506,7 +1632,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, master_geometry, Master);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
         }
         else
         {
@@ -1519,7 +1645,7 @@ private:
             // We add the internal nodes
             PushBackPoints(point_list, all_inside, slave_geometry, Slave);
             
-            return TriangleIntersections(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+            return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
         }
         
         ConditionsPointsSlave.clear();

@@ -23,6 +23,7 @@
 
 #include "custom_utilities/streamlines_output_3D_utilities.hpp"
 #include "custom_utilities/global_joint_stress_utility.hpp"
+#include "custom_utilities/transfer_selfweight_stress_utility.hpp"
 
 namespace Kratos
 {
@@ -40,6 +41,10 @@ void  AddCustomUtilitiesToPython()
   
     class_< GlobalJointStressUtility > ("GlobalJointStressUtility", init<ModelPart&, Parameters>())
     .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress)
+    ;
+
+    class_< TransferSelfweightStressUtility > ("TransferSelfweightStressUtility", init<>())
+    .def("Transfer",&TransferSelfweightStressUtility::Transfer)
     ;
     
 }
