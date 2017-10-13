@@ -81,6 +81,8 @@ from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMu
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
 # Spring damper element tests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
+# Harmonic analysis tests
+from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -179,6 +181,7 @@ def AssambleTestSuites():
             smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
             # Element damping test
             smallSuite.addTest(TSpringDamperElementTests('test_execution'))
+            smallSuite.addTest(THarmonicAnalysisTests('test_execution'))
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
     
@@ -265,7 +268,8 @@ def AssambleTestSuites():
                     TSpringDamperElementTests,
                     TEigenQ4Thick2x2PlateTests,
                     TEigenTL3D8NCubeTests,
-                    TEigen3D3NThinCircleTests
+                    TEigen3D3NThinCircleTests,
+                    THarmonicAnalysisTests
                 ])
             )
         else:
