@@ -207,6 +207,7 @@ namespace Kratos
         GetElementValues(DN_DX, v_unknown, momentum, div_u, height, height_grad);
         double abs_mom = norm_2(momentum);
         double height73 = pow( height, 2.33333 );
+        if (height < 1e-2) height73 = 1e+4;
         
         // Compute stabilization and discontinuity capturing parameters
         double tau_m;
@@ -259,10 +260,10 @@ namespace Kratos
             
             noalias(mass_matrix_w)+= prod(trans(N_mom),N_mom);
             noalias(mass_matrix_q)+= prod(trans(N_height),N_height);
-         
+            
             noalias(aux_q_div_m)  += prod(trans(N_height),DN_DX_mom);
             noalias(aux_w_grad_h) += prod(trans(N_mom),DN_DX_height);
-        
+            
             noalias(aux_m_diffus) += prod(trans(DN_DX_mom),DN_DX_mom);
             noalias(aux_h_diffus) += prod(trans(DN_DX_height),DN_DX_height);
         }
@@ -280,54 +281,54 @@ namespace Kratos
         
         // Stabilization terms 
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq. 
-        noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq. 
+        noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq.
         
         // Friction term
         noalias(rLeftHandSideMatrix) += mGravity * manning2 * abs_mom / height73 * mass_matrix_w;
         
         // Build RHS 
         // Source terms (bathymetry contribution) 
-        noalias(rRightHandSideVector)  = -mGravity * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.) 
+        noalias(rRightHandSideVector)  = -mGravity * height * prod(aux_w_grad_h, v_depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.) 
         
         // Source terms (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, v_rain);
         
         // Inertia terms 
-        noalias(rRightHandSideVector) += dt_inv * prod(mass_matrix, v_proj_unknown); 
-     
+        noalias(rRightHandSideVector) += dt_inv * prod(mass_matrix, v_proj_unknown);
+        
         // Subtracting the dirichlet term (since we use a residualbased approach) 
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, v_unknown); 
-     
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, v_unknown);
+        
         rRightHandSideVector *= Area / static_cast<double>(TNumNodes); 
         rLeftHandSideMatrix *= Area  / static_cast<double>(TNumNodes); 
-     
+        
         KRATOS_CATCH(""); 
-    } 
- 
-//---------------------------------------------------------------------- 
- 
-    template< unsigned int TNumNodes > 
-    void ConservedVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) 
-    { 
-        KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , ""); 
-    } 
- 
-//---------------------------------------------------------------------- 
- 
-    template< unsigned int TNumNodes > 
-    void ConservedVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) 
-    { 
-        if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU) 
-        { 
-            for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-                rValues[PointNumber] = double(this->GetValue(rVariable)); 
-        } 
     }
- 
-//---------------------------------------------------------------------- 
- 
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void ConservedVarElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    }
+
+//----------------------------------------------------------------------
+
     template< unsigned int TNumNodes > 
-    void ConservedVarElement<TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea) 
+    void ConservedVarElement<TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
+        {
+            for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
+                rValues[PointNumber] = double(this->GetValue(rVariable));
+        }
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes > 
+    void ConservedVarElement<TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea)
     { 
         const GeometryType& rGeom = this->GetGeometry(); 
  
@@ -470,7 +471,7 @@ namespace Kratos
         
         // Compute stabilization parameters
         bool stabilization = true;
-        double Ctau = 0.002; // rCurrentProcessInfo[DYNAMIC_TAU];     // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) 
+        double Ctau = 0.01; // rCurrentProcessInfo[DYNAMIC_TAU];     // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322) 
         double fheight = fabs(rHeight);
         if (stabilization && fheight > 1e-6)
         {
@@ -480,7 +481,7 @@ namespace Kratos
         
         // Compute discontinuity capturing parameters
         bool discontinuity_capturing = true;
-        double alpha = 0.6;
+        double alpha = 0.75;
         double gradient_threshold = 1e-6;
         //~ double residual;
         if (discontinuity_capturing && height_grad_norm > gradient_threshold)

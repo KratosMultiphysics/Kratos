@@ -69,7 +69,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        unsigned int local_size = TNumNodes*3;
+        unsigned int local_size = TNumNodes*1;
         if(rResult.size() != local_size)
             rResult.resize(local_size,false);                           // False says not to preserve existing storage!!
         
@@ -77,8 +77,6 @@ namespace Kratos
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rResult[counter++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
-            rResult[counter++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
             rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
         }
 
@@ -92,7 +90,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int local_size = TNumNodes*3;
+        const unsigned int local_size = TNumNodes*1;
         if(rConditionDofList.size() != local_size)
             rConditionDofList.resize(local_size);
 
@@ -100,8 +98,6 @@ namespace Kratos
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rConditionDofList[counter++] = rGeom[i].pGetDof(VELOCITY_X);
-            rConditionDofList[counter++] = rGeom[i].pGetDof(VELOCITY_Y);
             rConditionDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
         }
 
@@ -116,7 +112,7 @@ namespace Kratos
         KRATOS_TRY
 
         // Resize the Left and Right Hand side
-        unsigned int local_size = TNumNodes*3;
+        unsigned int local_size = TNumNodes*1;
         if(rLeftHandSideMatrix.size1() != local_size)
             rLeftHandSideMatrix.resize(local_size,local_size,false);    // False says not to preserve existing storage!!
 
@@ -138,7 +134,7 @@ namespace Kratos
         KRATOS_TRY
 
         // Resize the Right Hand Side
-        unsigned int local_size = TNumNodes*3;
+        unsigned int local_size = TNumNodes*1;
         if(rRightHandSideVector.size() != local_size)
             rRightHandSideVector.resize(local_size,false);              // False says not to preserve existing storage!!
 

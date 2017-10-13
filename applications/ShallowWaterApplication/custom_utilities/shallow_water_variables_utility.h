@@ -149,7 +149,8 @@ namespace Kratos
             for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold)
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold &&
+                    inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
                 {
                     inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
                     inode->FastGetSolutionStepValue(MOMENTUM_X) = 0;
@@ -168,7 +169,8 @@ namespace Kratos
             for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold)
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold &&
+                    inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
                 {
                     inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
                     inode->FastGetSolutionStepValue(VELOCITY_X) = 0;
