@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
+
 #include "spaces/ublas_space.h"
 
 // Strategies
@@ -37,6 +38,10 @@
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
+// Builder and solvers
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
+
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
@@ -46,6 +51,7 @@
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
+
 
 namespace Kratos
 {
@@ -165,8 +171,10 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-
-            
+    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+                bases< ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >,
+                boost::noncopyable >
+                ("ResidualBasedBlockBuilderAndSolverWithMpc", init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.

@@ -41,7 +41,8 @@
                 "coarsening_type"     : "aggregation",
                 "scaling"             : false
             },
-            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"]
+            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"],
+            "thermal_loads_sub_model_part_list"  : []
         },
         "mechanical_solver_settings"    : {
             "solution_type"                      : "Quasi-Static",

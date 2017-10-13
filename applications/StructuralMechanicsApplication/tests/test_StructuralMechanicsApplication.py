@@ -16,7 +16,9 @@ except ImportError as e:
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
 # Import the tests o test_classes to create the suits
-## SMALL TESTS
+## SMALL 
+# CL tests
+from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
@@ -69,6 +71,11 @@ from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCabl
 from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+# Multipoint constraint tests
+from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
+from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
+
+
 
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
@@ -106,6 +113,7 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     # Simple patch tests
+    smallSuite.addTest(TTestConstitutiveLaw('test_Uniaxial_HyperElastic_3D'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
@@ -173,6 +181,10 @@ def AssambleTestSuites():
             smallSuite.addTest(TSpringDamperElementTests('test_execution'))
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+    
+    # Multipoint tests
+    smallSuite.addTest(TTestMultipointConstraints('test_MPC_Constraints'))
+    smallSuite.addTest(TTestMultipointConstraintsTwo('test_MPC_Constraints'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -195,6 +207,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TTestConstitutiveLaw,
             TTestPatchTestSmallStrain,
             TTestPatchTestLargeStrain,
             TTestQuadraticElements,
@@ -238,6 +251,8 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+            TTestMultipointConstraints,
+            TTestMultipointConstraintsTwo,
             ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ###TSprismPanTests # FIXME: Needs get up to date
         ])

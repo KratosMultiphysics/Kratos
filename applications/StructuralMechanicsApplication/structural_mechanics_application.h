@@ -72,10 +72,13 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 
 /* UTILITIES */
 // Cross sections
 #include "custom_utilities/shell_cross_section.hpp"
+#include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -235,9 +238,9 @@ private:
 
     /* ELEMENTS */
 
-	// Adding the truss element
-	const TrussElement3D2N mTrussElement3D2N; 
-	const TrussElement3D2N mTrussLinearElement3D2N;
+    // Adding the truss element
+    const TrussElement3D2N mTrussElement3D2N; 
+    const TrussElement3D2N mTrussLinearElement3D2N;
 
     // Adding the beam element 
     const SmallDisplacementBeamElement3D2N mSmallDisplacementBeamElement3D2N;
@@ -362,6 +365,8 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
 
     ///@}
     ///@name Private Operators

@@ -162,6 +162,11 @@ namespace Kratos
     
     //Register Variables (variables created in solid_mechanics_application_variables.cpp)
 
+    // Generalized eigenvalue problem
+    KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
+    KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )
+    KRATOS_REGISTER_VARIABLE( EIGENVECTOR_MATRIX )
+
     //explicit schemes
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 

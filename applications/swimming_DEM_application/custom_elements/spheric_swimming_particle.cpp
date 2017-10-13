@@ -1447,9 +1447,11 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mHasVirtualMassForceNodalVar = node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
     mHasBassetForceNodalVar      = node.SolutionStepsDataHas(BASSET_FORCE);
     mHasLiftForceNodalVar        = node.SolutionStepsDataHas(LIFT_FORCE);
+        
     
-    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){
-        mSphericity = node.FastGetSolutionStepValue(PARTICLE_SPHERICITY);
+    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){ 
+        node.FastGetSolutionStepValue(PARTICLE_SPHERICITY) = this->GetProperties()[PARTICLE_SPHERICITY];
+        mSphericity = node.FastGetSolutionStepValue(PARTICLE_SPHERICITY); //TODO: remove member var mSphericity from everywhere. Care with the occasions when PARTICLE_SPHERICITY is not added to the nodes!
     }
     else {
         mSphericity = 1.0;

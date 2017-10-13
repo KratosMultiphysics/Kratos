@@ -226,11 +226,11 @@ public:
     /// Destructor. Does nothing!!!
     ~Tetrahedra3D4() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Tetrahedra;
     }
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Tetrahedra3D4;
     }
@@ -627,17 +627,17 @@ public:
       return CalculateMinEdgeLength(sa,sb,sc,sd,se,sf) / CalculateMaxEdgeLength(sa,sb,sc,sd,se,sf);
     }
 
-    /** Calculates the Regualrity quality metric.
-     * Calculates the Regualrity quality metric.
+    /** Calculates the Regularity quality metric.
+     * Calculates the Regularity quality metric.
      *  1 -> Optimal value
      *  0 -> Worst value
      *
      * \f$ \frac{4r}{H} \f$
      *
-     * @return regualirty quality.
+     * @return regularity quality.
      */
-    double RegualrityQuiality() const override {
-      KRATOS_ERROR << "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4" << std::endl;
+    double RegularityQuality() const override {
+      KRATOS_ERROR << "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4" << std::endl;
       return 0.0;
     }
 

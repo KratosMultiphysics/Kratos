@@ -1,18 +1,15 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-12-15 15:41:36 $
-//   Revision:            $Revision: 1.6 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// 
-
-
-
-// System includes
-
-
-// External includes 
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Author Julio Marti
+//
+
 
 // Project includes
 #include "includes/define.h"
