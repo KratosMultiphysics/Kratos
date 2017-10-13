@@ -51,6 +51,11 @@ class Solution(object):
         self.materialTest  = DEM_procedures.MaterialTest()
         self.scheme = self.SetScheme()
 
+        # Define control variables
+        self.p_frequency = 100   # activate every 100 steps
+        self.step_count = 0
+        self.p_count = self.p_frequency
+    
         # Set the print function TO_DO: do this better...
         self.KRATOSprint   = self.procedures.KRATOSprint
 
@@ -76,6 +81,14 @@ class Solution(object):
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
         self.SetFinalTime()
+
+    def IsCountStep(self):
+        self.step_count += 1
+        if self.step_count == self.p_count:
+           self.p_count += self.p_frequency
+           return True
+        else:
+            return False
 
     def SetAnalyticParticleWatcher(self):
         self.main_path = os.getcwd()  #revisar
@@ -310,7 +323,7 @@ class Solution(object):
 
             self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time,self.dt,self.step)
 
-            self.BeforeSolveOperations()
+            self.BeforeSolveOperations(self.time)
 
             #### SOLVE #########################################
             self.solver.Solve()
@@ -366,12 +379,13 @@ class Solution(object):
     def InitializeTimeStep(self):
         pass
 
-    def BeforeSolveOperations(self):
+    def BeforeSolveOperations(self, time):
        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
-                time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
-                if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
-                    self.FillAnalyticSubModelPartsWithNewParticles()
+                if self.IsCountStep():
+                    #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
+                    #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
+                        self.FillAnalyticSubModelPartsWithNewParticles()
 
     def AfterSolveOperations(self):
         if (hasattr(DEM_parameters, "PostNormalImpactVelocity")):
