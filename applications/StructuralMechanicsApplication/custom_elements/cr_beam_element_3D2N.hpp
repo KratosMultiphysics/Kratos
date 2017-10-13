@@ -29,6 +29,13 @@ namespace Kratos
 
 	class CrBeamElement3D2N : public Element
 	{
+	private:
+		//const values
+		static constexpr int number_of_nodes = 2;
+		static constexpr int dimension = 3;
+		static constexpr unsigned int local_size = number_of_nodes * dimension;
+		static constexpr unsigned int element_size = local_size * 2;
+
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(CrBeamElement3D2N);
 
@@ -209,6 +216,13 @@ namespace Kratos
 
 	class Orientation 
 	{
+	private:
+		//const values
+		static constexpr int number_of_nodes = 2;
+		static constexpr int dimension = 3;
+		static constexpr unsigned int local_size = number_of_nodes * dimension;
+		static constexpr unsigned int element_size = local_size * 2;
+		
 	public:
 		Orientation(array_1d<double, 3>& v1, const double theta = 0.00);
 		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);

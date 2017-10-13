@@ -52,12 +52,7 @@ namespace Kratos
 
 	void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
 		ProcessInfo& rCurrentProcessInfo) {
-
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int local_size = number_of_nodes * dimension * 2;
-
-		if (rResult.size() != local_size) rResult.resize(local_size);
+		if (rResult.size() != element_size) rResult.resize(element_size);
 
 		for (int i = 0; i < number_of_nodes; ++i)
 		{
@@ -82,12 +77,8 @@ namespace Kratos
 	void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
 		ProcessInfo& rCurrentProcessInfo) {
 
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int local_size = number_of_nodes * dimension * 2;
-
-		if (rElementalDofList.size() != local_size) {
-			rElementalDofList.resize(local_size);
+		if (rElementalDofList.size() != element_size) {
+			rElementalDofList.resize(element_size);
 		}
 
 		for (int i = 0; i < number_of_nodes; ++i)
@@ -112,13 +103,9 @@ namespace Kratos
 	void CrBeamElement3D2N::Initialize() {
 
 		KRATOS_TRY;
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int local_size = number_of_nodes * dimension;
-
 		if (this->mIterationCount == 0)
 		{
-			this->mNodalForces = ZeroVector(local_size * 2);
+			this->mNodalForces = ZeroVector(element_size);
 			this->CalculateInitialLocalCS();
 		}
 		KRATOS_CATCH("")
@@ -127,10 +114,6 @@ namespace Kratos
 	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() {
 
 		KRATOS_TRY;
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int local_size = number_of_nodes * dimension * 2;
-
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		const double G = this->CalculateShearModulus();
 		const double A = this->GetProperties()[CROSS_AREA];
@@ -155,7 +138,7 @@ namespace Kratos
 
 
 
-		Matrix LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		Matrix LocalStiffnessMatrix = ZeroMatrix(element_size, element_size);
 		const double L3 = L*L*L;
 		const double L2 = L*L;
 
@@ -216,23 +199,18 @@ namespace Kratos
 	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() {
 
 		KRATOS_TRY;
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int size = number_of_nodes * dimension;
-		const unsigned int local_size = size * 2;
-
 		//deformation modes
-		Vector elementForces_t = ZeroVector(size);
+		Vector elementForces_t = ZeroVector(local_size);
 		elementForces_t = this->CalculateElementForces();
 
 		//Nodal element forces local
-		Vector nodalForcesLocal_qe = ZeroVector(local_size);
-		Matrix TransformationMatrixS = ZeroMatrix(local_size, size);
+		Vector nodalForcesLocal_qe = ZeroVector(element_size);
+		Matrix TransformationMatrixS = ZeroMatrix(element_size, local_size);
 		TransformationMatrixS = this->CalculateTransformationS();
 		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
 
 		//save local nodal forces
-		this->mNodalForces = ZeroVector(local_size);
+		this->mNodalForces = ZeroVector(element_size);
 		this->mNodalForces = nodalForcesLocal_qe;
 
 
@@ -248,7 +226,7 @@ namespace Kratos
 		const double Qy = -1.00 * (mz_A + mz_B) / L;
 		const double Qz = (my_A + my_B) / L;
 
-		Matrix LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		Matrix LocalStiffnessMatrix = ZeroMatrix(element_size, element_size);
 
 		LocalStiffnessMatrix(0, 1) = -Qy / L;
 		LocalStiffnessMatrix(0, 2) = -Qz / L;
@@ -357,10 +335,6 @@ namespace Kratos
 	Matrix CrBeamElement3D2N::CalculateDeformationStiffness() {
 
 		KRATOS_TRY
-		const int number_of_nodes = 2;
-		const SizeType dimension = 3;
-		const SizeType local_size = number_of_nodes * dimension;
-
 		Matrix Kd = ZeroMatrix(local_size, local_size);
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		const double G = this->CalculateShearModulus();
@@ -427,15 +401,10 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateInitialLocalCS() {
 
 		KRATOS_TRY
-		const int number_of_nodes = 2;
-		const SizeType dimension = 3;
-		const SizeType size = number_of_nodes * dimension;
-		const unsigned int local_size = size * 2;
-
 		array_1d<double, dimension> DirectionVectorX = ZeroVector(dimension);
 		array_1d<double, dimension> DirectionVectorY = ZeroVector(dimension);
 		array_1d<double, dimension> DirectionVectorZ = ZeroVector(dimension);
-		array_1d<double, size> ReferenceCoordinates = ZeroVector(size);
+		array_1d<double, local_size> ReferenceCoordinates = ZeroVector(local_size);
 
 		ReferenceCoordinates[0] = this->GetGeometry()[0].X0();
 		ReferenceCoordinates[1] = this->GetGeometry()[0].Y0();
@@ -466,12 +435,12 @@ namespace Kratos
 
 
 		Matrix Temp = ZeroMatrix(dimension);
-		this->mRotationMatrix0 = ZeroMatrix(local_size);
+		this->mRotationMatrix0 = ZeroMatrix(element_size);
 		element_axis.CalculateRotationMatrix(Temp);
 		this->AssembleSmallInBigMatrix(Temp, this->mRotationMatrix0);
 
 		//provide Initial Rotation Matrix for strategies that dont call 'CalculateLocalSystem'
-		this->mRotationMatrix = ZeroMatrix(local_size);
+		this->mRotationMatrix = ZeroMatrix(element_size);
 		this->mRotationMatrix = this->mRotationMatrix0;
 
 		KRATOS_CATCH("")
@@ -480,12 +449,6 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRotationMatrix) {
 
 		KRATOS_TRY
-			//12x12
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int size = number_of_nodes * dimension;
-		const unsigned int MatSize = 2 * size;
-
 		//initialize local CS
 		if (this->mIterationCount == 0) this->CalculateInitialLocalCS();
 
@@ -493,11 +456,11 @@ namespace Kratos
 		Matrix AuxRotationMatrix = ZeroMatrix(dimension);
 		AuxRotationMatrix = this->UpdateRotationMatrixLocal();
 
-		if (rRotationMatrix.size1() != MatSize) {
-			rRotationMatrix.resize(MatSize, MatSize, false);
+		if (rRotationMatrix.size1() != element_size) {
+			rRotationMatrix.resize(element_size, element_size, false);
 		}
 
-		rRotationMatrix = ZeroMatrix(MatSize);
+		rRotationMatrix = ZeroMatrix(element_size);
 		//Building the rotation matrix for the local element matrix
 		this->AssembleSmallInBigMatrix(AuxRotationMatrix, rRotationMatrix);
 		KRATOS_CATCH("")
@@ -506,13 +469,8 @@ namespace Kratos
 	Matrix CrBeamElement3D2N::CalculateTransformationS() {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int size = number_of_nodes * dimension;
-		const unsigned int MatSize = 2 * size;
-
 		const double L = this->CalculateCurrentLength();
-		Matrix S = ZeroMatrix(MatSize, size);
+		Matrix S = ZeroMatrix(element_size, local_size);
 		S(0, 3) = -1.00;
 		S(1, 5) = 2.00 / L;
 		S(2, 4) = -2.00 / L;
@@ -537,14 +495,9 @@ namespace Kratos
 	Matrix CrBeamElement3D2N::UpdateRotationMatrixLocal() {
 
 		KRATOS_TRY
-		const int number_of_nodes = 2;
-		const SizeType dimension = 3;
-		const SizeType size = number_of_nodes * dimension;
-		const SizeType MatSize = 2 * size;
-
 		bounded_vector<double,dimension> dPhiA = ZeroVector(dimension);
 		bounded_vector<double,dimension> dPhiB = ZeroVector(dimension);
-		bounded_vector<double,MatSize>  IncrementDeformation = ZeroVector(MatSize);
+		bounded_vector<double,element_size>  IncrementDeformation = ZeroVector(element_size);
 		IncrementDeformation = this->mIncrementDeformation;
 
 		for (unsigned int i = 0; i < dimension; ++i) {
@@ -727,10 +680,6 @@ namespace Kratos
 	void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int element_size = number_of_nodes * dimension * 2;
-
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
 		for (int i = 0; i < number_of_nodes; ++i)
@@ -757,10 +706,6 @@ namespace Kratos
 	{
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int element_size = number_of_nodes * dimension * 2;
-
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
 		for (int i = 0; i < number_of_nodes; ++i)
@@ -788,10 +733,6 @@ namespace Kratos
 	{
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int element_size = number_of_nodes * dimension * 2;
-
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
 		for (int i = 0; i < number_of_nodes; ++i)
@@ -819,14 +760,10 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		const SizeType number_of_nodes = 2;
-		const SizeType dimension = 3;
-		const SizeType MatSize = number_of_nodes * dimension * 2;
-
-		if (rMassMatrix.size1() != MatSize) {
-			rMassMatrix.resize(MatSize, MatSize, false);
+		if (rMassMatrix.size1() != element_size) {
+			rMassMatrix.resize(element_size, element_size, false);
 		}
-		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+		rMassMatrix = ZeroMatrix(element_size, element_size);
 
 
 
@@ -845,8 +782,8 @@ namespace Kratos
 		{
 			this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
 
-			bounded_matrix<double,MatSize,MatSize> RotationMatrix = ZeroMatrix(MatSize,MatSize);
-			bounded_matrix<double,MatSize,MatSize> aux_matrix = ZeroMatrix(MatSize,MatSize);
+			bounded_matrix<double,element_size,element_size> RotationMatrix = ZeroMatrix(element_size,element_size);
+			bounded_matrix<double,element_size,element_size> aux_matrix = ZeroMatrix(element_size,element_size);
 
 			if (this->mIsLinearElement)
 			{
@@ -867,22 +804,18 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int MatSize = number_of_nodes * dimension * 2;
-
-		if (rDampingMatrix.size1() != MatSize)
+		if (rDampingMatrix.size1() != element_size)
 		{
-			rDampingMatrix.resize(MatSize, MatSize, false);
+			rDampingMatrix.resize(element_size, element_size, false);
 		}
 
-		rDampingMatrix = ZeroMatrix(MatSize, MatSize);
+		rDampingMatrix = ZeroMatrix(element_size, element_size);
 
-		Matrix StiffnessMatrix = ZeroMatrix(MatSize, MatSize);
+		Matrix StiffnessMatrix = ZeroMatrix(element_size, element_size);
 
 		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
 
-		Matrix MassMatrix = ZeroMatrix(MatSize, MatSize);
+		Matrix MassMatrix = ZeroMatrix(element_size, element_size);
 
 		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
@@ -916,17 +849,12 @@ namespace Kratos
 	Vector CrBeamElement3D2N::CalculateBodyForces()
 	{
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int localSize = number_of_nodes * dimension;
-		const unsigned int MatSize = number_of_nodes * dimension * 2;
-
 		//getting shapefunctionvalues for linear SF
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
 
 		Vector EquivalentLineLoad = ZeroVector(dimension);
-		Vector BodyForcesGlobal = ZeroVector(MatSize);
+		Vector BodyForcesGlobal = ZeroVector(element_size);
 
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double l = this->CalculateCurrentLength();
@@ -944,7 +872,7 @@ namespace Kratos
 		// adding the nodal forces
 		for (int i = 0; i < number_of_nodes; ++i)
 		{
-			int index = i*localSize;
+			int index = i*local_size;
 			for (int j = 0; j < dimension; ++j)
 			{
 				BodyForcesGlobal[j + index] =
@@ -967,7 +895,6 @@ namespace Kratos
 		const double GeometryLength)
 	{
 		KRATOS_TRY;
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		//calculate orthogonal load vector
 		Vector GeometricOrientation = ZeroVector(dimension);
 		GeometricOrientation[0] = this->GetGeometry()[1].X()
@@ -1044,29 +971,25 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
-		const int NumNodes = 2;
-		const int dimension = 3;
-		const SizeType LocalSize = NumNodes * dimension * 2;
-
 		this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
 		//Nodal element forces global
-		bounded_vector<double,LocalSize> nodalForcesGlobal_q = ZeroVector(LocalSize);
+		bounded_vector<double,element_size> nodalForcesGlobal_q = ZeroVector(element_size);
 		nodalForcesGlobal_q = prod(this->mRotationMatrix,
 			this->mNodalForces);
 
 		//create+compute RHS
 		//update Residual
-		rRightHandSideVector = ZeroVector(LocalSize);
+		rRightHandSideVector = ZeroVector(element_size);
 		rRightHandSideVector -= nodalForcesGlobal_q;
 
 
 		//LINEAR BEAM ELEMENT
 		if (this->mIsLinearElement)
 		{
-			Vector NodalDeformation = ZeroVector(LocalSize);
+			Vector NodalDeformation = ZeroVector(element_size);
 			this->GetValuesVector(NodalDeformation);
-			rRightHandSideVector = ZeroVector(LocalSize);
+			rRightHandSideVector = ZeroVector(element_size);
 			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
 		}
 		//add bodyforces 
@@ -1079,32 +1002,26 @@ namespace Kratos
 		VectorType& rRightHandSideVector,
 		ProcessInfo& rCurrentProcessInfo)
 	{
-
 		KRATOS_TRY;
-		const int NumNodes = 2;
-		const int dimension = 3;
-		const SizeType size = NumNodes * dimension;
-		const SizeType LocalSize = NumNodes * dimension * 2;
-		rRightHandSideVector = ZeroVector(LocalSize);
-
+		rRightHandSideVector = ZeroVector(element_size);
 
 		if (this->mIsLinearElement == false)
 		{
 			this->UpdateIncrementDeformation();
-			Matrix TransformationMatrix = ZeroMatrix(LocalSize);
+			Matrix TransformationMatrix = ZeroMatrix(element_size);
 			this->CalculateTransformationMatrix(TransformationMatrix);
-			bounded_vector<double,size> elementForces_t = ZeroVector(size);
+			bounded_vector<double,local_size> elementForces_t = ZeroVector(local_size);
 			elementForces_t = this->CalculateElementForces();
-			bounded_vector<double,LocalSize> nodalForcesLocal_qe = ZeroVector(LocalSize);
-			bounded_matrix<double,LocalSize,size>  TransformationMatrixS = ZeroMatrix(LocalSize, size);
+			bounded_vector<double,element_size> nodalForcesLocal_qe = ZeroVector(element_size);
+			bounded_matrix<double,element_size,local_size>  TransformationMatrixS = ZeroMatrix(element_size, local_size);
 			TransformationMatrixS = this->CalculateTransformationS();
 			nodalForcesLocal_qe = prod(TransformationMatrixS,
 				elementForces_t);
 			//save local nodal forces
-			this->mNodalForces = ZeroVector(LocalSize);
+			this->mNodalForces = ZeroVector(element_size);
 			this->mNodalForces = nodalForcesLocal_qe;
 
-			bounded_vector<double,LocalSize> nodalForcesGlobal_q = ZeroVector(LocalSize);
+			bounded_vector<double,element_size> nodalForcesGlobal_q = ZeroVector(element_size);
 			nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
 			rRightHandSideVector -= nodalForcesGlobal_q;
 		}
@@ -1112,11 +1029,11 @@ namespace Kratos
 		//LINEAR BEAM ELEMENT
 		if (this->mIsLinearElement)
 		{
-			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+			Matrix LeftHandSideMatrix = ZeroMatrix(element_size, element_size);
 			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
-			Vector NodalDeformation = ZeroVector(LocalSize);
+			Vector NodalDeformation = ZeroVector(element_size);
 			this->GetValuesVector(NodalDeformation);
-			rRightHandSideVector = ZeroVector(LocalSize);
+			rRightHandSideVector = ZeroVector(element_size);
 			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
 		}
 
@@ -1130,24 +1047,19 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY;
-		const int NumNodes = 2;
-		const int dimension = 3;
-		const int size = NumNodes * dimension;
-		const SizeType LocalSize = size * 2;
-
 		//update displacement_delta
 		this->UpdateIncrementDeformation();
 
 		//calculate Transformation Matrix
-		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
+		Matrix TransformationMatrix = ZeroMatrix(element_size);
 		this->CalculateTransformationMatrix(TransformationMatrix);
-		this->mRotationMatrix = ZeroMatrix(LocalSize);
+		this->mRotationMatrix = ZeroMatrix(element_size);
 		this->mRotationMatrix = TransformationMatrix;
 
 
 
 		//resizing the matrices + create memory for LHS
-		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+		rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
 		//creating LHS
 		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Material();
@@ -1155,7 +1067,7 @@ namespace Kratos
 			this->CreateElementStiffnessMatrix_Geometry();
 
 
-		bounded_matrix<double,LocalSize,LocalSize> aux_matrix = ZeroMatrix(LocalSize);
+		bounded_matrix<double,element_size,element_size> aux_matrix = ZeroMatrix(element_size);
 		aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
 		rLeftHandSideMatrix = prod(aux_matrix,
 			Matrix(trans(TransformationMatrix)));
@@ -1164,10 +1076,10 @@ namespace Kratos
 		if (this->mIsLinearElement)
 		{
 			TransformationMatrix = this->mRotationMatrix0;
-			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+			rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
 			rLeftHandSideMatrix +=
 				this->CreateElementStiffnessMatrix_Material();
-			bounded_matrix<double,LocalSize,LocalSize> aux_matrix = ZeroMatrix(LocalSize);
+			bounded_matrix<double,element_size,element_size> aux_matrix = ZeroMatrix(element_size);
 			aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
 			rLeftHandSideMatrix = prod(aux_matrix,
 				Matrix(trans(TransformationMatrix)));
@@ -1180,11 +1092,7 @@ namespace Kratos
 	Vector CrBeamElement3D2N::CalculateElementForces() {
 
 		KRATOS_TRY;
-		const int NumNodes = 2;
-		const int dimension = 3;
-		const SizeType LocalSize = NumNodes * dimension;
-
-		bounded_vector<double,LocalSize> deformation_modes_total_V = ZeroVector(LocalSize);
+		bounded_vector<double,local_size> deformation_modes_total_V = ZeroVector(local_size);
 		const double L = this->CalculateReferenceLength();
 		const double l = this->CalculateCurrentLength();
 
@@ -1192,8 +1100,8 @@ namespace Kratos
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
 		//calculate element forces
-		Vector element_forces_t = ZeroVector(LocalSize);
-		bounded_matrix<double,LocalSize,LocalSize> deformation_stiffness_Kd = ZeroMatrix(LocalSize);
+		Vector element_forces_t = ZeroVector(local_size);
+		bounded_matrix<double,local_size,local_size> deformation_stiffness_Kd = ZeroMatrix(local_size);
 
 		deformation_stiffness_Kd = this->CalculateDeformationStiffness();
 		element_forces_t = prod(deformation_stiffness_Kd,
@@ -1253,24 +1161,19 @@ namespace Kratos
 	void CrBeamElement3D2N::UpdateIncrementDeformation() {
 
 		KRATOS_TRY
-		const int NumNodes = 2;
-		const int dimension = 3;
-		const SizeType size = NumNodes * dimension;
-		const SizeType LocalSize = NumNodes * dimension * 2;
+		Vector actualDeformation = ZeroVector(element_size);
+		this->mIncrementDeformation = ZeroVector(element_size);
 
-		Vector actualDeformation = ZeroVector(LocalSize);
-		this->mIncrementDeformation = ZeroVector(LocalSize);
-
-		if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(LocalSize);
+		if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(element_size);
 		this->GetValuesVector(actualDeformation, 0);
 
 		this->mIncrementDeformation = actualDeformation
 			- this->mTotalNodalDeformation;
 
-		this->mTotalNodalDeformation = ZeroVector(LocalSize);
+		this->mTotalNodalDeformation = ZeroVector(element_size);
 		this->mTotalNodalDeformation = actualDeformation;
 
-		this->mTotalNodalPosistion = ZeroVector(size);
+		this->mTotalNodalPosistion = ZeroVector(local_size);
 		this->mTotalNodalPosistion[0] = this->GetGeometry()[0].X0()
 			+ actualDeformation[0];
 		this->mTotalNodalPosistion[1] = this->GetGeometry()[0].Y0()
@@ -1293,12 +1196,6 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
-		const int NumNodes = 2;
-		const int dimension = 3;
-		const SizeType size = NumNodes * dimension;
-		const SizeType LocalSize = NumNodes * dimension * 2;
-
-
 		//element with two nodes can only represent results at one node 
 		const unsigned int&  write_points_number = GetGeometry()
 			.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
@@ -1309,27 +1206,27 @@ namespace Kratos
 
 		this->UpdateIncrementDeformation();
 		//calculate Transformation Matrix
-		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
+		Matrix TransformationMatrix = ZeroMatrix(element_size);
 		this->CalculateTransformationMatrix(TransformationMatrix);
 		//deformation modes
-		bounded_vector<double,size> elementForces_t = ZeroVector(size);
+		bounded_vector<double,local_size> elementForces_t = ZeroVector(local_size);
 		elementForces_t = this->CalculateElementForces();
-		Vector Stress = ZeroVector(LocalSize);
-		bounded_matrix<double,LocalSize,size>  TransformationMatrixS = ZeroMatrix(LocalSize, size);
+		Vector Stress = ZeroVector(element_size);
+		bounded_matrix<double,element_size,local_size>  TransformationMatrixS = ZeroMatrix(element_size, local_size);
 		TransformationMatrixS = this->CalculateTransformationS();
 		Stress = prod(TransformationMatrixS, elementForces_t);
 
 		//LINEAR BEAM ELEMENT
 		if (this->mIsLinearElement)
 		{
-			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+			Matrix LeftHandSideMatrix = ZeroMatrix(element_size, element_size);
 			LeftHandSideMatrix = this->mLHS;
 
-			Vector NodalDeformation = ZeroVector(LocalSize);
+			Vector NodalDeformation = ZeroVector(element_size);
 			this->GetValuesVector(NodalDeformation);
-			Stress = ZeroVector(LocalSize);
+			Stress = ZeroVector(element_size);
 			Stress = prod(LeftHandSideMatrix, NodalDeformation);
-			bounded_matrix<double,LocalSize,LocalSize> TransformationMatrix = ZeroMatrix(LocalSize);
+			bounded_matrix<double,element_size,element_size> TransformationMatrix = ZeroMatrix(element_size);
 			TransformationMatrix = this->mRotationMatrix;
 			Stress = prod(Matrix(trans(TransformationMatrix)), Stress);
 		}
@@ -1424,12 +1321,7 @@ namespace Kratos
 		Matrix& BigMatrix) {
 
 		KRATOS_TRY
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int size = number_of_nodes * dimension;
-		const unsigned int MatSize = 2 * size;
-
-		for (unsigned int kk = 0; kk < MatSize; kk += dimension)
+		for (unsigned int kk = 0; kk < element_size; kk += dimension)
 		{
 			for (int i = 0; i<dimension; ++i)
 			{
@@ -1447,7 +1339,6 @@ namespace Kratos
 		double Phi, double CT, double CR, double L)
 	{
 		KRATOS_TRY;
-		const int number_of_nodes = 2;
 		const SizeType MatSize = number_of_nodes * 2;
 
 		if (rMassMatrix.size1() != MatSize) {
@@ -1521,15 +1412,12 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		const int number_of_nodes = 2;
-		const int dimension = 3;
 		const int smallMatSize = number_of_nodes * 2;
-		const unsigned int MatSize = number_of_nodes * dimension * 2;
 
-		if (rMassMatrix.size1() != MatSize) {
-			rMassMatrix.resize(MatSize, MatSize, false);
+		if (rMassMatrix.size1() != element_size) {
+			rMassMatrix.resize(element_size, element_size, false);
 		}
-		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+		rMassMatrix = ZeroMatrix(element_size, element_size);
 
 		const double L = this->CalculateReferenceLength();
 		const double L2 = L * L;
@@ -1631,14 +1519,10 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		const int number_of_nodes = GetGeometry().PointsNumber();
-		const int dimension = GetGeometry().WorkingSpaceDimension();
-		const unsigned int MatSize = number_of_nodes * dimension * 2;
-
-		if (rMassMatrix.size1() != MatSize) {
-			rMassMatrix.resize(MatSize, MatSize, false);
+		if (rMassMatrix.size1() != element_size) {
+			rMassMatrix.resize(element_size, element_size, false);
 		}
-		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+		rMassMatrix = ZeroMatrix(element_size, element_size);
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double L = this->CalculateReferenceLength();
 		const double rho = this->GetProperties()[DENSITY];
@@ -1672,16 +1556,12 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int element_size = number_of_nodes * dimension;
-
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
 
 			for (int i = 0; i< number_of_nodes; ++i)
 			{
-				int index = element_size * i;
+				int index = local_size * i;
 
 				GetGeometry()[i].SetLock();
 
@@ -1703,7 +1583,7 @@ namespace Kratos
 
 			for (int i = 0; i< number_of_nodes; ++i)
 			{
-				int index = (element_size * i) + dimension;
+				int index = (local_size * i) + dimension;
 
 				GetGeometry()[i].SetLock();
 
@@ -1836,8 +1716,6 @@ namespace Kratos
 		KRATOS_TRY
 		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
 		//If only direction of v1 is given -> Default case
-		const int dimension = 3;
-
 		array_1d<double, 3> GlobalZ = ZeroVector(dimension);
 		GlobalZ[2] = 1.0;
 
@@ -1901,9 +1779,6 @@ namespace Kratos
 
 		KRATOS_TRY
 		//If the user defines an aditional direction v2
-		const int dimension = 3;
-
-
 		array_1d<double, 3> v3 = ZeroVector(dimension);
 
 		double VectorNorm;
@@ -1964,10 +1839,7 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int local_size = number_of_nodes * dimension * 2;
-		rGeometricStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		rGeometricStiffnessMatrix = ZeroMatrix(element_size, element_size);
 		rGeometricStiffnessMatrix = this->CreateElementStiffnessMatrix_Geometry();
 		KRATOS_CATCH("")
 	}
@@ -1976,10 +1848,7 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		const int number_of_nodes = this->GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const unsigned int local_size = number_of_nodes * dimension * 2;
-		rElasticStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		rElasticStiffnessMatrix = ZeroMatrix(element_size, element_size);
 		rElasticStiffnessMatrix = this->CreateElementStiffnessMatrix_Material();
 		KRATOS_CATCH("")
 	}
