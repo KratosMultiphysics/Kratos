@@ -39,7 +39,7 @@ class FluidHDF5Loader:
 
         if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
-        if pp.CFD_DEM.load_derivatives:
+        if pp.CFD_DEM["load_derivatives"].GetBool():
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables,)
@@ -47,7 +47,7 @@ class FluidHDF5Loader:
         self.file_name = main_path + '/box_32_history.hdf5'
         self.fluid_model_part = fluid_model_part
 
-        if pp.CFD_DEM.fluid_already_calculated:
+        if pp.CFD_DEM["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_name, 'r') as f:
                 self.times_str = list([str(key) for key in f.keys() if key not in {'nodes'}])
@@ -86,7 +86,7 @@ class FluidHDF5Loader:
                 f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
                 self.dtype = np.float64
 
-            if pp.CFD_DEM.store_fluid_in_single_precision:
+            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
                 self.dtype = np.float32
 
         self.last_time = 0.0
