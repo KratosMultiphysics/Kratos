@@ -66,7 +66,7 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "assign_scalar_to_conditions_process",
+        "python_module"   : "assign_scalar_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a scalar variable value over a condition",
         "process_name"          : "ApplyScalarOnConditionsProcess",
@@ -130,7 +130,7 @@
             "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 30,
+                "filter_radius"              : 30.0,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
             },
@@ -142,21 +142,21 @@
                         "damp_Y"                : true,
                         "damp_Z"                : true,
                         "damping_function_type" : "cosine",
-                        "damping_radius"        : 85
+                        "damping_radius"        : 85.0
                     },{
                         "sub_model_part_name"   : "inner_face",
                         "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
                         "damping_function_type" : "cosine",
-                        "damping_radius"        : 30
+                        "damping_radius"        : 30.0
                 },{
                         "sub_model_part_name"   : "tip_face",
                         "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
                         "damping_function_type" : "linear",
-                        "damping_radius"        : 20
+                        "damping_radius"        : 20.0
                 }]
             }
         },

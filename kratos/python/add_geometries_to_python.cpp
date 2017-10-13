@@ -23,6 +23,7 @@
 #include "geometries/geometry.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "python/add_geometries_to_python.h"
 #include "python/bounded_vector_python_interface.h"
 #include "python/vector_scalar_operator_python.h"
@@ -37,8 +38,11 @@ namespace Python
     PointerVector< Node<3> >& GetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
 void  AddGeometriesToPython()
 {
-  
-    typedef Geometry<Node<3> > GeometryType;
+
+    typedef Node<3> Node3D;
+    typedef Node3D::Pointer pNode3D;
+    typedef Geometry<Node3D > GeometryType;
+
     class_<GeometryType, GeometryType::Pointer >("Geometry", init<>())
     .def(init< GeometryType::PointsArrayType& >())
 	.def("DomainSize",&GeometryType::DomainSize)
@@ -46,11 +50,14 @@ void  AddGeometriesToPython()
 //     .def("Points", &GeometryType::GetPoints)
     ;
     
-    class_<Triangle2D3<Node<3> >, Triangle2D3<Node<3> >::Pointer, bases< GeometryType > >("Triangle2D3", init<Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer>())
+    class_<Triangle2D3<Node3D>, Triangle2D3<Node3D>::Pointer, bases< GeometryType > >("Triangle2D3", init<pNode3D, pNode3D, pNode3D>())
     ;    
     
-	class_<Tetrahedra3D4<Node<3> >, Tetrahedra3D4<Node<3> >::Pointer, bases< GeometryType > >("Tetrahedra3D4", init<Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer>())
-		;
+    class_<Tetrahedra3D4<Node3D>, Tetrahedra3D4<Node3D>::Pointer, bases< GeometryType > >("Tetrahedra3D4", init<pNode3D, pNode3D, pNode3D, pNode3D>())
+    ;
+
+    class_<Hexahedra3D8<Node3D>, Hexahedra3D8<Node3D>::Pointer, bases< GeometryType > >("Hexahedra3D8", init<pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D, pNode3D>())
+    ;
 
 //     class_<GeometryType, GeometryType::Pointer, bases<PointerVector< Node<3> > > >("Geometry", init<>())
 //      .def(init< GeometryType::PointsArrayType& >())

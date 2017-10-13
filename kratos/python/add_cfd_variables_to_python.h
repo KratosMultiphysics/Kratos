@@ -12,7 +12,6 @@
 //
 
 
-
 #if !defined(KRATOS_ADD_CFD_VARIABLES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_CFD_VARIABLES_TO_PYTHON_H_INCLUDED
 
@@ -25,7 +24,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos

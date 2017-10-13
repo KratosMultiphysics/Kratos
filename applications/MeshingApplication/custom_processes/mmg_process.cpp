@@ -12,6 +12,7 @@
 
 // System includes
 #include <set>
+#include <unordered_set>
 
 // External includes
 // The includes related with the MMG library
@@ -310,7 +311,10 @@ void MmgProcess<TDim>::InitializeMeshData()
     bool to_check_elem = false;
     if (num_conditions > 0)
     {
-        mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
+        const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
+        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
+//         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
         to_check_cond = true;
     }
     if (num_elements > 0)
@@ -519,11 +523,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
-    std::unordered_map<int, std::vector<IndexType>> color_nodes;
-    std::unordered_map<int, std::vector<IndexType>> color_cond_0;
-    std::unordered_map<int, std::vector<IndexType>> color_cond_1;
-    std::unordered_map<int, std::vector<IndexType>> color_elem_0;
-    std::unordered_map<int, std::vector<IndexType>> color_elem_1;
+    std::unordered_map<int, std::vector<IndexType>>color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
     
     /* NODES */ // TODO: ADD OMP
     for (unsigned int i_node = 1; i_node <= n_nodes; i_node++)
@@ -675,6 +675,49 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 if (color_elem_1.find(key) != color_elem_1.end()) r_sub_model_part.AddElements(color_elem_1[key]);
             }
         }
+    }
+    
+    // TODO: Add OMP
+    // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
+    const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
+
+    for (auto sub_model_part_name : sub_model_part_names)
+    {
+        ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+        
+        std::unordered_set<IndexType> node_ids;
+        
+        ConditionsArrayType& sub_conditions_array = r_sub_model_part.Conditions();
+        const SizeType sub_num_conditions = sub_conditions_array.end() - sub_conditions_array.begin();
+        
+        for(IndexType i = 0; i < sub_num_conditions; i++) 
+        {
+            auto it_cond = sub_conditions_array.begin() + i;
+            auto& cond_geom = it_cond->GetGeometry();
+            
+            for (SizeType i_node = 0; i_node < cond_geom.size(); i_node++)
+            {
+                node_ids.insert(cond_geom[i_node].Id());
+            }
+        }
+        
+        ElementsArrayType& sub_elements_array = r_sub_model_part.Elements();
+        const SizeType sub_num_elements = sub_elements_array.end() - sub_elements_array.begin();
+        
+        for(IndexType i = 0; i < sub_num_elements; i++) 
+        {
+            auto it_elem = sub_elements_array.begin() + i;
+            auto& elem_geom = it_elem->GetGeometry();
+            
+            for (SizeType i_node = 0; i_node < elem_geom.size(); i_node++)
+            {
+                node_ids.insert(elem_geom[i_node].Id());
+            }
+        }
+        
+        std::vector<IndexType> vector_ids;
+        std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
+        r_sub_model_part.AddNodes(vector_ids);
     }
     
     /* Save to file */
@@ -1183,7 +1226,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
         
         p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Condition creation avoided" << std::endl;
     }
@@ -1225,7 +1268,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
         
         p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Condition creation avoided" << std::endl;
     }
@@ -1283,7 +1326,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition1(
         
         p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Condition creation avoided" << std::endl;
     }
@@ -1325,7 +1368,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement0(
         
         p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Element creation avoided" << std::endl;
     }
@@ -1369,7 +1412,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement0(
         
         p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Element creation avoided" << std::endl;
     }
@@ -1431,7 +1474,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement1(
     
         p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
     }
-    else if (mEchoLevel > 0)
+    else if (mEchoLevel > 2)
     {
         std::cout << "Element creation avoided" << std::endl;
     }
@@ -1565,8 +1608,8 @@ void MmgProcess<3>::InitVerbosityParameter(const int& VerbosityMMG)
 template<>  
 void MmgProcess<2>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<int, 1> NumArrayElements, 
-    const array_1d<int, 1> NumArrayConditions
+    const array_1d<SizeType, 1> NumArrayElements, 
+    const array_1d<SizeType, 1> NumArrayConditions
     )
 {
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D) 
@@ -1582,8 +1625,8 @@ void MmgProcess<2>::SetMeshSize(
 template<>  
 void MmgProcess<3>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<int, 2> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-    const array_1d<int, 2> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+    const array_1d<SizeType, 2> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+    const array_1d<SizeType, 2> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
     )
 {
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D) 

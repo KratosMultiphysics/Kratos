@@ -10,7 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrándiz
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MATH_UTILS )
@@ -26,7 +26,7 @@
 #include "containers/array_1d.h"
 
 /* Project includes */
-
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -66,7 +66,13 @@ public:
 
     typedef Vector VectorType;
 
+    typedef std::size_t SizeType;
+    
     typedef unsigned int IndexType;
+
+    typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
+    
+    typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
 
     ///@}
     ///@name Life Cycle
@@ -385,7 +391,7 @@ public:
             
             int singular = 0;
             using namespace boost::numeric::ublas;
-            typedef permutation_matrix<std::size_t> pmatrix;
+            typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
             pmatrix pm(A.size1());
             singular = lu_factorize(A,pm);
@@ -564,7 +570,7 @@ public:
         else
         {
             using namespace boost::numeric::ublas;
-            typedef permutation_matrix<std::size_t> pmatrix;
+            typedef permutation_matrix<SizeType> pmatrix;
             Matrix Aux(A);
             pmatrix pm(Aux.size1());
             bool singular = lu_factorize(Aux,pm);
@@ -594,19 +600,24 @@ public:
         
     static inline TDataType GeneralizedDet(const MatrixType& A)
     {
-        TDataType Determinant;
+        TDataType determinant;
         
         if (A.size1() == A.size2())
         {
-            Determinant = Det(A);
+            determinant = Det(A);
         }
-        else 
+        else if (A.size1() < A.size2()) // Right determinant
+        {
+            Matrix AAT = prod( A, trans(A) );
+            determinant = std::sqrt(Det(AAT));
+        }
+        else // Left determinant
         {
             Matrix ATA = prod( trans(A), A );
-            Determinant = std::sqrt(Det(ATA));
+            determinant = std::sqrt(Det(ATA));
         }
         
-        return Determinant;
+        return determinant;
     }
     
     /**
@@ -1147,9 +1158,11 @@ public:
         KRATOS_CATCH("");
     }
     
-    //***********************************************************************
-    //***********************************************************************
-    /// sign function
+    /**
+     * Sign function
+     * @param ThisDataType: The value to extract the sign
+     * @return The sign of the value
+     */
     static inline int Sign(const TDataType& ThisDataType)
     {
         KRATOS_TRY;
@@ -1538,7 +1551,7 @@ public:
     
         return is_converged;
     }
-     
+    
     ///@}
     ///@name Access
     ///@{

@@ -63,7 +63,7 @@ class dummy {
 
         dummy(
                 boost::shared_ptr<build_matrix> M,
-                const params &prm = params(),
+                const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
             : A(Backend::copy_matrix(M, bprm))
