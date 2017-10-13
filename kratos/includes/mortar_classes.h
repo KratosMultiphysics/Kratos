@@ -1307,8 +1307,8 @@ public:
         )
     {
         /* DEFINITIONS */
-        const Vector n1 = rKinematicVariables.NSlave;
-        const double det_j = rKinematicVariables.DetjSlave; 
+        const Vector& n1 = rKinematicVariables.NSlave;
+        const double& det_j = rKinematicVariables.DetjSlave; 
         
         De += rIntegrationWeight * (ComputeDe(n1, det_j));
         Me += rIntegrationWeight * det_j * outer_prod(n1, n1);
@@ -1319,6 +1319,8 @@ public:
      */
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
     {        
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        
         // We compute the norm
         const double norm_me = norm_frobenius(Me);
         
@@ -1326,13 +1328,15 @@ public:
         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
         
         // We compute the normalized inverse
-        double aux_det;
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_me, aux_det, std::numeric_limits<double>::epsilon()); 
+        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_me);
+        if (std::abs(aux_det) >= tolerance)
+        {
+            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_me, aux_det, tolerance); 
+            
+            return (1.0/norm_me) * prod(De, normalized_inv_me);
+        }
         
-        // Now we compute the inverse
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> inv_me = normalized_inv_me/norm_me;
-
-        return prod(De, inv_me);
+        return IdentityMatrix(TNumNodes); 
     }   
     
     /**
@@ -1528,7 +1532,7 @@ public:
         )
     {
         /* DEFINITIONS */
-        const Vector n1 = rKinematicVariables.NSlave;
+        const Vector& n1 = rKinematicVariables.NSlave;
         
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
         

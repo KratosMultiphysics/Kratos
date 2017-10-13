@@ -194,7 +194,7 @@ public:
                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                     
-                    IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
+                    IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_3;
                     
                     const double total_area = master_geometry.Area();
                     double area = 0.0;
@@ -211,7 +211,7 @@ public:
                         // Initialize the mortar operators
                         this_mortar_condition_matrices.Initialize();
                         
-//                         const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
                         
                         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
                         {
@@ -244,8 +244,8 @@ public:
            
                                     /// SLAVE CONDITION ///
                                     slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
-                                    this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
-//                                     this_kinematic_variables.PhiLagrangeMultipliers = prod(Ae, this_kinematic_variables.NSlave);
+//                                     this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
+                                    this_kinematic_variables.PhiLagrangeMultipliers = prod(Ae, this_kinematic_variables.NSlave);
                                     this_kinematic_variables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
 //                                     this_kinematic_variables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
                                     
@@ -485,7 +485,7 @@ private:
 
                     // Integrate
                     const double integration_weight = integration_points_slave[point_number].Weight();
-                    
+
                     Ae_data.CalculateAeComponents(ThisKinematicVariables, integration_weight);
                 }
             }
