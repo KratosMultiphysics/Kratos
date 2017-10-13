@@ -25,13 +25,13 @@
 
 namespace Kratos
 {
-	//const values
-	constexpr int number_of_nodes = 2;
-	constexpr int dimension = 3;
-	constexpr unsigned int local_size = number_of_nodes * dimension;
-
 	class TrussElement3D2N : public Element
 	{
+	private:
+		//const values
+		static constexpr int number_of_nodes = 2;
+		static constexpr int dimension = 3;
+		static constexpr unsigned int local_size = number_of_nodes * dimension;
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
 
@@ -163,7 +163,6 @@ namespace Kratos
 	private:
 		bool mIsCompressed;
 		bool mIsLinearElement = false;
-
 		TrussElement3D2N() {};
 
 		friend class Serializer;

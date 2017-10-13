@@ -95,7 +95,8 @@ namespace Kratos
 
 
 
-	bounded_matrix<double,local_size,local_size> TrussElement3D2N::CreateElementStiffnessMatrix(
+	bounded_matrix<double,TrussElement3D2N::local_size,
+	TrussElement3D2N::local_size> TrussElement3D2N::CreateElementStiffnessMatrix(
 		ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
@@ -202,7 +203,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	bounded_vector<double,local_size> TrussElement3D2N::CalculateBodyForces(){
+	bounded_vector<double,TrussElement3D2N::local_size> TrussElement3D2N::CalculateBodyForces(){
 
 		KRATOS_TRY
 		//getting shapefunctionvalues 
@@ -526,10 +527,13 @@ namespace Kratos
 		return l;
 		KRATOS_CATCH("")
 	}
-	void TrussElement3D2N::UpdateInternalForces(bounded_vector<double,local_size>& rinternalForces){
+	void TrussElement3D2N::UpdateInternalForces(bounded_vector<double,
+		TrussElement3D2N::local_size>& rinternalForces){
 
 		KRATOS_TRY
-		bounded_matrix<double,local_size,local_size> TransformationMatrix = ZeroMatrix(local_size, local_size);
+		bounded_matrix<double,local_size,local_size>
+		 TransformationMatrix = ZeroMatrix(local_size, local_size);
+
 		this->CreateTransformationMatrix(TransformationMatrix);
 		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
 		const double l = this->CalculateCurrentLength();
@@ -556,7 +560,8 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
-	void TrussElement3D2N::CreateTransformationMatrix(bounded_matrix<double,local_size,local_size>& rRotationMatrix){
+	void TrussElement3D2N::CreateTransformationMatrix(bounded_matrix<double,
+		TrussElement3D2N::local_size,TrussElement3D2N::local_size>& rRotationMatrix){
 
 		KRATOS_TRY
 		//1st calculate transformation matrix
@@ -663,7 +668,8 @@ namespace Kratos
 	}
 
 
-	void TrussElement3D2N::CalculateGeometricStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rGeometricStiffnessMatrix,
+	void TrussElement3D2N::CalculateGeometricStiffnessMatrix(bounded_matrix<double,
+		TrussElement3D2N::local_size,TrussElement3D2N::local_size>& rGeometricStiffnessMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
@@ -758,7 +764,8 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void TrussElement3D2N::CalculateElasticStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rElasticStiffnessMatrix,
+	void TrussElement3D2N::CalculateElasticStiffnessMatrix(bounded_matrix<double,
+		TrussElement3D2N::local_size,TrussElement3D2N::local_size>& rElasticStiffnessMatrix,
 		ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
