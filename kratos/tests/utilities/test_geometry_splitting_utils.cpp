@@ -118,29 +118,62 @@ namespace Kratos
 			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -1.0;
 
-			// Compute the triangle intersection
-			bounded_matrix<double, 3, 2> point_coordinates;
-			bounded_matrix<double, 3, 2> continuous_N_gradients;
-			array_1d<double, 3> nodal_distances;
-			array_1d<double, 3> partition_volumes;
-			bounded_matrix<double, 3, 3> gauss_pt_continuous_N_values;
-			array_1d<double, 3> partition_signs;
-			std::vector<Matrix> enriched_N_gradients_values(3);
-			bounded_matrix<double, 3, 3> enriched_N_values;
-			array_1d<double, 3> edge_areas;
+			// Set the elemental distances vector
+			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
-
-			auto rGeom = base_model_part.Elements()[1].GetGeometry();
-			for (unsigned int inode=0; inode<base_model_part.NumberOfNodes(); ++inode)
-			{
-				point_coordinates(inode, 0) = rGeom[inode].X();
-				point_coordinates(inode, 1) = rGeom[inode].Y();
-
-				nodal_distances(inode) = rGeom[inode].FastGetSolutionStepValue(DISTANCE);
+			array_1d<double, 3> distances_vector;
+			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+				distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
 			}
 
-			// TODO: Add splitting and testing
+			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
 
+			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
+
+			// Build the triangle splitting utility
+			TriangleSplittingUtils triangle_splitter(r_geometry, r_elemental_distances);
+
+			// Call the divide geometry method
+			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
+			std::vector < TriangleSplittingUtils::PointGeometryType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::PointGeometryType > negative_subdivisions;
+
+			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
+
+			// Check general splitting values
+			KRATOS_CHECK(is_divided);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mDivisionsNumber, 3);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdgesNumber, 2);
+
+			// Check split edges
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[0],  0);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[1],  1);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[2],  2);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[3],  3);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[4],  4);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[5], -1);
+
+			// Check subdivisions
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].X(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].Y(), 0.0, 1e-5);
+
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].Y(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].Y(), 0.0, 1e-5);
+
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].Y(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].Y(), 0.0, 1e-5);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleNoIntersectionGeometrySplittingUtils, KratosCoreFastSuite)
