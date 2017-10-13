@@ -43,110 +43,61 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
 			// Set the elemental distances vector
-			const Geometry < Node < 3 > > rGeom = base_model_part.Elements()[1].GetGeometry();
+			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
 			array_1d<double, 3> distances_vector;
-			for (unsigned int i = 0; i < rGeom.size(); ++i) {
-				distances_vector(i) = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+				distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
 			}
 
 			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
 
-			const Vector elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
+			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
-			// Compute the triangle intersection
-			// bounded_matrix<double, 3, 2> point_coordinates;
-			// bounded_matrix<double, 3, 2> continuous_N_gradients;
-			// array_1d<double, 3> nodal_distances;
-			// array_1d<double, 3> partition_volumes;
-			// bounded_matrix<double, 3, 3> gauss_pt_continuous_N_values;
-			// array_1d<double, 3> partition_signs;
-			// std::vector<Matrix> enriched_N_gradients_values(3);
-			// bounded_matrix<double, 3, 3> enriched_N_values;
-			// array_1d<double, 3> edge_areas;
+			// Build the triangle splitting utility
+			TriangleSplittingUtils triangle_splitter(r_geometry, r_elemental_distances);
 
+			// Call the divide geometry method
+			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
+			std::vector < TriangleSplittingUtils::PointGeometryType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::PointGeometryType > negative_subdivisions;
 
-			// for (unsigned int inode = 0; inode < base_model_part.NumberOfNodes(); ++inode) {
-			// 	nodal_distances(inode) = rGeom[inode].FastGetSolutionStepValue(DISTANCE);
-			// }
+			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
 
-			TriangleSplittingUtils triangle_splitter(rGeom, elemental_distances);
+			// Check general splitting values
+			KRATOS_CHECK(is_divided);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mDivisionsNumber, 3);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdgesNumber, 2);
 
-			TriangleSplittingUtils::PointsContainerType aux_points_set;
-			std::vector < Geometry < Node < 3 > > > positive_subdivisions;
-			std::vector < Geometry < Node < 3 > > > negative_subdivisions;
+			// Check split edges
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[0],  0);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[1],  1);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[2],  2);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[3], -1);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[4],  4);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[5],  5);
 
-			triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
-			
-			// // Number of divisions check
-			// KRATOS_CHECK_EQUAL(ndivisions, 3);
+			// Check subdivisions
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].Y(), 1.0, 1e-5);
 
-			// // Continuous shape functions derivatives check
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(0,0), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(0,1), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(1,0),  1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(2,1),  1.0, 1e-6);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].X(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].Y(), 0.5, 1e-5);
 
-			// // Partition volumes (areas) check
-			// KRATOS_CHECK_NEAR(partition_volumes(0), 0.250, 1e-6);
-			// KRATOS_CHECK_NEAR(partition_volumes(1), 0.125, 1e-6);
-			// KRATOS_CHECK_NEAR(partition_volumes(2), 0.125, 1e-6);
-			// const double total_volume = partition_volumes(0) + partition_volumes(1) + partition_volumes(2);
-			// KRATOS_CHECK_NEAR(total_volume, 0.5, 1e-6);
-
-			// // Gauss points shape function values check
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,0), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,1), 0.5, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,2), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,0), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,1), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,2), 2.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,0), 0.5, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,1), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,2), 1.0/3.0, 1e-6);
-
-			// // Check partition signs
-			// KRATOS_CHECK_EQUAL(partition_signs(0), -1);
-			// KRATOS_CHECK_EQUAL(partition_signs(1),  1);
-			// KRATOS_CHECK_EQUAL(partition_signs(2), -1);
-
-			// // Check partition gradients values
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,0), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,1), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,0),  1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,1),  1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,0), -2.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,0),  2.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,1),  0.0, 1e-6);
-
-			// // Check enriched shape function partition Gauss pts. values
-			// KRATOS_CHECK_NEAR(enriched_N_values(0,0), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(0,1), 2.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(0,2), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(1,0), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(1,1), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(1,2), 1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(2,0), 2.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(2,1), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(2,2), 0.0, 1e-6);
-
-			// // Check edge areas
-			// KRATOS_CHECK_NEAR(edge_areas(0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
-			// KRATOS_CHECK_NEAR(edge_areas(2), 0.25, 1e-6);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].X(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].Y(), 0.0, 1e-5);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleVerticalGeometrySplittingUtils, KratosCoreFastSuite)
@@ -188,75 +139,8 @@ namespace Kratos
 				nodal_distances(inode) = rGeom[inode].FastGetSolutionStepValue(DISTANCE);
 			}
 
-			// // Number of divisions check
-			// KRATOS_CHECK_EQUAL(ndivisions, 3);
+			// TODO: Add splitting and testing
 
-			// // Continuous shape functions derivatives check
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(0,0), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(0,1), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(1,0),  1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(continuous_N_gradients(2,1),  1.0, 1e-6);
-
-			// // Partition volumes (areas) check
-			// KRATOS_CHECK_NEAR(partition_volumes(0), 0.250, 1e-6);
-			// KRATOS_CHECK_NEAR(partition_volumes(1), 0.125, 1e-6);
-			// KRATOS_CHECK_NEAR(partition_volumes(2), 0.125, 1e-6);
-			// const double total_volume = partition_volumes(0) + partition_volumes(1) + partition_volumes(2);
-			// KRATOS_CHECK_NEAR(total_volume, 0.5, 1e-6);
-
-			// // Gauss points shape function values check
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,0), 0.5, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,1), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,2), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,0), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,1), 2.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,2), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,0), 1.0/6.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,1), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,2), 0.5, 1e-6);
-
-			// // Check partition signs
-			// KRATOS_CHECK_EQUAL(partition_signs(0), -1);
-			// KRATOS_CHECK_EQUAL(partition_signs(1),  1);
-			// KRATOS_CHECK_EQUAL(partition_signs(2), -1);
-
-			// // Check partition gradients values
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,1), -1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,1),  1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,0), -2.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,1), -2.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,0),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,1),  0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,0),  2.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,1),  2.0, 1e-6);
-
-			// // Check enriched shape function partition Gauss pts. values
-			// KRATOS_CHECK_NEAR(enriched_N_values(0,0), 2.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(0,1), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(0,2), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(1,0), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(1,1), 1.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(1,2), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(2,0), 1.0/3.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(2,1), 0.0, 1e-6);
-			// KRATOS_CHECK_NEAR(enriched_N_values(2,2), 2.0/3.0, 1e-6);
-
-			// // Check edge areas
-			// KRATOS_CHECK_NEAR(edge_areas(0), 0.25, 1e-6);
-			// KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
-			// KRATOS_CHECK_NEAR(edge_areas(2),  0.0, 1e-6);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleNoIntersectionGeometrySplittingUtils, KratosCoreFastSuite)
@@ -277,33 +161,33 @@ namespace Kratos
 			base_model_part.Nodes()[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = 1.0;
 
-			// Compute the triangle intersection
-			bounded_matrix<double, 3, 2> point_coordinates;
-			bounded_matrix<double, 3, 2> continuous_N_gradients;
-			array_1d<double, 3> nodal_distances;
-			array_1d<double, 3> partition_volumes;
-			bounded_matrix<double, 3, 3> gauss_pt_continuous_N_values;
-			array_1d<double, 3> partition_signs;
-			std::vector<Matrix> enriched_N_gradients_values(3);
-			bounded_matrix<double, 3, 3> enriched_N_values;
-			array_1d<double, 3> edge_areas;
+			// Set the elemental distances vector
+			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
-
-			auto rGeom = base_model_part.Elements()[1].GetGeometry();
-			for (unsigned int inode=0; inode<base_model_part.NumberOfNodes(); ++inode)
-			{
-				point_coordinates(inode, 0) = rGeom[inode].X();
-				point_coordinates(inode, 1) = rGeom[inode].Y();
-
-				nodal_distances(inode) = rGeom[inode].FastGetSolutionStepValue(DISTANCE);
+			array_1d<double, 3> distances_vector;
+			for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i) {
+				distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
 			}
 
+			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
 
-			// // Number of divisions check
-			// KRATOS_CHECK_EQUAL(ndivisions, 1);
+			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
-			// // Partition volumes (areas) check
-			// KRATOS_CHECK_NEAR(partition_volumes(0), 0.5, 1e-6);
+			// Build the triangle splitting utility
+			TriangleSplittingUtils triangle_splitter(r_geometry, r_elemental_distances);
+
+			// Call the divide geometry method
+			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
+			std::vector < TriangleSplittingUtils::PointGeometryType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::PointGeometryType > negative_subdivisions;
+
+			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
+
+			// Check general splitting values
+			KRATOS_CHECK_IS_FALSE(is_divided);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mDivisionsNumber, 1);
+			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdgesNumber, 0);
+
 		}
 	}
 }  // namespace Kratos.

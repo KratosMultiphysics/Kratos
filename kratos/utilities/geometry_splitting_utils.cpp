@@ -60,7 +60,9 @@ namespace Kratos
     /// GeometrySplittingUtils implementation
     /// Default constructor
     GeometrySplittingUtils::GeometrySplittingUtils(GeometryType& rInputGeometry, Vector& rNodalDistances) :
-        mrInputGeometry(rInputGeometry), mrNodalDistances(rNodalDistances) {};
+        mrInputGeometry(rInputGeometry),
+        mrNodalDistances(rNodalDistances) {
+    };
 
     /// Destructor
     GeometrySplittingUtils::~GeometrySplittingUtils() {};
@@ -102,7 +104,7 @@ namespace Kratos
 
     bool GeometrySplittingUtils::IsSplit() {
         unsigned int n_pos = 0 , n_neg = 0;
-        
+
         for (unsigned int i = 0; i < mrNodalDistances.size(); ++i) {
             if (mrNodalDistances(i) < 0.0) {
                 n_neg++;
@@ -119,25 +121,16 @@ namespace Kratos
     };
 
     void GeometrySplittingUtils::SetIntersectionPointsCondensationMatrix(Matrix& rIntPointCondMatrix,
-                                                                         const int rEdgeNodeI[], 
-                                                                         const int rEdgeNodeJ[], 
-                                                                         const int rSplitEdges[], 
+                                                                         const int mEdgeNodeI[],
+                                                                         const int mEdgeNodeJ[],
+                                                                         const int mSplitEdges[],
                                                                          const unsigned int splitEdgesNumber) {
-        KRATOS_WATCH("Inside SetIntersectionPointsCondensationMatrix")
-        KRATOS_WATCH(mrInputGeometry)
         // Initialize intersection points condensation matrix
-        // const unsigned int nnodes = mrInputGeometry.PointsNumber();
-        // const unsigned int nnodes = mrInputGeometry.size();
-        const unsigned int nnodes = 3;
-        KRATOS_WATCH(nnodes)
-        // const unsigned int nedges = mrInputGeometry.EdgesNumber();
-        const unsigned int nedges = 3;
-        KRATOS_WATCH(nedges)
-        const unsigned int total_nodes = nnodes + splitEdgesNumber;
-        KRATOS_WATCH(total_nodes)
+        const unsigned int nedges = mrInputGeometry.EdgesNumber();
+        const unsigned int nnodes = mrInputGeometry.PointsNumber();
+        const unsigned int nnodes_total = nnodes + splitEdgesNumber;
 
-
-        rIntPointCondMatrix = ZeroMatrix(total_nodes, nnodes);
+        rIntPointCondMatrix = ZeroMatrix(nnodes_total, nnodes);
 
         // Fill the original geometry points main diagonal
         for (unsigned int i = 0; i < nnodes; ++i) {
@@ -145,29 +138,21 @@ namespace Kratos
         }
 
         // Compute the intersection points contributions
-        unsigned int row_count = nnodes;
-        for (unsigned int edge_id = 0; edge_id < nedges; ++edge_id) {
-            const unsigned int aux_count = edge_id + nnodes;
-            KRATOS_WATCH("")
-            KRATOS_WATCH(aux_count)
+        unsigned int row = nnodes;
+        for (unsigned int idedge = 0; idedge < nedges; ++idedge) {
             // Check if the edge has an intersection point
-            if (rSplitEdges[aux_count] != -1) {
+            if (mSplitEdges[nnodes+idedge] != -1) {
                 // Get the nodes that compose the edge
-                const unsigned int edge_node_i = rEdgeNodeI[edge_id];
-                const unsigned int edge_node_j = rEdgeNodeJ[edge_id];
+                const unsigned int edge_node_i = mEdgeNodeI[idedge];
+                const unsigned int edge_node_j = mEdgeNodeJ[idedge];
 
                 // Compute the relative coordinate of the intersection point over the edge
                 const double aux_node_rel_location = std::abs (mrNodalDistances(edge_node_i)/(mrNodalDistances(edge_node_j)-mrNodalDistances(edge_node_i)));
 
-                KRATOS_WATCH(aux_count)
-                KRATOS_WATCH(edge_node_i)
-                KRATOS_WATCH(edge_node_j)
-
                 // Store the relative coordinate values as the original geometry nodes sh. function value in the intersections
-                rIntPointCondMatrix(row_count, edge_node_i) = aux_node_rel_location;
-                rIntPointCondMatrix(row_count, edge_node_j) = 1.0 - aux_node_rel_location;
-
-                row_count++;
+                rIntPointCondMatrix(row, edge_node_i) = aux_node_rel_location;
+                rIntPointCondMatrix(row, edge_node_j) = 1.0 - aux_node_rel_location;
+                row++;
             }
         }
     }
@@ -192,13 +177,13 @@ namespace Kratos
 
     /// Print object's data.
     void TriangleSplittingUtils::PrintData(std::ostream& rOStream) const {
-        GeometryType r_geometry = this->GetInputGeometry();
-        Vector r_nodal_distances = this->GetNodalDistances();
+        const GeometryType geometry = this->GetInputGeometry();
+        const Vector nodal_distances = this->GetNodalDistances();
         rOStream << "Triangle splitting operations utility constructed with:\n";
-        rOStream << "   Geometry type: " << r_geometry.Info() << "\n";
+        rOStream << "   Geometry type: " << geometry.Info() << "\n";
         std::stringstream distances_buffer;
-        for (unsigned int i = 0; i < r_nodal_distances.size(); ++i) {
-            distances_buffer << std::to_string(r_nodal_distances(i)) << " ";
+        for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
+            distances_buffer << std::to_string(nodal_distances(i)) << " ";
         }
         rOStream << "   Distance values: " << distances_buffer.str();
     };
@@ -206,9 +191,9 @@ namespace Kratos
     bool TriangleSplittingUtils::DivideGeometry(IndexedPointsContainerType& rAuxPoints,
                                                 std::vector < PointGeometryType >& rPositiveSubdivisions,
                                                 std::vector < PointGeometryType >& rNegativeSubdivisions) {
+        const GeometryType geometry = this->GetInputGeometry();
+        const Vector nodal_distances = this->GetNodalDistances();
 
-        Vector r_nodal_distances = this->GetNodalDistances();
-        GeometryType r_geometry = this->GetInputGeometry();
         // Fill the auxiliar points vector set
         if (GeometrySplittingUtils::IsSplit()) {
 
@@ -221,7 +206,7 @@ namespace Kratos
 
             // Add the original geometry points
             for (unsigned int i = 0; i < n_nodes; ++i) {
-                const array_1d<double, 3> aux_point_coords = r_geometry[i].Coordinates();
+                const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
                 IndexedPointPointerType paux_point(new IndexedPoint(aux_point_coords, i));
                 rAuxPoints.push_back(paux_point);
             }
@@ -230,20 +215,20 @@ namespace Kratos
             unsigned int aux_node_id = n_nodes;
 
             for(unsigned int idedge = 0; idedge < n_edges; ++idedge) {
-                const unsigned int edge_node_i = mEdgeNodeI[idedge];
-                const unsigned int edge_node_j = mEdgeNodeJ[idedge];
+                const unsigned int edge_node_i = (this->mEdgeNodeI)[idedge];
+                const unsigned int edge_node_j = (this->mEdgeNodeJ)[idedge];
 
                 // Check if the edge is split
-                if(r_nodal_distances(edge_node_i) * r_nodal_distances(edge_node_j) < 0) {
+                if(nodal_distances(edge_node_i) * nodal_distances(edge_node_j) < 0) {
                     // Set the new node id. in the split edge array corresponding slot
-                    mSplitEdges[idedge + n_nodes] = aux_node_id;
+                    (this->mSplitEdges)[idedge + n_nodes] = aux_node_id;
 
                     // Edge nodes coordinates
-                    const array_1d<double, 3> i_node_coords = r_geometry[edge_node_i].Coordinates();
-                    const array_1d<double, 3> j_node_coords = r_geometry[edge_node_j].Coordinates();
+                    const array_1d<double, 3> i_node_coords = geometry[edge_node_i].Coordinates();
+                    const array_1d<double, 3> j_node_coords = geometry[edge_node_j].Coordinates();
 
                     // Compute the coordinates of the point on the edge
-                    const double aux_node_rel_location = std::abs (r_nodal_distances(edge_node_i)/(r_nodal_distances(edge_node_j)-r_nodal_distances(edge_node_i)));
+                    const double aux_node_rel_location = std::abs (nodal_distances(edge_node_i)/(nodal_distances(edge_node_j)-nodal_distances(edge_node_i)));
                     array_1d<double, 3> aux_point_coords;
                     for (unsigned int comp = 0; comp < 3; ++comp) {
                         aux_point_coords(comp) = i_node_coords(comp)*aux_node_rel_location + j_node_coords(comp)*(1.0-aux_node_rel_location);
@@ -259,7 +244,7 @@ namespace Kratos
 
             // Call the splitting mode computation function
             int edge_ids[3];
-            TriangleSplitMode(mSplitEdges, edge_ids);
+            TriangleSplitMode(this->mSplitEdges, edge_ids);
 
             // Call the splitting function
             int t[12];          // Ids of the generated subdivisions
@@ -270,7 +255,7 @@ namespace Kratos
             for (int idivision = 0; idivision < this->mDivisionsNumber; ++idivision) {
                 // Get the subdivision indices
                 int i0, i1, i2;
-                TriangleGetNewConnectivityGID(idivision, t, mSplitEdges, &i0, &i1, &i2);
+                TriangleGetNewConnectivityGID(idivision, t, this->mSplitEdges, &i0, &i1, &i2);
 
                 // Get a pointer to the point objects corresponding to the indices above
                 boost::shared_ptr< Point<3> > p_point_0(new Point<3>((rAuxPoints.find(i0))->Coordinates()));
@@ -278,21 +263,21 @@ namespace Kratos
                 boost::shared_ptr< Point<3> > p_point_2(new Point<3>((rAuxPoints.find(i2))->Coordinates()));
 
                 // Generate a triangle (with the same type as the input one but generated with points) with the subdivision pts.
-	            Geometry< Point<3> >::PointsArrayType PointsArray;
-	            PointsArray.reserve(3);
-                PointsArray.push_back(p_point_0);
-                PointsArray.push_back(p_point_1);
-                PointsArray.push_back(p_point_2);
-                PointGeometryType aux_partition(PointsArray);
+	            PointGeometryType::PointsArrayType points_array;
+	            points_array.reserve(3);
+                points_array.push_back(p_point_0);
+                points_array.push_back(p_point_1);
+                points_array.push_back(p_point_2);
+                PointGeometryType aux_partition(points_array);
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 bool is_positive;
                 if ((i0 == 0) || (i0 == 1) || (i0 == 2)) {
-                    is_positive = r_nodal_distances(i0) < 0.0 ? false : true;
+                    is_positive = nodal_distances(i0) < 0.0 ? false : true;
                 } else if ((i1 == 0) || (i1 == 1) || (i1 == 2)) {
-                    is_positive = r_nodal_distances(i1) < 0.0 ? false : true;
+                    is_positive = nodal_distances(i1) < 0.0 ? false : true;
                 } else {
-                    is_positive = r_nodal_distances(i2) < 0.0 ? false : true;
+                    is_positive = nodal_distances(i2) < 0.0 ? false : true;
                 }
 
                 // Add the generated triangle to its corresponding partition arrays
@@ -306,11 +291,12 @@ namespace Kratos
             // TODO: TEMPORARY HERE FOR DEBUGGING. MOVE TO THE SHAPE FUNCTIONS COMPUTATION SECTION ASAP
             Matrix p_matrix;
             SetIntersectionPointsCondensationMatrix(p_matrix, mEdgeNodeI, mEdgeNodeJ, mSplitEdges, this->mSplitEdgesNumber);
-            KRATOS_WATCH(p_matrix)
 
             return true;
 
         } else {
+            (this->mDivisionsNumber) = 1;
+            (this->mSplitEdgesNumber) = 0;
 
             return false;
         }
