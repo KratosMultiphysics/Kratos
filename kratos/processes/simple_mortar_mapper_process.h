@@ -190,14 +190,14 @@ public:
                 
                 for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
                 {
+                    // Initialize area
+                    double area = 0.0;
+                    
                     Condition::Pointer p_cond_master = (it_pair->first); // MASTER
                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                     
                     IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_3;
-                    
-                    const double total_area = master_geometry.Area();
-                    double area = 0.0;
                     
                     // Reading integration points
                     std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping  
@@ -212,6 +212,11 @@ public:
                         this_mortar_condition_matrices.Initialize();
                         
                         const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                        
+                        const bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = Ae - IdentityMatrix(TNumNodes);
+                        const double norm_aux = norm_frobenius(aux_matrix);
+                        
+                        const bool is_dual = (norm_aux > 0) ? true : false;
                         
                         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
                         {
@@ -246,8 +251,8 @@ public:
                                     slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
 //                                     this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
                                     this_kinematic_variables.PhiLagrangeMultipliers = prod(Ae, this_kinematic_variables.NSlave);
-                                    this_kinematic_variables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
 //                                     this_kinematic_variables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
+                                    this_kinematic_variables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
                                     
                                     /// MASTER CONDITION ///
                                     PointType projected_gp_global;
@@ -270,16 +275,17 @@ public:
                                 }
                             }
                         }
-
+                        
                         // We compute the P operator
                         double aux_det = MathUtils<double>::DetMat<TNumNodes>(this_mortar_condition_matrices.DOperator);
-                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (std::abs(aux_det) < tolerance) ? ZeroMatrix(TNumNodes) : MathUtils<double>::InvertMatrix<TNumNodes>(this_mortar_condition_matrices.DOperator, aux_det, tolerance);
-                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = prod(inv_d_operator, this_mortar_condition_matrices.MOperator); 
+                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (std::abs(aux_det) > tolerance) ? MathUtils<double>::InvertMatrix<TNumNodes>(this_mortar_condition_matrices.DOperator, aux_det, tolerance) : ZeroMatrix(TNumNodes);
+//                         const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (is_dual == true) ? FastInverse(this_mortar_condition_matrices.DOperator) : (std::abs(aux_det) > tolerance) ? MathUtils<double>::InvertMatrix<TNumNodes>(this_mortar_condition_matrices.DOperator, aux_det, tolerance) : ZeroMatrix(TNumNodes);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator =prod(inv_d_operator, this_mortar_condition_matrices.MOperator); 
                         
                         Matrix var_origin_matrix;
                         MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinationVariable, var_origin_matrix);
         
-                        const Matrix var_destiny_matrix = (area/total_area) * prod(p_operator, var_origin_matrix);
+                        const Matrix var_destiny_matrix = (area/master_geometry.Area()) * prod(p_operator, var_origin_matrix);
                         MortarUtilities::AddValue<TVarType, THist>(master_geometry, mDestinationVariable, var_destiny_matrix);
                     }
                 }
@@ -492,6 +498,23 @@ private:
         }
         
         return Ae_data.CalculateAe();
+    }
+        
+    /**
+     * This method inverts a diagonal matrix
+     * @param InputMatrix: The matrix to InvertMatrix
+     * @return The matrix inverted
+     */
+    bounded_matrix<double, TNumNodes, TNumNodes> FastInverse(bounded_matrix<double, TNumNodes, TNumNodes> InputMatrix)
+    {
+        bounded_matrix<double, TNumNodes, TNumNodes> inv_matrix = ZeroMatrix(TNumNodes);
+        
+        for (std::size_t i = 0; i < TNumNodes; ++i)
+        {
+            inv_matrix(i, i) = 1.0/InputMatrix(i, i);
+        }
+        
+        return inv_matrix;
     }
         
     ///@}
