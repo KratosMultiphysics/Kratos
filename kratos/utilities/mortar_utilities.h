@@ -189,7 +189,7 @@ public:
         
         bounded_matrix<double,2,2> X;
         bounded_matrix<double,2,1> DN;
-        for(unsigned int i=0; i<2;i++)
+        for(unsigned int i=0; i<2;++i)
         {
             X(0,i) = GeomOrigin[i].X();
             X(1,i) = GeomOrigin[i].Y();
@@ -201,7 +201,7 @@ public:
 
         const unsigned int max_iter = 20;
 
-        for ( unsigned int k = 0; k < max_iter; k++ )
+        for ( unsigned int k = 0; k < max_iter; ++k )
         {
             array_1d<double, 2> N_origin;
             N_origin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
@@ -348,7 +348,7 @@ public:
         
         if (Inversed == false)
         {
-            for (unsigned int i = 0; i < 3; i++)
+            for (unsigned int i = 0; i < 3; ++i)
             {
                 rotation_matrix(0, i) = SlaveTangentXi[i];
                 rotation_matrix(1, i) = SlaveTangentEta[i];
@@ -356,7 +356,7 @@ public:
         }
         else
         {
-            for (unsigned int i = 0; i < 3; i++)
+            for (unsigned int i = 0; i < 3; ++i)
             {
                 rotation_matrix(i, 0) = SlaveTangentXi[i];
                 rotation_matrix(i, 1) = SlaveTangentEta[i];
@@ -403,7 +403,7 @@ public:
         /* DEFINITIONS */            
         bounded_matrix<double, TNumNodes, TDim> coordinates;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             array_1d<double, 3> coord;
             
@@ -421,7 +421,7 @@ public:
                 }
             }
 
-            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
+            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
             {
                 coordinates(i_node, i_dof) = coord[i_dof];
             }
@@ -448,7 +448,7 @@ public:
         /* DEFINITIONS */        
         array_1d<double, TNumNodes> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             var_vector[i_node] = nodes[i_node].FastGetSolutionStepValue(rVariable, step);
         }
@@ -474,7 +474,7 @@ public:
         /* DEFINITIONS */        
         bounded_matrix<double, TNumNodes, 1> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             var_vector(i_node, 0) = nodes[i_node].FastGetSolutionStepValue(rVariable, step);
         }
@@ -498,7 +498,7 @@ public:
         /* DEFINITIONS */        
         array_1d<double, TNumNodes> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             var_vector[i_node] = nodes[i_node].GetValue(rVariable);
         }
@@ -522,7 +522,7 @@ public:
         /* DEFINITIONS */        
         bounded_matrix<double, TNumNodes, 1> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             var_vector(i_node, 0) = nodes[i_node].GetValue(rVariable);
         }
@@ -548,10 +548,10 @@ public:
         /* DEFINITIONS */        
         Matrix var_matrix(TNumNodes, TDim);
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, step);
-            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
+            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
             {
                 var_matrix(i_node, i_dof) = value[i_dof];
             }
@@ -576,10 +576,10 @@ public:
         /* DEFINITIONS */        
         Matrix var_matrix(TNumNodes, TDim);
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
             const array_1d<double, 3>& value = Nodes[i_node].GetValue(rVariable);
-            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
+            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
             {
                 var_matrix(i_node, i_dof) = value[i_dof];
             }
@@ -600,9 +600,9 @@ public:
         /* DEFINITIONS */        
         bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
+            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
             {
                 AbsMatrix(i_node, i_dof) = std::abs(InputMatrix(i_node, i_dof));
             }
@@ -657,7 +657,7 @@ inline void MortarUtilities::ResetValue<Variable<double>, Historical>(
         Variable<double>& ThisVariable
         )
 {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) = 0.0;
     }
@@ -669,7 +669,7 @@ inline void MortarUtilities::ResetValue<component_type, Historical>(
         component_type& ThisVariable
         )
 {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) = 0.0;
     }
@@ -681,7 +681,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historica
         Variable<array_1d<double, 3>>& ThisVariable
         )
 {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         auto& aux_value = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
         noalias(aux_value) = ZeroVector(3);
@@ -694,7 +694,7 @@ inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
         Variable<double>& ThisVariable
         )
 {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisGeometry[i_node].SetValue(ThisVariable, 0.0);
     }
@@ -706,7 +706,7 @@ inline void MortarUtilities::ResetValue<component_type, NonHistorical>(
         component_type& ThisVariable
         )
 {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisGeometry[i_node].SetValue(ThisVariable, 0.0);
     }
@@ -718,7 +718,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
         Variable<array_1d<double, 3>>& ThisVariable
         )
 {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         auto& aux_value = ThisGeometry[i_node].GetValue(ThisVariable);
         noalias(aux_value) = ZeroVector(3);
@@ -736,7 +736,7 @@ inline void MortarUtilities::MatrixValue<Variable<double>, Historical>(
     {
         ThisValue.resize(ThisGeometry.size(), 1, false);
     }
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisValue(i_node, 0) = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
     }
@@ -753,7 +753,7 @@ inline void MortarUtilities::MatrixValue<component_type, Historical>(
     {
         ThisValue.resize(ThisGeometry.size(), 1, false);
     }
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisValue(i_node, 0) = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
     }
@@ -770,7 +770,7 @@ inline void MortarUtilities::MatrixValue<Variable<array_1d<double, 3>>, Historic
     {
         ThisValue.resize(ThisGeometry.size(), ThisGeometry.WorkingSpaceDimension(), false);
     }
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         row(ThisValue, i_node) = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
     }
@@ -786,7 +786,7 @@ inline void MortarUtilities::MatrixValue<Variable<double>, NonHistorical>(
     {
         ThisValue.resize(ThisGeometry.size(), 1, false);
     }
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisValue(i_node, 0) = ThisGeometry[i_node].GetValue(ThisVariable);
     }
@@ -803,7 +803,7 @@ inline void MortarUtilities::MatrixValue<component_type, NonHistorical>(
     {
         ThisValue.resize(ThisGeometry.size(), 1, false);
     }
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         ThisValue(i_node, 0) = ThisGeometry[i_node].GetValue(ThisVariable);
     }
@@ -820,7 +820,7 @@ inline void MortarUtilities::MatrixValue<Variable<array_1d<double, 3>>, NonHisto
     {
         ThisValue.resize(ThisGeometry.size(), ThisGeometry.WorkingSpaceDimension(), false);
     }
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         row(ThisValue, i_node) = ThisGeometry[i_node].GetValue(ThisVariable);
     }
@@ -835,7 +835,7 @@ inline void MortarUtilities::AddValue<Variable<double>, Historical>(
 {
     const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
@@ -851,7 +851,7 @@ inline void MortarUtilities::AddValue<component_type, Historical>(
 {
     const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
@@ -867,7 +867,7 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, Historical>
 {
     const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         auto& aux_vector = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
@@ -883,7 +883,7 @@ inline void MortarUtilities::AddValue<Variable<double>, NonHistorical>(
 {
     const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         ThisGeometry[i_node].GetValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
@@ -899,7 +899,7 @@ inline void MortarUtilities::AddValue<component_type, NonHistorical>(
 {
     const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         ThisGeometry[i_node].GetValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
@@ -915,7 +915,7 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, NonHistoric
 {
     const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); i_node++)
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
         auto& aux_vector = ThisGeometry[i_node].GetValue(ThisVariable);

@@ -90,17 +90,17 @@ public:
         TVarType& ThisVariable
         ): mrThisModelPart(rThisModelPart),
            mOriginVariable(ThisVariable),
-           mDestinyVariable(ThisVariable)
+           mDestinationVariable(ThisVariable)
     {
     }
     
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
         TVarType& OriginVariable,
-        TVarType& DestinyVariable
+        TVarType& DestinationVariable
         ): mrThisModelPart(rThisModelPart),
            mOriginVariable(OriginVariable),
-           mDestinyVariable(DestinyVariable)
+           mDestinationVariable(DestinationVariable)
     {
     }
 
@@ -142,7 +142,8 @@ public:
         KRATOS_TRY;
 
         // Defining tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
+        const double tolerance = 1.0e-15;
+//         const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We compute the nodal area
         ComputeNodalArea();
@@ -157,7 +158,7 @@ public:
         ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
         
         // Initialize to zero // TODO: Add OMP
-        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); i++)
+        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
         {
             auto it_cond = mrThisModelPart.ConditionsBegin() + i;
             
@@ -170,13 +171,13 @@ public:
                     Condition::Pointer p_cond_master = (it_pair->first); // MASTER
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
                     
-                    MortarUtilities::ResetValue<TVarType, THist>(master_geometry, mDestinyVariable);
+                    MortarUtilities::ResetValue<TVarType, THist>(master_geometry, mDestinationVariable);
                 }
             }
         }
         
         // We map the values from one side to the other // TODO: Add OMP
-        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); i++)
+        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
         {
             auto it_cond = mrThisModelPart.ConditionsBegin() + i;
             
@@ -192,14 +193,14 @@ public:
                     Condition::Pointer p_cond_master = (it_pair->first); // MASTER
                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     GeometryType& master_geometry = p_cond_master->GetGeometry();
-                        
-                    const double total_master_area = master_geometry.Area();
-                    double master_area = 0.0;
                     
                     IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
                     
+                    const double total_area = master_geometry.Area();
+                    double area = 0.0;
+                    
                     // Reading integration points
-                    std::vector<array_1d<PointType,TDim>> conditions_points_slave;
+                    std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping  
                     const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
                     
                     if (is_inside == true)
@@ -212,10 +213,10 @@ public:
                         
 //                         const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
                         
-                        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
+                        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
                         {
                             std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                            for (unsigned int i_node = 0; i_node < TDim; i_node++)
+                            for (unsigned int i_node = 0; i_node < TDim; ++i_node)
                             {
                                 PointType global_point;
                                 slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
@@ -228,12 +229,12 @@ public:
                             
                             if (bad_shape == false)
                             {
-                                master_area += decomp_geom.Area();
+                                area += decomp_geom.Area();
                                 
                                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                                 
                                 // Integrating the mortar operators
-                                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+                                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number )
                                 {
                                     const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
                                     PointType local_point_parent;
@@ -276,10 +277,10 @@ public:
                         const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = prod(inv_d_operator, this_mortar_condition_matrices.MOperator); 
                         
                         Matrix var_origin_matrix;
-                        MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
+                        MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinationVariable, var_origin_matrix);
         
-                        const Matrix var_destiny_matrix = (master_area/total_master_area) * prod(p_operator, var_origin_matrix);
-                        MortarUtilities::AddValue<TVarType, THist>(master_geometry, mDestinyVariable, var_destiny_matrix);
+                        const Matrix var_destiny_matrix = (area/total_area) * prod(p_operator, var_origin_matrix);
+                        MortarUtilities::AddValue<TVarType, THist>(master_geometry, mDestinationVariable, var_destiny_matrix);
                     }
                 }
             }
@@ -294,7 +295,7 @@ public:
     void SetVariable(TVarType ThisVariable)
     {
         mOriginVariable = ThisVariable;
-        mDestinyVariable = ThisVariable;
+        mDestinationVariable = ThisVariable;
     }
     
     /**
@@ -302,11 +303,11 @@ public:
      */
     void SetVariables(
         TVarType OriginVariable,
-        TVarType DestinyVariable
+        TVarType DestinationVariable
         )
     {
         mOriginVariable = OriginVariable;
-        mDestinyVariable = DestinyVariable;
+        mDestinationVariable = DestinationVariable;
     }
     
     ///@}
@@ -382,9 +383,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrThisModelPart; // The model part to compute
-    TVarType mOriginVariable;   // The origin variable to map
-    TVarType mDestinyVariable;  // The destiny variable to map
+    ModelPart& mrThisModelPart;     // The model part to compute
+    TVarType mOriginVariable;       // The origin variable to map
+    TVarType mDestinationVariable;  // The destiny variable to map
 
     ///@}
     ///@name Private Operators
@@ -404,7 +405,7 @@ private:
         
         // We set to zero
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; i++) 
+        for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             it_node->SetValue(NODAL_AREA, 0.0);
@@ -415,14 +416,14 @@ private:
         const int num_conditions = static_cast<int>(conditions_array.size());
         
         #pragma omp parallel for
-        for(int i = 0; i < num_conditions; i++) 
+        for(int i = 0; i < num_conditions; ++i) 
         {
             auto it_cond = conditions_array.begin() + i;
             
             const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
             const double& rArea = it_cond->GetGeometry().Area()/number_nodes;
             
-            for (unsigned int i = 0; i < number_nodes; i++)
+            for (unsigned int i = 0; i < number_nodes; ++i)
             {
                 #pragma omp atomic
                 it_cond->GetGeometry()[i].GetValue(NODAL_AREA) += rArea;
@@ -452,10 +453,10 @@ private:
         // Initialize general variables for the current master element
         ThisKinematicVariables.Initialize();
         
-        for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
+        for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom)
         {
             std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-            for (unsigned int i_node = 0; i_node < TDim; i_node++)
+            for (unsigned int i_node = 0; i_node < TDim; ++i_node)
             {
                 PointType global_point;
                 SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
@@ -471,7 +472,7 @@ private:
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                 
                 // Integrating the mortar operators
-                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number )
                 {
                     const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
                     PointType local_point_parent;
