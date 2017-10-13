@@ -1,0 +1,71 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      1670,         62]
+NotebookOptionsPosition[      1330,         45]
+NotebookOutlinePosition[      1667,         60]
+CellTagsIndexPosition[      1624,         57]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"A", "=", 
+   RowBox[{
+   "Import", "[", 
+    "\"\</home/mossaiby/kratos/applications/OpenCLapplication/custom_\
+utilities/opencl_spmv/B_0.mm\>\"", "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.522407193228401*^9, 3.522407197582423*^9}, {
+   3.522407245491798*^9, 3.5224072589575033`*^9}, 3.525162971626389*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Transpose", "[", "A", "]"}], ".", "A"}]], "Input",
+ CellChangeTimes->{{3.522407261306202*^9, 3.522407262186123*^9}, {
+  3.525162981020587*^9, 3.525163012630557*^9}, {3.525163198554739*^9, 
+  3.5251632003726*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", "0.011946553458933534`", "}"}], "}"}]], "Output",
+ CellChangeTimes->{3.525163203116996*^9}]
+}, Open  ]]
+},
+WindowSize->{740, 575},
+WindowMargins->{{Automatic, 113}, {Automatic, 61}},
+FrontEndVersion->"8.0 for Linux x86 (64-bit) (November 7, 2010)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 347, 8, 88, "Input"],
+Cell[CellGroupData[{
+Cell[929, 32, 247, 5, 30, "Input"],
+Cell[1179, 39, 135, 3, 30, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -1,0 +1,209 @@
+BOOK:Solids 
+NUMBER: 1 MATERIAL: TrussProperties
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: TrussMaterial
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 1000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl) 
+END MATERIAL
+NUMBER: 2 MATERIAL: TutorialDamageModel
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: TutorialDamageModel
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 2200.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 20000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl) 
+QUESTION: E0
+VALUE: 1.0e-4
+HELP: strain value of initial damage
+QUESTION: Ef
+VALUE: 2.0e-4
+END MATERIAL  
+NUMBER: 3 MATERIAL: Isotropic3D
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: Isotropic3D
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl) 
+END MATERIAL
+NUMBER: 4 MATERIAL: DruckerPrager
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: DruckerPrager
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 2000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 10000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl) 
+QUESTION: phiCS#UNITS#
+VALUE: 10kN/m^2
+QUESTION: lambda#UNITS#
+VALUE: 30deg
+QUESTION: Isotropic_hardening_modulus#UNITS#
+VALUE: 100N/mm^2
+END MATERIAL
+NUMBER: 5 MATERIAL: GroutingMortar
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: GroutingMortar
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 5.25N/mm^2
+HELP: elastic stiffness modulus after 28 days
+QUESTION: Poisson_ratio
+VALUE: 0.45
+HELP: poisson ratio after 28 days
+QUESTION: prim_hyd_time#UNITS#
+VALUE: 8.0h
+HELP: Duration of first hydration period
+QUESTION: gradient_prim_hyd_time#UNITS#
+VALUE: 6.0h
+HELP: Gradient at the end of the first hydration period
+QUESTION: E_ratio
+VALUE: 0.6
+HELP: ratio between E-modulus after 1d and 28d
+END MATERIAL
+NUMBER: 6 MATERIAL: UserDefined
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: UserDefined
+STATE: HIDDEN
+END MATERIAL
+NUMBER: 7 MATERIAL: FreezingSoilConstitutiveModel
+QUESTION: ConstitutiveLaw#CB#(TrussMaterial,TutorialDamageModel,Isotropic3D,DruckerPrager,GroutingMortar,UserDefined,FreezingSoilConstitutiveModel)
+VALUE: FreezingSoilConstitutiveModel
+STATE: HIDDEN
+QUESTION: Porosity
+VALUE: 0.41
+QUESTION: Permeability
+VALUE: 2.41e-4
+HELP: m/s -> equivalent to 10^-12 m^2
+QUESTION: tstar
+VALUE: 1
+QUESTION: m
+VALUE: 0.7
+QUESTION: rhoS0
+VALUE: 2650
+QUESTION: rhoL0
+VALUE: 1000
+STATE: HIDDEN
+QUESTION: rhoC0
+VALUE: 917
+STATE: HIDDEN
+QUESTION: kS
+VALUE: 50e+9
+QUESTION: kL
+VALUE: 2.2e+9
+STATE: HIDDEN
+QUESTION: kC
+VALUE: 8.6e+9
+STATE: HIDDEN
+QUESTION: gS
+VALUE: 37.5e+9
+QUESTION: gL
+VALUE: 0.1e+9
+STATE: HIDDEN
+QUESTION: gC
+VALUE: 3.4e+9
+STATE: HIDDEN
+QUESTION: cS
+VALUE: 900
+QUESTION: cL
+VALUE: 4180
+STATE: HIDDEN
+QUESTION: cC
+VALUE: 2100
+STATE: HIDDEN
+QUESTION: lambdaS
+VALUE: 1.8
+QUESTION: lambdaL
+VALUE: 0.56
+STATE: HIDDEN
+QUESTION: lambdaC
+VALUE: 2.24
+STATE: HIDDEN
+QUESTION: alphaS 
+VALUE: 18e-6
+QUESTION: alphaL
+VALUE: 0.0e-6 
+QUESTION: alphaC 
+#VALUE: 51.67e-6 
+VALUE: 0.0e-6
+QUESTION: Tf
+VALUE: 273
+STATE: HIDDEN
+QUESTION: Sf
+VALUE: 1.2e+6
+STATE: HIDDEN
+#QUESTION: etaL
+#VALUE: 1.79e-3
+QUESTION: Scale_Factor_U
+VALUE: 1.0
+QUESTION: Scale_Factor_O
+VALUE: 1.0
+QUESTION: Unit_Convertor
+VALUE: 1000
+HELP: 1 for m, 1000 for mm
+QUESTION: Numerical_Delta_Factor
+VALUE: 1e-10
+STATE: HIDDEN
+HELP: numerical delta factor for choosing vicinity point
+QUESTION: Density
+VALUE: 1.0
+STATE: HIDDEN
+QUESTION: Young_modulus
+VALUE: 50e+6
+STATE: HIDDEN
+QUESTION: MaterialLaw#CB#(ClayAndSandModel,ModifiedBarcelonaBasicModel,FreezingSoilElastoplasticModel,FreezingSoilElastoviscoplasticModel)
+VALUE: FreezingSoilElastoplasticModel
+DEPENDENCIES:(ClayAndSandModel,RESTORE,MSL,#CURRENT#,RESTORE,Poisson_ratio,#CURRENT#,RESTORE,lambda,#CURRENT#,RESTORE,kappa,#CURRENT#,RESTORE,phiCS,#CURRENT#,RESTORE,nn,#CURRENT#,RESTORE,rr,#CURRENT#,RESTORE,p0,#CURRENT#,RESTORE,pi,#CURRENT#,HIDE,MSC,#CURRENT#)(ModifiedBarcelonaBasicModel,RESTORE,MSL,#CURRENT#,RESTORE,Poisson_ratio,#CURRENT#,RESTORE,lambda,#CURRENT#,RESTORE,kappa,#CURRENT#,RESTORE,phiCS,#CURRENT#,RESTORE,nn,#CURRENT#,RESTORE,rr,#CURRENT#,RESTORE,p0,#CURRENT#,RESTORE,pi,#CURRENT#,RESTORE,MSC,#CURRENT#)(FreezingSoilElastoplasticModel,HIDE,MSL,#CURRENT#,RESTORE,Poisson_ratio,#CURRENT#,RESTORE,lambda,#CURRENT#,RESTORE,kappa,#CURRENT#,RESTORE,phiCS,#CURRENT#,RESTORE,nn,#CURRENT#,RESTORE,rr,#CURRENT#,RESTORE,p0,#CURRENT#,RESTORE,pi,#CURRENT#,HIDE,MSC,#CURRENT#)(FreezingSoilElastoviscoplasticModel,RESTORE,MSL,#CURRENT#,RESTORE,Poisson_ratio,#CURRENT#,RESTORE,lambda,#CURRENT#,RESTORE,kappa,#CURRENT#,RESTORE,phiCS,#CURRENT#,RESTORE,nn,#CURRENT#,RESTORE,rr,#CURRENT#,RESTORE,p0,#CURRENT#,RESTORE,pi,#CURRENT#,RESTORE,MSC,#CURRENT#)
+QUESTION: MSL
+VALUE: 1.2
+HELP: slope of critical state line for unfrozen state
+QUESTION: Poisson_ratio
+VALUE: 0.3
+QUESTION: lambda
+VALUE: 0.2
+HELP: slope of virgin copmression line
+QUESTION: kappa
+VALUE: 0.02
+HELP: slope of un- and reloading line 
+QUESTION: phiCS
+VALUE: 22
+HELP: friction Angle 
+QUESTION: nn
+VALUE: 1.5
+HELP: shape parameter
+QUESTION: rr
+VALUE: 2.0
+HELP: spacing ratio
+QUESTION: p0
+VALUE: 60e+3
+HELP: preconsolidation pressure in Pa
+QUESTION: pi
+VALUE: 40e+3
+HELP: prehydrostatic pressure in Pa
+QUESTION: MSC
+VALUE: 1.2
+HELP: slope of frozen soil
+END MATERIAL  

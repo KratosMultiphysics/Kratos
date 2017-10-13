@@ -1,0 +1,50 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties  1
+DENSITY 0.000000
+YOUNG_MODULUS 1000000.000000
+POISSON_RATIO 0.250000
+BODY_FORCE [3] (0.000000,0.000000,0.000000)
+THICKNESS 0.001000
+End Properties
+
+
+Begin Nodes
+1           0.24000           0.12000           0.00000
+2           0.16000           0.08000           0.00000
+3           0.18000           0.03000           0.00000
+4           0.24000           0.00000           0.00000
+5           0.08000           0.08000           0.00000
+6           0.04000           0.02000           0.00000
+7           0.00000           0.12000           0.00000
+8           0.00000           0.00000           0.00000
+End Nodes
+
+Begin Elements TotalLagrangian2D4N
+1 1        5        7        8        6
+2 1        1        7        5        2
+3 1        3        2        5        6
+4 1        8        4        3        6
+5 1        1        2        3        4
+End Elements
+
+
+
+Begin NodalData DISPLACEMENT_X
+1 1 0.000300
+4 1 0.000240
+7 1 0.000060
+8 1 0.000000
+End NodalData
+
+Begin NodalData DISPLACEMENT_Y
+1 1 0.000240
+4 1 0.000120
+7 1 0.000120
+8 1 0.000000
+End NodalData
+
+
+

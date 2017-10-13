@@ -1,0 +1,43 @@
+TODO: input for jack positions
+
+steering_utility= SteeringUtility()
+
+jack_locations= []
+jack_locations.append(0.0)
+jack_locations.append(0.1)
+jack_locations.append(0.1)
+
+jack_locations.append(0.0)
+jack_locations.append(0.1)
+jack_locations.append(0.5)
+
+jack_locations.append(0.0)
+jack_locations.append(0.5)
+jack_locations.append(0.1)
+
+jack_locations.append(0.0)
+jack_locations.append(0.9)
+jack_locations.append(0.1)
+
+jack_locations.append(0.0)
+jack_locations.append(0.9)
+jack_locations.append(0.5)
+
+jack_locations.append(0.0)
+jack_locations.append(0.1)
+jack_locations.append(0.9)
+
+jack_locations.append(0.0)
+jack_locations.append(0.5)
+jack_locations.append(0.9)
+
+jack_locations.append(0.0)
+jack_locations.append(0.9)
+jack_locations.append(0.9)
+
+steering_utility.InitializeSteeringUtility(model_part, jack_locations, len(jack_locations))
+print("steering_utility.InitializeSteeringUtility(...)")
+steering_utility.SetHydraulicJacks(model_part)
+print("steering_utility.SetHydraulicJacks(...)")
+
+steering_utility.Move(0.4, model_part)

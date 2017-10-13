@@ -1,0 +1,60 @@
+BeginZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/pure_convection_3d.gid/pure_convection_3d_0.post.vv
+   x -1.62482 1.62482
+   y 0.866026 -0.866026
+   z -2.59808 2.59808
+   e 0.866025
+   v 0.276847 0.437215 0.719119
+   r 0.463752
+   m -0.416579 -0.424903 0.803691 0 0.90907 -0.187553 0.372043 0 -0.00734721 0.885597 0.464397 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector -9.375 -11.4565 149.474 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/pure_convection_3d.gid/pure_convection_3d_0.post.vv
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 1
+  Mesh: 0
+  State: On
+    Name: "Kratos_Tetrahedra3D4_Mesh"
+    IdSet: 0
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.1 0.1 0.1 0.5
+    Color Specular: 0.7 0.7 0.7 0.5
+    Color Shininess: 0.3
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 14
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 332} {Display Vectors} Kratos 31.384500503540039 VELOCITY |VELOCITY| 0.24494896829128265 4 0
+EndPostState
+

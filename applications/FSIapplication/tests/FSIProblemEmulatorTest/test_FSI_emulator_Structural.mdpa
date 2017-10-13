@@ -1,0 +1,86 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+    THICKNESS 1.00000E+00
+    DENSITY   5.00000E+03 
+    YOUNG_MODULUS   2.50000E+06 
+    POISSON_RATIO   3.00000E-01 
+End Properties
+
+Begin Nodes
+    2        0.50000        1.00000        0.00000
+    5        0.50000        0.50000        0.00000
+    7        0.00000        1.00000        0.00000
+    9        0.50000        0.00000        0.00000
+   11        0.00000        0.50000        0.00000
+   12        0.00000        0.00000        0.00000
+End Nodes
+
+
+Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Solid
+         1          1          5         11         12          9 
+         2          1          2          7         11          5 
+End Elements
+
+Begin Conditions PointLoadCondition2D1N// GUI group identifier: Point_load
+1 0 7
+End Conditions
+
+Begin Conditions Condition2D2N// GUI group identifier: Solid_interface
+2 0 9 5
+3 0 5 2
+End Conditions
+
+Begin SubModelPart Parts_Solid // Group Solid // Subtree Parts
+    Begin SubModelPartNodes
+         2
+         5
+         7
+         9
+        11
+        12
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_BC // Group Displacement_BC // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         9
+        12
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad2D_Point_load // Group Point_load // Subtree PointLoad2D
+    Begin SubModelPartNodes
+         7
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart StructureInterface2D_Solid_interface // Group Solid_interface // Subtree StructureInterface2D
+    Begin SubModelPartNodes
+         2
+         5
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         2
+         3
+    End SubModelPartConditions
+End SubModelPart

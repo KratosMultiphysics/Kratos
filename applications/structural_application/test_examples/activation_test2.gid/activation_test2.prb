@@ -1,0 +1,139 @@
+PROBLEM DATA
+TITLE: Gravity
+QUESTION: Enable_Gravity#CB#(0,1)
+VALUE: 1
+DEPENDENCIES: (0,HIDE,Gravity_X,#CURRENT#,HIDE,Gravity_Y,#CURRENT#,HIDE,Gravity_Z,#CURRENT#)(1,RESTORE,Gravity_X,#CURRENT#,RESTORE,Gravity_Y,#CURRENT#,RESTORE,Gravity_Z,#CURRENT#)
+QUESTION: Gravity_X
+VALUE: 0.0
+QUESTION: Gravity_Y
+VALUE: -9.81
+QUESTION: Gravity_Z
+VALUE: 0.0
+HELP: Gravity direction
+image: images/Data.gif
+TITLE: Simulation
+QUESTION: Parallel_Execution#CB#(0,1)
+VALUE: 0
+HELP: Run the simulation using parallelization techniques
+QUESTION: Calculate_Insitu_Stress#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Max_Number_Of_Iterations,#CURRENT#)(1,RESTORE,Max_Number_Of_Iterations,#CURRENT#)
+HELP: Switch on/off the preliminary calculation of insitu stress
+QUESTION: Max_Number_Of_Iterations
+VALUE: 20
+QUESTION: Simulation_Script#CB#(standard,custom,restart)
+VALUE: custom
+HELP: Standard simulation (only time steps) or custom program
+QUESTION: Prescribed_Water_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Water_Level,#CURRENT#)(1,RESTORE,Water_Level,#CURRENT#)
+QUESTION: Water_Level#UNITS#
+VALUE: 0m
+HELP: z-Coordinate of Ground water level
+TITLE: Time_Integration
+QUESTION: time_step_length
+VALUE: 1
+HELP: Length of time steps
+QUESTION: time_steps
+VALUE: 1
+HELP: number of time steps
+TITLE: Contact
+QUESTION: Perform_Contact_Analysis#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Penalty_Value,#CURRENT#,HIDE,Max_Uzawa_Iterations,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#,HIDE,Friction_Penalty_Value,#CURRENT#,HIDE,Bilateral_Contact,#CURRENT#,HIDE,Ramp_Penalties,#CURRENT#)(1,RESTORE,Penalty_Value,#CURRENT#,RESTORE,Max_Uzawa_Iterations,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#,RESTORE,Friction_Penalty_Value,#CURRENT#,RESTORE,Bilateral_Contact,#CURRENT#,RESTORE,Ramp_Penalties,#CURRENT#)
+QUESTION: Penalty_Value
+VALUE: 1.0e+10
+HELP: Choose penalty value for contact problems.
+QUESTION: Max_Uzawa_Iterations
+VALUE: 25
+HELP: Choose maximum number of iterations for contact solution
+QUESTION: Friction_Coefficient
+VALUE: 0.0
+HELP: Enter friction coefficient > 0.0 for frictional contact
+QUESTION: Friction_Penalty_Value
+VALUE: 1.0e+05
+HELP: Choose penalty value for frictional contact problems.
+QUESTION: Bilateral_Contact#CB#(0,1)
+VALUE: 0
+HELP: Select to enable additionally reverse contact formulation
+QUESTION: Ramp_Penalties#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Ramp_Criterion,#CURRENT#,HIDE,Ramp_Factor,#CURRENT#,HIDE,Maximum_Penalty,#CURRENT#,HIDE,Friction_Ramp_Criterion,#CURRENT#,HIDE,Friction_Ramp_Factor,#CURRENT#,HIDE,Friction_Maximum_Penalty,#CURRENT#)(1,RESTORE,Ramp_Criterion,#CURRENT#,RESTORE,Ramp_Factor,#CURRENT#,RESTORE,Maximum_Penalty,#CURRENT#,RESTORE,Friction_Ramp_Criterion,#CURRENT#,RESTORE,Friction_Ramp_Factor,#CURRENT#,RESTORE,Friction_Maximum_Penalty,#CURRENT#)
+QUESTION: Ramp_Criterion
+VALUE: 1.0
+QUESTION: Ramp_Factor
+VALUE: 1.0
+QUESTION: Maximum_Penalty
+VALUE: 1.0e+10
+QUESTION: Friction_Ramp_Criterion
+VALUE: 1.0
+QUESTION: Friction_Ramp_Factor
+VALUE: 1.0
+QUESTION: Friction_Maximum_Penalty
+VALUE: 1.0e+05
+TITLE: Numerics
+QUESTION: Solver#CB#(BiCGStabLinearSolver,CGLinearSolver,MGMRESSolver,SuperLU,SkylineLUFactorizationSolver)
+VALUE: CGLinearSolver
+DEPENDENCIES: (BiCGStabLinearSolver,RESTORE,Max_Solver_Iterations,#CURRENT#,RESTORE,Solver_Tolerance,#CURRENT#)(CGLinearSolver,RESTORE,Max_Solver_Iterations,#CURRENT#,RESTORE,Solver_Tolerance,#CURRENT#)(MGMRESSolver,RESTORE,Max_Solver_Iterations,#CURRENT#,RESTORE,Solver_Tolerance,#CURRENT#)(SuperLU,HIDE,Max_Solver_Iterations,#CURRENT#,HIDE,Solver_Tolerance,#CURRENT#)(SkylineLUFactorizationSolver,HIDE,Max_Solver_Iterations,#CURRENT#,HIDE,Solver_Tolerance,#CURRENT#)
+HELP: Solver method
+image: images/Data.gif
+QUESTION: Solver_Tolerance
+VALUE: 1.0e-8
+QUESTION: Max_Solver_Iterations
+VALUE: 15000
+QUESTION: Relative_Tolerance#CB#(0.1,0.01,0.001,0.0001,custom)
+VALUE: 0.0001
+DEPENDENCIES: (0.1,HIDE,Custom_Relative_Tolerance,#CURRENT#)(0.01,HIDE,Custom_Relative_Tolerance,#CURRENT#)(0.001,HIDE,Custom_Relative_Tolerance,#CURRENT#)(0.0001,HIDE,Custom_Relative_Tolerance,#CURRENT#)(custom,RESTORE,Custom_Relative_Tolerance,#CURRENT#)
+QUESTION: Custom_Relative_Tolerance
+VALUE: 1e-5
+HELP: tolerance of relative residual
+QUESTION: Absolute_Tolerance#CB#(0.001,0.0001,1.0e-5,1.0e-6,custom)
+VALUE: 1.0e-6
+DEPENDENCIES: (0.001,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(0.0001,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(1.0e-5,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(1.0e-6,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(custom,RESTORE,Custom_Absolute_Tolerance,#CURRENT#)
+QUESTION: Custom_Absolute_Tolerance
+VALUE: 1e-8
+HELP: tolerance of absolute residual
+image: images/Data.gif
+TITLE: MultiFlowAnalysis
+QUESTION: Perform_MultiFlow_Analysis#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Scale_Factor,#CURRENT#,HIDE,Perform_ThreePhase_Analysis,#CURRENT#)(1,RESTORE,Scale_Factor,#CURRENT#,RESTORE,Perform_ThreePhase_Analysis,#CURRENT#)
+QUESTION: Scale_Factor
+VALUE: 1.0
+QUESTION: Perform_ThreePhase_Analysis#CB#(0,1)
+VALUE: 0
+TITLE: Output
+QUESTION: Output_Format#CB#(ASCII,Binary)
+VALUE: ASCII
+HELP: Use ASCII or binary output format
+QUESTION: New_mesh_for_each_step#CB#(0,1)
+VALUE: 1
+HELP: Write a new mesh file for each simulation step
+IMAGE: images/Data.gif
+QUESTION: Displacements#CB#(0,1)
+VALUE: 1
+HELP: Write displacement results
+QUESTION: Reactions#CB#(0,1)
+VALUE: 0
+HELP: Write reactions results
+QUESTION: PK2_Stresses#CB#(0,1)
+VALUE: 0
+HELP: Write PK2 stresses
+QUESTION: Green_Lagrange_Strains#CB#(0,1)
+VALUE: 0
+HELP: Write Green-Lagrange strains
+QUESTION: Insitu_Stress#CB#(0,1)
+VALUE: 1
+HELP: Write In-situ Stress
+QUESTION: Internal_Variables#CB#(0,1)
+VALUE: 0
+HELP: Write internal variables on integration points
+QUESTION: Air_Pressure#CB#(0,1)
+VALUE: 0
+QUESTION: Water_Pressure#CB#(0,1)
+VALUE: 0
+QUESTION: Saturation#CB#(0,1)
+VALUE: 0
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA

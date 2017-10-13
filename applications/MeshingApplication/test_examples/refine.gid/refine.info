@@ -1,0 +1,56 @@
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
+Import_DamApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: True
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_ PoissonApplication: False
+Import_ ElectrostaticApplication: False
+Import_DamApplication: False
+importing KratosStructuralApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosStructuralApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosStructuralApplication Succesfully imported
+variables for the dynamic structural solution added correctly
+refine opened for io
+refine.node opened for io
+refine.prop opened for io
+refine.elem opened for io
+refine.cond opened for io
+refine.init opened for io
+initializing result files
+	Reading Nodes : 37 nodes read
+	Reading Elements : Traceback (most recent call last):
+  File "/home/nelson/kratos/applications/MeshingApplication/test_exemples/refine.gid/script.py", line 81, in <module>
+    model_part_io.ReadModelPart(model_part)
+ValueError: in TContainerType::iterator Kratos::ModelPartIO::FindKey(TContainerType &, TKeyType, std::basic_string<char, std::char_traits<char>, std::allocator<char>>) [with TContainerType = Kratos::PointerVectorSet<Kratos::Properties, Kratos::IndexedObject, std::less<unsigned long>, std::equal_to<unsigned long>, boost::shared_ptr<Kratos::Properties>, std::vector<boost::shared_ptr<Kratos::Properties>, std::allocator<boost::shared_ptr<Kratos::Properties>>>>, TKeyType = unsigned long] [ /home/nelson/kratos/kratos/includes/model_part_io.h , Line 1754 ]
+
+with subject    :  Properties #29 is not found. [Line 59 ] 
+
+while executing : void Kratos::ModelPartIO::ReadElementsBlock(Kratos::PointerVectorSet<Kratos::Node<3UL, Kratos::Dof<double>>, Kratos::IndexedObject, std::less<unsigned long>, std::equal_to<unsigned long>, boost::shared_ptr<Kratos::Node<3UL, Kratos::Dof<double>>>, std::vector<boost::shared_ptr<Kratos::Node<3UL, Kratos::Dof<double>>>, std::allocator<boost::shared_ptr<Kratos::Node<3UL, Kratos::Dof<double>>>>>> &, Kratos::PointerVectorSet<Kratos::Properties, Kratos::IndexedObject, std::less<unsigned long>, std::equal_to<unsigned long>, boost::shared_ptr<Kratos::Properties>, std::vector<boost::shared_ptr<Kratos::Properties>, std::allocator<boost::shared_ptr<Kratos::Properties>>>> &, Kratos::PointerVectorSet<Kratos::Element, Kratos::IndexedObject, std::less<unsigned long>, std::equal_to<unsigned long>, boost::shared_ptr<Kratos::Element>, std::vector<boost::shared_ptr<Kratos::Element>, std::allocator<boost::shared_ptr<Kratos::Element>>>> &) [ /home/nelson/kratos/kratos/includes/model_part_io.h , Line 968 ] 
+
+while executing : void Kratos::ModelPartIO::ReadModelPart(Kratos::ModelPart &) [ /home/nelson/kratos/kratos/includes/model_part_io.h , Line 417 ] 

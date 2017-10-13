@@ -1,0 +1,24 @@
+KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.12 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.13 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.14 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Time | 0.15 | None | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None

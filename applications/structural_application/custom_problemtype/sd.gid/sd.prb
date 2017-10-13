@@ -1,0 +1,137 @@
+PROBLEM DATA
+
+TITLE: Simulation
+QUESTION: Simulation_Name
+VALUE: Kratos_simulation
+QUESTION: Enable_Gravity#CB#(0,1)
+VALUE: 1
+DEPENDENCIES:(0,HIDE,Gravity_X,#CURRENT#,HIDE,Gravity_Y,#CURRENT#,HIDE,Gravity_Z,#CURRENT#)(1,RESTORE,Gravity_X,#CURRENT#,RESTORE,Gravity_Y,#CURRENT#,RESTORE,Gravity_Z,#CURRENT#)
+QUESTION: Gravity_X
+VALUE: 0.0
+QUESTION: Gravity_Y
+VALUE: 0.0
+QUESTION: Gravity_Z
+VALUE: 0.0
+HELP: Gravity direction
+image: images/Data.gif
+VALUE: -9.81
+QUESTION: Parallel_Execution#CB#(shared,distributed)
+VALUE: shared
+DEPENDENCIES:(shared,HIDE,Linear_Algebra_BackEnd,#CURRENT#)(distributed,RESTORE,Linear_Algebra_BackEnd,#CURRENT#)
+QUESTION: Linear_Algebra_BackEnd#CB#(Trilinos_Epetra,Trilinos_Tpetra,PETSc)
+VALUE: Trilinos_Epetra
+HELP: Run the simulation using parallelization techniques
+QUESTION: analysis_type#CB#(static,quasi-static,dynamic)
+VALUE: static
+DEPENDENCIES:(static,HIDE,Rayleigh_Damping_Alpha,#CURRENT#,HIDE,Rayleigh_Damping_Beta,#CURRENT#,HIDE,Dissipation_Radius,#CURRENT#)(quasi-static,RESTORE,Rayleigh_Damping_Alpha,#CURRENT#,RESTORE,Rayleigh_Damping_Beta,#CURRENT#,RESTORE,Dissipation_Radius,#CURRENT#)(dynamic,RESTORE,Rayleigh_Damping_Alpha,#CURRENT#,RESTORE,Rayleigh_Damping_Beta,#CURRENT#,RESTORE,Dissipation_Radius,#CURRENT#)
+QUESTION: Rayleigh_Damping_Alpha
+VALUE: 0.001
+HELP: Parameters for calculation of Damping matrix: C = alpha * K + beta * M
+QUESTION: Rayleigh_Damping_Beta
+VALUE: 0.001
+HELP: Parameters for calculation of Damping matrix: C = alpha * K + beta * M
+QUESTION: Dissipation_Radius
+VALUE: 1.0
+HELP: Dissipation radius of Generalized Newmark-alpha method
+
+TITLE: Solving_Strategies
+QUESTION: Linear_Solver#CB#(SuperLU,MKL_Pardiso)
+VALUE: MKL_Pardiso
+HELP: Linear solver method
+QUESTION: Builder_And_Solver#CB#(Residual_Based_Elimination_Builder_And_Solver_Deactivation,Residual_Based_Block_Builder_And_Solver_Deactivation)
+VALUE: Residual_Based_Elimination_Builder_And_Solver_Deactivation
+HELP: Builder_And_Solver to build and solve the linear system
+QUESTION: Convergence_Criteria#CB#(Displacement_Criteria,Multiphase_Flow_Criteria)
+VALUE: Multiphase_Flow_Criteria
+HELP: Convergence criteria for problem solver
+QUESTION: Relative_Tolerance
+VALUE: 1.0e-6
+HELP: Relative tolerance for the convergence
+QUESTION: Absolute_Tolerance
+VALUE: 1.0e-9
+HELP: Absolute tolerance for the convergence
+QUESTION: Reform_DofSet_At_Each_Step#CB#(True,False)
+VALUE: True
+HELP: Set this to False if you are sure that the system is no changed during each time step
+QUESTION: Move_Mesh_Flag#CB#(True,False)
+VALUE: True
+HELP: Update the mesh after each time step
+QUESTION: Solving_Strategy#CB#(Residual_Based_Newton_Raphson_Strategy,Residual_Based_BFGS_Strategy)
+VALUE: Residual_Based_Newton_Raphson_Strategy
+HELP: Strategy to solve the problem
+QUESTION: Max_Newton_Raphson_Iterations
+VALUE: 30
+HELP: Number of maximum Newton-Raphson iterations allowed
+
+TITLE: Applications
+QUESTION: Structural_Application#CB#(0,1)
+VALUE: 1
+QUESTION: Ekate_Auxiliary_Application#CB#(0,1)
+VALUE: 0
+QUESTION: External_Solvers_Application#CB#(0,1)
+VALUE: 1
+QUESTION: External_ConstitutiveLaws_Application#CB#(0,1)
+VALUE: 0
+QUESTION: Incompressible_Fluid_Application#CB#(0,1)
+VALUE: 0
+QUESTION: Meshing_Application#CB#(0,1)
+VALUE: 0
+QUESTION: MKL_Solvers_Application#CB#(0,1)
+VALUE: 1
+QUESTION: Mortar_Application#CB#(0,1)
+VALUE: 0
+QUESTION: AGMG_Solver_Application#CB#(0,1)
+VALUE: 0
+QUESTION: Multithreaded_Solvers_Application#CB#(0,1)
+VALUE: 0
+
+TITLE: Output
+QUESTION: Output_Format#CB#(ASCII,Binary)
+VALUE: Binary
+HELP: Use ASCII or binary output format
+QUESTION: New_mesh_for_each_step#CB#(0,1)
+VALUE: 1
+HELP: Write a new mesh file for each simulation step
+IMAGE: images/Data.gif
+QUESTION: Displacements#CB#(0,1)
+VALUE: 1
+HELP: Write displacement results
+QUESTION: Reactions#CB#(0,1)
+VALUE: 0
+HELP: Write reactions results
+QUESTION: Stresses#CB#(0,1)
+VALUE: 0
+HELP: Write stress results
+QUESTION: Strains#CB#(0,1)
+VALUE: 0
+HELP: Write strain results
+QUESTION: Plastic_strains#CB#(0,1)
+VALUE: 0
+HELP: Write plastic strain results
+QUESTION: PK2_Stresses#CB#(0,1)
+VALUE: 0
+HELP: Write PK2 stresses
+QUESTION: Green_Lagrange_Strains#CB#(0,1)
+VALUE: 0
+HELP: Write Green-Lagrange strains
+QUESTION: Insitu_Stress#CB#(0,1)
+VALUE: 0
+HELP: Write In-situ Stress
+QUESTION: Jack_Forces#CB#(0,1)
+VALUE: 0
+HELP: Write hydraulic jack forces
+QUESTION: Internal_Variables#CB#(0,1)
+VALUE: 0
+HELP: Write internal variables on integration points
+QUESTION: Air_Pressure#CB#(0,1)
+VALUE: 0
+QUESTION: Water_Pressure#CB#(0,1)
+VALUE: 0
+QUESTION: Saturation#CB#(0,1)
+VALUE: 0
+QUESTION: Plot_Matrix_Structure#CB#(0,1)
+VALUE: 0
+QUESTION: Transfer_To_Node#CB#(0,1)
+VALUE: 1
+HELP: Transfer values from integration points to nodes
+END GENERAL DATA

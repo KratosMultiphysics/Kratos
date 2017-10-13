@@ -1,0 +1,137 @@
+BOOK:Solids
+NUMBER: 1 MATERIAL: Steel
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl)
+QUESTION: Multiflow_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Three_Phase_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Enable_Plasticity#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,DP_alpha1,#CURRENT#,HIDE,DP_k,#CURRENT#)(1,RESTORE,DP_alpha1,#CURRENT#,RESTORE,DP_k,#CURRENT#)
+QUESTION: DP_alpha1
+VALUE: 0.181
+QUESTION: DP_k
+VALUE: 161.5
+END MATERIAL
+NUMBER: 2 MATERIAL: Soil
+QUESTION: Density#UNITS#
+VALUE: 1900.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 8000kN/m^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl)
+QUESTION: Multiflow_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Three_Phase_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Enable_Plasticity#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,DP_alpha1,#CURRENT#,HIDE,DP_k,#CURRENT#)(1,RESTORE,DP_alpha1,#CURRENT#,RESTORE,DP_k,#CURRENT#)
+QUESTION: DP_alpha1
+VALUE: 0.181
+QUESTION: DP_k
+VALUE: 161500
+END MATERIAL
+NUMBER: 3 MATERIAL: Concrete
+QUESTION: Density#UNITS#
+VALUE: 2500.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 30000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl)
+QUESTION: Multiflow_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Three_Phase_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Enable_Plasticity#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,DP_alpha1,#CURRENT#,HIDE,DP_k,#CURRENT#)(1,RESTORE,DP_alpha1,#CURRENT#,RESTORE,DP_k,#CURRENT#)
+QUESTION: DP_alpha1
+VALUE: 0.181
+QUESTION: DP_k
+VALUE: 161.5
+END MATERIAL
+NUMBER: 4 MATERIAL: Rubber
+QUESTION: DENSITY#UNITS#
+VALUE: 1100.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 5.25N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.45
+HELP: poisson ratio (Querdehnzahl)
+QUESTION: Multiflow_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Three_Phase_Analysis#CB#(0,1)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Enable_Plasticity#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,DP_alpha1,#CURRENT#,HIDE,DP_k,#CURRENT#)(1,RESTORE,DP_alpha1,#CURRENT#,RESTORE,DP_k,#CURRENT#)
+QUESTION: DP_alpha1
+VALUE: 0.181
+QUESTION: DP_k
+VALUE: 161.5
+END MATERIAL
+NUMBER: 5 MATERIAL: UnsaturatedSoil
+QUESTION: Density#UNITS#
+VALUE: 2000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 5.25N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.45
+HELP: poisson ratio (Querdehnzahl)
+QUESTION: Multiflow_Analysis#CB#(0,1)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Density_Air,#CURRENT#,HIDE,Density_Water,#CURRENT#,HIDE,Porosity,#CURRENT#,HIDE,Bulk_modulus_air,#CURRENT#,HIDE,permeability_air,#CURRENT#,HIDE,permeability_water,#CURRENT#,HIDE,air_entry_value,#CURRENT#,HIDE,first_saturation_parameter,#CURRENT#,HIDE,second_saturation_parameter,#CURRENT#,HIDE,Three_Phase_Analysis,#CURRENT#)(1,RESTORE,Density_Air,#CURRENT#,RESTORE,Density_Water,#CURRENT#,RESTORE,Porosity,#CURRENT#,RESTORE,Bulk_modulus_air,#CURRENT#,RESTORE,permeability_air,#CURRENT#,RESTORE,permeability_water,#CURRENT#,RESTORE,air_entry_value,#CURRENT#,RESTORE,first_saturation_parameter,#CURRENT#,RESTORE,second_saturation_parameter,#CURRENT#,RESTORE,Three_Phase_Analysis,#CURRENT#)
+QUESTION: Density_Air#UNITS#
+VALUE: 1.295kg/m^3
+HELP: air density at atmospheric pressure
+QUESTION: Density_Water#UNITS#
+VALUE: 1000.0kg/m^3
+HELP: water density
+QUESTION: Porosity
+VALUE: 0.2
+HELP: Porenraum
+QUESTION: Bulk_modulus_air
+VALUE: 0.0000118828
+HELP: M/(RT)
+QUESTION: permeability_air#UNITS#
+VALUE: 0.00000032m/s
+HELP: M/(RT)
+QUESTION: permeability_water#UNITS#
+VALUE: 0.0000044m/s
+HELP: M/(RT)
+QUESTION: air_entry_value#UNITS#
+VALUE: 0.003N/mm^2
+HELP: prb
+QUESTION: first_saturation_parameter
+VALUE: 2.5
+HELP: n
+QUESTION: second_saturation_parameter
+VALUE: 0.4
+HELP: m
+QUESTION: Three_Phase_Analysis#CB#(0,1)
+VALUE: 0
+QUESTION: Enable_Plasticity#CB#(0,1)
+VALUE: 0
+END MATERIAL
