@@ -1,0 +1,131 @@
+Fri Oct 26 14:33:24 2012
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 3.0.2
+Importing KratosStructuralApplication
+"kernel synchronization in AddApplication" : kernel synchronization in AddApplication
+Initializing KratosStructuralApplication... 
+"Application Registered" : Application Registered
+"Variables   Registered" : Variables   Registered
+"Elements    Registered" : Elements    Registered
+"Conditions  Registered" : Conditions  Registered
+Initializing  KratosStructuralApplication
+variables for the dynamic structural solution added correctly AAAAAAAAA
+cantilever3d opened for io
+cantilever3d.node opened for io
+cantilever3d.prop opened for io
+cantilever3d.elem opened for io
+cantilever3d.cond opened for io
+cantilever3d.init opened for io
+initializing result files
+Reading Nodes : 2793 nodes read
+	Reading Elements : 12133 TotalLagrangian3D4N read
+lines read : 16073
+"130" : 130
+max_id : 1
+beginnging printing elements
+writing a 3D mesh
+finished printing elements
+StructurePart model part
+    Buffer Size : 1
+    Number of tables : 0
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 2793
+    Number of Properties : 2
+    Number of Elements   : 12133
+    Number of Conditions : 634
+
+Pointer vector set (size = 2) : 
+Properties
+
+ Properties
+    DENSITY : 2700
+    YOUNG_MODULUS : 7e+06
+    POISSON_RATIO : 0.3
+    BODY_FORCE : [3](0,0,0)
+    THICKNESS : 1
+
+ 
+dofs for the dynamic structural solution added correctly
+STEP =  0
+TIME =  0.0
+STEP =  1
+TIME =  0.01
+Setting up the dofs
+ 
+CurrentTime = 0.01
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 1;  Expected ratio = 1e-06
+Absolute tol = 0.0462455;  ConvergedNorm  = 1e-09
+Convergence Is Not Achieved
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 0.080312;  Expected ratio = 1e-06
+Absolute tol = 0.00371407;  ConvergedNorm  = 1e-09
+Convergence Is Not Achieved
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 0.00306583;  Expected ratio = 1e-06
+Absolute tol = 0.000141781;  ConvergedNorm  = 1e-09
+Convergence Is Not Achieved
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 0.000666278;  Expected ratio = 1e-06
+Absolute tol = 3.08123e-05;  ConvergedNorm  = 1e-09
+Convergence Is Not Achieved
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 2.11314e-06;  Expected ratio = 1e-06
+Absolute tol = 9.77232e-08;  ConvergedNorm  = 1e-09
+Convergence Is Not Achieved
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 1.0061e-10;  Expected ratio = 1e-06
+Absolute tol = 4.65275e-12;  ConvergedNorm  = 1e-09
+Convergence Is Achieved
+Writing results. Please run Gid for viewing results of analysis.
+STEP =  2
+TIME =  0.02
+ 
+CurrentTime = 0.02
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 1;  Expected ratio = 1e-06
+Absolute tol = 2.42888e-16;  ConvergedNorm  = 1e-09
+Convergence Is Achieved
+Writing results. Please run Gid for viewing results of analysis.
+STEP =  3
+TIME =  0.03
+ 
+CurrentTime = 0.03
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 1;  Expected ratio = 1e-06
+Absolute tol = 2.91139e-17;  ConvergedNorm  = 1e-09
+Convergence Is Achieved
+Writing results. Please run Gid for viewing results of analysis.
+STEP =  4
+TIME =  0.04
+ 
+CurrentTime = 0.04
+LU factorization solver finished.
+
+DISPLACEMENT CRITERIA
+Obtained tol = 1;  Expected ratio = 1e-06
+Absolute tol = 2.45514e-17;  ConvergedNorm  = 1e-09
+Convergence Is Achieved
+Writing results. Please run Gid for viewing results of analysis.
+Completed Analysis

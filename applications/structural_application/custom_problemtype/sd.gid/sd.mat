@@ -1,0 +1,198 @@
+BOOK:Solids
+
+NUMBER: 1 MATERIAL: TrussProperties
+QUESTION: ConstitutiveLaw
+VALUE: TrussProperties
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 1000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio
+QUESTION: Cross_Section_Area#UNITS#
+VALUE: 1.0m^2
+END MATERIAL
+
+NUMBER: 2 MATERIAL: BeamProperties
+QUESTION: ConstitutiveLaw
+VALUE: BeamProperties
+STATE: HIDDEN
+QUESTION: Beam_Type#CB#(Bernoulli,Timoshenko)
+VALUE: Bernoulli
+DEPENDENCIES:(Bernoulli,HIDE,Ay,#CURRENT#,HIDE,Az,#CURRENT#)(Timoshenko,RESTORE,Ay,#CURRENT#,RESTORE,Az,#CURRENT#)
+QUESTION: Density#UNITS#
+VALUE: 1000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio
+QUESTION: Cross_Section_Area#UNITS#
+VALUE: 1.0m^2
+HELP: Ax
+QUESTION: Ay#UNITS#
+VALUE: 1.0m^2
+HELP: Ay
+QUESTION: Az#UNITS#
+VALUE: 1.0m^2
+HELP: Az
+QUESTION: Iy#UNITS#
+VALUE: 1.0m^4
+HELP: Moment of inertia around Y axis
+QUESTION: Iz#UNITS#
+VALUE: 1.0m^4
+HELP: Moment of inertia around Z axis
+QUESTION: It#UNITS#
+VALUE: 1.0m^4
+HELP: Moment of torsional inertia
+END MATERIAL
+
+NUMBER: 3 MATERIAL: Isotropic2D
+QUESTION: ConstitutiveLaw#CB#(PlaneStress,PlaneStrain)
+VALUE: PlaneStrain
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio 
+QUESTION: Thickness#UNITS#
+VALUE: 1.0mm
+HELP: thickness 
+END MATERIAL
+
+NUMBER: 4 MATERIAL: Isotropic3D
+QUESTION: ConstitutiveLaw
+VALUE: Isotropic3D
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio 
+END MATERIAL
+
+NUMBER: 5 MATERIAL: DruckerPrager
+QUESTION: ConstitutiveLaw#CB#(DruckerPrager_3D,DruckerPrager_PlaneStress,DruckerPrager_PlaneStrain)
+VALUE: DruckerPrager_3D
+QUESTION: Density#UNITS#
+VALUE: 2038.7kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 20N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.49
+HELP: poisson ratio 
+QUESTION: Cohesion#UNITS#
+VALUE: 50kN/m^2
+QUESTION: Friction_angle#UNITS#
+VALUE: 20deg
+QUESTION: Dilatancy_angle#UNITS#
+VALUE: 20deg
+QUESTION: Isotropic_hardening_modulus#UNITS#
+VALUE: 0N/mm^2
+END MATERIAL
+
+NUMBER: 6 MATERIAL: IsotropicDamage3D
+QUESTION: ConstitutiveLaw
+VALUE: IsotropicDamage3D
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 2000.0kg/m^3
+QUESTION: Compressive_Young_modulus#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Tensile_Young_modulus#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Compressive_strength#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Tensile_strength#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Yield_stress#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Fracture_Energy#UNITS#
+VALUE: 0.0N/m
+QUESTION: Poisson_ratio
+VALUE: 0.0
+QUESTION: FlowRule#CB#(VonMises,Energy,MohrCoulomb,MohrCoulombNonAssociated,Rankine)
+VALUE: VonMises
+DEPENDENCIES:(VonMises,RESTORE,Crushing_Energy,#CURRENT#,HIDE,Friction_angle,#CURRENT#,HIDE,Dilatancy_angle,#CURRENT#,HIDE,Cohesion,#CURRENT#)(Energy,HIDE,Crushing_Energy,#CURRENT#,HIDE,Friction_angle,#CURRENT#,HIDE,Dilatancy_angle,#CURRENT#,HIDE,Cohesion,#CURRENT#)(MohrCoulomb,RESTORE,Crushing_Energy,#CURRENT#,RESTORE,Friction_angle,#CURRENT#,RESTORE,Dilatancy_angle,#CURRENT#,RESTORE,Cohesion,#CURRENT#)(MohrCoulombNonAssociated,RESTORE,Crushing_Energy,#CURRENT#,RESTORE,Friction_angle,#CURRENT#,RESTORE,Dilatancy_angle,#CURRENT#,RESTORE,Cohesion,#CURRENT#)(Rankine,HIDE,Crushing_Energy,#CURRENT#,HIDE,Friction_angle,#CURRENT#,HIDE,Dilatancy_angle,#CURRENT#,HIDE,Cohesion,#CURRENT#)
+QUESTION: Crushing_Energy#UNITS#
+VALUE: 0.0J
+QUESTION: Cohesion#UNITS#
+VALUE: 0.0kN/m^2
+QUESTION: Friction_angle#UNITS#
+VALUE: 30.0deg
+QUESTION: Dilatancy_angle#UNITS#
+VALUE: 0.0deg
+QUESTION: HardeningLaw#CB#(Linear,Exponential)
+VALUE: LinearHardening
+END MATERIAL
+
+NUMBER: 7 MATERIAL: Isotropic3Dshell
+QUESTION: ConstitutiveLaw
+VALUE: Isotropic3Dshell
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio 
+QUESTION: Thickness#UNITS#
+VALUE: 1.0mm
+HELP: thickness 
+END MATERIAL
+
+NUMBER: 8 MATERIAL: GroutingMortar
+QUESTION: ConstitutiveLaw
+VALUE: GroutingMortar
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 7620.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 5.25N/mm^2
+HELP: elastic stiffness modulus after 28 days
+QUESTION: Poisson_ratio
+VALUE: 0.45
+HELP: poisson ratio after 28 days
+QUESTION: prim_hyd_time#UNITS#
+VALUE: 8.0h
+HELP: Duration of first hydration period
+QUESTION: gradient_prim_hyd_time#UNITS#
+VALUE: 6.0h
+HELP: Gradient at the end of the first hydration period
+QUESTION: E_ratio
+VALUE: 0.6
+HELP: ratio between E-modulus after 1d and 28d
+END MATERIAL
+
+NUMBER: 9 MATERIAL: VonMises
+QUESTION: ConstitutiveLaw#CB#(VonMises_3D,VonMises_PlaneStress,VonMises_PlaneStrain)
+VALUE: VonMises_3D
+QUESTION: Density#UNITS#
+VALUE: 2038.7kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 20N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.49
+HELP: poisson ratio 
+END MATERIAL
+
+NUMBER: 10 MATERIAL: UserDefined
+QUESTION: ConstitutiveLaw
+VALUE: UserDefined
+STATE: HIDDEN
+END MATERIAL
+

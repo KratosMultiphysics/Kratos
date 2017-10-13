@@ -1,0 +1,300 @@
+KRATOS_BENCHMARK | Integer | Time | 1 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -5.07526446248e-06 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -0.999984773962 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 2 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -1.55034909623e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -3.05447824218 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 3 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -2.47453910634e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -4.87503539448 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 4 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -3.4007041695e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -6.69928061219 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 5 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -4.32715424288e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -8.52388432398 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 6 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -5.25368888685e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -10.3484516586 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 7 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -6.32987340745e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -12.4674604843 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 8 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -7.2564658377e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -14.2917029382 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 9 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -8.18306147521e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -16.1157487592 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 10 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -9.2595372981e-05 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -18.2345857351 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 11 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00010186135467 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -20.0581978412 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 12 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000111127336359 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -21.8816070226 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 13 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000121892817622 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -23.9998408785 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 14 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000132658320099 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -26.1178050125 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 15 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000143423980855 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -28.2355263955 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 16 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000154189750698 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -30.3529953522 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 17 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000164955597701 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -32.4702056077 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 18 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000175721500519 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -34.5871529711 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 19 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000186487444511 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -36.7038345719 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 20 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000197253419411 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -38.8202484002 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 21 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000208019417871 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -40.9363930216 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 22 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000218785434542 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -43.0522673947 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 23 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000229551465465 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -45.1678707522 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 24 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000240317507668 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -47.2832025208 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 25 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000251083558892 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -49.3982622677 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 26 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000261849617398 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -51.5130496623 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 27 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000272615681832 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -53.6275644502 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 28 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000283381751131 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -55.7418064338 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 29 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000294147824452 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -57.8557754591 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 30 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00030491390112 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -59.9694714052 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 31 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000315679980592 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -62.0828941768 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 32 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000326446062426 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -64.1960436988 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 33 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00033721214626 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -66.3089199119 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 34 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000347978231798 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -68.4215227696 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 35 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000358744318792 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -70.5338522351 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 36 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000369510407039 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -72.6459082799 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 37 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000380276496367 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -74.7576908821 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 38 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00039104258663 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -76.8692000252 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 39 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000401808677708 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -78.9804356968 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 40 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000412574769496 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -81.0913978885 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 41 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000423340861907 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -83.2020865946 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 42 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000434106954864 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -85.3125018122 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 43 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000444873048303 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -87.4226435402 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 44 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000455639142168 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -89.5325117794 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 45 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00046640523641 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -91.6421065321 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 46 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000477171330987 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -93.7514278018 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 47 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000487937425863 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -95.8604755932 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 48 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000498703521005 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -97.9692499116 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 49 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000509469616385 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -100.077750763 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 50 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000520235711979 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -102.185978156 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 51 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000531001807765 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -104.293932096 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 52 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000541767903724 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -106.401612592 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 53 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00055253399984 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -108.509019653 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 54 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000563300096096 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -110.616153286 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 55 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000574066192479 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -112.723013503 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 56 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000584832288979 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -114.829600311 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 57 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000595598385583 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -116.935913721 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 58 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000606364482283 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -119.041953742 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 59 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00061713057907 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -121.147720385 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 60 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000627896675937 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -123.25321366 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 61 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000638662772876 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -125.358433578 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 62 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000649428869881 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -127.463380148 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 63 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000660194966947 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -129.568053383 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 64 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000670961064069 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -131.672453291 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 65 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000681727161242 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -133.776579886 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 66 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000692493258462 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -135.880433177 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 67 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000703259355725 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -137.984013175 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 68 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000714025453028 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -140.087319892 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 69 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000724791550368 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -142.190353338 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 70 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000735557647742 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -144.293113526 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 71 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000746323745147 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -146.395600467 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 72 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000757089842581 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -148.49781417 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 73 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000767855940041 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -150.599754649 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 74 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000778622037527 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -152.701421915 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 75 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000789388135035 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -154.802815978 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 76 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000800154232565 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -156.903936851 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 77 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000810920330115 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -159.004784545 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 78 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000821686427683 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -161.105359072 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 79 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000832452525268 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -163.205660442 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 80 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000843218622869 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -165.305688668 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 81 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000853984720485 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -167.405443761 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 82 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000864750818115 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -169.504925733 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 83 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000875516915757 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -171.604134595 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 84 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000886283013412 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -173.703070359 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 85 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000897049111078 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -175.801733037 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 86 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000907815208754 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -177.90012264 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 87 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00091858130644 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -179.99823918 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 88 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000929347404135 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -182.096082669 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 89 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000940113501839 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -184.193653118 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 90 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00095087959955 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -186.29095054 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 91 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000961645697269 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -188.387974945 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 92 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000972411794995 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -190.484726345 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 93 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000983177892728 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -192.581204753 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 94 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.000993943990467 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -194.677410179 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 95 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00100471008821 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -196.773342636 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 96 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00101547618596 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -198.869002136 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 97 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00102624228372 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -200.964388689 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 98 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00103700838148 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -203.059502309 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 99 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00104777447924 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -205.154343006 | 1.0 | None
+KRATOS_BENCHMARK | Integer | Time | 100 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -0.00105854057701 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -207.248910792 | 1.0 | None

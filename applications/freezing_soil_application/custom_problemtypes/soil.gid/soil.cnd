@@ -1,0 +1,843 @@
+BOOK: ElementType
+CONDITION: LineElementType
+CONDTYPE: over lines
+CONDMESHTYPE: over body elements
+QUESTION: Element_Type#CB#(Truss,Beam)
+VALUE: Truss
+DEPENDENCIES:(Truss,HIDE,Iy,#CURRENT#,HIDE,Iz,#CURRENT#,HIDE,It,#CURRENT#)(Beam,RESTORE,Iy,#CURRENT#,RESTORE,Iz,#CURRENT#,RESTORE,It,#CURRENT#)
+QUESTION: Cross_Section_Area#UNITS#
+VALUE: 1.0m^2
+QUESTION: Iy#UNITS#
+VALUE: 1.0m^4
+HELP: Moment of inertia around Y axis
+QUESTION: Iz#UNITS#
+VALUE: 1.0m^4
+HELP: Moment of inertia around Z axis
+QUESTION: It#UNITS#
+VALUE: 1.0m^4
+HELP: Moment of torsional inertia
+END CONDITION
+CONDITION: SurfaceElementType
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Element_Type#CB#(TotalLagrangian,Membrane,IsotropicShell,AnisotropicShell)
+VALUE: TotalLagrangian
+DEPENDENCIES:(TotalLagrangian,HIDE,MatrixA,#CURRENT#,HIDE,MatrixB,#CURRENT#,HIDE,MatrixD,#CURRENT#)(Membrane,HIDE,MatrixA,#CURRENT#,HIDE,MatrixB,#CURRENT#,HIDE,MatrixD,#CURRENT#)(IsotropicShell,HIDE,MatrixA,#CURRENT#,HIDE,MatrixB,#CURRENT#,HIDE,MatrixD,#CURRENT#)(AnisotropicShell,RESTORE,MatrixA,#CURRENT#,RESTORE,MatrixB,#CURRENT#,RESTORE,MatrixD,#CURRENT#)
+QUESTION: Thickness#UNITS#
+VALUE: 1.0m
+QUESTION: MatrixA: (MatrixA_col1,MatrixA_col2,MatrixA_col3)
+VALUE: #N# 9 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+QUESTION: MatrixB: (MatrixB_col1,MatrixB_col2,MatrixB_col3)
+VALUE: #N# 9 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+QUESTION: MatrixD: (MatrixD_col1,MatrixD_col2,MatrixD_col3)
+VALUE: #N# 9 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+END CONDITION
+CONDITION: VolumeElementType
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Element_Type#CB#(Solid,Kinematic_Linear,UnsaturatedSoil_2Phase,Unfrozen_Soil,Soil_2Phase_Rigid,Soil_3Phase,Freezing_Soil)
+VALUE: Freezing_Soil
+DEPENDENCIES:(Solid,HIDE,Density_Water,#CURRENT#,HIDE,Density_Air,#CURRENT#,HIDE,Porosity,#CURRENT#,HIDE,Permeability_Water,#CURRENT#,HIDE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)(Kinematic_Linear,HIDE,Density_Water,#CURRENT#,HIDE,Density_Air,#CURRENT#,HIDE,Porosity,#CURRENT#,HIDE,Permeability_Water,#CURRENT#,HIDE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)(UnsaturatedSoil_2Phase,RESTORE,Density_Water,#CURRENT#,RESTORE,Density_Air,#CURRENT#,RESTORE,Porosity,#CURRENT#,RESTORE,Permeability_Water,#CURRENT#,RESTORE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)(Unfrozen_Soil,HIDE,Density_Water,#CURRENT#,HIDE,Density_Air,#CURRENT#,RESTORE,Porosity,#CURRENT#,HIDE,Permeability_Water,#CURRENT#,HIDE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)(Soil_2Phase_Rigid,HIDE,Density_Water,#CURRENT#,HIDE,Density_Air,#CURRENT#,HIDE,Porosity,#CURRENT#,HIDE,Permeability_Water,#CURRENT#,HIDE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)(Soil_3Phase,HIDE,Density_Water,#CURRENT#,HIDE,Density_Air,#CURRENT#,HIDE,Porosity,#CURRENT#,HIDE,Permeability_Water,#CURRENT#,HIDE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)(Freezing_Soil,HIDE,Density_Water,#CURRENT#,HIDE,Density_Air,#CURRENT#,HIDE,Porosity,#CURRENT#,HIDE,Permeability_Water,#CURRENT#,HIDE,Permeability_Air,#CURRENT#,HIDE,perm_28,#CURRENT#,HIDE,perm_1,#CURRENT#,HIDE,beta_grout,#CURRENT#)
+QUESTION: Density_Water#UNITS#
+VALUE: 1000.0kg/m^3
+QUESTION: Density_Air#UNITS#
+VALUE: 1.295kg/m^3
+QUESTION: Porosity
+VALUE: 0.5
+QUESTION: Permeability_Water#UNITS#
+#VALUE: 0.0000044m/s
+VALUE: 1.0e-12m^2
+QUESTION: Permeability_Air#UNITS#
+VALUE: 0.00000032m/s
+QUESTION: perm_28#UNITS#
+VALUE:0.00000001m/s
+HELP: Permeability after 28d
+QUESTION: perm_1#UNITS#
+VALUE:0.0001m/s
+HELP: Permeability after 1d
+QUESTION: beta_grout
+VALUE:0.0535
+HELP: control parameter for shape of hydration curve
+END CONDITION
+
+BOOK: Initial_Displacement
+CONDITION: Initial_Nodal_Displacement
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Displacement_X
+VALUE: 0.0
+QUESTION: Initial_Displacement_Y
+VALUE: 0.0
+QUESTION: Initial_Displacement_Z
+VALUE: 0.0
+image: images/Displacement.gif
+END CONDITION
+CONDITION: Initial_Line_Displacement
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Displacement_X
+VALUE: 0.0
+QUESTION: Initial_Displacement_Y
+VALUE: 0.0
+QUESTION: Initial_Displacement_Z
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+CONDITION: Initial_Surface_Displacement
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Displacement_X
+VALUE: 0.0
+QUESTION: Initial_Displacement_Y
+VALUE: 0.0
+QUESTION: Initial_Displacement_Z
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+CONDITION: Initial_Body_Displacement
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Displacement_X
+VALUE: 0.0
+QUESTION: Initial_Displacement_Y
+VALUE: 0.0
+QUESTION: Initial_Displacement_Z
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+
+BOOK: Initial_Water_Pressure
+CONDITION: Initial_Nodal_Water_Pressure
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Water_Pressure
+VALUE: 0.0
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Initial_Line_Water_Pressure
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Water_Pressure
+VALUE: 0.0
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Initial_Surface_Water_Pressure
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Water_Pressure
+VALUE: 0.0
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Initial_Body_Water_Pressure
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Water_Pressure
+VALUE: 0.0
+image: images/Pressure.gif
+END CONDITION
+
+
+BOOK: Initial_Temperature
+CONDITION: Initial_Nodal_Temperature
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Temperature
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+CONDITION: Initial_Line_Temperature
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Temperature
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+CONDITION: Initial_Surface_Temperature
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Temperature
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+CONDITION: Initial_Body_Temperature
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Temperature
+VALUE: 0.0
+image: images/Flux.gif
+END CONDITION
+ 
+BOOK: Fixed_Displacement
+CONDITION: Nodal_Displacement
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Displacement_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_X,#CURRENT#)(1,RESTORE,Displacement_X,#CURRENT#)
+QUESTION: Displacement_X
+VALUE: 0.0
+QUESTION: Fix_Displacement_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Y,#CURRENT#)(1,RESTORE,Displacement_Y,#CURRENT#)
+QUESTION: Displacement_Y
+VALUE: 0.0
+QUESTION: Fix_Displacement_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Z,#CURRENT#)(1,RESTORE,Displacement_Z,#CURRENT#)
+QUESTION: Displacement_Z
+VALUE: 0.0
+HELP: Value of fixed displacement (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_X,#CURRENT#)(1,RESTORE,Rotation_X,#CURRENT#)
+QUESTION: Rotation_X
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Y,#CURRENT#)(1,RESTORE,Rotation_Y,#CURRENT#)
+QUESTION: Rotation_Y
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Z,#CURRENT#)(1,RESTORE,Rotation_Z,#CURRENT#)
+QUESTION: Rotation_Z
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+END CONDITION
+CONDITION: Line_Displacement
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Displacement_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_X,#CURRENT#)(1,RESTORE,Displacement_X,#CURRENT#)
+QUESTION: Displacement_X
+VALUE: 0.0
+QUESTION: Fix_Displacement_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Y,#CURRENT#)(1,RESTORE,Displacement_Y,#CURRENT#)
+QUESTION: Displacement_Y
+VALUE: 0.0
+QUESTION: Fix_Displacement_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Z,#CURRENT#)(1,RESTORE,Displacement_Z,#CURRENT#)
+QUESTION: Displacement_Z
+VALUE: 0.0
+HELP: Value of fixed displacement (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_X,#CURRENT#)(1,RESTORE,Rotation_X,#CURRENT#)
+QUESTION: Rotation_X
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Y,#CURRENT#)(1,RESTORE,Rotation_Y,#CURRENT#)
+QUESTION: Rotation_Y
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Z,#CURRENT#)(1,RESTORE,Rotation_Z,#CURRENT#)
+QUESTION: Rotation_Z
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+END CONDITION
+CONDITION: Surface_Displacement
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Displacement_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_X,#CURRENT#)(1,RESTORE,Displacement_X,#CURRENT#)
+QUESTION: Displacement_X
+VALUE: 0.0
+QUESTION: Fix_Displacement_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Y,#CURRENT#)(1,RESTORE,Displacement_Y,#CURRENT#)
+QUESTION: Displacement_Y
+VALUE: 0.0
+QUESTION: Fix_Displacement_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Z,#CURRENT#)(1,RESTORE,Displacement_Z,#CURRENT#)
+QUESTION: Displacement_Z
+VALUE: 0.0
+HELP: Value of fixed displacement (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_X,#CURRENT#)(1,RESTORE,Rotation_X,#CURRENT#)
+QUESTION: Rotation_X
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Y,#CURRENT#)(1,RESTORE,Rotation_Y,#CURRENT#)
+QUESTION: Rotation_Y
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Z,#CURRENT#)(1,RESTORE,Rotation_Z,#CURRENT#)
+QUESTION: Rotation_Z
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+END CONDITION
+CONDITION: Volume_Displacement
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Displacement_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_X,#CURRENT#)(1,RESTORE,Displacement_X,#CURRENT#)
+QUESTION: Displacement_X
+VALUE: 0.0
+QUESTION: Fix_Displacement_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Y,#CURRENT#)(1,RESTORE,Displacement_Y,#CURRENT#)
+QUESTION: Displacement_Y
+VALUE: 0.0
+QUESTION: Fix_Displacement_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Displacement_Z,#CURRENT#)(1,RESTORE,Displacement_Z,#CURRENT#)
+QUESTION: Displacement_Z
+VALUE: 0.0
+HELP: Value of fixed displacement (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_X,#CURRENT#)(1,RESTORE,Rotation_X,#CURRENT#)
+QUESTION: Rotation_X
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Y,#CURRENT#)(1,RESTORE,Rotation_Y,#CURRENT#)
+QUESTION: Rotation_Y
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+image: images/Displacement.gif
+QUESTION: Fix_Rotation_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Rotation_Z,#CURRENT#)(1,RESTORE,Rotation_Z,#CURRENT#)
+QUESTION: Rotation_Z
+VALUE: 0.0
+HELP: Value of fixed rotation (dirichlet-condition)
+END CONDITION
+ 
+BOOK: Fixed_Water_Pressure
+CONDITION: Nodal_Water_Pressure
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Water_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Water_Pressure,#CURRENT#)(1,RESTORE,Water_Pressure,#CURRENT#)
+QUESTION: Water_Pressure
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Displacement.gif
+END CONDITION 
+CONDITION: Line_Water_Pressure
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Water_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Water_Pressure,#CURRENT#)(1,RESTORE,Water_Pressure,#CURRENT#)
+QUESTION: Water_Pressure
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Displacement.gif
+END CONDITION 
+CONDITION: Surface_Water_Pressure
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Water_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Water_Pressure,#CURRENT#)(1,RESTORE,Water_Pressure,#CURRENT#)
+QUESTION: Water_Pressure
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Displacement.gif
+END CONDITION
+CONDITION: Volume_Water_Pressure
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Water_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Water_Pressure,#CURRENT#)(1,RESTORE,Water_Pressure,#CURRENT#)
+QUESTION: Water_Pressure
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Displacement.gif
+END CONDITION 
+
+
+BOOK: Fixed_Temperature
+CONDITION: Nodal_Temperature
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Temperature#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Temperature,#CURRENT#)(1,RESTORE,Temperature,#CURRENT#)
+QUESTION: Temperature
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Thermal.gif
+END CONDITION
+CONDITION: Line_Temperature
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Temperature#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Temperature,#CURRENT#)(1,RESTORE,Temperature,#CURRENT#)
+QUESTION: Temperature
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Thermal.gif
+END CONDITION
+CONDITION: Surface_Temperature
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Temperature#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Temperature,#CURRENT#)(1,RESTORE,Temperature,#CURRENT#)
+QUESTION: Temperature
+VALUE: 0.0
+HELP: Value of fixed water pressure (dirichlet-condition)
+image: images/Thermal.gif
+END CONDITION
+CONDITION: Volume_Temperature
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Temperature#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Temperature,#CURRENT#)(1,RESTORE,Temperature,#CURRENT#)
+QUESTION: Temperature
+VALUE: 0.0
+HELP: Value of fixed temperature (dirichlet-condition)
+image: images/Thermal.gif
+END CONDITION
+
+
+BOOK: Loads
+CONDITION: Point_Force
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Reaction_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_X,#CURRENT#)(1,RESTORE,Reaction_X,#CURRENT#)
+QUESTION: Reaction_X#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Y,#CURRENT#)(1,RESTORE,Reaction_Y,#CURRENT#)
+QUESTION: Reaction_Y#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Z,#CURRENT#)(1,RESTORE,Reaction_Z,#CURRENT#)
+QUESTION: Reaction_Z#UNITS#
+VALUE: 0.0N
+HELP: Value of fixed reaction (neumann-condition)
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Line_Force
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Reaction_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_X,#CURRENT#)(1,RESTORE,Reaction_X,#CURRENT#)
+QUESTION: Reaction_X#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Y,#CURRENT#)(1,RESTORE,Reaction_Y,#CURRENT#)
+QUESTION: Reaction_Y#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Z,#CURRENT#)(1,RESTORE,Reaction_Z,#CURRENT#)
+QUESTION: Reaction_Z#UNITS#
+VALUE: 0.0N
+HELP: Value of fixed reaction (neumann-condition)
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Distributed_Surface_Load
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements multiple
+QUESTION: Face_Load_X#UNITS#
+VALUE: 0.0N/m^2
+QUESTION: Face_Load_Y#UNITS#
+VALUE: 0.0N/m^2
+QUESTION: Face_Load_Z#UNITS#
+VALUE: 0.0N/m^2
+HELP: Value of face loads (neumann-condition)
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Surface_Force
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Reaction_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_X,#CURRENT#)(1,RESTORE,Reaction_X,#CURRENT#)
+QUESTION: Reaction_X#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Y,#CURRENT#)(1,RESTORE,Reaction_Y,#CURRENT#)
+QUESTION: Reaction_Y#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Z,#CURRENT#)(1,RESTORE,Reaction_Z,#CURRENT#)
+QUESTION: Reaction_Z#UNITS#
+VALUE: 0.0N
+HELP: Value of fixed reaction (neumann-condition)
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Following_Surface_Load
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Fix_Surface_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Surface_Pressure,#CURRENT#)(1,RESTORE,Surface_Pressure,#CURRENT#)
+QUESTION: Surface_Pressure#UNITS#
+VALUE: 0.0N/m^2
+image: images/Pressure.gif
+END CONDITION
+CONDITION: Volume_Force
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Fix_Reaction_X#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_X,#CURRENT#)(1,RESTORE,Reaction_X,#CURRENT#)
+QUESTION: Reaction_X#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Y#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Y,#CURRENT#)(1,RESTORE,Reaction_Y,#CURRENT#)
+QUESTION: Reaction_Y#UNITS#
+VALUE: 0.0N
+QUESTION: Fix_Reaction_Z#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Reaction_Z,#CURRENT#)(1,RESTORE,Reaction_Z,#CURRENT#)
+QUESTION: Reaction_Z#UNITS#
+VALUE: 0.0N
+HELP: Value of fixed reaction (neumann-condition)
+image: images/Pressure.gif
+END CONDITION
+ 
+BOOK: Face_Load_Pressure
+CONDITION: Surface_Load_Pressure
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements multiple 
+QUESTION: Face_Load_Pressure_X#UNITS#
+VALUE: 0.0N/m^2
+QUESTION: Face_Load_Pressure_Y#UNITS#
+VALUE: 0.0N/m^2
+QUESTION: Face_Load_Pressure_Z#UNITS#
+VALUE: 0.0N/m^2
+image: images/Pressure.gif
+END CONDITION
+
+BOOK: Face_Water_Flux
+CONDITION: Distributed_Surface_Water_Flux
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Water_Flux#UNITS#
+VALUE: 0.0m/s
+HELP: Value of water flux over surfaces (neumann-condition)
+image: images/BoundCond.gif
+END CONDITION
+
+BOOK: Face_Heat_Flux
+CONDITION: Distributed_Surface_Heat_Flux
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Heat_Flux#UNITS#
+VALUE: 0.0W/m^2
+HELP: Value of heat flux over surfaces (neumann-condition)
+image: images/BoundCond.gif
+END CONDITION
+
+
+BOOK: Face_Heat_Convection
+CONDITION: Distributed_Surface_Heat_Convection
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Convection_Coefficient
+VALUE: 50
+HELP: Value of heat convection over surfaces (neumann-condition) in W/m^2*K
+QUESTION: Ambient_Temperature
+VALUE: -8
+HELP: Value of ambient temperature in Cel
+image: images/BoundCond.gif
+END CONDITION
+
+BOOK: Face_Heat_Radiation
+CONDITION: Distributed_Surface_Heat_Radiation
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Emissivity
+VALUE: 1.0 
+QUESTION: Ambient_Temperature
+VALUE: -8
+HELP: Value of ambient temperature in Cel
+image: images/BoundCond.gif
+END CONDITION
+
+BOOK: Activation
+CONDITION: Line_Activation_Level
+CONDTYPE: over lines
+CONDMESHTYPE: over body elements
+QUESTION: Activation_Level
+VALUE: 0
+END CONDITION
+CONDITION: Surface_Activation_Level
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Activation_Level
+VALUE: 0
+END CONDITION
+CONDITION: Volume_Activation_Level
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Activation_Level
+VALUE: 0
+END CONDITION
+
+BOOK: Contact
+CONDITION: Contact_Master
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Enable_Friction#CB#(0,1)
+VALUE: 0
+END CONDITION
+CONDITION: Contact_Slave
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Enable_Friction#CB#(0,1)
+VALUE: 0
+END CONDITION
+
+BOOK: Model_Boundaries
+CONDITION: IsBoundary
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: IsBoundarySurface#CB#(0,1)
+VALUE: 0
+END CONDITION
+CONDITION: IsBottom
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: IsBottomSurface#CB#(0,1)
+VALUE: 0
+END CONDITION
+CONDITION: IsSide
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: IsSideSurface#CB#(0,1)
+VALUE: 0
+END CONDITION
+CONDITION: IsTop
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: IsTopSurface#CB#(0,1)
+VALUE: 0
+END CONDITION
+
+BOOK: Hydraulic_Jacks
+CONDITION: Lining_End
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Dummy_ONE
+STATE: HIDDEN
+VALUE: 0
+END CONDITION
+CONDITION: TBM_End
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Dummy_TWO
+STATE: HIDDEN
+VALUE: 0
+END CONDITION
+
+BOOK: Tying
+CONDITION: Tying_Left
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Left_Side_Surface
+Value: 0
+DEPENDENCIES:(0,HIDE,Left_Side_Surface,#CURRENT#)
+END CONDITION
+CONDITION: Tying_Right
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Right_Side_Surface
+Value: 0
+DEPENDENCIES:(0,HIDE,Right_Side_Surface,#CURRENT#)
+END CONDITION
+CONDITION: Inner_Boundary
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Inner_Boundary_Surface
+Value: 0
+DEPENDENCIES:(0,HIDE,Inner_Boundary_Surface,#CURRENT#)
+HELP: tied boundary where meshes are compatible
+END CONDITION
+CONDITION: Tying_Slave
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Tying_Slave_Surface
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Tying_Slave_Surface,#CURRENT#)
+END CONDITION
+CONDITION: Tying_Master
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Tying_Master_Surface
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Tying_Master_Surface,#CURRENT#)
+END CONDITION
+
+BOOK: GroutFlow
+CONDITION: Grout_and_Bentonite_Flow
+CONDTYPE: over surfaces
+CONDMESHTYPE: over elements
+QUESTION: Dummy
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+BOOK: Initial_Conditions
+CONDITION: Nodal_Velocity
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Velocity_X#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Y#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Z#UNITS#
+VALUE: 0.0m/s
+HELP: initial value of velocity
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Line_Velocity
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Velocity_X#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Y#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Z#UNITS#
+VALUE: 0.0m/s
+HELP: initial value of velocity
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Surface_Velocity
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Velocity_X#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Y#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Z#UNITS#
+VALUE: 0.0m/s
+HELP: initial value of velocity
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Body_Velocity
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Velocity_X#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Y#UNITS#
+VALUE: 0.0m/s
+QUESTION: Initial_Velocity_Z#UNITS#
+VALUE: 0.0m/s
+HELP: initial value of velocity
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Nodal_Acceleration
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Acceleration_X#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Y#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Z#UNITS#
+VALUE: 0.0m/s^2
+HELP: initial value of acceleration
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Line_Acceleration
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Acceleration_X#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Y#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Z#UNITS#
+VALUE: 0.0m/s^2
+HELP: initial value of acceleration
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Surface_Acceleration
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Acceleration_X#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Y#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Z#UNITS#
+VALUE: 0.0m/s^2
+HELP: initial value of acceleration
+image: images/Velocity.gif
+END CONDITION
+CONDITION: Body_Acceleration
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Initial_Acceleration_X#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Y#UNITS#
+VALUE: 0.0m/s^2
+QUESTION: Initial_Acceleration_Z#UNITS#
+VALUE: 0.0m/s^2
+HELP: initial value of acceleration
+image: images/Velocity.gif
+END CONDITION
+
+Book: Groups
+CONDITION: Point_Group_Membership
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Group_Name
+VALUE: 0
+END CONDITION
+CONDITION: Line_Group_Membership
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Group_Name
+VALUE: 0
+END CONDITION
+CONDITION: Surface_Group_Membership
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Group_Name
+VALUE: 0
+END CONDITION
+CONDITION: Volume_Group_Membership
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Group_Name
+VALUE: 0
+END CONDITION

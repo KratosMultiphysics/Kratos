@@ -1,0 +1,108 @@
+BeginZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/square_split.gid/square_split_0.post.vv
+   x -1.36301 1.36301
+   y 0.726483 -0.726483
+   z -2.17945 2.17945
+   e 0.726483
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector -9.375 -11.4565 149.474 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/square_split.gid/square_split_0.post.vv
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 0
+  Num sets: 4
+  Num cuts: 0
+  Set: 0
+  State: On
+    Name: "Kratos_Triangle2D3_Mesh 2"
+    IdSet: 2
+    Color Type: 0
+    Color Ambient: 0 0 0.3 0.5
+    Color Diffuse: 0 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 14
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 0
+  Set: 1
+  State: On
+    Name: "Kratos_Triangle2D3_Mesh 1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 14
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 1
+  Set: 2
+  State: On
+    Name: "Kratos_Triangle2D3_Mesh 3"
+    IdSet: 3
+    Color Type: 0
+    Color Ambient: 0.3 0 0.3 0.5
+    Color Diffuse: 1 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 14
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 2
+  Set: 3
+  State: On
+    Name: "Kratos_Line2D2_Mesh 7"
+    IdSet: 7
+    Color Type: 0
+    Color Ambient: 0.3 0.2 0 0.5
+    Color Diffuse: 0.6 0.4 0 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 14
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 3
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 33} {Contour Fill} Kratos 9.9799995422363281 TEMPERATURE TEMPERATURE 0.0 4 0
+EndPostState
+

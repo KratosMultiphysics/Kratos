@@ -1,0 +1,430 @@
+PROBLEM DATA
+
+BOOK: Problem_Parameters
+
+
+TITLE: DEM_General_Settings
+QUESTION: Autodetermine_2D-3D_problem#CB#(1,0)
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Domain_Dimension#CB#(2,3)
+VALUE: 3
+QUESTION: Continuum#CB#(ON,OFF)
+VALUE: ON
+DEPENDENCIES: (OFF,TITLESTATE,Continuum_Options,hidden,HIDE,Skin_Determination,#CURRENT#,RESTORE,DEM_Element_Type,SphericParticle3D,HIDE,General_Poisson_Ratio,#CURRENT#,HIDE,General_Friction,#CURRENT#,HIDE,General_Tension,#CURRENT#,HIDE,EXPORT_PARTICLE_FAILURE_ID,#CURRENT#,HIDE,EXPORT_SKIN_SPHERE,0,HIDE,LOCAL_CONTACT_FORCE,#CURRENT#,HIDE,REPRESENTATIVE_VOLUME,#CURRENT#,HIDE,MEAN_CONTACT_AREA,#CURRENT#,HIDE,STRESS_TENSOR,#CURRENT#,HIDE,CONTACT_FAILURE,#CURRENT#,HIDE,FAILURE_CRITERION_STATE,#CURRENT#,HIDE,UNIDIMENSIONAL_DAMAGE,#CURRENT#,HIDE,CONTACT_TAU,#CURRENT#,HIDE,CONTACT_SIGMA,#CURRENT#,HIDE,Failure_Criterion,#CURRENT#,HIDE,FSS_MPa,#CURRENT#,HIDE,FTS_MPa,#CURRENT#,HIDE,Static_Friction,#CURRENT#,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#)
+DEPENDENCIES: (ON,TITLESTATE,Continuum_Options,normal,RESTORE,Skin_Determination,#CURRENT#,RESTORE,DEM_Element_Type,SphericContinuumParticle3D,RESTORE,Failure_Criterion,#CURRENT#,RESTORE,FSS_MPa,#CURRENT#,RESTORE,FTS_MPa,#CURRENT#,RESTORE,Static_Friction,#CURRENT#,RESTORE,EXPORT_PARTICLE_FAILURE_ID,#CURRENT#,RESTORE,EXPORT_SKIN_SPHERE,#CURRENT#,RESTORE,LOCAL_CONTACT_FORCE,#CURRENT#,RESTORE,REPRESENTATIVE_VOLUME,#CURRENT#,RESTORE,MEAN_CONTACT_AREA,#CURRENT#,RESTORE,STRESS_TENSOR,#CURRENT#,RESTORE,CONTACT_FAILURE,#CURRENT#,RESTORE,FAILURE_CRITERION_STATE,#CURRENT#,RESTORE,UNIDIMENSIONAL_DAMAGE,#CURRENT#,RESTORE,CONTACT_TAU,#CURRENT#,RESTORE,CONTACT_SIGMA,#CURRENT#)
+QUESTION: Dempack#CB#(ON,OFF)
+VALUE: ON
+QUESTION: DEM_Element_Type#CB#(SphericParticle3D,SphericContinuumParticle3D,SphericSwimmingParticle3D,CylinderParticle2D,CylinderContinuumParticle2D)
+VALUE: SphericParticle3D
+QUESTION: Rotation#CB#(ON,OFF)
+VALUE: ON
+STATE: HIDDEN
+DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#,HIDE,Rota_Damp_Type,#CURRENT#,HIDE,ANGULAR_VELOCITY,#CURRENT#,HIDE,PARTICLE_MOMENT,#CURRENT#,HIDE,EULER_ANGLES,#CURRENT#,HIDE,General_Rolling_Friction,#CURRENT#,HIDE,General_Rota_Damp_Ratio,#CURRENT#,HIDE,Rotation_Spring,#CURRENT#,HIDE,Rota_Damp_Type,#CURRENT#)
+DEPENDENCIES: (ON,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Rota_Damp_Type,#CURRENT#,RESTORE,ANGULAR_VELOCITY,#CURRENT#,RESTORE,PARTICLE_MOMENT,#CURRENT#,RESTORE,EULER_ANGLES,#CURRENT#,RESTORE,General_Rolling_Friction,#CURRENT#,RESTORE,General_Rota_Damp_Ratio,#CURRENT#,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Rota_Damp_Type,#CURRENT#)
+QUESTION: Homogeneous_Material#CB#(OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,TITLESTATE,Global_Material_Parameters,hidden)
+STATE: HIDDEN
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+VALUE: Use_Default
+STATE: HIDDEN
+QUESTION: Python_file
+VALUE: script.py
+STATE: HIDDEN
+QUESTION: Print_Neighbour_Lists#CB#(ON,OFF)
+VALUE: OFF
+STATE: HIDDEN
+
+QUESTION: Number_of_processors
+VALUE: 1
+QUESTION: Gravity_X
+VALUE: 0.0
+QUESTION: Gravity_Y
+VALUE: -9.81
+QUESTION: Gravity_Z
+VALUE: 0.0
+QUESTION: Bounding_Box_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Automatic_Calculation_Of_Bounding_Box,#CURRENT#,HIDE,Bounding_Box_Enlargement_Factor,#CURRENT#,HIDE,Max_X,#CURRENT#,HIDE,Max_Y,#CURRENT#,HIDE,Max_Z,#CURRENT#,HIDE,Min_X,#CURRENT#,HIDE,Min_Y,#CURRENT#,HIDE,Min_Z,#CURRENT#)(ON,RESTORE,Automatic_Calculation_Of_Bounding_Box,#CURRENT#)
+QUESTION: Automatic_Calculation_Of_Bounding_Box#CB#(ON,OFF)
+VALUE: ON
+DEPENDENCIES: (OFF,HIDE,Bounding_Box_Enlargement_Factor,#CURRENT#,RESTORE,Max_X,#CURRENT#,RESTORE,Max_Y,#CURRENT#,RESTORE,Max_Z,#CURRENT#,RESTORE,Min_X,#CURRENT#,RESTORE,Min_Y,#CURRENT#,RESTORE,Min_Z,#CURRENT#)(ON,RESTORE,Bounding_Box_Enlargement_Factor,#CURRENT#,HIDE,Max_X,#CURRENT#,HIDE,Max_Y,#CURRENT#,HIDE,Max_Z,#CURRENT#,HIDE,Min_X,#CURRENT#,HIDE,Min_Y,#CURRENT#,HIDE,Min_Z,#CURRENT#)
+QUESTION: Bounding_Box_Enlargement_Factor
+VALUE: 2.0
+QUESTION: Max_X
+VALUE: 1.0
+QUESTION: Max_Y
+VALUE: 1.0
+QUESTION: Max_Z
+VALUE: 1.0
+QUESTION: Min_X
+VALUE: -1.0
+QUESTION: Min_Y
+VALUE: -1.0
+QUESTION: Min_Z
+VALUE: -1.0
+QUESTION: Output_file_type#CB#(Binary,Ascii)
+VALUE: Binary
+QUESTION: Multifile#CB#(single_file,multiple_files)
+VALUE: single_file
+QUESTION: Model_Data_Info#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
+VALUE: 1
+STATE: HIDDEN
+
+
+TITLE: Special_Features
+
+QUESTION: Skin_Determination#CB#(Automatic_Over_All_Surfaces,Predefined_By_The_User)
+VALUE: Automatic_Over_All_Surfaces
+QUESTION: Clean_Initial_Indentations#CB#(ON,OFF)
+VALUE: OFF
+
+QUESTION: Virtual_Mass_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Virtual_Mass_Coefficient,#CURRENT#)(ON,RESTORE,Virtual_Mass_Coefficient,#CURRENT#)
+QUESTION: Virtual_Mass_Coefficient
+VALUE: 0.0
+QUESTION: Set_Search_Tolerance#CB#(COORDINATION_NUMBER,OFF,ABSOLUTE)
+VALUE: COORDINATION_NUMBER
+DEPENDENCIES: (OFF,HIDE,Search_Tolerance_Absolute,#CURRENT#,HIDE,Coordination_Number,#CURRENT#)(ABSOLUTE,RESTORE,Search_Tolerance_Absolute,#CURRENT#,HIDE,Coordination_Number,#CURRENT#)(COORDINATION_NUMBER,RESTORE,Coordination_Number,#CURRENT#,HIDE,Search_Tolerance_Absolute,#CURRENT#)
+QUESTION: Search_Tolerance_Absolute
+VALUE: 0.01
+HELP:Absolute value in meters of the radius extensions for the search.
+QUESTION: Coordination_Number
+VALUE: 10.0
+HELP:Desired Coordination number in the model
+QUESTION: Dont_Search_Until_Failure_Occurs#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Fix_Horizontal_Velocities#CB#(ON,OFF)
+VALUE: ON
+HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
+QUESTION: Magic_Factor
+VALUE: 1.0
+STATE: HIDDEN
+QUESTION: Magic_Factor_Poisson
+VALUE: 1.0
+STATE: HIDDEN
+QUESTION: Loading_Velocity_Top
+VALUE: -0.1
+QUESTION: Loading_Velocity_Bot
+VALUE: 0.0
+STATE: HIDDEN
+
+
+TITLE: Time_Discretization_Settings
+
+QUESTION: Integration_Scheme#CB#(forward_euler,mid_point_rule,const_average_acc)
+VALUE: forward_euler
+QUESTION: Time_Steps_Per_Search_Step
+VALUE: 20
+QUESTION: Automatic_Time_Step_Reduction_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Time_Step_Safety_Factor,#CURRENT#)(ON,RESTORE,Time_Step_Safety_Factor,#CURRENT#)
+QUESTION: Calculation_Time
+HELP:Seconds
+VALUE: 2.0
+QUESTION: Time_Step_Safety_Factor
+VALUE: 1.0
+QUESTION: Time_Step
+VALUE: 1e-7
+QUESTION: Output_Time_Step
+VALUE: 2e-5
+QUESTION: Control_Time
+HELP: Refreshes screen output
+VALUE: 5.0
+
+
+TITLE: Material_Model
+
+QUESTION: Normal_Force_Calculation#CB#(PlasticityAndDamage1D,Linear,Hertz,NonLinearDonze)
+VALUE: PlasticityAndDamage1D
+DEPENDENCIES: (Linear,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#,HIDE,LCS3_MPa,#CURRENT#,HIDE,YRC3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,YEP,#CURRENT#,HIDE,YIELD_MPa,#CURRENT#,HIDE,EDR,#CURRENT#)
+DEPENDENCIES: (Hertz,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#,HIDE,LCS3_MPa,#CURRENT#,HIDE,YRC3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,YEP,#CURRENT#,HIDE,YIELD_MPa,#CURRENT#,HIDE,EDR,#CURRENT#)
+DEPENDENCIES: (PlasticityAndDamage1D,RESTORE,LCS1_MPa,#CURRENT#,RESTORE,YRC1,#CURRENT#,RESTORE,LCS2_MPa,#CURRENT#,RESTORE,YRC2,#CURRENT#,RESTORE,LCS3_MPa,#CURRENT#,RESTORE,YRC3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,RESTORE,YEP,#CURRENT#,RESTORE,YIELD_MPa,#CURRENT#,RESTORE,EDR,#CURRENT#)
+DEPENDENCIES: (NonLinearDonze,RESTORE,Gamma_1,#CURRENT#,RESTORE,Gamma_2,#CURRENT#,RESTORE,Gamma_3,#CURRENT#,RESTORE,Max_Deformation,#CURRENT#,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#,HIDE,LCS3_MPa,#CURRENT#,HIDE,YRC3,#CURRENT#,HIDE,YEP,#CURRENT#,HIDE,YIELD_MPa,#CURRENT#,HIDE,EDR,#CURRENT#)
+
+QUESTION: Static_Friction
+HELP:Material internal friction
+VALUE: 0.9
+QUESTION: FTS_MPa
+HELP:Tensile Strength
+VALUE: 4.0
+QUESTION: LCS1_MPa
+HELP:Tension at which the stiffness changes for the first time.
+VALUE: 15
+QUESTION: LCS2_MPa
+HELP:Tension at which the stiffness changes for the second time.
+VALUE: 20
+QUESTION: LCS3_MPa
+HELP:Tension at which the stiffness changes for the third time.
+VALUE: 45
+QUESTION: YRC1
+HELP:Divides the initial stiffness when LCS1_MPa is reached.
+VALUE: 1.5
+QUESTION: YRC2
+HELP:Divides the initial stiffness when LCS2_MPa is reached.
+VALUE: 3.0
+QUESTION: YRC3
+HELP:Divides the initial stiffness when LCS3_MPa is reached.
+VALUE: 25.0
+QUESTION: FSS_MPa
+HELP:Tangential Strength
+VALUE: 15.0
+QUESTION: YEP_Pa
+HELP: Unloading Plastic Young Modulus in Pascals.
+VALUE: 2.8e10
+QUESTION: YIELD_MPa
+HELP: Tension at which the plastic yield point is reached.
+VALUE: 20
+QUESTION: EDR
+HELP: Ratio of the maximum extra damaged strain with respect to the elastic strain once this is reached. Value is 0 for fragile failure. 
+VALUE: 1.0
+QUESTION: Gamma_1
+VALUE: 0.4
+QUESTION: Gamma_2
+VALUE: 20
+QUESTION: Gamma_3
+VALUE: 1.5
+QUESTION: Max_Deformation
+VALUE: 0.02
+
+QUESTION: Normal_Contact_Damp#CB#(ViscDamp,NoDamp)
+VALUE: ViscDamp
+QUESTION: Tangential_Contact_Damp#CB#(ViscDamp,NoDamp)
+VALUE: NoDamp
+QUESTION: GDAMP
+HELP: Global damping
+VALUE: 0.2
+QUESTION: LDAMP
+HELP: Local damping
+VALUE: 0.9
+QUESTION: Alpha
+HELP: Contact area factor modifier.
+VALUE: 1.00
+QUESTION: Failure_Criterion#CB#(Mohr-Coulomb,Uncoupled)
+VALUE: Uncoupled
+
+
+
+
+#Rotation
+QUESTION: Rotation_Spring#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Rota_Damp_Type#CB#(NoDamp,LocalDamp,RollingFric)
+VALUE: NoDamp
+
+
+#Globally defined materials for homogeneous cases
+#TITLE: Global_Material_Parameters
+
+QUESTION: General_Density
+HELP:Kg/m3
+VALUE: 1000
+STATE: HIDDEN
+QUESTION: General_Young_Modulus
+HELP:Pa
+VALUE: 2.1e7
+STATE: HIDDEN
+QUESTION: General_Poisson_Ratio
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: General_Cohesion
+VALUE: 4.16e6
+STATE: HIDDEN
+QUESTION: General_Friction
+VALUE: 45
+STATE: HIDDEN
+QUESTION: General_Rolling_Friction
+VALUE: 0
+STATE: HIDDEN
+QUESTION: General_Tension
+VALUE: 2.01e6
+STATE: HIDDEN
+QUESTION: General_Rota_Damp_Ratio
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: General_Static_Friction_Coef
+VALUE: 0
+STATE: HIDDEN
+QUESTION: General_Dynamic_Friction_Coef
+VALUE: 0
+STATE: HIDDEN
+QUESTION: General_Restitution_Coef
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: General_Colour
+VALUE: 1
+STATE: HIDDEN
+
+#Directly defined global variables
+QUESTION: Globally_Specified_Variables#CB#(ON,OFF)
+VALUE: OFF
+STATE: HIDDEN
+DEPENDENCIES: (OFF,HIDE,Global_KN,#CURRENT#,HIDE,Global_KT,#CURRENT#,HIDE,Global_KR,#CURRENT#,HIDE,Global_RN,#CURRENT#,HIDE,Global_RT,#CURRENT#,HIDE,Global_RR,#CURRENT#,HIDE,Global_FRI_ANG,#CURRENT#)(ON,RESTORE,Global_KN,#CURRENT#,RESTORE,Global_KT,#CURRENT#,RESTORE,Global_KR,#CURRENT#,RESTORE,Global_RN,#CURRENT#,RESTORE,Global_RT,#CURRENT#,RESTORE,Global_RR,#CURRENT#,RESTORE,Global_FRI_ANG,#CURRENT#)
+QUESTION: Global_KN
+VALUE: 3000.0
+STATE: HIDDEN
+QUESTION: Global_KT
+VALUE: 1000.0
+STATE: HIDDEN
+QUESTION: Global_KR
+VALUE: 1000.0
+STATE: HIDDEN
+QUESTION: Global_RN
+VALUE: 1000.0
+STATE: HIDDEN
+QUESTION: Global_RT
+VALUE: 1000.0
+STATE: HIDDEN
+QUESTION: Global_RR
+VALUE: 1000.0
+STATE: HIDDEN
+QUESTION: Global_FRI_ANG
+VALUE: 40.0
+STATE: HIDDEN
+
+
+#Options only relevant to the DEM-modelled continuum problems
+TITLE: Continuum_Options
+
+QUESTION: Amplified_Continuum_Search_Radius_Extension
+HELP: Manually especified factor that enlarges the initial radius of search in order to find the continuum neighbours that are may be separated by traccional strain. 
+VALUE: 1.10
+
+STATE: HIDDEN
+QUESTION: Stress_Strain_Operations#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Contact_Mesh#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Concrete_Test#CB#(UCS,TRIAXIAL,OEDOMETRIC,BTS,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
+DEPENDENCIES: (UCS,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#) 
+DEPENDENCIES: (TRIAXIAL,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#)
+DEPENDENCIES: (OEDOMETRIC,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,HIDE,Confinement_Pressure,0.0,RESTORE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#)
+DEPENDENCIES: (BTS,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
+QUESTION: Graph_export_frequency
+VALUE: 0.1
+HELP: in seconds of the simulation
+QUESTION: Use_FEM_Plate#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Specimen_height
+VALUE: 0.30
+STATE: HIDDEN
+HELP: meters
+QUESTION: Specimen_width
+VALUE: 0.15
+STATE: HIDDEN
+HELP: meters
+QUESTION: Measuring_Surface
+HELP:in meters
+VALUE: 0.01767145868
+STATE: HIDDEN
+QUESTION: Poisson_Measure#CB#(ON,OFF)
+VALUE: OFF
+STATE: HIDDEN
+QUESTION: Measuring_Width
+HELP:in meters
+VALUE: 0.05
+STATE: HIDDEN
+QUESTION: Real_Time_Graph#CB#(ON,OFF)
+VALUE: OFF
+STATE: HIDDEN
+QUESTION: Confinement_Pressure
+HELP:MPa
+VALUE: 0.0
+STATE: HIDDEN
+QUESTION: Monitoring_Option#CB#(ON,OFF)
+VALUE: OFF
+STATE: HIDDEN
+
+
+TITLE: RigidFace Movement
+QUESTION: ComputeMovementOption#CB#(OFF,ON)
+VALUE: OFF
+QUESTION: RotationSpeed
+HELP:r.p.s
+VALUE: 0.5
+QUESTION: AxialSpeed
+HELP:m/s
+VALUE: 0.0
+QUESTION: PropID
+VALUE: 1
+QUESTION: GLOBAL_X_VEL
+VALUE: 0.0
+QUESTION: GLOBAL_Y_VEL
+VALUE: 0.0
+QUESTION: GLOBAL_Z_VEL
+VALUE: 0.0
+QUESTION: ROTA_ORIGIN_COORD_X
+VALUE: 0.0
+QUESTION: ROTA_ORIGIN_COORD_Y
+VALUE: 0.0
+QUESTION: ROTA_ORIGIN_COORD_Z
+VALUE: 0.0
+QUESTION: ROTA_AXIAL_NORMAL_X
+VALUE: 0.0
+QUESTION: ROTA_AXIAL_NORMAL_Y
+VALUE: 0.0
+QUESTION: ROTA_AXIAL_NORMAL_Z
+VALUE: 0.0
+QUESTION: BEGIN_TIME
+VALUE: 0.0
+QUESTION: END_TIME
+VALUE: 1.0
+
+#Varibles to be exported for post-processing
+TITLE: Export_Selection 
+QUESTION: VELOCITY#CB#(1,0)
+VALUE: 1
+QUESTION: DISPLACEMENT#CB#(1,0)
+VALUE: 1
+QUESTION: RHS#CB#(1,0)
+VALUE: 0
+QUESTION: TOTAL_FORCES#CB#(1,0)
+VALUE: 0
+QUESTION: DAMP_FORCES#CB#(1,0)
+VALUE: 0
+QUESTION: APPLIED_FORCES#CB#(1,0)
+VALUE: 0
+QUESTION: RADIUS#CB#(1,0)
+VALUE: 1
+QUESTION: GROUP_ID#CB#(1,0)
+VALUE: 0
+QUESTION: EXPORT_ID#CB#(1,0)
+VALUE: 0
+QUESTION: EXPORT_PARTICLE_FAILURE_ID#CB#(1,0)
+VALUE: 0
+QUESTION: EXPORT_SKIN_SPHERE#CB#(1,0)
+VALUE: 0
+QUESTION: LOCAL_CONTACT_FORCE#CB#(1,0)
+VALUE: 0
+QUESTION: REPRESENTATIVE_VOLUME#CB#(1,0)
+VALUE: 0
+QUESTION: MEAN_CONTACT_AREA#CB#(1,0)
+VALUE: 0
+QUESTION: STRESS_TENSOR#CB#(1,0)
+VALUE: 0
+QUESTION: CONTACT_FAILURE#CB#(1,0)
+VALUE: 0
+QUESTION: FAILURE_CRITERION_STATE#CB#(1,0)
+VALUE: 0
+QUESTION: UNIDIMENSIONAL_DAMAGE#CB#(1,0)
+VALUE: 0
+QUESTION: CONTACT_TAU#CB#(1,0)
+VALUE: 0
+QUESTION: CONTACT_SIGMA#CB#(1,0)
+VALUE: 0
+QUESTION: ANGULAR_VELOCITY#CB#(1,0)
+VALUE: 0
+QUESTION: PARTICLE_MOMENT#CB#(1,0)
+VALUE: 0
+QUESTION: EULER_ANGLES#CB#(1,0)
+VALUE: 0
+
+
+END GENERAL DATA

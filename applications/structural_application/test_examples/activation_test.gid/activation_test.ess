@@ -1,0 +1,13 @@
+# ekate simulation script for activation_test.gid
+#setting up activation flags
+from_excavation = 0
+to_excavation = 2
+Dt =            1
+time = 0.0
+for excavation_step in range(1,11):
+	time = time+Dt
+	to_excavation = to_excavation+1
+	model.Solve(time,from_excavation,to_excavation,0,0)
+	model.WriteOutput( time )
+	print("~~~~~~~~~~~~~~STEP DONE~~~~~~~~~~~~~~")
+# END OF USER SCRIPT

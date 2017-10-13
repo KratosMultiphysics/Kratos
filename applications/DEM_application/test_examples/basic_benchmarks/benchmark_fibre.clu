@@ -1,0 +1,27 @@
+//
+//   Cluster Name:        "benchmark_fibre"
+//   Author:              Joaquín Irazábal
+//   Date:                $Date: 2016-7-7
+//
+
+Name
+benchmark_fibre
+
+Begin centers_and_radii  
+-1.0 0.0 0.0 0.5
+-0.5 0.0 0.0 0.5
+0.0 0.0 0.0 0.5
+0.5 0.0 0.0 0.5
+1.0 0.0 0.0 0.5
+End centers_and_radii
+     
+Size
+1.0
+
+Volume
+1.0
+
+Inertia per unit mass
+0.11875
+0.6566
+0.6566

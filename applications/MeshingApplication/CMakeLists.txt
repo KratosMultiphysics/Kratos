@@ -1,0 +1,94 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+message("**** configuring KratosMeshingApplication ****")
+
+add_definitions( -DTETGEN143 )
+add_definitions( -DTETLIBRARY )
+
+include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
+# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite )
+# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/util )
+# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/malla )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
+
+#include pragmatic libraries if so selected
+if(PRAGMATIC_ACTIVATED MATCHES ON)
+    add_definitions( -DPRAGMATIC_ACTIVATED )
+    message( "Include directory for PRAGMATIC " ${PRAGMATIC_INCLUDE_DIR} )
+    include_directories( ${PRAGMATIC_INCLUDE_DIR} )
+    include_directories( ${PRAGMATIC_INCLUDE_DIR}/include )
+endif(PRAGMATIC_ACTIVATED MATCHES ON)
+
+##add subdirectories for compilation of dependent libraries
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
+
+## generate variables with the sources
+if(${INCLUDE_MMG} MATCHES ON)
+set( KRATOS_MESHING_APPLICATION_SOURCES    
+	${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
+)
+else(${INCLUDE_MMG} MATCHES ON)
+set( KRATOS_MESHING_APPLICATION_SOURCES    
+	${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+)
+endif(${INCLUDE_MMG} MATCHES ON)
+
+###############################################################
+## define library Kratos which defines the basic python interface
+add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
+target_link_libraries(KratosMeshingApplication KratosCore triangle tetgen tetMeshOpt)
+
+if(${INCLUDE_MMG} MATCHES ON)
+    add_definitions( -DINCLUDE_MMG )
+
+    INCLUDE_DIRECTORIES(${MMG_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES(${MMG2D_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
+
+    target_link_libraries(KratosMeshingApplication KratosCore triangle ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+endif(${INCLUDE_MMG} MATCHES ON)
+
+set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+# changing the .dylib suffix to .so 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+install(TARGETS KratosMeshingApplication DESTINATION libs )
+
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+
+# Add to the KratosMultiphisics Python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py" DESTINATION KratosMultiphysics )

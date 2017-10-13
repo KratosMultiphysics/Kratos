@@ -1,0 +1,40 @@
+BeginZE /home/nelson/kratos/applications/structural_application/test_examples/cantilever3d.gid/cantilever3d.vv
+   x -0.11651 0.0181304
+   y 0.453034 0.395441
+   z -2.15831 1.15831
+   e 0.552771
+   v 0.293028 -0.360594 -0.782761
+   r 0.413994
+   m -0.485487 0.436788 -0.75731 0 -0.859445 -0.397162 0.321895 0 -0.160175 0.807142 0.568213 0 0 0 0 1
+   c 0.025 0.025 0.5
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 1
+   LightVector 3.7054 116.722 83.0551 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/nelson/kratos/applications/structural_application/test_examples/cantilever3d.gid/cantilever3d.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+BeginInfo
+eJy1WFtv2zYUfvevILCXDWgN3xKneUsbL/NqO4Xttu4TQUm0zJUiVZJy7Bb97zukRN2sBAO2PVn6PpI+93Oobchv+lf94RBtv8LDr/nLb70FE9kJCcq1FGjUv+6PR6/HN69jKqhiIfrxy8349ccgEyZDm+UH9JlG6E8i0AQNh7fD0e1gij5u36HRYDj6iU431/h60tvKmKNhf3qLHhY7dGQ6IxyxCA1Oo+krRIyhSWpgQW97oIoippGQSB6p4uTstoRSGHoy/V7vMaXigd/2EEKfZqv7x/Ut+nG3naMtDQ9CchkzqtFchP2fdskalszWM79oKQPGmTmjNYkoaPfHPboaDAZoA5rBtp/5qevN/HEFO8b9Uf/N9OoavZNJSgwr9n5Qcs84BdTJ5DY9LDYLBPJqJsUtKHI1sOj9fPNhcfcFzVe/P66XIIA7NmBGIwVWu3mFYkWpsA8Bz6j9JTw9EPsQ0dQc0GjyCmlDRci4BeFRUQnGybVbzJfz7QaOtC9LcgIjnEwGBtyw7xTEuB7fTDw14zShwljbRCyk2tLT6XQ0vLpY8Ykqky8ZDSfTyc34ejL1i8b3rT+5Gb4ZefJdFlB4SJ+T4+5IGCcB2O7IwP4ooYlUZ6TdqjeTcX8yvkbLt2dDdXEkS7IEPUn1lYkYiSwJqEJyj2ghqj17OBii9z1nj9luO1tZ5zmbPCzw3fIeQ+hoqo7gvyPFzqqeiRR5wkG234PfMEglIs+kVO2lSogIKU6kYEYqT2lKEk61xiEom5DUrsUm17dcc4DwUrhwHKanVCrjyWKt24/tAUQpcm6zxe/E4xBbAPmTwUCack4quXZYkIRiSFLQkVNDS1wREckEkzC0UhuiYmpK8uVj12/Belyqwkh4zyUxFZOeC8JDzrqdi3Mm5CRJm1DdchasuaQLq7nJMz4WcEA0LRRqLGBCG+vJcttekdhuARWkimyAHOENMldfrEiVjBVJnsOd4eTTBZ3bswYntLCKDP6ioeli9PrhrcdjKhNq1Lk4aOLxA+H73LA4ZSfKO/CmAVhCYkid8tWbIg+6Ul8bhoUYEC5x6Y4k44ZpcBpvQi2vyTDkmS19+FtG1dnDTkTcqXgqmbUisfqbmq9zXKeKmfJ0sPVR2gLQ0i2Xy5mopmIjP61iJZHHeC6HbqE+7biM6oz9Uw4GyUhM8XAwqHOV2/M3TJKAgfNL9CxC/+yPDyDe4N8aeVByXXYqiwV0IAVagY1foLCKzcV/tu3wQv2psVQcMYmiLhj+MGCCdlJKah0Q1cVF0ozbeKNGeDAm5kAvjkiYUhK6JlY0pZebOiLVUwIMk8ona9s9Nk+yzbuYrXveEwocAc6/PFHFbUQLaBclCDmkU6mteY1iZcBmgtmu0u3pohI7Z+AAiksn0bnnpfNaBaxR7z34xISNX5DYIdv5ZRkGDHyYl4kk9dEEaFfJAxg6OxN76V81taluqG+JHu+K4XEUtula1I3bXBVCNTAPFiyh1FkK5gJMwKb+2ZvXPYPydiTx3ilx22jy9teE6LeM2GZRKtWk95kIn6HAJAk5NTGdBRAuudssai0Bw2XUcHtFNlpuCdXKscXq3hs1wEYrLFFX8ss+6qm9jPMGWQK1ZhXAJNyFt9KwTVch2mZ897N4V/dzeJqVjbfZOjzb2nBg2pThbwEnXq501QAtkZLwKxg9n0lqQVrjykCrYa7DVYd09ztHdfQ7h3f0NotDMoSE29oFU2gpiaYwq0QELNOIyyq7UhpmnKgWnbc4mOoSFgIFN7eaBH5WzQIlM1PUdU9AVbDxXC0uJtonlVcAh0EEN+MPXu0cquiegwmKllUQdt34vgU0o/zZhvgsCQU5GI/aS+pFJUjzxvgcDzPvi7xvrM/xetzB1xpvHacRZFs5AjSYqum24VrTbVO+sdZxuKAa63PBtDRKpuxCOohHGld1pDUAtSCokkS38aLIdmrS7bRGQ60TEGu2tduLkihGqAYtaoW5BGsVo8Se2PfvteNZAkYoZ1IH2d7suvCe0iiANPZMV8HtbMrzt8uXppL32105S9O4iP7VJ1/voXvkmQKQzWZmE4RwWCuK/ukIqOrFBUlW2QwMmIizkJl2pQUKhuaEuVsuRCXc80yBd6bj5mG+we6Tji0cCfM93eHdkdqgijjZfFx1F9XP8xV4A+aFAwRa77OvFRax33KU5HBlf1jsbt2XnM1s/cl9pLFQx81j53azxN6jcfEtqITLmFdwzYUanGuSc/mnJlzMIg0MFM+vDTv8uFzkokFxPjjFdlZbSN6vNo2VsgOOoqRiGooU4OZCaAB3eB/Auj2LKyQtW3gBFBLB3dsWsxgKcdr7iewHq2Hffjh5t5jPVtu6eUKQxtCGKS5h213sl6qS9qKUvWxX3Dbd0tDWHlvQXnRCR9P+n72znG3uMOFchi5U3TejirjwRIU6UXGmSZyLD7ng8NzA/53jsfua5S98/zIW3B/AFUqxC7SS+x9EzSMk1OLuyy0a+Ec0X6HlbPXRQn8Dr6rkCA==
+EndInfo

@@ -1,0 +1,142 @@
+BOOK: DEM Materials
+
+NUMBER: 1 MATERIAL: Concrete
+
+QUESTION: Continuum_group
+VALUE: 1
+
+QUESTION: Particle_density
+VALUE: 2500
+
+QUESTION: Young_modulus
+VALUE: 2.8e10
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Dynamic_Friction
+VALUE: 0.4
+
+QUESTION: Rolling_Friction
+VALUE: 0.1
+STATE: HIDDEN
+QUESTION: Restitution_coef
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: Colour
+VALUE: 12
+
+END MATERIAL
+
+NUMBER: 2 MATERIAL: Cement
+
+QUESTION: Continuum_group
+VALUE: 1
+
+QUESTION: Particle_density
+VALUE: 2500
+
+QUESTION: Young_modulus
+VALUE: 2.8e09
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Dynamic_Friction
+VALUE: 0.4
+
+QUESTION: Rolling_Friction
+VALUE: 0.1
+STATE: HIDDEN
+QUESTION: Restitution_coef
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: Colour
+VALUE: 12
+
+END MATERIAL
+
+NUMBER: 3 MATERIAL: Rock
+
+QUESTION: Continuum_group
+VALUE: 1
+
+QUESTION: Particle_density
+VALUE: 2550
+
+QUESTION: Young_modulus
+VALUE: 3.0e10
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Dynamic_Friction
+VALUE: 0.4
+
+QUESTION: Rolling_Friction
+VALUE: 0.1
+STATE: HIDDEN
+QUESTION: Restitution_coef
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: Colour
+VALUE: 12
+
+END MATERIAL
+
+NUMBER: 4 MATERIAL: Steel
+
+QUESTION: Continuum_group
+VALUE: 0
+
+QUESTION: Particle_density
+VALUE: 7850
+
+QUESTION: Young_modulus
+VALUE: 2.1e11
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Dynamic_Friction
+VALUE: 0.4
+
+QUESTION: Rolling_Friction
+VALUE: 0.1
+STATE: HIDDEN
+QUESTION: Restitution_coef
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: Colour
+VALUE: 14
+
+END MATERIAL
+
+NUMBER: 5 MATERIAL: Test
+
+QUESTION: Continuum_group
+VALUE: 1
+
+QUESTION: Particle_density
+VALUE: 100
+
+QUESTION: Young_modulus
+VALUE: 2.0e7
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Dynamic_Friction
+VALUE: 0.4
+
+QUESTION: Rolling_Friction
+VALUE: 0.1
+STATE: HIDDEN
+QUESTION: Restitution_coef
+VALUE: 0.5
+STATE: HIDDEN
+QUESTION: Colour
+VALUE: 14
+
+END MATERIAL
+

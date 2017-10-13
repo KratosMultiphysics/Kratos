@@ -1,0 +1,10 @@
+{
+	"mapper_settings": [
+    {
+		"mapper_type": "NearestElement",
+		"interface_submodel_part_origin": "Outlet2D_outlet",
+		"interface_submodel_part_destination": "Inlet2D_inlet",
+		"search_radius" : 1.0
+	}
+ ]
+}

@@ -1,0 +1,33 @@
+BeginZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/pure_convection_3d.gid/pure_convection_3d.vv
+   x -1.65546 1.65546
+   y 0.866026 -0.866026
+   z -2.59808 2.59808
+   e 0.866025
+   v 0.276847 0.437215 0.719119
+   r 0.463752
+   m -0.416579 -0.424903 0.803691 0 0.90907 -0.187553 0.372043 0 -0.00734721 0.885597 0.464397 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 1
+   LightVector -9.375 -11.4565 149.474 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/pure_convection_3d.gid/pure_convection_3d.vv
+

@@ -1,0 +1,101 @@
+BEGIN TABLE
+length                                   : 1.0e-3 km, m { reference, basic }, 100 cm, 1.0e+3 mm
+mass                                     : kg { reference, basic }, 1.0e+3 g, 1.0e-3 t
+time                                     : s { reference, basic }, 0.01666667 minute, 2.777778e-4 h, 1.1574e-5 day
+electric current                         : A { reference, basic }
+temperature                              : Kel { reference, basic }, Cel, Far
+amout of substance                       : mol { reference, basic }
+luminous intensity                       : cd { reference, basic }
+area                                     : m^2 { reference, basic }, 1.0e+4 cm^2, 1.0e+6 mm^2
+volume                                   : m^3 { reference, basic }, 1.0e+6 cm^3, 1.0e+9 mm^3, 1.0e+3 l
+moment of inertia                        : m^4 { reference, basic }, 1.0e+8 cm^4, 1.0e+12 mm^4
+velocity                                 : 3.6 km/h, m/s { reference, basic }, 100 cm/s, 1.0e+3 mm/s
+acceleration                             : m/s^2 { reference, basic }, 0.1019716213 Gn, 100cm/s^2, 3.280839895 ft/s^2, 39.37007874 in/s^2, Gal
+wavenumber                               : one/m { reference, basic }
+mass density                             : kg/m^3 { reference, basic }, 1.0e-3 g/cm^3
+specific volume                          : m^3/kg { reference, basic }
+current density                          : A/m^2 { reference, basic }
+magnetic field strenght                  : A/m { reference, basic }, 0.01256637 Oe
+concentration of amount of substance     : mol/m^3 { reference, basic }
+luminance                                : cd/m^2 { reference, basic }
+refractive index                         : one { reference, basic }
+plane angle                              : rad { reference, basic }, 57.293489913 deg, 63.661990481 gon, 1018.5916402 mil, 3437.7468732 min, 0.15915495087 r, 0.20626479821 seg
+solid angle                              : sr { reference, basic }
+frequency                                : 1.0e-9 GHz, 1.0e-6 MHz, 1.0e-3 kHz, Hz { reference, basic }
+force                                    : N { reference, basic }, 0.102 kp, 1.0e5 dyne
+pressure                                 : Pa { reference, Basic }, 1.02e-5 kp/cm^2, 1.0e-3 kN/m^2, 1.0e-6 N/mm^2
+energy                                   : J { reference, basic }, 1.0e7 erg, N*m, 1.602e-19 eV
+power                                    : W { reference, basic }, 1.0e7 erg/s
+electric charge                          : C { reference, basic }, 3.0e9 esu
+electric potential                       : V { reference, basic }, 3.3355e-3 statvolt, W/A
+capacitance                              : F { reference, basic }
+electric resistance                      : Ohm { reference, basic }, 1.0e-3 MOhm, 1.0e+3 mOhm
+electric conductance                     : S { reference, basic }
+magnetic flux                            : Wb { reference, basic }, 1.0e8 Mx, V*s
+magnetic flux density                    : T { reference, basic }, 1.0e4 G, Wb/m^2
+inductance                               : H { reference, basic }, Wb/A
+luminous flux                            : lm { reference, basic }
+illuminance                              : lx { reference, basic }
+radionuclide activity                    : Bq { reference, basic }
+absorbed dose specific energy  kerma     : Gy { reference, basic }
+dynamic viscosity                        : Pa*s { reference, basic }
+surface tension                          : N/m { reference, basic }
+angular acceleration                     : rad/s^2 { reference, basic }
+heat flux density                        : W/m^2 { reference, basic }, 1.0e3 erg/s*cm^2
+heat capacity                            : J/K { reference, basic }, 1.0e7 erg/K
+specific heat capacity                   : J/kg*K { reference, basic }, 1.0e7 erg/kg*K
+thermal conductivity                     : W/m*K { reference, basic }, 1.0e5 erg/s*cm*K
+electric field strength                  : V/m { reference, basic }
+electric charge density                  : C/m^3 { reference, basic }
+electric flux density                    : C/m^2 { reference, basic }
+permittivity                             : F/m { reference, basic }
+permeability                             : H/m { reference, basic }
+molar energy                             : J/mol { reference, basic }
+exposure x and y rays                    : C/kg { reference, basic }
+absorbed dose rate                       : Gy/s { reference, basic }
+heat source                              : W/m^3 { reference, basic }, 10 erg/s*cm^3
+END
+
+begin system(international)
+length                                   : m
+mass                                     : kg
+time                                     : s
+temperature                              : Kel
+area                                     : m^2
+volume                                   : m^3
+moment of inertia                        : m^4
+velocity                                 : m/s
+acceleration                             : m/s^2
+mass density                             : kg/m^3
+frequency                                : Hz
+force                                    : N
+pressure                                 : Pa
+energy                                   : J
+power                                    : W
+heat flux density                        : W/m^2
+heat capacity                            : J/K
+specific heat capacity                   : J/kg*K
+thermal conductivity                     : W/m*K
+end
+
+begin system(cgs)
+length                                   : cm
+mass                                     : g
+time                                     : s
+temperature                              : Kel
+area                                     : cm^2
+volume                                   : cm^3
+moment of inertia                        : cm^4
+velocity                                 : cm/s
+acceleration                             : cm/s^2
+mass density                             : g/cm^3
+frequency                                : Hz
+force                                    : dyne
+pressure                                 : Pa
+energy                                   : erg
+power                                    : erg/s
+heat flux density                        : erg/s*cm^2
+heat capacity                            : erg/K
+specific heat capacity                   : erg/kg*K
+thermal conductivity                     : erg/s*cm*K
+end

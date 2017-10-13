@@ -1,0 +1,636 @@
+
+*set cond LineElementType *elems
+Begin Elements CrisfieldTrussElement3D3N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"truss")==0)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*end elems
+End Elements
+ 
+*set cond LineElementType *elems
+Begin Elements CrisfieldTrussElement3D2N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Truss")==0)
+*if(ElemsNnode==2)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond LineElementType *elems
+Begin Elements CrisfieldTrussElement3D3N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Truss")==0)
+*if(ElemsNnode==3)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*end elems
+End Elements
+ 
+ 
+*set cond SurfaceElementType *elems
+Begin Elements MembraneElement
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Membrane")==0)
+*if(ElemsType==2)
+*if(ElemsNnode==3)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D4N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==4)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D10N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==10)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D8N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==8)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D6N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==6)
+*if(ElemsNnode==6)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements KinematicLinear3D15N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Kinematic_Linear")==0)
+*if(ElemsType==6)
+*if(ElemsNnode==15)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+ 
+*set cond VolumeElementType *elems
+Begin Elements UnsaturatedSoilsElement2PhaseSmallStrain3D10N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"UnsaturatedSoil_2Phase")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==10)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements UnsaturatedSoilsElement2PhaseSmallStrain3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"UnsaturatedSoil_2Phase")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements UnsaturatedSoilsElement2PhaseSmallStrain3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"UnsaturatedSoil_2Phase")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements UnsaturatedSoilsElement2PhaseSmallStrain3D15N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"UnsaturatedSoil_2Phase")==0)
+*if(ElemsType==6)
+*if(ElemsNnode==15)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements 
+
+*set cond VolumeElementType *elems
+Begin Elements Soil2PhaseRigid3D4N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_2Phase_Rigid")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==4)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Soil2PhaseRigid3D8N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_2Phase_Rigid")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==8)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Soil2PhaseRigid3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_2Phase_Rigid")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Soil2PhaseRigid3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_2Phase_Rigid")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+
+
+*set cond VolumeElementType *elems
+Begin Elements Soil3Phase3D4N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_3Phase")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==4)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Soil3Phase3D8N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_3Phase")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==8)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Soil3Phase3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_3Phase")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Soil3Phase3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Soil_3Phase")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+
+
+*set cond VolumeElementType *elems
+Begin Elements FreezingSoil3D4N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Freezing_Soil")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==4)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements FreezingSoil3D10N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Freezing_Soil")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==10)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+
+*set cond VolumeElementType *elems
+Begin Elements FreezingSoil3D8N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Freezing_Soil")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==8)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements FreezingSoil3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Freezing_Soil")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements FreezingSoil3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Freezing_Soil")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+
+*set cond VolumeElementType *elems
+Begin Elements UnfrozenSoil3D4N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Unfrozen_Soil")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==4)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements UnfrozenSoil3D8N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Unfrozen_Soil")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==8)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements UnfrozenSoil3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Unfrozen_Soil")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements UnfrozenSoil3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Unfrozen_Soil")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+
+*set cond VolumeElementType *elems
+Begin Elements Solid3D4N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Solid")==0)
+*if(ElemsType==4)
+*if(ElemsNnode==4)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+  
+
+*set cond VolumeElementType *elems
+Begin Elements Solid3D8N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Solid")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==8)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Solid3D20N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Solid")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==20)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*ElemsConec(1) *ElemsConec(2) *ElemsConec(3) *ElemsConec(4) *ElemsConec(5) *ElemsConec(6) *ElemsConec(7) *ElemsConec(8) *ElemsConec(9) *ElemsConec(10) *ElemsConec(11) *ElemsConec(12) *ElemsConec(17) *ElemsConec(18) *ElemsConec(19) *ElemsConec(20) *ElemsConec(13) *ElemsConec(14) *ElemsConec(15) *ElemsConec(16) *\
+*endif
+*endif
+*endif
+*end elems
+End Elements
+
+*set cond VolumeElementType *elems
+Begin Elements Solid3D27N
+*loop elems *onlyInCond
+*if(strcmp(cond(1),"Solid")==0)
+*if(ElemsType==5)
+*if(ElemsNnode==27)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum      *ElemsMat    *\
+*for(i=1;i<=j;i=i+1)*\
+*ElemsConec(*i)    *\
+*end
+*endif
+*endif
+*endif
+*end elems
+End Elements

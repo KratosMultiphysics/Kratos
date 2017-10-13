@@ -1,0 +1,491 @@
+i am  0  of  3
+i am  1  of  3
+i am  2  of  3
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: True
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: True
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosTrilinosApplication: True
+Import_KratosMetisApplication: True
+importing KratosStructuralApplication ...
+Import_KratosTrilinosApplication: True
+Import_KratosMetisApplication: True
+importing KratosStructuralApplication ...
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: True
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosTrilinosApplication: True
+Import_KratosMetisApplication: True
+importing KratosStructuralApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosStructuralApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosStructuralApplication Succesfully imported
+importing KratosTrilinosApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosStructuralApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosStructuralApplication Succesfully imported
+importing KratosTrilinosApplication ...
+Initializing KratosStructuralApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosStructuralApplication Succesfully imported
+importing KratosTrilinosApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosTrilinosApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosTrilinosApplication sucessfully imported
+importing KratosMetisApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosTrilinosApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosTrilinosApplication sucessfully imported
+importing KratosMetisApplication ...
+Initializing KratosTrilinosApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosTrilinosApplication sucessfully imported
+importing KratosMetisApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing Kratos PFEMApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosMetisApplication sucessfully imported
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing Kratos PFEMApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosMetisApplication sucessfully imported
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing Kratos PFEMApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosMetisApplication sucessfully imported
+variables for the dynamic structural solution added correctly
+./balken_trilinos opened for io
+./balken_trilinos.node opened for io
+./balken_trilinos.prop opened for io
+./balken_trilinos.elem opened for io
+./balken_trilinos.cond opened for io
+./balken_trilinos.init opened for io
+initializing result files
+mNumberOfPartitions : 3
+variables for the dynamic structural solution added correctly
+./balken_trilinos opened for io
+./balken_trilinos.node opened for io
+./balken_trilinos.prop opened for io
+./balken_trilinos.elem opened for io
+./balken_trilinos.cond opened for io
+./balken_trilinos.init opened for io
+initializing result files
+mNumberOfPartitions : 3
+variables for the dynamic structural solution added correctly
+./balken_trilinos opened for io
+./balken_trilinos.node opened for io
+./balken_trilinos.prop opened for io
+./balken_trilinos.elem opened for io
+./balken_trilinos.cond opened for io
+./balken_trilinos.init opened for io
+initializing result files
+mNumberOfPartitions : 3
+temp : Node #2580 : (10 , 0 , 0.5)
+colors_number : 2
+domains_colored_graph : [3,3]((2,-1,-1),(-1,2,-1),(0,1,-1))
+temp : Node #2580 : (10 , 0 , 0.5)
+temp : Node #2580 : (10 , 0 , 0.5)
+ reading initiali values 
+ finished reading initial values 
+input data read OK
+dofs for the dynamic structural solution added correctly
+ reading initiali values 
+ finished reading initial values 
+input data read OK
+dofs for the dynamic structural solution added correctly
+ reading initiali values 
+ finished reading initial values 
+input data read OK
+dofs for the dynamic structural solution added correctly
+UPC Soil model selected
+UPC Soil model selected
+UPC Soil model selected
+UPC Soil model selected
+UPC Soil model selected
+layer sets stored
+nodes on ground surface stored
+layer sets stored
+nodes on ground surface stored
+UPC Soil model selected
+layer sets stored
+nodes on ground surface stored
+initializing deactivation utility
+deactivation utility initialized
+activation utility initialized
+model successfully initialized
+2
+ekate_simulation model part
+    Buffer Size : 2
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 860
+    Number of Properties : 2
+    Number of Elements   : 0
+    Number of Conditions : 680
+    Mesh 1 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 2 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 3 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 4 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+
+initializing deactivation utility
+setting up contact conditions
+initializing deactivation utility
+deactivation utility initialized
+activation utility initialized
+model successfully initialized
+0
+ekate_simulation model part
+    Buffer Size : 2
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 1260
+    Number of Properties : 2
+    Number of Elements   : 664
+    Number of Conditions : 332
+    Mesh 1 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 2 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 3 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 4 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+
+setting up contact conditions
+LinkingConditions.size() : 0
+!!!!!! NO LINKING CONDITIONS FOUND !!!!!!
+deactivation utility initialized
+activation utility initialized
+model successfully initialized
+1
+ekate_simulation model part
+    Buffer Size : 2
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 1320
+    Number of Properties : 2
+    Number of Elements   : 696
+    Number of Conditions : 348
+    Mesh 1 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 2 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 3 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 4 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+
+setting up contact conditions
+LinkingConditions.size() : 0
+!!!!!! NO LINKING CONDITIONS FOUND !!!!!!
+LinkingConditions.size() : 1392
+1 : local size = 3960
+1 : free_id = 2640
+1 : fixed_size = 0
+1 : free_offset = 2490
+1 : fixed offset = 7710
+0 : local size = 3780
+0 : free_id = 2490
+0 : fixed_size = 30
+0 : free_offset = 0
+0 : fixed offset = 7680
+2 : local size = 2580
+2 : free_id = 2550
+2 : fixed_size = 30
+2 : free_offset = 5130
+2 : fixed offset = 7710
+2 : BaseType::mEquationSystemSize = 7680
+2 : mLocalSystemSize = 2550
+0 : BaseType::mEquationSystemSize = 7680
+0 : mLocalSystemSize = 2490
+0 : free_offset = 2490
+0 : fixed_offset = 7710
+2 : free_offset = 7680
+2 : fixed_offset = 7740
+1 : BaseType::mEquationSystemSize = 7680
+1 : mLocalSystemSize = 2640
+1 : free_offset = 5130
+1 : fixed_offset = 7710
+entering ResizeAndInitializeVectors
+entering ResizeAndInitializeVectors
+entering ResizeAndInitializeVectors
+in ExecuteIteration:
+in ExecuteIteration:
+in ExecuteIteration:
+Building Time : 0.36
+Building Time : 0.36
+Building Time : 0.34
+"entering in the solver" : entering in the solver
+Linear solver
+
+"entering in the solver" : entering in the solver
+Linear solver
+
+System Solve Time : 0
+System Solve Time : 0
+"entering in the solver" : entering in the solver
+Linear solver
+
+System Solve Time : 0
+in ExecuteIteration:
+in ExecuteIteration:
+in ExecuteIteration:
+Building Time : 0.34
+Building Time : 0.35
+Building Time : 0.34
+"entering in the solver" : entering in the solver
+Linear solver
+
+System Solve Time : 0
+"entering in the solver" : entering in the solver
+Linear solver
+
+System Solve Time : 0
+"entering in the solver" : entering in the solver
+Linear solver
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = nan;  expected ratio = 1e-06absolute tol = 0
+convergence is achieved
+ekate_simulation model part
+    Buffer Size : 2
+    Current solution step index : 0
+    TIME : 0
+    DELTA_TIME : 0
+    CALCULATE_INSITU_STRESS : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 860
+    Number of Properties : 3
+    Number of Elements   : 0
+    Number of Conditions : 2072
+    Mesh 1 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 2 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 3 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 4 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+
+ekate_simulation model part
+    Buffer Size : 2
+    Current solution step index : 0
+    TIME : 0
+    DELTA_TIME : 0
+    CALCULATE_INSITU_STRESS : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 1260
+    Number of Properties : 3
+    Number of Elements   : 664
+    Number of Conditions : 332
+    Mesh 1 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 2 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 3 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 4 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+
+ekate_simulation model part
+    Buffer Size : 2
+    Current solution step index : 0
+    TIME : 0
+    DELTA_TIME : 0
+    CALCULATE_INSITU_STRESS : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 1320
+    Number of Properties : 3
+    Number of Elements   : 696
+    Number of Conditions : 348
+    Mesh 1 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 2 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 3 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+    Mesh 4 : 
+    Number of Nodes      : 0
+    Number of Properties : 0
+    Number of Elements   : 0
+    Number of Conditions : 0
+
+writing a 3D mesh
+write nodal displacements
+writing a 3D mesh
+writing a 3D mesh
+Calculation done
+writing a 3D mesh
+writing a 3D mesh
+write nodal displacements
+write nodal displacements
+Calculation done
+Calculation done

@@ -1,0 +1,43 @@
+PROBLEMTYPE DEM_explicit_solver	# The name of your problemtype
+USE KRATOS DEFINITIONS # Use default definition for this problemtype...
+USE PYTHON SCRIPTS DEM_explicit_script # ... but include my scripts from this folder
+
+VECTOR CONDITION VELOCITY                           point line surface volume fixed 0.0 0.0 0.0
+SCALAR CONDITION RADIUS                             point line surface volume free  0.3
+SCALAR CONDITION PARTICLE_DENSITY                   point line surface volume free  1.0
+SCALAR CONDITION PARTICLE_STIFFNESS                 point line surface volume free  1000.0
+SCALAR CONDITION YOUNG_MODULUS                      point line surface volume free  1000.0
+SCALAR CONDITION POISSON_RATIO                      point line surface volume free  0.5
+SCALAR CONDITION PARTICLE_COEF_RESTITUTION          point line surface volume free  -1.0
+SCALAR CONDITION PARTICLE_STATIC_FRICTION_COEF      point line surface volume free  0.5
+SCALAR CONDITION PARTICLE_DYNAMIC_FRICTION_COEF     point line surface volume free  0.2
+SCALAR CONDITION PARTICLE_ZETA                      point line surface volume free  0.1
+SCALAR CONDITION IS_STRUCTURE                       point line surface volume free  -1.0
+
+TEXT FLAG PROPERTY ContactType spring_circle hertzian_circle spring_sphere hertzian_sphere rotating_spring_sphere rotating_hertzian_sphere ContactType
+TEXT FLAG PROPERTY Solver forward_euler runge_kutta_4 mid_point_rule Solver
+PROPERTY max_time 5.0 max_time
+PROPERTY dt_safety_factor 2.0 dt_safety_factor
+PROPERTY max_time_step 0.0001 max_time_step
+PROPERTY min_time_step 0.0 min_time_step
+PROPERTY output_dt 0.01 output_dt
+PROPERTY gravity_x 0.0 gravity_x
+PROPERTY gravity_y -9.81 gravity_y
+PROPERTY gravity_z 0.0 gravity_z
+PROPERTY print_layers True print_layers
+PROPERTY number_of_inital_steps 10 number_of_inital_steps
+PROPERTY initial_time_step 0.00001 initial_time_step
+
+DEFINE MODEL PART FixedVelocity point line surface LOWER
+ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
+
+
+
+
+
+
+
+
+
+
+

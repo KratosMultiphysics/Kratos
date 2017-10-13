@@ -1,0 +1,59 @@
+PROBLEMTYPE fsi_structure	# The name of your problemtype
+USE KRATOS DEFINITIONS # Use default definition for this problemtype...
+USE PYTHON SCRIPTS fsi_structure_scripts # ... but include my scripts from this folder
+
+VECTOR CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION VELOCITY     point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION FORCE     point line surface volume fixed 0.0 0.0 0.0
+SCALAR CONDITION PRESSURE     point line surface volume free  0.0
+SCALAR CONDITION NEGATIVE_FACE_PRESSURE     point line surface volume free  0.0
+SCALAR CONDITION POSITIVE_FACE_PRESSURE     point line surface volume free  0.0
+
+FLAG CONDITION IS_INTERFACE point line surface volume fixed 1.0
+
+POINT CONDITION PointForce3D
+POINT CONDITION PointForce2D
+FACE CONDITION Face2D line
+FACE CONDITION Face3D3N surface 
+FACE CONDITION Face3D4N surface Quadrilateral
+
+ELEMENT TotalLagrangian2D3N surface
+ELEMENT TotalLagrangian2D4N surface
+ELEMENT TotalLagrangian3D4N volume Tetrahedra
+ELEMENT TotalLagrangian3D8N volume Hexahedra
+ELEMENT IsoShellElement surface
+
+OPTION 3D_Boundary_Condition surface Face3D3N Face3D4N
+OPTION 2D_Body_Element surface TotalLagrangian2D3N IsoShellElement
+OPTION 3D_Body_Element volume TotalLagrangian3D4N TotalLagrangian3D8N
+
+PROPERTY Time_step 0.1 Dt
+PROPERTY max_time 0.1 max_time
+PROPERTY nsteps 10 nsteps
+PROPERTY SolverType "StaticSolver" SolverType # remember to put the text between " " !
+
+# TAKE CARE: the name of the particular material should not be repeated even between different groups
+# DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR CONSTITUTIVE_LAW_NAME TEXT
+# ADD MATERIAL Aluminium 2700 70000000000  0.3 (0.0,-26487.0,0.0) 1.0 Isotropic2D #do not put spaces in the definition of the vector
+# ADD MATERIAL Steel     7600 210000000000 0.3 (0.0,-74556.0,0.0) 1.0 Isotropic2D #do not put spaces in the definition of the vector
+# ADD MATERIAL Concrete  2500 30000000000  0.3  (0.0,-24525.0,0.0) 1.0 Isotropic2D #do not put spaces in the definition of the vector
+DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
+ADD MATERIAL Aluminium 2700 70000000000  0.3 (0.0,-26487.0,0.0) 1.0  #do not put spaces in the definition of the vector
+ADD MATERIAL Steel     7600 210000000000 0.3 (0.0,-74556.0,0.0) 1.0  #do not put spaces in the definition of the vector
+ADD MATERIAL Concrete  2500 30000000000  0.3  (0.0,-24525.0,0.0) 1.0  #do not put spaces in the definition of the vector
+
+DEFINE MATERIAL Cable DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR CROSS_AREA SCALAR 
+ADD MATERIAL Aluminium2 2700 70000000000  0.3 (0.0,-26487.0,0.0)  0.1 #do not put spaces in the definition of the vector
+ADD MATERIAL Steel2     7600 210000000000 0.3 (0.0,-74556.0,0.0)  0.1 #do not put spaces in the definition of the vector
+
+DEFINE BOUNDARY PART Boundary OUTWARDS NORMALS
+ADD 2D ELEMENT Face2D
+ADD 3D ELEMENT 3D_Boundary_Condition
+
+DEFINE ALL ENTITIES PART Body surface volume
+ADD 2D ELEMENT 2D_Body_Element surface
+ADD 3D ELEMENT 3D_Body_Element volume
+
+
+
+
