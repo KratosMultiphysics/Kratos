@@ -210,6 +210,8 @@ public:
                         // Initialize the mortar operators
                         this_mortar_condition_matrices.Initialize();
                         
+//                         const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                        
                         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                         {
                             std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -242,7 +244,9 @@ public:
                                     /// SLAVE CONDITION ///
                                     slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
                                     this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
+//                                     this_kinematic_variables.PhiLagrangeMultipliers = prod(Ae, this_kinematic_variables.NSlave);
                                     this_kinematic_variables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
+//                                     this_kinematic_variables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
                                     
                                     /// MASTER CONDITION ///
                                     PointType projected_gp_global;
@@ -265,16 +269,11 @@ public:
                                 }
                             }
                         }
-                        
-                        // We compute the norm
-                        const double norm_D = norm_frobenius(this_mortar_condition_matrices.DOperator);
-                        
-                        // Now we normalize the matrix
-                        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_D = this_mortar_condition_matrices.DOperator/norm_D;
-                        
-                        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_D);
-                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (std::abs(aux_det) < tolerance) ? ZeroMatrix(TNumNodes) : MathUtils<double>::InvertMatrix<TNumNodes>(normalized_D, aux_det, tolerance);
-                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = 1.0/norm_D * prod(inv_d_operator, this_mortar_condition_matrices.MOperator); 
+
+                        // We compute the P operator
+                        double aux_det = MathUtils<double>::DetMat<TNumNodes>(this_mortar_condition_matrices.DOperator);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> inv_d_operator = (std::abs(aux_det) < tolerance) ? ZeroMatrix(TNumNodes) : MathUtils<double>::InvertMatrix<TNumNodes>(this_mortar_condition_matrices.DOperator, aux_det, tolerance);
+                        const bounded_matrix<double, TNumNodes, TNumNodes> p_operator = prod(inv_d_operator, this_mortar_condition_matrices.MOperator); 
                         
                         Matrix var_origin_matrix;
                         MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mDestinyVariable, var_origin_matrix);
@@ -431,6 +430,69 @@ private:
         }
     }
     
+    /**
+     * This method computes the Ae matrix
+     * @param SlaveGeometry: The slave geometry
+     * @param ThisKinematicVariables: The kinematic variables
+     * @param ConditionsPointsSlave: The list of decomposed triangles
+     * @param ThisIntegrationMethod: The integration method considered
+     * @return Ae: The matrix of dual LM
+     */
+    bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe(
+        GeometryType& SlaveGeometry,
+        MortarKinematicVariables<TNumNodes>& ThisKinematicVariables,
+        std::vector<array_1d<PointType,TDim>>& ConditionsPointsSlave,
+        IntegrationMethod ThisIntegrationMethod
+        )
+    {
+        // We initilize the Ae components
+        DualLagrangeMultiplierOperators<TNumNodes> Ae_data;
+        Ae_data.Initialize();
+
+        // Initialize general variables for the current master element
+        ThisKinematicVariables.Initialize();
+        
+        for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
+        {
+            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            for (unsigned int i_node = 0; i_node < TDim; i_node++)
+            {
+                PointType global_point;
+                SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
+                points_array[i_node] = boost::make_shared<PointType>(global_point);
+            }
+            
+            typename std::conditional<TDim == 2, LineType, TriangleType >::type decomp_geom( points_array );
+            
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            
+            if (bad_shape == false)
+            { 
+                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+                
+                // Integrating the mortar operators
+                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+                {
+                    const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                    PointType local_point_parent;
+                    PointType gp_global;
+                    decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                    SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
+                    
+                    SlaveGeometry.ShapeFunctionsValues( ThisKinematicVariables.NSlave, local_point_parent.Coordinates() );
+                    ThisKinematicVariables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
+
+                    // Integrate
+                    const double integration_weight = integration_points_slave[point_number].Weight();
+                    
+                    Ae_data.CalculateAeComponents(ThisKinematicVariables, integration_weight);
+                }
+            }
+        }
+        
+        return Ae_data.CalculateAe();
+    }
+        
     ///@}
     ///@name Private  Access
     ///@{
