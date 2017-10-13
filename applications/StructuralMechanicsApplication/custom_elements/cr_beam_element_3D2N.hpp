@@ -85,7 +85,7 @@ namespace Kratos
 		bounded_vector<double,local_size> CalculateElementForces();
 
 		void CalculateTransformationMatrix(
-			Matrix& rRotationMatrix);
+			bounded_matrix<double,element_size,element_size>& rRotationMatrix);
 
 		void CalculateInitialLocalCS();
 
@@ -141,7 +141,8 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
-		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);
+		void AssembleSmallInBigMatrix(Matrix SmallMatrix, bounded_matrix<double,
+			element_size,element_size>& BigMatrix);
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -178,7 +179,8 @@ namespace Kratos
 		IntegrationMethod GetIntegrationMethod() const override;
 
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-			const Vector ForceInput, bounded_vector<double,element_size>& rRightHandSideVector,
+			const bounded_vector<double,dimension> ForceInput,
+			bounded_vector<double,element_size>& rRightHandSideVector,
 			const double GeometryLength);
 
 
@@ -193,7 +195,8 @@ namespace Kratos
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
 		Vector mDeformationModes, mIncrementDeformation;
-		Matrix mLHS, mRotationMatrix, mRotationMatrix0;
+		Matrix mLHS, mRotationMatrix;
+		bounded_matrix<double,element_size,element_size> mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
 		Vector mQuaternionVEC_A, mQuaternionVEC_B;
 		double mQuaternionSCA_A, mQuaternionSCA_B;

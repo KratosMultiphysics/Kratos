@@ -452,7 +452,8 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRotationMatrix) {
+	void CrBeamElement3D2N::CalculateTransformationMatrix(bounded_matrix<double,
+		CrBeamElement3D2N::element_size,CrBeamElement3D2N::element_size>& rRotationMatrix) {
 
 		KRATOS_TRY
 		//initialize local CS
@@ -461,10 +462,6 @@ namespace Kratos
 		//update local CS
 		Matrix AuxRotationMatrix = ZeroMatrix(dimension);
 		AuxRotationMatrix = this->UpdateRotationMatrixLocal();
-
-		if (rRotationMatrix.size1() != element_size) {
-			rRotationMatrix.resize(element_size, element_size, false);
-		}
 
 		rRotationMatrix = ZeroMatrix(element_size);
 		//Building the rotation matrix for the local element matrix
@@ -861,7 +858,7 @@ namespace Kratos
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
 
-		Vector EquivalentLineLoad = ZeroVector(dimension);
+		bounded_vector<double,dimension> EquivalentLineLoad = ZeroVector(dimension);
 		bounded_vector<double,element_size> BodyForcesGlobal = ZeroVector(element_size);
 
 		const double A = this->GetProperties()[CROSS_AREA];
@@ -899,7 +896,8 @@ namespace Kratos
 	}
 
 	void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-		const Vector ForceInput, bounded_vector<double,CrBeamElement3D2N::element_size>& rRightHandSideVector,
+		const bounded_vector<double,CrBeamElement3D2N::dimension> ForceInput,
+		bounded_vector<double,CrBeamElement3D2N::element_size>& rRightHandSideVector,
 		const double GeometryLength)
 	{
 		KRATOS_TRY;
@@ -1016,7 +1014,7 @@ namespace Kratos
 		if (this->mIsLinearElement == false)
 		{
 			this->UpdateIncrementDeformation();
-			Matrix TransformationMatrix = ZeroMatrix(element_size);
+			bounded_matrix<double,element_size,element_size> TransformationMatrix = ZeroMatrix(element_size);
 			this->CalculateTransformationMatrix(TransformationMatrix);
 			bounded_vector<double,local_size> elementForces_t = ZeroVector(local_size);
 			elementForces_t = this->CalculateElementForces();
@@ -1059,7 +1057,7 @@ namespace Kratos
 		this->UpdateIncrementDeformation();
 
 		//calculate Transformation Matrix
-		Matrix TransformationMatrix = ZeroMatrix(element_size);
+		bounded_matrix<double,element_size,element_size> TransformationMatrix = ZeroMatrix(element_size);
 		this->CalculateTransformationMatrix(TransformationMatrix);
 		this->mRotationMatrix = ZeroMatrix(element_size);
 		this->mRotationMatrix = TransformationMatrix;
@@ -1214,7 +1212,7 @@ namespace Kratos
 
 		this->UpdateIncrementDeformation();
 		//calculate Transformation Matrix
-		Matrix TransformationMatrix = ZeroMatrix(element_size);
+		bounded_matrix<double,element_size,element_size> TransformationMatrix = ZeroMatrix(element_size);
 		this->CalculateTransformationMatrix(TransformationMatrix);
 		//deformation modes
 		bounded_vector<double,local_size> elementForces_t = ZeroVector(local_size);
@@ -1326,7 +1324,8 @@ namespace Kratos
 	}
 
 	void CrBeamElement3D2N::AssembleSmallInBigMatrix(Matrix SmallMatrix,
-		Matrix& BigMatrix) {
+		bounded_matrix<double,
+		CrBeamElement3D2N::element_size,CrBeamElement3D2N::element_size>& BigMatrix) {
 
 		KRATOS_TRY
 		for (unsigned int kk = 0; kk < element_size; kk += dimension)
