@@ -187,12 +187,12 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         rotation_results     = [0.0007200850431 , -0.0005274945235 , -0.0004217630272]
         shell_stress_middle_surface_results = [0.25899539638307356  ,  2.707180029120507  ,  0.0  ,  -11.81966960463972  ,  0.0  ,  0.0]
         shell_stress_top_surface_results =  [ -12.07383381852614 ,  -20.247177695843806 ,  0.0 ,  -70.76152753587681 ,  0.0 ,  0.0 ]
-        shell_stress_bottom_surface_results =  [ 12.591824611292282 ,  25.661537754084822 ,  0.0 ,  47.122188326597374 ,  0.0 ,  0.0 ]
+        shell_stress_bottom_surface_results =  [ 12.591824611292282 ,  25.661537754084822 ,  0.0 ,  47.12218832653726 ,  0.0 ,  0.0 ]
         shell_von_mises_result =  64.7311391504582
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
-                                rotation_results, 
+                                rotation_results,
                                 shell_stress_middle_surface_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -242,9 +242,9 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         element_name = "ShellThickElementCorotational3D4N"
         displacement_results =  [ 0.00027136365152691065 ,  -0.0006682902441643944 ,  0.0021084790619259235 ]
         rotation_results =  [ 0.0017763515742804457 ,  -0.000981713367534383 ,  -0.001165116922497465 ]
-        shell_stress_middle_surface_results = [6.921145522180776  ,  -2.785925304755268  ,  -14.526750876637958  ,  15.381301373773823  ,  10.378077258376223  ,  0.0]
-        shell_stress_top_surface_results =  [ 6.921145522180776 ,  -2.785925304755268 ,  0.0 ,  15.381301373773823 ,  0.0 ,  0.0 ]
-        shell_stress_bottom_surface_results =  [ 6.921145522180776 ,  -2.785925304755268 ,  0.0 ,  15.381301373773823 ,  0.0 ,  0.0 ]
+        shell_stress_middle_surface_results = [6.921145522117337  ,  -2.785925304755268  ,  -14.526750876637958  ,  15.381301373710379  ,  10.378077258376223  ,  0.0]
+        shell_stress_top_surface_results =  [ 6.921145522117337 ,  -2.785925304755268 ,  0.0 ,  15.381301373710379 ,  0.0 ,  0.0 ]
+        shell_stress_bottom_surface_results =  [ 6.921145522117337 ,  -2.785925304755268 ,  0.0 ,  15.381301373710379 ,  0.0 ,  0.0 ]
         shell_von_mises_result =  34.02216244466042
 
         self.execute_shell_test(element_name, 
