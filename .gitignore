@@ -55,9 +55,3 @@ kratos/includes/kratos_version.h
 *.mesh
 *.o.sol
 *.o.mesh
-applications/StructuralMechanicsApplication/tests/RUNGithub.bat
-cmake_build/example_configure.bat.do_not_touch
-cmake_build/README.txt
-runkratos.exe
-cmake_build/README.txt
-cmake_build/README.txt

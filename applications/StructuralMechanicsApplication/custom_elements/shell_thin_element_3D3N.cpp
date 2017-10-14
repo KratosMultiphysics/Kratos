@@ -581,8 +581,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rValues.size() != OPT_NUM_GP)
-        rValues.resize(OPT_NUM_GP);
+    if (rValues.size() != OPT_NUM_GP) rValues.resize(OPT_NUM_GP);
 
 	// The membrane formulation needs to iterate to find the correct 
 	// mid-surface strain values.

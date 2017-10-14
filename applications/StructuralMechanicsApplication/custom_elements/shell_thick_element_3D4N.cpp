@@ -870,8 +870,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
         const ProcessInfo& rCurrentProcessInfo)
 {
     SizeType size = GetGeometry().size();
-    if(rValues.size() != size)
-        rValues.resize(size);
+    if (rValues.size() != size) rValues.resize(size);
 
 	// The membrane formulation needs to iterate to find the correct 
 	// mid-surface strain values.
