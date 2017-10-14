@@ -167,7 +167,7 @@ namespace Kratos
          /*
             Number of the constitutive equation in the fortran wrapper
           */
-         virtual int GetConstitutiveEquationNumber()
+         virtual int GetConstitutiveEquationNumber() override
          {
             return 0;
          }
