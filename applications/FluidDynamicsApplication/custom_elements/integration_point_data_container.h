@@ -82,16 +82,17 @@ public:
     FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
     #undef X
 
-public: 
-    NodalDataHandler< array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2> >& GetVelocity()
-    {
-        return mVelocityHandler;
+    #define X(Name,Variable,Handler) public: \
+    Handler& Get##Variable() \
+    { \
+        return Name; \
     }
 
-    NodalDataHandler< double, 3, array_1d<double,3> >& GetPressure()
-    {
-        return mPressureHandler;
-    }
+    FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
+    
+    #undef X
+
+private:
 
     const int dummy;
 

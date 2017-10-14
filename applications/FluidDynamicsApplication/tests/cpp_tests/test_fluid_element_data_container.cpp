@@ -88,7 +88,7 @@ namespace Kratos {
 
             Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
             boost::numeric::ublas::matrix_row< Matrix > shape_functions = row(NContainer,0);
-			KRATOS_CHECK_NEAR(2.0, DataPoint.GetPressure().Interpolate(shape_functions, &r_element), 1e-6);
+			KRATOS_CHECK_NEAR(2.0, DataPoint.GetPRESSURE().Interpolate(shape_functions, &r_element), 1e-6);
         }
     }
 }
