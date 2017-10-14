@@ -870,7 +870,8 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
         const ProcessInfo& rCurrentProcessInfo)
 {
     SizeType size = GetGeometry().size();
-    if (rValues.size() != size) rValues.resize(size);
+    if (rValues.size() != size) 
+        rValues.resize(size);
 
 	// The membrane formulation needs to iterate to find the correct 
 	// mid-surface strain values.
@@ -878,7 +879,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 	// Check if we are doing a non-linear analysis type. If not, print warning 
 	// for just the first element.
 
-	if (this->Id() == 1)
+    if (this->Id() == 1)
 	{
 		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
 		{

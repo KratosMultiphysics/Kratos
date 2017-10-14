@@ -581,15 +581,16 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != OPT_NUM_GP) rValues.resize(OPT_NUM_GP);
+    if (rValues.size() != OPT_NUM_GP) 
+        rValues.resize(OPT_NUM_GP);
 
-	// The membrane formulation needs to iterate to find the correct 
-	// mid-surface strain values.
-	//
-	// Check if we are doing a non-linear analysis type. If not, print warning 
-	// for just the first element.
+    // The membrane formulation needs to iterate to find the correct 
+    // mid-surface strain values.
+    //
+    // Check if we are doing a non-linear analysis type. If not, print warning 
+    // for just the first element.
 
-	if (this->Id() == 1)
+    if (this->Id() == 1)
 	{
 		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
 		{
