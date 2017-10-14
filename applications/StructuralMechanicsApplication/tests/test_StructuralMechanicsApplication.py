@@ -288,8 +288,8 @@ def AssambleTestSuites():
             TShellT3IsotropicScordelisTests,
             ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ###TSprismPanTests # FIXME: Needs get up to date
-            #TPendulusTLTest,
-            #TPendulusULTest,
+            TPendulusTLTest,
+            TPendulusULTest,
             TTestMultipointConstraints,
             TTestMultipointConstraintsTwo,
             TShellT3ThickLinearStaticTests,
