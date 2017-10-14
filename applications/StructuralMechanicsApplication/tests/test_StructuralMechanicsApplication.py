@@ -22,68 +22,87 @@ from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
-from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
+from test_quadratic_elements import TestQuadraticElements  as TTestQuadraticElements
+from test_patch_test_shells import TestPatchTestShells  as TTestPatchTestShells
 # Test loading conditions
-from test_loading_conditions import TestLoadingConditions as TestLoadingConditions
+from test_loading_conditions import TestLoadingConditions  as TestLoadingConditions
 # Basic moving mesh test
-from SmallTests import SimpleMeshMovingTest             as TSimpleMeshMovingTest
+from SmallTests import SimpleMeshMovingTest                as TSimpleMeshMovingTest
 # Dynamic basic tests
-from SmallTests import DynamicBossakTests               as TDynamicBossakTests
-from SmallTests import DynamicNewmarkTests              as TDynamicNewmarkTests
+from SmallTests import DynamicBossakTests                  as TDynamicBossakTests
+from SmallTests import DynamicNewmarkTests                 as TDynamicNewmarkTests
 # Nodal damping test
-from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+from test_nodal_damping import NodalDampingTests           as TNodalDampingTests
 # Patch test Small Displacements
-from SmallTests import SDTwoDShearQuaPatchTest          as TSDTwoDShearQuaPatchTest
-from SmallTests import SDTwoDShearTriPatchTest          as TSDTwoDShearTriPatchTest
-from SmallTests import SDTwoDTensionQuaPatchTest        as TSDTwoDTensionQuaPatchTest
-from SmallTests import SDTwoDTensionTriPatchTest        as TSDTwoDTensionTriPatchTest
-from SmallTests import SDThreeDShearHexaPatchTest       as TSDThreeDShearHexaPatchTest
-from SmallTests import SDThreeDShearTetraPatchTest      as TSDThreeDShearTetraPatchTest
-from SmallTests import SDThreeDTensionHexaPatchTest     as TSDThreeDTensionHexaPatchTest
-from SmallTests import SDThreeDTensionTetraPatchTest    as TSDThreeDTensionTetraPatchTest
+from SmallTests import SDTwoDShearQuaPatchTest             as TSDTwoDShearQuaPatchTest
+from SmallTests import SDTwoDShearTriPatchTest             as TSDTwoDShearTriPatchTest
+from SmallTests import SDTwoDTensionQuaPatchTest           as TSDTwoDTensionQuaPatchTest
+from SmallTests import SDTwoDTensionTriPatchTest           as TSDTwoDTensionTriPatchTest
+from SmallTests import SDThreeDShearHexaPatchTest          as TSDThreeDShearHexaPatchTest
+from SmallTests import SDThreeDShearTetraPatchTest         as TSDThreeDShearTetraPatchTest
+from SmallTests import SDThreeDTensionHexaPatchTest        as TSDThreeDTensionHexaPatchTest
+from SmallTests import SDThreeDTensionTetraPatchTest       as TSDThreeDTensionTetraPatchTest
 # Patch test Total Lagrangian
-from SmallTests import TLTwoDShearQuaPatchTest          as TTLTwoDShearQuaPatchTest
-from SmallTests import TLTwoDShearTriPatchTest          as TTLTwoDShearTriPatchTest
-from SmallTests import TLTwoDTensionQuaPatchTest        as TTLTwoDTensionQuaPatchTest
-from SmallTests import TLTwoDTensionTriPatchTest        as TTLTwoDTensionTriPatchTest
-from SmallTests import TLThreeDShearHexaPatchTest       as TTLThreeDShearHexaPatchTest
-from SmallTests import TLThreeDShearTetraPatchTest      as TTLThreeDShearTetraPatchTest
-from SmallTests import TLThreeDTensionHexaPatchTest     as TTLThreeDTensionHexaPatchTest
-from SmallTests import TLThreeDTensionTetraPatchTest    as TTLThreeDTensionTetraPatchTest
+from SmallTests import TLTwoDShearQuaPatchTest             as TTLTwoDShearQuaPatchTest
+from SmallTests import TLTwoDShearTriPatchTest             as TTLTwoDShearTriPatchTest
+from SmallTests import TLTwoDTensionQuaPatchTest           as TTLTwoDTensionQuaPatchTest
+from SmallTests import TLTwoDTensionTriPatchTest           as TTLTwoDTensionTriPatchTest
+from SmallTests import TLThreeDShearHexaPatchTest          as TTLThreeDShearHexaPatchTest
+from SmallTests import TLThreeDShearTetraPatchTest         as TTLThreeDShearTetraPatchTest
+from SmallTests import TLThreeDTensionHexaPatchTest        as TTLThreeDTensionHexaPatchTest
+from SmallTests import TLThreeDTensionTetraPatchTest       as TTLThreeDTensionTetraPatchTest
 # Patch test Updated Lagrangian
-from SmallTests import ULTwoDShearQuaPatchTest          as TULTwoDShearQuaPatchTest
-from SmallTests import ULTwoDShearTriPatchTest          as TULTwoDShearTriPatchTest
-from SmallTests import ULTwoDTensionQuaPatchTest        as TULTwoDTensionQuaPatchTest
-from SmallTests import ULTwoDTensionTriPatchTest        as TULTwoDTensionTriPatchTest
-from SmallTests import ULThreeDShearHexaPatchTest       as TULThreeDShearHexaPatchTest
-from SmallTests import ULThreeDShearTetraPatchTest      as TULThreeDShearTetraPatchTest
-from SmallTests import ULThreeDTensionHexaPatchTest     as TULThreeDTensionHexaPatchTest
-from SmallTests import ULThreeDTensionTetraPatchTest    as TULThreeDTensionTetraPatchTest
+from SmallTests import ULTwoDShearQuaPatchTest             as TULTwoDShearQuaPatchTest
+from SmallTests import ULTwoDShearTriPatchTest             as TULTwoDShearTriPatchTest
+from SmallTests import ULTwoDTensionQuaPatchTest           as TULTwoDTensionQuaPatchTest
+from SmallTests import ULTwoDTensionTriPatchTest           as TULTwoDTensionTriPatchTest
+from SmallTests import ULThreeDShearHexaPatchTest          as TULThreeDShearHexaPatchTest
+from SmallTests import ULThreeDShearTetraPatchTest         as TULThreeDShearTetraPatchTest
+from SmallTests import ULThreeDTensionHexaPatchTest        as TULThreeDTensionHexaPatchTest
+from SmallTests import ULThreeDTensionTetraPatchTest       as TULThreeDTensionTetraPatchTest
 # SPRISM tests
-from SmallTests import SprismMembranePatchTests         as TSprismMembranePatchTests
-from SmallTests import SprismBendingPatchTests          as TSprismBendingPatchTests
+from SmallTests import SprismMembranePatchTests            as TSprismMembranePatchTests
+from SmallTests import SprismBendingPatchTests             as TSprismBendingPatchTests
 # Eigenvalues tests
-from SmallTests import EigenQ4Thick2x2PlateTests        as TEigenQ4Thick2x2PlateTests
-from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
-from SmallTests import Eigen3D3NThinCircleTests         as TEigen3D3NThinCircleTests
+from SmallTests import EigenQ4Thick2x2PlateTests           as TEigenQ4Thick2x2PlateTests
+from SmallTests import EigenTL3D8NCubeTests                as TEigenTL3D8NCubeTests
+from SmallTests import Eigen3D3NThinCircleTests            as TEigen3D3NThinCircleTests
 # Membrane tests
 from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
 from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+# Multipoint constraint tests
+from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
+from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
+
+
 
 # Nodal damping test
-from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
-# Spring damper element tests
+from test_nodal_damping import NodalDampingTests           as TNodalDampingTests
+# Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
 ## NIGTHLY TESTS
 # Shell test
-from NightlyTests import ShellQ4ThickBendingRollUpTests  as TShellQ4ThickBendingRollUpTests
-from NightlyTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
-from NightlyTests import ShellT3ThinBendingRollUpTests   as TShellT3ThinBendingRollUpTests
-from NightlyTests import ShellT3ThinDrillingRollUpTests  as TShellT3ThinDrillingRollUpTests
-from NightlyTests import ShellT3IsotropicScordelisTests  as TShellT3IsotropicScordelisTests
+from NightlyTests import ShellQ4ThickBendingRollUpTests    as TShellQ4ThickBendingRollUpTests
+from NightlyTests import ShellQ4ThickDrillingRollUpTests   as TShellQ4ThickDrillingRollUpTests
+from NightlyTests import ShellT3ThinBendingRollUpTests     as TShellT3ThinBendingRollUpTests
+from NightlyTests import ShellT3ThinDrillingRollUpTests    as TShellT3ThinDrillingRollUpTests
+from NightlyTests import ShellT3IsotropicScordelisTests    as TShellT3IsotropicScordelisTests
+
+from NightlyTests import ShellT3ThickLinearStaticTests     as TShellT3ThickLinearStaticTests
+from NightlyTests import ShellT3ThickNonLinearStaticTests  as TShellT3ThickNonLinearStaticTests
+from NightlyTests import ShellT3ThickLinearDynamicTests    as TShellT3ThickLinearDynamicTests
+from NightlyTests import ShellT3ThickNonLinearDynamicTests as TShellT3ThickNonLinearDynamicTests
+
+from NightlyTests import ShellQ4ThinLinearStaticTests      as TShellQ4ThinLinearStaticTests
+from NightlyTests import ShellQ4ThinNonLinearStaticTests   as TShellQ4ThinNonLinearStaticTests
+from NightlyTests import ShellQ4ThinLinearDynamicTests     as TShellQ4ThinLinearDynamicTests
+from NightlyTests import ShellQ4ThinNonLinearDynamicTests  as TShellQ4ThinNonLinearDynamicTests
+
+
+
 # CL tests
 ##from NightlyTests import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
 
@@ -123,6 +142,10 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_3D_hexa'))
     smallSuite.addTest(TTestQuadraticElements('test_Quad8'))
+    smallSuite.addTest(TTestPatchTestShells('test_thin_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShells('test_thick_shell_triangle'))
+    smallSuite.addTest(TTestPatchTestShells('test_thin_shell_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestShells('test_thick_shell_quadrilateral'))
     # Test loading conditions
     smallSuite.addTest(TestLoadingConditions('test_execution'))
     # Basic moving mesh test
@@ -180,16 +203,30 @@ def AssambleTestSuites():
             smallSuite.addTest(TSpringDamperElementTests('test_execution'))
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+    
+    # Multipoint tests
+    smallSuite.addTest(TTestMultipointConstraints('test_MPC_Constraints'))
+    smallSuite.addTest(TTestMultipointConstraintsTwo('test_MPC_Constraints'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     # Shell tests
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    # nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution')) # FIXME: Needs get up to date
     nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     nightSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
+
+    nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
+    nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
+    nightSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
+    nightSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
+
+    nightSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
+    nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
+    nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
+    nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     # CL tests
     ##nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution'))
     
@@ -208,6 +245,7 @@ def AssambleTestSuites():
             TTestPatchTestSmallStrain,
             TTestPatchTestLargeStrain,
             TTestQuadraticElements,
+            TTestPatchTestShells,
             TestLoadingConditions,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
@@ -244,7 +282,7 @@ def AssambleTestSuites():
             TMembraneQ4PointLoadTests,
             TMembraneQ4TrussPointLoadTests,
             TShellQ4ThickBendingRollUpTests,
-            TShellQ4ThickDrillingRollUpTests,
+            # TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
@@ -252,6 +290,18 @@ def AssambleTestSuites():
             ###TSprismPanTests # FIXME: Needs get up to date
             #TPendulusTLTest,
             #TPendulusULTest,
+            TTestMultipointConstraints,
+            TTestMultipointConstraintsTwo,
+            TShellT3ThickLinearStaticTests,
+            TShellT3ThickNonLinearStaticTests,
+            TShellT3ThickLinearDynamicTests,
+            TShellT3ThickNonLinearDynamicTests,
+            TShellQ4ThinLinearStaticTests,
+            TShellQ4ThinNonLinearStaticTests,
+            TShellQ4ThinLinearDynamicTests,
+            TShellQ4ThinNonLinearDynamicTests,
+            ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
+            ####TSprismPanTests # FIXME: Needs get up to date
         ])
     )
         
