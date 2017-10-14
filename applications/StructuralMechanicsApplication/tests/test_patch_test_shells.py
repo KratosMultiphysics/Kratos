@@ -14,18 +14,20 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)  
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)      
         
     
     def _add_dofs(self,mp):
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.ROTATION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.ROTATION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
-            node.AddDof(KratosMultiphysics.ROTATION_Z)
+        # Adding the dofs AND their corresponding reaction!
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
 
     def _create_nodes(self,mp,element_name):
@@ -60,10 +62,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
             node.Fix(KratosMultiphysics.DISPLACEMENT_X)
             node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
             node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-            # Adding rotations does not work for some reason...
-            # node.Fix(KratosMultiphysics.ROTATION_X)
-            # node.Fix(KratosMultiphysics.ROTATION_Y)
-            # node.Fix(KratosMultiphysics.ROTATION_Z)
+            node.Fix(KratosMultiphysics.ROTATION_X)
+            node.Fix(KratosMultiphysics.ROTATION_Y)
+            node.Fix(KratosMultiphysics.ROTATION_Z)
 
 
     def _apply_neumann_BCs(self,mp):
@@ -114,7 +115,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         
     
     def _check_results(self,node,displacement_results, rotation_results):
-        ##check that the results are exact on the node
+        #check that the results are exact on the node
         disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         self.assertAlmostEqual(disp[0], displacement_results[0], 10)
         self.assertAlmostEqual(disp[1], displacement_results[1], 10)
@@ -156,8 +157,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thin_shell_triangle(self):
         element_name = "ShellThinElementCorotational3D3N"
-        displacement_results = [0.0001967925754 , -0.0002074508275 , 0.0007102373246]
-        rotation_results     = [0.0007200850431 , -0.0005274945235 , -0.0004217630272]
+        displacement_results = [0.0002324779832 , -0.0002233435997 , 0.0002567143455]
+        rotation_results     = [0.0003627433341 , -0.0001926662603 , -0.0004682681704]
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
@@ -167,8 +168,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thick_shell_triangle(self):
         element_name = "ShellThickElementCorotational3D3N"
-        displacement_results = [-8.37692736e-05 , -0.0001866547032 , 0.0013194833292]
-        rotation_results     = [0.0009557422766 , -0.0008172919756 , -0.0001582810935]
+        displacement_results = [7.18997182e-05 , -0.0001572802804 , 0.0005263940488]
+        rotation_results     = [0.0003316612014 , -0.0002798472414 , 5.141506e-07]
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
@@ -178,8 +179,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thin_shell_quadrilateral(self):
         element_name = "ShellThinElementCorotational3D4N"
-        displacement_results = [0.0025324078566 , -0.0025556964999 , 0.0010347939593]
-        rotation_results     = [0.0029227371131 , 0.0005461189484 , -0.0073009476025]
+        displacement_results = [0.0021909310921 , -0.0021683746759 , 0.0007191338749]
+        rotation_results     = [0.0028191154606 , 0.0008171818407 , -0.0069146010725]
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 
@@ -189,8 +190,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thick_shell_quadrilateral(self):
         element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.0002775573913 , -0.0006641958992 , 0.002068153261]
-        rotation_results     = [0.0017567611184 , -0.0009686705878 , -0.0011640704947]
+        displacement_results = [0.0003605563407 , -0.0006304969456 , 0.0012549432749]
+        rotation_results     = [0.0012002334629 , -0.0004107323793 , -0.0011652421744]
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 

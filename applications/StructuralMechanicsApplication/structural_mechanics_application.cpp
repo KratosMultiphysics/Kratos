@@ -425,7 +425,6 @@ void KratosStructuralMechanicsApplication::Register()
     Serializer::Register( "LinearElasticAxisym2DLaw",  mAxisymElasticIsotropic);
     Serializer::Register( "HyperElastic3DLaw",  mHyperElasticIsotropicNeoHookean3D);
     Serializer::Register( "HyperElasticPlaneStrain2DLaw",  mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    
 	Serializer::Register("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
 }
 
