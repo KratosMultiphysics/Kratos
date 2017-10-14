@@ -19,7 +19,7 @@ if( ${HDF5_IO} MATCHES ON )
   if( ${MPI_NEEDED} MATCHES ON )
     set( HDF5_PREFER_PARALLEL ON )
   endif( ${MPI_NEEDED} MATCHES ON )
-  find_package( HDF5 COMPONENTS CXX )
+  find_package(HDF5 REQUIRED)
 
   include_directories( ${HDF5_INCLUDE_DIRS} )
 endif( ${HDF5_IO} MATCHES ON )
