@@ -35,7 +35,8 @@
                 "solver_type" : "SuperLUSolver",
                 "scaling"     : false
             },
-            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"]
+            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"],
+            "thermal_loads_sub_model_part_list"  : []
         },
         "mechanical_solver_settings"    : {
             "solution_type"                      : "Quasi-Static",
@@ -82,7 +83,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","TEMPERATURE","NEGATIVE_FACE_PRESSURE","NODAL_CAUCHY_STRESS_TENSOR"],
+            "nodal_results"       : ["DISPLACEMENT","TEMPERATURE","POSITIVE_FACE_PRESSURE","NODAL_CAUCHY_STRESS_TENSOR"],
             "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
@@ -172,7 +173,7 @@
         "Parameters"    : {
             "mesh_id"                                          : 0,
             "model_part_name"                                  : "HydroLinePressure2D_Hydrostatic_Pressure_Auto1",
-            "variable_name"                                    : "NEGATIVE_FACE_PRESSURE",
+            "variable_name"                                    : "POSITIVE_FACE_PRESSURE",
             "Modify"                                           : true,
             "Gravity_Direction"                                : "Y",
             "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 10.0,

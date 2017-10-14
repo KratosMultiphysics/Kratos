@@ -501,7 +501,7 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "python_module"   : "assign_scalar_variable_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignScalarVariableToConditionsProcess",
                         "Parameters"            : {
@@ -511,7 +511,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         }
                     },
                     {
-                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "python_module"   : "assign_scalar_variable_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignScalarVariableToConditionsProcess",
                         "Parameters"            : {
@@ -548,9 +548,9 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "python_module"   : "assign_scalar_variable_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarToConditionsProcess",
+                        "process_name"          : "AssignScalarVariableToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
                             "variable_name": "INITIAL_STRAIN",
@@ -591,9 +591,9 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "python_module"   : "assign_scalar_variable_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarToConditionsProcess",
+                        "process_name"          : "AssignScalarVariableToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
                             "variable_name": "DISPLACEMENT_X",
