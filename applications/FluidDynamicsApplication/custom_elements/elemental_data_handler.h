@@ -47,6 +47,10 @@ public:
     /// Pointer definition of DataHandler
     KRATOS_CLASS_POINTER_DEFINITION(DataHandler);
 
+    typedef TDataType ValueType;
+
+    typedef TStorageType StorageType;
+
     ///@}
     ///@name Life Cycle
     ///@{
