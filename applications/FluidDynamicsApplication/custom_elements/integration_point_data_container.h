@@ -24,8 +24,8 @@
 #include "fluid_element_data.h"
 
 #define FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES \
-X(mVelocityHandler,VELOCITY,NodalDataHandler) \
-X(mPressureHandler,PRESSURE,NodalDataHandler)
+X(mVelocityHandler,VELOCITY,NodalVectorType) \
+X(mPressureHandler,PRESSURE,NodalScalarType)
 
 namespace Kratos
 {
@@ -37,6 +37,14 @@ namespace Kratos
 class IntegrationPointDataContainer
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
+    typedef NodalDataHandler< array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2> > NodalVectorType;
+
+    typedef NodalDataHandler< double, 3, array_1d<double,3> > NodalScalarType;
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -70,14 +78,15 @@ public:
 
     ///@}
 
-    NodalDataHandler< array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2> > mVelocityHandler;
+    #define X(Name,Variable,Handler) private: Handler Name;
+    FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
+    #undef X
 
+public: 
     NodalDataHandler< array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2> >& GetVelocity()
     {
         return mVelocityHandler;
     }
-
-    NodalDataHandler< double, 3, array_1d<double,3> > mPressureHandler;
 
     NodalDataHandler< double, 3, array_1d<double,3> >& GetPressure()
     {
