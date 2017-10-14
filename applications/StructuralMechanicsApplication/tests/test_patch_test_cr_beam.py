@@ -12,21 +12,19 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         pass
 
     def _add_dofs(self,mp):
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
-            node.AddDof(KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.REACTION_Y)  
-            node.AddDof(KratosMultiphysics.REACTION_Z)
-            node.AddDof(KratosMultiphysics.ROTATION_X)
-            node.AddDof(KratosMultiphysics.ROTATION_Y)
-            node.AddDof(KratosMultiphysics.ROTATION_Z)
+        # Adding dofs AND their corresponding reactions
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
     
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)  
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)  
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
@@ -41,8 +39,6 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
-
-
 
         local_inertia_vector = KratosMultiphysics.Vector(3)
         local_inertia_vector[0] = 0.00001
@@ -61,34 +57,48 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
     def _apply_BCs(self,mp,which_dof):
         
         if (which_dof == 'xyz'):
-            for node in mp.Nodes:
-                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-        if (which_dof == 'xz'):
-            for node in mp.Nodes:
-                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+            # for node in mp.Nodes:
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+        if (which_dof == 'xz'):            
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+            # for node in mp.Nodes:
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         if (which_dof == 'yz'):
-            for node in mp.Nodes:
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)            
+            # for node in mp.Nodes:
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            #     node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         if (which_dof == 'rotXYZ'):
-            for node in mp.Nodes:
-                node.Fix(KratosMultiphysics.ROTATION_X)
-                node.Fix(KratosMultiphysics.ROTATION_Y)
-                node.Fix(KratosMultiphysics.ROTATION_Z)                
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_X, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
+            # for node in mp.Nodes:
+            #     node.Fix(KratosMultiphysics.ROTATION_X)
+            #     node.Fix(KratosMultiphysics.ROTATION_Y)
+            #     node.Fix(KratosMultiphysics.ROTATION_Z)                
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
 
         if(which_dof == 'y'):
-            for node in mp.Nodes:
-                node.SetSolutionStepValue(StructuralMechanicsApplication.
-                POINT_LOAD_Y,0,load_size_dir)        
+            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+                POINT_LOAD_Y, load_size_dir, mp.Nodes)
+            # for node in mp.Nodes:
+            #     node.SetSolutionStepValue(StructuralMechanicsApplication.
+            #     POINT_LOAD_Y,0,load_size_dir)        
         if(which_dof == 'x'):
-            for node in mp.Nodes:
-                node.SetSolutionStepValue(StructuralMechanicsApplication.
-                POINT_LOAD_X,0,load_size_dir)  
+            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+                POINT_LOAD_X, load_size_dir, mp.Nodes)
+            # for node in mp.Nodes:
+            #     node.SetSolutionStepValue(StructuralMechanicsApplication.
+            #     POINT_LOAD_X,0,load_size_dir)  
 
         
     def _solve_linear(self,mp):
@@ -97,7 +107,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         
-        compute_reactions = False  #False --> working
+        compute_reactions = True  #Now the rotation reactions (TORQUE) is added, so it works
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
@@ -122,7 +132,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         convergence_criterion.SetEchoLevel(0)
         
         max_iters = 1000
-        compute_reactions = False
+        compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
@@ -149,7 +159,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
 
         max_iters = 1000
-        compute_reactions = False
+        compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
