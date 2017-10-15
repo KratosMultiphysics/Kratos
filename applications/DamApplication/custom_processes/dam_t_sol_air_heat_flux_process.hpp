@@ -119,10 +119,7 @@ void ExecuteInitialize()
 
             const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
             const double heat_flux = mH0*(t_sol_air - temp_current); 
-            
-            KRATOS_WATCH(heat_flux)
-
-            it->FastGetSolutionStepValue(var) = heat_flux;
+            it->FastGetSolutionStepValue(var) = -10.0;
         }            
     }
 
@@ -164,11 +161,7 @@ void ExecuteInitialize()
 
                 const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
                 const double heat_flux = mH0*(t_sol_air - temp_current);               
-
-                KRATOS_WATCH(heat_flux)
-                
-
-                it->FastGetSolutionStepValue(var) = heat_flux;
+                it->FastGetSolutionStepValue(var) = -10.0;
             }            
         }
     
