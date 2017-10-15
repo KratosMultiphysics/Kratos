@@ -253,10 +253,11 @@ public:
                 
                 for (unsigned int i = 0; i < number_nodes; i++)
                 {
-                    #pragma omp atomic
-                    it_cond->GetGeometry()[i].GetValue(NODAL_AREA)        += rArea;
-                    #pragma omp critical
-                    noalias( it_cond->GetGeometry()[i].GetValue(NORMAL) ) += rArea * rNormal;
+                    auto& this_node = it_cond->GetGeometry()[i];
+                    this_node.SetLock();
+                    this_node.GetValue(NODAL_AREA)        += rArea;
+                    noalias( this_node.GetValue(NORMAL) ) += rArea * rNormal;
+                    this_node.UnSetLock();
                 }
             }
         }

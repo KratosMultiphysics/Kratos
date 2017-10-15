@@ -642,8 +642,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     const array_1d<double, 3>& normal = GetGeometry()[i_node].GetValue(NORMAL);
                     const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
                                     
-                    #pragma omp atomic 
+                    GetGeometry()[i_node].SetLock();
                     GetGeometry()[i_node].FastGetSolutionStepValue(WEIGHTED_GAP) += inner_prod(aux_array, - subrange(normal, 0, TDim)); 
+                    GetGeometry()[i_node].UnSetLock();
                 }
                 
                 if (TFrictional == true) // TODO: Check this!!!
