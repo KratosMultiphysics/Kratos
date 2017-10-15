@@ -785,7 +785,7 @@ protected:
         const Condition::Pointer& pCond2
         )
     {
-        if ((pCond1 != pCond2)== false) // Avoiding "auto self-contact"
+        if (pCond1 == pCond2) // Avoiding "auto self-contact"
         {
             return Fail;
         }
