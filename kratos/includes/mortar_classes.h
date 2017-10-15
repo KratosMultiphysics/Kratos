@@ -734,7 +734,7 @@ public:
 
     DerivativeDataFrictional()= default;
     
-    virtual ~DerivativeDataFrictional()= default;
+    ~DerivativeDataFrictional()override = default;
     
     // The ALM parameters
     double TangentFactor;

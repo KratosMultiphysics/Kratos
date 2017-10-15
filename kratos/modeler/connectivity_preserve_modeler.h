@@ -45,7 +45,7 @@ public:
     ConnectivityPreserveModeler();
 
     /// Destructor.
-    virtual ~ConnectivityPreserveModeler() override;
+    ~ConnectivityPreserveModeler() override;
 
     /// Generate a copy of rOriginModelPart in rDestinationModelPart, using the given element and condtion types.
     /** This function fills rDestinationModelPart using data obtained from rOriginModelPart. The elements
@@ -58,7 +58,7 @@ public:
      *  @param rReferenceElement The Element type for rDestinationModelPart.
      *  @param rReferenceBoundaryCondition The Condition type for rDestinationModelPart.
      */
-    virtual void GenerateModelPart(
+    void GenerateModelPart(
         ModelPart& OriginModelPart,
         ModelPart& DestinationModelPart,
         Element const& rReferenceElement,
