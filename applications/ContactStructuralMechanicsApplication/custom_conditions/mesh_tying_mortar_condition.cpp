@@ -825,8 +825,8 @@ boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,3
     boost::numeric::ublas::bounded_matrix<double, 6, 6> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -889,8 +889,8 @@ boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2
     boost::numeric::ublas::bounded_matrix<double, 12, 12> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1061,8 +1061,8 @@ boost::numeric::ublas::bounded_matrix<double, 6, 6> MeshTyingMortarCondition<2,4
     boost::numeric::ublas::bounded_matrix<double, 6, 6> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1125,8 +1125,8 @@ boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<2
     boost::numeric::ublas::bounded_matrix<double, 12, 12> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1297,8 +1297,8 @@ boost::numeric::ublas::bounded_matrix<double, 9, 9> MeshTyingMortarCondition<3,4
     boost::numeric::ublas::bounded_matrix<double, 9, 9> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1411,8 +1411,8 @@ boost::numeric::ublas::bounded_matrix<double, 27, 27> MeshTyingMortarCondition<3
     boost::numeric::ublas::bounded_matrix<double, 27, 27> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 3, 3> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -2173,8 +2173,8 @@ boost::numeric::ublas::bounded_matrix<double, 12, 12> MeshTyingMortarCondition<3
     boost::numeric::ublas::bounded_matrix<double, 12, 12> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -2357,8 +2357,8 @@ boost::numeric::ublas::bounded_matrix<double, 36, 36> MeshTyingMortarCondition<3
     boost::numeric::ublas::bounded_matrix<double, 36, 36> lhs;
 
     // We get the mortar operators
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4> MOperator = rMortarConditionMatrices.MOperator;
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4> DOperator = rMortarConditionMatrices.DOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const boost::numeric::ublas::bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -3703,8 +3703,8 @@ array_1d<double, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalRHS
     const bounded_matrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3739,8 +3739,8 @@ array_1d<double, 12> MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocal
     const bounded_matrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3781,8 +3781,8 @@ array_1d<double, 6> MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalRHS
     const bounded_matrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3817,8 +3817,8 @@ array_1d<double, 12> MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocal
     const bounded_matrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3859,8 +3859,8 @@ array_1d<double, 9> MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalRHS
     const bounded_matrix<double, 3, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 3, 3> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
@@ -3898,8 +3898,8 @@ array_1d<double, 27> MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocal
     const bounded_matrix<double, 3, Vector3DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 3, 3> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
@@ -3955,8 +3955,8 @@ array_1d<double, 12> MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalRH
     const bounded_matrix<double, 4, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 4, 4> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
@@ -3997,8 +3997,8 @@ array_1d<double, 36> MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocal
     const bounded_matrix<double, 4, Vector3DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 4, 4> MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4> DOperator = rMortarConditionMatrices.DOperator;
+    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
