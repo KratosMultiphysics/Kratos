@@ -134,7 +134,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetBool(False)
         self.pp.CFD_DEM.recovery_echo_level = 1
         self.pp.CFD_DEM.gradient_calculation_type = 1
-        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type").SetInt(2)
+        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("fluid_fraction_grad_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("store_fluid_pressure_option").SetBool(False)
