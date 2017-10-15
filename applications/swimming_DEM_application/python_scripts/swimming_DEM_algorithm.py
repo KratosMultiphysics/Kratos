@@ -132,8 +132,8 @@ class Algorithm(object):
 
         #G
         self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetBool(False)
-        self.pp.CFD_DEM.recovery_echo_level = 1
-        self.pp.CFD_DEM.gradient_calculation_type = 1
+        self.pp.CFD_DEM.AddEmptyValue("recovery_echo_level").SetInt(1)
+        self.pp.CFD_DEM.AddEmptyValue("gradient_calculation_type").SetInt(1)
         self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("fluid_fraction_grad_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(False)
@@ -154,10 +154,8 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("delta_time_quadrature").SetDouble( self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt() * self.pp.CFD_DEM["MaxTimeStep"].GetDouble() )
         self.pp.CFD_DEM.AddEmptyValue("quadrature_order").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("time_window").SetDouble(0.8)
-        self.pp.CFD_DEM.number_of_exponentials = 10
-        self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM["time_window"].GetDouble() / self.pp.CFD_DEM["delta_time_quadrature"].GetDouble())
-        self.pp.CFD_DEM.print_steps_per_plot_step = 1
-        self.pp.CFD_DEM.PostCationConcentration = False
+        self.pp.CFD_DEM.AddEmptyValue("number_of_exponentials").SetInt(2)
+        self.pp.CFD_DEM.AddEmptyValue("number_of_quadrature_steps_in_window").SetInt(int(self.pp.CFD_DEM["time_window"].GetDouble() / self.pp.CFD_DEM["delta_time_quadrature"].GetDouble()))
         self.pp.CFD_DEM.AddEmptyValue("do_impose_flow_from_field_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_ACCELERATION_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option").SetBool(False)
@@ -173,6 +171,8 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("print_PARTICLE_VEL_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("apply_time_filter_to_fluid_fraction_option").SetBool(False)
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
+        self.pp.CFD_DEM.print_steps_per_plot_step = 1
+        self.pp.CFD_DEM.PostCationConcentration = False
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) * self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
         self.pp.viscosity_modification_type = 0.0
@@ -740,7 +740,7 @@ class Algorithm(object):
         if self.pp.CFD_DEM["basset_force_type"].GetInt() > 0:
             self.basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM["quadrature_order"].GetInt(), self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt())
         if self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or self.pp.CFD_DEM["basset_force_type"].GetInt() == 1:
-            self.basset_force_tool.FillHinsbergVectors(spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
+            self.basset_force_tool.FillHinsbergVectors(spheres_model_part, self.pp.CFD_DEM["number_of_exponentials"].GetInt(), self.pp.CFD_DEM["number_of_quadrature_steps_in_window"].GetInt())
 
     def AppendValuesForTheHistoryForce(self):
         spheres_model_part = self.all_model_parts.Get('SpheresPart')
