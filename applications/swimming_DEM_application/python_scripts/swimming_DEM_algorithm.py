@@ -146,8 +146,8 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("vorticity_calculation_type").SetInt(5)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_FLUID_ACCEL_PROJECTED_option").SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)   #TODO: not used??
-        self.pp.CFD_DEM.AddEmptyValue("print_BASSET_FORCE_option").SetBool(True) #TODO: not used??
+        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)
+        self.pp.CFD_DEM.AddEmptyValue("print_BASSET_FORCE_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("basset_force_integration_type").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("n_init_basset_steps").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("time_steps_per_quadrature_step").SetInt(1)
