@@ -47,9 +47,9 @@ class PfemFluidSolver:
             "pressure_tolerance": 1e-5,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
-                "max_iteration"                  : 1000,
-                "tolerance"                      : 1e-12,
-                "provide_coordinates"            : true,
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "provide_coordinates"            : false,
                 "scaling"                        : false,
                 "smoother_type"                  : "damped_jacobi",
                 "krylov_type"                    : "cg",
@@ -57,10 +57,10 @@ class PfemFluidSolver:
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "bicgstab",
-                "max_iteration"                  : 10000,
-                "tolerance"                      : 1e-12,
-                "preconditioner_type"            : "ILU0Preconditioner",
+                "solver_type"                    : "BICGSTABSolver",
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "preconditioner_type"            : "None",
                 "scaling"                        : false
             },
             "bodies_list": [
