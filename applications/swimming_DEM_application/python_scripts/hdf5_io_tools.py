@@ -4,14 +4,8 @@ import h5py
 from KratosMultiphysics import *
 
 def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
-    print(current_time)
     old_index = bi.bisect(times_array, current_time)
-    print(times_array[old_index])
     future_index = old_index + 1
-    print('old_index',old_index)
-    print('future_index',future_index)
-    print(times_array[old_index])
-    print(times_array[future_index])
     old_time =  times_array[old_index]
 
     if future_index >= len(times_array):
@@ -21,10 +15,6 @@ def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
     else:
         alpha_old = max(0, (current_time - old_time) / fluid_dt)
         alpha_future = 1.0 - alpha_old
-    print('old_index',old_index)
-    print('future_index',future_index)
-    print('alpha_old',alpha_old)
-    print('alpha_future',alpha_future)
 
     return old_index, alpha_old, future_index, alpha_future
 
@@ -85,6 +75,8 @@ class FluidHDF5Loader:
                 f.attrs['linear system solver type'] = pp.FluidSolverConfiguration.linear_solver_config.solver_type
                 f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
                 self.dtype = np.float64
+                nodes = np.array([(node.Id, node.X, node.Y, node.Z) for node in fluid_model_part.Nodes])
+                f.create_dataset(name = 'nodes', compression = self.compression_type, data = nodes, dtype = np.float64)
 
             if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
                 self.dtype = np.float32
@@ -109,6 +101,9 @@ class FluidHDF5Loader:
     def FillFluidDataStep(self):
         time = self.fluid_model_part.ProcessInfo[TIME]
         name = str(time)
+        with h5py.File(self.file_name) as f:
+            f.create_group(name = name)
+            f[name].attrs['time'] = time
 
         indices = self.Index()
         if not self.last_time == time:
@@ -134,13 +129,13 @@ class FluidHDF5Loader:
 
     def ConvertComponent(self, f, component_name):
         if '/vx' in component_name:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
         elif '/vy' in component_name:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
         elif '/vz' in component_name:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
         else:
-            read_values = f[component_name][:, 0]
+            read_values = f[component_name][:,]
 
         return read_values[self.permutations]
 
