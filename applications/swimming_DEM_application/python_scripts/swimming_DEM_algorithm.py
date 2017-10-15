@@ -131,10 +131,10 @@ class Algorithm(object):
         ##############################################################################
 
         #G
-        self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetInt(0)
+        self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetBool(False)
         self.pp.CFD_DEM.recovery_echo_level = 1
         self.pp.CFD_DEM.gradient_calculation_type = 1
-        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type").SetInt(1)
+        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("fluid_fraction_grad_type").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("store_fluid_pressure_option").SetBool(False)
@@ -442,6 +442,8 @@ class Algorithm(object):
 
     def ReadFluidModelParts(self):
         self.fluid_algorithm.ReadFluidModelPart()
+        for node in self.fluid_model_part.Nodes:
+            print(self.fluid_model_part)
 
     def DispersePhaseInitialize(self):
         self.spheres_model_part = self.disperse_phase_algorithm.spheres_model_part
@@ -535,7 +537,7 @@ class Algorithm(object):
             print("Solving DEM... (", self.disperse_phase_algorithm.spheres_model_part.NumberOfElements(0), "elements )")
             sys.stdout.flush()
             first_dem_iter = True
-            
+
             interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
             coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
             project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
@@ -549,7 +551,7 @@ class Algorithm(object):
                 self.disperse_phase_algorithm.spheres_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
                 self.disperse_phase_algorithm.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
                 self.disperse_phase_algorithm.cluster_model_part.ProcessInfo[TIME_STEPS]    = self.DEM_step
-                
+
                 self.PerformInitialDEMStepOperations(self.time_dem)
 
                 if self.time >= interaction_start_time and coupling_level_type and (project_at_every_substep_option or first_dem_iter):
@@ -624,7 +626,7 @@ class Algorithm(object):
                 self.PrintDrag(self.drag_list, self.drag_file_output_list, self.fluid_model_part, self.time)
 
 
-    
+
     def GetFirstStepForFluidComputation(self):
         return 3;
 
@@ -711,7 +713,7 @@ class Algorithm(object):
         return SDP.Counter(1, 1, self.pp.CFD_DEM["coupling_level_type"].GetInt() or self.pp.CFD_DEM["print_PRESSURE_GRADIENT_option"].GetBool())
 
     def GetStationarityCounter(self):
-        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_stationarity_step, 1, self.pp.CFD_DEM.stationary_problem_option)
+        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_stationarity_step, 1, self.pp.CFD_DEM["stationary_problem_option"].GetBool())
 
     def GetPrintCounter(self):
         return SDP.Counter(1, 1, 10) # still unused
