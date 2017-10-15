@@ -157,7 +157,7 @@ namespace Kratos
         const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
         
         // Shape functions
-        rThisKinematicVariables.N = this->GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
+        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);;
 
         // Calculating jacobian
         Matrix J;
@@ -184,7 +184,7 @@ namespace Kratos
                 rThisKinematicVariables.F(2, index) = 0.0;
             }
 
-            rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
+            rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);;
             const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Current);
             const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Initial);
             rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
@@ -244,7 +244,7 @@ namespace Kratos
         
         if ( StrainSize == 4 )
         {
-            N = this->GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
+            N = row(GetGeometry().ShapeFunctionsValues(), PointNumber);;
             Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, this->GetGeometry());
         }
         

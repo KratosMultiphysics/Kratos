@@ -281,7 +281,7 @@ namespace Kratos
         const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
         
         // Shape functions
-        rThisKinematicVariables.N = this->GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
+        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
         
         rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
@@ -308,7 +308,7 @@ namespace Kratos
                 DF(2, index) = 0.0;
             }
 
-            rThisKinematicVariables.N = this->GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
+            rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
             const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
             const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
             DF(2, 2) = current_radius/initial_radius;
@@ -389,8 +389,8 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
-        const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         // For axisymmetric case
         Vector N;
@@ -398,8 +398,8 @@ namespace Kratos
         
         if ( StrainSize == 4 )
         {
-            N = this->GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-            Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, this->GetGeometry());
+            N = row(GetGeometry().ShapeFunctionsValues(), PointNumber);
+            Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
         }
         
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
