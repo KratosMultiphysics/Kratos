@@ -164,6 +164,10 @@ class TestMortarMapping(KratosUnittest.TestCase):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles"
         self._mapper_tests(input_filename, 3)
         
+    #def test_less_basic_2_mortar_mapping_triangle(self):
+        #input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles_2"
+        #self._mapper_tests(input_filename, 3)
+        
     def test_simple_curvature_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
         self._mapper_tests(input_filename, 3)
