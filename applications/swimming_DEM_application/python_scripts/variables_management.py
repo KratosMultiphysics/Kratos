@@ -90,10 +90,10 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars += pp.fluid_printing_vars
     pp.fluid_vars += pp.coupling_fluid_vars
 
-    if pp.CFD_DEM["pressure_grad_recovery_type"].GetInt() > 1:
+    if pp.CFD_DEM["pressure_grad_recovery_type"].GetInt() > 0:
         pp.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
 
-    if pp.CFD_DEM["gradient_calculation_type"].GetInt() > 1:
+    if pp.CFD_DEM["gradient_calculation_type"].GetInt() > 1 or pp.CFD_DEM["pressure_grad_recovery_type"].GetInt() > 1 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 7:
         pp.fluid_vars += [NODAL_WEIGHTS]
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt():
