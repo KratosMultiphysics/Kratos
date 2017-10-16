@@ -103,6 +103,15 @@ class TestMortarMapping(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, z)
         del(node)
 
+        #linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+
+        #if (num_nodes == 3): 
+            #self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, linear_solver)
+            #self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, linear_solver)
+        #else:
+            #self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, linear_solver)
+            #self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, linear_solver)
+            
         if (num_nodes == 3): 
             self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE)
             self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY)
@@ -159,6 +168,10 @@ class TestMortarMapping(KratosUnittest.TestCase):
     def test_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangle"
         self._mapper_tests(input_filename, 3)
+        
+    def test_basic_mortar_mapping_quad(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_quad"
+        self._mapper_tests(input_filename, 4)
         
     def test_less_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles"

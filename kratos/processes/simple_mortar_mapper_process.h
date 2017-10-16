@@ -102,7 +102,8 @@ public:
         ): mrThisModelPart(rThisModelPart),
            mOriginVariable(ThisVariable),
            mDestinationVariable(ThisVariable),
-           mpThisLinearSolver(pThisLinearSolver)
+           mpThisLinearSolver(pThisLinearSolver),
+           mEchoLevel(0)
     {
     }
     
@@ -115,6 +116,7 @@ public:
            mOriginVariable(OriginVariable),
            mDestinationVariable(DestinationVariable),
            mpThisLinearSolver(pThisLinearSolver)
+           mEchoLevel(0)
     {
     }
 
@@ -264,6 +266,7 @@ private:
     ModelPart& mrThisModelPart;                   // The model part to compute
     TVarType mOriginVariable;                     // The origin variable to map
     TVarType mDestinationVariable;                // The destiny variable to map
+    unsigned int mEchoLevel;                      // The verbosity level
     LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
 
     ///@}
@@ -443,7 +446,7 @@ private:
     /**
      * This method executes the explicit mapping (when no linear solver is avalaible)
      */
-    void ExecuteExplicitMapping()
+    void ExecuteExplicitMapping() // TODO: Correct, many mistakes
     {
         KRATOS_TRY;
 
@@ -638,6 +641,15 @@ private:
         
         while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations)
         {
+            // We reset the RHS
+            if (iteration > 0)
+            {
+                for (unsigned int i_size = 0; i_size < variable_size; ++i_size) 
+                {
+                    b[i_size] = zero_vector;
+                }
+            }
+                
             // We map the values from one side to the other // TODO: Add OMP
             for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
             {
@@ -742,12 +754,15 @@ private:
                                 {
                                     b[i_var][pos_i_id] += residual_matrix(i_node, i_var);
                                 }
-                                // We assemble the LHS
-                                for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
+                                if (iteration == 0)
                                 {
-                                    const int& node_j_id = master_geometry[j_node].Id();
-                                    const int& pos_j_id = inverse_conectivity_database[node_j_id];
-                                    A(pos_i_id, pos_j_id) += this_mortar_condition_matrices.MOperator(i_node, j_node);
+                                    // We assemble the LHS
+                                    for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
+                                    {
+                                        const int& node_j_id = master_geometry[j_node].Id();
+                                        const int& pos_j_id = inverse_conectivity_database[node_j_id];
+                                        A(pos_i_id, pos_j_id) += this_mortar_condition_matrices.MOperator(i_node, j_node);
+                                    }
                                 }
                             }
                         
@@ -756,15 +771,20 @@ private:
                 }
             }
             
-            // Finally we solve the system # TODO: Use iterations to minimize the residual
+            // Finally we solve the system
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
             {
                 mpThisLinearSolver->Solve(A, Dx, b[i_size]);
                 MortarUtilities::UpdateDatabase<TVarType, THist>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
                 const double residual_norm = norm_2(b[i_size])/size_system;
-//                 const double increment_norm = norm_2(Dx)/size_system;
+                const double increment_norm = norm_2(Dx)/size_system;
                 if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
 //                 if (increment_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
+                
+                if (mEchoLevel > 0)
+                {
+                    std::cout << "Iteration: " << iteration << "\tResidual norm: " << residual_norm << "\tIncrement norm: " << increment_norm << std::endl;
+                }
             }
             
             iteration += 1;
