@@ -219,11 +219,14 @@ public:
         #pragma omp parallel for
         for(int iii=0; iii<nnodes; iii++)
         {
+            it->Free(DISTANCE);
+            
             auto it = mp_distance_model_part->NodesBegin() + iii;
             double& d = it->FastGetSolutionStepValue(DISTANCE);
             it->SetValue(DISTANCE, d); //save the distances
               
             if(d == 0){
+                it->Fix(DISTANCE);
                 d = 1e-15;
             }
             else{
@@ -233,7 +236,7 @@ public:
                     d = -1.0e9;
             }
             
-            it->Free(DISTANCE);
+            
         }
         
         
@@ -282,7 +285,7 @@ public:
         mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
         
         
-         mp_solving_strategy->Solve();
+        mp_solving_strategy->Solve();
 
         //compute the average gradient and scale the distance so that the gradient is approximately 1
         ScaleDistance();
