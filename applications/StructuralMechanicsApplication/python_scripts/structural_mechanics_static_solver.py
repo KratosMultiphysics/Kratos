@@ -96,6 +96,14 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             print("POINT_LOAD_Y: ", force_y)
             print("POINT_LOAD_Z: ", force_z)
             print("*********************** ")
+    
+    def get_builder_and_solver(self):
+        if self.settings["multi_point_constraints_used"].GetBool():
+            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.get_linear_solver())
+        else:
+            builder_and_solver = super(StaticMechanicalSolver,self).get_builder_and_solver()
+
+        return builder_and_solver   
         
     def _create_mechanical_solver(self):
         if(self.settings["line_search"].GetBool()):

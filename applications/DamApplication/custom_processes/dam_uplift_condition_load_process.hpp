@@ -39,9 +39,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamUpliftConditionLoadProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamUpliftConditionLoadProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -51,7 +51,6 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                              : false,
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
@@ -78,41 +77,40 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mspecific = rParameters["Spe_weight"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mSpecific = rParameters["Spe_weight"].GetDouble();
         
         // Getting the values of the coordinates (reference value)
-        mx_0.resize(3,false);
-        mx_0[0] = rParameters["Upstream_Coordinate"][0].GetDouble();
-        mx_0[1] = rParameters["Upstream_Coordinate"][1].GetDouble();
-        mx_0[2] = rParameters["Upstream_Coordinate"][2].GetDouble();
+        mX0.resize(3,false);
+        mX0[0] = rParameters["Upstream_Coordinate"][0].GetDouble();
+        mX0[1] = rParameters["Upstream_Coordinate"][1].GetDouble();
+        mX0[2] = rParameters["Upstream_Coordinate"][2].GetDouble();
         
-        mx_1.resize(3,false);
-        mx_1[0] = rParameters["Downstream_Coordinate"][0].GetDouble();
-        mx_1[1] = rParameters["Downstream_Coordinate"][1].GetDouble();
-        mx_1[2] = rParameters["Downstream_Coordinate"][2].GetDouble();
+        mX1.resize(3,false);
+        mX1[0] = rParameters["Downstream_Coordinate"][0].GetDouble();
+        mX1[1] = rParameters["Downstream_Coordinate"][1].GetDouble();
+        mX1[2] = rParameters["Downstream_Coordinate"][2].GetDouble();
         
-        mx_2.resize(3,false);
-        mx_2[0] = rParameters["Upstream_Longitudinal_Coordinate"][0].GetDouble();
-        mx_2[1] = rParameters["Upstream_Longitudinal_Coordinate"][1].GetDouble();
-        mx_2[2] = rParameters["Upstream_Longitudinal_Coordinate"][2].GetDouble();        
+        mX2.resize(3,false);
+        mX2[0] = rParameters["Upstream_Longitudinal_Coordinate"][0].GetDouble();
+        mX2[1] = rParameters["Upstream_Longitudinal_Coordinate"][1].GetDouble();
+        mX2[2] = rParameters["Upstream_Longitudinal_Coordinate"][2].GetDouble();        
         
         // Drains
-        mdrain = rParameters["Drains"].GetBool();
-        mheight_drain = rParameters["Height_drain"].GetDouble();
-        mdistance_drain = rParameters["Distance"].GetDouble();
-        meffectiveness_drain = rParameters["Effectiveness"].GetDouble();
-        mwater_level = rParameters["Water_level"].GetDouble();
+        mDrain = rParameters["Drains"].GetBool();
+        mHeightDrain = rParameters["Height_drain"].GetDouble();
+        mDistanceDrain = rParameters["Distance"].GetDouble();
+        mEffectivenessDrain = rParameters["Effectiveness"].GetDouble();
+        mWaterLevel = rParameters["Water_level"].GetDouble();
         
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["table"].GetInt();
         
         if(mTableId != 0)
-            mpTable = model_part.pGetTable(mTableId);
+            mpTable = mrModelPart.pGetTable(mTableId);
 
         KRATOS_CATCH("");
     }
@@ -137,8 +135,8 @@ public:
         KRATOS_TRY;
         
         //Defining necessary variables
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         boost::numeric::ublas::bounded_matrix<double,3,3> RotationMatrix;
                 
         // Computing the rotation matrix accoding with the introduced points by the user
@@ -150,26 +148,26 @@ public:
         // Gravity direction for computing the hydrostatic pressure
         int direction;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
             
         // Computing the reference vector (coordinates)    
-        reference_vector = prod(RotationMatrix,mx_0);
+        reference_vector = prod(RotationMatrix,mX0);
                 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
             
-            double ref_coord = mreference_coordinate + mwater_level;
+            double ref_coord = mReferenceCoordinate + mWaterLevel;
             
-            if( mdrain == true)
+            if( mDrain == true)
             {
-				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
-				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((mbase_dam-mdistance_drain)/mbase_dam) + mheight_drain;
+				double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
+				double aux_drain = coefficient_effectiveness *(mWaterLevel - mHeightDrain)* ((mBaseDam-mDistanceDrain)/mBaseDam) + mHeightDrain;
 
 				#pragma omp parallel for
 				for(int i = 0; i<nnodes; i++)
@@ -183,28 +181,23 @@ public:
                     
                     // Computing the new coordinates                                        
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
-
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
 		
                     // We compute the first part of the uplift law 
-                    muplift_pressure = (mspecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mdistance_drain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mspecific*aux_drain;
+                    mUpliftPressure = (mSpecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mDistanceDrain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mSpecific*aux_drain;
                     
                     // If uplift pressure is greater than the limit we compute the second part and we update the value
-                        if(muplift_pressure <= mspecific*aux_drain)
+                        if(mUpliftPressure <= mSpecific*aux_drain)
                         {
-                            muplift_pressure = (mspecific*((mreference_coordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mbase_dam - mdistance_drain))*(fabs( (newCoordinate(0)) - (reference_vector(0)+mdistance_drain)))));
+                            mUpliftPressure = (mSpecific*((mReferenceCoordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mBaseDam - mDistanceDrain))*(fabs( (newCoordinate(0)) - (reference_vector(0)+mDistanceDrain)))));
                         }
                         
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 					
@@ -223,20 +216,15 @@ public:
                     
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
 
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
-				
-					muplift_pressure = (mspecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mbase_dam)*(fabs(newCoordinate(0)-reference_vector(0)))));
+					mUpliftPressure = (mSpecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mBaseDam)*(fabs(newCoordinate(0)-reference_vector(0)))));
                     
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 			}            
@@ -253,19 +241,19 @@ public:
         KRATOS_TRY;
         
         //Defining necessary variables
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         boost::numeric::ublas::bounded_matrix<double,3,3> RotationMatrix;
         
         // Getting the values of table in case that it exist        
         if(mTableId != 0)
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mwater_level = mpTable->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mWaterLevel = mpTable->GetValue(time);
         }
         
-        // && mr_model_part.GetProcessInfo()[TIME] >= 1.0
+        // && mrModelPart.GetProcessInfo()[TIME] >= 1.0
         
         // Computing the rotation matrix accoding with the introduced points by the user
         this->CalculateRotationMatrix(RotationMatrix);
@@ -276,26 +264,26 @@ public:
         // Gravity direction for computing the hydrostatic pressure
         int direction;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
             
         // Computing the reference vector (coordinates)    
-        reference_vector = prod(RotationMatrix,mx_0);
+        reference_vector = prod(RotationMatrix,mX0);
                 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
             
-            double ref_coord = mreference_coordinate + mwater_level;
+            double ref_coord = mReferenceCoordinate + mWaterLevel;
             
-            if( mdrain == true)
+            if( mDrain == true)
             {
-				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
-				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((mbase_dam-mdistance_drain)/mbase_dam) + mheight_drain;
+				double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
+				double aux_drain = coefficient_effectiveness *(mWaterLevel - mHeightDrain)* ((mBaseDam-mDistanceDrain)/mBaseDam) + mHeightDrain;
 
 				#pragma omp parallel for
 				for(int i = 0; i<nnodes; i++)
@@ -309,28 +297,23 @@ public:
                     
                     // Computing the new coordinates                                        
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
-
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
-		
+	
                     // We compute the first part of the uplift law 
-                    muplift_pressure = (mspecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mdistance_drain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mspecific*aux_drain;
+                    mUpliftPressure = (mSpecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mDistanceDrain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mSpecific*aux_drain;
                     
                     // If uplift pressure is greater than the limit we compute the second part and we update the value
-                        if(muplift_pressure <= mspecific*aux_drain)
+                        if(mUpliftPressure <= mSpecific*aux_drain)
                         {
-                            muplift_pressure = (mspecific*((mreference_coordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mbase_dam - mdistance_drain))*(fabs( (newCoordinate(0)) - (reference_vector(0)+mdistance_drain)))));
+                            mUpliftPressure = (mSpecific*((mReferenceCoordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mBaseDam - mDistanceDrain))*(fabs( (newCoordinate(0)) - (reference_vector(0)+mDistanceDrain)))));
                         }
                         
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 					
@@ -348,21 +331,16 @@ public:
                     auxiliar_vector[2] = it->Coordinate(3);
                     
                     newCoordinate = prod(RotationMatrix,auxiliar_vector);
-
-					if(mis_fixed)
-					{
-						it->Fix(var);
-					}
 				
-					muplift_pressure = (mspecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mbase_dam)*(fabs(newCoordinate(0)-reference_vector(0)))));
+					mUpliftPressure = (mSpecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mBaseDam)*(fabs(newCoordinate(0)-reference_vector(0)))));
                     
-					if(muplift_pressure<0.0)
+					if(mUpliftPressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						it->FastGetSolutionStepValue(var) = muplift_pressure;
+						it->FastGetSolutionStepValue(var) = mUpliftPressure;
 					}
 				}
 			}            
@@ -377,8 +355,8 @@ public:
         
         //Unitary vector in uplift direction
         array_1d<double,3> V_uplift;      
-        V_uplift = (mx_1 - mx_0);
-        mbase_dam= norm_2(V_uplift);
+        V_uplift = (mX1 - mX0);
+        mBaseDam= norm_2(V_uplift);
         double inv_norm_uplift = 1.0/norm_2(V_uplift);
         V_uplift[0] *= inv_norm_uplift;
         V_uplift[1] *= inv_norm_uplift;
@@ -386,7 +364,7 @@ public:
         
         //Unitary vector in longitudinal direction
         array_1d<double,3> V_longitudinal;
-        V_longitudinal = (mx_2 - mx_0);
+        V_longitudinal = (mX2 - mX0);
         double inv_norm_longitudinal = 1.0/norm_2(V_longitudinal);
         V_longitudinal[0] *= inv_norm_longitudinal;
         V_longitudinal[1] *= inv_norm_longitudinal;
@@ -436,24 +414,23 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    std::string mgravity_direction;
-    bool mis_fixed;
-    double mreference_coordinate;
-    double mspecific;
-    double mbase_dam;
-    double mwater_level;
-    bool mdrain;
-    double mheight_drain;
-    double mdistance_drain;
-    double meffectiveness_drain;
-    double muplift_pressure;
-    Vector mx_0;
-    Vector mx_1;
-    Vector mx_2;
-    double mtime_unit_converter;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    std::string mGravityDirection;
+    double mReferenceCoordinate;
+    double mSpecific;
+    double mBaseDam;
+    double mWaterLevel;
+    bool mDrain;
+    double mHeightDrain;
+    double mDistanceDrain;
+    double mEffectivenessDrain;
+    double mUpliftPressure;
+    Vector mX0;
+    Vector mX1;
+    Vector mX2;
+    double mTimeUnitConverter;
     TableType::Pointer mpTable;
     int mTableId;   
     

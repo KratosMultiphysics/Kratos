@@ -21,6 +21,8 @@ def ConstructSolver(configuration):
         linear_solver = MultiLevelSolver(configuration)
     elif(solver_type == "AmgclMPISolver"):
         linear_solver = AmgclMPISolver(configuration);
+    elif(solver_type == "AmgclMPISchurComplementSolver"):
+        linear_solver = AmgclMPISchurComplementSolver(configuration);
     #
     elif(solver_type == "Deflated Conjugate gradient"):
         raise Exception("not implemented within trilinos")
@@ -53,10 +55,11 @@ def ConstructSolver(configuration):
         raise Exception("not implemented within trilinos")
     else:
         print("*****************************************************************")
-        print("Inexisting solver type. Possibilities are:")
+        print("Inexisting solver type. Specified::::::::::: ", solver_type) 
+        print(" Possibilities are:")
         print("............")
         print("*****************************************************************")
-
+        raise Exception("please specify a correct solver")
     # else:
         # except LogicError:
 
