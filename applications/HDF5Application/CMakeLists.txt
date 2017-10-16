@@ -19,14 +19,15 @@ if( ${HDF5_IO} MATCHES ON )
   if( ${MPI_NEEDED} MATCHES ON )
     set( HDF5_PREFER_PARALLEL ON )
   endif( ${MPI_NEEDED} MATCHES ON )
-  find_package(HDF5 REQUIRED)
+#  find_package(HDF5 CXX)
+  find_package(HDF5 COMPONENTS C REQUIRED)
 
   include_directories( ${HDF5_INCLUDE_DIRS} )
 endif( ${HDF5_IO} MATCHES ON )
 
 # define library Kratos which defines the basic python interface
 add_library(KratosHDF5Application SHARED ${KRATOS_HDF5_APPLICATION_SOURCES})
-target_link_libraries(KratosHDF5Application KratosCore ${HDF5_CXX_LIBRARIES} )
+target_link_libraries(KratosHDF5Application KratosCore ${HDF5_C_LIBRARIES} )
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 install(TARGETS KratosHDF5Application DESTINATION libs )
 
