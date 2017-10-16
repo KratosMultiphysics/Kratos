@@ -1,3 +1,0 @@
-[submodule "Kratos/applications/PfemApplication/external_modules/triangle"]
-	path = Kratos/applications/PfemApplication/external_modules/triangle
-	url = https://github.com/PFEM/triangle.git
