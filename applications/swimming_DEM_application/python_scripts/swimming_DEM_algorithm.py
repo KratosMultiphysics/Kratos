@@ -473,10 +473,12 @@ class Algorithm(object):
             self.calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(self.disperse_phase_algorithm.rigid_face_model_part, self.fluid_model_part)
             self.calculate_distance_process.Execute()
 
+    def TheSimulationMustGoON(self):
+        return self.time <= self.final_time
 
     def RunMainTemporalLoop(self):
 
-        while self.time <= self.final_time:
+        while self.TheSimulationMustGoON():
 
             self.time = self.time + self.Dt
             self.step += 1
