@@ -105,7 +105,7 @@ void ExecuteInitialize()
     // Computing the t_soil_air according to t_sol_air criteria
     double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
 
-    mH0=8.0;
+    mH0=1.0;
     t_sol_air = 10.0;
 
     if(nnodes != 0)
@@ -119,7 +119,7 @@ void ExecuteInitialize()
 
             const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
             const double heat_flux = mH0*(t_sol_air - temp_current); 
-            it->FastGetSolutionStepValue(var) = -10.0;
+            it->FastGetSolutionStepValue(var) = heat_flux;
         }            
     }
 
@@ -147,7 +147,7 @@ void ExecuteInitialize()
         // Computing the t_soil_air according to t_sol_air criteria
         double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
 
-        mH0=8.0;
+        mH0=1.0;
         t_sol_air = 10.0;
 
         if(nnodes != 0)
@@ -161,7 +161,7 @@ void ExecuteInitialize()
 
                 const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
                 const double heat_flux = mH0*(t_sol_air - temp_current);               
-                it->FastGetSolutionStepValue(var) = -10.0;
+                it->FastGetSolutionStepValue(var) = heat_flux;
             }            
         }
     
