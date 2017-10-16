@@ -9,8 +9,6 @@ def AddNodalVariables(model_part, variable_list):
 
     for var in variable_list:
         model_part.AddNodalSolutionStepVariable(var)
-        if model_part.Name == "FluidPart":
-            print(var)
 
 def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPRECATED!
 
