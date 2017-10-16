@@ -21,6 +21,7 @@
 #include "includes/node.h"
 #include "geometries/point.h"
 #include "geometries/geometry.h"
+#include "geometries/geometry_data.h"
 #include "utilities/indexed_object.h"
 #include "containers/pointer_vector_set.h"
 
@@ -157,11 +158,16 @@ public:
     typedef Point<3>                                                                 PointType;
     typedef Geometry < NodeType >                                                 GeometryType;
     typedef Geometry < PointType >                                           PointGeometryType;
+    typedef GeometryData::IntegrationMethod                              IntegrationMethodType;
 
     typedef IndexedPoint                                                      IndexedPointType;
     typedef boost::shared_ptr<IndexedPoint>                            IndexedPointPointerType;
     typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
     typedef IndexedPointsContainerType::iterator                     IndexedPointsIteratorType;
+
+    typedef IntegrationPoint<3>                                                                          IntegrationPointType;
+    typedef std::vector<IntegrationPointType>                                                      IntegrationPointsArrayType;
+    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     int mSplitEdgesNumber;  // Number of split edges
     int mDivisionsNumber;   // Number of generated subdivisions
@@ -219,6 +225,16 @@ public:
                                 std::vector < PointGeometryType >& rPositiveSubdivisions,
                                 std::vector < PointGeometryType >& rNegativeSubdivisions);
 
+    /**
+    * Returns the shape function values in any element subdivision for a given quadrature.
+    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
+    * @param rSubdivisionGeom: Subdivision point based geometry.
+    * @param IntegrationMethod: Integration quadrature.
+    */
+    virtual void GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                   const PointGeometryType& rSubdivisionGeom,
+                                                   IntegrationMethodType IntegrationMethod);
+
     ///@}
 
 protected:
@@ -240,9 +256,11 @@ protected:
 
     /**
     * Returns true if the element is split and false otherwise.
-    * @return rAuxPoints: Reference to the pointer vector set containing the original nodes plus the intersection ones.
-    * @return rPositiveSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the positive subdivisions.
-    * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
+    * @return rIntPointCondMatrix: Reference to the intersection points condensation matrix.
+    * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
+    * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
+    * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
+    * @param splitEdgesNumber: Number of splitted edges.
     */
     void SetIntersectionPointsCondensationMatrix(Matrix& rIntPointCondMatrix,
                                                  const int rEdgeNodeI[],
@@ -375,6 +393,16 @@ public:
     bool DivideGeometry(IndexedPointsContainerType& rAuxPoints,
                         std::vector < PointGeometryType >& rPositiveSubdivisions,
                         std::vector < PointGeometryType >& rNegativeSubdivisions) override;
+
+    /**
+    * Returns the shape function values in any element subdivision for a given quadrature.
+    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
+    * @param rSubdivisionGeom: Subdivision point based geometry.
+    * @param IntegrationMethod: Integration quadrature.
+    */
+    void GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                           const PointGeometryType& rSubdivisionGeom,
+                                           IntegrationMethodType IntegrationMethod) override;
 
     ///@}
 

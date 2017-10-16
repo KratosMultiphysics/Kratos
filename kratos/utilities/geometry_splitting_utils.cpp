@@ -16,6 +16,7 @@
 
 // Project includes
 #include "utilities/split_triangle.c"
+#include "geometries/triangle_2d_3.h"
 #include "utilities/geometry_splitting_utils.h"
 
 namespace Kratos
@@ -102,6 +103,12 @@ namespace Kratos
         KRATOS_ERROR << "Calling the base class geometry splitting DivideGeometry method. Call the specific geometry one.";
     };
 
+    void GeometrySplittingUtils::GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                                   const PointGeometryType& rSubdivisionGeom,
+                                                                   IntegrationMethodType IntegrationMethod) {
+        KRATOS_ERROR << "Calling the base class geometry splitting GetSubdivisionShapeFunctionValues method. Call the specific geometry one.";
+    };
+
     bool GeometrySplittingUtils::IsSplit() {
         unsigned int n_pos = 0 , n_neg = 0;
 
@@ -156,6 +163,7 @@ namespace Kratos
             }
         }
     }
+
 
     /// TriangleSplittingUtils implementation
     /// Default constructor
@@ -300,6 +308,35 @@ namespace Kratos
 
             return false;
         }
+    };
+
+    void TriangleSplittingUtils::GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                                   const PointGeometryType& rSubdivisionGeom,
+                                                                   IntegrationMethodType IntegrationMethod) {
+        // Get the integration points
+        IntegrationPointsContainerType all_integration_points = Triangle2D3<PointType>::AllIntegrationPoints(); // TODO: DECIDE WHAT TO DO WITH THE TRIANGLE STATIC METHODS, THEY ARE PRIVATE
+        IntegrationPointsArrayType integration_points = all_integration_points[IntegrationMethod];
+
+        // Resize the shape function values matrix
+        const unsigned int n_nodes = rSubdivisionGeom.PointsNumber(); // TODO: THIS SHOULD HAVE THE MAX NUMBER OF NODES SIZE
+        const unsigned int n_int_pts = integration_points.IntegrationPointsNumber();
+        //
+        // if(rShapeFunctionValues.size1() != n_int_pts) {
+        //     rShapeFunctionValues.resize(n_int_pts, n_nodes, false);
+        // } else if(rShapeFunctionValues.size2() != n_nodes) {
+        //     rShapeFunctionValues.resize(n_int_pts, n_nodes, false);
+        // }
+        //
+        // // Compute the subdivision shape functions values
+        // for (unsigned int i_int_pt = 0; i_int_pt < n_int_pts; ++i_int_pt) {
+        //     Vector point_sh_func_values;
+        //     CoordinatesArrayType int_pt_local_coords;
+        //     int_pt_local_coords[0] = integration_points[i_int_pt].X()
+        //     int_pt_local_coords[1] = integration_points[i_int_pt].Y()
+        //     int_pt_local_coords[2] = integration_points[i_int_pt].Z()
+        //     rSubdivisionGeom.ShapeFunctionsValues(point_sh_func_values, int_pt_local_coords);
+        // }
+
     };
 
 };
