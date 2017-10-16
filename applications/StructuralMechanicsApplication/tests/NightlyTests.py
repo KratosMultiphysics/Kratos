@@ -60,3 +60,27 @@ class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
 
 class ShellT3IsotropicScordelisTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
+
+class ShellT3ThickLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thick_linear_static_test"
+
+class ShellT3ThickNonLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thick_nonlinear_static_test"
+
+class ShellT3ThickLinearDynamicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thick_linear_dynamic_test"
+
+class ShellT3ThickNonLinearDynamicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thick_nonlinear_dynamic_test"
+
+class ShellQ4ThinLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thin_linear_static_test"
+
+class ShellQ4ThinNonLinearStaticTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thin_nonlinear_static_test"
+
+class ShellQ4ThinLinearDynamicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thin_linear_dynamic_test"
+
+class ShellQ4ThinNonLinearDynamicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test"
