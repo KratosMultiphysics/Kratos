@@ -444,8 +444,6 @@ class Algorithm(object):
 
     def ReadFluidModelParts(self):
         self.fluid_algorithm.ReadFluidModelPart()
-        for node in self.fluid_model_part.Nodes:
-            print(self.fluid_model_part)
 
     def DispersePhaseInitialize(self):
         self.spheres_model_part = self.disperse_phase_algorithm.spheres_model_part
