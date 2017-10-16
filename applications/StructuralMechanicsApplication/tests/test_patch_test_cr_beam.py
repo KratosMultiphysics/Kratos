@@ -313,7 +313,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #incrementally increase load -> nonlinear case
         Moment_Z = 25000.00
         time_start = 0.00
-        time_end = 528
+        time_end = 5
         time_delta = 1
         time_i = time_start
         time_step = 0
@@ -367,7 +367,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         #loop over time
         time_start = 0.00
-        time_end = 0.01
+        time_end = 0.0004
         # time_delta = 0.001
         time_delta = 0.0001
         time_i = time_start
@@ -425,7 +425,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         #loop over time
         time_start = 0.00
-        time_end = 0.01
+        time_end = 0.0004
         # time_delta = 0.001
         time_delta = 0.0001
         time_i = time_start

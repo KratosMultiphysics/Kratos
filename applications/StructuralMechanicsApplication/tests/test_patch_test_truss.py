@@ -347,7 +347,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         #incrementally increase load -> nonlinear case
         Force_y = -37000000
         time_start = 0.00
-        time_end = 1.20
+        time_end = 0.05
         time_delta = 0.01
         time_i = time_start
         time_step = 0
@@ -396,7 +396,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
         #loop over time
         time_start = 0.00
-        time_end = 0.004
+        time_end = 0.000002
         time_delta = 0.000001
         time_i = time_start
         time_step = 0
