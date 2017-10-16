@@ -334,7 +334,7 @@ public:
 
         #pragma omp parallel
         {
-            const unsigned int Id = omp_get_thread_num();
+            const unsigned int thread_id = omp_get_thread_num();
 
             #pragma omp for
             for(int i = 0; i < num_conditions; i++) 
@@ -345,7 +345,7 @@ public:
                 {
                     PointTypePointer p_point = PointTypePointer(new PointItem((*it_cond.base())));
 //                     (mPointListDestination).push_back(p_point);
-                    (points_buffer[Id]).push_back(p_point);
+                    (points_buffer[thread_id]).push_back(p_point);
                 }
             }
             
@@ -448,8 +448,8 @@ public:
                         it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
                         it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
                     
-                        const array_1d<double,3> normal_min = MortarUtilities::GaussPointNormal(N_min, it_cond->GetGeometry());
-                        const array_1d<double,3> normal_max = MortarUtilities::GaussPointNormal(N_max, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
                         
                         ContactUtilities::ScaleNode<Node<3>>(min_point, normal_min, length_search);
                         ContactUtilities::ScaleNode<Node<3>>(max_point, normal_max, length_search);

@@ -364,7 +364,7 @@ public:
      * @param Geom: The geometry of condition of interest
      */
 
-    static inline array_1d<double,3> GaussPointNormal(
+    static inline array_1d<double,3> GaussPointUnitNormal(
         const Vector& N,
         const GeometryType& Geom
         )
@@ -375,10 +375,13 @@ public:
             normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
         }
         
-        if (norm_2(normal) > std::numeric_limits<double>::epsilon())
-        {
-            normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
-        }
+        const bool not_zero_vector = (norm_2(normal) > std::numeric_limits<double>::epsilon());
+        
+	#ifdef KRATOS_DEBUG
+		if (not_zero_vector == false) KRATOS_ERROR << "Zero norm normal vector. Norm:" << norm_2(normal) << std::endl;
+	#endif
+        
+        if (not_zero_vector == true) normal = normal/norm_2(normal);
         
         return normal;
     }

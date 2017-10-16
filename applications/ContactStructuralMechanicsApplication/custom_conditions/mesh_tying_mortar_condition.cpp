@@ -796,7 +796,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionVa
     GeometryType& master_geometry = mThisMasterConditions[PairIndex]->GetGeometry();
 
     PointType projected_gp_global;
-    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointNormal(rVariables.NSlave, GetGeometry());
+    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, GetGeometry());
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
