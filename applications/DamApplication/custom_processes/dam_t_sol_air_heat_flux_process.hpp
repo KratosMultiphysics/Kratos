@@ -105,9 +105,6 @@ void ExecuteInitialize()
     // Computing the t_soil_air according to t_sol_air criteria
     double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
 
-    mH0=1.0;
-    t_sol_air = 10.0;
-
     if(nnodes != 0)
     {
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
@@ -146,9 +143,6 @@ void ExecuteInitialize()
     
         // Computing the t_soil_air according to t_sol_air criteria
         double t_sol_air = mAmbientTemperature + (mAbsorption_index*mTotalInsolation/mH0) - (mEmisivity*mDeltaR/mH0);
-
-        mH0=1.0;
-        t_sol_air = 10.0;
 
         if(nnodes != 0)
         {
