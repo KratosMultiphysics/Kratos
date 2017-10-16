@@ -62,13 +62,22 @@ int GetNumberOfCollisions();
 int GetNumberOfCollisionsWithFaces();
 int GetNumberOfCollisionsWithEdges();
 
-void GetCollidingIds(array_1d<int, 4>& colliding_ids);
+array_1d<int, 4> &GetCollidingIds();
+array_1d<double, 4> &GetCollidingNormalRelativeVelocity();
+array_1d<double, 4> &GetCollidingTangentialRelativeVelocity();
+array_1d<int, 4> &GetCollidingFaceIds();
+array_1d<double, 4> &GetCollidingFaceNormalRelativeVelocity();
+array_1d<double, 4> &GetCollidingFaceTangentialRelativeVelocity();
+array_1d<double, 4> &GetCollidingLinearImpulse();
+
+/*
 void GetCollidingNormalRelativeVelocity(array_1d<double, 4>& colliding_normal_vel);
 void GetCollidingTangentialRelativeVelocity(array_1d<double, 4>& colliding_tangential_vel);
 void GetCollidingFaceIds(array_1d<int, 4>& colliding_ids);
 void GetCollidingFaceNormalRelativeVelocity(array_1d<double, 4>& colliding_normal_vel);
 void GetCollidingFaceTangentialRelativeVelocity(array_1d<double, 4>& colliding_tangential_vel);
 void GetCollidingLinearImpulse(array_1d<double, 4>& colliding_linear_impulse);
+*/
 
 protected:
 
