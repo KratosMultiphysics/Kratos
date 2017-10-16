@@ -37,11 +37,6 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
 
                     edge = tuple(sorted((first_node.Id, second_node.Id)))
                     set_of_all_edges.add(edge)
-            print('python number of edges: ', len(set_of_all_edges))
-            print('c++ number of edges: ', number_of_elements)
-            print('c++ number of repeated edges: ', i_rep_edge)
-            print('c++ number of repeated edges over 6: ', i_rep_edge / 6)
-        print('number_of_elements: ', len(self.model_part.Elements))
 
     def FillSetOfAllEdges(self, set_of_all_edges):
         for elem in self.model_part.Elements:
@@ -75,11 +70,11 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         # linear_solver = SuperLUIterativeSolver()
         # linear_solver = CGSolver()
         # linear_solver = SkylineLUFactorizationSolver()
-        # linear_solver = SuperLUSolver()
+        linear_solver = SuperLUSolver()
         # linear_solver = ITSOL_ARMS_Solver()
         # linear_solver = MKLPardisoSolver()
-        linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
-        self.recovery_strategy = ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
+        # linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+        self.recovery_strategy = ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, False, False, False)
 
         self.recovery_strategy.SetEchoLevel(echo_level)
 
@@ -87,6 +82,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         for node in self.recovery_model_part.Nodes:
             for var in DOF_variables:
                 node.AddDof(var)
+
         print("DOFs for the derivative recovery solvers added correctly")
 
     def Solve(self):
@@ -94,9 +90,9 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
 
     def SetToZero(self, variable):
         if type(variable).__name__ == 'DoubleVariable':
-            self.custom_functions_tool.SetValueOfAllNotes(self.model_part, 0.0, variable)
+            self.custom_functions_tool.SetValueOfAllNotes(self.recovery_model_part, 0.0, variable)
         elif type(variable).__name__ == 'Array1DVariable3':
-            self.custom_functions_tool.SetValueOfAllNotes(self.model_part, ZeroVector(3), variable)
+            self.custom_functions_tool.SetValueOfAllNotes(self.recovery_model_part, ZeroVector(3), variable)
 
 class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, recoverer.VorticityRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
@@ -122,18 +118,15 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         print('***********************************************************************************************')
         print('***********************************************************************************************')
 
-        analytic_solution = [val for pair in zip([3 * node.X ** 2 for node in self.recovery_model_part.Nodes], [3 * node.Y ** 2 for node in self.recovery_model_part.Nodes]) for val in pair]
-
-        for node in self.recovery_model_part.Nodes:
-            print(node.GetSolutionStepValue(VELOCITY_Z_GRADIENT))
-
-        print('analytic_solutio:\n', analytic_solution)
+        # analytic_solution = [val for pair in zip([3 * node.X ** 2 for node in self.recovery_model_part.Nodes], [3 * node.Y ** 2 for node in self.recovery_model_part.Nodes]) for val in pair]
+        # print('analytic_solutio:\n', analytic_solution)
 
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = 1
         self.Solve()
         self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, VELOCITY_Z_GRADIENT, VELOCITY_Y_GRADIENT)
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = 2
         self.Solve() # and there is no need to copy anything
+
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
 
