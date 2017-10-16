@@ -40,7 +40,7 @@
 
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
-#include "geometries/line_gl_3d_2.h"
+#include "geometries/line_gauss_lobatto_3d_2.h"
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
@@ -136,7 +136,7 @@ namespace Kratos
     mLargeDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mLargeDisplacementBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mLargeDisplacementBeamEMCElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),   
-    mLargeDisplacementBeamSEMCElement3D2N( 0, Element::GeometryType::Pointer( new LineGL3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLargeDisplacementBeamSEMCElement3D2N( 0, Element::GeometryType::Pointer( new LineGaussLobatto3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mGeometricallyExactRodElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
 
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
