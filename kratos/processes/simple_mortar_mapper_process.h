@@ -422,7 +422,24 @@ private:
             }
         }
     }
+    
+    /**
+     * This method checks if all components of a vector are true
+     * @param VectorToCheck: The vector to check
+     * @return result: True if all componets are true
+     */
+    bool CheckWholeVector(std::vector<bool> VectorToCheck)
+    {
+        bool result = true;
+
+        for(std::size_t i = 0; i < VectorToCheck.size(); ++i)
+        {
+            if (VectorToCheck[i] == false) return false;
+        }
         
+        return result;
+    }
+    
     /**
      * This method executes the explicit mapping (when no linear solver is avalaible)
      */
@@ -592,7 +609,10 @@ private:
         KRATOS_TRY;
 
         // Defining tolerance
-//         const double convergence_tolerance = 1.0e-4;
+//         const double relative_convergence_tolerance = 1.0e-4;
+        const double absolute_convergence_tolerance = 1.0e-9;
+        const unsigned int max_number_iterations = 10;
+        unsigned int iteration = 0;
         
         // Creating the assemble database
         std::size_t size_system;
@@ -601,7 +621,7 @@ private:
         
         // Defining the operators
         const unsigned int variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
-//         std::vector<bool> is_converged(variable_size, false);
+        std::vector<bool> is_converged(variable_size, false);
         MatrixType A = ZeroMatrix(size_system, size_system);
         const VectorType zero_vector = ZeroVector(size_system);
         std::vector<VectorType> b(variable_size, zero_vector);
@@ -616,129 +636,138 @@ private:
         // We call the exact integration utility
         ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
         
-        // We map the values from one side to the other // TODO: Add OMP
-        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
+        while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations)
         {
-            auto it_cond = mrThisModelPart.ConditionsBegin() + i;
-            
-            if (it_cond->Is(SLAVE) == true)
+            // We map the values from one side to the other // TODO: Add OMP
+            for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
             {
-                const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
-                GeometryType& slave_geometry = it_cond->GetGeometry();
+                auto it_cond = mrThisModelPart.ConditionsBegin() + i;
                 
-                boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
-                
-                for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+                if (it_cond->Is(SLAVE) == true)
                 {
-                    Condition::Pointer p_cond_master = (it_pair->first); // MASTER
-                    const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
-                    GeometryType& master_geometry = p_cond_master->GetGeometry();
+                    const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
+                    GeometryType& slave_geometry = it_cond->GetGeometry();
                     
-                    IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_3;
+                    boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
                     
-                    // Reading integration points
-                    std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping  
-                    const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
-                    
-                    if (is_inside == true)
+                    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
                     {
-                        // Initialize general variables for the current master element
-                        this_kinematic_variables.Initialize();
-                
-                        // Initialize the mortar operators
-                        this_mortar_condition_matrices.Initialize();
+                        Condition::Pointer p_cond_master = (it_pair->first); // MASTER
+                        const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
+                        GeometryType& master_geometry = p_cond_master->GetGeometry();
                         
-                        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
+                        IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_3;
+                        
+                        // Reading integration points
+                        std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping  
+                        const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
+                        
+                        if (is_inside == true)
                         {
-                            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                            for (unsigned int i_node = 0; i_node < TDim; ++i_node)
+                            // Initialize general variables for the current master element
+                            this_kinematic_variables.Initialize();
+                    
+                            // Initialize the mortar operators
+                            this_mortar_condition_matrices.Initialize();
+                            
+                            for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
                             {
-                                PointType global_point;
-                                slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                                points_array[i_node] = boost::make_shared<PointType>(global_point);
-                            }
-                            
-                            typename std::conditional<TDim == 2, LineType, TriangleType >::type decomp_geom( points_array );
-                            
-                            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
-                            
-                            if (bad_shape == false)
-                            {
-                                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
-                                
-                                // Integrating the mortar operators
-                                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number )
+                                std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                                for (unsigned int i_node = 0; i_node < TDim; ++i_node)
                                 {
-                                    const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
-                                    PointType local_point_parent;
-                                    PointType gp_global;
-                                    decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                                    slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
-           
-                                    /// SLAVE CONDITION ///
-                                    slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
-                                    this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
+                                    PointType global_point;
+                                    slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                    points_array[i_node] = boost::make_shared<PointType>(global_point);
+                                }
+                                
+                                typename std::conditional<TDim == 2, LineType, TriangleType >::type decomp_geom( points_array );
+                                
+                                const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+                                
+                                if (bad_shape == false)
+                                {
+                                    const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
+                                    
+                                    // Integrating the mortar operators
+                                    for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number )
+                                    {
+                                        const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                                        PointType local_point_parent;
+                                        PointType gp_global;
+                                        decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                                        slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
+            
+                                        /// SLAVE CONDITION ///
+                                        slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
+                                        this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
 
-                                    this_kinematic_variables.DetjSlave = slave_geometry.DeterminantOfJacobian( local_point_parent );
-                                    
-                                    /// MASTER CONDITION ///
-                                    PointType projected_gp_global;
-                                    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(this_kinematic_variables.NSlave, slave_geometry);
-                                    
-                                    GeometryType::CoordinatesArrayType slave_gp_global;
-                                    slave_geometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry, gp_global, projected_gp_global, master_normal, -gp_normal ); // The opposite direction
-                                    
-                                    GeometryType::CoordinatesArrayType projected_gp_local;
-                                    
-                                    master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
-                                    
-                                    // SHAPE FUNCTIONS 
-                                    master_geometry.ShapeFunctionsValues( this_kinematic_variables.NMaster, projected_gp_local );    
-                                    
-                                    const double integration_weight = integration_points_slave[point_number].Weight();
-                                    
-                                    this_mortar_condition_matrices.CalculateMortarOperators(this_kinematic_variables, integration_weight);   
+                                        this_kinematic_variables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
+                                        
+                                        /// MASTER CONDITION ///
+                                        PointType projected_gp_global;
+                                        const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(this_kinematic_variables.NSlave, slave_geometry);
+                                        
+                                        GeometryType::CoordinatesArrayType slave_gp_global;
+                                        slave_geometry.GlobalCoordinates( slave_gp_global, local_point_parent );
+                                        MortarUtilities::FastProjectDirection( master_geometry, gp_global, projected_gp_global, master_normal, -gp_normal ); // The opposite direction
+                                        
+                                        GeometryType::CoordinatesArrayType projected_gp_local;
+                                        
+                                        master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
+                                        
+                                        // SHAPE FUNCTIONS 
+                                        master_geometry.ShapeFunctionsValues( this_kinematic_variables.NMaster, projected_gp_local );    
+                                        
+                                        const double integration_weight = integration_points_slave[point_number].Weight();
+                                        
+                                        this_mortar_condition_matrices.CalculateMortarOperators(this_kinematic_variables, integration_weight);   
+                                    }
                                 }
                             }
-                        }
-                        
-                        Matrix var_origin_matrix;
-                        MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mOriginVariable, var_origin_matrix);
-                        Matrix var_destination_matrix;
-                        MortarUtilities::MatrixValue<TVarType, THist>(master_geometry, mDestinationVariable, var_destination_matrix);
-                        
-                        Matrix residual_matrix = prod(this_mortar_condition_matrices.DOperator, var_origin_matrix) - prod(this_mortar_condition_matrices.MOperator, var_destination_matrix);
-                        
-                        /* We compute the residual and assemble */
-                        // First we assemble the RHS
-                        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-                        {
-                            const int& node_i_id = master_geometry[i_node].Id();
-                            const int& pos_i_id = inverse_conectivity_database[node_i_id];
-                            for (unsigned int i_var = 0; i_var < variable_size; ++i_var)
+                            
+                            Matrix var_origin_matrix;
+                            MortarUtilities::MatrixValue<TVarType, THist>(slave_geometry, mOriginVariable, var_origin_matrix);
+                            Matrix var_destination_matrix;
+                            MortarUtilities::MatrixValue<TVarType, THist>(master_geometry, mDestinationVariable, var_destination_matrix);
+                            
+                            Matrix residual_matrix = prod(this_mortar_condition_matrices.DOperator, var_origin_matrix) - prod(this_mortar_condition_matrices.MOperator, var_destination_matrix);
+                            
+                            /* We compute the residual and assemble */
+                            // First we assemble the RHS
+                            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
                             {
-                                b[i_var][pos_i_id] += residual_matrix(i_node, i_var);
+                                const int& node_i_id = master_geometry[i_node].Id();
+                                const int& pos_i_id = inverse_conectivity_database[node_i_id];
+                                for (unsigned int i_var = 0; i_var < variable_size; ++i_var)
+                                {
+                                    b[i_var][pos_i_id] += residual_matrix(i_node, i_var);
+                                }
+                                // We assemble the LHS
+                                for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
+                                {
+                                    const int& node_j_id = master_geometry[j_node].Id();
+                                    const int& pos_j_id = inverse_conectivity_database[node_j_id];
+                                    A(pos_i_id, pos_j_id) += this_mortar_condition_matrices.MOperator(i_node, j_node);
+                                }
                             }
-                            // We assemble the LHS
-                            for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
-                            {
-                                const int& node_j_id = master_geometry[j_node].Id();
-                                const int& pos_j_id = inverse_conectivity_database[node_j_id];
-                                A(pos_i_id, pos_j_id) += this_mortar_condition_matrices.MOperator(i_node, j_node);
-                            }
+                        
                         }
-                    
                     }
+                }
+                
+                // Finally we solve the system # TODO: Use iterations to minimize the residual
+                for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
+                {
+                    mpThisLinearSolver->Solve(A, Dx, b[i_size]);
+                    MortarUtilities::UpdateDatabase<TVarType, THist>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+                    const double residual_norm = norm_2(b[i_size])/size_system;
+//                     const double increment_norm = norm_2(Dx)/size_system;
+                    if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
+//                     if (increment_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
                 }
             }
             
-            // Finally we solve the system # TODO: Use iterations to minimize the residual
-            for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
-            {
-                mpThisLinearSolver->Solve(A, Dx, b[i_size]);
-                MortarUtilities::UpdateDatabase<TVarType, THist>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
-            }
+            iteration += 1;
         }
         
         KRATOS_CATCH(""); 
