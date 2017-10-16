@@ -367,7 +367,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         #loop over time
         time_start = 0.00
-        time_end = 0.04
+        time_end = 0.01
         # time_delta = 0.001
         time_delta = 0.0001
         time_i = time_start
@@ -425,7 +425,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         #loop over time
         time_start = 0.00
-        time_end = 0.04
+        time_end = 0.01
         # time_delta = 0.001
         time_delta = 0.0001
         time_i = time_start
