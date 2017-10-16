@@ -102,9 +102,9 @@ public:
         ): mrThisModelPart(rThisModelPart),
            mOriginVariable(ThisVariable),
            mDestinationVariable(ThisVariable),
-           mpThisLinearSolver(pThisLinearSolver),
-           mEchoLevel(0)
+           mpThisLinearSolver(pThisLinearSolver)
     {
+        mEchoLevel = 0;
     }
     
     SimpleMortarMapperProcess( 
@@ -116,8 +116,8 @@ public:
            mOriginVariable(OriginVariable),
            mDestinationVariable(DestinationVariable),
            mpThisLinearSolver(pThisLinearSolver)
-           mEchoLevel(0)
     {
+        mEchoLevel = 0;
     }
 
     /// Destructor.
@@ -682,6 +682,8 @@ private:
                             // Initialize the mortar operators
                             this_mortar_condition_matrices.Initialize();
                             
+//                             const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                            
                             for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom)
                             {
                                 std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -712,6 +714,7 @@ private:
                                         /// SLAVE CONDITION ///
                                         slave_geometry.ShapeFunctionsValues( this_kinematic_variables.NSlave, local_point_parent.Coordinates() );
                                         this_kinematic_variables.PhiLagrangeMultipliers = this_kinematic_variables.NSlave;
+//                                         this_kinematic_variables.PhiLagrangeMultipliers = prod(Ae, this_kinematic_variables.NSlave);
 
                                         this_kinematic_variables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
                                         
