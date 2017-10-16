@@ -3,27 +3,13 @@ import numpy as np
 import h5py
 from KratosMultiphysics import *
 
-def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
-    old_index = bi.bisect(times_array, current_time)
-    future_index = old_index + 1
-    old_time =  times_array[old_index]
-
-    if future_index >= len(times_array):
-        alpha_old = 1
-        future_index = old_index
-        alpha_future = 0
-    else:
-        alpha_old = max(0, (current_time - old_time) / fluid_dt)
-        alpha_future = 1.0 - alpha_old
-
-    return old_index, alpha_old, future_index, alpha_future
-
 class FluidHDF5Loader:
     def __init__(self, fluid_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
         self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        self.there_are_more_steps_to_load = True
 
         number_of_variables = 3
 
@@ -84,6 +70,25 @@ class FluidHDF5Loader:
         self.last_time = 0.0
 
         self.current_data_array = np.zeros(self.extended_shape)
+
+    def GetOldTimeIndicesAndWeights(self, current_time, times_array, fluid_dt):
+        old_index = bi.bisect(times_array, current_time)
+        future_index = old_index + 1
+        old_time =  times_array[old_index]
+
+        if future_index >= len(times_array):
+            alpha_old = 1
+            future_index = old_index
+            alpha_future = 0
+            self.there_are_more_steps_to_load = False
+        else:
+            alpha_old = max(0, (current_time - old_time) / fluid_dt)
+            alpha_future = 1.0 - alpha_old
+
+        return old_index, alpha_old, future_index, alpha_future
+
+    def CanLoadMoreSteps(self):
+        return self.there_are_more_steps_to_load
 
     def Index(self):
         index = 0
@@ -152,7 +157,7 @@ class FluidHDF5Loader:
     def LoadFluid(self, DEM_time):
         print('\nLoading fluid from hdf5 file...')
         # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
-        old_time_index, alpha_old, future_time_index, alpha_future = GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
+        old_time_index, alpha_old, future_time_index, alpha_future = self.GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
         old_step_dataset_name    = self.times_str[old_time_index]
         future_step_dataset_name = self.times_str[future_time_index]
         must_load_from_database = not self.old_time_index == old_time_index # old and future time steps must be updated

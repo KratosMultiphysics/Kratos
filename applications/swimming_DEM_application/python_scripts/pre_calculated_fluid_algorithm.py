@@ -46,3 +46,11 @@ class Algorithm(BaseAlgorithm):
             return code + '_precalculated_fluid'
         else:
             return code
+
+    def TheSimulationMustGoON(self):
+        it_must_go_on = self.time <= self.final_time
+
+        if self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
+            return it_must_go_on and self.fluid_loader.CanLoadMoreSteps()
+        else:
+            return it_must_go_on
