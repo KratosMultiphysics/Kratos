@@ -219,9 +219,10 @@ public:
         #pragma omp parallel for
         for(int iii=0; iii<nnodes; iii++)
         {
+            auto it = mp_distance_model_part->NodesBegin() + iii;
             it->Free(DISTANCE);
             
-            auto it = mp_distance_model_part->NodesBegin() + iii;
+            
             double& d = it->FastGetSolutionStepValue(DISTANCE);
             it->SetValue(DISTANCE, d); //save the distances
               
