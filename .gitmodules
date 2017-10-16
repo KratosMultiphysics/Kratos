@@ -1,6 +1,3 @@
-[submodule "Kratos/applications/PfemApplication/external_modules/tetgen"]
-	path = Kratos/applications/PfemApplication/external_modules/tetgen
-	url = https://github.com/PFEM/tetgen.git
 [submodule "Kratos/applications/PfemApplication/external_modules/triangle"]
 	path = Kratos/applications/PfemApplication/external_modules/triangle
 	url = https://github.com/PFEM/triangle.git
