@@ -36,10 +36,10 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
         if (n_collisions){
             const int id = int(i_elem->Id());
             InterParticleImpactDataOfATimeStep& particle_database = GetParticleDataBase(id);
-            array_1d<int, 4> &colliding_ids = particle.GetCollidingIds();
-            array_1d<double, 4> colliding_normal_vel = particle.GetCollidingNormalRelativeVelocity();
-            array_1d<double, 4> colliding_tangential_vel = particle.GetCollidingTangentialRelativeVelocity();
-            array_1d<double, 4> colliding_linear_impulse = particle.GetCollidingLinearImpulse();
+            const array_1d<int, 4> &colliding_ids = particle.GetCollidingIds();
+            const array_1d<double, 4> colliding_normal_vel = particle.GetCollidingNormalRelativeVelocity();
+            const array_1d<double, 4> colliding_tangential_vel = particle.GetCollidingTangentialRelativeVelocity();
+            const array_1d<double, 4> colliding_linear_impulse = particle.GetCollidingLinearImpulse();
 
             /*
             array_1d<double, 4> colliding_normal_vel;
@@ -62,9 +62,9 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
             const int id = int(i_elem->Id());
             FaceParticleImpactDataOfATimeStep& flat_wall_particle_database = GetParticleFaceDataBase(id);
 
-            array_1d<int, 4> colliding_ids_with_walls = particle.GetCollidingFaceIds();
-            array_1d<double, 4> colliding_normal_vel = particle.GetCollidingFaceNormalRelativeVelocity();
-            array_1d<double, 4> colliding_tangential_vel = particle.GetCollidingFaceTangentialRelativeVelocity();
+            const array_1d<int, 4> colliding_ids_with_walls = particle.GetCollidingFaceIds();
+            const array_1d<double, 4> colliding_normal_vel = particle.GetCollidingFaceNormalRelativeVelocity();
+            const array_1d<double, 4> colliding_tangential_vel = particle.GetCollidingFaceTangentialRelativeVelocity();
 
             /*
             array_1d<int, 4> colliding_ids_with_walls;
