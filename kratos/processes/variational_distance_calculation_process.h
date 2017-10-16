@@ -213,7 +213,76 @@ public:
         //TODO: check flag    PERFORM_STEP1
         //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
-        mp_solving_strategy->Solve();
+        
+        //unfix the distances
+        const int nnodes = static_cast<int>(mp_distance_model_part->Nodes().size());
+        #pragma omp parallel for
+        for(int iii=0; iii<nnodes; iii++)
+        {
+            auto it = mp_distance_model_part->NodesBegin() + iii;
+            double& d = it->FastGetSolutionStepValue(DISTANCE);
+            it->SetValue(DISTANCE, d); //save the distances
+              
+            if(d == 0){
+                d = 1e-15;
+            }
+            else{
+                if(d > 0.0)
+                    d = 1.0e9;
+                else
+                    d = -1.0e9;
+            }
+            
+            it->Free(DISTANCE);
+        }
+        
+        
+        const int nelem = static_cast<int>(mp_distance_model_part->Elements().size());
+        #pragma omp parallel for
+        for(int iii=0; iii<nnodes; iii++)
+        {
+            auto it = mp_distance_model_part->ElementsBegin() + iii;
+            array_1d<double,TDim+1> distances;
+            auto& geom = it->GetGeometry();
+            
+            for(unsigned int i=0; i<TDim+1; i++)
+                distances[i] = geom[i].GetValue(DISTANCE);
+            
+            array_1d<double,TDim+1> original_distances = distances;
+            
+            unsigned int positives = 0, negatives=0;
+            for(unsigned int i=0; i<TDim+1; i++)
+            {
+                if(distances[i] >= 0) positives++;
+                else negatives++;
+            }
+        
+            if(positives> 0  && negatives>0) //the element is cut by the interface
+            {
+                if(TDim==3)
+                    GeometryUtils::CalculateTetrahedraDistances(geom, distances);
+                else
+                    GeometryUtils::CalculateTriangleDistances(geom,distances);
+                
+                //assign the sign 
+                for(unsigned int i=0; i<TDim+1; i++)
+                {
+                    if(original_distances[i] < 0) distances[i] = -distances[i];
+                }
+               
+                for(unsigned int i=0; i<TDim+1; i++)
+                {
+                    
+                    double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
+                    if(std::abs(d) > std::abs(distances[i])) d = distances[i];
+                    geom[i].Fix(DISTANCE);
+                }
+            }
+        }
+        mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+        
+        
+         mp_solving_strategy->Solve();
 
         //compute the average gradient and scale the distance so that the gradient is approximately 1
         ScaleDistance();
@@ -222,8 +291,12 @@ public:
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
         for(unsigned int it = 0; it<mmax_iterations; it++)
         {
-            mp_solving_strategy->Solve();
+             mp_solving_strategy->Solve();
         }
+        
+        //unfix the distances
+        for(auto it = mp_distance_model_part->NodesBegin(); it!=mp_distance_model_part->NodesEnd(); ++it)
+            it->Free(DISTANCE);
 
         KRATOS_CATCH("")
     }
