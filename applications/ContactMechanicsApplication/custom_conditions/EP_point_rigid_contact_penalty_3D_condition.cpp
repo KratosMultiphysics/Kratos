@@ -195,8 +195,8 @@ namespace Kratos
 
       mImplex = false;
       // calculate the stress without implex
-      GeneralVariables Variables;
-      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+      ConditionVariables Variables;
+      this->InitializeConditionVariables(Variables, rCurrentProcessInfo);
 
       this->CalculateKinematics(Variables, rCurrentProcessInfo, 0);
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -226,7 +226,7 @@ namespace Kratos
             }
          }
       }
-      if ( fabs( GetGeometry()[0].X() ) < 1e-5) {
+      if ( (fabs( GetGeometry()[0].X()) < 1e-5) && ( fabs(GetGeometry()[0].Z() ) < 1e-6) ) {
          if ( GetGeometry()[0].SolutionStepsDataHas( CONTACT_STRESS) ) {
             array_1d<double, 3 >& CS = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_STRESS);
             for(unsigned int j = 0; j < 3; j++) {
@@ -253,7 +253,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    // i have to copy it because I save the value of the Young modulus of the continuum elements
-   void EPPointRigidContactPenalty3DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+   void EPPointRigidContactPenalty3DCondition::CalculateContactFactors(ConditionVariables &rVariables)
    {
 
       KRATOS_TRY
