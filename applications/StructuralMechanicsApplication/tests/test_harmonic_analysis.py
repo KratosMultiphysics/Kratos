@@ -6,8 +6,24 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplicati
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt
+import os
+
+class ControlledExecutionScope:
+    def __init__(self, scope):
+        self.currentPath = os.getcwd()
+        self.scope = scope
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.currentPath)
 
 class HarmonicAnalysisTests(KratosUnittest.TestCase):
+
+    def setUp(self):
+        pass
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -73,10 +89,11 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
-    def test_execution(self):
+    def _undamped_mdof_test(self):
         mp = KratosMultiphysics.ModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
+        print("damn")
 
         base = mp.CreateNewNode(3,0.0,0.0,0.0)
         node1 = mp.CreateNewNode(1,10.0,0.0,0.0)
@@ -138,6 +155,37 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
                 disp_x2_expected,delta=1e-5)
             
             exfreq = exfreq + df       
+
+    def _mdpa_input_test(self):
+        import Kratos_Execute_Structural_Test
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            #run simulation and write to hdf5 file
+            parameter_file = open("harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json",'r')
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            parameter_file.close()
+            test = Kratos_Execute_Structural_Test.Kratos_Execute_Test(project_parameters)
+            test.Solve()
+            #start new simulation and read from hdf5 file
+            parameter_file = open("harmonic_analysis_test/harmonic_analysis_test_parameters.json",'r')
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            parameter_file.close()
+            test = Kratos_Execute_Structural_Test.Kratos_Execute_Test(project_parameters)
+            test.Solve()
+            # remove hdf5 file
+            if "harmonic_analysis_test_0.h5" in os.listdir("./harmonic_analysis_test"):
+                os.remove("./harmonic_analysis_test/harmonic_analysis_test_0.h5")
+            # remove other generated files
+            if "harmonic_analysis_test.time" in os.listdir("./harmonic_analysis_test"):
+                os.remove("./harmonic_analysis_test/harmonic_analysis_test.time")
+
+    
+    def test_execution(self):
+        # self._undamped_mdof_test()
+        try:
+            import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
+            self._mdpa_input_test()
+        except ImportError as e:
+            print("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
 
 if __name__ == '__main__':
     KratosUnittest.main()

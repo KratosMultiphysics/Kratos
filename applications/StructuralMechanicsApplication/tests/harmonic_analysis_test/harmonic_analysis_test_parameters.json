@@ -1,0 +1,96 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "harmonic_analysis_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 3.0,
+        "start_time"      : 10.0,
+        "end_time"        : 3800.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_harmonic_analysis_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "analysis_type"                      : "Linear",
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "harmonic_analysis_test/harmonic_analysis_test",
+            "input_file_label" : 0
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_plate"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load"],
+        "rotation_dofs"                      : true,
+        "harmonic_analysis_settings" : {
+            "system_damping" : 0.01,
+            "rayleigh_alpha" : 0.0,
+            "rayleigh_beta"  : 0.0
+        }
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 1.0,
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes"  : [{
+        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
+        "python_module" : "input_primal_solution_process",
+        "help"          : "",
+        "process_name"  : "InputPrimalSolutionProcess",
+        "Parameters" : {
+	    "model_part_name" : "Structure",
+            "file_name"                 : "harmonic_analysis_test/harmonic_analysis_test",
+            "variable_list"             : [],
+            "nodal_value_list"          : ["EIGENVECTOR_MATRIX"],
+            "processinfo_value_list"    : ["EIGENVALUE_VECTOR"]
+        }
+    }],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "material_import_settings" : {
+        "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
+
+    }
+}
