@@ -84,7 +84,7 @@ public:
             "model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "file_name": "PLEASE_SPECIFY_H5_FILE_NAME",
             "variable_list": ["VELOCITY", "ACCELERATION", "PRESSURE"],
-            "nodal_value_list": ["EIGENVECTOR_MATRIX"],
+            "nodal_value_list": [],
             "processinfo_value_list": []
         })");
 
@@ -111,7 +111,6 @@ public:
         for( unsigned int i=0; i < mNodalValues.size(); ++i )
         {
             mNodalValues[i] = rParameters["nodal_value_list"].GetArrayItem(i).GetString();
-            std::cout << mNodalValues[i] << std::endl;
         }
 
         // nodal value names to intput
@@ -119,7 +118,6 @@ public:
         for( unsigned int i=0; i < mProcessInfoValues.size(); ++i )
         {
             mProcessInfoValues[i] = rParameters["processinfo_value_list"].GetArrayItem(i).GetString();
-            std::cout << mProcessInfoValues[i] << std::endl;
         }
 
         mNumNodes = 0;
@@ -173,19 +171,6 @@ public:
             }
         }
 
-        // for( size_t i = 0; i < mNodalValues.size(); ++i )
-        // {
-        //     std::cout << "hier" << std::endl;
-        //     if (KratosComponents< Variable<Vector> >::Has(mNodalValues[i]))
-        //     {
-        //         KRATOS_ERROR << "lalala" << mNodalValues[i] << std::endl;
-        //         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents< Variable<double> >::Get(mVariables[i])) == false)
-        //         {
-        //             KRATOS_THROW_ERROR(std::runtime_error, "variable is not found in nodal solution steps variable list: ", mVariables[i])
-        //         }
-        //     }
-        // }
-
         // nodes should be ordered by node id before IO begins
         if (mrModelPart.Nodes().IsSorted() == false)
         {
@@ -238,16 +223,14 @@ public:
         for( std::size_t i = 0; i < mNodalValues.size(); ++i)
         {
             std::string dataset_name = values_group_name + "/" + mNodalValues[i];
-            std::cout << dataset_name << std::endl;
 
             // File.getObjinfo(dataset_name.c_str(),&status);
             H5::DataSet value_dataset = File.openDataSet(dataset_name.c_str());
-            std::cout << "yo" << std::endl;
             value_dataset.getSpace().getSimpleExtentDims(dims);
 
             if (KratosComponents< Variable<Vector> >::Has(mNodalValues[i]))
             {
-                std::vector<double> value_data_buffer(dims[0] * dims[1]); // nodes * modes
+                std::vector<double> value_data_buffer(dims[0] * dims[1]);
                 value_dataset.read(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
                 auto it_value = std::begin(value_data_buffer);
 
@@ -266,7 +249,7 @@ public:
 
             else if( KratosComponents< Variable<Matrix> >::Has(mNodalValues[i]) )
             {
-                std::vector<double> value_data_buffer(dims[0] * dims[1] * dims[2]); //nodes x dofs x modes
+                std::vector<double> value_data_buffer(dims[0] * dims[1] * dims[2]);
                 value_dataset.read(value_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
                 auto it_value = std::begin(value_data_buffer);
 
@@ -298,9 +281,7 @@ public:
         for( std::size_t i = 0; i < mProcessInfoValues.size(); ++i)
         {
             std::string dataset_name = procinfo_group_name + "/" + mProcessInfoValues[i];
-            // std::cout << dataset_name << std::endl;
-
-            // File.getObjinfo(dataset_name.c_str(),&status);
+            
             H5::DataSet procinfo_dataset = File.openDataSet(dataset_name.c_str());
             procinfo_dataset.getSpace().getSimpleExtentDims(procinfo_dims);
 
@@ -310,13 +291,7 @@ public:
                 
                 std::vector<double> procinfo_data_buffer(procinfo_dims[0]); 
                 procinfo_dataset.read(procinfo_data_buffer.data(), H5::PredType::NATIVE_DOUBLE);
-                // auto it_value = std::begin(procinfo_data_buffer);
-
-                // auto& rProcessInfo = mrModelPart.GetProcessInfo();
-                // auto& rData = rProcessInfo[rVariable];
-                // KRATOS_WATCH(procinfo_data_buffer);
-
-                // mrModelPart.GetProcessInfo()[rVariable] = procinfo_data_buffer.data();
+                
                 Vector temp_vector( procinfo_data_buffer.size() );
                 for( size_t j = 0; j < procinfo_data_buffer.size(); ++j )
                 {

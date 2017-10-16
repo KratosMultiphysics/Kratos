@@ -82,7 +82,7 @@ public:
             "model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "file_name": "PLEASE_SPECIFY_H5_FILE_NAME",
             "variable_list": ["VELOCITY", "ACCELERATION", "PRESSURE"],
-            "nodal_value_list": ["EIGENVECTOR_MATRIX"],
+            "nodal_value_list": [],
             "processinfo_value_list": [],
             "alpha_bossak": 0.0
         })");
@@ -111,7 +111,6 @@ public:
         for( unsigned int i=0; i < mNodalValues.size(); ++i )
         {
             mNodalValues[i] = rParameters["nodal_value_list"].GetArrayItem(i).GetString();
-            // std::cout << mNodalValues[i] << std::endl;
         }
 
         // nodal value names to output
@@ -119,7 +118,6 @@ public:
         for( unsigned int i=0; i < mProcessInfoValues.size(); ++i )
         {
             mProcessInfoValues[i] = rParameters["processinfo_value_list"].GetArrayItem(i).GetString();
-            std::cout << mProcessInfoValues[i] << std::endl;
         }
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
@@ -414,7 +412,6 @@ public:
 
                 else if( KratosComponents< Variable<Matrix> >::Has(mNodalValues[i]) )
                 {
-                    std::cout << "matrix" << mNodalValues[i] << std::endl;
                     const Variable< Matrix >& rVariable = KratosComponents< Variable<Matrix> >::Get(mNodalValues[i]);
                     
                     //this assumes, that all matrices on the nodes have the same size:
@@ -470,7 +467,6 @@ public:
                     auto& rProcessInfo = mrModelPart.GetProcessInfo();
                     auto& rData = rProcessInfo[rVariable];
                     const unsigned int vector_size = rData.size();
-                    std::cout << vector_size << "VECTORSIZE" << std::endl;
                     
                     procinfo_dims[0] = vector_size;
 
