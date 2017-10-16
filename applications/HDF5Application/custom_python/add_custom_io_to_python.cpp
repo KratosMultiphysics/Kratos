@@ -43,6 +43,16 @@ void AddCustomIOToPython()
 
     class_<HDF5File, HDF5File::Pointer, boost::noncopyable >("HDF5File", init<Parameters&>())
     .def("IsPath",&HDF5File::IsPath)
+    .def("HasPath",&HDF5File::HasPath)
+    .def("IsGroup",&HDF5File::IsGroup)
+    .def("IsDataSet",&HDF5File::IsDataSet)
+    .def("CreateGroup",&HDF5File::CreateGroup)
+    .def("GetDataDimensions",&HDF5File::GetDataDimensions)
+    .def("HasIntDataType",&HDF5File::HasIntDataType)
+    .def("HasFloatDataType",&HDF5File::HasFloatDataType)
+    .def("Flush",&HDF5File::Flush)
+    .def("GetFileSize",&HDF5File::GetFileSize)
+    .def("GetFileName",&HDF5File::GetFileName)
     ;
 }
 

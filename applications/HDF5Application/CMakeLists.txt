@@ -12,6 +12,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/hdf5_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_file.cpp  
 )
 
 set( HDF5_IO ON )

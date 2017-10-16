@@ -17,18 +17,15 @@ namespace Kratos
                 "file_name" : "PLEASE_SPECIFY_FILENAME",
                 "file_access_mode": "exclusive",
                 "file_driver": "sec2",
-                "echo_level" : 0;
+                "echo_level" : 0
             })");
 
         rParams.RecursivelyValidateAndAssignDefaults(default_params);
 
         m_file_name = rParams["file_name"].GetString();
-        htri_t is_valid_file = H5Fis_hdf5(m_file_name.c_str());
-        KRATOS_ERROR_IF_NOT(is_valid_file) << "Invalid HDF5 file: " << m_file_name << std::endl;
 
         std::string file_access_mode = rParams["file_access_mode"].GetString();
         hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
-        KRATOS_ERROR_IF(fapl_id < 0) << "H5Pcreate failed." << std::endl;
 
 #if (defined(_WIN32) || defined(_WIN64))
         status = H5Pset_fapl_windows(fapl_id);
@@ -38,6 +35,8 @@ namespace Kratos
             status = H5Pset_fapl_sec2(fapl_id); // default posix sec 2
         else if (file_driver == "stdio")
             status = H5Pset_fapl_stdio(fapl_id);
+        else if (file_driver == "core")
+            status = H5Pset_fapl_core(fapl_id, 1000000, 0); // Use for testing so file is not written to disk.
         else
             KRATOS_ERROR << "Unsupported \"file_driver\": " << file_driver << std::endl;
 #endif
@@ -47,17 +46,23 @@ namespace Kratos
             m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, fapl_id);
         else if (file_access_mode == "truncate")
             m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
-        else if (file_access_mode == "read_only")
-            m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDONLY, fapl_id);
-        else if (file_access_mode == "read_write")
-            m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDWR, fapl_id);
         else
-            KRATOS_ERROR << "Invalid \"file_access_mode\": " << file_access_mode << std::endl;
+        {
+            if (file_driver != "core")
+                KRATOS_ERROR_IF(H5Fis_hdf5(m_file_name.c_str()) <= 0) << "Invalid HDF5 file: " << m_file_name << std::endl;
+            if (file_access_mode == "read_only")
+            {
+                m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDONLY, fapl_id);
+            }
+            else if (file_access_mode == "read_write")
+                m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDWR, fapl_id);
+            else
+                KRATOS_ERROR << "Invalid \"file_access_mode\": " << file_access_mode << std::endl;
+        }
         
         KRATOS_ERROR_IF(m_file_id < 0) << "Failed to open file: " << m_file_name << std::endl;
 
         status = H5Pclose(fapl_id);
-        KRATOS_ERROR_IF(status < 0) << "H5Pclose failed." << std::endl;
 
         m_echo_level = rParams["echo_level"].GetInt();
 
@@ -92,11 +97,11 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
         
         std::string sub_path;
-        unsigned int pos = 1;
+        decltype(rPath.size()) pos = 0; // Make sure pos is large enough to store std::string::npos.
         // Check each link in the path.
         while (pos < rPath.size())
         {
-            pos = rPath.find('/', pos);
+            pos = rPath.find('/', ++pos);
             if (pos != std::string::npos)
                 sub_path = rPath.substr(0, pos); // Check current subpath.
             else
@@ -104,7 +109,7 @@ namespace Kratos
                 sub_path = rPath; // Check the complete path.
                 pos = rPath.size(); // Exit on loop completion.
             }
-
+            
             htri_t link_found = H5Lexists(m_file_id, sub_path.c_str(), H5P_DEFAULT);
             KRATOS_ERROR_IF(link_found < 0) << "H5Lexists failed." << std::endl;
             if (!link_found)
@@ -113,7 +118,7 @@ namespace Kratos
             htri_t object_found = H5Oexists_by_name(m_file_id, sub_path.c_str(), H5P_DEFAULT);
             KRATOS_ERROR_IF(object_found < 0) << "H5Oexists_by_name failed." << std::endl;
             if (!object_found)
-                return false;            
+                return false;
         }
 
         return true;
@@ -166,7 +171,7 @@ namespace Kratos
         WriteDataSetImpl(rPath, rData);        
     }
 
-    std::vector<unsigned int> HDF5File::GetDataDimensions(std::string rPath)
+    std::vector<unsigned> HDF5File::GetDataDimensions(std::string rPath)
     {
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath)) << "Invalid path: " << rPath << std::endl;
         
@@ -184,7 +189,7 @@ namespace Kratos
         status = H5Dclose(dset_id);
         KRATOS_ERROR_IF(status < 0) << "H5Dclose failed." << std::endl;
         
-        return std::vector<unsigned int>(dims, dims + ndims);
+        return std::vector<unsigned>(dims, dims + ndims);
     }
     
     bool HDF5File::HasIntDataType(std::string rPath)
@@ -245,19 +250,19 @@ namespace Kratos
         return m_file_name;
     }
 
-    void HDF5File::ReadDataSet(std::string rPath, std::vector<int>& rData, unsigned int block_size)
+    void HDF5File::ReadDataSet(std::string rPath, std::vector<int>& rData, unsigned BlockSize)
     {
-        ReadDataSetImpl(rPath, rData, block_size);
+        ReadDataSetImpl(rPath, rData, BlockSize);
     }
     
-    void HDF5File::ReadDataSet(std::string rPath, std::vector<double>& rData, unsigned int block_size)
+    void HDF5File::ReadDataSet(std::string rPath, std::vector<double>& rData, unsigned BlockSize)
     {
-        ReadDataSetImpl(rPath, rData, block_size);        
+        ReadDataSetImpl(rPath, rData, BlockSize);        
     }
     
-    void HDF5File::ReadDataSet(std::string rPath, std::vector<array_1d<double,3>>& rData, unsigned int block_size)
+    void HDF5File::ReadDataSet(std::string rPath, std::vector<array_1d<double,3>>& rData, unsigned BlockSize)
     {
-        ReadDataSetImpl(rPath, rData, block_size);        
+        ReadDataSetImpl(rPath, rData, BlockSize);        
     }
     
 
