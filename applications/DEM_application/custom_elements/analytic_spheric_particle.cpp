@@ -50,26 +50,19 @@ AnalyticSphericParticle::AnalyticSphericParticle(Element::Pointer p_spheric_part
 }
 
 
-int AnalyticSphericParticle::GetNumberOfCollisions()
-{
-    return mNumberOfCollidingSpheres;
-}
+int AnalyticSphericParticle::GetNumberOfCollisions(){return mNumberOfCollidingSpheres;}
+int AnalyticSphericParticle::GetNumberOfCollisionsWithFaces(){return mNumberOfCollidingSpheresWithFaces;}
+int AnalyticSphericParticle::GetNumberOfCollisionsWithEdges(){return mNumberOfCollidingSpheresWithEdges;}
 
-int AnalyticSphericParticle::GetNumberOfCollisionsWithFaces()
-{
-    return mNumberOfCollidingSpheresWithFaces;
-}
+array_1d<int, 4> &AnalyticSphericParticle::GetCollidingIds(){return mCollidingIds;}
+array_1d<int, 4> &AnalyticSphericParticle::GetCollidingFaceIds(){return mCollidingFaceIds;}
+array_1d<double, 4> &AnalyticSphericParticle::GetCollidingNormalRelativeVelocity(){return mCollidingNormalVelocities;}
+array_1d<double, 4> &AnalyticSphericParticle::GetCollidingFaceNormalRelativeVelocity(){return mCollidingFaceNormalVelocities;}
+array_1d<double, 4> &AnalyticSphericParticle::GetCollidingTangentialRelativeVelocity(){return mCollidingTangentialVelocities;}
+array_1d<double, 4> &AnalyticSphericParticle::GetCollidingFaceTangentialRelativeVelocity(){return mCollidingFaceTangentialVelocities;}
+array_1d<double, 4> &AnalyticSphericParticle::GetCollidingLinearImpulse(){return mCollidingLinearImpulse;}
 
-int AnalyticSphericParticle::GetNumberOfCollisionsWithEdges()
-{
-    return mNumberOfCollidingSpheresWithEdges;
-}
-
-void AnalyticSphericParticle::GetCollidingIds(array_1d<int, 4>& colliding_ids)
-{
-    colliding_ids = mCollidingIds;
-}
-
+/*
 void AnalyticSphericParticle::GetCollidingFaceIds(array_1d<int, 4>& colliding_ids_with_walls)
 {
     colliding_ids_with_walls = mCollidingFaceIds;
@@ -99,6 +92,7 @@ void AnalyticSphericParticle::GetCollidingLinearImpulse(array_1d<double, 4>& col
 {
     colliding_linear_impulse = mCollidingLinearImpulse;
 }
+*/
 
 void AnalyticSphericParticle::ClearImpactMemberVariables()
 {

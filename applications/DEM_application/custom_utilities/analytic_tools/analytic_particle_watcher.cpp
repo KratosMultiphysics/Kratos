@@ -36,14 +36,20 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
         if (n_collisions){
             const int id = int(i_elem->Id());
             InterParticleImpactDataOfATimeStep& particle_database = GetParticleDataBase(id);
-            array_1d<int, 4> colliding_ids;
+            array_1d<int, 4> &colliding_ids = particle.GetCollidingIds();
+            array_1d<double, 4> colliding_normal_vel = particle.GetCollidingNormalRelativeVelocity();
+            array_1d<double, 4> colliding_tangential_vel = particle.GetCollidingTangentialRelativeVelocity();
+            array_1d<double, 4> colliding_linear_impulse = particle.GetCollidingLinearImpulse();
+
+            /*
             array_1d<double, 4> colliding_normal_vel;
             array_1d<double, 4> colliding_tangential_vel;
             array_1d<double, 4> colliding_linear_impulse;
-            particle.GetCollidingIds(colliding_ids);
+            particle.GetCollidingIds();
             particle.GetCollidingNormalRelativeVelocity(colliding_normal_vel);
             particle.GetCollidingTangentialRelativeVelocity(colliding_tangential_vel);
             particle.GetCollidingLinearImpulse(colliding_linear_impulse);
+            */
 
             for (int i = 0; i < n_collisions; ++i){
                 time_step_database.PushBackImpacts(id, colliding_ids[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
@@ -55,12 +61,19 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
         if (n_collisions_with_walls){           
             const int id = int(i_elem->Id());
             FaceParticleImpactDataOfATimeStep& flat_wall_particle_database = GetParticleFaceDataBase(id);
+
+            array_1d<int, 4> colliding_ids_with_walls = particle.GetCollidingFaceIds();
+            array_1d<double, 4> colliding_normal_vel = particle.GetCollidingFaceNormalRelativeVelocity();
+            array_1d<double, 4> colliding_tangential_vel = particle.GetCollidingFaceTangentialRelativeVelocity();
+
+            /*
             array_1d<int, 4> colliding_ids_with_walls;
             array_1d<double, 4> colliding_normal_vel;
             array_1d<double, 4> colliding_tangential_vel;
             particle.GetCollidingFaceIds(colliding_ids_with_walls);
             particle.GetCollidingFaceNormalRelativeVelocity(colliding_normal_vel);
             particle.GetCollidingFaceTangentialRelativeVelocity(colliding_tangential_vel);
+            */
 
             for (int i = 0; i < n_collisions_with_walls; ++i){
                 face_time_step_database.PushBackImpacts(id, colliding_ids_with_walls[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
