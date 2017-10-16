@@ -150,6 +150,7 @@ class FluidHDF5Loader:
             node.SetSolutionStepValue(variable, self.current_data_array[i_node, variable_index_in_temp_array])
 
     def LoadFluid(self, DEM_time):
+        print('\nLoading fluid from hdf5 file...')
         # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
         old_time_index, alpha_old, future_time_index, alpha_future = GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
         old_step_dataset_name    = self.times_str[old_time_index]
@@ -178,3 +179,4 @@ class FluidHDF5Loader:
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
+        print('Finished loading fluid from hdf5 file.\n')

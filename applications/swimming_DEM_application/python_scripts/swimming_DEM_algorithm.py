@@ -151,11 +151,13 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("basset_force_integration_type").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("n_init_basset_steps").SetInt(0)
         self.pp.CFD_DEM.AddEmptyValue("time_steps_per_quadrature_step").SetInt(1)
-        self.pp.CFD_DEM.AddEmptyValue("delta_time_quadrature").SetDouble( self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt() * self.pp.CFD_DEM["MaxTimeStep"].GetDouble() )
+        self.pp.CFD_DEM.AddEmptyValue("delta_time_quadrature").SetDouble(
+            self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt() * self.pp.CFD_DEM["MaxTimeStep"].GetDouble())
         self.pp.CFD_DEM.AddEmptyValue("quadrature_order").SetInt(2)
         self.pp.CFD_DEM.AddEmptyValue("time_window").SetDouble(0.8)
         self.pp.CFD_DEM.AddEmptyValue("number_of_exponentials").SetInt(2)
-        self.pp.CFD_DEM.AddEmptyValue("number_of_quadrature_steps_in_window").SetInt(int(self.pp.CFD_DEM["time_window"].GetDouble() / self.pp.CFD_DEM["delta_time_quadrature"].GetDouble()))
+        self.pp.CFD_DEM.AddEmptyValue("number_of_quadrature_steps_in_window").SetInt(
+            int(self.pp.CFD_DEM["time_window"].GetDouble() / self.pp.CFD_DEM["delta_time_quadrature"].GetDouble()))
         self.pp.CFD_DEM.AddEmptyValue("do_impose_flow_from_field_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_MATERIAL_ACCELERATION_option").SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option").SetBool(False)
