@@ -11,6 +11,9 @@ class ParticleWatcherAnalyzer:
     def SetNodalMaxImpactVelocities(self, analytic_model_part):
         self.analytic_particle_watcher.SetNodalMaxImpactVelocities(analytic_model_part)
 
+    def SetNodalMaxFaceImpactVelocities(self, analytic_model_part):
+        self.analytic_particle_watcher.SetNodalMaxFaceImpactVelocities(analytic_model_part)
+
 
 class FaceWatcherAnalyzer:
     def __init__(self, analytic_face_watcher, path, do_clear_data = True):
