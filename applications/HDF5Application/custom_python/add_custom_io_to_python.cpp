@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_io/hdf5_io.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -40,6 +41,9 @@ void AddCustomIOToPython()
         .def("WriteModelPart",&HDF5IO::WriteModelPart)
     ;
 
+    class_<HDF5File, HDF5File::Pointer, boost::noncopyable >("HDF5File", init<Parameters&>())
+    .def("IsPath",&HDF5File::IsPath)
+    ;
 }
 
 } // namespace Python.

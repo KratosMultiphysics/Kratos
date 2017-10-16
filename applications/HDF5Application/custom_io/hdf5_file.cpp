@@ -1,7 +1,6 @@
 #include "hdf5_file.h"
 
 #include <regex>
-#include <type_traits>
 #include <cassert>
 
 namespace Kratos
@@ -39,8 +38,6 @@ namespace Kratos
             status = H5Pset_fapl_sec2(fapl_id); // default posix sec 2
         else if (file_driver == "stdio")
             status = H5Pset_fapl_stdio(fapl_id);
-        else if (file_driver == "direct")
-            status = H5Pset_fapl_direct(fapl_id);
         else
             KRATOS_ERROR << "Unsupported \"file_driver\": " << file_driver << std::endl;
 #endif
@@ -57,7 +54,7 @@ namespace Kratos
         else
             KRATOS_ERROR << "Invalid \"file_access_mode\": " << file_access_mode << std::endl;
         
-        KRATOS_ERROR_IF(file_id < 0) << "Failed to open file: " << m_file_name << std::endl;
+        KRATOS_ERROR_IF(m_file_id < 0) << "Failed to open file: " << m_file_name << std::endl;
 
         status = H5Pclose(fapl_id);
         KRATOS_ERROR_IF(status < 0) << "H5Pclose failed." << std::endl;
@@ -148,7 +145,7 @@ namespace Kratos
 
     void HDF5File::CreateGroup(std::string rPath)
     {
-        hid_t group_id = H5Gcreate(m_file_id, rName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        hid_t group_id = H5Gcreate(m_file_id, rPath.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(group_id < 0) << "H5Gcreate failed." << std::endl;
         herr_t status = H5Gclose(group_id);
         KRATOS_ERROR_IF(status < 0) << "H5Gclose failed." << std::endl;
@@ -173,10 +170,10 @@ namespace Kratos
     {
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath)) << "Invalid path: " << rPath << std::endl;
         
-        hsize_t* dims;
-        hsize_t* maxdims;
+        hsize_t* dims = nullptr;
+        hsize_t* maxdims = nullptr;
         herr_t status;
-        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str());
+        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t dspace_id = H5Dget_space(dset_id);
         KRATOS_ERROR_IF(dspace_id < 0) << "H5Dget_space failed." << std::endl;
@@ -195,7 +192,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath)) << "Invalid path: " << rPath << std::endl;
         
         herr_t status;
-        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str());
+        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t dtype_id = H5Dget_type(dset_id);
         KRATOS_ERROR_IF(dtype_id < 0) << "H5Dget_type failed." << std::endl;
@@ -214,7 +211,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath)) << "Invalid path: " << rPath << std::endl;
         
         herr_t status;
-        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str());
+        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t dtype_id = H5Dget_type(dset_id);
         KRATOS_ERROR_IF(dtype_id < 0) << "H5Dget_type failed." << std::endl;
@@ -234,13 +231,13 @@ namespace Kratos
         KRATOS_ERROR_IF(status < 0) << "H5Fflush failed." << std::endl;
     }
 
-    unsigned int HDF5File::GetFileSize() const
+    unsigned HDF5File::GetFileSize() const
     {
         hsize_t size;
         herr_t status = H5Fget_filesize(m_file_id, &size);
         KRATOS_ERROR_IF(status < 0) << "H5Fget_filesize failed." << std::endl;
         
-        return static_cast<unsigned int>(size);
+        return size;
     }
 
     std::string HDF5File::GetFileName() const

@@ -17,6 +17,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <type_traits>
 
 // External includes
 extern "C" {
@@ -25,6 +26,8 @@ extern "C" {
 
 // Project includes
 #include "includes/define.h"
+#include "containers/array_1d.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -85,7 +88,7 @@ public:
 
     virtual void Flush();
 
-    virtual int GetFileSize() const;
+    virtual unsigned GetFileSize() const;
 
     virtual std::string GetFileName() const;
 
@@ -120,7 +123,7 @@ private:
     void WriteDataSetImpl(std::string rPath, const std::vector<T>& rData)
     {
         static_assert(std::is_same<int, T>::value || std::is_same<double, T>::value ||
-                      std::is_same<array_1d<double, 3>, T>::value);
+                      std::is_same<array_1d<double, 3>, T>::value, "Unsupported data type.");
 
         // Create any missing path links.
         std::string sub_path;
@@ -147,7 +150,7 @@ private:
         herr_t status;
         int ndims = 1;
         hsize_t dims[2];
-        dims[0] = static_cast<hsize_t>(rData.size());
+        dims[0] = rData.size();
         hid_t dtype_id;
         if (std::is_same<int, T>::value)
             dtype_id = H5T_NATIVE_INT;
@@ -160,7 +163,7 @@ private:
             dims[1] = 3;
         }
         else
-            static_assert(false, "Unsupported data type.");
+            KRATOS_ERROR << "Unsupported data type." << std::endl;
 
         hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
         KRATOS_ERROR_IF(dspace_id < 0) << "H5Screate_simple failed." << std::endl;
@@ -168,7 +171,7 @@ private:
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
         status =
-            H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, rData.data);
+            H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, rData.data());
         KRATOS_ERROR_IF(status < 0) << "H5Dwrite failed." << std::endl;
         status = H5Dclose(dset_id);
         KRATOS_ERROR_IF(status < 0) << "H5Dclose failed." << std::endl;
@@ -177,10 +180,10 @@ private:
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string rPath, const std::vector<T>& rData, unsigned int block_size)
+    void ReadDataSetImpl(std::string rPath, std::vector<T>& rData, unsigned int block_size)
     {
         static_assert(std::is_same<int, T>::value || std::is_same<double, T>::value ||
-                      std::is_same<array_1d<double, 3>, T>::value);
+                      std::is_same<array_1d<double, 3>, T>::value, "Unsupported data type.");
 
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
@@ -227,7 +230,7 @@ private:
             mem_space_dims[1] = 3;
         }
         else
-            static_assert(false, "Unsupported data type.");
+            KRATOS_ERROR << "Unsupported data type." << std::endl;
 
         herr_t status;
         hid_t dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT);
@@ -235,13 +238,13 @@ private:
         hid_t file_space_id = H5Dget_space(dset_id);
         KRATOS_ERROR_IF(file_space_id < 0) << "H5Dget_space failed." << std::endl;
         hid_t mem_space_id = H5Screate_simple(
-            static_cast<int>(mem_space_dims.size()), mem_space_dims.data, nullptr);
+            mem_space_dims.size(), mem_space_dims.data(), nullptr);
         KRATOS_ERROR_IF(mem_space_id < 0) << "H5Screate_simple failed." << std::endl;
         status = H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start,
                                      stride, count, nullptr);
         KRATOS_ERROR_IF(status < 0) << "H5Sselect_hyperslab failed." << std::endl;
         status = H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                         H5P_DEFAULT, rData.data);
+                         H5P_DEFAULT, rData.data());
         KRATOS_ERROR_IF(status < 0) << "H5Dread failed." << std::endl;
         status = H5Dclose(dset_id);
         KRATOS_ERROR_IF(status < 0) << "H5Dclose failed." << std::endl;
