@@ -754,17 +754,17 @@ private:
                         }
                     }
                 }
-                
-                // Finally we solve the system # TODO: Use iterations to minimize the residual
-                for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
-                {
-                    mpThisLinearSolver->Solve(A, Dx, b[i_size]);
-                    MortarUtilities::UpdateDatabase<TVarType, THist>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
-                    const double residual_norm = norm_2(b[i_size])/size_system;
-//                     const double increment_norm = norm_2(Dx)/size_system;
-                    if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
-//                     if (increment_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
-                }
+            }
+            
+            // Finally we solve the system # TODO: Use iterations to minimize the residual
+            for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
+            {
+                mpThisLinearSolver->Solve(A, Dx, b[i_size]);
+                MortarUtilities::UpdateDatabase<TVarType, THist>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+                const double residual_norm = norm_2(b[i_size])/size_system;
+//                 const double increment_norm = norm_2(Dx)/size_system;
+                if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
+//                 if (increment_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
             }
             
             iteration += 1;
