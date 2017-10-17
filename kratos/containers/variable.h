@@ -28,6 +28,7 @@
 // Project includes
 #include "includes/define.h"
 #include "variable_data.h"
+#include "utilities/stl_io.h"
 
 
 namespace Kratos
