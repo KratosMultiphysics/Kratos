@@ -93,7 +93,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         contact_search.InitializeMortarConditions()
         contact_search.UpdateMortarConditions()
 
-        for node in self.model_part_slave.Nodes:
+        for node in self.model_part_master.Nodes:
             x = node.X 
             y = node.Y 
             z = node.Z
@@ -103,37 +103,48 @@ class TestMortarMapping(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, z)
         del(node)
 
-        #linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        map_parameters = KratosMultiphysics.Parameters("""
+        {
+            "echo_level"                       : 0,
+            "absolute_convergence_tolerance"   : 1.0e-9,
+            "relative_convergence_tolerance"   : 1.0e-4,
+            "max_number_iterations"            : 10
+        }
+        """)
 
-        #if (num_nodes == 3): 
-            #self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, linear_solver)
-            #self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, linear_solver)
-        #else:
-            #self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, linear_solver)
-            #self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, linear_solver)
-            
-        if (num_nodes == 3): 
-            self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE)
-            self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY)
+        if (implicit == True):
+            #linear_solver = ExternalSolversApplication.SuperLUSolver()
+            linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+
+            if (num_nodes == 3): 
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, map_parameters, linear_solver)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, map_parameters, linear_solver)
+            else:
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, map_parameters, linear_solver)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, map_parameters, linear_solver)
         else:
-            self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE)
-            self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY)
+            if (num_nodes == 3): 
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, map_parameters)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, map_parameters)
+            else:
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.main_model_part, KratosMultiphysics.PRESSURE, map_parameters)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.main_model_part, KratosMultiphysics.VELOCITY, map_parameters)
         
     def _mapper_tests(self, input_filename, num_nodes):
         
         self.__base_test_mapping(input_filename, num_nodes)
         
         self.mortar_mapping_double.Execute()
-        self.mortar_mapping_vector.Execute()
+        #self.mortar_mapping_vector.Execute()
         
         import from_json_check_result_process
 
         check_parameters = KratosMultiphysics.Parameters("""
         {
-            "check_variables"      : ["VELOCITY", "PRESSURE"],
+            "check_variables"      : ["PRESSURE"],
             "input_file_name"      : "",
             "model_part_name"      : "Structure",
-            "sub_model_part_name"  : "Parts_Parts_Auto2"
+            "sub_model_part_name"  : "Parts_Parts_Auto1"
         }
         """)
 
@@ -148,10 +159,10 @@ class TestMortarMapping(KratosUnittest.TestCase):
         
         #out_parameters = KratosMultiphysics.Parameters("""
         #{
-            #"output_variables"     : ["VELOCITY", "PRESSURE"],
+            #"output_variables"     : ["PRESSURE"],
             #"output_file_name"     : "",
             #"model_part_name"      : "Structure",
-            #"sub_model_part_name"  : "Parts_Parts_Auto2"
+            #"sub_model_part_name"  : "Parts_Parts_Auto1"
         #}
         #""")
 
@@ -167,31 +178,31 @@ class TestMortarMapping(KratosUnittest.TestCase):
                     
     def test_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangle"
-        self._mapper_tests(input_filename, 3)
+        self._mapper_tests(input_filename, 3, False)
         
     def test_basic_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_quad"
-        self._mapper_tests(input_filename, 4)
+        self._mapper_tests(input_filename, 4, False)
         
     def test_less_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles"
-        self._mapper_tests(input_filename, 3)
+        self._mapper_tests(input_filename, 3, False)
         
     #def test_less_basic_2_mortar_mapping_triangle(self):
         #input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles_2"
-        #self._mapper_tests(input_filename, 3)
+        #self._mapper_tests(input_filename, 3, False)
         
-    def test_simple_curvature_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
-        self._mapper_tests(input_filename, 3)
+    #def test_simple_curvature_mortar_mapping_triangle(self):
+        #input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
+        #self._mapper_tests(input_filename, 3, False)
         
     def test_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_triangle"
-        self._mapper_tests(input_filename, 3)
+        self._mapper_tests(input_filename, 3, True)
         
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_quadrilateral"
-        self._mapper_tests(input_filename, 4)
+        self._mapper_tests(input_filename, 4, True)
         
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
