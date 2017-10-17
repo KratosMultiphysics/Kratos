@@ -93,7 +93,6 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mp = KratosMultiphysics.ModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
-        print("damn")
 
         base = mp.CreateNewNode(3,0.0,0.0,0.0)
         node1 = mp.CreateNewNode(1,10.0,0.0,0.0)

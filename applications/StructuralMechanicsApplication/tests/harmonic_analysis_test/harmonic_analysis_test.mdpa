@@ -588,6 +588,10 @@ End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: load
 1 0 82
+2 0 91
+3 0 100
+4 0 126
+5 0 185
 End Conditions
 
 Begin SubModelPart Parts_plate // Group plate // Subtree Parts
@@ -1239,11 +1243,19 @@ Begin SubModelPart DISPLACEMENT_support // Group support // Subtree DISPLACEMENT
 End SubModelPart
 Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
     Begin SubModelPartNodes
+        91
+        100
+        126
+        185
         82
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
          1
+         2
+	 3
+	 4
+	 5
     End SubModelPartConditions
 End SubModelPart

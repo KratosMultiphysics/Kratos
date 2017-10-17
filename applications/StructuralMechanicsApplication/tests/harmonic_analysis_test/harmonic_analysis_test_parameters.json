@@ -78,6 +78,31 @@
             "nodal_value_list"          : ["EIGENVECTOR_MATRIX"],
             "processinfo_value_list"    : ["EIGENVALUE_VECTOR"]
         }
+    },{
+        "kratos_module" : "KratosMultiphysics",
+        "python_module" : "from_json_check_result_process",
+        "help" : "",
+        "process_name" : "JsonOutputProcess",
+        "Parameters": {
+            "check_variables"      : ["DISPLACEMENT_Z"],
+            "input_file_name"      : "harmonic_analysis_test/harmonic_analysis_test_results.json",
+            "model_part_name"      : "Structure",
+            "sub_model_part_name"  : "PointLoad3D_load",
+            "time_frequency"       : 0.1,
+            "historical_value"     : true,
+        "tolerance" : 1e-3,
+        "relative_tolerance" : 1e-6
+        }
+    },{
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "python_module" : "check_eigenvalues_process",
+        "help" : "",
+        "process_name" : "CheckEigenvaluesProcess",
+        "Parameters": {
+            "model_part_name"      : "Structure",
+            "variable_name"  : "EIGENVALUE_VECTOR",
+            "reference_values"       : "[145801.00267211083, 906254.0808654225, 911359.7527626479, 2326540.76016708, 3587479.169479124, 3632487.4950418114, 6044676.003445955, 6151325.827220598]"
+        }
     }],
     "restart_options"          : {
         "SaveRestart"      : false,
