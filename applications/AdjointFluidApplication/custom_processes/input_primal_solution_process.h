@@ -274,7 +274,6 @@ public:
                 KRATOS_ERROR << "Reading from value " << mNodalValues[i] << " is not implemented right now" << std::endl;
             }
         } //nodal values
-        KRATOS_WATCH(mrModelPart.GetProcessInfo())
         
         std::string procinfo_group_name = "/ProcessInfo";
         hsize_t procinfo_dims[1];
@@ -300,7 +299,6 @@ public:
                 mrModelPart.GetProcessInfo()[rVariable] = temp_vector;
             }
         } //processinfo values
-        KRATOS_WATCH(mrModelPart.GetProcessInfo())
 
         KRATOS_CATCH("")
     }

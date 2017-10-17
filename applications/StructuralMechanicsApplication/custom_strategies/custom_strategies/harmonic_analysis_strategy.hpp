@@ -275,7 +275,7 @@ public:
 
         // get the damping coefficients
         auto& rProcessInfo = rModelPart.GetProcessInfo();
-        // KRATOS_WATCH(rProcessInfo)
+
         if( rProcessInfo.Has(RAYLEIGH_ALPHA) )
             mRayleighAlpha = rProcessInfo[RAYLEIGH_ALPHA];
 

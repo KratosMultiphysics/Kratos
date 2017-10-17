@@ -90,9 +90,7 @@ public:
         // try accessing parameters without defaults so that an error is thrown
         // if they don't exist
         rParameters["file_name"];
-        KRATOS_WATCH(rParameters)
         rParameters.ValidateAndAssignDefaults(DefaultParams);
-        KRATOS_WATCH(rParameters)
         
         // output filename
         std::stringstream FilenameStream;
@@ -387,7 +385,6 @@ public:
                     const unsigned int vector_size = std::begin(mrModelPart.Nodes())->GetValue(rVariable).size();
                     dims[1] = vector_size;
                     dims[2] = 0;
-                    // KRATOS_WATCH(dims[1])
 
                     H5::DataSpace value_dataspace(2, dims);
                     H5::DataSet value_dataset(file.createDataSet(dataset_name.c_str(), H5::PredType::NATIVE_DOUBLE, value_dataspace));
@@ -419,8 +416,6 @@ public:
                     const unsigned int size_2 = std::begin(mrModelPart.Nodes())->GetValue(rVariable).size2();
                     dims[1] = size_2; //dofs
                     dims[2] = size_1; //modes
-                    // KRATOS_WATCH(dims[1])
-                    // KRATOS_WATCH(dims[2])
 
                     H5::DataSpace value_dataspace(3, dims);
                     H5::DataSet value_dataset(file.createDataSet(dataset_name.c_str(), H5::PredType::NATIVE_DOUBLE, value_dataspace));
