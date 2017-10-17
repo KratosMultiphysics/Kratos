@@ -26,6 +26,9 @@ namespace Kratos
     IndexedPoint::IndexedPoint()
         : Point<3>() , IndexedObject(0) {};
 
+    IndexedPoint::IndexedPoint(const unsigned int Id)
+        : Point<3>() , IndexedObject(Id) {};
+
     IndexedPoint::IndexedPoint(const array_1d<double,3>& rCoords, const unsigned int Id)
         : Point<3>(rCoords) , IndexedObject(Id) {};
 
@@ -98,15 +101,15 @@ namespace Kratos
     };
 
     bool GeometrySplittingUtils::DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                                                std::vector < PointGeometryType >& rPositiveSubdivisions,
-                                                std::vector < PointGeometryType >& rNegativeSubdivisions) {
+                                                std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
+                                                std::vector < IndexedPointGeometryType >& rNegativeSubdivisions) {
         KRATOS_ERROR << "Calling the base class geometry splitting DivideGeometry method. Call the specific geometry one.";
     };
 
-    void GeometrySplittingUtils::GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
-                                                                   const PointGeometryType& rSubdivisionGeom,
-                                                                   IntegrationMethodType IntegrationMethod) {
-        KRATOS_ERROR << "Calling the base class geometry splitting GetSubdivisionShapeFunctionValues method. Call the specific geometry one.";
+    void GeometrySplittingUtils::GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                        const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                                        IntegrationMethodType IntegrationMethod) {
+        KRATOS_ERROR << "Calling the base class geometry splitting GetShapeFunctionValues method. Call the specific geometry one.";
     };
 
     bool GeometrySplittingUtils::IsSplit() {
@@ -131,13 +134,12 @@ namespace Kratos
                                                                          const int mEdgeNodeI[],
                                                                          const int mEdgeNodeJ[],
                                                                          const int mSplitEdges[],
-                                                                         const unsigned int splitEdgesNumber) {
+                                                                         const unsigned int splitEdgesSize) {
         // Initialize intersection points condensation matrix
         const unsigned int nedges = mrInputGeometry.EdgesNumber();
         const unsigned int nnodes = mrInputGeometry.PointsNumber();
-        const unsigned int nnodes_total = nnodes + splitEdgesNumber;
 
-        rIntPointCondMatrix = ZeroMatrix(nnodes_total, nnodes);
+        rIntPointCondMatrix = ZeroMatrix(splitEdgesSize, nnodes);
 
         // Fill the original geometry points main diagonal
         for (unsigned int i = 0; i < nnodes; ++i) {
@@ -196,9 +198,10 @@ namespace Kratos
         rOStream << "   Distance values: " << distances_buffer.str();
     };
 
+    // TODO: Save this arguments as member variables
     bool TriangleSplittingUtils::DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                                                std::vector < PointGeometryType >& rPositiveSubdivisions,
-                                                std::vector < PointGeometryType >& rNegativeSubdivisions) {
+                                                std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
+                                                std::vector < IndexedPointGeometryType >& rNegativeSubdivisions) {
         const GeometryType geometry = this->GetInputGeometry();
         const Vector nodal_distances = this->GetNodalDistances();
 
@@ -265,18 +268,8 @@ namespace Kratos
                 int i0, i1, i2;
                 TriangleGetNewConnectivityGID(idivision, t, this->mSplitEdges, &i0, &i1, &i2);
 
-                // Get a pointer to the point objects corresponding to the indices above
-                boost::shared_ptr< Point<3> > p_point_0(new Point<3>((rAuxPoints.find(i0))->Coordinates()));
-                boost::shared_ptr< Point<3> > p_point_1(new Point<3>((rAuxPoints.find(i1))->Coordinates()));
-                boost::shared_ptr< Point<3> > p_point_2(new Point<3>((rAuxPoints.find(i2))->Coordinates()));
-
-                // Generate a triangle (with the same type as the input one but generated with points) with the subdivision pts.
-	            PointGeometryType::PointsArrayType points_array;
-	            points_array.reserve(3);
-                points_array.push_back(p_point_0);
-                points_array.push_back(p_point_1);
-                points_array.push_back(p_point_2);
-                PointGeometryType aux_partition(points_array);
+                // Generate an auxiliar triangular geometry with the subdivision points
+                IndexedPointTriangleType aux_partition(rAuxPoints(i0), rAuxPoints(i1), rAuxPoints(i2));
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 bool is_positive;
@@ -296,10 +289,6 @@ namespace Kratos
                 }
             }
 
-            // TODO: TEMPORARY HERE FOR DEBUGGING. MOVE TO THE SHAPE FUNCTIONS COMPUTATION SECTION ASAP
-            Matrix p_matrix;
-            SetIntersectionPointsCondensationMatrix(p_matrix, mEdgeNodeI, mEdgeNodeJ, mSplitEdges, this->mSplitEdgesNumber);
-
             return true;
 
         } else {
@@ -310,33 +299,57 @@ namespace Kratos
         }
     };
 
-    void TriangleSplittingUtils::GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
-                                                                   const PointGeometryType& rSubdivisionGeom,
-                                                                   IntegrationMethodType IntegrationMethod) {
-        // Get the integration points
-        IntegrationPointsContainerType all_integration_points = Triangle2D3<PointType>::AllIntegrationPoints(); // TODO: DECIDE WHAT TO DO WITH THE TRIANGLE STATIC METHODS, THEY ARE PRIVATE
-        IntegrationPointsArrayType integration_points = all_integration_points[IntegrationMethod];
-
+    void TriangleSplittingUtils::GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                        const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                                        IntegrationMethodType IntegrationMethod) {
+        // Compute some auxiliar constans
+        const unsigned int n_subdivision = rSubdivisionsVector.size();                                      // Number of positive or negative subdivisions
+        const unsigned int n_int_pts = rSubdivisionsVector[0].IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
+        const unsigned int split_edges_size = 6;
+ 
         // Resize the shape function values matrix
-        const unsigned int n_nodes = rSubdivisionGeom.PointsNumber(); // TODO: THIS SHOULD HAVE THE MAX NUMBER OF NODES SIZE
-        const unsigned int n_int_pts = integration_points.IntegrationPointsNumber();
-        //
-        // if(rShapeFunctionValues.size1() != n_int_pts) {
-        //     rShapeFunctionValues.resize(n_int_pts, n_nodes, false);
-        // } else if(rShapeFunctionValues.size2() != n_nodes) {
-        //     rShapeFunctionValues.resize(n_int_pts, n_nodes, false);
-        // }
-        //
-        // // Compute the subdivision shape functions values
-        // for (unsigned int i_int_pt = 0; i_int_pt < n_int_pts; ++i_int_pt) {
-        //     Vector point_sh_func_values;
-        //     CoordinatesArrayType int_pt_local_coords;
-        //     int_pt_local_coords[0] = integration_points[i_int_pt].X()
-        //     int_pt_local_coords[1] = integration_points[i_int_pt].Y()
-        //     int_pt_local_coords[2] = integration_points[i_int_pt].Z()
-        //     rSubdivisionGeom.ShapeFunctionsValues(point_sh_func_values, int_pt_local_coords);
-        // }
+        const unsigned int n_total_int_pts = n_subdivision * n_int_pts;
 
+        if (rShapeFunctionValues.size1() != n_total_int_pts) {
+            rShapeFunctionValues.resize(n_total_int_pts, 3, false);
+        } else if (rShapeFunctionValues.size2() != 3) {
+            rShapeFunctionValues.resize(n_total_int_pts, 3, false);
+        }
+
+        // Get the intersection points condensation matrix
+        Matrix p_matrix;
+        SetIntersectionPointsCondensationMatrix(p_matrix, mEdgeNodeI, mEdgeNodeJ, mSplitEdges, split_edges_size);
+
+        // Compute each Gauss pt. shape functions values
+        for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
+
+            // Get the subdivision shape function values
+            const IndexedPointGeometryType& r_subdivision_geom = rSubdivisionsVector[i_subdivision];
+            const Matrix subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
+
+            KRATOS_WATCH(subdivision_sh_func_values)
+
+            // Apply the original nodes condensation
+            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+
+                // Set the extended subdivision shape functions vector
+                Vector sh_func_vect = ZeroVector(split_edges_size);
+                for (unsigned int i = 0; i < 3; ++i) {
+                    sh_func_vect(r_subdivision_geom[i].Id()) = subdivision_sh_func_values(i_gauss, i); // Note that the indexed ids. start with one.
+                }
+
+                KRATOS_WATCH(sh_func_vect)
+                
+                // Condense the values to obtain the real nodes ones
+                const Vector aux_values = prod(sh_func_vect, p_matrix);
+                
+                // Store the obtained values
+                for (unsigned int i = 0; i < 3; ++i) {
+                    rShapeFunctionValues(i_subdivision*n_int_pts + i_gauss, i) = aux_values(i);
+                }
+
+            }
+        }
     };
 
 };
