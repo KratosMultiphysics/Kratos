@@ -577,9 +577,6 @@ namespace Kratos
 
       KRATOS_TRY
 
-      // define some variables
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       rVariables.detF0 *= rVariables.detF;
       double DeterminantF = rVariables.detF;
       rVariables.detF = 1.0;
@@ -590,6 +587,9 @@ namespace Kratos
       this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
 
       this->CalculateAndAddKww( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+
+      rVariables.detF = DeterminantF;
+      rVariables.detF0 /= rVariables.detF;
 
       KRATOS_CATCH("")
    }
@@ -720,9 +720,6 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      // define some variables
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       rVariables.detF0 *= rVariables.detF;
       double DeterminantF = rVariables.detF;
       rVariables.detF = 1.0;
@@ -731,39 +728,14 @@ namespace Kratos
       //contribution of the internal and external forces
       VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
 
-      // Compute Base Class RHS
-      LocalSystemComponents BaseClassLocalSystem;
-      Vector BaseClassRightHandSideVector = ZeroVector ( dimension * number_of_nodes );
-      BaseClassLocalSystem.SetRightHandSideVector(BaseClassRightHandSideVector );
-      Vector VolumeForce = rVolumeForce; 
-      VolumeForce *= 0.0;
-      UpdatedLagrangianElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
 
 
-      // Reshape the BaseClass RHS and Add the Hydro Part
-      WaterPressureUtilities WaterUtility;
-      Matrix TotalF = prod( rVariables.F, rVariables.F0);
+      //this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); //LMV
 
-      int number_of_variables = dimension+1; 
+      this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
+      this->CalculateAndAddWaterPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
-      // 1. Create (make pointers) variables
-      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
-
-      HMVariables.SetBMatrix( rVariables.B);
-      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
-      HMVariables.SetDeformationGradient( TotalF);
-      HMVariables.SetVolumeForce( rVolumeForce);
-      HMVariables.SetShapeFunctions( rVariables.N);
-
-      HMVariables.DeltaTime = mTimeStep;
-      HMVariables.detF0 = rVariables.detF0;
-      //HMVariables.CurrentRadius
-      //HMVariables.ConstrainedModulus
-      HMVariables.number_of_variables = number_of_variables;
-
-
-      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, rIntegrationWeight);
 
 
       rVariables.detF = DeterminantF;
@@ -772,6 +744,102 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+
+   // **********************************************************************************
+   //         CalculateAndAddInternalForces
+   void UpdatedLagrangianUWElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+         ElementVariables & rVariables,
+         double& rIntegrationWeight
+         )
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+
+      double WaterPressure = this->CalculateGaussPointWaterPressure( rVariables, WaterPressure);
+
+      
+      Vector StressVector = rVariables.StressVector;
+      for (unsigned int i = 0; i < dimension; i++)
+         StressVector(i) -= WaterPressure;
+
+      VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), StressVector );
+
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < dimension; j++) {
+            rRightHandSideVector(i*dofs_per_node + j) -= InternalForces(i*dimension + j);
+         }
+      }
+
+      KRATOS_CATCH( "" )
+   }
+
+
+   // **********************************************************************************
+   //         CalculateAndAddWater-like-InternalForces
+   void UpdatedLagrangianUWElement::CalculateAndAddWaterPressureForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+
+      double WaterPressure = this->CalculateGaussPointWaterPressure( rVariables, WaterPressure);
+
+      
+      unsigned int voigt_size = 3;
+      if ( dimension == 3)
+         voigt_size = 6;
+
+      Vector StressVector = ZeroVector( voigt_size);
+      for (unsigned int i = 0; i < dimension; i++)
+         StressVector(i) -= WaterPressure;
+
+      VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), StressVector );
+
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < dimension; j++) {
+            rRightHandSideVector(i*dofs_per_node + j+ dimension) -= InternalForces(i*dimension + j);
+         }
+      }
+
+      KRATOS_CATCH( "" )
+   }
+
+   // *********************************************************************************
+   //        Calculate the Water Pressure at integration point
+   double & UpdatedLagrangianUWElement::CalculateGaussPointWaterPressure( ElementVariables & rVariables, double & rWaterPressure)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      double divU = 0;
+      double divW = 0;
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < dimension; j++) {
+            const array_1d<double, 3> & rCurrentDisplacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3> & rCurrentWaterDisplacement = GetGeometry()[i].GetSolutionStepValue(WATER_DISPLACEMENT);
+            divU += rCurrentDisplacement[j]      * rVariables.DN_DX(i,j);
+            divW += rCurrentWaterDisplacement[j] * rVariables.DN_DX(i,j);
+         }
+      }
+
+      double Bulk = 1e+6; // to be changed LMV.
+
+      rWaterPressure = - Bulk * ( divU + divW);
+
+      return rWaterPressure;
+
+      KRATOS_CATCH("")
+   }
 
    //************************************************************************************
    //************************************************************************************

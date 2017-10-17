@@ -231,6 +231,24 @@ protected:
                                     double& rIntegrationWeight);
 
     /**
+     * Calculation of the Internal Forces due to sigma. Fi = B * sigma
+     */
+    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          ) override;
+
+    /**
+     * Calculation of the water like  Forces. RHS
+     */
+    void CalculateAndAddWaterPressureForces(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+
+
+    /**
      * Initialize Element General Variables
      */
     virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
@@ -255,6 +273,9 @@ protected:
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateB2Matrix( Matrix & rB2, const Matrix& rDN_DX);
+
+
+    double & CalculateGaussPointWaterPressure( ElementVariables & rVariables, double & rWaterPressure);
 
     ///@}
     ///@name Protected  Access
