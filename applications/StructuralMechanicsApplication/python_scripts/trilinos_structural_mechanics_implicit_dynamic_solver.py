@@ -29,7 +29,9 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.3
+            "damp_factor_m" :-0.3,
+            "rayleigh_alpha": 0.0,
+            "rayleigh_beta" : 0.0
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -42,23 +44,26 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
 
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
-        # Add dynamic variables.
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        if self.settings["rotation_dofs"].GetBool():
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+        super(TrilinosImplicitMechanicalSolver, self)._add_dynamic_variables()
         print("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
+    
+    def AddDofs(self):
+        super(TrilinosImplicitMechanicalSolver, self).AddDofs()
+        super(TrilinosImplicitMechanicalSolver, self)._add_dynamic_dofs()
+        print("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
 
     def _create_solution_scheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
         if (scheme_type == "Newmark"):
             damp_factor_m = 0.0
         elif (scheme_type == "Bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
         else:
-            raise Exception("Unsupported scheme_type: " + scheme_type)
+            raise Exception("The requested scheme type \"" + scheme_type + "\" is not available!\n" +
+                            "Available options are: \"Newmark\", \"Bossak\"")
         mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(damp_factor_m)
         return mechanical_scheme
