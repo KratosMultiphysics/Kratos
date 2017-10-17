@@ -1589,8 +1589,8 @@ public:
         
         for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
         {
-            noalias(delta_Ae[i]) = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
-            delta_Ae[i] = prod(delta_Ae[i], inv_Me);
+            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+            noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
         
         return true;
