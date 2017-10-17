@@ -7,20 +7,13 @@ from KratosMultiphysics.DamApplication import *
 
 class DamConstructionUtility:
 
-    def __init__(self,mechanical_model_part, thermal_model_part):
+    def __init__(self,mechanical_model_part, thermal_model_part, parameters):
 
         self.mechanical_model_part = mechanical_model_part
         self.thermal_model_part = thermal_model_part
 
-        self.parameters = Parameters("{}")
-        self.parameters.AddEmptyValue("mesh_id").SetInt(0)
-        self.parameters.AddEmptyValue("Gravity_Direction").SetString("Y")
-        self.parameters.AddEmptyValue("Reservoir_Bottom_Coordinate_in_Gravity_Direction").SetDouble(0.0)
-        self.parameters.AddEmptyValue("Height_Dam").SetDouble(2.0)
-        self.parameters.AddEmptyValue("Number_of_phases").SetInt(10)
-
         # Construct the utility
-        self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part,self.parameters)
+        self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part, parameters)
     
     def Initialize(self):
         self.Construction.Initialize()
