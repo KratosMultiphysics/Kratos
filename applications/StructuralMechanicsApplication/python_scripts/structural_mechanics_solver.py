@@ -435,7 +435,6 @@ class MechanicalSolver(object):
             builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-
         return builder_and_solver
 
     def _create_solution_scheme(self):
@@ -450,8 +449,9 @@ class MechanicalSolver(object):
         elif analysis_type == "Non-Linear":
             mechanical_solver = self._create_newton_raphson_strategy()
         else:
-            raise Exception("The requested analysis type \"" + analysis_type + "\" is not available!\n" +
-                            "Available options are: \"Linear\", \"Non-Linear\"")
+            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg += "Available options are: \"Linear\", \"Non-Linear\""
+            raise Exception(err_msg)
         return mechanical_solver
 
     def _create_linear_strategy(self):

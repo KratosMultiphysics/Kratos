@@ -44,12 +44,12 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
 
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
-        super(TrilinosImplicitMechanicalSolver, self)._add_dynamic_variables()
+        self._add_dynamic_variables()
         print("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
         super(TrilinosImplicitMechanicalSolver, self).AddDofs()
-        super(TrilinosImplicitMechanicalSolver, self)._add_dynamic_dofs()
+        self._add_dynamic_dofs()
         print("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
@@ -63,7 +63,8 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         elif (scheme_type == "Bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
         else:
-            raise Exception("The requested scheme type \"" + scheme_type + "\" is not available!\n" +
-                            "Available options are: \"Newmark\", \"Bossak\"")
+            err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"Newmark\", \"Bossak\""
+            raise Exception(err_msg)
         mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(damp_factor_m)
         return mechanical_scheme

@@ -43,12 +43,12 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
-        super(ImplicitMechanicalSolver, self)._add_dynamic_variables()
+        self._add_dynamic_variables()
         print("::[ImplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
         super(ImplicitMechanicalSolver, self).AddDofs()
-        super(ImplicitMechanicalSolver, self)._add_dynamic_dofs()
+        self._add_dynamic_dofs()
         print("::[ImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
@@ -69,6 +69,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(
                                                                        damp_factor_f, dynamic_factor_m)
         else:
-            raise Exception("The requested scheme type \"" + scheme_type + "\" is not available!\n" +
-                            "Available options are: \"Newmark\", \"Bossak\", \"Relaxation\"")
+            err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"Newmark\", \"Bossak\", \"Relaxation\""
+            raise Exception(err_msg)
         return mechanical_scheme

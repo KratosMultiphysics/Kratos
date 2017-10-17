@@ -67,6 +67,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     #### Private functions ####
     
+    # If needed, these functions can be implemented with fct from "kratos/utilities/variable_utils"
     #def _IncreasePointLoad(forcing_nodes_list, Load):
     #    for node in forcing_nodes_list:
     #        node.SetSolutionStepValue(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD, 0, Load)
@@ -103,16 +104,17 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         else:
             analysis_type = self.settings["analysis_type"].GetString()
             if analysis_type == "Linear":
-                mechanical_solver = super(StaticMechanicalSolver,self)._create_linear_strategy()
-            if analysis_type == "Non-Linear":
-                mechanical_solver = super(StaticMechanicalSolver,self)._create_newton_raphson_strategy()
+                mechanical_solver = self._create_linear_strategy()
+            elif analysis_type == "Non-Linear":
+                mechanical_solver = self._create_newton_raphson_strategy()
             elif analysis_type == "Arc-Length":
                 mechanical_solver = self._create_arc_length_strategy()
             elif analysis_type == "Formfinding":
                 mechanical_solver = self._create_formfinding_strategy()
             else:
-                raise Exception("The requested analysis type \"" + analysis_type + "\" is not available!\n" +
-                                "Available options are: \"Linear\", \"Non-Linear\", \"Arc-Length\", \"Formfinding\"")
+                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+                err_msg += "Available options are: \"Linear\", \"Non-Linear\", \"Arc-Length\", \"Formfinding\""
+                raise Exception(err_msg)
         return mechanical_solver
 
     def _create_line_search_strategy(self):
@@ -120,7 +122,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = super(StaticMechanicalSolver,self).get_builder_and_solver()
+        builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.LineSearchStrategy(computing_model_part, 
                                                      mechanical_scheme, 
                                                      linear_solver, 
@@ -136,7 +138,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = super(StaticMechanicalSolver,self).get_builder_and_solver()
+        builder_and_solver = self.get_builder_and_solver()
         return StructuralMechanicsApplication.ResidualBasedArcLengthStrategy(
                                                                 computing_model_part, 
                                                                 mechanical_scheme, 
@@ -155,7 +157,8 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = super(StaticMechanicalSolver,self).get_builder_and_solver()
+        builder_and_solver = self.get_builder_and_solver()
+
         return StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(
                                                                         computing_model_part, 
                                                                         mechanical_scheme, 

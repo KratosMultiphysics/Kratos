@@ -28,7 +28,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "eigensolver_settings" : {
-                "eigenvalue_solver_type": "FEAST",
+                "solver_type": "FEAST",
                 "print_feast_output": true,
                 "perform_stochastic_estimate": true,
                 "solve_eigenvalue_problem": true,
@@ -64,8 +64,10 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         if scheme_type == "EigenValueDynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else:
-            raise Exception("The requested scheme type \"" + scheme_type + "\" is not available!\n" +
-                            "Available options are: \"EigenValueDynamic\"")
+            err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"EigenValueDynamic\""
+            raise Exception(err_msg)
+            
         return solution_scheme
 
     def _create_linear_solver(self):
@@ -74,7 +76,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
-        eigenvalue_solver_type = self.eigensolver_settings["eigenvalue_solver_type"].GetString()
+        eigenvalue_solver_type = self.eigensolver_settings["solver_type"].GetString()
         if eigenvalue_solver_type == "FEAST":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
             linear_solver_type = feast_system_solver_settings["solver_type"].GetString()
@@ -85,11 +87,14 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
                 feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
                 linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings, feast_system_solver)
             else:
-                raise Exception("The requested linear solver for FEAST \"" + linear_solver_type + "\" is not available!\n" +
-                                "Available options are: \"skyline_lu\", \"pastix\"")
+                err_msg =  "The requested linear solver for FEAST \"" + linear_solver_type + "\" is not available!\n"
+                err_msg += "Available options are: \"skyline_lu\", \"pastix\""
+                raise Exception(err_msg)
         else:
-            raise Exception("The requested eigenvalue solver type \"" + eigenvalue_solver_type + "\" is not available!\n" +
-                            "Available options are: \"FEAST\"")
+            err_msg =  "The requested eigenvalue solver type \"" + eigenvalue_solver_type + "\" is not available!\n"
+            err_msg += "Available options are: \"FEAST\""
+            raise Exception(err_msg)
+
         return linear_solver
 
     def _create_mechanical_solver(self):
