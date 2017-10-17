@@ -130,6 +130,9 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // We call the base class
+        BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
+        
         // Defining the convergence
         unsigned int is_converged = 0;
         
