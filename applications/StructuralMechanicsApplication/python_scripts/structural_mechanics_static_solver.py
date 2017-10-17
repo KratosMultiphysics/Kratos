@@ -115,6 +115,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
                 err_msg += "Available options are: \"Linear\", \"Non-Linear\", \"Arc-Length\", \"Formfinding\""
                 raise Exception(err_msg)
+            print("::[StaticMechanicalSolver]:: Using Analysis Type \"" + analysis_type + "\".")
         return mechanical_solver
 
     def _create_line_search_strategy(self):

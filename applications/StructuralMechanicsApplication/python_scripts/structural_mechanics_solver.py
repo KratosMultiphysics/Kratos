@@ -165,7 +165,7 @@ class MechanicalSolver(object):
         else:
             raise Exception("Other model part input options are not yet implemented.")
         print(self.main_model_part)
-        print ("::[MechanicalSolver]:: Finished importing model part.")
+        print("::[MechanicalSolver]:: Finished importing model part.")
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -452,6 +452,7 @@ class MechanicalSolver(object):
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"Linear\", \"Non-Linear\""
             raise Exception(err_msg)
+        print("::[MechanicalSolver]:: Using Analysis Type \"" + analysis_type + "\".")
         return mechanical_solver
 
     def _create_linear_strategy(self):
