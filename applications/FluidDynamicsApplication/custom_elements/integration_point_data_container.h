@@ -23,9 +23,9 @@
 #include "fluid_dynamics_application_variables.h"
 #include "fluid_element_data.h"
 
-#define FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES \
-X(mVelocityHandler,VELOCITY,NodalVectorType) \
-X(mPressureHandler,PRESSURE,NodalScalarType)
+#define FLUID_ELEMENT_VARIABLES \
+APPLY_TO_VARIABLE(mVelocityHandler,VELOCITY,NodalVectorType) \
+APPLY_TO_VARIABLE(mPressureHandler,PRESSURE,NodalScalarType)
 
 namespace Kratos
 {
@@ -48,16 +48,17 @@ public:
     ///@name Life Cycle
     ///@{
 
-#define X(Name,Variable,Handler) Name(Variable),
 
+    #define APPLY_TO_VARIABLE(Name,Variable,Handler) Name(Variable),
+    
     IntegrationPointDataContainer():
-    FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
+    FLUID_ELEMENT_VARIABLES
     dummy(0)
     {
 
     }
 
-#undef X
+    #undef APPLY_TO_VARIABLE
 
     ///@}
     ///@name Public members
@@ -68,29 +69,27 @@ public:
     ///@name Public Operations
     ///@{
 
-    template< unsigned int N > void ConstructHandler();
-
     void Initialize(Element& rElement, const ProcessInfo& rProcessInfo) {
-        #define X(Name,Variable,Handler) Name.Initialize(rElement,rProcessInfo);
-        FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
-        #undef X
+        #define APPLY_TO_VARIABLE(Name,Variable,Handler) Name.Initialize(rElement,rProcessInfo);
+        FLUID_ELEMENT_VARIABLES
+        #undef APPLY_TO_VARIABLE
     }
 
     ///@}
 
-    #define X(Name,Variable,Handler) private: Handler Name;
-    FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
-    #undef X
+    #define APPLY_TO_VARIABLE(Name,Variable,Handler) private: Handler Name;
+    FLUID_ELEMENT_VARIABLES
+    #undef APPLY_TO_VARIABLE
 
-    #define X(Name,Variable,Handler) public: \
+    #define APPLY_TO_VARIABLE(Name,Variable,Handler) public: \
     Handler& Get##Variable() \
     { \
         return Name; \
     }
 
-    FLUID_ELEMENT_INTEGRATION_POINT_VARIABLES
+    FLUID_ELEMENT_VARIABLES
     
-    #undef X
+    #undef APPLY_TO_VARIABLE
 
 private:
 
@@ -115,5 +114,7 @@ private:
 ///@} addtogroup block
 
 } // namespace Kratos.
+
+#undef FLUID_ELEMENT_VARIABLES
 
 #endif // KRATOS_INTEGRATION_POINT_DATA_CONTAINER_H_INCLUDED  defined
