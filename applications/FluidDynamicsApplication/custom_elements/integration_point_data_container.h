@@ -32,8 +32,13 @@ namespace Kratos
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
-/// Auxiliary class to evaluate and hold data at integration points for elements
-/// based on FluidElement
+/**
+ * @brief Auxiliary class to evaluate and hold data at integration points for elements
+ * based on FluidElement.
+ * Note that this class makes heavy use of the X-macro programming technique. 
+ * (see for example https://en.wikipedia.org/wiki/X_Macro for reference).
+ * The 'X macro' is called APPLY_TO_VARIABLE here.
+ */
 class IntegrationPointDataContainer
 {
 public:
