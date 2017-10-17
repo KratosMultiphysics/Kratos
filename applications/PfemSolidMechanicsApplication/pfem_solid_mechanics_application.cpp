@@ -74,6 +74,8 @@ namespace Kratos
     mUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUwPStabElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
 
+    mUpdatedLagrangianUWElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
 
@@ -111,6 +113,11 @@ namespace Kratos
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
     //solution
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_ACCELERATION )
+
+
     KRATOS_REGISTER_VARIABLE( IMPOSED_WATER_PRESSURE )
     KRATOS_REGISTER_VARIABLE( JACOBIAN )
     KRATOS_REGISTER_VARIABLE( REACTION_JACOBIAN )
@@ -196,6 +203,8 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPElement3D4N", mUpdatedLagrangianUwPElement3D4N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPStabElement2D3N", mUpdatedLagrangianUwPStabElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPStabElement3D4N", mUpdatedLagrangianUwPStabElement3D4N )
+
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWElement2D3N", mUpdatedLagrangianUWElement2D3N )
 
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPStabElement2D3N", mAxisymUpdatedLagrangianUwPStabElement2D3N )

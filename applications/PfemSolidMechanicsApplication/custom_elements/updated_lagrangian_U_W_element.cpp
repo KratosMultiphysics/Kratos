@@ -1,0 +1,791 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                     PNavas $
+//   Last modified by:    $Co-Author:               LMonforte $
+//   Date:                $Date:                 October 2017 $
+//   Revision:            $Revision:                     -0.1 $
+//
+//
+//   Implementation of the Fluid Saturated porous media in a u-w Formulation
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "custom_elements/updated_lagrangian_U_W_element.hpp"
+#include "includes/constitutive_law.h"
+#include "pfem_solid_mechanics_application_variables.h"
+#include "custom_utilities/water_pressure_utilities.hpp" 
+
+namespace Kratos
+{
+
+   //******************************CONSTRUCTOR*******************************************
+   //************************************************************************************
+   UpdatedLagrangianUWElement::UpdatedLagrangianUWElement()
+      : UpdatedLagrangianElement()
+   {
+      //DO NOT CALL IT: only needed for Register and Serialization!!!
+   }
+
+
+   //******************************CONSTRUCTOR*******************************************
+   //************************************************************************************
+
+   UpdatedLagrangianUWElement::UpdatedLagrangianUWElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : UpdatedLagrangianElement( NewId, pGeometry )
+   {
+      //DO NOT ADD DOFS HERE!!!
+   }
+
+
+   //******************************CONSTRUCTOR*******************************************
+   //************************************************************************************
+
+   UpdatedLagrangianUWElement::UpdatedLagrangianUWElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : UpdatedLagrangianElement( NewId, pGeometry, pProperties )
+   {
+   }
+
+
+   //******************************COPY CONSTRUCTOR**************************************
+   //************************************************************************************
+
+   UpdatedLagrangianUWElement::UpdatedLagrangianUWElement( UpdatedLagrangianUWElement const& rOther)
+      :UpdatedLagrangianElement(rOther)
+       ,mTimeStep(rOther.mTimeStep)
+   {
+   }
+
+
+   //*******************************ASSIGMENT OPERATOR***********************************
+   //************************************************************************************
+
+   UpdatedLagrangianUWElement&  UpdatedLagrangianUWElement::operator=(UpdatedLagrangianUWElement const& rOther)
+   {
+      UpdatedLagrangianElement::operator=(rOther);
+
+      mTimeStep = rOther.mTimeStep;
+
+      return *this;
+   }
+
+
+   //*********************************OPERATIONS*****************************************
+   //************************************************************************************
+
+   Element::Pointer UpdatedLagrangianUWElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   {
+      return Element::Pointer( new UpdatedLagrangianUWElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+   }
+
+
+   //************************************CLONE*******************************************
+   //************************************************************************************
+
+   Element::Pointer UpdatedLagrangianUWElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   {
+
+      UpdatedLagrangianUWElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+      //-----------//
+
+      NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+
+      if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+         NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+
+         if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+            KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+      }
+
+      for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+         NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+
+      //-----------//
+
+      if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
+         NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
+
+      for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
+      {
+         NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
+      }
+
+      NewElement.mDeterminantF0 = mDeterminantF0;
+
+      NewElement.SetData(this->GetData());
+      NewElement.SetFlags(this->GetFlags());
+
+      return Element::Pointer( new UpdatedLagrangianUWElement(NewElement) );
+   }
+
+
+   //*******************************DESTRUCTOR*******************************************
+   //************************************************************************************
+
+   UpdatedLagrangianUWElement::~UpdatedLagrangianUWElement()
+   {
+   }
+
+
+   //************* GETTING METHODS
+   //************************************************************************************
+   //************************************************************************************
+
+
+
+   void UpdatedLagrangianUWElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   {
+      rElementalDofList.resize( 0 );
+
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+      {
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+
+         if( dimension == 3 )
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
+
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_DISPLACEMENT_X ) );
+         rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_DISPLACEMENT_Y ) );
+
+         if( dimension == 3 )
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_DISPLACEMENT_Z ) );
+      }
+   }
+
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int element_size          = 2 * number_of_nodes * dimension;
+
+      if ( rResult.size() != element_size )
+         rResult.resize( element_size, false );
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         int index = 2 * i * dimension;
+         rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
+         rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+
+         if( dimension == 3)
+         {
+            rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
+            rResult[index + 3] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_X ).EquationId();
+            rResult[index + 4] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_Y ).EquationId();
+            rResult[index + 5] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_Z ).EquationId();
+         } else {
+            rResult[index + 2] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_X ).EquationId();
+            rResult[index + 3] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_Y ).EquationId();
+         }
+
+
+      }
+
+   }
+
+   //*********************************DISPLACEMENT***************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::GetValuesVector( Vector& rValues, int Step )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int element_size          = 2 * number_of_nodes * dimension;
+
+      if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         unsigned int index = i * dimension + i;
+         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+         if ( dimension == 3 ) {
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_X, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_Y, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_Z, Step );
+         } else {
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_X, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_Y, Step );
+         }
+
+      }
+   }
+
+
+   //************************************VELOCITY****************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int element_size          = 2 * number_of_nodes * dimension;
+
+      if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         unsigned int index = i * dimension + i;
+         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+
+         if ( dimension == 3 ) {
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_X, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_Y, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_Z, Step );
+         } else {
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_X, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_Y, Step );
+         }
+
+      }
+   }
+
+   //*********************************ACCELERATION***************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      unsigned int element_size          = 2 * number_of_nodes * dimension;
+
+      if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+         unsigned int index = i * dimension + i;
+         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+         rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+
+         if ( dimension == 3 ) {
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Z, Step );
+         } else {
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
+         }
+
+      }
+   }
+
+   //************************************************************************************
+   //************************************************************************************
+
+   int  UpdatedLagrangianUWElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   {
+      KRATOS_TRY
+
+      int correct = 0;
+
+      correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
+
+
+      //verify compatibility with the constitutive law
+      ConstitutiveLaw::Features LawFeatures;
+      this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+
+      if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
+         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUWElement" )
+
+            //verify that the variables are correctly initialized
+
+            if ( PRESSURE.Key() == 0 )
+               KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
+
+                  return correct;
+
+      KRATOS_CATCH( "" );
+   }
+
+
+
+   //**********************************GET DOUBLE VALUE**********************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+         std::vector<double>& rValues,
+         const ProcessInfo& rCurrentProcessInfo )
+   {
+
+      const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+      if ( rValues.size() != integration_points_number )
+         rValues.resize( integration_points_number );
+
+      if ( rVariable == POROSITY ||  rVariable == DENSITY )
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
+      else if ( rVariable == VOID_RATIO )
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
+      else{
+
+         UpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+      }
+
+   }
+
+   //**********************************GET VECTOR VALUE**********************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+   {
+
+         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+
+
+   }
+
+   //**********************************GET TENSOR VALUE**********************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable == TOTAL_CAUCHY_STRESS) 
+      {
+         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+      }
+      else {
+
+         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+
+      }
+
+   }
+
+
+   // *********************** Calculate double On Integration Points *************************
+   // ****************************************************************************************
+   void UpdatedLagrangianUWElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   {
+
+
+      if ( rVariable == POROSITY ) {
+
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+         const double InitialPorosity  = GetProperties()[INITIAL_POROSITY];
+
+         if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize( mConstitutiveLawVector.size() );
+
+         std::vector<double>  DetF0; 
+         GetValueOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
+
+         if (rOutput.size() != integration_points_number)
+            rOutput.resize( integration_points_number) ;
+
+         for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = 1.0 - (1.0 - InitialPorosity) / DetF0[PointNumber] ;
+         }
+      }
+      else if ( rVariable == VOID_RATIO) {
+
+         GetValueOnIntegrationPoints( POROSITY, rOutput, rCurrentProcessInfo);
+
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+
+         for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = rOutput[PointNumber] / (1.0 - rOutput[PointNumber]) ;
+         }
+
+      }
+      else if ( rVariable == DENSITY )
+      {
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+
+         if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize( mConstitutiveLawVector.size() );
+
+         double DensityRigid, DensityWater, DensityMixtureInitial, DensityMixtureFinal, PorosityInitial, Porosity, Jacobian;
+
+         DensityMixtureInitial = GetProperties()[DENSITY];
+         DensityWater = GetProperties()[DENSITY_WATER];
+         PorosityInitial = GetProperties()[INITIAL_POROSITY];
+
+         DensityRigid = (DensityMixtureInitial-PorosityInitial*DensityWater) / (1.0 - PorosityInitial);
+
+         Jacobian = mDeterminantF0[0];
+         Porosity = 1.0 - ( 1.0 - PorosityInitial) / Jacobian; 
+
+         DensityMixtureFinal = (1.0 - Porosity) * DensityRigid + Porosity * DensityWater;
+
+         for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+         {
+            rOutput[PointNumber] = DensityMixtureFinal;
+         }
+
+      }
+
+      else {
+         LargeDisplacementElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+      }
+
+   }
+
+   // *********************** Calculate Vector On Integration Points *************************
+   // ****************************************************************************************
+   void UpdatedLagrangianUWElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   {
+         LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+   }
+
+   // *********************** Calculate Matrix On Integration Points *************************
+   // ****************************************************************************************
+   void UpdatedLagrangianUWElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable == TOTAL_CAUCHY_STRESS)
+      {
+         if ( rOutput.size() != mConstitutiveLawVector.size() ) {
+            rOutput.resize( mConstitutiveLawVector.size() );
+         }
+         // only for one gauss point element
+         GetValueOnIntegrationPoints( CAUCHY_STRESS_TENSOR, rOutput, rCurrentProcessInfo);
+
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+         const unsigned int number_of_nodes = GetGeometry().size();
+
+         double GaussPointPressure = 0.0;
+         unsigned int ThisDimension = rOutput[0].size1(); 
+         Matrix Eye = ZeroMatrix(ThisDimension, ThisDimension);
+
+         for (unsigned int i = 0; i < ThisDimension; ++i)
+            Eye(i,i) = 1.0;
+
+         for (unsigned int i = 0; i < number_of_nodes ; ++i)
+            GaussPointPressure += GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE) ;
+
+         GaussPointPressure /= double(number_of_nodes);
+
+         for ( unsigned int PointNumber = 0; PointNumber <  integration_points_number; PointNumber++) {
+            rOutput[PointNumber] = rOutput[PointNumber] + GaussPointPressure * Eye;
+         }
+
+
+      }
+      else
+      {
+         LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }
+   }
+
+
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   {
+      UpdatedLagrangianElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+
+      // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
+      mTimeStep = rCurrentProcessInfo[DELTA_TIME];
+
+      // KC permeability constitutive equation
+      bool KozenyCarman = false; 
+      if( GetProperties().Has(KOZENY_CARMAN) ){
+         KozenyCarman = GetProperties()[KOZENY_CARMAN];
+      }
+      else if( rCurrentProcessInfo.Has(KOZENY_CARMAN) ){
+         KozenyCarman = rCurrentProcessInfo[KOZENY_CARMAN];
+      }
+      GetProperties().SetValue(KOZENY_CARMAN, KozenyCarman);
+
+      double initial_porosity  = 0.3; 
+      if( GetProperties().Has(INITIAL_POROSITY) ){
+         initial_porosity = GetProperties()[INITIAL_POROSITY];
+      }
+      else if( rCurrentProcessInfo.Has(INITIAL_POROSITY) ){
+         KozenyCarman = rCurrentProcessInfo[INITIAL_POROSITY];
+      }
+      GetProperties().SetValue(INITIAL_POROSITY, initial_porosity);
+
+   }
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+         VectorType& rRightHandSideVector,
+         Flags& rCalculationFlags)
+
+   {
+
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+      //resizing as needed the LHS
+      unsigned int MatSize =  2 * number_of_nodes * dimension;
+
+      if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+      {
+         if ( rLeftHandSideMatrix.size1() != MatSize )
+            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+
+         noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+      }
+
+
+      //resizing as needed the RHS
+      if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+      {
+         if ( rRightHandSideVector.size() != MatSize )
+            rRightHandSideVector.resize( MatSize, false );
+
+         rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      }
+   }
+
+
+   //************* COMPUTING  METHODS
+   //************************************************************************************
+   //************************************************************************************
+
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   {
+
+      KRATOS_TRY
+
+      // define some variables
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      rVariables.detF0 *= rVariables.detF;
+      double DeterminantF = rVariables.detF;
+      rVariables.detF = 1.0;
+
+      //contributions of the stiffness matrix calculated on the reference configuration
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+
+      this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+
+      this->CalculateAndAddKww( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+
+      KRATOS_CATCH("")
+   }
+
+   //************************************************************************************
+   //         Material stiffness matrix
+   void UpdatedLagrangianUWElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+
+      Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension);
+
+      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            for (unsigned int k = 0; k < dimension; k++) {
+               for (unsigned int l = 0; l < dimension; l++) {
+                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l) += SmallMatrix( i*dimension+k, j*dimension+l);
+               }
+            }
+         }
+      }
+
+
+      KRATOS_CATCH("")
+   }
+
+   //************************************************************************************
+   //      Water material Matrix
+   void UpdatedLagrangianUWElement::CalculateAndAddKww( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+
+      Matrix B2 = ZeroMatrix(dimension, number_of_nodes*dimension);
+      CalculateB2Matrix( B2, rVariables.DN_DX );
+
+      Matrix Q = ZeroMatrix(dimension, dimension);
+      double Bulk = 1e+6; // to be changed LMV.
+      for (unsigned int i = 0; i < dimension; i++)
+         for (unsigned int j = 0; j < dimension; j++)
+            Q(i,j) = Bulk;
+
+      Matrix SmallMatrix( number_of_nodes*dimension, number_of_nodes*dimension);
+      noalias( SmallMatrix ) = prod( trans(B2), rIntegrationWeight * Matrix( prod( Q, B2) ) );
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            for (unsigned int k = 0; k < dimension; k++) {
+               for (unsigned int l = 0; l < dimension; l++) {
+                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l) += SmallMatrix( i*dimension+k, j*dimension+l);
+               }
+            }
+         }
+      }
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            for (unsigned int k = 0; k < dimension; k++) {
+               for (unsigned int l = 0; l < dimension; l++) {
+                  rLeftHandSide( i*dofs_per_node + k + dimension, j*dofs_per_node + l) += SmallMatrix( i*dimension+k, j*dimension+l);
+               }
+            }
+         }
+      }
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            for (unsigned int k = 0; k < dimension; k++) {
+               for (unsigned int l = 0; l < dimension; l++) {
+                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l + dimension) += SmallMatrix( i*dimension+k, j*dimension+l);
+               }
+            }
+         }
+      }
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int j = 0; j < number_of_nodes; j++) {
+            for (unsigned int k = 0; k < dimension; k++) {
+               for (unsigned int l = 0; l < dimension; l++) {
+                  rLeftHandSide( i*dofs_per_node + k + dimension, j*dofs_per_node + l+dimension) += SmallMatrix( i*dimension+k, j*dimension+l);
+               }
+            }
+         }
+      }
+
+
+      KRATOS_CATCH("")
+   }
+
+
+   //*********************************************************************************
+   //   Calculate some sort of B matrix
+
+   void UpdatedLagrangianUWElement::CalculateB2Matrix( Matrix & rB2, const Matrix & rDN_DX)
+   {
+
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         rB2( 0, i*dimension) = rDN_DX(i,0);
+         rB2( 1, i*dimension) = rDN_DX(i,1);
+         if ( dimension == 3) 
+            rB2( 2, i*dimension) = rDN_DX(i,2);
+      }
+
+
+
+      KRATOS_CATCH("")
+
+   }
+
+   // ***********************************************************************************
+   // ***********************************************************************************
+   void UpdatedLagrangianUWElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      // define some variables
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      rVariables.detF0 *= rVariables.detF;
+      double DeterminantF = rVariables.detF;
+      rVariables.detF = 1.0;
+
+
+      //contribution of the internal and external forces
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+
+      // Compute Base Class RHS
+      LocalSystemComponents BaseClassLocalSystem;
+      Vector BaseClassRightHandSideVector = ZeroVector ( dimension * number_of_nodes );
+      BaseClassLocalSystem.SetRightHandSideVector(BaseClassRightHandSideVector );
+      Vector VolumeForce = rVolumeForce; 
+      VolumeForce *= 0.0;
+      UpdatedLagrangianElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
+
+
+      // Reshape the BaseClass RHS and Add the Hydro Part
+      WaterPressureUtilities WaterUtility;
+      Matrix TotalF = prod( rVariables.F, rVariables.F0);
+
+      int number_of_variables = dimension+1; 
+
+
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( rVolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      //HMVariables.CurrentRadius
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+
+      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, rIntegrationWeight);
+
+
+      rVariables.detF = DeterminantF;
+      rVariables.detF0 /= rVariables.detF;
+
+      KRATOS_CATCH("")
+   }
+
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUWElement::save( Serializer& rSerializer ) const
+   {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianElement )
+   }
+
+   void UpdatedLagrangianUWElement::load( Serializer& rSerializer )
+   {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianElement )
+   }
+
+
+
+}  // END KRATOS NAMESPACE
