@@ -368,6 +368,34 @@ public:
     }
     
     /**
+     * This function calculates the normal in a specific GP with a given shape function
+     * @param N: The shape function considered
+     * @param Geom: The geometry of condition of interest
+     */
+
+    static inline array_1d<double,3> GaussPointUnitNormal(
+        const Vector& N,
+        const GeometryType& Geom
+        )
+    {
+        array_1d<double,3> normal = ZeroVector(3);
+        for( unsigned int i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
+        {
+            normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
+        }
+        
+        const bool not_zero_vector = (norm_2(normal) > std::numeric_limits<double>::epsilon());
+        
+    #ifdef KRATOS_DEBUG
+        if (not_zero_vector == false) KRATOS_ERROR << "Zero norm normal vector. Norm:" << norm_2(normal) << std::endl;
+    #endif
+        
+        if (not_zero_vector == true) normal = normal/norm_2(normal);
+        
+        return normal;
+    }
+    
+    /**
      * This function gives you the indexes needed to order a vector 
      * @param vect: The vector to order
      * @return idx: The vector of indexes
