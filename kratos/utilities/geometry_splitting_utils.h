@@ -59,6 +59,9 @@ public:
     /// Empty constructor
     IndexedPoint();
 
+    /// Auxiliar constructor
+    IndexedPoint(const unsigned int Id);
+
     /// Default constructor
     IndexedPoint(const array_1d<double,3>& rCoords, const unsigned int Id);
 
@@ -154,14 +157,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GeometrySplittingUtils);
 
     // General type definitions
-    typedef Node<3>                                                                   NodeType;
-    typedef Point<3>                                                                 PointType;
-    typedef Geometry < NodeType >                                                 GeometryType;
-    typedef Geometry < PointType >                                           PointGeometryType;
+    typedef Geometry < Node<3> >                                                  GeometryType;
     typedef GeometryData::IntegrationMethod                              IntegrationMethodType;
-
+    
     typedef IndexedPoint                                                      IndexedPointType;
-    typedef boost::shared_ptr<IndexedPoint>                            IndexedPointPointerType;
+    typedef typename IndexedPoint::Pointer                             IndexedPointPointerType;
+    typedef Geometry < IndexedPoint >                                 IndexedPointGeometryType;
     typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
     typedef IndexedPointsContainerType::iterator                     IndexedPointsIteratorType;
 
@@ -222,8 +223,8 @@ public:
      * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
      */
     virtual bool DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                                std::vector < PointGeometryType >& rPositiveSubdivisions,
-                                std::vector < PointGeometryType >& rNegativeSubdivisions);
+                                std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
+                                std::vector < IndexedPointGeometryType >& rNegativeSubdivisions);
 
     /**
     * Returns the shape function values in any element subdivision for a given quadrature.
@@ -231,9 +232,9 @@ public:
     * @param rSubdivisionGeom: Subdivision point based geometry.
     * @param IntegrationMethod: Integration quadrature.
     */
-    virtual void GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
-                                                   const PointGeometryType& rSubdivisionGeom,
-                                                   IntegrationMethodType IntegrationMethod);
+    virtual void GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                        const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                        IntegrationMethodType IntegrationMethod);
 
     ///@}
 
@@ -247,6 +248,10 @@ protected:
 
     ///@}
     ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
     ///@{
 
     /**
@@ -267,10 +272,6 @@ protected:
                                                  const int rEdgeNodeJ[],
                                                  const int rSplitEdges[],
                                                  const unsigned int splitEdgesNumber);
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     ///@}
     ///@name Protected  Access
@@ -338,6 +339,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Triangle2D3 < IndexedPointType >                        IndexedPointTriangleType;
+
     /// Pointer definition of TriangleSplittingUtils
     KRATOS_CLASS_POINTER_DEFINITION(TriangleSplittingUtils);
 
@@ -391,8 +394,8 @@ public:
      * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
      */
     bool DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                        std::vector < PointGeometryType >& rPositiveSubdivisions,
-                        std::vector < PointGeometryType >& rNegativeSubdivisions) override;
+                        std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
+                        std::vector < IndexedPointGeometryType >& rNegativeSubdivisions) override;
 
     /**
     * Returns the shape function values in any element subdivision for a given quadrature.
@@ -400,9 +403,9 @@ public:
     * @param rSubdivisionGeom: Subdivision point based geometry.
     * @param IntegrationMethod: Integration quadrature.
     */
-    void GetSubdivisionShapeFunctionValues(Matrix& rShapeFunctionValues,
-                                           const PointGeometryType& rSubdivisionGeom,
-                                           IntegrationMethodType IntegrationMethod) override;
+    void GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                IntegrationMethodType IntegrationMethod) override;
 
     ///@}
 

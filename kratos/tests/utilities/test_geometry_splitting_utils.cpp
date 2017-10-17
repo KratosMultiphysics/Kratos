@@ -59,10 +59,19 @@ namespace Kratos
 
 			// Call the divide geometry method
 			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::PointGeometryType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::PointGeometryType > negative_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > negative_subdivisions;
 
 			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
+
+			// Call the shape functions computation method
+			Matrix positive_side_sh_func, negative_side_sh_func;
+			triangle_splitter.GetShapeFunctionValues(positive_side_sh_func, positive_subdivisions, GeometryData::GI_GAUSS_1);
+			KRATOS_WATCH("")
+			KRATOS_WATCH(positive_side_sh_func)
+			triangle_splitter.GetShapeFunctionValues(negative_side_sh_func, negative_subdivisions, GeometryData::GI_GAUSS_1);
+			KRATOS_WATCH("")
+			KRATOS_WATCH(negative_side_sh_func)
 
 			// Check general splitting values
 			KRATOS_CHECK(is_divided);
@@ -135,8 +144,8 @@ namespace Kratos
 
 			// Call the divide geometry method
 			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::PointGeometryType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::PointGeometryType > negative_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > negative_subdivisions;
 
 			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
 
@@ -211,8 +220,8 @@ namespace Kratos
 
 			// Call the divide geometry method
 			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::PointGeometryType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::PointGeometryType > negative_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > negative_subdivisions;
 
 			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
 
