@@ -452,7 +452,6 @@ class MechanicalSolver(object):
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"Linear\", \"Non-Linear\""
             raise Exception(err_msg)
-        print("::[MechanicalSolver]:: Using Analysis Type \"" + analysis_type + "\".")
         return mechanical_solver
 
     def _create_linear_strategy(self):
