@@ -41,6 +41,7 @@
 #include "linear_solvers/ilu0_preconditioner.h"
 #include "linear_solvers/ilu_preconditioner.h"
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
+#include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
