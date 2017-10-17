@@ -60,6 +60,9 @@ class TwoDCavityTest(MeshingTestFactory):
 class TwoDDynamicBeamTest(MeshingTestFactory):
     file_name = "mmg_lagrangian_test/beam2D_test"
     
+class TwoDDynamicBeamLineLoadTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam2D_line_load_test"
+    
 class ThreeDDynamicBeamTest(MeshingTestFactory):
     file_name = "mmg_lagrangian_test/beam3D_test"
     

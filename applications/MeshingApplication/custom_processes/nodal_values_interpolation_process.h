@@ -154,7 +154,7 @@ public:
             Vector ShapeFunctions;
             Element::Pointer pElement;
             
-            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults);
+            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults, 5.0e-2);
             
             if (IsFound == false)
             {

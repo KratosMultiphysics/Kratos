@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
 
@@ -13,6 +14,8 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_X, VELOCITY_X_GRADIENT)
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Y, VELOCITY_Y_GRADIENT)
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Z, VELOCITY_Z_GRADIENT)
+    def RecoverPressureGradient(self):
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, PRESSURE, RECOVERED_PRESSURE_GRADIENT)
 
 class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, ZhangGuoGradientRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):

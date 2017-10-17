@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "mapper_utilities.h"
 #include "../mapping_application_variables.h"
 
@@ -319,6 +320,23 @@ private:
     int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
     int mNeighborRank;
     bool mIsBeingSent;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+    }
 
     ///@}
     ///@name Private Operators

@@ -65,8 +65,11 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
-    if pp.CFD_DEM["coupling_level_type"].GetInt():
+    checker = VariableChecker()
+
+    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
@@ -338,7 +341,11 @@ class ProjectionDebugUtils:
 
 class Counter:
 
-    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True, is_dead = False):
+    def __init__(self,
+                 steps_in_cycle = 1,
+                 beginning_step = 1,
+                 is_active = True,
+                 is_dead = False):
 
         if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
