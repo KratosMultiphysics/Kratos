@@ -30,6 +30,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/stl_io.h"
 
 // Filters
 #define KRATOS_LOG_ADD_CUSTOM_FILTER(STRING) KratosLogUtils::GetInstance().AddCustomFilter(STRING);
@@ -330,21 +331,6 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
   (*out.mOutputFile) << data;
   
   return out;  
-}
-
-// Std::vecotr << operator
-template<class T>
-std::ostream& KRATOS_API(KRATOS_CORE) operator<<(std::ostream& os, const std::vector<T> & data) {
-
-    std::cout << "[";
-
-    for(std::size_t i = 0; i < data.size()-1; i++) {
-        os << data[i] << ", ";
-    }
-
-    os << data[data.size()-1] << "]";
-    
-    return os;
 }
 
 ///@}
