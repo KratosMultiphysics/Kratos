@@ -171,7 +171,7 @@ Southern California, 2012.
 			PropertiesType::Pointer pProperties,
 			CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-		virtual ~ShellThinElement3D4N();
+		~ShellThinElement3D4N() override;
 
 		///@}
 
@@ -179,57 +179,57 @@ Southern California, 2012.
 		///@{
 		// Basic
 
-		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-		IntegrationMethod GetIntegrationMethod() const;
+		IntegrationMethod GetIntegrationMethod() const override;
 
-		void Initialize();
+		void Initialize() override;
 
 		//void ResetConstitutiveLaw();
 
-		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-		int Check(const ProcessInfo& rCurrentProcessInfo);
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CleanMemory();
+		void CleanMemory() override;
 
-		void GetValuesVector(Vector& values, int Step = 0);
+		void GetValuesVector(Vector& values, int Step = 0) override;
 		// needed for dyn
 
-		void GetFirstDerivativesVector(Vector& values, int Step = 0);
+		void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 		//needed for dyn
 
-		void GetSecondDerivativesVector(Vector& values, int Step = 0);
+		void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 		//needed for dyn
 
-		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 		//needed for corotational
 
-		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 		//needed for corotational
 
-		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 		//needed for corotational
 
-		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 		//needed for corotational
 
 		void CalculateMassMatrix(MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 		// needed for dyn
 
 		void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 		// needed for dyn
 
 		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateRightHandSide(VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
@@ -237,35 +237,35 @@ Southern California, 2012.
 
 		// Results calculation on integration points
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(const Variable<array_1d<double,
 			3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(const Variable<array_1d<double,
 			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		// More results calculation on integration points to interface with python
 		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 			3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
@@ -274,11 +274,11 @@ Southern California, 2012.
 		// Calculate functions
 		void Calculate(const Variable<Matrix >& rVariable,
 			Matrix& Output,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void Calculate(const Variable<double>& rVariable,
 			double& Output,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		///@}
 
@@ -490,9 +490,9 @@ Southern California, 2012.
 												  ///@{
 		friend class Serializer;
 
-		virtual void save(Serializer& rSerializer) const;
+		void save(Serializer& rSerializer) const override;
 
-		virtual void load(Serializer& rSerializer);
+		void load(Serializer& rSerializer) override;
 
 		///@}
 
