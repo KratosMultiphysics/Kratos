@@ -12,6 +12,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
         "time_integration_method"            : "Implicit",
+        "analysis_type"                      : "Linear",
         "echo_level"                         : 0,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

@@ -11,6 +11,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
+        "analysis_type"                      : "Linear",
         "echo_level"                         : 0,
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Newmark",

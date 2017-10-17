@@ -3,19 +3,19 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 def CheckForParallelism(settings):
-    if not custom_settings["problem_data"].Has("parallel_type"):
+    if not settings["problem_data"].Has("parallel_type"):
         raise Exception("You must provide a \"parallel_type\" in your settings!")
 
 def CheckForSolverType(settings):
-    if not custom_settings["solver_settings"].Has("solver_type"):
+    if not settings["solver_settings"].Has("solver_type"):
         raise Exception("You must provide a \"solver_type\" in your settings!")
 
 def CheckForAnalysisType(settings):
-    if not custom_settings["solver_settings"].Has("analysis_type"):
+    if not settings["solver_settings"].Has("analysis_type"):
         raise Exception("You must provide a \"analysis_type\" in your settings!")
 
 def CheckForTimeIntegrationMethod(settings):
-    if not custom_settings["solver_settings"].Has("time_integration_method"):
+    if not settings["solver_settings"].Has("time_integration_method"):
         raise Exception("You must provide a \"time_integration_method\" in your settings!")
     
 
