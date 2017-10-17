@@ -66,7 +66,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    // A default constructor necessary for serialization 
+    InterfaceNode() : InterfaceObject()
+    {
+    }
+    
     InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
@@ -216,6 +220,23 @@ private:
     ///@{
 
     Node<3>* mpNode;
+        
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
 
     ///@}
     ///@name Private Operators

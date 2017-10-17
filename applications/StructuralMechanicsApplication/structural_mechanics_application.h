@@ -40,7 +40,9 @@
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
 /* Adding the spring damper element */
@@ -74,6 +76,7 @@
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
 /* UTILITIES */
 // Cross sections
@@ -252,8 +255,10 @@ private:
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const ShellThickElement3D4N mShellThickElement3D4N;
     const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
+	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
@@ -367,6 +372,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+	const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators
