@@ -56,7 +56,7 @@ public:
                 "table_ambient_temperature"       : 0,
                 "emisivity"                       : 0.0,
                 "delta_R"                         : 0.0,
-                "absorption_index"                 : 0.0,
+                "absorption_index"                : 0.0,
                 "total_insolation"                : 0.0               
             }  )" );
         
