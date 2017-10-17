@@ -332,6 +332,21 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
   return out;  
 }
 
+// Std::vecotr << operator
+template<class T>
+std::ostream& KRATOS_API(KRATOS_CORE) operator<<(std::ostream& os, const std::vector<T> & vector) {
+
+    std::cout << "[";
+
+    for(std::size_t i = 0; i < vector.size()-1; i++) {
+        os << vector[i] << ", ";
+    }
+
+    os << vector[vector.size()-1] << "]";
+    
+    return os;
+}
+
 ///@}
 
 
