@@ -10,9 +10,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
-        "echo_level"                         : 2,
-        "solution_type"                      : "Static",
+        "solver_type"                        : "Static",
+        "echo_level"                         : 0,
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",

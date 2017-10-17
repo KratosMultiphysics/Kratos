@@ -3,15 +3,15 @@
         "problem_name"    : "patch_membrane_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 0.01,
         "start_time"      : 0.01,
         "end_time"        : 0.02,
-        "echo_level"      : 3
+        "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",

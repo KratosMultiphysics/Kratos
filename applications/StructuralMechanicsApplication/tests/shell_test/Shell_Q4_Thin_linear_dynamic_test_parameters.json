@@ -3,6 +3,7 @@
         "problem_name"    : "Shell_Q4_Thin_linear_dynamic_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 1.125,
         "start_time"      : 0.0,
         "end_time"        : 25,
@@ -12,9 +13,9 @@
             "materials_filename": "shell_test/Shell_Q4_Thin_linear_dynamic_test_materials.json"
         },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
+        "analysis_type"                      : "Linear",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Newmark",
         "model_import_settings"              : {

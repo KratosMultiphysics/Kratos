@@ -3,16 +3,16 @@
         "problem_name"    : "pan_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 0.001,
         "start_time"      : 0.000,
         "end_time"        : 1.000,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "buffer_size"                        : 3,
-        "solution_type"                      : "Static",
         "analysis_type"                      : "Arc-Length",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
