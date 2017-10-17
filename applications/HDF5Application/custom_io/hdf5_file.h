@@ -50,10 +50,14 @@ public:
     /// Constructor.
     HDF5File(Parameters& rParams);
 
+    // Copy constructor.
     HDF5File(const HDF5File& rOther) = delete;
 
     /// Destructor.
     virtual ~HDF5File();
+
+    // Assignment operator.
+    HDF5File& operator=(const HDF5File& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -126,8 +130,9 @@ private:
 
         // Create any missing subpaths.
         std::string sub_path;
-        decltype(rPath.size()) pos = 0; // Make sure pos is large enough to store std::string::npos.
-        while (pos < rPath.size())
+        decltype(rPath.size()) pos = 0; /* Make sure pos has same size as
+           std::string::npos. */
+        while (pos < rPath.size()) // Check each link in the path.
         {
             pos = rPath.find('/', ++pos);
             if (pos != std::string::npos)
@@ -138,7 +143,7 @@ private:
             if (HasPath(sub_path) == false)
                 CreateGroup(sub_path); // Create missing link.
             else
-                KRATOS_ERROR_IF_NOT(IsGroup(sub_path)) // Throw if conflicts with existing data set.
+                KRATOS_ERROR_IF_NOT(IsGroup(sub_path))
                     << "Path exists and is not a group: " << sub_path << std::endl;
         }
 
@@ -146,11 +151,10 @@ private:
         KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
 
         // Create and write data set.
-        herr_t status;
         int ndims = 1; // Default rank is 1 (scalar data type).
+        hid_t dtype_id;
         hsize_t dims[2] = {0};
         dims[0] = rData.size(); // Set first dataspace dimension.
-        hid_t dtype_id;
         constexpr bool is_int_type = std::is_same<int, T>::value;
         constexpr bool is_double_type = std::is_same<double, T>::value;
         constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
@@ -172,11 +176,9 @@ private:
         hid_t dset_id = H5Dcreate(m_file_id, rPath.c_str(), dtype_id, dspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
-        status =
-            H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, rData.data());
-        KRATOS_ERROR_IF(status < 0) << "H5Dwrite failed." << std::endl;
-        status = H5Dclose(dset_id);
-        status = H5Sclose(dspace_id);
+        KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, rData.data()) < 0) << "H5Dwrite failed." << std::endl;
+        KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+        KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
 
     template <class T>
@@ -197,7 +199,7 @@ private:
             rData.resize(BlockSize);
 
         // Define the hyperslab.
-        hsize_t start[2] = {0}, stride[2] = {1}, count[2] = {0};
+        hsize_t start[] = {0, 0}, stride[] = {1, 1}, count[] = {0, 0};
         count[0] = BlockSize;
         std::vector<hsize_t> mem_space_dims(file_space_dims.size());
         mem_space_dims[0] = BlockSize; // First dimension is BlockSize.
@@ -227,27 +229,25 @@ private:
             KRATOS_ERROR_IF(file_space_dims.size() != 2 || file_space_dims[1] != 3)
                 << "Invalid data set dimension." << std::endl;
             dtype_id = H5T_NATIVE_DOUBLE;
-            count[1] = 3;
-            mem_space_dims[1] = 3; // Second dimension is length of array_1d<double, 3>.
+            count[1] = 3; // Second dimension is length of array_1d<double, 3>.
+            mem_space_dims[1] = 3; 
         }
         else
             static_assert(is_int_type || is_double_type || is_array_1d_type,
-                "Unsupported data type.");
+                          "Unsupported data type.");
 
-        herr_t status;
         hid_t dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
-        hid_t mem_space_id = H5Screate_simple(
-            mem_space_dims.size(), mem_space_dims.data(), nullptr);
-        status = H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start,
-                                     stride, count, nullptr);
-        status = H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                         H5P_DEFAULT, rData.data());
-        KRATOS_ERROR_IF(status < 0) << "H5Dread failed." << std::endl;
-        status = H5Dclose(dset_id);
-        status = H5Sclose(file_space_id);
-        status = H5Sclose(mem_space_id);
+        hid_t mem_space_id =
+            H5Screate_simple(mem_space_dims.size(), mem_space_dims.data(), nullptr);
+        KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start, stride, count, nullptr) < 0)
+            << "H5Sselect_hyperslab failed." << std::endl;
+        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, rData.data()) < 0)
+            << "H5Dread failed." << std::endl;
+        KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+        KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
+        KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
     }
     ///@}
 };
