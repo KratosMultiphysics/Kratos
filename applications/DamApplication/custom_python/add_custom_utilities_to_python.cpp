@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/table.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
@@ -35,6 +36,8 @@ namespace Python
 
 void  AddCustomUtilitiesToPython() 
 {
+    typedef Table<double,double> TableType;  
+    
     using namespace boost::python;
     
     class_< StreamlinesOutput3DUtilities > ("StreamlinesOutput3DUtilities", init<>())
@@ -49,7 +52,7 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",&TransferSelfweightStressUtility::Transfer)
     ;
     
-    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, Parameters&>())
+    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, TableType&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
     .def("InitializeSolutionStep",&ConstructionUtility::InitializeSolutionStep)
     .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep)

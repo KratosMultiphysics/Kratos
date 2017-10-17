@@ -42,10 +42,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    ConstructionUtility(ModelPart& rMechanicalModelPart,
-                        ModelPart& rThermalModelPart,
-                        Parameters& rParameters
-                        ) : mrMechanicalModelPart(rMechanicalModelPart) , mrThermalModelPart(rThermalModelPart)
+    ConstructionUtility(ModelPart& rMechanicalModelPart, ModelPart& rThermalModelPart,
+                        TableType& rTablePhases, TableType& rTableTimes, TableType& rTableAmbientTemp,  Parameters& rParameters
+                        ) : mrMechanicalModelPart(rMechanicalModelPart) , mrThermalModelPart(rThermalModelPart) , mrTablePhases(rTablePhases) , mrTableTimes(rTableTimes) , mrTableAmbientTemp(rTableAmbientTemp)
         {
             KRATOS_TRY
     
@@ -60,22 +59,8 @@ public:
             mAlpha = rParameters["alpha"].GetDouble();
             mTMax = rParameters["tmax"].GetDouble();
             mH0 = rParameters["h_0"].GetDouble();
-            mAmbientTemp = rParameters["ambient_temp"].GetDouble();
-            mTableIdPhases = rParameters["phases_table"].GetInt();
-            mTableIdTimes = rParameters["phase_times_table"].GetInt();
-            mTableIdAmbientTemp = rParameters["ambient_table"].GetInt();
-            
             mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];    
             
-            if(mTableIdPhases != 0)
-                mpTablePhases = mrMechanicalModelPart.pGetTable(mTableIdPhases);
-            
-            if(mTableIdTimes != 0)
-                mpTableTimes = mrMechanicalModelPart.pGetTable(mTableIdTimes);
-
-            if(mTableIdAmbientTemp != 0)
-                mpTableAmbientTemp = mrMechanicalModelPart.pGetTable(mTableIdAmbientTemp);
-
             KRATOS_CATCH("");
         }
 
@@ -142,11 +127,7 @@ void InitializeSolutionStep()
     int int_time = time/mTimeUnitConverter;
     
     // Getting the value of the table and computing the current height
-    unsigned int current_number_of_phases;
-    if (mpTablePhases != 0)
-        current_number_of_phases = mpTablePhases->GetValue(int_time-1);
-    else 
-        current_number_of_phases = 1;
+    unsigned int current_number_of_phases = mrTablePhases.GetValue(int_time-1);
 
     double current_height = mReferenceCoordinate + (mHeight/mPhases)*current_number_of_phases;  
     int j = 1000000;
@@ -366,15 +347,7 @@ void ActiveHeatFlux()
     double time = mrMechanicalModelPart.GetProcessInfo()[TIME];    
     int int_time = time/mTimeUnitConverter;
 
-    unsigned int current_number_of_phases;
-    if (mpTablePhases != 0)
-        current_number_of_phases = mpTablePhases->GetValue(int_time-1);
-    else 
-        current_number_of_phases = 1;
-
-    double real_time;
-    if (mpTableTimes == 0)
-        real_time = 1.0;
+    unsigned int current_number_of_phases = mrTablePhases.GetValue(int_time-1);
 
     int direction;
     if( mGravityDirection == "X")
@@ -391,9 +364,8 @@ void ActiveHeatFlux()
         for(unsigned int j = 0; j<current_number_of_phases; ++j)
         {
             double current_height = mReferenceCoordinate + (mHeight/mPhases)*(j+1);
-            double previous_height =mReferenceCoordinate + (mHeight/mPhases)*(j);
-            if (mpTableTimes != 0)            
-                real_time = time - (mpTableTimes->GetValue(j));
+            double previous_height =mReferenceCoordinate + (mHeight/mPhases)*(j);         
+            double real_time = time - (mrTableTimes.GetValue(j));
 
             // This formulation is developed using hours as temporal variable
             real_time = real_time/3600.0;
@@ -431,12 +403,11 @@ void ActiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
     const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
     ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
 
-    if(mTableIdAmbientTemp != 0)
-    { 
-        double time = mrThermalModelPart.GetProcessInfo()[TIME];
-        time = time/mTimeUnitConverter;
-        mAmbientTemp = mpTableAmbientTemp->GetValue(time);
-    }
+    double time = mrThermalModelPart.GetProcessInfo()[TIME];
+    time = time/mTimeUnitConverter;
+    double ambient_temp = mrTableAmbientTemp.GetValue(time-1);
+
+    KRATOS_WATCH(ambient_temp)
 
     if(size != 0)
     {
@@ -449,7 +420,7 @@ void ActiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
                 if (it_thermal->Id() == ConditionNodeIds[j]) 
                 {
                     const double temp_current = it_thermal->FastGetSolutionStepValue(TEMPERATURE);
-                    const double heat_flux = mH0*(mAmbientTemp - temp_current);
+                    const double heat_flux = mH0*(ambient_temp - temp_current);
                     it_thermal->FastGetSolutionStepValue(FACE_HEAT_FLUX) = heat_flux; 
                 }
             }
@@ -508,13 +479,11 @@ protected:
     double mAlpha;
     double mTMax;
     double mH0;
-    double mAmbientTemp;
-    TableType::Pointer mpTablePhases;
-    TableType::Pointer mpTableTimes;
-    TableType::Pointer mpTableAmbientTemp;
-    int mTableIdAmbientTemp;    
-    int mTableIdPhases;
-    int mTableIdTimes;
+    TableType& mrTablePhases;
+    TableType& mrTableTimes;
+    TableType& mrTableAmbientTemp;
+    
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
