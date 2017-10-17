@@ -20,6 +20,7 @@
 
 // Project includes
 #include "processes/process.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
 #include "spaces/ublas_space.h"
@@ -98,26 +99,44 @@ public:
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
         TVarType& ThisVariable, 
-        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        LinearSolverType::Pointer pThisLinearSolver = nullptr,
+        Parameters ThisParameters = Parameters(R"({})" )
         ): mrThisModelPart(rThisModelPart),
            mOriginVariable(ThisVariable),
            mDestinationVariable(ThisVariable),
-           mpThisLinearSolver(pThisLinearSolver)
+           mpThisLinearSolver(pThisLinearSolver),
+           mThisParameters(ThisParameters)
     {
-        mEchoLevel = 0;
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "echo_level"                       : 0
+        })" );
+        
+        mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+
+        mEchoLevel = mThisParameters["echo_level"].GetInt();
     }
     
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
         TVarType& OriginVariable,
         TVarType& DestinationVariable,
-        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        LinearSolverType::Pointer pThisLinearSolver = nullptr,
+        Parameters ThisParameters = Parameters(R"({})" )
         ): mrThisModelPart(rThisModelPart),
            mOriginVariable(OriginVariable),
            mDestinationVariable(DestinationVariable),
-           mpThisLinearSolver(pThisLinearSolver)
+           mpThisLinearSolver(pThisLinearSolver),
+           mThisParameters(ThisParameters)
     {
-        mEchoLevel = 0;
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "echo_level"                       : 0
+        })" );
+        
+        mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+
+        mEchoLevel = mThisParameters["echo_level"].GetInt();
     }
 
     /// Destructor.
@@ -268,6 +287,7 @@ private:
     TVarType mDestinationVariable;                // The destiny variable to map
     unsigned int mEchoLevel;                      // The verbosity level
     LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
+    Parameters mThisParameters;                   // The configuration parameters
 
     ///@}
     ///@name Private Operators
