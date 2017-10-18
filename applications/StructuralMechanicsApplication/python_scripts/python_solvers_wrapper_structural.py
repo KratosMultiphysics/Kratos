@@ -4,19 +4,19 @@ import KratosMultiphysics
 
 def CheckForParallelism(settings):
     if not settings["problem_data"].Has("parallel_type"):
-        raise Exception("You must provide a \"parallel_type\" in your settings!")
+        raise Exception("\"parallel_type\" is not specified in the settings, please provide it")
 
 def CheckForSolverType(settings):
     if not settings["solver_settings"].Has("solver_type"):
-        raise Exception("You must provide a \"solver_type\" in your settings!")
+        raise Exception("\"solver_type\" is not specified in the settings, please provide it")
 
 def CheckForAnalysisType(settings):
     if not settings["solver_settings"].Has("analysis_type"):
-        raise Exception("You must provide a \"analysis_type\" in your settings!")
+        raise Exception("\"analysis_type\" is not specified in the settings, please provide it")
 
 def CheckForTimeIntegrationMethod(settings):
     if not settings["solver_settings"].Has("time_integration_method"):
-        raise Exception("You must provide a \"time_integration_method\" in your settings!")
+        raise Exception("\"time_integration_method\" is not specified in the settings, please provide it")
     
 
 def CreateSolver(main_model_part, custom_settings):
