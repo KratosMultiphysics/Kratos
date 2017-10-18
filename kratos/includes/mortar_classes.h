@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                             PointType;
+    typedef Point                                             PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
     
@@ -1684,7 +1684,7 @@ private:
  */
 
 template<unsigned int TNumNodes>
-class PointBelong : public Point<3>
+class PointBelong : public Point
 {
 public:
     ///@name Type Definitions
@@ -1701,15 +1701,15 @@ public:
     
     /// Default constructors
     PointBelong():
-        Point<3>()
+        Point()
     {}
 
     PointBelong(const array_1d<double, 3> Coords):
-        Point<3>(Coords)
+        Point(Coords)
     {}
     
     PointBelong(const array_1d<double, 3> Coords, const BelongType& ThisBelongs):
-        Point<3>(Coords),
+        Point(Coords),
         mBelongs(ThisBelongs)
     {}
     

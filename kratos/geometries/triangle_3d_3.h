@@ -315,21 +315,21 @@ public:
     }
 
 
-    boost::shared_ptr< Geometry< Point<3> > > Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // boost::shared_ptr< Geometry< Point<3> > > Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Triangle3D3< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Triangle3D3< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     /**
      * returns the local coordinates of all nodes of the current geometry
@@ -639,10 +639,10 @@ public:
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) override
     {
-        Point<3, double> boxcenter;
-        Point<3, double> boxhalfsize;
+        Point boxcenter;
+        Point boxhalfsize;
 
         boxcenter[0]   = 0.5 * (rLowPoint[0] + rHighPoint[0]);
         boxcenter[1]   = 0.5 * (rLowPoint[1] + rHighPoint[1]);
@@ -1809,15 +1809,6 @@ private:
                 Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
-//             IntegrationPointsContainerType integration_points =
-//             {
-//                 Quadrature< TriangleGaussLegendreIntegrationPoints<1>,
-//                             2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                             Quadrature<TriangleGaussLegendreIntegrationPoints<2>,
-//                             2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                             Quadrature<TriangleGaussLegendreIntegrationPoints<3>,
-//                             2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//             };
         return integration_points;
     }
 
@@ -2070,11 +2061,11 @@ private:
 
 	bool EdgeToTriangleEdgesCheck(const short& i0,
 		const short& i1,
-		const Point<3, double>& V0,
-		const Point<3, double>& V1,
-		const Point<3, double>&U0,
-		const Point<3, double>&U1,
-		const Point<3, double>&U2)
+		const Point& V0,
+		const Point& V1,
+		const Point&U0,
+		const Point&U1,
+		const Point&U2)
 	{
 
 		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
@@ -2107,9 +2098,9 @@ private:
 		double& f,
 		const short& i0,
 		const short& i1,
-		const Point<3, double>&V0,
-		const Point<3, double>&U0,
-		const Point<3, double>&U1)
+		const Point& V0,
+		const Point& U0,
+		const Point& U1)
 	{
 		Bx = U0[i0] - U1[i0];
 		By = U0[i1] - U1[i1];
@@ -2149,7 +2140,7 @@ private:
      * 2) normal of the triangle
      * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
      */
-    inline bool TriBoxOverlap(Point<3, double>& rBoxCenter, Point<3, double>& rBoxHalfSize)
+    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize)
     {
         double abs_ex, abs_ey, abs_ez, distance;
         array_1d<double,3 > vert0, vert1, vert2;
@@ -2264,7 +2255,7 @@ private:
                    double& rAbsEdgeY, double& rAbsEdgeZ,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point<3,double>& rBoxHalfSize)
+                   Point& rBoxHalfSize)
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
@@ -2291,7 +2282,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeZ,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point<3,double>& rBoxHalfSize)
+                   Point& rBoxHalfSize)
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
@@ -2318,7 +2309,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeY,
                    array_1d<double,3>& rVertA, 
                    array_1d<double,3>& rVertC, 
-                   Point<3,double>& rBoxHalfSize)
+                   Point& rBoxHalfSize)
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
@@ -2336,7 +2327,7 @@ private:
 	class Plane3D {
 	public:
 		using VectorType = array_1d<double, 3>;
-		using PointType = Point<3>;
+		using PointType = Point;
 
 		Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
 		Plane3D() = delete;

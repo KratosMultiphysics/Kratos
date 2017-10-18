@@ -2397,8 +2397,8 @@ public:
         //bool is_repited  = bool(Ids[slave]->GetValue(IS_CONTACT_SLAVE)==0)
         //if(is_repited==true)
         {
-            Point<3> MasterContactLocalPoint;
-            Point<3> SlaveContactLocalPoint;
+           Point MasterContactLocalPoint;
+           Point SlaveContactLocalPoint;
             int SlaveIntegrationPointIndex = 0;
             Condition::Pointer MasterFace             =  (Ids[slave])->GetValue(CONTACT_LINK_MASTER);
             Point3D<Node<3> >::Pointer point_geom     =  Point3D<Node<3> >::Pointer( new Point3D<Node<3> >(Ids[slave]));
