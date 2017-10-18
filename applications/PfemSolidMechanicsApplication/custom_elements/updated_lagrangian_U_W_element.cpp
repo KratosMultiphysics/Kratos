@@ -603,7 +603,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+      unsigned int dofs_per_node = dimension * 2;
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension);
 
@@ -632,7 +632,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+      unsigned int dofs_per_node = dimension * 2;
 
       Matrix B2 = ZeroMatrix(dimension, number_of_nodes*dimension);
       CalculateB2Matrix( B2, rVariables.DN_DX );
@@ -756,7 +756,7 @@ namespace Kratos
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+      unsigned int dofs_per_node = dimension * 2;
 
       double WaterPressure = this->CalculateGaussPointWaterPressure( rVariables, WaterPressure);
 
@@ -786,7 +786,7 @@ namespace Kratos
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      unsigned int dofs_per_node = number_of_nodes * dimension * 2;
+      unsigned int dofs_per_node = dimension * 2;
 
       double WaterPressure = this->CalculateGaussPointWaterPressure( rVariables, WaterPressure);
 
