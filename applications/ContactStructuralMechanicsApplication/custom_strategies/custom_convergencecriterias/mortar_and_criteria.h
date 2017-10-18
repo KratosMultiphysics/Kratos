@@ -27,7 +27,6 @@
 #endif
 #include "utilities/svd_utils.h"
 #include "linear_solvers/linear_solver.h"
-#include "../ExternalSolversApplication/custom_utilities/feast_condition_number_utility.h"
 
 namespace Kratos
 {
@@ -107,20 +106,6 @@ public:
     typedef typename BaseType::TSystemVectorType        TSystemVectorType;
     
     typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
-    
-    typedef std::complex<double>                              ComplexType;
-    
-    typedef compressed_matrix<ComplexType>        ComplexSparseMatrixType;
-
-    typedef matrix<ComplexType>                    ComplexDenseMatrixType;
-
-    typedef vector<ComplexType>                         ComplexVectorType;
-
-    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
-
-    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
-
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
     ///@}
     ///@name Life Cycle
@@ -134,14 +119,12 @@ public:
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
         TablePrinterPointerType pTable = nullptr,
         const bool PrintingOutput = false,
-        const bool ComputeConditionNumber = false,
-        ComplexLinearSolverType::Pointer pLinearSolver = nullptr
+        const bool ComputeConditionNumber = false
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
         mpTable(pTable),
         mPrintingOutput(PrintingOutput),
         mComputeConditionNumber(ComputeConditionNumber),
-        mpLinearSolver(pLinearSolver),
         mTableIsInitialized(false)
     {
     }
@@ -155,7 +138,6 @@ public:
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
       ,mComputeConditionNumber(rOther.mComputeConditionNumber)
-      ,mpLinearSolver(rOther.mpLinearSolver)
      {
          BaseType::mpFirstCriterion   =  rOther.mpFirstCriterion;
          BaseType::mpSecondCriterion  =  rOther.mpSecondCriterion;      
@@ -200,11 +182,7 @@ public:
         
         if (mComputeConditionNumber == true)
         {
-        #if defined(INCLUDE_FEAST)
-            const double condition_number = FEASTConditionNumberUtility<TSparseSpace, TDenseSpace>::ConditionNumber(A, mpLinearSolver);
-        #else
-            const double condition_number = SVDUtils<double>::SVDConditionNumber(A);
-        #endif
+            const double condition_number = SVDUtils<double>::SVDConditionNumber(A); // TODO: Use the new power iteration solver when avalaible
             
             if (mpTable != nullptr)
             {
@@ -385,7 +363,6 @@ private:
     TablePrinterPointerType mpTable;                 // Pointer to the fancy table 
     bool mPrintingOutput;                            // If the colors and bold are printed
     bool mComputeConditionNumber;                    // If the condition number is computed
-    ComplexLinearSolverType::Pointer mpLinearSolver; // The pointer to the linear solver
     bool mTableIsInitialized;                        // If the table is already initialized
     
     ///@}
