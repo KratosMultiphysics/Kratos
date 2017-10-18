@@ -78,6 +78,9 @@ void Initialize()
     
     const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();   
     const unsigned int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();
+
+    mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(mMeshId).Conditions().size();
+    mThermalLastCondition = mrThermalModelPart.GetMesh(mMeshId).Conditions().size();
    
     if (nelements != 0)
     {
@@ -114,6 +117,8 @@ void InitializeSolutionStep()
     KRATOS_TRY;
     
     const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+    const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    std::vector<std::size_t> ConditionNodeIds(Dim);
     int direction;
     
     if( mGravityDirection == "X")
@@ -129,11 +134,8 @@ void InitializeSolutionStep()
     // Getting the value of the table and computing the current height
     unsigned int current_number_of_phases = mrTablePhases.GetValue(int_time-1);
 
-    double current_height = mReferenceCoordinate + (mHeight/mPhases)*current_number_of_phases;  
-    int j = 1000000;
-
-    const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    std::vector<std::size_t> ConditionNodeIds(Dim);
+    double current_height = mReferenceCoordinate + (mHeight/mPhases)*current_number_of_phases;
+    int last_condition_id = mMechanicalLastCondition + mThermalLastCondition; 
 
     if (nelements != 0)
     {
@@ -192,8 +194,8 @@ void InitializeSolutionStep()
                             this->ActiveFaceHeatFluxStep(ConditionNodeIds);
                             #pragma omp critical
                             {
-                                mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", j+1, ConditionNodeIds, 0);
-                                j++;
+                                mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", last_condition_id+1, ConditionNodeIds, 0);
+                                last_condition_id++;
                             }
                         }
                     }
@@ -232,8 +234,8 @@ void InitializeSolutionStep()
                             this->ActiveFaceHeatFluxStep(ConditionNodeIds);
                             #pragma omp critical
                             {
-                                mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", j+1, ConditionNodeIds, 0);
-                                j++;
+                                mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", last_condition_id+1, ConditionNodeIds, 0);
+                                last_condition_id++;
                             }
                         }
                     }
@@ -255,8 +257,8 @@ void AfterOutputStep()
     const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
     const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE]; 
     std::vector<std::size_t> ConditionNodeIds(Dim);
-    int j = 1000000;
-
+    int last_condition_id = mMechanicalLastCondition + mThermalLastCondition;
+    
     if (nelements != 0)
     {
         ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();               
@@ -290,8 +292,8 @@ void AfterOutputStep()
                             this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
                             #pragma omp critical
                             {
-                                mrThermalModelPart.RemoveConditionFromAllLevels(j+1, 0);
-                                j++;
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id+1, 0);
+                                last_condition_id++;
                             }
                         }
                     }
@@ -326,8 +328,8 @@ void AfterOutputStep()
                             this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
                             #pragma omp critical
                             {
-                                mrThermalModelPart.RemoveConditionFromAllLevels(j+1, 0);
-                                j++;   
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id+1, 0);
+                                last_condition_id++;   
                             }
                         }
                     }
@@ -407,8 +409,6 @@ void ActiveFaceHeatFluxStep(std::vector<IndexType> ConditionNodeIds)
     time = time/mTimeUnitConverter;
     double ambient_temp = mrTableAmbientTemp.GetValue(time-1);
 
-    KRATOS_WATCH(ambient_temp)
-
     if(size != 0)
     {
         for(unsigned int j = 0; j<size; ++j)
@@ -479,6 +479,8 @@ protected:
     double mAlpha;
     double mTMax;
     double mH0;
+    unsigned int mMechanicalLastCondition;
+    unsigned int mThermalLastCondition;
     TableType& mrTablePhases;
     TableType& mrTableTimes;
     TableType& mrTableAmbientTemp;
