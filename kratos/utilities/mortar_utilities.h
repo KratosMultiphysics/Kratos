@@ -384,13 +384,14 @@ public:
             normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
         }
         
-        const bool not_zero_vector = (norm_2(normal) > std::numeric_limits<double>::epsilon());
+        const double this_norm = norm_2(normal);
         
     #ifdef KRATOS_DEBUG
-        if (not_zero_vector == false) KRATOS_ERROR << "Zero norm normal vector. Norm:" << norm_2(normal) << std::endl;
+        const bool not_zero_vector = (this_norm > std::numeric_limits<double>::epsilon());
+        if (not_zero_vector == false) KRATOS_ERROR << "Zero norm normal vector. Norm:" << this_norm << std::endl;
     #endif
         
-        if (not_zero_vector == true) normal = normal/norm_2(normal);
+        normal /= this_norm;
         
         return normal;
     }
