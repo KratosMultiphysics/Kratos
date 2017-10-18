@@ -841,6 +841,133 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+
+   // *********************************************************************************
+   //         Calculate the Mass matrix
+   void UpdatedLagrangianUWElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+   {
+      KRATOS_TRY
+
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dofs_per_node = 2*dimension;
+      unsigned int MatSize = 2 * number_of_nodes * dimension;
+
+      if ( rMassMatrix.size1() != MatSize )
+         rMassMatrix.resize( MatSize, MatSize, false );
+
+      rMassMatrix = ZeroMatrix( MatSize, MatSize );
+
+
+      //reading integration points
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+
+      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
+
+      ElementVariables Variables;
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+
+
+
+      double CurrentPorosity = 0.3; // LMV !!
+
+      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+         //compute element kinematics
+         this->CalculateKinematics( Variables, PointNumber );
+
+         //getting informations for integration
+         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+
+         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
+
+         //compute point volume change
+         double PointVolumeChange = 0;
+         PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
+
+         double CurrentDensity = PointVolumeChange * GetProperties()[DENSITY];
+         double   WaterDensity = PointVolumeChange * GetProperties()[DENSITY_WATER];
+
+         for ( unsigned int i = 0; i < number_of_nodes; i++ )
+         {
+            for ( unsigned int j = 0; j < number_of_nodes; j++ )
+            {
+               for ( unsigned int k = 0; k < dimension; k++ )
+               {
+                  rMassMatrix( dofs_per_node*i+k, dofs_per_node*j +k  )                     -= Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
+                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j +k  )           -= Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
+                  rMassMatrix( dofs_per_node*i+k, dofs_per_node*j+dimension +k  )           -= Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
+                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) -= Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight / CurrentPorosity;
+               }
+            }
+         }
+
+      }
+
+
+      KRATOS_CATCH("")
+   }
+
+   
+   // *********************************************************************************
+   //         Calculate the Damping matrix
+   void UpdatedLagrangianUWElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
+   {
+      KRATOS_TRY
+
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dofs_per_node = 2*dimension;
+      unsigned int MatSize = 2 * number_of_nodes * dimension;
+
+      if ( rDampingMatrix.size1() != MatSize )
+         rDampingMatrix.resize( MatSize, MatSize, false );
+
+      rDampingMatrix = ZeroMatrix( MatSize, MatSize );
+
+
+      //reading integration points
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+
+      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
+
+      ElementVariables Variables;
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+
+
+
+      double CurrentPermeability = 1e-3; // LMV !!
+
+      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+         //compute element kinematics
+         this->CalculateKinematics( Variables, PointNumber );
+
+         //getting informations for integration
+         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+
+         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
+
+         //compute point volume change
+         double PointVolumeChange = 0;
+         PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
+
+
+         for ( unsigned int i = 0; i < number_of_nodes; i++ )
+         {
+            for ( unsigned int j = 0; j < number_of_nodes; j++ )
+            {
+               for ( unsigned int k = 0; k < dimension; k++ )
+               {
+                  rDampingMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) -= Variables.N[i] * Variables.N[j] * IntegrationWeight / CurrentPermeability;
+               }
+            }
+         }
+
+      }
+
+      KRATOS_CATCH("")
+   }
    //************************************************************************************
    //************************************************************************************
 
