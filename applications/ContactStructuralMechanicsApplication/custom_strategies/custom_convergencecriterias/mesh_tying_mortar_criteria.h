@@ -19,9 +19,7 @@
 /* Project includes */
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #include "utilities/table_stream_utility.h"
-#if !defined(_WIN32)
-    #include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -119,9 +117,7 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
         ) override
-    {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
-        
+    {        
         if (mpTable != nullptr)
         {
             // TODO: Add somethig if necessary

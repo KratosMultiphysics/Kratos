@@ -19,6 +19,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "includes/enums.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
 #include "utilities/openmp_utils.h"
@@ -356,6 +357,35 @@ public:
         }
         
         PointToRotate.Coordinates() = prod(rotation_matrix, aux_point_to_rotate) + PointReferenceRotation.Coordinates();
+    }
+    
+    /**
+     * This function calculates the normal in a specific GP with a given shape function
+     * @param N: The shape function considered
+     * @param Geom: The geometry of condition of interest
+     */
+
+    static inline array_1d<double,3> GaussPointUnitNormal(
+        const Vector& N,
+        const GeometryType& Geom
+        )
+    {
+        array_1d<double,3> normal = ZeroVector(3);
+        for( unsigned int i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
+        {
+            normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
+        }
+        
+        const double this_norm = norm_2(normal);
+        
+    #ifdef KRATOS_DEBUG
+        const bool not_zero_vector = (this_norm > std::numeric_limits<double>::epsilon());
+        if (not_zero_vector == false) KRATOS_ERROR << "Zero norm normal vector. Norm:" << this_norm << std::endl;
+    #endif
+        
+        normal /= this_norm;
+        
+        return normal;
     }
     
     /**
