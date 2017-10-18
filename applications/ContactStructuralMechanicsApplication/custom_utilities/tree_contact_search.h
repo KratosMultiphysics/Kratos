@@ -833,7 +833,7 @@ protected:
     static inline double Radius(GeometryType& ThisGeometry) 
     { 
         double radius = 0.0; 
-        const Point<3>& center = ThisGeometry.Center(); 
+        const Point& center = ThisGeometry.Center(); 
          
         for(unsigned int i_node = 0; i_node < ThisGeometry.PointsNumber(); i_node++) 
         { 

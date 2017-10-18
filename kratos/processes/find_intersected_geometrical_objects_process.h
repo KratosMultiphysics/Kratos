@@ -62,7 +62,7 @@ namespace Kratos
 				MIN_LEVEL = 2    // this cannot be less than 2!!!
 			};
 
-			typedef Point<3, double>                                PointType;  /// always the point 3D
+			typedef Point			                                PointType;  /// always the point 3D
 			typedef std::vector<double>::iterator                   DistanceIteratorType;
 			typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
 			typedef ContainerType::value_type                       PointerType;
@@ -166,8 +166,8 @@ namespace Kratos
 
 			static  inline bool  IsIntersected(const Element::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
 			{
-				Point<3, double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-				Point<3, double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+				Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+				Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
 				KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
 					//return HasIntersection(rObject->GetGeometry(), low_point, high_point);

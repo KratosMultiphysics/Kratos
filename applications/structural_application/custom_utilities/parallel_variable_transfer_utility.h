@@ -151,7 +151,7 @@ public:
         Element correspondingElement;
 //				FixDataValueContainer newNodalValues;
 //				FixDataValueContainer oldNodalValues;
-        Point<3>  localPoint;
+       Point  localPoint;
 
         for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd() ; it++)
@@ -574,10 +574,10 @@ public:
 
                 for(unsigned int point=0; point< integration_points.size(); point++)
                 {
-                    Point<3> sourceLocalPoint;
-                    Point<3> targetLocalPoint;
+                   Point sourceLocalPoint;
+                   Point targetLocalPoint;
                     noalias(targetLocalPoint)= integration_points[point];
-                    Point<3> targetGlobalPoint;
+                   Point targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
                     Element sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
@@ -638,10 +638,10 @@ public:
 
                 for(unsigned int point=0; point< integration_points.size(); point++)
                 {
-                    Point<3> sourceLocalPoint;
-                    Point<3> targetLocalPoint;
+                   Point sourceLocalPoint;
+                   Point targetLocalPoint;
                     noalias(targetLocalPoint)= integration_points[point];
-                    Point<3> targetGlobalPoint;
+                   Point targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
                     Element sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
@@ -703,10 +703,10 @@ public:
 
                 for(unsigned int point=0; point< integration_points.size(); point++)
                 {
-                    Point<3> sourceLocalPoint;
-                    Point<3> targetLocalPoint;
+                   Point sourceLocalPoint;
+                   Point targetLocalPoint;
                     noalias(targetLocalPoint)= integration_points[point];
-                    Point<3> targetGlobalPoint;
+                   Point targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
                     Element sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
@@ -1304,10 +1304,10 @@ public:
                     {
                         MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
 
-                        Point<3> sourceLocalPoint;
-                        Point<3> targetLocalPoint;
+                       Point sourceLocalPoint;
+                       Point targetLocalPoint;
                         noalias(targetLocalPoint)= integration_points[point];
-                        Point<3> targetGlobalPoint;
+                       Point targetGlobalPoint;
                         (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                                targetLocalPoint);
                         Element sourceElement;
@@ -1439,10 +1439,10 @@ public:
                 {
                     MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
 
-                    Point<3> sourceLocalPoint;
-                    Point<3> targetLocalPoint;
+                   Point sourceLocalPoint;
+                   Point targetLocalPoint;
                     noalias(targetLocalPoint)= integration_points[point];
-                    Point<3> targetGlobalPoint;
+                   Point targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                            targetLocalPoint);
                     Element sourceElement;
@@ -1537,10 +1537,10 @@ public:
             {
                 MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
 
-                Point<3> sourceLocalPoint;
-                Point<3> targetLocalPoint;
+               Point sourceLocalPoint;
+               Point targetLocalPoint;
                 noalias(targetLocalPoint)= integration_points[point];
-                Point<3> targetGlobalPoint;
+               Point targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                        targetLocalPoint);
                 Element sourceElement;
@@ -1589,12 +1589,12 @@ public:
      * @param oldElement corresponding element in source mesh
      * @param localPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable )
-     * @see MappedValue( Element& sourceElement, Point<3>& targetPoint,
+     * @see MappedValue( Element& sourceElement,Point& targetPoint,
     const Variable<double>& rThisVariable)
                  */
-    Matrix ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    Matrix ValueMatrixInOldMesh(Element& oldElement,Point&  localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable )
     {
         Matrix newValue(3,3);
@@ -1624,12 +1624,12 @@ public:
      * @param oldElement corresponding element in source mesh
      * @param localPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueMatrixInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
-     * @see MappedValue( Element& sourceElement, Point<3>& targetPoint,
+     * @see MappedValue( Element& sourceElement,Point& targetPoint,
     const Variable<double>& rThisVariable)
                  */
-    Vector ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    Vector ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
                                 const Variable<Kratos::Vector>& rThisVariable )
     {
         Vector newValue(6);
@@ -1654,12 +1654,12 @@ public:
      * @param sourceElement corresponding element in source mesh
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueMatrixInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable )
                  */
-    double MappedValuePressure( Element& sourceElement, Point<3>& targetPoint,
+    double MappedValuePressure( Element& sourceElement,Point& targetPoint,
                                 const Variable<double>& rThisVariable)
     {
         double newValue = 0.0;
@@ -1696,12 +1696,12 @@ public:
      * @param sourceElement corresponding element in source mesh
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueMatrixInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable )
                  */
-    double MappedValue( Element& sourceElement, Point<3>& targetPoint,
+    double MappedValue( Element& sourceElement,Point& targetPoint,
                         const Variable<double>& rThisVariable)
     {
         double newValue = 0.0;
@@ -1725,7 +1725,7 @@ public:
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
                  */
-    Vector MappedValue( Element& sourceElement, Point<3>& targetPoint,
+    Vector MappedValue( Element& sourceElement,Point& targetPoint,
                         const Variable<array_1d<double, 3 > >& rThisVariable)
     {
         Vector newValue = ZeroVector(3);
@@ -1753,7 +1753,7 @@ public:
      */
     bool FindPartnerElement( CoordinatesArrayType& newNode,
                              const ElementsArrayType& OldMeshElementsArray,
-                             Element& oldElement, Point<3>&  rResult)
+                             Element& oldElement,Point&  rResult)
     {
         bool partner_found= false;
         //noalias(rResult)= ZeroVector(3);
@@ -1844,10 +1844,10 @@ public:
      * @param rThisVariable given variable to be transferred
      * @param firstvalue row index
      * @param secondvalue column index
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
                  */
-    double ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    double ValueMatrixInOldMesh(Element& oldElement,Point&  localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable, unsigned int firstvalue, unsigned int secondvalue )
     {
         double newValue= 0.0;
@@ -1871,10 +1871,10 @@ public:
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
      * @param firstvalue index
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
                  */
-    double ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    double ValueVectorInOldMesh(Element& oldElement,Point&  localPoint,
                                 const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue )
     {
         double newValue= 0.0;

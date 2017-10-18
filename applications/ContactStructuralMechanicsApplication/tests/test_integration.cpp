@@ -40,7 +40,7 @@ namespace Kratos
     namespace Testing 
     {
 
-        typedef Point<3>                                             PointType;
+        typedef Point                                             PointType;
         typedef Node<3>                                               NodeType;
         typedef Geometry<NodeType>                            GeometryNodeType;
         typedef Geometry<PointType>                          GeometryPointType;
