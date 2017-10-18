@@ -44,7 +44,7 @@ public:
     
     // General type definitions
     typedef Node<3>                                              NodeType;
-    typedef Point                                            PointType;
+    typedef Point                                               PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
     typedef Geometry<NodeType>                               GeometryType;
     typedef Geometry<PointType>                         GeometryPointType;
@@ -513,12 +513,12 @@ public:
      * @return point: The center in u_n+1/2 (Newmark)
      */
     
-    static inline Point<3> GetHalfJumpCenter(
+    static inline PointType GetHalfJumpCenter(
         GeometryType& ThisGeometry,
         const double& DeltaTime
         )
     {
-        Point<3> center = ThisGeometry.Center();
+        PointType center = ThisGeometry.Center();
         
         // Initialize variables
         Vector N;
