@@ -62,7 +62,7 @@ public:
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
     
-    typedef Point<3>                                     PointType;
+    typedef Point                                        PointType;
     typedef Node<3>                                       NodeType;
     typedef Geometry<NodeType>                        GeometryType;
     typedef Geometry<PointType>                  GeometryPointType;
