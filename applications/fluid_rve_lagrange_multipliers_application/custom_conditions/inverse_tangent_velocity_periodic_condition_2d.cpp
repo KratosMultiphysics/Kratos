@@ -141,7 +141,8 @@ namespace Kratos
 			}
 		}
 
-		rRightHandSideVector[2] = -20.0;
+		//rRightHandSideVector[2] = -20.0;
+		rRightHandSideVector[2] = -80.0;
 			
 		//substracting:
 		array_1d<double,3>  temp_vector=ZeroVector(3);
