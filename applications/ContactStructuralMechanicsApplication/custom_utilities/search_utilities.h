@@ -52,7 +52,7 @@ public:
     ///@name Type Definitions
     ///@{
     
-    typedef Point<3>                                     PointType;
+    typedef Point                                     PointType;
     typedef Node<3>                                       NodeType;
     typedef Geometry<NodeType>                        GeometryType;
     typedef Geometry<PointType>                  GeometryPointType;
@@ -424,7 +424,7 @@ private:
         {
             if (Geom1[i_node].Is(ACTIVE) == false)
             {
-                Point<3> projected_point;
+                Point projected_point;
                 double aux_distance = 0.0;
                 const array_1d<double, 3> normal = Geom1[i_node].GetValue(NORMAL);
                 if (norm_2(normal) < tolerance)

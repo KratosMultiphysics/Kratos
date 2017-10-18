@@ -43,7 +43,7 @@ public:
     
     // General type definitions
     typedef Node<3>                                              NodeType;
-    typedef Point<3>                                            PointType;
+    typedef Point                                            PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
     typedef Geometry<NodeType>                               GeometryType;
     typedef Geometry<PointType>                         GeometryPointType;

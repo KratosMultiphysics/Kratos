@@ -162,7 +162,7 @@ public:
       if( (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY) )
 	{
 
-	  std::vector<Point<3> > list_of_points;
+	  std::vector<Point > list_of_points;
 	  std::vector<ConditionType::Pointer> list_of_conditions;
 
 	  unsigned int conditions_size = mrModelPart.Conditions(mMeshId).size();
@@ -351,7 +351,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void BuildNewConditions( ModelPart& rModelPart, std::vector<Point<3> >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    void BuildNewConditions( ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -521,7 +521,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineContactBoundary(ModelPart& rModelPart, std::vector<Point<3> >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineContactBoundary(ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -822,7 +822,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineOtherBoundary(ModelPart& rModelPart, std::vector<Point<3> >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineOtherBoundary(ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
