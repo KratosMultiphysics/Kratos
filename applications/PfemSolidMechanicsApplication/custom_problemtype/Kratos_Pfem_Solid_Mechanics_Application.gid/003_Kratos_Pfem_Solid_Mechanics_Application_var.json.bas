@@ -141,6 +141,7 @@
 *add cond group_POINT_MOMENT *groups
 *add cond group_VOLUME_ACCELERATION *groups
 *add cond group_WATER_PRESSURE *groups
+*add cond group_WATER_MOVEMENT *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -504,7 +505,8 @@
     }],
     "constraints_process_list" : [
 *set var numberconstraints= 0
-*set cond group_LINEAR_MOVEMENT *groups
+*set cond group_WATER_MOVEMENT *groups 
+*add cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
 *add cond group_WATER_PRESSURE *groups
 *loop groups *OnlyInCond
@@ -513,6 +515,7 @@
 *set var Counter = 0
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
+*add cond group_WATER_MOVEMENT *groups
 *if(strcmp(GenData(Set_initial_state),"True")==0)
 *set var numberconstraints(int)=Operation(numberconstraints(int)+1)
 *endif
