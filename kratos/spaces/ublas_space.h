@@ -2,13 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//  Collaborator:    Vicente Mataix Ferrandiz
+//
 //
 
 #if !defined(KRATOS_UBLAS_SPACE_H_INCLUDED )
@@ -215,7 +216,7 @@ public:
 #ifndef _OPENMP
         rY.assign(rX);
 #else
-        
+
         const int size = rX.size();
         if (rY.size() != static_cast<unsigned int>(size))
             rY.resize(size, false);
@@ -235,11 +236,11 @@ public:
 #else
         const int size = static_cast<int>(rX.size());
 
-        TDataType total = 0.0;
+        TDataType total = TDataType();
         #pragma omp parallel for reduction( +: total), firstprivate(size)
         for(int i =0; i<size; ++i)
             total += rX[i]*rY[i];
-        
+
         return total;
 #endif
     }
@@ -247,24 +248,70 @@ public:
 
     /// ||rX||2
 
-    static double TwoNorm(VectorType const& rX)
+    static TDataType TwoNorm(VectorType const& rX)
     {
-        return sqrt(Dot(rX, rX));
+        return std::sqrt(Dot(rX, rX));
     }
-    
-    static double TwoNorm(MatrixType const& rA) // Frobenious norm
+
+    static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
     {
-        double aux_sum = 0.0; 
-        
-        for (unsigned int i = 1; i < rA.size1(); i++)
+        TDataType aux_sum = TDataType();
+#ifndef _OPENMP
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
-            for (unsigned int j = 1; j < rA.size2(); j++)
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
-        
+#else
+        #pragma omp parallel reduction(+:aux_sum)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
+            {
+                aux_sum += rA(i,j) * rA(i,j);
+            }
+        }
+#endif
         return std::sqrt(aux_sum);
+    }
+    
+    /**
+     * This method computes the Jacobi norm
+     * @param rA: The matrix to compute the Jacobi norm
+     * @return aux_sum: The Jacobi norm
+     */
+    static TDataType JacobiNorm(MatrixType const& rA)
+    {
+        TDataType aux_sum = TDataType();
+        
+#ifndef _OPENMP
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
+            {
+                if (i != j) 
+                {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+#else
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
+            {
+                if (i != j) 
+                {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+#endif
+
+        return aux_sum;
     }
 
     static void Mult(Matrix& rA, VectorType& rX, VectorType& rY)
@@ -342,7 +389,7 @@ public:
 #else
              const int size = rX.size();
 
-            #pragma omp parallel for
+            #pragma omp parallel for firstprivate(size)
             for (int i = 0; i < size; i++)
                 rX[i] = -rX[i];
 
@@ -355,7 +402,7 @@ public:
 #else
             const int size = rX.size();
 
-            #pragma omp parallel for
+            #pragma omp parallel for firstprivate(size)
             for (int i = 0; i < size; i++)
                 rX[i] *= A;
 #endif
@@ -468,6 +515,11 @@ public:
     }
 
 
+    static void SetValue(VectorType& rX, IndexType i, TDataType value)
+    {
+        rX[i] = value;
+    }
+
     /// rX = A
 
     static void Set(VectorType& rX, TDataType A)
@@ -480,9 +532,19 @@ public:
         rA.resize(m, n, false);
     }
 
+    static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
+    {
+        pA->resize(m, n, false);
+    }
+
     static void Resize(VectorType& rX, SizeType n)
     {
         rX.resize(n, false);
+    }
+
+    static void Resize(VectorPointerType& pX, SizeType n)
+    {
+        pX->resize(n, false);
     }
 
     static void Clear(MatrixPointerType& pA)
@@ -528,8 +590,10 @@ public:
 #ifndef _OPENMP
         std::fill(rA.begin(), rA.end(), TDataType());
 #else
-        ParallelFill(rA.begin(), rA.end(), TDataType());
-
+        DataType* vals = rA.value_data().begin();
+        #pragma omp parallel for firstprivate(m)
+        for(int i=0; i<m; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -539,7 +603,10 @@ public:
 #ifndef _OPENMP
         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-        ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+        TDataType* vals = rA.value_data().begin();
+        #pragma omp parallel for firstprivate(m)
+        for(int i=0; i<m; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -549,7 +616,10 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        ParallelFill(rX.begin(), rX.end(), TDataType());
+        const int size = rX.size();
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            rX[i] = TDataType();
 #endif
     }
 
@@ -559,7 +629,11 @@ public:
 #ifndef _OPENMP
         std::fill(rA.begin(), rA.end(), TDataType());
 #else
-        ParallelFill(rA.begin(), rA.end(), TDataType());
+        TDataType* vals = rA.value_data().begin();
+        const int size = rA.value_data().end() - rA.value_data().begin();
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -568,7 +642,11 @@ public:
 #ifndef _OPENMP
         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-        ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+        TDataType* vals = rA.value_data().begin();
+        const int size = rA.value_data().end() - rA.value_data().begin();
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -577,7 +655,10 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        ParallelFill(rX.begin(), rX.end(), TDataType());
+        const int size = rX.size();
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            rX[i] = TDataType();
 #endif
     }
 
@@ -680,14 +761,14 @@ public:
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
     }
-    
+
     template< class VectorType >
     static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(FileName,V);
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -788,21 +869,6 @@ private:
             partitions[i] = partitions[i - 1] + partition_size;
     }
 
-    template <class TIterartorType>
-    static void ParallelFill(TIterartorType Begin, TIterartorType End, TDataType const& Value)
-    {
-#ifndef _OPENMP
-        std::fill(Begin, End, Value);
-#else
-        int size = End-Begin;
-        //#pragma omp parallel for
-        for (int i = 0; i < size; i++)
-        {
-            *(Begin+i) = Value;
-        }
-#endif
-
-    }
 
     /**
      * calculates partial product resetting to Zero the output before
@@ -900,6 +966,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined

@@ -14,7 +14,6 @@
 #if !defined(KRATOS_NEW_DISPLACEMENT_CRITERIA )
 #define  KRATOS_NEW_DISPLACEMENT_CRITERIA
 
-
 /* System includes */
 
 
@@ -28,31 +27,24 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
 
-/**@name Kratos Globals */
-/*@{ */
+///@}
+///@name Type Definitions
+///@{
 
+///@}
+///@name  Enum's
+///@{
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
+///@name  Functions
+///@{
 
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@}
+///@name Kratos Classes
+///@{
 
 /** Short class definition.
 Detail class definition.
@@ -73,17 +65,16 @@ Detail class definition.
 \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
 \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
 */
+
 template<class TSparseSpace,
          class TDenseSpace
          >
 class DisplacementCriteria : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementCriteria );
 
@@ -99,10 +90,9 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /** Constructor.
     */
@@ -127,22 +117,21 @@ public:
 
     /** Destructor.
     */
-    virtual ~DisplacementCriteria() {}
+    ~DisplacementCriteria() override {}
 
 
-    /*@} */
-    /**@name Operators
-    */
-    /*@{ */
+    ///@}
+    ///@name Operators
+    ///@{
 
     /*Criterias that need to be called after getting the solution */
     bool PostCriteria(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -162,25 +151,25 @@ public:
             {
                 if(mReferenceDispNorm == 0)
                 {
-                    KRATOS_THROW_ERROR(std::logic_error, "NaN norm is detected", "");
+                    KRATOS_ERROR << "NaN norm is detected" << std::endl;
                 }
                 ratio = mFinalCorrectionNorm/mReferenceDispNorm;
             }
             const double aaa = SparseSpaceType::Size(Dx);
 
-            const double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
+            const double AbsoluteNorm = (mFinalCorrectionNorm/std::sqrt(aaa));
 
-            if (this->GetEchoLevel() >= 1)
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
                 std::cout << "DISPLACEMENT CRITERION :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << AbsoluteNorm << "; ]" << std::endl;
             }
 
-            r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
-            r_model_part.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNorm;
+            rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNorm;
 
             if ( ratio <= mRatioTolerance  ||  AbsoluteNorm<mAlwaysConvergedNorm )  //  || (mFinalCorrectionNorm/x.size())<=1e-7)
             {
-                if (this->GetEchoLevel() >= 1)
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
                     std::cout << "Convergence is achieved" << std::endl;
                 }
@@ -199,101 +188,99 @@ public:
     }
 
     void Initialize(
-        ModelPart& r_model_part
-    )
+        ModelPart& rModelPart
+    ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
     }
 
     void FinalizeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
 
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@}
+    ///@name Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+    ///@}
+    ///@name Access
+    ///@{
 
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-
-
-    /*@} */
+    ///@}
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     TDataType mRatioTolerance;
 
@@ -301,9 +288,9 @@ private:
 
     TDataType mReferenceDispNorm;
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operators
+    ///@{
 
     void CalculateReferenceNorm(DofsArrayType& rDofSet)
     {
@@ -331,37 +318,37 @@ private:
         mReferenceDispNorm = sqrt(mReferenceDispNorm);
     }
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
 
-    /*@} */
+    ///@}
 
 }; /* Class ClassName */
 
-/*@} */
+///@}
 
-/**@name Type Definitions */
-/*@{ */
+///@name Type Definitions
+///@{
 
 
-/*@} */
+///@}
 
 }  /* namespace Kratos.*/
 

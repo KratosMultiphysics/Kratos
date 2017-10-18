@@ -1,8 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -16,7 +17,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
  
     def ComputeAverageMeshParameters(self):
         
-        ModelerUtils = KratosPfemBase.ModelerUtilities();
+        ModelerUtils = KratosPfem.ModelerUtilities();
         self.domain_volume =  ModelerUtils.ComputeModelPartVolume(self.main_model_part)
         self.element_mean_volume = 0
         
@@ -38,8 +39,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
         return self.domain_volume
 
     #
-    def ComputeInitialAverageMeshParameters(self):
-
+    def ComputeInitialAverageMeshParameters(self):        
  
         numFluid=0
         mean_nodal_h=0
@@ -55,6 +55,11 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
     
         self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
         self.RefiningParameters.SetInitialRadius(mean_nodal_h)
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.INITIAL_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.CURRENT_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.PREVIOUS_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.TIME_INTERVAL_CHANGED,False)
         
 
     #

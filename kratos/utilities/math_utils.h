@@ -10,7 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrándiz
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MATH_UTILS )
@@ -26,7 +26,7 @@
 #include "containers/array_1d.h"
 
 /* Project includes */
-
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -66,7 +66,13 @@ public:
 
     typedef Vector VectorType;
 
+    typedef std::size_t SizeType;
+    
     typedef unsigned int IndexType;
+
+    typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
+    
+    typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
 
     ///@}
     ///@name Life Cycle
@@ -222,7 +228,7 @@ public:
     static inline boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertMatrix(
             const boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& InputMatrix,
             TDataType& InputMatrixDet,
-            const TDataType Tolerance = 1.0e-18
+            const TDataType Tolerance = std::numeric_limits<double>::epsilon()
             )
     {
         boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertedMatrix;
@@ -304,6 +310,41 @@ public:
     }
     
     /**
+     * It inverts non square matrices (https://en.wikipedia.org/wiki/Inverse_element#Matrices)
+     * @param InputMatrix: Is the input matrix (unchanged at output)
+     * @return InvertedMatrix: Is the inverse of the input matrix
+     * @return InputMatrixDet: Is the determinant of the input matrix
+     */
+
+    static void GeneralizedInvertMatrix(
+        const MatrixType& InputMatrix,
+        MatrixType& InvertedMatrix,
+        TDataType& InputMatrixDet
+        )
+    {
+        if (InputMatrix.size1() == InputMatrix.size2())
+        {
+            InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
+        }
+        else if (InputMatrix.size1() < InputMatrix.size2()) // Right inverse
+        {
+            const Matrix aux = prod(InputMatrix, trans(InputMatrix));
+            Matrix auxInv;
+            InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InvertedMatrix = prod(trans(InputMatrix), auxInv);
+        }
+        else // Left inverse
+        {
+            const Matrix aux = prod(trans(InputMatrix), InputMatrix);
+            Matrix auxInv;
+            InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InvertedMatrix = prod(auxInv, trans(InputMatrix));
+        }
+    }
+    
+    /**
      * It inverts matrices of order 2, 3 and 4
      * @param InputMatrix: Is the input matrix (unchanged at output)
      * @return InvertedMatrix: Is the inverse of the input matrix
@@ -340,16 +381,32 @@ public:
             InvertMatrix4(InputMatrix, InvertedMatrix, InputMatrixDet);
         }
         else
-        {
-//             KRATOS_ERROR << "::WARNING: Size not implemented. Size: " << TDim << std::endl;
+        {   
+            const unsigned int size1 = InputMatrix.size1();
+            const unsigned int size2 = InputMatrix.size2();
+            if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2)
+            {
+                InvertedMatrix.resize(size1, size2,false);
+            }
+            
             int singular = 0;
             using namespace boost::numeric::ublas;
-            typedef permutation_matrix<std::size_t> pmatrix;
+            typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
             pmatrix pm(A.size1());
             singular = lu_factorize(A,pm);
             InvertedMatrix.assign( IdentityMatrix(A.size1()));
             lu_substitute(A, pm, InvertedMatrix);
+             
+            // Calculating determinant
+            InputMatrixDet = 1.0;
+            
+            for (unsigned int i = 0; i < A.size1();i++)
+            {
+                unsigned int ki = pm[i] == i ? 0 : 1;
+                InputMatrixDet *= std::pow(-1.0, ki) * A(i,i);
+            }
+            
             if (singular == 1)
             {
                 KRATOS_ERROR << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
@@ -502,12 +559,65 @@ public:
         {
             Det = Det2(A);
         }
-        else
+        else if (A.size1() == 3)
         {
             Det = Det3(A);
         }
+        else if (A.size1() == 4)
+        {
+            Det = Det4(A);
+        }
+        else
+        {
+            using namespace boost::numeric::ublas;
+            typedef permutation_matrix<SizeType> pmatrix;
+            Matrix Aux(A);
+            pmatrix pm(Aux.size1());
+            bool singular = lu_factorize(Aux,pm);
+            
+            if (singular == true)
+            {
+                return 0.0;
+            }
+            
+            Det = 1.0;
+            
+            for (unsigned int i = 0; i < Aux.size1();i++)
+            {
+                unsigned int ki = pm[i] == i ? 0 : 1;
+                Det *= std::pow(-1.0, ki) * Aux(i,i);
+            }
+        }
 
         return Det;
+    }
+    
+    /**
+     * Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
+     * @param A: Is the input matrix
+     * @return The determinant of the 2x2 matrix
+     */
+        
+    static inline TDataType GeneralizedDet(const MatrixType& A)
+    {
+        TDataType determinant;
+        
+        if (A.size1() == A.size2())
+        {
+            determinant = Det(A);
+        }
+        else if (A.size1() < A.size2()) // Right determinant
+        {
+            Matrix AAT = prod( A, trans(A) );
+            determinant = std::sqrt(Det(AAT));
+        }
+        else // Left determinant
+        {
+            Matrix ATA = prod( trans(A), A );
+            determinant = std::sqrt(Det(ATA));
+        }
+        
+        return determinant;
     }
     
     /**
@@ -530,11 +640,25 @@ public:
     static inline TDataType Det3(const MatrixType& A)
     {
         // Calculating the algebraic complements to the first line
-        double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
-        double b = A(1,0)*A(2,2) - A(1,2)*A(2,0);
-        double c = A(1,0)*A(2,1) - A(1,1)*A(2,0);
+        const double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
+        const double b = A(1,0)*A(2,2) - A(1,2)*A(2,0);
+        const double c = A(1,0)*A(2,1) - A(1,1)*A(2,0);
 
         return A(0,0)*a - A(0,1)*b + A(0,2)*c;
+    }
+    
+    /**
+     * Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
+     * @param A: Is the input matrix
+     * @return The determinant of the 4x4 matrix
+     */
+    
+    static inline TDataType Det4(const MatrixType& A)
+    {
+        const double Det = A(0,1)*A(1,3)*A(2,2)*A(3,0)-A(0,1)*A(1,2)*A(2,3)*A(3,0)-A(0,0)*A(1,3)*A(2,2)*A(3,1)+A(0,0)*A(1,2)*A(2,3)*A(3,1)   
+                          -A(0,1)*A(1,3)*A(2,0)*A(3,2)+A(0,0)*A(1,3)*A(2,1)*A(3,2)+A(0,1)*A(1,0)*A(2,3)*A(3,2)-A(0,0)*A(1,1)*A(2,3)*A(3,2)+A(0,3)*(A(1,2)*A(2,1)*A(3,0)-A(1,1)*A(2,2)*A(3,0)-A(1,2)*A(2,0)*A(3,1)+A(1,0)*A(2,2)*A(3,1)+A(1,1)*A(2,0)*A(3,2)
+                          -A(1,0)*A(2,1)*A(3,2))+(A(0,1)*A(1,2)*A(2,0)-A(0,0)*A(1,2)*A(2,1)-A(0,1)*A(1,0)*A(2,2)+A(0,0)*A(1,1)*A(2,2))*A(3,3)+A(0,2)*(-(A(1,3)*A(2,1)*A(3,0))+A(1,1)*A(2,3)*A(3,0)+A(1,3)*A(2,0)*A(3,1)-A(1,0)*A(2,3)*A(3,1)-A(1,1)*A(2,0)*A(3,3)+A(1,0)*A(2,1)*A(3,3));
+        return Det;
     }
 
     /**
@@ -1034,9 +1158,11 @@ public:
         KRATOS_CATCH("");
     }
     
-    //***********************************************************************
-    //***********************************************************************
-    /// sign function
+    /**
+     * Sign function
+     * @param ThisDataType: The value to extract the sign
+     * @return The sign of the value
+     */
     static inline int Sign(const TDataType& ThisDataType)
     {
         KRATOS_TRY;
@@ -1425,7 +1551,7 @@ public:
     
         return is_converged;
     }
-     
+    
     ///@}
     ///@name Access
     ///@{

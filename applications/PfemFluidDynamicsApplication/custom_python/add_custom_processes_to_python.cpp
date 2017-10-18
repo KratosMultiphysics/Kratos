@@ -32,7 +32,11 @@
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
 #include "custom_processes/inlet_management_process.hpp"
+#include "custom_processes/set_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
+#include "custom_processes/split_elements_process.hpp"
+#include "custom_processes/set_active_flag_process.hpp"
+#include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 
 //Processes
@@ -86,7 +90,31 @@ namespace Kratos
       	 )
       	;
 
-      class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType>, boost::noncopyable >
+      class_<SetInletProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "SetInlet", init<ModelPart&, int>()
+      	 )
+      	;
+
+      class_<SplitElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SplitElementsProcess", init<ModelPart&, int>()
+	 )
+	;
+
+      class_<SetActiveFlagProcess,  bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SetActiveFlagProcess", init<ModelPart&, bool, bool, int>()
+	 )
+	;
+
+      class_<AdaptiveTimeIntervalProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "AdaptiveTimeIntervalProcess", init<ModelPart&, int>()
+      	 )
+      	;
+
+     class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType>, boost::noncopyable >
 	(
 	 "ModelMeshingForFluids", init<ModelPart&, Flags, int>()
 	 )

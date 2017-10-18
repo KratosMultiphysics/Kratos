@@ -1,25 +1,16 @@
-// Kratos Multi-Physics
-// 
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
+//
 
 
 #if !defined(KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED )
@@ -92,7 +83,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~LevelSetConvectionElementSimplex() {};
+    ~LevelSetConvectionElementSimplex() override {};
 
 
     ///@}
@@ -104,7 +95,7 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Element::Pointer(new LevelSetConvectionElementSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -112,7 +103,7 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -247,7 +238,7 @@ public:
     
     
     
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
     }
@@ -256,7 +247,7 @@ public:
     
     
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -278,7 +269,7 @@ public:
     
     
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -313,14 +304,14 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "LevelSetConvectionElementSimplex #";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -429,12 +420,12 @@ private:
     //         {
     //         }
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

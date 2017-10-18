@@ -1,12 +1,8 @@
-//
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
-//
+// Authors: Miquel Santasusana msantasusana@cimne.upc.edu,
+//           Guillermo Casas (gcasas@cimne.upc.edu)
 
-#if !defined(KRATOS_RIGIDFACE3D_H_INCLUDED )
+#if !defined(KRATOS_RIGIDFACE3D_H_INCLUDED)
 #define  KRATOS_RIGIDFACE3D_H_INCLUDED
-
-// External includes
-//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -17,9 +13,10 @@
 #include "dem_wall.h"
 
 namespace Kratos
+
 {
 
-class RigidFace3D : public DEMWall
+class KRATOS_API(DEM_APPLICATION) RigidFace3D : public DEMWall
 {
 public:
 
@@ -47,14 +44,43 @@ public:
     // Destructor
     virtual ~RigidFace3D();
 
+    class FaceDataBuffer
+    {
+    public:
+        FaceDataBuffer(RigidFace3D* p_this_condition): mpThisCondition(p_this_condition)
+        {}
+
+        virtual ~FaceDataBuffer(){}
+
+    void SetCurrentNeighbour(SphericParticle* p_neighbour)
+    {
+        mpNeighbourParticle = p_neighbour;
+    }
+
+    double mIndentation;
+    double mLocalRelVel[3];
+    RigidFace3D* mpThisCondition;
+    SphericParticle* mpNeighbourParticle;
+    };
+
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
     void Initialize() override;
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;		
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
     void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+    int CheckSide(SphericParticle* p_particle) override;
+    virtual bool CheckProjectionFallsInside(SphericParticle *p_particle);
+    void ComputeConditionRelativeData(int rigid_neighbour_index,
+                                      SphericParticle* const particle,
+                                      double LocalCoordSystem[3][3],
+                                      double& DistPToB,
+                                      array_1d<double, 4>& Weight,
+                                      array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                      array_1d<double, 3>& wall_velocity_at_contact_point,
+                                      int& ContactType) override;
     
 
 protected:
@@ -62,6 +88,12 @@ protected:
 private:
 
     friend class Serializer;
+
+    template<typename T>
+    inline int Sign(T x)
+    {
+        return (T(0) < x) - (x < T(0));
+    }
 
     virtual void save( Serializer& rSerializer ) const override
     {

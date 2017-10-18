@@ -1,46 +1,14 @@
-/*
-==============================================================================
-KratosFluidDynamicsApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
 
 #if !defined(KRATOS_GEAR_SCHEME_H_INCLUDED )
 #define  KRATOS_GEAR_SCHEME_H_INCLUDED
@@ -141,7 +109,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~GearScheme()
+    ~GearScheme() override
     {}
 
     ///@}
@@ -158,7 +126,7 @@ public:
      * @param rModelPart The fluid's ModelPart
      * @return 0 if no errors were found
      */
-    virtual int Check(ModelPart& rModelPart)
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -201,10 +169,10 @@ public:
     }
 
     /// Set the time iteration coefficients
-    virtual void InitializeSolutionStep(ModelPart& rModelPart,
+    void InitializeSolutionStep(ModelPart& rModelPart,
                                         TSystemMatrixType& A,
                                         TSystemVectorType& Dx,
-                                        TSystemVectorType& b)
+                                        TSystemVectorType& b) override
     {
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
 
@@ -242,10 +210,10 @@ public:
         }
     }
 
-    virtual void InitializeNonLinIteration(ModelPart& rModelPart,
+    void InitializeNonLinIteration(ModelPart& rModelPart,
                                            TSystemMatrixType& A,
                                            TSystemVectorType& Dx,
-                                           TSystemVectorType& b)
+                                           TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -254,10 +222,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void FinalizeNonLinIteration(ModelPart &rModelPart,
+    void FinalizeNonLinIteration(ModelPart &rModelPart,
                                          TSystemMatrixType &A,
                                          TSystemVectorType &Dx,
-                                         TSystemVectorType &b)
+                                         TSystemVectorType &b) override
     {
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -271,11 +239,11 @@ public:
     }
 
     /// Start the iteration by providing a first approximation to the solution.
-    virtual void Predict(ModelPart& rModelPart,
+    void Predict(ModelPart& rModelPart,
                          DofsArrayType& rDofSet,
                          TSystemMatrixType& A,
                          TSystemVectorType& Dx,
-                         TSystemVectorType& b)
+                         TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -324,11 +292,11 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    virtual void Update(ModelPart& rModelPart,
+    void Update(ModelPart& rModelPart,
                         DofsArrayType& rDofSet,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
-                        TSystemVectorType& b)
+                        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -341,11 +309,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateSystemContributions(Element::Pointer rCurrentElement,
+    void CalculateSystemContributions(Element::Pointer rCurrentElement,
             LocalSystemMatrixType& LHS_Contribution,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -374,7 +342,7 @@ public:
     void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                     LocalSystemVectorType& RHS_Contribution,
                                     Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -398,11 +366,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
             LocalSystemMatrixType& LHS_Contribution,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -428,10 +396,10 @@ public:
     }
 
 
-    virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 

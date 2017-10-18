@@ -1,46 +1,11 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//                        $Author:           armin.geiser@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
+//                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
 
@@ -56,7 +21,7 @@ namespace Kratos
 // =============================================================================================================================================
 
 SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivityElement( IndexType NewId, GeometryType::Pointer pGeometry )
-: SmallDisplacementElement( NewId, pGeometry )
+: SmallDisplacement( NewId, pGeometry )
 {
 	//DO NOT ADD DOFS HERE!!!
 }
@@ -67,9 +32,8 @@ SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivit
 // =============================================================================================================================================
 
 SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivityElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-: SmallDisplacementElement( NewId, pGeometry, pProperties )
+: SmallDisplacement( NewId, pGeometry, pProperties )
 {
-	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
 
@@ -78,7 +42,7 @@ SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivit
 // =============================================================================================================================================
 
 SmallDisplacementAnalyticSensitivityElement::SmallDisplacementAnalyticSensitivityElement( SmallDisplacementAnalyticSensitivityElement const& rOther)
-:SmallDisplacementElement(rOther)
+:SmallDisplacement(rOther)
 {
 }
 
@@ -103,8 +67,6 @@ Element::Pointer SmallDisplacementAnalyticSensitivityElement::Clone( IndexType N
 	SmallDisplacementAnalyticSensitivityElement NewElement ( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
 	//-----------//
-
-	NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
 
 	if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
 	{
@@ -140,69 +102,72 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
 	{
 		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 	    const unsigned int number_of_dofs = dimension*GetGeometry().size();
+		const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 		Vector result_x = ZeroVector(number_of_dofs);
 		Vector result_y = ZeroVector(number_of_dofs);
 		Vector result_z = ZeroVector(number_of_dofs);
 
-		//create and initialize element variables:
-		GeneralVariables Variables;
-		this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);		
+        
+        // Reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
 
-		//create constitutive law parameters:
-		ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-		//set constitutive law flags:
-		Flags &ConstitutiveLawOptions=Values.GetOptions();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);		
+        
+        // Displacements vector
+        Vector displacements;
+        GetValuesVector(displacements);
 
-		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-		//reading integration points
-		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-		//auxiliary terms
-		Vector VolumeForce = ZeroVector(dimension);
-
+        // Contribution to external forces
+        const Vector body_force = this->GetBodyForce();
+        
 		//ask for node for which DKDXU shall be computed
 		int active_node_index = this->GetValue(ACTIVE_NODE_INDEX);
 
-		for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-		{
-			//compute element kinematics B, F, DN_DX ...
-			this->CalculateKinematics(Variables,PointNumber);
+        for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
+        {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
 
-			//set general variables to constitutive law parameters
-			this->SetGeneralVariables(Variables,Values,PointNumber);
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
 
-			//compute stresses and constitutive parameters
-			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+            // Calculating weights for integration on the reference configuration
+            double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
 
-			//calculating weights for integration on the "reference configuration"
-			double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-			IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+            if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
+            {
+                IntegrationWeight *= GetProperties()[THICKNESS];
+            }
 
 			// Computation of X-component of DKDXU
-			Matrix DB_DX = ZeroMatrix(Variables.B.size1(),Variables.B.size2());
-			this->CalculateDerivedDeformationMatrix(DB_DX,Variables.DN_DX,active_node_index,0);
-			result_x += IntegrationWeight*prod( trans( DB_DX ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(Variables.B, rU)))) );
-			result_x += IntegrationWeight*prod( trans( Variables.B ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(DB_DX, rU)))) );
-			result_x += IntegrationWeight*prod( trans( Variables.B ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(Variables.B, rU)))) )*Variables.DN_DX(active_node_index,0);
+			Matrix DB_DX = ZeroMatrix(this_kinematic_variables.B.size1(),this_kinematic_variables.B.size2());
+			this->CalculateDerivedDeformationMatrix(DB_DX,this_kinematic_variables.DN_DX,active_node_index,0);
+			result_x += IntegrationWeight*prod( trans( DB_DX ), Vector(prod(this_constitutive_variables.D ,Vector(prod(this_kinematic_variables.B, rU)))) );
+			result_x += IntegrationWeight*prod( trans( this_kinematic_variables.B ), Vector(prod(this_constitutive_variables.D ,Vector(prod(DB_DX, rU)))) );
+			result_x += IntegrationWeight*prod( trans( this_kinematic_variables.B ), Vector(prod(this_constitutive_variables.D ,Vector(prod(this_kinematic_variables.B, rU)))) )*this_kinematic_variables.DN_DX(active_node_index,0);
 			this->SetValue(DKDXU_X,result_x);
 
 			// Computation of Y-component of DKDXU
 			DB_DX.clear();
-			this->CalculateDerivedDeformationMatrix(DB_DX,Variables.DN_DX,active_node_index,1);
-			result_y += IntegrationWeight*prod( trans( DB_DX ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(Variables.B, rU)))) );
-			result_y += IntegrationWeight*prod( trans( Variables.B ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(DB_DX, rU)))) );
-			result_y += IntegrationWeight*prod( trans( Variables.B ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(Variables.B, rU)))) )*Variables.DN_DX(active_node_index,1);
+			this->CalculateDerivedDeformationMatrix(DB_DX,this_kinematic_variables.DN_DX,active_node_index,1);
+			result_y += IntegrationWeight*prod( trans( DB_DX ), Vector(prod(this_constitutive_variables.D ,Vector(prod(this_kinematic_variables.B, rU)))) );
+			result_y += IntegrationWeight*prod( trans( this_kinematic_variables.B ), Vector(prod(this_constitutive_variables.D ,Vector(prod(DB_DX, rU)))) );
+			result_y += IntegrationWeight*prod( trans( this_kinematic_variables.B ), Vector(prod(this_constitutive_variables.D ,Vector(prod(this_kinematic_variables.B, rU)))) )*this_kinematic_variables.DN_DX(active_node_index,1);
 			this->SetValue(DKDXU_Y,result_y);
 
 			// Computation of Z-component of DKDXU
 			DB_DX.clear();
-			this->CalculateDerivedDeformationMatrix(DB_DX,Variables.DN_DX,active_node_index,2);
-			result_z += IntegrationWeight*prod( trans( DB_DX ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(Variables.B, rU)))) );
-			result_z += IntegrationWeight*prod( trans( Variables.B ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(DB_DX, rU)))) );
-			result_z += IntegrationWeight*prod( trans( Variables.B ), Vector(prod(Variables.ConstitutiveMatrix ,Vector(prod(Variables.B, rU)))) )*Variables.DN_DX(active_node_index,2);
+			this->CalculateDerivedDeformationMatrix(DB_DX,this_kinematic_variables.DN_DX,active_node_index,2);
+			result_z += IntegrationWeight*prod( trans( DB_DX ), Vector(prod(this_constitutive_variables.D ,Vector(prod(this_kinematic_variables.B, rU)))) );
+			result_z += IntegrationWeight*prod( trans( this_kinematic_variables.B ), Vector(prod(this_constitutive_variables.D ,Vector(prod(DB_DX, rU)))) );
+			result_z += IntegrationWeight*prod( trans( this_kinematic_variables.B ), Vector(prod(this_constitutive_variables.D ,Vector(prod(this_kinematic_variables.B, rU)))) )*this_kinematic_variables.DN_DX(active_node_index,2);
 			this->SetValue(DKDXU_Z,result_z);
 		}
 	}
@@ -216,12 +181,12 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
 
 void SmallDisplacementAnalyticSensitivityElement::save( Serializer& rSerializer ) const
 {
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement )
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacement )
 }
 
 void SmallDisplacementAnalyticSensitivityElement::load( Serializer& rSerializer )
 {
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacementElement )
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacement )
 }
 
 // ----------------------------------------------------------------------------------------------------

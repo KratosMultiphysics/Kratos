@@ -205,14 +205,14 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Line3D2() {}
+    ~Line3D2() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Linear;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Line3D2;
     }
@@ -260,29 +260,29 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Line3D2( ThisPoints ) );
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Line3D2< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Line3D2< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    Vector& LumpingFactors( Vector& rResult ) const override
     {
 	if(rResult.size() != 2)
            rResult.resize( 2, false );
@@ -307,16 +307,16 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Length() const
+    double Length() const override
     {
         const TPointType& point0 = BaseType::GetPoint(0);
         const TPointType& point1 = BaseType::GetPoint(1);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -331,7 +331,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Area() const
+    double Area() const override
     {
       return Length();
     }
@@ -347,16 +347,16 @@ public:
     @see Area()
     @see Volume()
     */
-    virtual double DomainSize() const
+    double DomainSize() const override
     {
         const TPointType& point0 = BaseType::GetPoint(0);
         const TPointType& point1 = BaseType::GetPoint(1);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -380,7 +380,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
+    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
         Matrix jacobian( 3, 1 );
         jacobian( 0, 0 ) = ( this->GetPoint( 1 ).X() - this->GetPoint( 0 ).X() ) * 0.5; //on the Gauss points (J is constant at each element)
@@ -409,14 +409,14 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
+    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
     {
         Matrix jacobian( 3, 1 );
         jacobian( 0, 0 ) = ( (this->GetPoint( 1 ).X() - DeltaPosition(1,0)) - (this->GetPoint( 0 ).X() - DeltaPosition(0,0)) ) * 0.5; //on the Gauss points (J is constant at each element)
@@ -452,7 +452,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+    Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         rResult.resize( 3, 1, false );
         //on the Gauss points (J is constant at each element)
@@ -473,7 +473,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         rResult.resize( 3, 1, false );
         //on the Gauss points (J is constant at each element)
@@ -494,10 +494,20 @@ public:
     @see Jacobian
     @see InverseOfJacobian
     */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
+    Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
     {
-        rResult = ZeroVector( 1 );
-        rResult[0] = 0.5 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        const double detJ = 0.5*(this->Length());
+
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            rResult[pnt] = detJ;
+        }
         return rResult;
     }
 
@@ -519,9 +529,9 @@ public:
     @see Jacobian
     @see InverseOfJacobian
     */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+    double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
+        return 0.5*(this->Length());
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -536,9 +546,9 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
+        return 0.5*(this->Length());
     }
 
 
@@ -556,7 +566,7 @@ public:
     @see Jacobian
     @see DeterminantOfJacobian
     */
-    virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
+    JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
         rResult[0] = ZeroMatrix( 1, 1 );
         rResult[0]( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
@@ -580,7 +590,7 @@ public:
     @see Jacobian
     @see DeterminantOfJacobian
     */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+    Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         rResult = ZeroMatrix( 1, 1 );
         rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
@@ -598,7 +608,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         rResult = ZeroMatrix( 1, 1 );
         rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
@@ -609,13 +619,13 @@ public:
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    virtual SizeType EdgesNumber() const
+    SizeType EdgesNumber() const override
     {
         return 2;
     }
 
 
-    virtual SizeType FacesNumber() const
+    SizeType FacesNumber() const override
     {
         return 2;
     }
@@ -624,8 +634,8 @@ public:
     ///@name Shape Function
     ///@{
 
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -643,18 +653,18 @@ public:
         return 0;
     }
 
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
-            const CoordinatesArrayType& rPoint ) const
+    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
+            const CoordinatesArrayType& rPoint ) const override
     {
-        rResult = ZeroMatrix( 2, 1 ); 
+        rResult = ZeroMatrix( 2, 1 );
         rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) =  0.5; 
-        return( rResult ); 
+        rResult( 1, 0 ) =  0.5;
+        return( rResult );
     }
 
 
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const
+    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
@@ -666,7 +676,7 @@ public:
     @see PrintData()
     @see PrintInfo()
     */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "1 dimensional line with 2 nodes in 3D space";
     }
@@ -677,7 +687,7 @@ public:
     @see PrintData()
     @see Info()
     */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "1 dimensional line with 2 nodes in 3D space";
     }
@@ -690,7 +700,7 @@ public:
     @see PrintInfo()
     @see Info()
     */
-    virtual void PrintData( std::ostream& rOStream ) const
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -759,12 +769,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
@@ -922,5 +932,4 @@ const GeometryData Line3D2<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined 
-
+#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined

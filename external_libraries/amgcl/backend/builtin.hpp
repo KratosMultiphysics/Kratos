@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,13 +38,10 @@ THE SOFTWARE.
 #  include <omp.h>
 #endif
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/range/iterator_range.hpp>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
@@ -68,12 +65,14 @@ struct crs {
     typedef col_t col_type;
     typedef ptr_t ptr_type;
 
-    size_t nrows, ncols;
-    std::vector<ptr_type> ptr;
-    std::vector<col_type> col;
-    std::vector<val_type> val;
+    size_t nrows, ncols, nnz;
+    ptr_type * ptr;
+    col_type * col;
+    val_type * val;
+    bool own_data;
 
-    crs() : nrows(0), ncols(0) {}
+    crs() : nrows(0), ncols(0), nnz(0), ptr(0), col(0), val(0), own_data(true)
+    {}
 
     template <
         class PtrRange,
@@ -84,48 +83,190 @@ struct crs {
         const PtrRange &ptr_range,
         const ColRange &col_range,
         const ValRange &val_range
-        )
-    : nrows(nrows), ncols(ncols),
-      ptr(boost::begin(ptr_range), boost::end(ptr_range)),
-      col(boost::begin(col_range), boost::end(col_range)),
-      val(boost::begin(val_range), boost::end(val_range))
+        ) :
+        nrows(nrows), ncols(ncols), nnz(0),
+        ptr(0), col(0), val(0), own_data(true)
     {
-        precondition(
-                ptr.size() == nrows + 1                       &&
-                static_cast<size_t>(ptr.back()) == col.size() &&
-                static_cast<size_t>(ptr.back()) == val.size(),
-                "Inconsistent sizes in crs constructor"
-                );
-    }
+        precondition(nrows + 1 == boost::size(ptr_range),
+                "ptr_range has wrong size in crs constructor");
 
-    template <class Matrix>
-    crs(const Matrix &A) : nrows(backend::rows(A)), ncols(backend::cols(A))
-    {
-        ptr.reserve(nrows + 1);
-        ptr.push_back(0);
+        nnz = ptr_range[nrows];
 
-        col.reserve(backend::nonzeros(A));
-        val.reserve(backend::nonzeros(A));
+        precondition(boost::size(col_range) == nnz,
+                "col_range has wrong size in crs constructor");
 
-        typedef typename backend::row_iterator<Matrix>::type row_iterator;
-        for(size_t i = 0; i < nrows; ++i) {
-            for(row_iterator a = backend::row_begin(A, i); a; ++a) {
-                col.push_back(a.col());
-                val.push_back(a.value());
+        precondition(boost::size(val_range) == nnz,
+                "val_range has wrong size in crs constructor");
+
+        ptr = new ptr_type[nrows + 1];
+        col = new col_type[nnz];
+        val = new val_type[nnz];
+
+        ptr[0] = ptr_range[0];
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+            ptr[i+1] = ptr_range[i+1];
+            for(ptr_type j = ptr_range[i]; j < ptr_range[i+1]; ++j) {
+                col[j] = col_range[j];
+                val[j] = val_range[j];
             }
-            ptr.push_back( static_cast<ptr_type>(col.size()) );
         }
     }
 
-    virtual ~crs() {}
+    template <class Matrix>
+    crs(const Matrix &A) :
+        nrows(backend::rows(A)), ncols(backend::cols(A)),
+        nnz(0), ptr(0), col(0), val(0), own_data(true)
+    {
+        typedef typename backend::row_iterator<Matrix>::type row_iterator;
 
-    virtual const ptr_type* ptr_data() const { return &ptr[0]; }
-    virtual const col_type* col_data() const { return &col[0]; }
-    virtual const val_type* val_data() const { return &val[0]; }
+        ptr = new ptr_type[nrows + 1];
+        ptr[0] = 0;
 
-    virtual ptr_type* ptr_data() { return &ptr[0]; }
-    virtual col_type* col_data() { return &col[0]; }
-    virtual val_type* val_data() { return &val[0]; }
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+            int row_width = 0;
+            for(row_iterator a = backend::row_begin(A, i); a; ++a) ++row_width;
+            ptr[i+1] = row_width;
+        }
+
+        std::partial_sum(ptr, ptr + nrows + 1, ptr);
+
+        nnz = ptr[nrows];
+
+        col = new col_type[nnz];
+        val = new val_type[nnz];
+
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+            ptr_type row_head = ptr[i];
+            for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+                col[row_head] = a.col();
+                val[row_head] = a.value();
+
+                ++row_head;
+            }
+        }
+    }
+
+    crs(const crs &other) :
+        nrows(other.nrows), ncols(other.ncols), nnz(other.nnz),
+        ptr(0), col(0), val(0), own_data(true)
+    {
+        ptr = new ptr_type[nrows + 1];
+        col = new col_type[nnz];
+        val = new val_type[nnz];
+
+        ptr[0] = other.ptr[0];
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+            ptr[i+1] = other.ptr[i+1];
+            for(ptr_type j = other.ptr[i]; j < other.ptr[i+1]; ++j) {
+                col[j] = other.col[j];
+                val[j] = other.val[j];
+            }
+        }
+    }
+
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    crs(crs &&other) :
+        nrows(other.nrows), ncols(other.ncols), nnz(other.nnz),
+        ptr(other.ptr), col(other.col), val(other.val),
+        own_data(other.own_data)
+    {
+        other.nrows = 0;
+        other.ncols = 0;
+        other.nnz   = 0;
+        other.ptr   = 0;
+        other.col   = 0;
+        other.val   = 0;
+    }
+
+    const crs& operator=(const crs &other) {
+        free_data();
+
+        nrows = other.nrows;
+        ncols = other.ncols;
+        nnz   = other.nnz;
+
+        ptr = new ptr_type[nrows + 1];
+        col = new col_type[nnz];
+        val = new val_type[nnz];
+
+        ptr[0] = other.ptr[0];
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+            ptr[i+1] = other.ptr[i+1];
+            for(ptr_type j = other.ptr[i]; j < other.ptr[i+1]; ++j) {
+                col[j] = other.col[j];
+                val[j] = other.val[j];
+            }
+        }
+    }
+
+    const crs& operator=(crs &&other) {
+        std::swap(nrows,    other.nrows);
+        std::swap(ncols,    other.ncols);
+        std::swap(nnz,      other.nnz);
+        std::swap(ptr,      other.ptr);
+        std::swap(col,      other.col);
+        std::swap(val,      other.val);
+        std::swap(own_data, other.own_data);
+
+        return *this;
+    }
+#endif
+
+    void free_data() {
+        if (own_data) {
+            delete[] ptr; ptr = 0;
+            delete[] col; col = 0;
+            delete[] val; val = 0;
+        }
+    }
+
+    void set_size(size_t n, size_t m, bool clean_ptr = false) {
+        precondition(!ptr, "matrix data has already been allocated!");
+
+        nrows = n;
+        ncols = m;
+
+        ptr = new ptr_type[nrows + 1];
+
+        if (clean_ptr) {
+            ptr[0] = 0;
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i)
+                ptr[i+1] = 0;
+        }
+    }
+
+    void set_nonzeros() {
+        set_nonzeros(ptr[nrows]);
+
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+            ptrdiff_t row_beg = ptr[i];
+            ptrdiff_t row_end = ptr[i+1];
+            for(ptrdiff_t j = row_beg; j < row_end; ++j) {
+                col[j] = 0;
+                val[j] = math::zero<val_type>();
+            }
+        }
+    }
+
+    void set_nonzeros(size_t n) {
+        precondition(!col && !val, "matrix data has already been allocated!");
+
+        nnz = n;
+
+        col = new col_type[nnz];
+        val = new val_type[nnz];
+    }
+
+    ~crs() {
+        free_data();
+    }
 
     class row_iterator {
         public:
@@ -161,9 +302,9 @@ struct crs {
     };
 
     row_iterator row_begin(size_t row) const {
-        ptr_type p = ptr_data()[row];
-        ptr_type e = ptr_data()[row + 1];
-        return row_iterator(col_data() + p, col_data() + e, val_data() + p);
+        ptr_type p = ptr[row];
+        ptr_type e = ptr[row + 1];
+        return row_iterator(col + p, col + e, val + p);
     }
 
 };
@@ -172,68 +313,54 @@ struct crs {
 template < typename V, typename C, typename P >
 void sort_rows(crs<V, C, P> &A) {
     const size_t n = rows(A);
-    BOOST_AUTO(Aptr, A.ptr_data());
-    BOOST_AUTO(Acol, A.col_data());
-    BOOST_AUTO(Aval, A.val_data());
 
 #pragma omp parallel for
     for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-        P beg = Aptr[i];
-        P end = Aptr[i + 1];
-        amgcl::detail::sort_row(Acol + beg, Aval + beg, end - beg);
+        P beg = A.ptr[i];
+        P end = A.ptr[i + 1];
+        amgcl::detail::sort_row(A.col + beg, A.val + beg, end - beg);
     }
 }
 
 /// Transpose of a sparse matrix.
 template < typename V, typename C, typename P >
-crs<V, C, P> transpose(const crs<V, C, P> &A)
+boost::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
 {
     const size_t n   = rows(A);
     const size_t m   = cols(A);
     const size_t nnz = nonzeros(A);
 
-    crs<V, C, P> T;
-    T.nrows = m;
-    T.ncols = n;
-    T.ptr.resize(m+1);
-    T.col.resize(nnz);
-    T.val.resize(nnz);
-
-    boost::fill(T.ptr, P());
-
-    const P* Aptr = A.ptr_data();
-    const C* Acol = A.col_data();
-    const V* Aval = A.val_data();
+    boost::shared_ptr< crs<V,C,P> > T = boost::make_shared< crs<V,C,P> >();
+    T->set_size(m, n, true);
 
     for(size_t j = 0; j < nnz; ++j)
-        ++( T.ptr[Acol[j] + 1] );
+        ++( T->ptr[A.col[j] + 1] );
 
-    boost::partial_sum(T.ptr, T.ptr.begin());
+    std::partial_sum(T->ptr, T->ptr + m + 1, T->ptr);
+    T->set_nonzeros();
 
     for(size_t i = 0; i < n; i++) {
-        for(P j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
-            P head = T.ptr[Acol[j]]++;
+        for(P j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
+            P head = T->ptr[A.col[j]]++;
 
-            T.col[head] = static_cast<C>(i);
-            T.val[head] = Aval[j];
+            T->col[head] = static_cast<C>(i);
+            T->val[head] = A.val[j];
         }
     }
 
-    std::rotate(T.ptr.begin(), T.ptr.end() - 1, T.ptr.end());
-    T.ptr.front() = 0;
+    std::rotate(T->ptr, T->ptr + m, T->ptr + m + 1);
+    T->ptr[0] = 0;
 
     return T;
 }
 
 /// Matrix-matrix product.
 template <class MatrixA, class MatrixB>
-crs< typename value_type<MatrixA>::type >
+boost::shared_ptr< crs< typename value_type<MatrixA>::type > >
 product(const MatrixA &A, const MatrixB &B, bool sort = false) {
     typedef typename value_type<MatrixA>::type  V;
 
-    crs<V, ptrdiff_t> C;
-    C.nrows = rows(A);
-    C.ncols = cols(B);
+    boost::shared_ptr< crs<V> > C = boost::make_shared< crs<V> >();
 
 #ifdef _OPENMP
     int nt = omp_get_max_threads();
@@ -241,21 +368,10 @@ product(const MatrixA &A, const MatrixB &B, bool sort = false) {
     int nt = 1;
 #endif
 
-    if (nt > 4) {
-        spgemm_rmerge(
-                static_cast<ptrdiff_t>(C.nrows),
-                ptr_data(A), col_data(A), val_data(A),
-                ptr_data(B), col_data(B), val_data(B),
-                C.ptr, C.col, C.val
-                );
+    if (nt > 16) {
+        spgemm_rmerge(A, B, *C);
     } else {
-        spgemm_saad(
-                static_cast<ptrdiff_t>(C.nrows),
-                static_cast<ptrdiff_t>(C.ncols),
-                ptr_data(A), col_data(A), val_data(A),
-                ptr_data(B), col_data(B), val_data(B),
-                C.ptr, C.col, C.val, sort
-                );
+        spgemm_saad(A, B, *C, sort);
     }
 
     return C;
@@ -282,36 +398,88 @@ std::vector<V> diagonal(const crs<V, C, P> &A, bool invert = false)
     return dia;
 }
 
-/// Invert matrix.
-template < typename V, typename C, typename P >
-crs<V, C, P> inverse(const crs<V, C, P> &A) {
-    typedef typename crs<V, C, P>::row_iterator row_iterator;
-    const size_t n = rows(A);
+/** NUMA-aware vector container. */
+template <class T>
+class numa_vector {
+    public:
+        typedef T value_type;
 
-    crs<V, C, P> Ainv;
-    Ainv.nrows = n;
-    Ainv.ncols = n;
-    Ainv.ptr.resize(n + 1);
-    Ainv.col.resize(n * n);
-    Ainv.val.resize(n * n);
+        numa_vector() : n(0), p(0) {}
 
-    boost::fill(Ainv.val, V());
+        numa_vector(size_t n, bool init = true) : n(n), p(new T[n]) {
+            if (init) {
+#pragma omp parallel for
+                for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+                    p[i] = math::zero<T>();
+            }
+        }
 
-    for(size_t i = 0; i < n; ++i)
-        for(row_iterator a = A.row_begin(i); a; ++a)
-            Ainv.val[i * n + a.col()] = a.value();
+        void resize(size_t size, bool init = true) {
+            delete[] p; p = 0;
 
-    amgcl::detail::inverse(n, &Ainv.val[0]);
+            n = size;
+            p = new T[n];
 
-    Ainv.ptr[0] = 0;
-    for(size_t i = 0, idx = 0; i < n; ) {
-        for(size_t j = 0; j < n; ++j, ++idx) Ainv.col[idx] = static_cast<C>(j);
+            if (init) {
+#pragma omp parallel for
+                for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+                    p[i] = math::zero<T>();
+            }
+        }
 
-        Ainv.ptr[++i] = static_cast<P>(idx);
-    }
+        template <class Vector>
+        numa_vector(const Vector &other,
+                typename boost::disable_if<boost::is_integral<Vector>, int>::type = 0
+                ) : n(other.size()), p(new T[n])
+        {
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+                p[i] = other[i];
+        }
 
-    return Ainv;
-}
+        template <class Iterator>
+        numa_vector(Iterator beg, Iterator end)
+            : n(std::distance(beg, end)), p(new T[n])
+        {
+            BOOST_ASSERT( (
+                    boost::is_same<
+                        std::random_access_iterator_tag,
+                        typename std::iterator_traits<Iterator>::iterator_category
+                    >::value
+                    ) );
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+                p[i] = beg[i];
+        }
+
+        ~numa_vector() {
+            delete[] p; p = 0;
+        }
+
+        inline size_t size() const {
+            return n;
+        }
+
+        inline const T& operator[](size_t i) const {
+            return p[i];
+        }
+
+        inline T& operator[](size_t i) {
+            return p[i];
+        }
+
+        inline const T* data() const {
+            return p;
+        }
+
+        inline T* data() {
+            return p;
+        }
+
+    private:
+        size_t n;
+        T *p;
+};
 
 /**
  * The builtin backend does not have any dependencies except for the
@@ -331,8 +499,8 @@ struct builtin {
     struct provides_row_iterator : boost::true_type {};
 
     typedef crs<value_type, index_type>    matrix;
-    typedef std::vector<rhs_type>          vector;
-    typedef std::vector<value_type>        matrix_diagonal;
+    typedef numa_vector<rhs_type>          vector;
+    typedef numa_vector<value_type>        matrix_diagonal;
     typedef solver::skyline_lu<value_type> direct_solver;
 
     /// The backend has no parameters.
@@ -349,16 +517,16 @@ struct builtin {
 
     // Copy vector to builtin backend.
     template <class T>
-    static boost::shared_ptr< std::vector<T> >
+    static boost::shared_ptr< numa_vector<T> >
     copy_vector(const std::vector<T> &x, const params&)
     {
-        return boost::make_shared< std::vector<T> >(x);
+        return boost::make_shared< numa_vector<T> >(x);
     }
 
     // Copy vector to builtin backend. This is a noop for builtin backend.
     template <class T>
-    static boost::shared_ptr< std::vector<T> >
-    copy_vector(boost::shared_ptr< std::vector<T> > x, const params&)
+    static boost::shared_ptr< numa_vector<T> >
+    copy_vector(boost::shared_ptr< numa_vector<T> > x, const params&)
     {
         return x;
     }
@@ -409,12 +577,18 @@ struct is_builtin_vector : boost::false_type {};
 template <class V>
 struct is_builtin_vector< std::vector<V> > : boost::is_arithmetic<V> {};
 
+template <class V>
+struct is_builtin_vector< numa_vector<V> > : boost::true_type {};
+
 template <class Iterator>
 struct is_builtin_vector< boost::iterator_range<Iterator> > : boost::true_type {};
 
 //---------------------------------------------------------------------------
 // Specialization of backend interface
 //---------------------------------------------------------------------------
+template <typename T1, typename T2>
+struct backends_compatible< builtin<T1>, builtin<T2> > : boost::true_type {};
+
 template < typename V, typename C, typename P >
 struct value_type< crs<V, C, P> > {
     typedef V type;
@@ -461,7 +635,7 @@ struct val_data_impl< crs<V, C, P> > {
 template < typename V, typename C, typename P >
 struct nonzeros_impl< crs<V, C, P> > {
     static size_t get(const crs<V, C, P> &A) {
-        return A.nrows == 0 ? 0 : A.ptr_data()[A.nrows];
+        return A.nrows == 0 ? 0 : A.ptr[A.nrows];
     }
 };
 
@@ -484,8 +658,7 @@ struct row_begin_impl< crs<V, C, P> > {
 template < typename V, typename C, typename P >
 struct row_nonzeros_impl< crs<V, C, P> > {
     static size_t get(const crs<V, C, P> &A, size_t row) {
-        const P *Aptr = A.ptr_data();
-        return Aptr[row + 1] - Aptr[row];
+        return A.ptr[row + 1] - A.ptr[row];
     }
 };
 
@@ -529,29 +702,21 @@ struct inner_product_impl<
 
 #pragma omp parallel
         {
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            size_t chunk_size  = (n + nt - 1) / nt;
-            size_t chunk_start = tid * chunk_size;
-            size_t chunk_end   = std::min(n, chunk_start + chunk_size);
-#else
-            size_t chunk_start = 0;
-            size_t chunk_end   = n;
-#endif
-
             return_type s = math::zero<return_type>();
             return_type c = math::zero<return_type>();
-            for(size_t i = chunk_start; i < chunk_end; ++i) {
+
+#pragma omp for nowait
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 return_type d = math::inner_product(x[i], y[i]) - c;
                 return_type t = s + d;
                 c = (t - s) - d;
                 s = t;
             }
+
 #pragma omp critical
             sum += s;
         }
+
         return sum;
     }
 };

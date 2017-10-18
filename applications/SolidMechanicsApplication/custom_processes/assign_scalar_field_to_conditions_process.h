@@ -361,7 +361,7 @@ private:
         {
             ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
 
-             #pragma omp parallel for
+            // #pragma omp parallel for //it does not work in parallel
             for(int i = 0; i<nconditions; i++)
             {
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;

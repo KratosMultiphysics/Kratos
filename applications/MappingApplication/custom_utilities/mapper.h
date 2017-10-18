@@ -7,26 +7,24 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_MAPPER_H_INCLUDED )
 #define  KRATOS_MAPPER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <vector>
 
 // External includes
 
 // Project includes
-
 #include "includes/define.h"
 #include "mapper_communicator.h"
 #include "mapper_utilities.h"
 #include "mapper_flags.h"
-
-#include <omp.h>
 
 // For MPI-parallel Mapper
 #ifdef KRATOS_USING_MPI
@@ -34,7 +32,9 @@
 #include "mapper_mpi_communicator.h"
 #endif
 
-namespace Kratos {
+
+namespace Kratos
+{
 
 ///@name Kratos Globals
 ///@{
@@ -55,233 +55,270 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// Base Class for all Mappers
+/** This is the base class for every mapper.
+* It contains the three pure virtual functions that have to be implemented by every mapper:
+* - Map: Basic function that maps a field from one ModelPart to another Modelpart
+*        Mapping Direction: Origin => Destionation
+* - InverseMap: This function does the opposite of the "Map" function
+*               Mapping Direction: Destination => Origin
+* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
+*   other information related to the relations btw entities (node, elements,...) on the interfaces
+* It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
+*/
 
-class Mapper {
+class Mapper
+{
 public:
 
-  ///@name Type Definitions
-  ///@{
-  ///@}
-  ///@name Pointer Definitions
-  /// Pointer definition of Mapper
-  KRATOS_CLASS_POINTER_DEFINITION(Mapper);
+    ///@name Type Definitions
+    ///@{
+    ///@}
+    ///@name Pointer Definitions
+    /// Pointer definition of Mapper
+    KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
-  ///@}
-  ///@name Life Cycle
-  ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
 
-  /// Destructor.
-  virtual ~Mapper() {
-  }
+    /// Destructor.
+    virtual ~Mapper()
+    {
+    }
 
-  ///@}
-  ///@name Operators
-  ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-  ///@}
-  ///@name Operations
-  ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-  virtual void UpdateInterface(Kratos::Flags& options, double search_radius) = 0;
+    virtual void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) = 0;
 
-  /* This function maps from Origin to Destination */
-  virtual void Map(const Variable<double>& origin_variable,
-                   const Variable<double>& destination_variable,
-                   Kratos::Flags& options) = 0;
+    /* This function maps from Origin to Destination */
+    virtual void Map(const Variable<double>& rOriginVariable,
+                     const Variable<double>& rDestinationVariable,
+                     Kratos::Flags MappingOptions) = 0;
 
-  /* This function maps from Origin to Destination */
-  virtual void Map(const Variable< array_1d<double,3> >& origin_variable,
-                   const Variable< array_1d<double,3> >& destination_variable,
-                   Kratos::Flags& options) = 0;
+    /* This function maps from Origin to Destination */
+    virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
+                     const Variable< array_1d<double, 3> >& rDestinationVariable,
+                     Kratos::Flags MappingOptions) = 0;
 
-  /* This function maps from Destination to Origin */
-  virtual void InverseMap(const Variable<double>& origin_variable,
-                          const Variable<double>& destination_variable,
-                          Kratos::Flags& options) = 0;
+    /* This function maps from Destination to Origin */
+    virtual void InverseMap(const Variable<double>& rOriginVariable,
+                            const Variable<double>& rDestinationVariable,
+                            Kratos::Flags MappingOptions) = 0;
 
-  /* This function maps from Destination to Origin */
-  virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                          const Variable< array_1d<double,3> >& destination_variable,
-                          Kratos::Flags& options) = 0;
+    /* This function maps from Destination to Origin */
+    virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
+                            const Variable< array_1d<double, 3> >& rDestinationVariable,
+                            Kratos::Flags MappingOptions) = 0;
 
-  MapperCommunicator::Pointer GetMapperCommunicator() {
-      return m_p_mapper_communicator;
-  }
+    MapperCommunicator::Pointer pGetMapperCommunicator()
+    {
+        return mpMapperCommunicator;
+    }
 
-  ///@}
-  ///@name Access
-  ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-  ///@}
-  ///@name Inquiry
-  ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-  ///@}
-  ///@name Input and output
-  ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-  /// Turn back information as a string.
-  virtual std::string Info() const {
-      return "Mapper";
-  }
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "Mapper";
+    }
 
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const {
-    rOStream << "Mapper";
-  }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Mapper";
+    }
 
-  /// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const {
-  }
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
-  ///@}
-  ///@name Friends
-  ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
-  ///@}
+    ///@}
 
 protected:
 
-  ///@name Protected static Member Variables
-  ///@{
+    ///@name Protected static Member Variables
+    ///@{
 
-  ///@}
-  ///@name Protected member Variables
-  ///@{
-  ModelPart& m_model_part_origin;
-  ModelPart& m_model_part_destination;
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ModelPart& mModelPartOrigin;
+    ModelPart& mModelPartDestination;
 
-  Parameters m_json_parameters;
+    Parameters mJsonParameters;
 
-  MapperCommunicator::Pointer m_p_mapper_communicator;
+    MapperCommunicator::Pointer mpMapperCommunicator;
 
-  // global, aka of the entire submodel-parts
-  int m_num_conditions_origin;
-  int m_num_conditions_destination;
+    // global, aka of the entire submodel-parts
+    int mNumConditionsOrigin;
+    int mNumConditionsDestination;
 
-  int m_num_nodes_origin;
-  int m_num_nodes_destination;
+    int mNumNodesOrigin;
+    int mNumNodesDestination;
 
-  int m_echo_level = 0;
+    int mEchoLevel = 0;
 
-  ///@}
-  ///@name Protected Operators
-  ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-  ///@}
-  ///@name Protected Operations
-  ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-  // Constructor, can only be called by derived classes (actual mappers)
-  Mapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-         Parameters i_json_parameters) :
-  	  m_model_part_origin(i_model_part_origin),
-      m_model_part_destination(i_model_part_destination),
-      m_json_parameters(i_json_parameters) {
+    // Constructor, can only be called by derived classes (actual mappers)
+    Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+           Parameters JsonParameters) :
+        mModelPartOrigin(rModelPartOrigin),
+        mModelPartDestination(rModelPartDestination),
+        mJsonParameters(JsonParameters)
+    {
 
-      ComputeNumberOfNodesAndConditions();
+        ComputeNumberOfNodesAndConditions();
 
-      m_echo_level = i_json_parameters["echo_level"].GetInt();
+        // Create the mapper communicator
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+        int mpi_initialized;
+        MPI_Initialized(&mpi_initialized);
+        if (mpi_initialized)   // parallel execution, i.e. mpi imported in python
+        {
+            int comm_size;
+            MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+            if (comm_size > 1)
+            {
+                mpMapperCommunicator = MapperCommunicator::Pointer (
+                                           new MapperMPICommunicator(mModelPartOrigin,
+                                                   mModelPartDestination,
+                                                   mJsonParameters) );
+            }
+            else     // mpi importet in python, but execution with one process only
+            {
+                InitializeSerialCommunicator();
+            }
+        }
+        else     // serial execution, i.e. mpi NOT imported in python
+        {
+            InitializeSerialCommunicator();
+        }
 
-      // Create the mapper communicator
-      #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-          int mpi_initialized;
-          MPI_Initialized(&mpi_initialized);
-          if (mpi_initialized) { // parallel execution, i.e. mpi imported in python
-              int comm_size;
-              MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-              if (comm_size > 1) {
-                  m_p_mapper_communicator = MapperCommunicator::Pointer (
-                      new MapperMPICommunicator(m_model_part_origin,
-                                                m_model_part_destination,
-                                                m_json_parameters) );
-              } else { // mpi importet in python, but execution with one process only
-                  InitializeSerialCommunicator();
-              }
-          } else { // serial execution, i.e. mpi NOT imported in python
-              InitializeSerialCommunicator();
-          }
+#else // serial compilation
+        InitializeSerialCommunicator();
+#endif
+        // Access the Parameters only after the communicator is constructed,
+        // bcs they are checked and validated there!
+        mEchoLevel = JsonParameters["echo_level"].GetInt();
+    }
 
-      #else // serial compilation
-          InitializeSerialCommunicator();
-      #endif
-  }
+    void ComputeNumberOfNodesAndConditions()
+    {
+        // Compute the quantities of the local model_parts
+        mNumConditionsOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
+        mNumConditionsDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfConditions();
 
-  void ComputeNumberOfNodesAndConditions() {
-    // Compute the quantities of the local model_parts
-    m_num_conditions_origin = m_model_part_origin.GetCommunicator().LocalMesh().NumberOfConditions();
-    m_num_conditions_destination = m_model_part_destination.GetCommunicator().LocalMesh().NumberOfConditions();
+        mNumNodesOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
+        mNumNodesDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
 
-    m_num_nodes_origin = m_model_part_origin.GetCommunicator().LocalMesh().NumberOfNodes();
-    m_num_nodes_destination = m_model_part_destination.GetCommunicator().LocalMesh().NumberOfNodes();
+        // Compute the quantities of the global model_parts
+        mModelPartOrigin.GetCommunicator().SumAll(mNumConditionsOrigin);
+        mModelPartDestination.GetCommunicator().SumAll(mNumConditionsDestination);
 
-    // Compute the quantities of the global model_parts
-    m_model_part_origin.GetCommunicator().SumAll(m_num_conditions_origin);
-    m_model_part_destination.GetCommunicator().SumAll(m_num_conditions_destination);
+        mModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
+        mModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
+    }
 
-    m_model_part_origin.GetCommunicator().SumAll(m_num_nodes_origin);
-    m_model_part_destination.GetCommunicator().SumAll(m_num_nodes_destination);
-  }
+    void ProcessMappingOptions(const Kratos::Flags& rMappingOptions,
+                               double& Factor)
+    {
+        if (rMappingOptions.Is(MapperFlags::SWAP_SIGN))
+        {
+            Factor *= (-1);
+        }
+    }
 
-  ///@}
-  ///@name Protected  Access
-  ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-  ///@}
+    ///@}
 
 private:
 
-  ///@name Static Member Variables
-  ///@{
+    ///@name Static Member Variables
+    ///@{
 
-  ///@}
-  ///@name Member Variables
-  ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-  ///@}
-  ///@name Private Operators
-  ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  ///@}
-  ///@name Private Operations
-  ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-  void InitializeSerialCommunicator() {
-      m_p_mapper_communicator = MapperCommunicator::Pointer (
-          new MapperCommunicator(m_model_part_origin,
-                                 m_model_part_destination,
-                                 m_json_parameters) );
-  }
+    void InitializeSerialCommunicator()
+    {
+        mpMapperCommunicator = MapperCommunicator::Pointer (
+                                   new MapperCommunicator(mModelPartOrigin,
+                                           mModelPartDestination,
+                                           mJsonParameters) );
+    }
 
-  ///@}
-  ///@name Private  Access
-  ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-  ///@}
-  ///@name Private Inquiry
-  ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-  ///@}
-  ///@name Un accessible methods
-  ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-  /// Assignment operator.
-  Mapper& operator=(Mapper const& rOther);
+    /// Assignment operator.
+    Mapper& operator=(Mapper const& rOther);
 
-  /// Copy constructor.
-  //Mapper(Mapper const& rOther);
+    /// Copy constructor.
+    //Mapper(Mapper const& rOther);
 
-  ///@}
+    ///@}
 
 }; // Class Mapper
 

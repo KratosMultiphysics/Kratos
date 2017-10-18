@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+import Kratos_Execute_Contact_Structural_Test as Execute_Test
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -43,8 +43,26 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-class IroningTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/ironing_test"
+class ALMMeshMovingMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
     
-class IroningDieTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/ironing_die_test"
+class ALMMeshMovingNotMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
+    
+class ALMTaylorPatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
+
+class ALMTaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
+    
+class ALMHertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"
+    
+class ALMHertzSimpleTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_simple_test"
+    
+class ALMHertzSphereTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_sphere_plate_test"
+    
+class ALMHertzCompleteTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"

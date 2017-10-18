@@ -73,12 +73,12 @@ namespace Kratos
       virtual std::string Info() const
       {
         std::stringstream buffer;
-        buffer << "SphericSwimmingParticle" ;
+        buffer << "Swimming version of " << TBaseElement::Info();
         return buffer.str();
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericSwimmingParticle";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "Swimming version of " << TBaseElement::Info();}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
@@ -110,7 +110,9 @@ namespace Kratos
         void ComputeHydrodynamicTorque(NodeType& node, array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
         void ComputeBrownianMotionForce(NodeType& node, array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
         void ComputeParticleReynoldsNumber(double& r_reynolds);
+        double ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
+        void ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
@@ -281,24 +283,6 @@ namespace Kratos
   ///@}
   ///@name Input and output
   ///@{
-
-
-  /// input stream function
-  /*inline std::istream& operator >> (std::istream& rIStream, SphericSwimmingParticle& rThis){ return rIStream;}*/
-
-  /// output stream function
-  /*inline std::ostream& operator << (std::ostream& rOStream,
-                    const SphericSwimmingParticle& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-  ///@}
-
-  ///@} addtogroup block
 
 }  // namespace Kratos.
 

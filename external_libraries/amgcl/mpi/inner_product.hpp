@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ struct inner_product {
     template <class Vec1, class Vec2>
     typename backend::value_type<Vec1>::type
     operator()(const Vec1 &x, const Vec2 &y) const {
-        TIC("inner product");
+        AMGCL_TIC("inner product");
         typedef typename backend::value_type<Vec1>::type value_type;
 
         value_type lsum = backend::inner_product(x, y);
@@ -56,7 +56,7 @@ struct inner_product {
 
         MPI_Allreduce(&lsum, &gsum, 1, datatype<value_type>(), MPI_SUM, comm);
 
-        TOC("inner product");
+        AMGCL_TOC("inner product");
         return gsum;
     }
 };

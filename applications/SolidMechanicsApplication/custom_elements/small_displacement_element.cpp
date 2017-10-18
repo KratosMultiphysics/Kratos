@@ -485,10 +485,10 @@ void SmallDisplacementElement::Initialize()
 {
     KRATOS_TRY
 
-	// NOTE:
-	// The following check on the constitutiveLawVector size
-	// has been moved into the method InitializeMaterial()
-
+    // NOTE:
+    // The following check on the constitutiveLawVector size
+    // has been moved into the method InitializeMaterial()
+      
     //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
     ////Constitutive Law initialisation
     //if ( mConstitutiveLawVector.size() != integration_points.size() )
@@ -498,7 +498,6 @@ void SmallDisplacementElement::Initialize()
 
     //Material initialisation
     InitializeMaterial();
-
 
     KRATOS_CATCH( "" )
 }
@@ -511,7 +510,8 @@ void SmallDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
         ConstitutiveLaw::Parameters& rValues,
         const int & rPointNumber)
 {
-
+    KRATOS_TRY
+      
     rValues.SetStrainVector(rVariables.StrainVector);
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
@@ -524,7 +524,8 @@ void SmallDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
 
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
-
+    
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -532,7 +533,8 @@ void SmallDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
 
 void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-
+    KRATOS_TRY
+      
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
@@ -561,6 +563,7 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -572,6 +575,7 @@ void SmallDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
         Flags& rCalculationFlags)
 
 {
+    KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -596,6 +600,8 @@ void SmallDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
 
         noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
     }
+    
+    KRATOS_CATCH( "" )
 }
 
 
@@ -644,8 +650,6 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-
-        //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
         if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
@@ -931,8 +935,10 @@ double& SmallDisplacementElement::CalculateIntegrationWeight(double& rIntegratio
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if( dimension == 2 )
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
         rIntegrationWeight *= GetProperties()[THICKNESS];
+    }
 
     return rIntegrationWeight;
 }
@@ -1178,57 +1184,57 @@ void SmallDisplacementElement::InitializeMaterial()
 {
     KRATOS_TRY
 
-	// NOTE:
-	// This is the standard (previous) implementation:
-	// If we are here, it means that no one already set up the constitutive law vector
-	// through the method SetValue<CONSTITUTIVE_LAW>
+    // NOTE:
+    // This is the standard (previous) implementation:
+    // If we are here, it means that no one already set up the constitutive law vector
+    // through the method SetValue<CONSTITUTIVE_LAW>
 
-	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-	//Constitutive Law initialization
+    //Constitutive Law initialization
     if ( mConstitutiveLawVector.size() != integration_points.size() )
-    {
+      {
         mConstitutiveLawVector.resize( integration_points.size() );
-    }
-	else
-	{
-		// check whether the constitutive law pointers have been already set up
-		bool already_set_up = true;
-		for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
-		{
-			if(mConstitutiveLawVector[i] == NULL)
-				already_set_up = false;
-		}
-		if(already_set_up)
-		{
-			for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-			{
-				mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
-						row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-			}
-			return; // if so, we are done here!
-		}
-	}
+      }
+    else
+      {
+	// check whether the constitutive law pointers have been already set up
+	bool already_set_up = true;
+	for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+	  {
+	    if(mConstitutiveLawVector[i] == NULL)
+	      already_set_up = false;
+	  }
+	if(already_set_up)
+	  {
+	    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+	      {
+		mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
+							       row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+	      }
+	    return; // if so, we are done here!
+	  }
+      }
 
-	// NOTE:
-	// This is the standard (previous) implementation:
-	// If we are here, it means that no one already set up the constitutive law vector
-	// through the method SetValue<CONSTITUTIVE_LAW>
+    // NOTE:
+    // This is the standard (previous) implementation:
+    // If we are here, it means that no one already set up the constitutive law vector
+    // through the method SetValue<CONSTITUTIVE_LAW>
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
-    {
+      {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        {
+	  {
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
-                    row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-        }
-    }
+							   row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+	  }
+      }
     else
-	{
+      {
         KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
-	}
-	KRATOS_CATCH( "" )
+      }
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1425,9 +1431,7 @@ void SmallDisplacementElement::AddExplicitContribution(const VectorType& rRHSVec
 //************************************************************************************
 
 
-void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
-        const double& rPointNumber)
-
+void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
@@ -1511,8 +1515,7 @@ Matrix& SmallDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition
 //*************************COMPUTE DISPLACEMENT GRADIENT******************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
-        const Matrix& rDN_DX)
+void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const Matrix& rDN_DX)
 {
     KRATOS_TRY
 
@@ -1568,8 +1571,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
-        Vector& rStrainVector )
+void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Vector& rStrainVector )
 {
     KRATOS_TRY
 
@@ -1656,10 +1658,10 @@ void SmallDisplacementElement::CalculateVelocityGradient(const Matrix& rDN_DX,
 
 //************************************************************************************
 //************************************************************************************
-void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
-        const Matrix& rDN_DX)
+void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
 {
     KRATOS_TRY
+      
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size = dimension * (dimension +1) * 0.5;
@@ -1748,8 +1750,10 @@ double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass, const 
 	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
       }
 
-    if( dimension == 2 )
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
         rTotalMass *= GetProperties()[THICKNESS];
+    }
 
     return rTotalMass;
 
@@ -2185,7 +2189,8 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       if( dimension == 2){
-        Thickness = GetProperties()[THICKNESS];
+	if ( this->GetProperties().Has( THICKNESS ) )
+	  Thickness = GetProperties()[THICKNESS];
       }
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -2198,7 +2203,6 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
       //set constitutive law flags:
       Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-      //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN); it would return 0.0 strain since in small def. F = Identity
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
    
@@ -2481,8 +2485,7 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    //verify that the variables are correctly initialized
-
+    //verify that the nodal variables are correctly initialized
     if ( VELOCITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
@@ -2495,8 +2498,6 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( DENSITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
-    // if ( BODY_FORCE.Key() == 0 )
-    //     KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
@@ -2514,7 +2515,7 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
-	//verify compatibility with the constitutive law
+    //verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
@@ -2528,34 +2529,18 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if( correct_strain_measure == false )
 	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
 
-    //Verify that the body force is defined
-    // if ( this->GetProperties().Has( BODY_FORCE ) == false )
-    // {
-    //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
-    // }
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
     {
-        // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-	//     KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() ) //fails in some 2D cases, i.e. axisymmetric
-
+        if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )
+	   KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element expected plane state or axisymmetric ", this->Id() )	      
+	
         // if ( THICKNESS.Key() == 0 )
-        //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
+        //   KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
 
-
-	if ( this->GetProperties().Has( THICKNESS ) == false ){
-	   
-
-	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){
-
-	    this->GetProperties().SetValue( THICKNESS , 1.0 );
-	  }
-	  else
-	    {
-	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-	    }
-	}
+	// if ( this->GetProperties().Has( THICKNESS ) == false )
+	//   KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
     }
     else
@@ -2565,12 +2550,8 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //check constitutive law
-    /*for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-        return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }*/
-	// FIXED: At this point the constitutive law vector is not set yet.
-	this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+    // FIXED: At this point the constitutive law vector is not set yet.
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     //check if it is in the XY plane for 2D case
 

@@ -36,10 +36,6 @@
     #include "external_includes/pragmatic_adapt_3d.h"
 #endif
 
-#ifdef INCLUDE_MMG
-    #include "custom_utilities/mmg_utility.h"
-#endif
-
 namespace Kratos
 {
 
@@ -138,27 +134,6 @@ void AddCustomUtilitiesToPython()
     .def("AdaptMesh", &PragmaticAdaptor::AdaptMesh)
     ;
 #endif
-
-#ifdef INCLUDE_MMG
-    /* MMG UTILITY */
-    // 2D
-    class_<MmgUtility<2>, boost::noncopyable >
-    ("MmgUtility2D", init<ModelPart&>())
-    .def(init<ModelPart&, const std::string>())
-    .def(init<ModelPart&, const std::string, const unsigned int>())
-    .def(init<ModelPart&, const std::string, const unsigned int, const std::string>())
-    .def("RemeshModelPart", &MmgUtility<2>::RemeshModelPart)
-    ;
-    
-    // 3D
-    class_<MmgUtility<3>, boost::noncopyable >
-    ("MmgUtility3D", init<ModelPart&>())
-    .def(init<ModelPart&, const std::string>())
-    .def(init<ModelPart&, const std::string, const unsigned int>())
-    .def(init<ModelPart&, const std::string, const unsigned int, const std::string>())
-    .def("RemeshModelPart", &MmgUtility<3>::RemeshModelPart)
-    ;
-#endif  
     
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)

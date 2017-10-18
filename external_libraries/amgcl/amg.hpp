@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -114,6 +114,13 @@ class amg {
              */
             unsigned coarse_enough;
 
+            /// Use direct solver at the coarsest level.
+            /**
+             * When set, the coarsest level is solved with a direct solver.
+             * Otherwise a smoother is used as a solver.
+             */
+            bool direct_coarse;
+
             /// Maximum number of levels.
             /** If this number is reached while the size of the last level is
              * greater that `coarse_enough`, then the coarsest level will not
@@ -144,6 +151,7 @@ class amg {
 
             params() :
                 coarse_enough( Backend::direct_solver::coarse_enough() ),
+                direct_coarse(true),
                 max_levels( std::numeric_limits<unsigned>::max() ),
                 npre(1), npost(1), ncycle(1), pre_cycles(1)
 #ifdef AMGCL_ASYNC_SETUP
@@ -155,6 +163,7 @@ class amg {
                 : AMGCL_PARAMS_IMPORT_CHILD(p, coarsening),
                   AMGCL_PARAMS_IMPORT_CHILD(p, relax),
                   AMGCL_PARAMS_IMPORT_VALUE(p, coarse_enough),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, direct_coarse),
                   AMGCL_PARAMS_IMPORT_VALUE(p, max_levels),
                   AMGCL_PARAMS_IMPORT_VALUE(p, npre),
                   AMGCL_PARAMS_IMPORT_VALUE(p, npost),
@@ -166,11 +175,12 @@ class amg {
             {
 #ifdef AMGCL_ASYNC_SETUP
                 AMGCL_PARAMS_CHECK(p, (coarsening)(relax)(coarse_enough)
-                        (max_levels)(npre)(npost)(ncycle)(pre_cycles)
-                        (async_setup));
+                        (direct_coarse)(max_levels)(npre)(npost)(ncycle)
+                        (pre_cycles)(async_setup));
 #else
                 AMGCL_PARAMS_CHECK(p, (coarsening)(relax)(coarse_enough)
-                        (max_levels)(npost)(ncycle)(pre_cycles));
+                        (direct_coarse)(max_levels)(npre)(npost)(ncycle)
+                        (pre_cycles));
 #endif
 
                 precondition(max_levels > 0, "max_levels should be positive");
@@ -184,6 +194,7 @@ class amg {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, coarsening);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, relax);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, coarse_enough);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, direct_coarse);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, max_levels);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, npre);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, npost);
@@ -314,47 +325,55 @@ class amg {
             level() {}
 
             level(boost::shared_ptr<build_matrix> A,
-                    params &prm, const backend_params &bprm) :
-                m_rows(backend::rows(*A)),
-                m_nonzeros(backend::nonzeros(*A)),
-                f(Backend::create_vector(m_rows, bprm)),
-                u(Backend::create_vector(m_rows, bprm)),
-                t(Backend::create_vector(m_rows, bprm)),
-                A(Backend::copy_matrix(A, bprm)),
-                relax(boost::make_shared<relax_type>(*A, prm.relax, bprm))
-            {}
+                    params &prm, const backend_params &bprm)
+                : m_rows(backend::rows(*A)), m_nonzeros(backend::nonzeros(*A))
+            {
+                AMGCL_TIC("move to backend");
+                f = Backend::create_vector(m_rows, bprm);
+                u = Backend::create_vector(m_rows, bprm);
+                t = Backend::create_vector(m_rows, bprm);
+                this->A = Backend::copy_matrix(A, bprm);
+                AMGCL_TOC("move to backend");
+
+                AMGCL_TIC("relaxation");
+                relax = boost::make_shared<relax_type>(*A, prm.relax, bprm);
+                AMGCL_TOC("relaxation");
+            }
 
             boost::shared_ptr<build_matrix> step_down(
                     boost::shared_ptr<build_matrix> A,
                     params &prm, const backend_params &bprm)
             {
-                TIC("transfer operators");
+                AMGCL_TIC("transfer operators");
                 boost::shared_ptr<build_matrix> P, R;
                 boost::tie(P, R) = Coarsening::transfer_operators(
                         *A, prm.coarsening);
 
-                precondition(backend::cols(*P) > 0,
-                        "Zero-sized coarse level in amgcl (diagonal matrix?)");
+                if(backend::cols(*P) == 0) {
+                    // Zero-sized coarse level in amgcl (diagonal matrix?)
+                    return boost::shared_ptr<build_matrix>();
+                }
 
                 sort_rows(*P);
                 sort_rows(*R);
-                TOC("transfer operators");
+                AMGCL_TOC("transfer operators");
 
+                AMGCL_TIC("move to backend");
                 this->P = Backend::copy_matrix(P, bprm);
                 this->R = Backend::copy_matrix(R, bprm);
+                AMGCL_TOC("move to backend");
 
-                TIC("coarse operator");
+                AMGCL_TIC("coarse operator");
                 A = Coarsening::coarse_operator(*A, *P, *R, prm.coarsening);
                 sort_rows(*A);
-                TOC("coarse operator");
+                AMGCL_TOC("coarse operator");
 
                 return A;
             }
 
             void create_coarse(
                     boost::shared_ptr<build_matrix> A,
-                    params &prm, const backend_params &bprm,
-                    bool single_level)
+                    const backend_params &bprm, bool single_level)
             {
                 m_rows     = backend::rows(*A);
                 m_nonzeros = backend::nonzeros(*A);
@@ -395,6 +414,8 @@ class amg {
                     "Matrix should be square!"
                     );
 
+            bool direct_coarse_solve = true;
+
             while( backend::rows(*A) > prm.coarse_enough && levels.size() < prm.max_levels) {
                 {
 #ifdef AMGCL_ASYNC_SETUP
@@ -406,23 +427,44 @@ class amg {
                 ready_to_cycle.notify_all();
 #endif
                 A = levels.back().step_down(A, prm, bprm);
+                if (!A) {
+                    // Zero-sized coarse level. Probably the system matrix on
+                    // this level is diagonal, should be easily solvable with a
+                    // couple of smoother iterations.
+                    direct_coarse_solve = false;
+                    break;
+                }
             }
 
-            if (levels.size() < prm.max_levels) {
-                TIC("coarsest level");
-                level l;
-                l.create_coarse(A, prm, bprm, levels.empty());
+            if (!A || backend::rows(*A) > prm.coarse_enough) {
+                // The coarse matrix is still too big to be solved directly.
+                direct_coarse_solve = false;
+            }
 
-                {
+            if (direct_coarse_solve) {
+                AMGCL_TIC("coarsest level");
+                if (prm.direct_coarse) {
+                    level l;
+                    l.create_coarse(A, bprm, levels.empty());
+
+                    {
 #ifdef AMGCL_ASYNC_SETUP
-                    boost::lock_guard<boost::mutex> lock(levels_mx);
+                        boost::lock_guard<boost::mutex> lock(levels_mx);
 #endif
-                    levels.push_back( l );
+                        levels.push_back( l );
+                    }
+                } else {
+                    {
+#ifdef AMGCL_ASYNC_SETUP
+                        boost::lock_guard<boost::mutex> lock(levels_mx);
+#endif
+                        levels.push_back( level(A, prm, bprm) );
+                    }
                 }
 #ifdef AMGCL_ASYNC_SETUP
                 ready_to_cycle.notify_all();
 #endif
-                TOC("coarsest level");
+                AMGCL_TOC("coarsest level");
             }
         }
 
@@ -459,41 +501,35 @@ class amg {
 
             if (nxt == end) {
                 if (lvl->solve) {
-                    TIC("coarse");
+                    AMGCL_TIC("coarse");
                     (*lvl->solve)(rhs, x);
-                    TOC("coarse");
+                    AMGCL_TOC("coarse");
                 } else {
-                    TIC("relax");
+                    AMGCL_TIC("relax");
                     lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t, prm.relax);
                     lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t, prm.relax);
-                    TOC("relax");
+                    AMGCL_TOC("relax");
                 }
             } else {
                 for (size_t j = 0; j < prm.ncycle; ++j) {
-                    TIC("relax");
+                    AMGCL_TIC("relax");
                     for(size_t i = 0; i < prm.npre; ++i)
                         lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t, prm.relax);
-                    TOC("relax");
+                    AMGCL_TOC("relax");
 
-                    TIC("residual");
                     backend::residual(rhs, *lvl->A, x, *lvl->t);
-                    TOC("residual");
 
-                    TIC("restrict");
                     backend::spmv(math::identity<scalar_type>(), *lvl->R, *lvl->t, math::zero<scalar_type>(), *nxt->f);
-                    TOC("restrict");
 
                     backend::clear(*nxt->u);
                     cycle(nxt, *nxt->f, *nxt->u);
 
-                    TIC("prolongate");
                     backend::spmv(math::identity<scalar_type>(), *lvl->P, *nxt->u, math::identity<scalar_type>(), x);
-                    TOC("prolongate");
 
-                    TIC("relax");
-                    for(size_t i = 0; i < prm.npre; ++i)
+                    AMGCL_TIC("relax");
+                    for(size_t i = 0; i < prm.npost; ++i)
                         lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t, prm.relax);
-                    TOC("relax");
+                    AMGCL_TOC("relax");
                 }
             }
         }

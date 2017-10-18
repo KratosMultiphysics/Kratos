@@ -1,9 +1,14 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Author1 Fullname
+//                   Author2 Fullname 
 //
 
 
@@ -224,16 +229,16 @@ namespace Kratos
       ///@name Operations
       ///@{
       
-      virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+      virtual boost::shared_ptr< Geometry< Point > > Clone() const
 	{
-	  Geometry< Point<3> >::PointsArrayType NewPoints;
+	  Geometry< Point >::PointsArrayType NewPoints;
 
 	  //making a copy of the nodes TO POINTS (not Nodes!!!)
 	  for(IndexType i = 0 ; i < mPoints.size() ; i++)
 	    NewPoints.push_back(mPoints[i]);
 
 	  //creating a geometry with the new points
-	  boost::shared_ptr< Geometry< Point<3> > > p_clone(new ClassName< Point<3> >(NewPoints));
+	  boost::shared_ptr< Geometry< Point > > p_clone(new ClassName< Point >(NewPoints));
 	  p_clone->ClonePoints();
 
 	  return p_clone;
@@ -468,7 +473,7 @@ namespace Kratos
 	  @see DeterminantOfJacobian
 	  @see InverseOfJacobian
       */
-      virtual double DeterminantOfJacobian(const Point<3>& rPoint)
+      virtual double DeterminantOfJacobian(const Point& rPoint)
 	{
 	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);

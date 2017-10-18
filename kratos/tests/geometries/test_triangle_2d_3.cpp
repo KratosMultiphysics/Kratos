@@ -25,7 +25,7 @@
 
 namespace Kratos {
 namespace Testing {
-
+    
   /// Factory functions
 
   /** Generates a sample triangle2D3.
@@ -111,7 +111,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle2D3<Node<3>>();
 
-    KRATOS_CHECK_EXCEPTION_RAISED(geom->Volume(), Exception);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
 	}
 
   /** Checks if the minimum edge length is calculated correctly.
@@ -170,12 +170,12 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IsInside, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle2D3<Node<3>>();
 
-    Point<3> PointInside(0.33, 0.33);
-    Point<3> PointOutside(0.66, 0.66);
-    Point<3> PointInVertex(0.0, 0.0);
-    Point<3> PointInEdge(0.5, 0.5);
+    Point PointInside(0.33, 0.33);
+    Point PointOutside(0.66, 0.66);
+    Point PointInVertex(0.0, 0.0);
+    Point PointInEdge(0.5, 0.5);
 
-    Point<3> LocalCoords;
+    Point LocalCoords;
 
     KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
@@ -262,6 +262,242 @@ namespace Testing {
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_5), ExpectedArea, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_5);
   }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_1 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_2 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_3 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_4 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_5 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    const double ExpectedJacobian = 1.0;
+
+    double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_1 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_2 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_2 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_3 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_3 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_3 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_4 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_4 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_4 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_4 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+  }
+
+  /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+   * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle2D3<Node<3>>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_5 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_5 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_5 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_5 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::GI_GAUSS_5 );
+    KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+  }
+
+    /** 
+     * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point point_1(-0.1, 0.1, 0.0);
+        Point point_2( 0.1, 0.3, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+        
+        Point point_3( 0.1,-0.1, 0.0);
+        Point point_4( 0.3, 0.1, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
+        
+        Point point_5( 0.3, 0.2, 0.0);
+        Point point_6( 1.0, 1.0, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
+    }
+
+    /**
+     * Test an overlaping box and triangle (intersects a triangle node) HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point point_1(-0.5, 0.8, 0.0);
+        Point point_2( 0.5, 1.2, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+        
+        Point point_3( 0.3,-0.5, 0.0);
+        Point point_4( 1.2, 0.5, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
+        
+        Point point_5(-0.8,-0.3, 0.0);
+        Point point_6( 0.2, 0.3, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
+    }
+
+    /**
+     * Test a box inside a triangle HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxInside, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point point_1( 0.1, 0.1, 0.0);
+        Point point_2( 0.3, 0.4, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+    }
+
+    /**
+     * Test a non overlaping box and triangle HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point point_1( 0.6, 0.5, 0.0);
+        Point point_2( 1.0, 1.0, 0.0);
+        KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    /**
+     * Test a box outside the triangle plane
+     * HasIntersection should return true, because a 2D-space does not take care about Z-coordinates
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxOutsidePlane, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle2D3<Node<3>>();
+        Point point_1( 0.2, 0.1, 0.1);
+        Point point_2( 0.3, 0.5, 1.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+    }
 
 } // namespace Testing.
 } // namespace Kratos.

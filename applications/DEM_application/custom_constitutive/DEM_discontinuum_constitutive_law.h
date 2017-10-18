@@ -21,7 +21,7 @@ namespace Kratos {
     class SphericParticle; // forward declaration of spheric cont particle
     class DEMWall; //forward declaration
 
-    class /*__declspec( dllexport )*/ DEMDiscontinuumConstitutiveLaw : public Flags {
+    class KRATOS_API(DEM_APPLICATION) DEMDiscontinuumConstitutiveLaw : public Flags {
     public:
 
         double mKn;
@@ -35,7 +35,7 @@ namespace Kratos {
 
         virtual void Initialize(const ProcessInfo& r_process_info);
 
-        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
         
         virtual std::string GetTypeOfLaw();
 

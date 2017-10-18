@@ -15,24 +15,27 @@
 #include "utilities/quaternion.h"
 #include "custom_utilities/cluster_information.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
+//#include "custom_utilities/properties_proxies.h"
 
 namespace Kratos
 {
 
 #define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
-#define DEM_COPY_SECOND_TO_FIRST_4(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2]; a[3]  = b[3];
+#define DEM_COPY_SECOND_TO_FIRST_4(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2]; a[3] = b[3];
 #define DEM_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
 #define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
 #define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
-#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
-#define DEM_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
-#define DEM_MODULUS_2(a)                            sqrt(a[0] * a[0] + a[1] * a[1])
-#define DEM_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] *= (b); a[1] *= (b); a[2] *= (b);
+#define DEM_MODULUS_3(a)                            std::sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+#define DEM_MODULUS_2(a)                            std::sqrt(a[0] * a[0] + a[1] * a[1])
+#define DEM_INNER_PRODUCT_3(a, b)                            (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 #define DEM_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
 #define DEM_COPY_SECOND_TO_FIRST_3x3(a, b)          a[0][0] = b[0][0]; a[0][1] = b[0][1]; a[0][2] = b[0][2]; \
                                                     a[1][0] = b[1][0]; a[1][1] = b[1][1]; a[1][2] = b[1][2]; \
                                                     a[2][0] = b[2][0]; a[2][1] = b[2][1]; a[2][2] = b[2][2];
     
+#define DEM_DETERMINANT_3x3(a0, a1, a2)            (a0[0] * (a1[1] * a2[2] - a1[2] * a2[1]) - a0[1] * (a1[0] * a2[2] - a1[2] * a2[0]) + a0[2] * (a1[0] * a2[1] - a1[1] * a2[0]))
+
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
 
@@ -78,6 +81,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, BREAKABLE_CLUSTER)
   KRATOS_DEFINE_VARIABLE(ClusterInformation, CLUSTER_INFORMATION)
   KRATOS_DEFINE_VARIABLE(std::string, CLUSTER_FILE_NAME)
+  KRATOS_DEFINE_VARIABLE(std::string, INJECTOR_ELEMENT_TYPE)  
   KRATOS_DEFINE_VARIABLE(int, CONTINUUM_OPTION)
   
   KRATOS_DEFINE_VARIABLE(double, INITIAL_VELOCITY_X_VALUE)
@@ -105,7 +109,8 @@ namespace Kratos
   // *************** Continuum only END ***************
 
   // MATERIAL PARAMETERS
-
+  class PropertiesProxy; //forward declaration
+  KRATOS_DEFINE_VARIABLE(std::vector<PropertiesProxy>, VECTOR_OF_PROPERTIES_PROXIES)
   KRATOS_DEFINE_VARIABLE(double, NODAL_MASS_COEFF)
   KRATOS_DEFINE_VARIABLE(double, PARTICLE_MOMENT_OF_INERTIA)
   KRATOS_DEFINE_VARIABLE(double, ROLLING_FRICTION)
@@ -131,10 +136,6 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, POISSON_VALUE)
   KRATOS_DEFINE_VARIABLE(double, INTERNAL_COHESION)
   
-  // *************** Nano-particle only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(double, CATION_CONCENTRATION)
-  // *************** Nano-particle only END *************
-
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N1)
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N2)
@@ -180,6 +181,8 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double,INLET_NUMBER_OF_PARTICLES)
   KRATOS_DEFINE_VARIABLE(double,STANDARD_DEVIATION)
   KRATOS_DEFINE_VARIABLE(double,MAX_RAND_DEVIATION_ANGLE)
+  KRATOS_DEFINE_VARIABLE(bool,IMPOSED_MASS_FLOW_OPTION)
+  KRATOS_DEFINE_VARIABLE(double,MASS_FLOW)  
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LINEAR_VELOCITY)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_PARTICLES_VELOCITY)
@@ -187,6 +190,9 @@ namespace Kratos
 
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_ROTATION_ANGLE)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EULER_ANGLES)
+  KRATOS_DEFINE_VARIABLE(bool, DOMAIN_IS_PERIODIC)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
   KRATOS_DEFINE_VARIABLE(double,ORIENTATION_REAL) // JIG: SHOULD BE REMOVED IN THE FUTURE
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG) // JIG: SHOULD BE REMOVED IN THE FUTURE
   KRATOS_DEFINE_VARIABLE(Quaternion<double>, ORIENTATION)
@@ -225,12 +231,17 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, PARTICLE_INELASTIC_FRICTIONAL_ENERGY)
   KRATOS_DEFINE_VARIABLE(int, COMPUTE_ENERGY_OPTION)
   KRATOS_DEFINE_VARIABLE(double, GLOBAL_DAMPING)
+  KRATOS_DEFINE_VARIABLE(double, NORMAL_IMPACT_VELOCITY)
+  KRATOS_DEFINE_VARIABLE(double, TANGENTIAL_IMPACT_VELOCITY)
+  KRATOS_DEFINE_VARIABLE(double, FACE_NORMAL_IMPACT_VELOCITY)
+  KRATOS_DEFINE_VARIABLE(double, FACE_TANGENTIAL_IMPACT_VELOCITY)
+  KRATOS_DEFINE_VARIABLE(double, LINEAR_IMPULSE)
+  
+
   
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(INITIAL_ROTA_MOMENT)
   KRATOS_DEFINE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FORCE)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_FORCE)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_MOMENT)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
   KRATOS_DEFINE_VARIABLE(VectorArray3Double, PARTICLE_CONTACT_FORCES )
   KRATOS_DEFINE_VARIABLE(double, NEIGHBOUR_SIZE)
@@ -321,16 +332,16 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(Vector, RIGID_FACE_COMPUTE_MOVEMENT)
   
   //SLS DEM-FEM
-  KRATOS_DEFINE_VARIABLE(double, WALL_FRICTION)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, WALL_FRICTION)
   KRATOS_DEFINE_VARIABLE(double, SHEAR_STRESS)
   KRATOS_DEFINE_VARIABLE(double, NON_DIMENSIONAL_VOLUME_WEAR)
   KRATOS_DEFINE_VARIABLE(double, IMPACT_WEAR)
-  KRATOS_DEFINE_VARIABLE(double, SEVERITY_OF_WEAR)
-  KRATOS_DEFINE_VARIABLE(double, BRINELL_HARDNESS)
-  KRATOS_DEFINE_VARIABLE(bool  , COMPUTE_WEAR)
-  KRATOS_DEFINE_VARIABLE(double, IMPACT_WEAR_SEVERITY)
-  KRATOS_DEFINE_VARIABLE(double, WALL_COHESION)
-  //BOUNDING BOX
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, SEVERITY_OF_WEAR)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION,double, BRINELL_HARDNESS)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, bool, COMPUTE_WEAR)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION,double, IMPACT_WEAR_SEVERITY)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION,double, WALL_COHESION)
+    //BOUNDING BOX
   KRATOS_DEFINE_VARIABLE(double, BOUNDING_BOX_START_TIME)
   KRATOS_DEFINE_VARIABLE(double, BOUNDING_BOX_STOP_TIME)
   

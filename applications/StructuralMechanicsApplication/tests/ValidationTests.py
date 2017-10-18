@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+import Kratos_Execute_Structural_Test as Execute_Test
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -23,7 +23,7 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
+class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         # Within this location context:
@@ -43,5 +43,5 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
-class SprismPanTests(StructrualMechanichsTestFactory):
+class SprismPanTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/pan_test"

@@ -1,48 +1,17 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2007-10-31 17:51:34 $
-//   Revision:            $Revision: 1.1 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                   Daniel Baumgaertner
+//                   Johannes Wolf
+//
+
 
 
 #if !defined(KRATOS_CALCULATE_DISTANCE_CONDITION_PROCESS_H_INCLUDED )
@@ -105,7 +74,7 @@ class DistanceSpatialContainersConditionConfigure
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
-    typedef Point<3, double>                                    PointType;  /// always the point 3D
+    typedef Point                                               PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                       DistanceIteratorType;
     typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ContainerType;
     typedef ContainerType::value_type                           PointerType;
@@ -222,8 +191,8 @@ class DistanceSpatialContainersConditionConfigure
 
           static  inline bool  IsIntersected(const Element::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
          {
-             Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-             Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+             Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+             Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
              KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
              //return HasIntersection(rObject->GetGeometry(), low_point, high_point);
@@ -309,7 +278,7 @@ private:
         typedef OctreeBinaryCell<ConfigurationType> CellType;
         typedef OctreeBinary<CellType> OctreeType;
         typedef ConfigurationType::cell_node_data_type CellNodeDataType;
-        typedef Point<3, double> PointType;  /// always the point 3D
+        typedef Point PointType;  /// always the point 3D
         typedef OctreeType::cell_type::object_container_type object_container_type;
         typedef struct{
             array_1d<double,3>  Coordinates;
@@ -331,7 +300,7 @@ private:
 	}
 
       /// Destructor.
-      virtual ~CalculateSignedDistanceTo3DConditionSkinProcess()
+      ~CalculateSignedDistanceTo3DConditionSkinProcess() override
 	{
 	}
       
@@ -353,7 +322,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      virtual void Execute()
+      void Execute() override
       {
           KRATOS_TRY
 	/*
@@ -922,8 +891,8 @@ private:
           double             InnerProduct;
           double             NormDistTetNode;
 
-          const Point<3> LinePoint1 = Point<3>(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
-          const Point<3> LinePoint2 = Point<3>(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
+          const Point LinePoint1 = Point(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
+          const Point LinePoint2 = Point(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
 
           Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
 
@@ -933,7 +902,7 @@ private:
               TetNode  = rFluidGeom(i_TetNode)->Coordinates();
 
               // Compute distance to point
-              NormDistTetNode = GeometryUtils::PointDistanceToLineSegment3D(LinePoint1, LinePoint2 , Point<3>(TetNode[0],TetNode[1],TetNode[2]));
+              NormDistTetNode = GeometryUtils::PointDistanceToLineSegment3D(LinePoint1, LinePoint2 , Point(TetNode[0],TetNode[1],TetNode[2]));
 
               // Compute unsigned distance vector by assuming the mean position vector of the two intersection points
               DistVecTetNode[0] = TetNode[0] - IntersectionNode1Coord[0];
@@ -1083,9 +1052,9 @@ private:
               array_1d<double,3> IntersectionNode1Coord;
               array_1d<double,3> IntersectionNode2Coord;
               array_1d<double,3> IntersectionNode3Coord;
-              Point<3>           ApproxTrianglePoint1;
-              Point<3>           ApproxTrianglePoint2;
-              Point<3>           ApproxTrianglePoint3;
+              Point           ApproxTrianglePoint1;
+              Point           ApproxTrianglePoint2;
+              Point           ApproxTrianglePoint3;
               double             UnsignedDistance;
               double             InnerProduct;
               unsigned int       IndexNode1;
@@ -1103,12 +1072,12 @@ private:
               IntersectionNode2Coord = NodesOfApproximatedStructure[IndexNode2].Coordinates;
               IntersectionNode3Coord = NodesOfApproximatedStructure[IndexNode3].Coordinates;
 
-              ApproxTrianglePoint1 = Point<3>(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
-              ApproxTrianglePoint2 = Point<3>(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
-              ApproxTrianglePoint3 = Point<3>(IntersectionNode3Coord[0] , IntersectionNode3Coord[1] , IntersectionNode3Coord[2]);
+              ApproxTrianglePoint1 = Point(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
+              ApproxTrianglePoint2 = Point(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
+              ApproxTrianglePoint3 = Point(IntersectionNode3Coord[0] , IntersectionNode3Coord[1] , IntersectionNode3Coord[2]);
 
               // Compute distance from tet node to current triangle
-              UnsignedDistance = GeometryUtils::PointDistanceToTriangle3D(ApproxTrianglePoint1, ApproxTrianglePoint2 , ApproxTrianglePoint3 , Point<3>(TetNode[0],TetNode[1],TetNode[2]));
+              UnsignedDistance = GeometryUtils::PointDistanceToTriangle3D(ApproxTrianglePoint1, ApproxTrianglePoint2 , ApproxTrianglePoint3 , Point(TetNode[0],TetNode[1],TetNode[2]));
 
               bool TetNodeIsInsideStructure = true;
               bool TetNodeIsOnStructure = true;
@@ -1586,7 +1555,7 @@ private:
 //                cell_point[1] = pCell->GetCoordinate(keys[1]);
 //                cell_point[2] = pCell->GetCoordinate(keys[2]);
 
-                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
                 if(d < distance)
                     distance = d;
@@ -1993,19 +1962,19 @@ private:
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      std::string Info() const override
 	{
 	  return "CalculateSignedDistanceTo3DConditionSkinProcess";
 	}
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
+      void PrintInfo(std::ostream& rOStream) const override
 	{
 	  rOStream << "CalculateSignedDistanceTo3DConditionSkinProcess";
 	}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
+      void PrintData(std::ostream& rOStream) const override
 	{
 	}
       

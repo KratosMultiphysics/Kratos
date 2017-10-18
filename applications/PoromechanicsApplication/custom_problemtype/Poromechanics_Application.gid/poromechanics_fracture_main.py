@@ -12,8 +12,9 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-#~ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers 
+# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
     
@@ -132,12 +133,10 @@ for process in list_of_processes:
 gid_output.ExecuteBeforeSolutionLoop()
 
 # Initialize Fracture Propagation Utility
-FracturePropagation = ProjectParameters["problem_data"]["fracture_propagation"].GetBool()
-if FracturePropagation:
-    import poromechanics_fracture_propagation_utility
-    fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
-                                                                                             problem_name,
-                                                                                             ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
+import poromechanics_fracture_propagation_utility
+fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
+                                                                                         problem_name,
+                                                                                         ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
 
 ## Temporal loop ---------------------------------------------------------------------------------------------
 
@@ -172,13 +171,12 @@ while( (time+tol) <= end_time ):
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
     
-    # Fracture Propagation Utility
-    if FracturePropagation:
-        if fracture_utility.IsPropagationStep():
-            main_model_part,solver,list_of_processes,gid_output = fracture_utility.CheckPropagation(main_model_part,
-                                                                                                               solver,
-                                                                                                               list_of_processes,
-                                                                                                               gid_output)
+    # Check Fracture Propagation Utility
+    if fracture_utility.IsPropagationStep():
+        main_model_part,solver,list_of_processes,gid_output = fracture_utility.CheckPropagation(main_model_part,
+                                                                                                solver,
+                                                                                                list_of_processes,
+                                                                                                gid_output)
 
 ## Finalize --------------------------------------------------------------------------------------------------
 
@@ -187,7 +185,10 @@ gid_output.ExecuteFinalize()
 
 for process in list_of_processes:
     process.ExecuteFinalize()
-    
+
+# Finalize Fracture Propagation Utility
+fracture_utility.Finalize()
+
 # Finalizing strategy
 if parallel_type == "OpenMP":
     solver.Clear()

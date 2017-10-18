@@ -4,6 +4,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 class DerivativesRecoverer:
@@ -21,6 +22,10 @@ class EmptyGradientRecoverer(DerivativesRecoverer):
         pass
     def RecoverGradientOfVelocity(self):
         pass
+    def RecoverFluidFractionGradient(self):
+        pass
+    def RecoverPressureGradient(self):
+        pass
 
 class EmptyMaterialAccelerationRecoverer(DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
@@ -28,8 +33,6 @@ class EmptyMaterialAccelerationRecoverer(DerivativesRecoverer):
     def RecoverMaterialAcceleration(self):
         pass
     def RecoverMaterialAccelerationFromGradient(self):
-        pass
-    def RecoverPressureGradient(self):
         pass
 
 class EmptyVorticityRecoverer(DerivativesRecoverer):
@@ -55,6 +58,8 @@ class GradientRecoverer(EmptyGradientRecoverer):
         self.RecoverGradientOfVector(VELOCITY, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
         self.RecoverGradientOfScalar(PRESSURE, PRESSURE_GRADIENT)
+    def RecoverFluidFractionGradient(self):
+        self.RecoverGradientOfScalar(FLUID_FRACTION, FLUID_FRACTION_GRADIENT)
 
 class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):

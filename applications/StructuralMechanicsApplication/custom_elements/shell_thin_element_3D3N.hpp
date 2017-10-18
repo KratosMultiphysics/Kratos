@@ -103,7 +103,7 @@ public:
                          PropertiesType::Pointer pProperties,
                          CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    virtual ~ShellThinElement3D3N();
+    ~ShellThinElement3D3N() override;
 
     ///@}
 
@@ -112,58 +112,58 @@ public:
 
     // Basic
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    IntegrationMethod GetIntegrationMethod() const;
+    IntegrationMethod GetIntegrationMethod() const override;
 
-    void Initialize();
+    void Initialize() override;
 
-    void ResetConstitutiveLaw();
+    void ResetConstitutiveLaw() override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CleanMemory();
+    void CleanMemory() override;
 
-    void GetValuesVector(Vector& values, int Step = 0);
+    void GetValuesVector(Vector& values, int Step = 0) override;
 
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo);
+                                ProcessInfo& rCurrentProcessInfo) override;
 
     // Results calculation on integration points
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
@@ -266,7 +266,7 @@ private:
         VectorType H4;
         MatrixType Bb;
 
-        ShellCrossSection::Parameters SectionParameters; /*!< parameters for cross section calculations */
+        ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
         array_1d< Vector3Type, 3 > Sig;
 
@@ -340,9 +340,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
 

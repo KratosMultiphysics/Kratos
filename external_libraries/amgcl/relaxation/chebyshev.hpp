@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ THE SOFTWARE.
 
 #include <vector>
 #include <cmath>
-#include <boost/range/iterator_range.hpp>
 #include <boost/foreach.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -186,28 +185,20 @@ class chebyshev {
             }
         }
 
+        // Uses Gershgorin disc theorem to estimate spectral radius of the
+        // matrix
         template <class Matrix>
         static scalar_type spectral_radius(const Matrix &A) {
             typedef typename backend::row_iterator<Matrix>::type row_iterator;
-            const size_t n = rows(A);
+            const ptrdiff_t n = rows(A);
 
             scalar_type emax = 0;
 
 #pragma omp parallel
             {
-#ifdef _OPENMP
-                int nt  = omp_get_num_threads();
-                int tid = omp_get_thread_num();
-
-                size_t chunk_size  = (n + nt - 1) / nt;
-                size_t chunk_start = tid * chunk_size;
-                size_t chunk_end   = std::min(n, chunk_start + chunk_size);
-#else
-                size_t chunk_start = 0;
-                size_t chunk_end   = n;
-#endif
                 scalar_type my_emax = 0;
-                for(size_t i = chunk_start; i < chunk_end; ++i) {
+#pragma omp for nowait
+                for(ptrdiff_t i = 0; i < n; ++i) {
                     scalar_type hi = 0;
 
                     for(row_iterator a = backend::row_begin(A, i); a; ++a)

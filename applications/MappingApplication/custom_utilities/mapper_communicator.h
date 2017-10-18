@@ -7,418 +7,598 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_MAPPER_COMMUNICATOR_H_INCLUDED )
 #define  KRATOS_MAPPER_COMMUNICATOR_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "interface_object_manager_serial.h"
 #include "interface_search_structure.h"
 #include "mapper_utilities.h"
+#include "mapper_flags.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class MapperCommunicator
+/// Interface btw the Mappers and the Core of the MappingApplication
+/** This class is the top instance of the Core of the MappingApplication
+* It handles the searching and the exchange of Data btw the Interfaces
+* It also checks and validates the JSON input (default-parameters: 
+* memeber variable "mDefaultParameters").
+*
+* Available Echo Levels:
+* 0 : Mute every output
+* == 1 : Print Timing Information (Mapper Construction and the three basic functions)
+* >= 2 : Warnings are printed
+* >= 3 : Basic Information, recommended for standard debugging
+* >= 4 : Very detailed output for every object on the interface!
+*       (Only recommended for debugging of small example, otherwise it gets very messy!
+*       Should be only needed for developing)
+*
+* Structure of the how the different classes work with each other:
+* (Illustrated in Thesis mentioned in the header)
+* It is described in the serial case, if executed mpi-parallel, the MPI-versions
+* of the classes are used: 
+* MapperCommunicator
+*   Constructs the InterfaceObjectManagers both for the Destination and the Origin
+*       Which InterfaceObjects should be used is declared in the input of the "Initialize*" functions
+*   It then constructs the SearchStructure and initializes the Search
+*   For the exchange of values it implements the corresponding functions
+*/
+class MapperCommunicator
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MapperCommunicator
+    KRATOS_CLASS_POINTER_DEFINITION(MapperCommunicator);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    MapperCommunicator(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+                       Parameters JsonParameters, const int CommRank = 0) :
+        mrModelPartOrigin(rModelPartOrigin),
+        mrModelPartDestination(rModelPartDestination),
+        mJsonParameters(JsonParameters)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
+        CheckAndValidateJson(CommRank);
 
-      /// Pointer definition of MapperCommunicator
-      KRATOS_CLASS_POINTER_DEFINITION(MapperCommunicator);
+        mInitialSearchRadius = mJsonParameters["search_radius"].GetDouble();
+        mMaxSearchIterations = mJsonParameters["search_iterations"].GetInt();
+        mApproximationTolerance = mJsonParameters["approximation_tolerance"].GetDouble();
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+        mEchoLevel = mJsonParameters["echo_level"].GetInt();
+        
+        CheckInterfaceModelParts(CommRank);
+    }
 
-      MapperCommunicator(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                         Parameters& i_json_parameters) :
-            m_model_part_origin(i_model_part_origin),
-            m_model_part_destination(i_model_part_destination) {
-
-          m_initial_search_radius = i_json_parameters["search_radius"].GetDouble();
-          m_max_search_iterations = i_json_parameters["search_iterations"].GetInt();
-          m_echo_level = i_json_parameters["echo_level"].GetInt();
-      }
-
-      /// Destructor.
-      virtual ~MapperCommunicator() { }
+    /// Destructor.
+    virtual ~MapperCommunicator() { }
 
 
-      ///@}
-      ///@name Operators
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-      virtual void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_origin,
-                      GeometryData::IntegrationMethod i_integration_method_origin = GeometryData::NumberOfIntegrationMethods) {
+    virtual void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType InterfaceObjectTypeOrigin,
+                                  GeometryData::IntegrationMethod IntegrationMethodOrigin = GeometryData::NumberOfIntegrationMethods)
+    {
 
-          m_p_interface_object_manager_origin = InterfaceObjectManagerBase::Pointer(
-              new InterfaceObjectManagerSerial(m_model_part_origin, MyPID(),
-                                               TotalProcesses(),
-                                               i_interface_object_type_origin,
-                                               i_integration_method_origin,
-                                               m_echo_level) );
+        mpInterfaceObjectManagerOrigin = InterfaceObjectManagerBase::Pointer(
+                                             new InterfaceObjectManagerSerial(mrModelPartOrigin, MyPID(),
+                                                     TotalProcesses(),
+                                                     InterfaceObjectTypeOrigin,
+                                                     IntegrationMethodOrigin,
+                                                     mEchoLevel,
+                                                     mApproximationTolerance) );
 
-          // Save for updating the interface
-          m_interface_object_type_origin = i_interface_object_type_origin;
-          m_integration_method_origin = i_integration_method_origin;
-      }
+        if (mEchoLevel >= 4)
+        {
+            mpInterfaceObjectManagerOrigin->PrintInterfaceObjects("Origin");
+        }
 
-      virtual void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_destination,
-                      GeometryData::IntegrationMethod i_integration_method_destination = GeometryData::NumberOfIntegrationMethods) {
+        // Save for updating the interface
+        mInterfaceObjectTypeOrigin = InterfaceObjectTypeOrigin;
+        mIntegrationMethodOrigin = IntegrationMethodOrigin;
+    }
 
-          m_p_interface_object_manager_destination = InterfaceObjectManagerBase::Pointer(
-              new InterfaceObjectManagerSerial(m_model_part_destination, MyPID(),
-                                               TotalProcesses(),
-                                               i_interface_object_type_destination,
-                                               i_integration_method_destination,
-                                               m_echo_level) );
+    virtual void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType InterfaceObjectTypeDestination,
+                                       GeometryData::IntegrationMethod IntegrationMethodDestination = GeometryData::NumberOfIntegrationMethods)
+    {
 
-          // Save for updating the interface
-          m_interface_object_type_destination = i_interface_object_type_destination;
-          m_integration_method_destination = i_integration_method_destination;
-      }
+        mpInterfaceObjectManagerDestination = InterfaceObjectManagerBase::Pointer(
+                new InterfaceObjectManagerSerial(mrModelPartDestination, MyPID(),
+                        TotalProcesses(),
+                        InterfaceObjectTypeDestination,
+                        IntegrationMethodDestination,
+                        mEchoLevel,
+                        mApproximationTolerance) );
 
-      void Initialize() {
-          InitializeSearchStructure();
-          InvokeSearch(m_initial_search_radius, m_max_search_iterations);
-      }
+        if (mEchoLevel >= 4)
+        {
+            mpInterfaceObjectManagerDestination->PrintInterfaceObjects("Destination");
+        }
 
-      void UpdateInterface(Kratos::Flags& options, double i_initial_search_radius) {
-          if (options.Is(MapperFlags::REMESHED)) { // recompute the managers and the search structure
-              InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
-              InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
-              InitializeSearchStructure();
-          } else { // clear the managers
-              // TODO does the same for now, since the InterfaceObjects do not use the refs to their
-              // original entities, so their position is not updated!
-              InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
-              InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
-              InitializeSearchStructure();
-              // m_p_interface_object_manager_origin->Clear();
-              // m_p_interface_object_manager_destination->Clear();
-              // InitializeSearchStructure();
-          }
+        // Save for updating the interface
+        mInterfaceObjectTypeDestination = InterfaceObjectTypeDestination;
+        mIntegrationMethodDestination = IntegrationMethodDestination;
+    }
 
-          if (i_initial_search_radius < 0.0f) {
-              i_initial_search_radius = MapperUtilities::ComputeSearchRadius(m_model_part_origin,
-                                                                             m_model_part_destination);
-          }
-          m_initial_search_radius = i_initial_search_radius; // update the search radius
+    void Initialize()
+    {
+        InitializeSearchStructure();
+        InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
+    }
 
-          InvokeSearch(m_initial_search_radius, m_max_search_iterations);
-      }
+    void UpdateInterface(Kratos::Flags& rOptions, double InitialSearchRadius)
+    {
+        if (rOptions.Is(MapperFlags::REMESHED))   // recompute the managers and the search structure
+        {
+            InitializeOrigin(mInterfaceObjectTypeOrigin, mIntegrationMethodOrigin);
+            InitializeDestination(mInterfaceObjectTypeDestination, mIntegrationMethodDestination);
+            InitializeSearchStructure();
+        }
+        else     // clear the managers
+        {
+            // TODO does the same for now, since the InterfaceObjects do not use the refs to their
+            // original entities, so their position is not updated!
+            InitializeOrigin(mInterfaceObjectTypeOrigin, mIntegrationMethodOrigin);
+            InitializeDestination(mInterfaceObjectTypeDestination, mIntegrationMethodDestination);
+            InitializeSearchStructure();
+            // mpInterfaceObjectManagerOrigin->Clear();
+            // mpInterfaceObjectManagerDestination->Clear();
+            // InitializeSearchStructure();
+        }
+
+        if (InitialSearchRadius < 0.0f)
+        {
+            InitialSearchRadius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+                                  mrModelPartDestination);
+        }
+        mInitialSearchRadius = InitialSearchRadius; // update the search radius
+
+        InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
+    }
+
+    virtual void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+                                      std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
+                                      const Variable<double>& rOriginVariable)
+    {
+        ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
+    }
+
+    virtual void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+                                      std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
+                                      const Variable< array_1d<double, 3> >& rOriginVariable)
+    {
+        ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
+    }
+
+    virtual void TransferVariableData(std::function<void*(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+                                      std::function<void(InterfaceObject*, void*)> FunctionPointerDestination )
+    {
+        ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
+    }
+   
+
+    virtual int MyPID() // Copy from "kratos/includes/communicator.h"
+    {
+        return 0;
+    }
+
+    virtual int TotalProcesses() // Copy from "kratos/includes/communicator.h"
+    {
+        return 1;
+    }
+
+    void PrintTime(const std::string& rMapperName,
+                   const std::string& rFunctionName,
+                   const double& rElapsedTime)
+    {
+        if (mEchoLevel == 1 && MyPID() == 0)
+        {
+            std::cout  << "MAPPER TIMER: \"" << rMapperName << "\", \"" << rFunctionName
+                       << "\" took " <<  rElapsedTime << " seconds" << std::endl;
+        }
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-
-      // Interface function for mapper developers; scalar version
-      virtual void TransferNodalData(const Variable<double>& origin_variable,
-                                     const Variable<double>& destination_variable,
-                                     Kratos::Flags& options,
-                                     double factor = 1.0f) {
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
-      }
-
-      // Interface function for mapper developers; vector version
-      virtual void TransferNodalData(const Variable< array_1d<double,3> >& origin_variable,
-                                     const Variable< array_1d<double,3> >& destination_variable,
-                                     Kratos::Flags& options,
-                                     double factor = 1.0f) {
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
-      }
-
-      // Interface function for mapper developers; scalar version
-      virtual void TransferInterpolatedData(const Variable<double>& origin_variable,
-                                            const Variable<double>& destination_variable,
-                                            Kratos::Flags& options,
-                                            double factor = 1.0f) {
-          options.Set(MapperFlags::INTERPOLATE_VALUES);
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
-      }
-
-      // Interface function for mapper developers; vector version
-      virtual void TransferInterpolatedData(const Variable< array_1d<double,3> >& origin_variable,
-                                            const Variable< array_1d<double,3> >& destination_variable,
-                                            Kratos::Flags& options,
-                                            double factor = 1.0f) {
-          options.Set(MapperFlags::INTERPOLATE_VALUES);
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
-      }
-
-      // Interface function for mapper developer
-      virtual void TransferShapeFunctions(Kratos::Flags& options) {
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      }
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      virtual int MyPID() // Copy from "kratos/includes/communicator.h"
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "MapperCommunicator" ;
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MapperCommunicator";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ModelPart& mrModelPartOrigin;
+    ModelPart& mrModelPartDestination;
+
+    InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerOrigin;
+    InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerDestination;
+
+    MapperUtilities::InterfaceObjectConstructionType mInterfaceObjectTypeOrigin;
+    GeometryData::IntegrationMethod mIntegrationMethodOrigin;
+    MapperUtilities::InterfaceObjectConstructionType mInterfaceObjectTypeDestination;
+    GeometryData::IntegrationMethod mIntegrationMethodDestination;
+
+    InterfaceSearchStructure::Pointer mpSearchStructure;
+
+    double mInitialSearchRadius;
+    int mMaxSearchIterations;
+    double mApproximationTolerance;
+
+    int mEchoLevel = 0;
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    template <typename T>
+    void ExchangeDataLocal(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+                           std::function<void(InterfaceObject*, T)> FunctionPointerDestination)
+    {
+        std::vector< T > values;
+
+        mpInterfaceObjectManagerOrigin->FillBufferWithValues(FunctionPointerOrigin, values);
+        mpInterfaceObjectManagerDestination->ProcessValues(FunctionPointerDestination, values);
+    }
+
+    // Function used for Debugging
+    void PrintPairs()
+    {
+        KRATOS_ERROR << "Needs to be re-implemented!" << std::endl;
+        // mpInterfaceObjectManagerOrigin->WriteNeighborRankAndCoordinates();
+        // Kratos::Flags options = Kratos::Flags();
+        // options.Set(MapperFlags::NON_HISTORICAL_DATA);
+        // TransferNodalData(NEIGHBOR_RANK, NEIGHBOR_RANK, options);
+        // TransferNodalData(NEIGHBOR_COORDINATES, NEIGHBOR_COORDINATES, options);
+        // mpInterfaceObjectManagerDestination->PrintNeighbors();
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    Parameters mJsonParameters;
+    Parameters mDefaultParameters = Parameters( R"(
       {
-          return 0;
-      }
+             "mapper_type"                           : "",
+             "interface_submodel_part_origin"        : "",
+             "interface_submodel_part_destination"   : "",
+             "search_radius"                         : -1.0,
+             "search_iterations"                     : 3,
+             "approximation_tolerance"               : -1.0,
+             "echo_level"                            : 0
+       }  )" );
 
-      virtual int TotalProcesses() // Copy from "kratos/includes/communicator.h"
-      {
-          return 1;
-      }
-
-      InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerOrigin() {
-          return m_p_interface_object_manager_origin;
-      }
-
-      InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerDestination() {
-          return m_p_interface_object_manager_destination;
-      }
-
-      void PrintTime(const std::string& mapper_name,
-                     const std::string& function_name,
-                     const double& elapsed_time) {
-          if (m_echo_level == 1 && MyPID() == 0) {
-              std::cout  << "MAPPER TIMER: \"" << mapper_name << "\", \"" << function_name
-                        << "\" took " <<  elapsed_time << " seconds" << std::endl;
-          }
-      }
-
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    virtual void InitializeSearchStructure()
+    {
+        mpSearchStructure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
+                                mpInterfaceObjectManagerDestination, mpInterfaceObjectManagerOrigin, mEchoLevel) );
+    }
+
+    virtual void InvokeSearch(const double InitialSearchRadius,
+                              const int MaxSearchIterations)
+    {
+        mpSearchStructure->Search(InitialSearchRadius,
+                                  MaxSearchIterations);
+        if (mEchoLevel >= 4)
+        {
+            // PrintPairs(); // TODO reimplement!
+        }
+    }
+
+    // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
+    // since this function is called before the MapperMPICommunicato is initialized
+    void CheckAndValidateJson(const int CommRank)
+    {
+        // Check if there is a valid input for the search parameters
+        bool compute_search_radius = true;
+        if (mJsonParameters.Has("search_radius"))
+        {
+            compute_search_radius = false;
+
+            if (mJsonParameters["search_radius"].GetDouble() < 0.0f)
+            {
+                KRATOS_ERROR << "Invalid Search Radius specified" << std::endl;
+            }
+        }
+
+        if (mJsonParameters.Has("search_iterations"))
+        {
+            if (mJsonParameters["search_iterations"].GetInt() < 1)
+            {
+                KRATOS_ERROR << "Number of specified Search Iterations too small" << std::endl;
+            }
+        }
+
+        if (mJsonParameters.Has("approximation_tolerance"))
+        {
+            if (mJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)
+            {
+                KRATOS_ERROR << "Invalid Tolerance for Approximations specified" << std::endl;
+            }
+        }
+
+        if (mJsonParameters.Has("echo_level"))
+        {
+            if (mJsonParameters["echo_level"].GetInt() < 0)
+            {
+                KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
+            }
+
+            if (mJsonParameters["echo_level"].GetInt() >= 3 && CommRank == 0)
+            {
+                std::cout << "Mapper JSON Parameters BEFORE validation:\n "
+                          << mJsonParameters.PrettyPrintJsonString() << std::endl;
+            }
+        }
+
+        mJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
+
+        if (mJsonParameters["echo_level"].GetInt() >= 3 && CommRank == 0)
+        {
+            std::cout << "Mapper JSON Parameters AFTER validation:\n "
+                      << mJsonParameters.PrettyPrintJsonString() << std::endl;
+        }
+
+        // Compute the search radius in case it was not specified
+        if (compute_search_radius)
+        {
+            double search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+                                   mrModelPartDestination,
+                                   mJsonParameters["echo_level"].GetInt());
+            mJsonParameters["search_radius"].SetDouble(search_radius);
+
+            if (mJsonParameters["echo_level"].GetInt() >= 3 && CommRank == 0)
+            {
+                std::cout << "SearchRadius computed by MapperCommunicator = " << search_radius << std::endl;
+            }
+        }
+
+        if (mJsonParameters["approximation_tolerance"].GetDouble() < 0.0f)   // nothing specified, set to max
+        {
+            mJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
+        }
+    }
+
+    // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
+    // since this function is called before the MapperMPICommunicato is initialized
+    void CheckInterfaceModelParts(const int CommRank)
+    {
+        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(mrModelPartOrigin);
+        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(mrModelPartOrigin);
+        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(mrModelPartOrigin);
+
+        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(mrModelPartDestination);
+        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(mrModelPartDestination);
+        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(mrModelPartDestination);
+
+        // Check if the ModelPart contains entities
+        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
+        {
+            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
+                         << "in the Origin ModelPart" << std::endl;
+        }
+
+        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
+        {
+            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
+                         << "in the Destination ModelPart" << std::endl;
+        }
+
+        // Check if the inpt ModelParts contain both Elements and Conditions
+        // This is NOT possible, bcs the InterfaceObjects are constructed
+        // with whatever exists in the Modelpart (see the InterfaceObjectManagerBase, 
+        // function "InitializeInterfaceGeometryObjectManager")
+        if (num_conditions_origin > 0 && num_elements_origin > 0)
+        {
+            KRATOS_ERROR << "Origin ModelPart contains both Conditions and Elements "
+                         << "which is not permitted" << std::endl;
+        }
+
+        if (num_conditions_destination > 0 && num_elements_destination > 0)
+        {
+            KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
+                         << "which is not permitted" << std::endl;
+        }
+
+        if (mEchoLevel >= 2) {
+            std::vector<double> model_part_origin_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartOrigin);
+            std::vector<double> model_part_destination_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartDestination);
+
+            bool bbox_overlapping = MapperUtilities::ComputeBoundingBoxIntersection(
+                                                        model_part_origin_bbox,
+                                                        model_part_destination_bbox);
+            if(CommRank == 0)
+            {
+                if (!bbox_overlapping) {
+                    std::cout << "MAPPER WARNING, the bounding boxes of the "
+                              << "Modelparts do not overlap! "
+                              << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                } else if (mEchoLevel >= 3)
+                {
+                    std::cout << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                }
+            }
+        }
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const {
-	         std::stringstream buffer;
-           buffer << "MapperCommunicator" ;
-           return buffer.str();
-      }
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "MapperCommunicator";}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Friends
-      ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-      ModelPart& m_model_part_origin;
-      ModelPart& m_model_part_destination;
-
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_origin;
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_destination;
-
-      MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_origin;
-      GeometryData::IntegrationMethod m_integration_method_origin;
-      MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_destination;
-      GeometryData::IntegrationMethod m_integration_method_destination;
-
-      InterfaceSearchStructure::Pointer m_p_search_structure;
-
-      double m_initial_search_radius;
-      int m_max_search_iterations;
-
-      int m_echo_level = 0;
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-      template <typename T>
-      void ExchangeDataLocal(const Variable< T >& origin_variable,
-                             const Variable< T >& destination_variable,
-                             Kratos::Flags& options,
-                             const double factor) {
-          std::vector< T > values;
-          m_p_interface_object_manager_origin->FillBufferWithValues(values, origin_variable, options);
-          m_p_interface_object_manager_destination->ProcessValues(values, destination_variable, options, factor);
-      }
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-      virtual void InitializeSearchStructure() {
-          m_p_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
-            m_p_interface_object_manager_destination, m_p_interface_object_manager_origin, m_echo_level) );
-      }
-
-      virtual void InvokeSearch(const double i_initial_search_radius,
-                                const int i_max_search_iterations) {
-          m_p_search_structure->Search(i_initial_search_radius,
-                                       i_max_search_iterations);
-      }
-
-      template <typename T>
-      void TransferDataSerial(const Variable< T >& origin_variable,
-                              const Variable< T >& destination_variable,
-                              Kratos::Flags& options,
-                              double factor) {
-          if (options.Is(MapperFlags::SWAP_SIGN)) {
-              factor *= (-1);
-          }
-
-          ExchangeDataLocal(origin_variable, destination_variable, options, factor);
-      }
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
-      /// Assignment operator.
-      MapperCommunicator& operator=(MapperCommunicator const& rOther);
+    /// Assignment operator.
+    MapperCommunicator& operator=(MapperCommunicator const& rOther);
 
     //   /// Copy constructor.
     //   MapperCommunicator(MapperCommunicator const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class MapperCommunicator
+}; // Class MapperCommunicator
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    MapperCommunicator& rThis)
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MapperCommunicator& rThis)
 {
     return rIStream;
 }
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const MapperCommunicator& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MapperCommunicator& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+    return rOStream;
+}
+///@}
 
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 

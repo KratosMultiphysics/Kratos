@@ -21,8 +21,8 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
         Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
 
         ## Solver construction
-        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(self.main_model_part, ProjectParameters["solver_settings"])
+        import python_solvers_wrapper_fluid
+        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, ProjectParameters)
 
         self.solver.AddVariables()
 
@@ -68,7 +68,6 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
     def Solve(self):
 
         ## Stepping and time settings
-        Dt = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
         time = 0.0
@@ -82,33 +81,34 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
 
         while(time <= end_time):
 
+            Dt = self.solver.ComputeDeltaTime()
             time = time + Dt
             step = step + 1
             self.main_model_part.CloneTimeStep(time)
 
+            for process in self.list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            if (self.output_flag == True):
+                self.gid_output.ExecuteInitializeSolutionStep()
+
             if(step >= 3):
-                for process in self.list_of_processes:
-                    process.ExecuteInitializeSolutionStep()
-
-                if (self.output_flag == True):
-                    self.gid_output.ExecuteInitializeSolutionStep()
-
                 self.solver.Solve()
 
-                for process in self.list_of_processes:
-                    process.ExecuteFinalizeSolutionStep()
+            for process in self.list_of_processes:
+                process.ExecuteFinalizeSolutionStep()
 
-                if (self.output_flag == True):
-                    self.gid_output.ExecuteFinalizeSolutionStep()
+            if (self.output_flag == True):
+                self.gid_output.ExecuteFinalizeSolutionStep()
 
-                for process in self.list_of_processes:
-                    process.ExecuteBeforeOutputStep()
+            for process in self.list_of_processes:
+                process.ExecuteBeforeOutputStep()
 
-                if (self.output_flag == True):
-                    self.gid_output.PrintOutput()
+            if (self.output_flag == True):
+                self.gid_output.PrintOutput()
 
-                for process in self.list_of_processes:
-                    process.ExecuteAfterOutputStep()
+            for process in self.list_of_processes:
+                process.ExecuteAfterOutputStep()
 
         for process in self.list_of_processes:
             process.ExecuteFinalize()

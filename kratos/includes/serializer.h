@@ -1,29 +1,18 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                    
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 #if !defined(KRATOS_SERIALIZER_H_INCLUDED )
 #define  KRATOS_SERIALIZER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -34,17 +23,13 @@
 #include <sstream>
 #include <fstream>
 
-
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "containers/buffer.h"
 #include "containers/weak_pointer_vector.h"
 // #include "containers/variable.h"
-
 
 #define KRATOS_SERIALIZATION_DIRECT_LOAD(type)                           \
     void load(std::string const & rTag, type& rValue)                \
@@ -134,6 +119,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Serializer);
 
     typedef std::size_t SizeType;
+
+    typedef bounded_matrix<double,3,3>  Matrix3;
 
     typedef void* (*ObjectFactoryType)();
 
@@ -366,6 +353,7 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::string)
     KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix3)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_LOAD(__int64)
@@ -526,8 +514,9 @@ public:
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::string)
-//        KRATOS_SERIALIZATION_DIRECT_SAVE(Vector)
+    //KRATOS_SERIALIZATION_DIRECT_SAVE(Vector)
     KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix3)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_SAVE(__int64)

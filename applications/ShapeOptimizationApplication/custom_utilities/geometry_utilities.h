@@ -1,45 +1,10 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -52,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -65,13 +29,13 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/utilities/normal_calculation_utils.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
+#include "utilities/normal_calculation_utils.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -145,11 +109,9 @@ public:
     ///@{
 
     /// Default constructor.
-    GeometryUtilities( ModelPart& model_part )
-        : mr_model_part(model_part)
+    GeometryUtilities( ModelPart& modelPart )
+        : mrModelPart( modelPart )
     {
-        // Set precision for output
-        std::cout.precision(12);
     }
 
     /// Destructor.
@@ -168,62 +130,58 @@ public:
     ///@{
 
     // ==============================================================================
-
     void compute_unit_surface_normals()
     {
         KRATOS_TRY;
 
         // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
         NormalCalculationUtils normal_util = NormalCalculationUtils();
-        const unsigned int domain_size = mr_model_part.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        normal_util.CalculateOnSimplex(mr_model_part,domain_size);
+        const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        normal_util.CalculateOnSimplex(mrModelPart,domain_size);
 
         // Take into account boundary conditions, normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
             // Normalize normal and assign to solution step value
-            array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
-            array_3d normalized_normal = area_normal / norm_2(area_normal);
-            noalias(node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)) = normalized_normal;
+            array_3d& normalized_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            const array_1d<double,3>& area_normal = node_i->FastGetSolutionStepValue(NORMAL);
+            noalias(normalized_normal) = area_normal/norm_2(area_normal);
         }
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    void project_grad_on_unit_surface_normal( bool constraint_given )
+    void project_nodal_variable_on_unit_surface_normals( const Variable<array_3d> &rNodalVariable )
     {
         KRATOS_TRY;
 
         // We loop over all nodes and compute the part of the sensitivity which is in direction to the surface normal
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
+            array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            array_3d &node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+
             // We compute dFdX_n = (dFdX \cdot n) * n
-            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            array_3d node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            double surface_sens = inner_prod(node_sens,node_normal);
-            array_3d normal_node_sens = surface_sens * node_normal;
-
-            // Assign resulting sensitivities back to node
-            node_i->GetSolutionStepValue(OBJECTIVE_SURFACE_SENSITIVITY) = surface_sens;
-            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
-
-            // Repeat for constraint
-            if(constraint_given)
-            {
-                // We compute dFdX_n = (dFdX \cdot n) * n
-                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-                surface_sens = inner_prod(node_sens,node_normal);
-                normal_node_sens =  surface_sens * node_normal;
-
-                // Assign resulting sensitivities back to node
-                node_i->GetSolutionStepValue(CONSTRAINT_SURFACE_SENSITIVITY) = surface_sens;
-                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
-            }
+            double surface_sens = inner_prod(nodal_variable,node_normal);
+            nodal_variable = surface_sens * node_normal;
         }
 
         KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void update_coordinates_according_to_input_variable( const Variable<array_3d> &rNodalVariable )
+    {
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
+        {
+            array_3d& shape_update = node_i->FastGetSolutionStepValue(rNodalVariable);                
+           
+            node_i->X() += shape_update[0];
+            node_i->Y() += shape_update[1];
+            node_i->Z() += shape_update[2];
+            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
+        }
     }
 
     // --------------------------------------------------------------------------
@@ -231,14 +189,14 @@ public:
     {
     	KRATOS_TRY;
 
-    	if(mr_model_part.HasSubModelPart(NewSubModelPartName))
+    	if(mrModelPart.HasSubModelPart(NewSubModelPartName))
     	{
     		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
     		return;
     	}
 
     	// Create new sub-model part within the given main model part that shall list all surface nodes
-    	mr_model_part.CreateSubModelPart(NewSubModelPartName);
+    	mrModelPart.CreateSubModelPart(NewSubModelPartName);
 
     	// Some type-definitions
     	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
@@ -247,7 +205,7 @@ public:
     	hashmap n_faces_map;
 
     	// Fill map that counts number of faces for given set of nodes
-    	for (ModelPart::ElementIterator itElem = mr_model_part.ElementsBegin(); itElem != mr_model_part.ElementsEnd(); itElem++)
+    	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
     	{
     		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
@@ -272,7 +230,7 @@ public:
     	std::vector<std::size_t> temp_surface_node_ids;
 
     	// Add surface nodes to sub-model part
-    	for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	for(hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
     	{
     		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
     		if(it->second == 1)
@@ -283,7 +241,7 @@ public:
     	}
 
     	// Add nodes and remove double entries
-    	mr_model_part.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
+    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
 
     	KRATOS_CATCH("");
     }
@@ -378,7 +336,7 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     ///@}
     ///@name Private Operators

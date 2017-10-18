@@ -3,7 +3,7 @@ import math
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+#from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
@@ -65,8 +65,11 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
-    if pp.CFD_DEM.coupling_level_type:
+    checker = VariableChecker()
+
+    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
@@ -338,17 +341,22 @@ class ProjectionDebugUtils:
 
 class Counter:
 
-    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True, is_dead = False):
+    def __init__(self,
+                 steps_in_cycle = 1,
+                 beginning_step = 1,
+                 is_active = True,
+                 is_dead = False):
 
         if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
 
-        self.beginning_step = beginning_step
-        self.step           = 1
-        self.steps_in_cycle = steps_in_cycle
-        self.step_in_cycle  = steps_in_cycle
-        self.is_active      = is_active
-        self.is_dead        = is_dead
+        self.beginning_step    = beginning_step
+        self.step              = 1
+        self.steps_in_cycle    = steps_in_cycle
+        self.step_in_cycle     = steps_in_cycle
+        self.is_active         = is_active
+        self.is_dead           = is_dead
+        self.accumulated_ticks = 0
 
     def Tick(self):
         
@@ -367,6 +375,14 @@ class Counter:
         else:
             self.step += 1
             self.step_in_cycle += 1
+            return False
+
+    def SuperTick(self, n_ticks = 1):
+        self.accumulated_ticks += 1
+        if self.accumulated_ticks >= n_ticks:
+            self.accumulated_ticks = 0
+            return True
+        else:
             return False
 
     def SetActivation(self, is_active):
@@ -392,6 +408,8 @@ class Counter:
     
     def Kill(self):
         self.is_dead = True
+
+
 
 
 class Averager:
@@ -547,36 +565,36 @@ class ResultsFileCreator:
 def CreateRunCode(pp):
     code = []
 
-    if pp.CFD_DEM.basset_force_type > 0:
+    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         history_or_not = 'H'
     else:
         history_or_not = 'NH'
 
     code.append(history_or_not)
 
-    if pp.CFD_DEM.basset_force_type == 4:
+    if pp.CFD_DEM["basset_force_type"].GetInt() == 4:
         method_name = 'Hinsberg'
         number_of_exponentials = 'm=' + str(pp.CFD_DEM.number_of_exponentials)
-        time_window = 'tw=' + str(pp.CFD_DEM.time_window)
+        time_window = 'tw=' + str(pp.CFD_DEM["time_window"].GetDouble())
         code.append(method_name)
         code.append(number_of_exponentials)
         code.append(time_window)
 
-    elif pp.CFD_DEM.basset_force_type > 0:
+    elif pp.CFD_DEM["basset_force_type"].GetInt() > 0:
         method_name = 'Daitche'
         code.append(method_name)
     else:
-        method_name = pp.CFD_DEM.IntegrationScheme
+        method_name = pp.CFD_DEM["IntegrationScheme"].GetString()
         code.append(method_name)
 
-    DEM_dt = 'Dt=' + str(pp.CFD_DEM.MaxTimeStep)
+    DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())
     code.append(DEM_dt)
 
-    if pp.CFD_DEM.basset_force_type > 0:
-        phi = 'phi=' + str(round(1 / pp.CFD_DEM.time_steps_per_quadrature_step, 3))
+    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
+        phi = 'phi=' + str(round(1 / pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(), 3))
         code.append(phi)
 
-    quadrature_order = 'QuadOrder=' + str(pp.CFD_DEM.quadrature_order)
+    quadrature_order = 'QuadOrder=' + str(pp.CFD_DEM["quadrature_order"].GetInt())
     code.append(quadrature_order)
 
     return '_' + '_'.join(code)

@@ -97,7 +97,7 @@ public:
 
 
     /// Destructor.
-    virtual ~ModelPartIO();
+    ~ModelPartIO() override;
 
 
     ///@}
@@ -109,45 +109,45 @@ public:
     ///@name Operations
     ///@{
 
-    virtual bool ReadNode(NodeType& rThisNode);
+    bool ReadNode(NodeType& rThisNode) override;
 
-    virtual bool ReadNodes(NodesContainerType& rThisNodes);
+    bool ReadNodes(NodesContainerType& rThisNodes) override;
 
-    virtual std::size_t ReadNodesNumber();
+    std::size_t ReadNodesNumber() override;
 
-    virtual void WriteNodes(NodesContainerType const& rThisNodes);
+    void WriteNodes(NodesContainerType const& rThisNodes) override;
 
-    virtual void ReadProperties(Properties& rThisProperties);
+    void ReadProperties(Properties& rThisProperties) override;
 
-    virtual void ReadProperties(PropertiesContainerType& rThisProperties);
+    void ReadProperties(PropertiesContainerType& rThisProperties) override;
 
     virtual void WriteProperties(PropertiesContainerType& rThisProperties);
 
-    virtual void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements);
+    void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements) override;
 
-    virtual void ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements);
+    void ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements) override;
 
-    virtual std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities);
+    std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
-    virtual void WriteElements(ElementsContainerType const& rThisElements);
+    void WriteElements(ElementsContainerType const& rThisElements) override;
 
-    virtual void ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions);
+    void ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions) override;
 
-    virtual std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities);
+    std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
     virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
 
-    virtual void ReadInitialValues(ModelPart& rThisModelPart);
+    void ReadInitialValues(ModelPart& rThisModelPart) override;
 
 //       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
 
-    virtual void ReadMesh(MeshType & rThisMesh);
+    void ReadMesh(MeshType & rThisMesh) override;
 
     virtual void WriteMesh(MeshType & rThisMesh);
 
-    virtual void ReadModelPart(ModelPart & rThisModelPart);
+    void ReadModelPart(ModelPart & rThisModelPart) override;
 
-    virtual void WriteModelPart(ModelPart & rThisModelPart);
+    void WriteModelPart(ModelPart & rThisModelPart) override;
 
 
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
@@ -164,24 +164,24 @@ public:
      * to node k (counting from 0).
      * @return Number of nodes.
      */
-    virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities);
+    std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities) override;
 
-    virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+    void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
                                          PartitionIndicesType const& ConditionsPartitions,
                                          PartitionIndicesContainerType const& NodesAllPartitions,
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
-                                         PartitionIndicesContainerType const& ConditionsAllPartitions);
+                                         PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
                                          PartitionIndicesType const& ConditionsPartitions,
                                          PartitionIndicesContainerType const& NodesAllPartitions,
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
-                                         PartitionIndicesContainerType const& ConditionsAllPartitions);
+                                         PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
     void SwapStreamSource(boost::shared_ptr<std::iostream> newStream);
 

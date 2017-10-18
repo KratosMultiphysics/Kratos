@@ -17,6 +17,13 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                 lappend Surfaces [lindex [lindex $BodyVolume [expr {2+$k}]] 0]
             }
             dict set BodyVolumesDict [lindex $BodyEntities $j] Surfaces $Surfaces
+            if {[lindex [GiD_Info list_entities Volumes [lindex $BodyEntities $j]] 11] eq "Meshing"} {
+                set MeshSize [lindex [GiD_Info list_entities Volumes [lindex $BodyEntities $j]] 17]
+                set MeshSize [string trimleft $MeshSize "size="]
+                dict set BodyVolumesDict [lindex $BodyEntities $j] MeshSize $MeshSize
+            } else {
+                dict set BodyVolumesDict [lindex $BodyEntities $j] MeshSize 0
+            }
         }
     }
     
@@ -221,19 +228,6 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     puts $FileVar1 "\}"
     
     close $FileVar1
-
-    ## Start gid_preferences.ini file
-    set filename [file join $dir gid_preferences.ini]
-    set FileVar2 [open $filename w]
-        
-    puts $FileVar2 "GID_OMP_NUM_THREADS [GiD_Set GID_OMP_NUM_THREADS]"
-    puts $FileVar2 "AutomaticCorrectSizes [GiD_Set -meshing_parameters_model AutomaticCorrectSizes]"
-    puts $FileVar2 "SizeTransitionsFactor [GiD_Set -meshing_parameters_model SizeTransitionsFactor]"
-    puts $FileVar2 "BoundaryWeightedTransition [GiD_Set -meshing_parameters_model BoundaryWeightedTransition]"
-    puts $FileVar2 "SurfaceMesher [GiD_Set -meshing_parameters_model SurfaceMesher]"
-    puts $FileVar2 "VolumeMesher [GiD_Set -meshing_parameters_model VolumeMesher]"
-    
-    close $FileVar2
 }
 
 proc GenerateNewFractures { dir problemtypedir PropagationData } {
@@ -281,7 +275,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             set ConditionValues "true [lindex [lindex $Groups 0] 4] [lindex [lindex $Groups 0] 5] [lindex [lindex $Groups 0] 6] [lindex [lindex $Groups 0] 7] \
             [lindex [lindex $Groups 0] 8] [lindex [lindex $Groups 0] 9] [lindex [lindex $Groups 0] 10] [lindex [lindex $Groups 0] 11] [lindex [lindex $Groups 0] 12]\
             [lindex [lindex $Groups 0] 13] [lindex [lindex $Groups 0] 14] [lindex [lindex $Groups 0] 15] [lindex [lindex $Groups 0] 16] [lindex [lindex $Groups 0] 17]\
-            0.0 [lindex [lindex $Groups 0] 19]"
+            0.0 [lindex [lindex $Groups 0] 19] [lindex [lindex $Groups 0] 20] [lindex [lindex $Groups 0] 21]"
             GiD_AssignData condition Interface_Part groups $ConditionValues $LinkInterfaceGroup
         }
     }
@@ -542,22 +536,14 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         
         
         ## Set Mesh options
-        set Distance1 [ComputeDistance [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]]
-        set Distance2 [ComputeDistance [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]]
-        #~ set Distance [expr {$Distance1+$Distance2}]
-        #~ GiD_Process Mescape Meshing AssignSizes Surfaces $Distance [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
-            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
-            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] \
-            #~ [GiD_Info Geometry MaxNumSurfaces] escape escape
-        GiD_Process Mescape Meshing AssignSizes Lines [expr {$Distance1+$Distance2}] [expr {[GiD_Info Geometry MaxNumLines]-23}] \
-            [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-18}] \
-            [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [expr {[GiD_Info Geometry MaxNumLines]-1}] \
-            [GiD_Info Geometry MaxNumLines] escape escape
+        # GiD_Process Mescape Meshing Structured Lines 2 [expr {[GiD_Info Geometry MaxNumLines]-23}] \
+        #     [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-18}] \
+        #     [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [expr {[GiD_Info Geometry MaxNumLines]-1}] \
+        #     [GiD_Info Geometry MaxNumLines] escape escape
         GiD_Process Mescape Meshing Structured Surfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-11}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-10}] [expr {[GiD_Info Geometry MaxNumSurfaces]-9}] [expr {[GiD_Info Geometry MaxNumSurfaces]-8}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-7}] [expr {[GiD_Info Geometry MaxNumSurfaces]-6}] [expr {[GiD_Info Geometry MaxNumSurfaces]-5}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-4}] escape 1 [expr {[GiD_Info Geometry MaxNumLines]-12}] escape escape
-        #~ GiD_Process Mescape Meshing AssignSizes Points $Distance [GiD_Info Geometry MaxNumPoints] escape escape
 
 
         ## Update dictionaries
@@ -943,19 +929,13 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         GiD_EntitiesGroups assign $LinkInterfaceGroup volumes [expr {[GiD_Info Geometry MaxNumVolumes]-4}]
         GiD_EntitiesGroups assign $LinkInterfaceGroup volumes [expr {[GiD_Info Geometry MaxNumVolumes]-5}]
 
+
         ## Set Mesh options
-        set Distance1 [ComputeDistance [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]]
-        set Distance2 [ComputeDistance [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]]
-        #~ set Distance [expr {$Distance1+$Distance2}]
-        #~ GiD_Process Mescape Meshing AssignSizes Surfaces $Distance [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
-            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
-            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] \
-            #~ [GiD_Info Geometry MaxNumSurfaces] escape escape
-        GiD_Process Mescape Meshing AssignSizes Lines [expr {$Distance1+$Distance2}] [expr {[GiD_Info Geometry MaxNumLines]-11}] \
-            [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-9}] [expr {[GiD_Info Geometry MaxNumLines]-8}] \
-            [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-5}] \
-            [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-2}] \
-            [expr {[GiD_Info Geometry MaxNumLines]-1}] [GiD_Info Geometry MaxNumLines] escape escape
+        # GiD_Process Mescape Meshing Structured Lines 2 [expr {[GiD_Info Geometry MaxNumLines]-11}] \
+        #     [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-9}] [expr {[GiD_Info Geometry MaxNumLines]-8}] \
+        #     [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-5}] \
+        #     [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-2}] \
+        #     [expr {[GiD_Info Geometry MaxNumLines]-1}] [GiD_Info Geometry MaxNumLines] escape escape
         GiD_Process Mescape Meshing Structured Surfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-30}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-29}] [expr {[GiD_Info Geometry MaxNumSurfaces]-28}] [expr {[GiD_Info Geometry MaxNumSurfaces]-27}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-26}] [expr {[GiD_Info Geometry MaxNumSurfaces]-25}] [expr {[GiD_Info Geometry MaxNumSurfaces]-24}] \
@@ -965,9 +945,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-11}] [expr {[GiD_Info Geometry MaxNumSurfaces]-10}] [expr {[GiD_Info Geometry MaxNumSurfaces]-9}] \
             [expr {[GiD_Info Geometry MaxNumSurfaces]-8}] escape 1 [expr {[GiD_Info Geometry MaxNumLines]-44}] escape escape
-        #~ GiD_Process Mescape Meshing AssignSizes Points $Distance [GiD_Info Geometry MaxNumPoints] escape escape
-        
-        
+
+
         ## Update dictionaries
         # MotherFractureId is the new TopTip fracture
         dict set FracturesDict $MotherFractureId TipPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-5}]
@@ -1053,9 +1032,14 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         for {set i 0} {$i < [llength $BodyVolumeGroups]} {incr i} {
             GiD_EntitiesGroups assign [lindex $BodyVolumeGroups $i] volumes $NewBodyVolumeId
         }
-        
+
+        if {[dict get $BodyVolume MeshSize] > 0.0} {
+            GiD_Process Mescape Meshing AssignSizes Volumes [dict get $BodyVolume MeshSize] $NewBodyVolumeId escape escape
+        }
+
         dict set BodyVolumesDict $NewBodyVolumeId Groups [dict get $BodyVolume Groups]
         dict set BodyVolumesDict $NewBodyVolumeId Surfaces [dict get $BodyVolume Surfaces]
+        dict set BodyVolumesDict $NewBodyVolumeId MeshSize [dict get $BodyVolume MeshSize]
     }
 
     dict for {Id Fracture} $FracturesDict {
@@ -1069,7 +1053,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
     }
 
     # Generate New Mesh
-    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Preferences
+    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Model Mescape
 
     ## Update FracturesData.json file
     set filename [file join $dir FracturesData.json]

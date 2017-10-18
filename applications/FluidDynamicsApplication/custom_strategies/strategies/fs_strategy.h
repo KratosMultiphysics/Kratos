@@ -1,3 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
+
+
 #ifndef KRATOS_FS_STRATEGY_H
 #define KRATOS_FS_STRATEGY_H
 
@@ -203,7 +216,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~FSStrategy(){}
+    ~FSStrategy() override{}
 
     ///@}
     ///@name Operators
@@ -214,7 +227,10 @@ public:
     ///@name Operations
     ///@{
 
-    virtual int Check()
+    void Initialize() override 
+    {}
+
+    int Check() override
     {
         KRATOS_TRY;
 
@@ -253,7 +269,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve()
+    double Solve() override
     {
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -373,7 +389,7 @@ public:
         mExtraIterationSteps.clear();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mpMomentumStrategy->Clear();
         mpPressureStrategy->Clear();
@@ -384,7 +400,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         int StrategyLevel = Level > 0 ? Level - 1 : 0;
@@ -554,7 +570,7 @@ protected:
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
-        
+
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -808,31 +824,30 @@ protected:
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
-#pragma omp parallel
+        const int num_nodes_in_model_part = rModelPart.NumberOfNodes();
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes_in_model_part; i++)
         {
-            ModelPart::NodeIterator NodeBegin; // = rModelPart.NodesBegin();
-            ModelPart::NodeIterator NodeEnd; // = rModelPart.NodesEnd();
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode )
+            ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
+            const Node<3>& r_const_node = *itNode;
+            
+            if ( r_const_node.GetValue(rSlipWallFlag) != 0.0 )
             {
-                if ( itNode->GetValue(rSlipWallFlag) != 0.0 )
+                const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);
+                array_1d<double,3>& rDeltaVelocity = itNode->FastGetSolutionStepValue(FRACT_VEL);
+
+                double Proj = rNormal[0] * rDeltaVelocity[0];
+                double Norm = rNormal[0] * rNormal[0];
+
+                for (unsigned int d = 1; d < mDomainSize; ++d)
                 {
-                    const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);
-                    array_1d<double,3>& rDeltaVelocity = itNode->FastGetSolutionStepValue(FRACT_VEL);
-
-                    double Proj = rNormal[0] * rDeltaVelocity[0];
-                    double Norm = rNormal[0] * rNormal[0];
-
-                    for (unsigned int d = 1; d < mDomainSize; ++d)
-                    {
-                        Proj += rNormal[d] * rDeltaVelocity[d];
-                        Norm += rNormal[d] * rNormal[d];
-                    }
-
-                    Proj /= Norm;
-                    rDeltaVelocity -= Proj * rNormal;
+                    Proj += rNormal[d] * rDeltaVelocity[d];
+                    Norm += rNormal[d] * rNormal[d];
                 }
+
+                Proj /= Norm;
+                rDeltaVelocity -= Proj * rNormal;
             }
         }
     }
@@ -1062,9 +1077,9 @@ private:
             bool PredictorCorrector)
     {
         KRATOS_TRY;
-        
+
         mTimeOrder = rSolverConfig.GetTimeOrder();
-        
+
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 

@@ -7,371 +7,403 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_INTERFACE_OBJECT_INCLUDED_H_INCLUDED )
 #define  KRATOS_INTERFACE_OBJECT_INCLUDED_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "mapper_utilities.h"
+#include "../mapping_application_variables.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class InterfaceObject : public Point<3>
+/// Base Class for Searching Objects
+/** This class provides a set of functions that is used for identifying the nearest object.
+* It is needed such that the bin-search can be used with both nodes and elements/conditions
+* The bin search is implemented to work with this kind of object
+* It implements the function "EvaluateResult", which is used by the local search to determine which 
+* of the objects in teh vicinity of a point is the best search result. This function has to be 
+* implemented by all subclasses. It cannot be made pure virtual, because for remote searching,
+* objects of this type have to be created
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
+*/
+class InterfaceObject : public Point
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of InterfaceObject
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceObject);
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum PairingStatus
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-
-      /// Pointer definition of InterfaceObject
-      KRATOS_CLASS_POINTER_DEFINITION(InterfaceObject);
-
-      ///@}
-      ///@name Life Cycle
-      ///@{
-
-      InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f) {  // Default Constructor
-          SetInitialValuesToMembers();
-      }
-
-      InterfaceObject(Node<3>& i_node) : Point<3>(i_node) { // constuct from node
-          SetInitialValuesToMembers();
-      }
-
-      InterfaceObject(array_1d<double, 3> coords) : Point<3>(coords) { // constuct from coordinate-array
-          SetInitialValuesToMembers();
-      }
-
-      InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z) { // constuct from coordinates
-          SetInitialValuesToMembers();
-      }
-
-      /// Destructor.
-      virtual ~InterfaceObject() { }
-
-
-      ///@}
-      ///@name Operators
-      ///@{
-
-
-      ///@}
-      ///@name Operations
-      ///@{
-
-      void Reset() {
-          SetInitialValuesToMembers();
-      }
-
-      bool IsInBoundingBox(double* bounding_box[]){
-          // xmax, xmin,  ymax, ymin,  zmax, zmin
-          bool is_inside = false;
-
-          if (this->X() < *bounding_box[0] && this->X() > *bounding_box[1]) { // check x-direction
-              if (this->Y() < *bounding_box[2] && this->Y() > *bounding_box[3]) { // check y-direction
-                  if (this->Z() < *bounding_box[4] && this->Z() > *bounding_box[5]) { // check z-direction
-                      is_inside = true;
-                  }
-              }
-          }
-          return is_inside;
-      }
-
-      void ProcessDistance(double distance, int rank) {
-          m_neighbor_found = true;
-          if (distance < m_min_distance_neighbor) {
-              m_min_distance_neighbor = distance;
-              m_neighbor_rank = rank;
-          }
-      }
-
-      bool NeighborFound() {
-          return m_neighbor_found;
-      }
-
-      // double MinDistance() {
-      //     return m_min_distance_neighbor;
-      // }
-
-      bool HasNeighborInPartition(const int partition_index) {
-          bool return_value = false;
-          if (m_neighbor_found) {
-              if (m_neighbor_rank == partition_index)
-                  return_value = true;
-          }
-          return return_value;
-      }
-
-      void SetIsBeingSent() {
-          m_is_being_sent = true;
-      }
-
-      bool GetIsBeingSent() {
-          return m_is_being_sent;
-      }
-
-      int GetNeighborRank() {
-          return m_neighbor_rank;
-      }
-
-      virtual int GetObjectId() {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectId\" "
-                       << "of the base class called!" << std::endl;
-          return -1;
-      }
-
-      virtual void PrintMatchInfo() {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"PrintMatchInfo\" "
-                       << "of the base class called!" << std::endl;
-      }
-
-      virtual bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
-                                  double distance, array_1d<double,2>& local_coords,
-                                  std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"EvaluateResult\" "
-                       << "of the base class called!" << std::endl;
-          return false;
-      }
+        NoNeighbor = 0,
+        Approximation = 1,
+        NeighborFound = 2,
+    };
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    InterfaceObject(double X, double Y, double Z) : Point(X, Y, Z)   // constuct from coordinates
+    {
+        SetInitialValuesToMembers();
+    }
+
+    /// Destructor.
+    virtual ~InterfaceObject() { }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void Reset()
+    {
+        SetInitialValuesToMembers();
+        SetCoordinates();
+    }
+
+    bool IsInBoundingBox(double* pBoundingBox[])
+    {
+        return MapperUtilities::PointIsInsideBoundingBox(*pBoundingBox, this->Coordinates());;
+    }
+
+    void ProcessSearchResult(const double Distance, const int PairingStatus, const int Rank)
+    {
+        if (mPairingStatus < PairingStatus || (mPairingStatus == PairingStatus
+                                               && Distance < mMinDistanceNeighbor))
+        {
+            mPairingStatus = PairingStatus;
+            mMinDistanceNeighbor = Distance;
+            mNeighborRank = Rank;
+        }
+    }
+
+    int GetPairingStatus()
+    {
+        return mPairingStatus;
+    }
+
+    bool NeighborOrApproximationFound()
+    {
+        if (mPairingStatus >= PairingStatus::Approximation)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool HasNeighborOrApproximationInPartition(const int PartitionIndex)
+    {
+        bool return_value = false;
+        if (mPairingStatus >= PairingStatus::Approximation)
+        {
+            if (mNeighborRank == PartitionIndex)
+                return_value = true;
+        }
+        return return_value;
+    }
+
+    int GetNeighborRank()
+    {
+        return mNeighborRank;
+    }
+
+    void SetIsBeingSent()
+    {
+        mIsBeingSent = true;
+    }
+
+    bool GetIsBeingSent()
+    {
+        return mIsBeingSent;
+    }
+
+    virtual bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
+                                double& rMinDistance, const double Distance,
+                                std::vector<double>& rShapeFunctionValues)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return false;
+    }
+
+    virtual bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
+                                      std::vector<double>& rShapeFunctionValues)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return false;
+    }
+
+    // Functions used for Debugging
+    virtual void PrintNeighbors(const int CommRank)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual void WriteRankAndCoordinatesToVariable(const int CommRank)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-      // These functions have to be duplicated because virtual templates are not possible in C++
-      // Scalars
-      virtual double GetObjectValue(const Variable<double>& variable) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectValue, "
-                       << "double\" of the base class called!" << std::endl;
-      }
 
-      virtual void SetObjectValue(const Variable<double>& variable,
-                                  const double value,
-                                  const Kratos::Flags& options,
-                                  const double factor) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"SetObjectValue, "
-                       << "double\" of the base class called!" << std::endl;
-      }
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      virtual double GetObjectValueInterpolated(const Variable<double>& variable,
-                                                std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; "
-                       << "\"GetObjectValueInterpolated, double\" of the base "
-                       << "class called!" << std::endl;
-      }
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "InterfaceObject" ;
+        return buffer.str();
+    }
 
-      // Vectors
-      virtual array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectValue, "
-                       << "double<3>\" of the base class called!" << std::endl;
-      }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "InterfaceObject";
+    }
 
-      virtual void SetObjectValue(const Variable< array_1d<double,3> >& variable,
-                                  const array_1d<double,3>& value,
-                                  const Kratos::Flags& options,
-                                  const double factor) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"SetObjectValue, "
-                       << "double<3>\" of the base class called!" << std::endl;
-      }
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
 
-      virtual array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& variable,
-                                                            std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; "
-                       << "\"GetObjectValueInterpolated, double<3>\" of the base "
-                       << "class called!" << std::endl;
-      }
 
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-      ///@}
-      ///@name Input and output
-      ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    int mEchoLevel = 0;
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	       std::stringstream buffer;
-         buffer << "InterfaceObject" ;
-         return buffer.str();
-      }
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "InterfaceObject";}
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
+    // This constructor is called by its derived classes
+    InterfaceObject() : Point(0.0f, 0.0f, 0.0f)
+    {
+        SetInitialValuesToMembers();
+    }
 
-      ///@}
-      ///@name Friends
-      ///@{
+    void SetInitialValuesToMembers()
+    {
+        mMinDistanceNeighbor = std::numeric_limits<double>::max();
+        mPairingStatus = PairingStatus::NoNeighbor;
+        mNeighborRank = 0;
+        mIsBeingSent = false;
+    }
 
+    virtual void SetCoordinates()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
 
-      ///@}
+    void PrintMatchInfo(const std::string& rInterfaceObjectType,
+                        const int CommRank, const int NeighborCommRank,
+                        array_1d<double, 3>& rNeighborCoordinates)
+    {
 
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+        std::cout << rInterfaceObjectType << " ["
+                  << this->X() << " "
+                  << this->Y() << " "
+                  << this->Z() << "], "
+                  << "Rank " << CommRank
+                  << " || Neighbor ["
+                  << rNeighborCoordinates[0] << " "
+                  << rNeighborCoordinates[1] << " "
+                  << rNeighborCoordinates[2] << "], Rank "
+                  << NeighborCommRank << std::endl;
+    }
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    double mMinDistanceNeighbor;
+    int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
+    int mNeighborRank;
+    bool mIsBeingSent;
 
+    ///@}
+    ///@name Serialization
+    ///@{
 
-      ///@}
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<3>);
+    }
 
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-      double m_min_distance_neighbor;
-      bool m_neighbor_found;
-      bool m_is_being_sent;
-      int m_neighbor_rank;
 
-      ///@}
-      ///@name Private Operators
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      void SetInitialValuesToMembers() {
-          m_min_distance_neighbor = std::numeric_limits<double>::max();
-          m_neighbor_found = false;
-          m_is_being_sent = false;
-          m_neighbor_rank = 0;
-      }
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
-      /// Assignment operator.
-      InterfaceObject& operator=(InterfaceObject const& rOther);
+    /// Assignment operator.
+    InterfaceObject& operator=(InterfaceObject const& rOther);
 
     //   /// Copy constructor.
     //   InterfaceObject(InterfaceObject const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class InterfaceObject
+}; // Class InterfaceObject
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    InterfaceObject& rThis)
-  {
-      return rIStream;
-  }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const InterfaceObject& rThis)
-  {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-  }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  InterfaceObject& rThis)
+{
+    return rIStream;
+}
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const InterfaceObject& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

@@ -1,28 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-
-
-
-
-
-
-
-
-
-
-
-
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
 
 // System includes
 #include <string>
@@ -36,42 +22,6 @@
 #include "includes/c2c_variables.h"
 #include "includes/kernel.h"
 #include "includes/node.h"
-// #include "includes/element.h"
-// #include "includes/condition.h"
-// #include "includes/constitutive_law.h"
-// #include "includes/geometrical_object.h"
-
-// #include "geometries/line_2d.h"
-// #include "geometries/line_2d_2.h"
-// #include "geometries/line_2d_3.h"
-// #include "geometries/line_3d_2.h"
-// #include "geometries/line_3d_3.h"
-// #include "geometries/point.h"
-// #include "geometries/point_2d.h"
-// #include "geometries/point_3d.h"
-// #include "geometries/sphere_3d_1.h"
-// #include "geometries/triangle_2d_3.h"
-// #include "geometries/triangle_2d_6.h"
-// #include "geometries/triangle_3d_3.h"
-// #include "geometries/triangle_3d_6.h"
-// #include "geometries/quadrilateral_2d_4.h"
-// #include "geometries/quadrilateral_2d_8.h"
-// #include "geometries/quadrilateral_2d_9.h"
-// #include "geometries/quadrilateral_3d_4.h"
-// #include "geometries/quadrilateral_3d_8.h"
-// #include "geometries/quadrilateral_3d_9.h"
-// #include "geometries/tetrahedra_3d_4.h"
-// #include "geometries/tetrahedra_3d_10.h"
-// #include "geometries/prism_3d_6.h"
-// #include "geometries/prism_3d_15.h"
-// #include "geometries/hexahedra_3d_8.h"
-// #include "geometries/hexahedra_3d_20.h"
-// #include "geometries/hexahedra_3d_27.h"
-
-// #include "python/add_c2c_variables_to_python.h"
-
-// #include "includes/convection_diffusion_settings.h"
-// #include "includes/radiation_settings.h"
 
 #include "includes/kratos_flags.h"
 
@@ -140,7 +90,7 @@ namespace Kratos
     Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS" );
     Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES" );
     KRATOS_CREATE_VARIABLE(double,FRONT_MEETING)
-    KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )  
+    KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )
 	Kratos::Variable<double> LIQUID_TIME("TIME TO START SOLIDIFICATION");
 	Kratos::Variable<double>  FLOW_LENGTH ("FLOW LENGTH ESTIMATION 1");
 	Kratos::Variable<double>  FLOW_LENGTH2("FLOW LENGTH ESTIMATION 2" );
@@ -190,7 +140,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(  POSETIVE_DISTANCE)
         KRATOS_REGISTER_VARIABLE(  NAGATIVE_DISTANCE)
         KRATOS_REGISTER_VARIABLE( IS_ESCAPED)
-        KRATOS_REGISTER_VARIABLE(  IS_SOLIDIFIED)  
+        KRATOS_REGISTER_VARIABLE(  IS_SOLIDIFIED)
         KRATOS_REGISTER_VARIABLE(  SOLIDFRACTION )
 		KRATOS_REGISTER_VARIABLE( SOLIDFRACTION_RATE)
         KRATOS_REGISTER_VARIABLE(  SOLIDIF_TIME  )
@@ -202,7 +152,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(  IS_GRAVITY_FILLING)
         KRATOS_REGISTER_VARIABLE( VOLUME_FRACTION )
 
-        KRATOS_REGISTER_VARIABLE( KAPPA ) 
+        KRATOS_REGISTER_VARIABLE( KAPPA )
         KRATOS_REGISTER_VARIABLE( EPSILON )
         KRATOS_REGISTER_VARIABLE( SHRINKAGE_POROSITY_US)
         KRATOS_REGISTER_VARIABLE( SOLIDIF_MODULUS_US)
@@ -222,9 +172,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
-
-
-

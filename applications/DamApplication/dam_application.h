@@ -24,6 +24,7 @@
 #include "custom_conditions/free_surface_condition.hpp"
 #include "custom_conditions/infinite_domain_condition.hpp"
 #include "custom_conditions/UP_condition.hpp"
+#include "custom_conditions/added_mass_condition.hpp"
 
 //Elements
 #include "custom_elements/wave_equation_element.hpp"
@@ -34,6 +35,14 @@
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
+
+#include "custom_constitutive/linear_elastic_3D_law_nodal.hpp"
+#include "custom_constitutive/linear_elastic_2D_plane_strain_nodal.hpp"
+#include "custom_constitutive/linear_elastic_2D_plane_stress_nodal.hpp"
+
+#include "custom_constitutive/thermal_linear_elastic_3D_law_nodal.hpp"
+#include "custom_constitutive/thermal_linear_elastic_2D_plane_strain_nodal.hpp"
+#include "custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.hpp"
 
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
@@ -131,9 +140,21 @@ const UPCondition<2,2> mUPCondition2D2N;
 const UPCondition<3,3> mUPCondition3D3N;
 const UPCondition<3,4> mUPCondition3D4N;
 
+const AddedMassCondition<2,2> mAddedMassCondition2D2N;
+const AddedMassCondition<3,3> mAddedMassCondition3D3N;
+const AddedMassCondition<3,4> mAddedMassCondition3D4N;
+
 const ThermalLinearElastic3DLaw mThermalLinearElastic3DLaw;
 const ThermalLinearElastic2DPlaneStrain mThermalLinearElastic2DPlaneStrain;
 const ThermalLinearElastic2DPlaneStress mThermalLinearElastic2DPlaneStress;
+
+const LinearElastic3DLawNodal mLinearElastic3DLawNodal;
+const LinearElastic2DPlaneStrainNodal mLinearElastic2DPlaneStrainNodal;
+const LinearElastic2DPlaneStressNodal mLinearElastic2DPlaneStressNodal;
+
+const ThermalLinearElastic3DLawNodal mThermalLinearElastic3DLawNodal;
+const ThermalLinearElastic2DPlaneStrainNodal mThermalLinearElastic2DPlaneStrainNodal;
+const ThermalLinearElastic2DPlaneStressNodal mThermalLinearElastic2DPlaneStressNodal;
 
 const ThermalSimoJuLocalDamage3DLaw mThermalSimoJuLocalDamage3DLaw;
 const ThermalSimoJuLocalDamagePlaneStrain2DLaw mThermalSimoJuLocalDamagePlaneStrain2DLaw;

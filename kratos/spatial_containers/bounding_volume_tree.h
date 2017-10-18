@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: hbui $
-//   Date:                $Date: 1 Oct 2015 $
-//   Revision:            $Revision: 1.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    hbui
 //
 
 
@@ -46,6 +50,8 @@ public:
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef NodeType::PointType PointType;
+    typedef const double ArrayType[3];
+    typedef ArrayType* Array2DType;
 
     kDOP() {this->Initialize();}
 
@@ -249,8 +255,8 @@ public:
 private:
     std::vector<double> mMinValues;
     std::vector<double> mMaxValues;
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    virtual Array2DType Direction() const;
     double NormalCoordinate(int i, const double& rX, const double& rY, const double& rZ) const
     {
         return rX * Direction()[i][0] + rY * Direction()[i][1] + rZ * Direction()[i][2];
@@ -267,86 +273,100 @@ inline std::ostream& operator <<(std::ostream& rOStream, const kDOP& rThis)
 class _6DOP : public kDOP // AABB
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_6DOP);
     _6DOP() : kDOP() {this->Initialize();}
-    virtual ~_6DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 3;}
+    ~_6DOP() override {}
+    std::size_t NumberOfDirections() const override {return 3;}
 
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 class _8DOP : public kDOP
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_8DOP);
     _8DOP() : kDOP() {this->Initialize();}
-    virtual ~_8DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 4;}
+    ~_8DOP() override {}
+    std::size_t NumberOfDirections() const override {return 4;}
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 class _12DOP : public kDOP
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_12DOP);
     _12DOP() : kDOP() {this->Initialize();}
-    virtual ~_12DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 6;}
+    ~_12DOP() override {}
+    std::size_t NumberOfDirections() const override {return 6;}
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 class _14DOP : public kDOP
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_14DOP);
     _14DOP() : kDOP() {this->Initialize();}
-    virtual ~_14DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 7;}
+    ~_14DOP() override {}
+    std::size_t NumberOfDirections() const override {return 7;}
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 class _18DOP : public kDOP
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_18DOP);
     _18DOP() : kDOP() {this->Initialize();}
-    virtual ~_18DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 9;}
+    ~_18DOP() override {}
+    std::size_t NumberOfDirections() const override {return 9;}
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 class _20DOP : public kDOP
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_20DOP);
     _20DOP() : kDOP() {this->Initialize();}
-    virtual ~_20DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 10;}
+    ~_20DOP() override {}
+    std::size_t NumberOfDirections() const override {return 10;}
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 class _26DOP : public kDOP
 {
 public:
+    typedef kDOP::ArrayType ArrayType;
+    typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_26DOP);
     _26DOP() : kDOP() {this->Initialize();}
-    virtual ~_26DOP() {}
-    virtual std::size_t NumberOfDirections() const {return 13;}
+    ~_26DOP() override {}
+    std::size_t NumberOfDirections() const override {return 13;}
 private:
-    static const double msDirection[][3];
-    virtual const double (*Direction() const)[3];
+    static ArrayType msDirection[];
+    Array2DType Direction() const override;
 };
 
 
@@ -405,10 +425,10 @@ public:
     SimpleBoundingVolumePartitioner() {}
     ~SimpleBoundingVolumePartitioner() {}
 
-    virtual void Partition(ConditionsContainerType& rAllConditions,
+    void Partition(ConditionsContainerType& rAllConditions,
                            const kDOP& rBoundingVolume,
                            ConditionsContainerType& rOutputSet1,
-                           ConditionsContainerType& rOutputSet2);
+                           ConditionsContainerType& rOutputSet2) override;
 };
 
 
@@ -419,10 +439,10 @@ public:
     LineRegressionVolumePartitioner() {}
     ~LineRegressionVolumePartitioner() {}
 
-    virtual void Partition(ConditionsContainerType& rAllConditions,
+    void Partition(ConditionsContainerType& rAllConditions,
                            const kDOP& rBoundingVolume,
                            ConditionsContainerType& rOutputSet1,
-                           ConditionsContainerType& rOutputSet2);
+                           ConditionsContainerType& rOutputSet2) override;
 };
 
 

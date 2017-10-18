@@ -197,13 +197,13 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Point3D() {}
+    ~Point3D() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Point;
     }
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Point3D;
     }
@@ -251,27 +251,27 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const
+    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
     {
         return typename BaseType::Pointer(new Point3D(ThisPoints));
     }
 
     
-    virtual Geometry< Point<3> >::Pointer Clone() const
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Point3D< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Point3D< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
     //    virtual Vector& LumpingFactors(Vector& rResult) const
@@ -294,7 +294,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Length() const
+    double Length() const override
     {
         return 0.00;
     }
@@ -310,7 +310,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Area() const
+    double Area() const override
     {
         return 0.00;
     }
@@ -326,7 +326,7 @@ public:
     @see Area()
     @see Volume()
     */
-    virtual double DomainSize() const
+    double DomainSize() const override
     {
         return 0.00;
     }
@@ -508,12 +508,12 @@ public:
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    virtual SizeType EdgesNumber() const
+    SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    virtual SizeType FacesNumber() const
+    SizeType FacesNumber() const override
     {
         return 0;
     }
@@ -572,7 +572,7 @@ public:
     @see PrintData()
     @see PrintInfo()
     */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "a point in 3D space";
     }
@@ -583,7 +583,7 @@ public:
     @see PrintData()
     @see Info()
     */
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "a point in 3D space";
     }
@@ -596,7 +596,7 @@ public:
     @see PrintInfo()
     @see Info()
     */
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "a point in 3D space";
     }
@@ -713,12 +713,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }

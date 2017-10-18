@@ -1,142 +1,202 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# -*- coding: utf-8 -*-
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division
+
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part, config):
+def AddVariables(model_part):
+    ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
+    '''
 
+    if model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
+        settings = model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
+
+        if settings.IsDefinedUnknownVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetUnknownVariable())
+        if settings.IsDefinedVelocityVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetVelocityVariable())
+        if settings.IsDefinedMeshVelocityVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable())
+        if settings.IsDefinedDiffusionVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetDiffusionVariable())
+        if settings.IsDefinedSpecificHeatVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetSpecificHeatVariable())
+        if settings.IsDefinedDensityVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetDensityVariable())
+        if settings.IsDefinedVolumeSourceVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetVolumeSourceVariable())
+        if settings.IsDefinedSurfaceSourceVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetSurfaceSourceVariable())
+        if settings.IsDefinedReactionVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetReactionVariable())
+    else:
+        raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
+
+def AddDofs(model_part):
+    ''' Add nodal degrees of freedom based on provided CONVECTION_DIFFUSION_SETTINGS
+    '''
+    if not model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
+        raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
     
-    thermal_settings = ConvectionDiffusionSettings()
-    thermal_settings.SetUnknownVariable(globals()[config.unknown_variable])
-    thermal_settings.SetDensityVariable(globals()[config.density_variable])
-    thermal_settings.SetDiffusionVariable(globals()[config.diffusion_variable])
-    #thermal_settings.SetVolumeSourceVariable(globals()[config.volume_source_variable])
-    #thermal_settings.SetSurfaceSourceVariable(globals()[config.surface_source_variable])
-    thermal_settings.SetMeshVelocityVariable(globals()[config.mesh_velocity_variable])
-    #thermal_settings.SetProjectionVariable(globals()[config.projection_variable])
-    thermal_settings.SetSpecificHeatVariable(globals()[config.specific_heat_variable])
-    thermal_settings.SetVelocityVariable(globals()[config.velocity_variable])
+    settings = model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
 
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetUnknownVariable())
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetDensityVariable())
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetDiffusionVariable())
-    #model_part.AddNodalSolutionStepVariable(thermal_settings.GetVolumeSourceVariable())
-    #model_part.AddNodalSolutionStepVariable(thermal_settings.GetSurfaceSourceVariable())
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetMeshVelocityVariable());
-    #model_part.AddNodalSolutionStepVariable(thermal_settings.GetProjectionVariable());
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetSpecificHeatVariable());
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetVelocityVariable());
-    print("variables for the convection diffusion solver added correctly")
+    if not settings.IsDefinedUnknownVariable():
+        raise Exception("the provided CONVECTION_DIFFUSION_SETTINGS does not define an Unknown variable.")
 
+    unknown_variable = settings.GetUnknownVariable()
 
-def AddDofs(model_part, config):
-    thermal_settings = ConvectionDiffusionSettings()
-    thermal_settings.SetUnknownVariable(globals()[config.unknown_variable])
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetUnknownVariable());
+    if settings.IsDefinedReactionVariable():
+        reaction_variable = settings.GetReactionVariable()
 
-    for node in model_part.Nodes:
-        node.AddDof(thermal_settings.GetUnknownVariable());
+        for node in model_part.Nodes:
+            node.AddDof(unknown_variable,reaction_variable)    
+    else:
+        for node in model_part.Nodes:
+            node.AddDof(unknown_variable)
+
     print("DOFs for the convection diffusion solver added correctly")
 
+class ConvectionDiffusionSolver(object):
+    ''' Python class for the convection-diffusion solver.
+    '''
 
-class ConvectionDiffusionSolver:
-
-    def __init__(self, model_part, domain_size, my_settings):
-
-        self.settings = my_settings
-        self.thermal_settings = ConvectionDiffusionSettings()
-
-        self.thermal_settings = ConvectionDiffusionSettings()
-        self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
-        self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])
-        self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
-        self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
-        self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
-        self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
-        self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
-        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
-        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
-
-        # neighbour search
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
+    def __init__(self, model_part, domain_size):
 
         self.model_part = model_part
         self.domain_size = domain_size
 
-        # assignation of parameters to be used
-        self.time_order = 1;
-        self.prediction_order = 1;
-        self.ReformDofAtEachIteration = True;
+        #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        self.theta = 0.5
+        self.dynamic_tau = 0.0
+        
+        if not self.model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
+            raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
-        self.echo_level = 0
+        self.linear_solver = None
+        self.strategy = None
 
-        # definition of the solvers
-        pILUPrecond = ILU0Preconditioner()
-        self.linear_solver = BICGSTABSolver(1e-6, 5000, pILUPrecond)
+        self.calculate_reactions = False
+        self.reform_dofs_at_each_step = False
+
+        self.echo_level = 1
+
 
     def Initialize(self):
-        (self.neighbour_search).Execute()
-        self.model_part.ProcessInfo
+        ''' Initialize the underlying C++ objects and validate input
+        '''
 
-#	self.settings = my_settings
+        if self.linear_solver is None:
+            diagonal_preconditioner = DiagonalPreconditioner()
+            linear_solver_tolerance = 1e-9
+            linear_solver_maximum_iterations = 5000
+            self.linear_solver = BICGSTABSolver(linear_solver_tolerance,
+                                                linear_solver_maximum_iterations,
+                                                diagonal_preconditioner)
 
-        self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
-        self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])
-        self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
-        self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
-        self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
-        self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
-        self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
-        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
-        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+        if self.strategy is None:
 
-        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, self.thermal_settings)
+            scheme = ResidualBasedIncrementalUpdateStaticScheme()
+            builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = ResidualBasedConvectionDiffusionStrategy(self.model_part, self.linear_solver, self.ReformDofAtEachIteration, self.time_order, self.prediction_order)
-        (self.solver).SetEchoLevel(self.echo_level)
-        print("finished initialization of the fluid strategy")
+            calculate_norm_dx = True
+            move_mesh = False
+
+            self.strategy = ResidualBasedLinearStrategy(
+                self.model_part,
+                scheme,
+                self.linear_solver,
+                builder_and_solver,
+                self.calculate_reactions,
+                self.reform_dofs_at_each_step,
+                calculate_norm_dx,
+                move_mesh)
+
+        self.strategy.SetEchoLevel(self.echo_level)
+        self.strategy.Check()
+
+        verbose = True
+        self.ValidateInput(verbose)
+
+        self.model_part.ProcessInfo[THETA] = self.theta
+        self.model_part.ProcessInfo[DYNAMIC_TAU] = self.dynamic_tau
 
     def Solve(self):
-        if(self.ReformDofAtEachIteration):
-            (self.neighbour_search).Execute()
+        ''' Solve an iteration of the convection-diffusion problem
+        '''
+        self.strategy.Solve()
 
-        self.thermal_settings = ConvectionDiffusionSettings()
-        self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
-        self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])
-        self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
-        self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
-        self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
-        self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
-        self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
-        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
-        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+    def ValidateInput(self,verbose=False):
+        ''' Verify that the convection-diffusion settings have the required variables
+        '''
 
-        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, self.thermal_settings)
+        if not self.model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
+            raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
-        (self.solver).Solve()
+        settings = self.model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
 
+        # hackish way to get first node in model part
+        ref_node = next( self.model_part.Nodes.__iter__() )
 
-#
-#
-def CreateSolver(model_part, config):
-    conv_diff_solver = ConvectionDiffusionSolver(model_part, config.domain_size, config)
+        # Density
+        if settings.IsDefinedDensityVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetDensityVariable() ):
+                raise Exception("Density variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Density variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming unit density.")
 
-    # default settings
-    if(hasattr(config, "domain_size")):
-        conv_diff_solver.domain_size = config.domain_size
-    if(hasattr(config, "ReformDofAtEachIteration")):
-        conv_diff_solver.ReformDofAtEachIteration = config.ReformDofAtEachIteration
-    if(hasattr(config, "echo_level")):
-        conv_diff_solver.echo_level = config.echo_level
+        # Diffusion
+        if settings.IsDefinedDiffusionVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetDiffusionVariable() ):
+                raise Exception("Diffusion variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Diffusion variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming pure convection.")
 
-    # linear solver settings
-    import linear_solver_factory
-    if(hasattr(config, "linear_solver_config")):
-        conv_diff_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
+        # Unknown variable
+        if settings.IsDefinedUnknownVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetUnknownVariable() ):
+                raise Exception("Unknown variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            raise Exception("Unknown variable not defined in CONVECTION_DIFFUSION_SETTINGS.")
 
-    return conv_diff_solver
+        # Volume source
+        if settings.IsDefinedVolumeSourceVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetVolumeSourceVariable() ):
+                raise Exception("Volume source variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Volume source variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming zero source term.")
+
+        # Surface source
+        #if settings.IsDefinedSurfaceSourceVariable():
+        #    if not ref_node.SolutionStepsDataHas( settings.GetSurfaceSourceVariable() ):
+        #        raise Exception("Surface source variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        #else:
+        #    if verbose:
+        #        print("Surface source variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming zero source term.")
+
+        # Velocity
+        if settings.IsDefinedVelocityVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetVelocityVariable() ):
+                raise Exception("Velocity variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Velocity variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming zero velocity.")
+
+        # Mesh Velocity
+        if settings.IsDefinedMeshVelocityVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetMeshVelocityVariable() ):
+                raise Exception("Mesh velocity variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Mesh velocity variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming zero mesh velocity.")
+
+        # Specific heat variable
+        if settings.IsDefinedSpecificHeatVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetSpecificHeatVariable() ):
+                raise Exception("Specific heat variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Specific heat variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming unit specific heat.")

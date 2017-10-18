@@ -323,7 +323,7 @@ public:
     //
 
 
-    void ResizeAndInitializeVectors(
+    void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         TSystemMatrixType& mD,
         TSystemVectorType& Dx,

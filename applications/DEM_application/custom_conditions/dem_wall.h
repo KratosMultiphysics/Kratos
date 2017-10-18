@@ -5,8 +5,6 @@
 #if !defined(KRATOS_DEM_WALL_H_INCLUDED )
 #define  KRATOS_DEM_WALL_H_INCLUDED
 
-
-
 // System includes
 
 
@@ -25,7 +23,7 @@
 namespace Kratos
 {
 class SphericParticle;
-class DEMWall : public Condition
+class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
 {
 public:
 
@@ -72,9 +70,20 @@ public:
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                  const Variable<VectorType>& rRHSVariable,
                                  Variable<array_1d<double,3> >& rDestinationVariable,
-                                 const ProcessInfo& r_process_info) override;
+                                 const ProcessInfo& r_process_info) override;    
     
     virtual void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
+    virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
+                                              SphericParticle* const particle,
+                                              double LocalCoordSystem[3][3],
+                                              double& DistPToB,
+                                              array_1d<double, 4>& Weight,
+                                              array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                              array_1d<double, 3>& wall_velocity_at_contact_point,
+                                              int& ContactType){}
+    virtual bool IsPhantom(){return false;}
+    virtual int CheckSide(SphericParticle* p_particle){return 1.0;}
+
     /*
     double mTgOfFrictionAngle;
     double mYoungModulus;

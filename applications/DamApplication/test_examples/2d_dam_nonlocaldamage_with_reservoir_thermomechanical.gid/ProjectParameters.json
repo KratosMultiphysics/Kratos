@@ -41,7 +41,8 @@
                 "coarsening_type"     : "aggregation",
                 "scaling"             : false
             },
-            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"]
+            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"],
+            "thermal_loads_sub_model_part_list"  : []
         },
         "mechanical_solver_settings"    : {
             "solution_type"                      : "Quasi-Static",
@@ -110,13 +111,10 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_X"      : true,
-            "is_fixed_Y"      : true,
-            "is_fixed_Z"      : true,
+            "is_fixed"        : [true,true,true],
             "value"           : [0.0,0.0,0.0],
-            "Value_X_Table"   : 0,
-            "Value_Y_Table"   : 0,
-            "Value_Z_Table"   : 0
+            "Value_Table"     : [0,0,0]
+            
         }
     },{
         "python_module" : "impose_uniform_temperature_process",
@@ -145,7 +143,7 @@
             "table"           : 0
         }
     },{
-        "python_module" : "impose_bofang_condition_process",
+        "python_module" : "impose_reservoir_temperature_condition_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
         "help"          : "This process fixes the given scalar variable",
         "process_name"  : "ImposeBofangConditionProcess",
@@ -165,7 +163,7 @@
             "Water_level_Table"                                : 0,
             "Outer_temp"                                       : 5.0,
             "Outer_temp_Table"                                 : 0,
-            "Month"                                            : 6,
+            "Month"                                            : 6.0,
             "Month_Table"                                      : 0
         }
     }],

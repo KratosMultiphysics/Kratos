@@ -1,83 +1,27 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ALEApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-CheckForPreviousImport()
-#
-#
-# def AddVariables(model_part):
-#
-#     model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
-#     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-#     model_part.AddNodalSolutionStepVariable(MESH_REACTION)
-#     model_part.AddNodalSolutionStepVariable(MESH_RHS)
-#
-#     print("Mesh solver variables added correctly.")
-#
-#
-# def AddDofs(model_part):
-#
-#     for node in model_part.Nodes:
-#         node.AddDof(MESH_DISPLACEMENT_X, MESH_REACTION_X)
-#         node.AddDof(MESH_DISPLACEMENT_Y, MESH_REACTION_Y)
-#         node.AddDof(MESH_DISPLACEMENT_Z, MESH_REACTION_Z)
-#
-#     print("Mesh solver DOFs added correctly.")
-
-# import mesh solver base class
+import KratosMultiphysics
+import KratosMultiphysics.ALEApplication as ALEApplication
+KratosMultiphysics.CheckForPreviousImport()
 import mesh_solver_base
+
 
 def CreateSolver(model_part, custom_settings):
     return MeshSolverLaplacian(model_part, custom_settings)
 
 
 class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
-
     def __init__(self, model_part, custom_settings):
+        super(MeshSolverLaplacian, self).__init__(model_part, custom_settings)
+        print("::[MeshSolverLaplacian]:: Construction finished")
 
-        # default settings for laplacian mesh solver
-        default_settings = Parameters("""
-        {
-            "time_order"                 : 2,
-            "mesh_reform_dofs_each_step" : false
-        }""")
-
-        custom_settings.ValidateAndAssignDefaults(default_settings)
-
-        # assign parameters
-        self.model_part = model_part
-        self.time_order = custom_settings["time_order"].GetInt()
-        self.mesh_reform_dofs_each_step = custom_settings["mesh_reform_dofs_each_step"].GetBool()
-
-        # neighbour search
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
-
-        # definition of the solvers
-        tol = 1e-8
-        max_it = 1000
-        verbosity = 1
-        m = 100
-        self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI, AMGCLIterativeSolverType.BICGSTAB, tol, max_it, verbosity, m)
-        #pILUPrecond = ILU0Preconditioner()
-        #self.linear_solver = DeflatedCGSolver(1e-6, 3000, True, 1000)
-        #self.linear_solver =  BICGSTABSolver(1e-3, 300,pILUPrecond)
-        #self.linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
-
-    def Initialize(self):
-        (self.neighbour_search).Execute()
-
-        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.mesh_reform_dofs_each_step)
-        (self.solver).SetEchoLevel(0)
-        print("finished moving the mesh")
-
-    # def Solve(self):
-    #     if(self.mesh_reform_dofs_each_step):
-    #         (self.neighbour_search).Execute()
-    #
-    #     (self.solver).Solve()
-    #
-    # def MoveNodes(self):
-    #     (self.solver).MoveNodes()
+    def _create_mesh_motion_solver(self):
+        linear_solver = self.get_linear_solver()
+        time_order = self.settings["time_order"].GetInt()
+        reform_dofs_at_each_step = self.settings["reform_dofs_each_step"].GetBool()
+        compute_reactions = self.settings["compute_reactions"].GetBool()
+        solver = ALEApplication.LaplacianMeshMovingStrategy(self.model_part,
+                                                            linear_solver,
+                                                            time_order,
+                                                            reform_dofs_each_step)
+        return solver

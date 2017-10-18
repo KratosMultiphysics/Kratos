@@ -39,6 +39,7 @@
 
 // conditions
 #include "custom_conditions/contact_domain_condition.hpp"
+#include "custom_conditions/contact_domain_LM_3D_condition.hpp"
 #include "custom_conditions/contact_domain_LM_2D_condition.hpp"
 #include "custom_conditions/contact_domain_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
@@ -56,7 +57,7 @@
 
 
 // Core applications
-#include "pfem_base_application.h"
+#include "pfem_application.h"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -217,6 +218,8 @@ private:
 	const TranslatoryRigidBodyElement                       mTranslatoryRigidBodyElement;
 
 	//conditions
+	const ContactDomainLM3DCondition                       mContactDomainLMCondition3D4N;
+	
 	const ContactDomainLM2DCondition                       mContactDomainLMCondition2D3N;
 	const ContactDomainPenalty2DCondition             mContactDomainPenaltyCondition2D3N;
 

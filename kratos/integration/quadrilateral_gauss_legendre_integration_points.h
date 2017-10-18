@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.6 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_QUADRILATERAL_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
@@ -222,14 +226,18 @@ public:
 
 	static IntegrationPointsArrayType& IntegrationPoints()
 	{
-        double a[] = {-0.906179845938664, -0.538469310105683, 0.000000000000000, 0.538469310105683, 0.906179845938664};
-        double w[] = {0.236926885056189, 0.478628670499366, 0.568888888888889, 0.478628670499366, 0.236926885056189};
+            const double a[] = {-0.906179845938664, -0.538469310105683, 0.000000000000000, 0.538469310105683, 0.906179845938664};
+            const double w[] = {0.236926885056189, 0.478628670499366, 0.568888888888889, 0.478628670499366, 0.236926885056189};
 
-        for(int i = 0; i < 5; ++i)
-            for(int j = 0; j < 5; ++j)
-                msIntegrationPoints[5*i + j] = IntegrationPointType( a[i], a[j], w[i] * w[j]);
+            for(unsigned int i = 0; i < 5; ++i)
+            {
+                for(unsigned int j = 0; j < 5; ++j)
+                {
+                    msIntegrationPoints[5*i + j] = IntegrationPointType( a[i], a[j], w[i] * w[j]);
+                }
+            }
             
-		return msIntegrationPoints;
+            return msIntegrationPoints;
 	}
 
 	std::string Info() const

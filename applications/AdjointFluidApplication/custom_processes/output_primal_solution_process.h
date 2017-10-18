@@ -1,17 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KratosAdjointFluidApplication
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 license: AdjointFluidApplication/license.txt
 //
-//   Project Name:        $AdjointFluidApplication        $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         November  2016   $
-//   Revision:            $Revision:                0.0   $
-
+//  Main authors:    Michael Andre, https://github.com/msandre
+//
 
 #if !defined(KRATOS_OUTPUT_PRIMAL_SOLUTION_PROCESS_H_INCLUDED )
 #define KRATOS_OUTPUT_PRIMAL_SOLUTION_PROCESS_H_INCLUDED
@@ -118,7 +111,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~OutputPrimalSolutionProcess() {}
+    ~OutputPrimalSolutionProcess() override {}
 
     ///@}
     ///@name Operators
@@ -134,9 +127,9 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() {}
+    void Execute() override {}
 
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY
 
@@ -199,15 +192,15 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -313,15 +306,15 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
 
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -338,19 +331,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "OutputPrimalSolutionProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << this->Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

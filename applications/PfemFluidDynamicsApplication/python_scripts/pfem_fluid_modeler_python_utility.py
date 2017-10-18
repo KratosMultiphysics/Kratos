@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics 
 from KratosMultiphysics.SolidMechanicsApplication import *
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -80,7 +80,7 @@ class ModelerUtility:
         mesh_id = 0
 
         # define search utility
-        nodal_neighbour_search = KratosPfemBase.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
+        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -95,7 +95,7 @@ class ModelerUtility:
         mesh_id = 0
          
         # define search utility
-        elemental_neighbour_search = KratosPfemBase.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -107,7 +107,7 @@ class ModelerUtility:
 
         # define calculation utility
         # normals_calculation = BoundaryNormalsCalculation()
-        normals_calculation = KratosPfemBase.BoundaryNormalsCalculation()
+        normals_calculation = KratosPfem.BoundaryNormalsCalculation()
 
         # execute calculation:
         #(scaled normals)
@@ -126,24 +126,8 @@ class ModelerUtility:
 
         # define building utility
         # skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
-        skin_build = KratosPfemBase.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
-        #skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, mesh_id, self.echo_level)
+        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
 
-        # execute building:
-        skin_build.Execute()
-
-        print("::[Modeler_Utility]:: Mesh Boundary Build executed ")
-
-    #
-    def BuildMeshBoundaryForFluids(self):
-
-        print("::[Modeler_Utility]:: Build Mesh Boundary for fluids ")
-        # set building options:
-        mesh_id = 0
-
-        # define building utility
-        skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.echo_level, mesh_id)
- 
         # execute building:
         skin_build.Execute()
 
@@ -179,29 +163,6 @@ class ModelerUtility:
             if(domain.Active()):
                 domain.ComputeInitialAverageMeshParameters()       
 #
-
-    def BuildMeshModelersNEW(self, meshing_domains ):
-
-        if(self.remesh_domains):
-            self.modeler_active = True
-
-        # set mesing domains
-        self.meshing_domains = meshing_domains
-
-        # set modeler utilities
-        self.modeler_utils = KratosPfemBase.ModelerUtilities()
-
-        # set transfer utilities
-        self.transfer_utils = KratosPfemBase.MeshDataTransferUtilities()
-                
-        # set the domain labels to mesh modeler
-        self.modeler_utils.SetDomainLabels(self.model_part)
-
-        # set remesh frequency vector
-        #for domain in self.meshing_domains:
-        #    self.remesh_frequencies.append(domain.GetMeshingFrequency())
-        
-    #
 
     def BuildMeshModelers(self, configuration):
 
@@ -414,105 +375,5 @@ class ModelerUtility:
     def InitializeStep(self):
 
         self.remesh_executed = False
-
-    #
-    def RemeshDomainsNEW(self):
-
-        if(self.remesh_domains):
-           # if(self.contact_search):
-            #    self.ContactTransfer()
-
-            if( self.echo_level > 0 ):
-                print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
-
-            meshing_options = KratosMultiphysics.Flags()
-            self.modeler_utils = KratosPfemBase.ModelerUtilities()
-
-
-            meshing_options.Set(self.modeler_utils.KEEP_ISOLATED_NODES, True)
-
-            #self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
-            self.model_meshing =  KratosPfemFluid.ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
-
-            self.model_meshing.ExecuteInitialize()
-         
-            print("::[Modeler_Utility]:: BEFORE LOOP", self.counter)
-
-            id = 0
-            for domain in self.meshing_domains:
-
-                print("::[Modeler_Utility]:: IN THE LOOP")
-
-                domain.ExecuteMeshing();
-
-                self.remesh_executed = True
-
-                id+=1
-
-            self.model_meshing.ExecuteFinalize()
-
-            self.counter += 1 
-
-    def RemeshDomains(self):
-
-        if(self.remesh_domains):
-
-            if( self.echo_level >= 0 ):
-                print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
-
-            #meshing_options = Flags()
-            meshing_options = KratosMultiphysics.Flags()
-
-            #self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
-            self.model_meshing = KratosPfemFluid.ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
-
-            ##self.model_meshing = ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
-
-            self.model_meshing.ExecuteInitialize()
-
-            id = 0
-            for mesher in self.mesh_modelers:
-
-                mesh_id = self.mesh_ids[id]
-                
-                mesher.InitializeMeshModeler(self.model_part)
-                
-                mesher.GenerateMesh(self.model_part);
-
-                mesher.FinalizeMeshModeler(self.model_part)
-
-                self.remesh_executed = True
-
-                id+=1
-
-            self.model_meshing.ExecuteFinalize()
-          
-            self.counter += 1 
-
-
-   # def RemeshDomains(self):
-
-   #     if(self.remesh_domains):
-
-   #         if( self.echo_level > 0 ):
-    #            print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
-#
-   #         id = 0
-  #          for mesher in self.mesh_modelers:
-
-    #            mesh_id = self.mesh_ids[id]
-
-     #           mesher.InitializeMeshModeler(self.model_part,mesh_id)
-
-    #            mesher.GenerateMesh(self.model_part,mesh_id);
-
-    #            mesher.FinalizeMeshModeler(self.model_part,mesh_id)
-
-    #            self.remesh_executed = True
-
-    #            id+=1
-
-   #         self.counter += 1 
-
 
     #

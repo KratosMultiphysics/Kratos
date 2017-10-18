@@ -9,7 +9,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Dynamic",
         "time_integration_method"            : "Implicit",
@@ -26,11 +26,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
+                "solver_type": "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
@@ -53,64 +49,21 @@
     }
     ],
     "loads_process_list" : [],
-    "list_other_processes" :[
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X"],
-            "input_file_name" : "dynamic_test/dynamic_newmark_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
-    "print_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
-            "output_file_name" : "dynamic_test/dynamic_newmark_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
-    "check_json_results_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
-            "input_file_name" : "dynamic_test/dynamic_newmark_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
+    "_list_other_processes" :[],
     "check_analytic_results_process" : [
     {
-        "python_module"   : "from_analytic_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromAnalyticCheckResultProcess",
+        "python_module"   : "check_scalar_to_nodes_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "process_name"          : "AssignValueProcess",
         "Parameters"            : {
-            "variable_name"     : "DISPLACEMENT_X",
-            "mesh_id"           : 0,
-            "f(x,y,z,t)="       : "cos(10.0*t)",
-            "model_part_name"   : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"    : 0.01
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT_X",
+            "interval"        : [0.0, 1.0],
+            "value"           : "0.1*cos(31.6227766016838*t)",
+            "tolerance_rank"  : 3
         }
     }
-    ],    
-    "apply_custom_function_process" : [],
+    ], 
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,

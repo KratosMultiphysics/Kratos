@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "meshing_application.h"
@@ -74,34 +75,51 @@ public:
     /**
      * This is the default constructor
      * @param rThisModelPart: The model part to be computed
-     * @param rVariableGradient: The gradient variable to compute
-     * @param rMinSize: The min size of element
-     * @param rAnisRatio: The anisotropic ratio
-     * @param rBoundLayer: The boundary layer limit
-     * @param rInterpolation: The interpolation type
+     * @param ThisParameters: The input parameters
      */
     
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const double rMinSize,
-        const bool rEnforceCurrent = true,
         const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
-        const double rAnisRatio = 1.0,
-        const double rBoundLayer =  1.0,
-        const std::string rInterpolation = "Linear"
+        Parameters ThisParameters = Parameters(R"({})")
         )
         :mThisModelPart(rThisModelPart),
-        mVariableGradient(rVariableGradient),
-        mMinSize(rMinSize),
-        mEnforceCurrent(rEnforceCurrent),
-        mAnisRatio(rAnisRatio),
-        mBoundLayer(rBoundLayer)
+        mVariableGradient(rVariableGradient)
     {   
-        mInterpolation = ConvertInter(rInterpolation);
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "minimal_size"                         : 0.1, 
+            "enforce_current"                      : true, 
+            "anisotropy_remeshing"                 : true, 
+            "anisotropy_parameters": 
+            {
+                "hmin_over_hmax_anisotropic_ratio"      : 1.0, 
+                "boundary_layer_max_distance"           : 1.0, 
+                "interpolation"                         : "Linear"
+            }
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        mMinSize = ThisParameters["minimal_size"].GetDouble();
+        mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
+        
+        // In case we have isotropic remeshing (default values)
+        if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
+        {
+            mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
+        else
+        {
+            mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
     }
     
     /// Destructor.
-    virtual ~ComputeLevelSetSolMetricProcess() {}
+    ~ComputeLevelSetSolMetricProcess() override = default;
     
     ///@}
     ///@name Operators
@@ -120,7 +138,7 @@ public:
      * We initialize the metrics of the MMG sol using a level set approach
      */
     
-    virtual void Execute()
+    void Execute() override
     {
         // Iterate in the nodes
         NodesArrayType& pNode = mThisModelPart.Nodes();
@@ -136,28 +154,26 @@ public:
                 KRATOS_ERROR << "Missing gradient variable on node " << itNode->Id() << std::endl;
             }
             
-            const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
-            array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(mVariableGradient, 0);
+            const double Distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
+            array_1d<double, 3> GradientValue = itNode->FastGetSolutionStepValue(mVariableGradient, 0);
             
-            const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
+            const double Ratio = CalculateAnisotropicRatio(Distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
-            double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
-            anisotropic_ratio = ratio;
+            itNode->SetValue(ANISOTROPIC_RATIO, Ratio); 
             
-
-            double element_size = mMinSize;
-            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);
-            if (((element_size > nodal_h) && (mEnforceCurrent == true)) || (std::abs(distance) > mBoundLayer))
+            double ElementSize = mMinSize;
+            const double NodalH = itNode->FastGetSolutionStepValue(NODAL_H, 0);
+            if (((ElementSize > NodalH) && (mEnforceCurrent == true)) || (std::abs(Distance) > mBoundLayer))
             {
-                element_size = nodal_h;
+                ElementSize = NodalH;
             }
             
-            const double tolerance = 1.0e-12;
-            const double norm = norm_2(gradient_value);
-            if (norm > tolerance)
+            const double Tolerance = 1.0e-12;
+            const double NormGradientValue = norm_2(GradientValue);
+            if (NormGradientValue > Tolerance)
             {
-                gradient_value /= norm;
+                GradientValue /= NormGradientValue;
             }
             
             // We compute the metric
@@ -167,26 +183,26 @@ public:
                 KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode->Id();
             }
             #endif     
-            Vector& metric = itNode->GetValue(MMG_METRIC);
+            Vector& Metric = itNode->GetValue(MMG_METRIC);
             
             #ifdef KRATOS_DEBUG 
-            if(metric.size() != TDim * 3 - 3) 
+            if(Metric.size() != TDim * 3 - 3) 
             {
-                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode->Id() << " size is " << Metric.size() << " expected size was " << TDim * 3 - 3;
             }
             #endif
             
-            const double normmetric = norm_2(metric);
-            if (normmetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
+            const double NormMetric = norm_2(Metric);
+            if (NormMetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             {
-                const Vector old_metric = itNode->GetValue(MMG_METRIC);
-                const Vector new_metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
+                const Vector OldMetric = itNode->GetValue(MMG_METRIC);
+                const Vector NewMetric = ComputeLevelSetMetricTensor(GradientValue, Ratio, ElementSize);
                 
-                metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
+                Metric = MetricsMathUtils<TDim>::IntersectMetrics(OldMetric, NewMetric);
             }
             else
             {
-                metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
+                Metric = ComputeLevelSetMetricTensor(GradientValue, Ratio, ElementSize);
             }
         }
     }
@@ -206,19 +222,19 @@ public:
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "ComputeLevelSetSolMetricProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeLevelSetSolMetricProcess";
     }
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    /// Print object"s data.
+    void PrintData(std::ostream& rOStream) const override
     {
     }
     
@@ -272,7 +288,7 @@ private:
     double mMinSize;                                // The minimal size of the elements
     bool mEnforceCurrent;                           // With this we choose if we inforce the current nodal size (NODAL_H)
     double mAnisRatio;                              // The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                             // The boundary layer limit distance
+    double mBoundLayer;                             // The boundary layer limit Distance
     Interpolation mInterpolation;                   // The interpolation type
     
     ///@}
@@ -285,16 +301,16 @@ private:
     
     /**
      * It calculates the tensor of the scalar, necessary to get the solution before remeshing
-     * @param gradient_value: The gradient of the scalar to remesh
-     * @param ratio: The alpha parameter used to remesh
-     * @param element_size: The minimum size of the elements
+     * @param GradientValue: The gradient of the scalar to remesh
+     * @param Ratio: The alpha parameter used to remesh
+     * @param ElementSize: The minimum size of the elements
      * @param node_id: The id of the node
      */
         
     Vector ComputeLevelSetMetricTensor(
-        const array_1d<double, 3>& gradient_value,
-        const double& ratio,
-        const double& element_size
+        const array_1d<double, 3>& GradientValue,
+        const double& Ratio,
+        const double& ElementSize
     );
 
     
@@ -326,42 +342,42 @@ private:
         
     /**
      * This calculates the anisotropic ratio
-     * @param distance: Distance parameter
+     * @param Distance: Distance parameter
      */
     
     double CalculateAnisotropicRatio(
-        const double& distance,
+        const double& Distance,
         const double& rAnisRatio,
         const double& rBoundLayer,
         const Interpolation& rInterpolation
         )
     {
-        const double tolerance = 1.0e-12;
-        double ratio = 1.0; // NOTE: Isotropic mesh
+        const double Tolerance = 1.0e-12;
+        double Ratio = 1.0; // NOTE: Isotropic mesh
         if (rAnisRatio < 1.0)
         {                           
-            if (std::abs(distance) <= rBoundLayer)
+            if (std::abs(Distance) <= rBoundLayer)
             {
                 if (rInterpolation == Constant)
                 {
-                    ratio = rAnisRatio;
+                    Ratio = rAnisRatio;
                 }
                 else if (rInterpolation == Linear)
                 {
-                    ratio = rAnisRatio + (std::abs(distance)/rBoundLayer) * (1.0 - rAnisRatio);
+                    Ratio = rAnisRatio + (std::abs(Distance)/rBoundLayer) * (1.0 - rAnisRatio);
                 }
                 else if (rInterpolation == Exponential)
                 {
-                    ratio = - std::log(std::abs(distance)/rBoundLayer) * rAnisRatio + tolerance;
-                    if (ratio > 1.0)
+                    Ratio = - std::log(std::abs(Distance)/rBoundLayer) * rAnisRatio + Tolerance;
+                    if (Ratio > 1.0)
                     {
-                        ratio = 1.0;
+                        Ratio = 1.0;
                     }
                 }
             }
         }
         
-        return ratio;
+        return Ratio;
     }
     
     ///@}
@@ -395,26 +411,26 @@ private:
 
     template<>  
     Vector ComputeLevelSetSolMetricProcess<2>::ComputeLevelSetMetricTensor(
-        const array_1d<double, 3>& gradient_value,
-        const double& ratio,
-        const double& element_size
+        const array_1d<double, 3>& GradientValue,
+        const double& Ratio,
+        const double& ElementSize
     )
     {
-        Vector metric;
-        metric.resize(3, false);
+        Vector Metric;
+        Metric.resize(3, false);
         
-        const double coeff0 = 1.0/(element_size * element_size);
-        const double coeff1 = coeff0/(ratio * ratio);
+        const double Coeff0 = 1.0/(ElementSize * ElementSize);
+        const double Coeff1 = Coeff0/(Ratio * Ratio);
         
-        const double v0v0 = gradient_value[0]*gradient_value[0];
-        const double v0v1 = gradient_value[0]*gradient_value[1];
-        const double v1v1 = gradient_value[1]*gradient_value[1];
+        const double v0v0 = GradientValue[0]*GradientValue[0];
+        const double v0v1 = GradientValue[0]*GradientValue[1];
+        const double v1v1 = GradientValue[1]*GradientValue[1];
         
-        metric[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
-        metric[1] = coeff0*(    - v0v1) + coeff1*v0v1;  
-        metric[2] = coeff0*(1.0 - v1v1) + coeff1*v1v1;
+        Metric[0] = Coeff0*(1.0 - v0v0) + Coeff1*v0v0;
+        Metric[1] = Coeff0*(    - v0v1) + Coeff1*v0v1;  
+        Metric[2] = Coeff0*(1.0 - v1v1) + Coeff1*v1v1;
         
-        return metric;
+        return Metric;
     }
     
     /***********************************************************************************/
@@ -422,32 +438,32 @@ private:
     
     template<>  
     Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
-        const array_1d<double, 3>& gradient_value,
-        const double& ratio,
-        const double& element_size
+        const array_1d<double, 3>& GradientValue,
+        const double& Ratio,
+        const double& ElementSize
     )
     {
-        Vector metric;
-        metric.resize(6, false);
+        Vector Metric;
+        Metric.resize(6, false);
         
-        const double coeff0 = 1.0/(element_size * element_size);
-        const double coeff1 = coeff0/(ratio * ratio);
+        const double Coeff0 = 1.0/(ElementSize * ElementSize);
+        const double Coeff1 = Coeff0/(Ratio * Ratio);
         
-        const double v0v0 = gradient_value[0]*gradient_value[0];
-        const double v0v1 = gradient_value[0]*gradient_value[1];
-        const double v0v2 = gradient_value[0]*gradient_value[2];
-        const double v1v1 = gradient_value[1]*gradient_value[1];
-        const double v1v2 = gradient_value[1]*gradient_value[2];
-        const double v2v2 = gradient_value[2]*gradient_value[2];
+        const double v0v0 = GradientValue[0]*GradientValue[0];
+        const double v0v1 = GradientValue[0]*GradientValue[1];
+        const double v0v2 = GradientValue[0]*GradientValue[2];
+        const double v1v1 = GradientValue[1]*GradientValue[1];
+        const double v1v2 = GradientValue[1]*GradientValue[2];
+        const double v2v2 = GradientValue[2]*GradientValue[2];
         
-        metric[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
-        metric[1] = coeff0*(    - v0v1) + coeff1*v0v1; 
-        metric[2] = coeff0*(    - v0v2) + coeff1*v0v2; 
-        metric[3] = coeff0*(1.0 - v1v1) + coeff1*v1v1; 
-        metric[4] = coeff0*(    - v1v2) + coeff1*v1v2; 
-        metric[5] = coeff0*(1.0 - v2v2) + coeff1*v2v2;
+        Metric[0] = Coeff0*(1.0 - v0v0) + Coeff1*v0v0;
+        Metric[1] = Coeff0*(    - v0v1) + Coeff1*v0v1; 
+        Metric[2] = Coeff0*(    - v0v2) + Coeff1*v0v2; 
+        Metric[3] = Coeff0*(1.0 - v1v1) + Coeff1*v1v1; 
+        Metric[4] = Coeff0*(    - v1v2) + Coeff1*v1v2; 
+        Metric[5] = Coeff0*(1.0 - v2v2) + Coeff1*v2v2;
 
-        return metric;
+        return Metric;
     }
     
 ///@name Type Definitions

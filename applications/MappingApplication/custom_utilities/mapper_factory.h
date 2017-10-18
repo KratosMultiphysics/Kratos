@@ -7,458 +7,440 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_MAPPER_FACTORY_H_INCLUDED )
 #define  KRATOS_MAPPER_FACTORY_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "containers/flags.h"
 #include "includes/kratos_parameters.h"
-#include "mapper_utilities.h"
 
 #include "custom_utilities/nearest_neighbor_mapper.h"
-// #include "custom_utilities/nearest_element_mapper.h"
-// #include "custom_utilities/approximate_mortar_mapper.h"
+#include "custom_utilities/nearest_element_mapper.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class MapperFactory
+/// Python Interface of the MappingApplication
+/** This class constructs the mappers and exposes them to Python
+* Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
+* Also the additional timing information is implemented here (echo_level = 1)
+* For information abt the available echo_levels and the JSON default-parameters
+* look into the class description of the MapperCommunicator
+*/
+class MapperFactory
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MapperFactory
+    KRATOS_CLASS_POINTER_DEFINITION(MapperFactory);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MapperFactory(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+                  Parameters JsonParameters) :
+        mrModelPartOrigin(rModelPartOrigin),
+        mrModelPartDestination(rModelPartDestination),
+        mJsonParameters(JsonParameters)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-
-      /// Pointer definition of MapperFactory
-      KRATOS_CLASS_POINTER_DEFINITION(MapperFactory);
-
-      ///@}
-      ///@name Life Cycle
-      ///@{
-
-      /// Default constructor.
-      MapperFactory(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                    Parameters& i_json_parameters) :
-                    m_model_part_origin(i_model_part_origin),
-                    m_model_part_destination(i_model_part_destination),
-                    m_json_parameters(i_json_parameters) {
-
-          CheckAndValidateJson();
-          ReadAndCheckInterfaceModelParts();
-          ConstructMapper();
-      }
-
-      /// Destructor.
-      virtual ~MapperFactory() { }
-
-
-      ///@}
-      ///@name Operators
-      ///@{
-
-
-      ///@}
-      ///@name Operations
-      ///@{
+        ReadInterfaceModelParts();
+        ConstructMapper();
+    }
+
+    /// Destructor.
+    virtual ~MapperFactory() { }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void UpdateInterface(Kratos::Flags& rOptions, double SearchRadius)
+    {
+        double start_time = MapperUtilities::GetCurrentTime();
+        mpMapper->UpdateInterface(rOptions, SearchRadius);
+        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+
+        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                "UpdateInterface",
+                elapsed_time);
+    }
+
+
+    /* This function maps a variable from Origin to Destination */
+    void Map(const Variable<double>& rOriginVariable,
+             const Variable<double>& rDestinationVariable,
+             Kratos::Flags& rOptions)
+    {
+        double start_time = MapperUtilities::GetCurrentTime();
+        mpMapper->Map(rOriginVariable, rDestinationVariable, rOptions);
+        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-      void UpdateInterface(Kratos::Flags& options, double search_radius) {
-          double start_time = MapperUtilities::GetCurrentTime();
-          m_p_mapper->UpdateInterface(options, search_radius);
-          double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                "Map",
+                elapsed_time);
+    }
 
-          m_p_mapper->GetMapperCommunicator()->PrintTime(m_mapper_type,
-                                                         "UpdateInterface",
-                                                         elapsed_time);
-      }
+    /* This function maps a variable from Origin to Destination */
+    void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
+             const Variable< array_1d<double, 3> >& rDestinationVariable,
+             Kratos::Flags& rOptions)
+    {
+        double start_time = MapperUtilities::GetCurrentTime();
+        mpMapper->Map(rOriginVariable, rDestinationVariable, rOptions);
+        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
+        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                "Map",
+                elapsed_time);
+    }
 
-      /* This function maps a variable from Origin to Destination */
-      void Map(const Variable<double>& origin_variable,
-               const Variable<double>& destination_variable,
-               Kratos::Flags& options) {
-          double start_time = MapperUtilities::GetCurrentTime();
-          m_p_mapper->Map(origin_variable, destination_variable, options);
-          double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          m_p_mapper->GetMapperCommunicator()->PrintTime(m_mapper_type,
-                                                         "Map",
-                                                         elapsed_time);
-      }
+    /* This function maps from Destination to Origin */
+    void InverseMap(const Variable<double>& rOriginVariable,
+                    const Variable<double>& rDestinationVariable,
+                    Kratos::Flags& rOptions)
+    {
+        double start_time = MapperUtilities::GetCurrentTime();
+        mpMapper->InverseMap(rOriginVariable, rDestinationVariable, rOptions);
+        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-      /* This function maps a variable from Origin to Destination */
-      void Map(const Variable< array_1d<double,3> >& origin_variable,
-               const Variable< array_1d<double,3> >& destination_variable,
-               Kratos::Flags& options) {
-          double start_time = MapperUtilities::GetCurrentTime();
-          m_p_mapper->Map(origin_variable, destination_variable, options);
-          double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                "InverseMap",
+                elapsed_time);
+    }
 
-          m_p_mapper->GetMapperCommunicator()->PrintTime(m_mapper_type,
-                                                         "Map",
-                                                         elapsed_time);
-      }
+    /* This function maps from Destination to Origin */
+    void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
+                    const Variable< array_1d<double, 3> >& rDestinationVariable,
+                    Kratos::Flags& rOptions)
+    {
+        double start_time = MapperUtilities::GetCurrentTime();
+        mpMapper->InverseMap(rOriginVariable, rDestinationVariable, rOptions);
+        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
+        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                "InverseMap",
+                elapsed_time);
+    }
 
-      /* This function maps from Destination to Origin */
-      void InverseMap(const Variable<double>& origin_variable,
-                      const Variable<double>& destination_variable,
-                      Kratos::Flags& options) {
-          double start_time = MapperUtilities::GetCurrentTime();
-          m_p_mapper->InverseMap(origin_variable, destination_variable, options);
-          double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          m_p_mapper->GetMapperCommunicator()->PrintTime(m_mapper_type,
-                                                         "InverseMap",
-                                                         elapsed_time);
-      }
+    ///@}
+    ///@name Access
+    ///@{
 
-      /* This function maps from Destination to Origin */
-      void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                      const Variable< array_1d<double,3> >& destination_variable,
-                      Kratos::Flags& options) {
-          double start_time = MapperUtilities::GetCurrentTime();
-          m_p_mapper->InverseMap(origin_variable, destination_variable, options);
-          double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          m_p_mapper->GetMapperCommunicator()->PrintTime(m_mapper_type,
-                                                         "InverseMap",
-                                                         elapsed_time);
-      }
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "MapperFactory" ;
+        return buffer.str();
+    }
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MapperFactory";
+    }
 
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
 
-      ///@}
-      ///@name Input and output
-      ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	       std::stringstream buffer;
-         buffer << "MapperFactory" ;
-         return buffer.str();
-      }
+    ///@}
+    ///@name Friends
+    ///@{
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "MapperFactory";}
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-      ///@}
-      ///@name Friends
-      ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-      ///@}
 
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-      ///@}
+    Mapper::Pointer mpMapper;
+    std::string mMapperType;
 
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ModelPart& mrModelPartOrigin;
+    ModelPart& mrModelPartDestination;
 
+    ModelPart* mpInterfaceModelPartOrigin;
+    ModelPart* mpInterfaceModelPartDestination;
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    Parameters mJsonParameters;
 
-      Mapper::Pointer m_p_mapper;
-      std::string m_mapper_type;
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-      ModelPart& m_model_part_origin;
-      ModelPart& m_model_part_destination;
 
-      ModelPart* m_p_interface_model_part_origin;
-      ModelPart* m_p_interface_model_part_destination;
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-      Parameters& m_json_parameters;
-      Parameters m_default_settings = Parameters( R"(
-      {
-             "mapper_type"                           : "",
-             "interface_submodel_part_origin"        : "",
-             "interface_submodel_part_destination"   : "",
-             "search_radius"                         : -1.0,
-             "search_iterations"                     : 5,
-             "non_conforming_interface"              : false,
-             "echo_level"                            : 0
-       }  )" );
-
-       bool m_compute_search_radius;
-
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-      void CheckAndValidateJson() {
-          // Check if the three basic parameters are present
-          if (!m_json_parameters.Has("mapper_type")) {
-              KRATOS_ERROR << "MappingApplication; MapperFactory; no "
-                           << "\"mapper_type\" defined in json" << std::endl;
-          }
-
-          if (!m_json_parameters.Has("interface_submodel_part_origin")) {
-              KRATOS_ERROR << "MappingApplication; MapperFactory; no "
-                           << "\"interface_submodel_part_origin\" "
-                           << "defined in json" << std::endl;
-          }
-
-          if (!m_json_parameters.Has("interface_submodel_part_destination")) {
-              KRATOS_ERROR << "MappingApplication; MapperFactory; no "
-                           << "\"interface_submodel_part_destination\" "
-                           << "defined in json" << std::endl;
-          }
-
-          // Check if there is a valid input for the search parameters
-          m_compute_search_radius = true;
-          if (m_json_parameters.Has("search_radius")) {
-              m_compute_search_radius = false;
-
-              if (m_json_parameters["search_radius"].GetDouble() < 0.0f) {
-                  KRATOS_ERROR << "MappingApplication; MapperFactory; Invalid "
-                               << "Search Radius specified" << std::endl;
-              }
-          }
-
-          if (m_json_parameters.Has("search_iterations")) {
-              if (m_json_parameters["search_iterations"].GetInt() < 1) {
-                  KRATOS_ERROR << "MappingApplication; MapperFactory; Number of "
-                               << "specified Search Iterations too small" << std::endl;
-              }
-          }
-
-          m_json_parameters.RecursivelyValidateAndAssignDefaults(m_default_settings);
-      }
-
-      void ReadAndCheckInterfaceModelParts() {
-        // TODO discuss pointer stuff with someone
-        std::string name_interface_submodel_part = m_json_parameters["interface_submodel_part_origin"].GetString();
-        m_p_interface_model_part_origin = &m_model_part_origin.GetSubModelPart(name_interface_submodel_part);
-
-        name_interface_submodel_part = m_json_parameters["interface_submodel_part_destination"].GetString();
-        m_p_interface_model_part_destination = &m_model_part_destination.GetSubModelPart(name_interface_submodel_part);
-
-        if (MapperUtilities::ComputeNumberOfNodes(*m_p_interface_model_part_origin) < 1 &&
-            MapperUtilities::ComputeNumberOfConditions(*m_p_interface_model_part_origin) < 1)
-            KRATOS_ERROR << "MappingApplication; MapperFactory; Neither nodes nor "
-                         << "conditions found in the origin model part" << std::endl;
-
-        if (MapperUtilities::ComputeNumberOfNodes(*m_p_interface_model_part_destination) < 1 &&
-            MapperUtilities::ComputeNumberOfConditions(*m_p_interface_model_part_destination) < 1)
-            KRATOS_ERROR << "MappingApplication; MapperFactory; Neither nodes nor "
-                         << "conditions found in the destination model part" << std::endl;
-
-        int domain_size_origin = m_p_interface_model_part_origin->GetProcessInfo()[DOMAIN_SIZE];
-        int domain_size_destination = m_p_interface_model_part_destination->GetProcessInfo()[DOMAIN_SIZE];
-
-        if (domain_size_origin != domain_size_destination) {
-            KRATOS_ERROR << "MappingApplication; MapperFactory; Domain sizes of the "
-                         << "two model parts are not compatible" << std::endl;
+    void ReadInterfaceModelParts()
+    {
+        int echo_level = 0;
+        // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
+        if (mJsonParameters.Has("echo_level"))
+        {
+            echo_level = std::max(echo_level, mJsonParameters["echo_level"].GetInt());
         }
 
-        // Compute the search radius in case it was not specified, can only be done after the modelparts are read
-        if (m_compute_search_radius) {
-          double search_radius = MapperUtilities::ComputeSearchRadius(*m_p_interface_model_part_origin,
-                                                                      *m_p_interface_model_part_destination);
-          m_json_parameters["search_radius"].SetDouble(search_radius);
+        int comm_rank_origin = mrModelPartOrigin.GetCommunicator().MyPID();
+        int comm_rank_destination = mrModelPartDestination.GetCommunicator().MyPID();
+
+        if (mJsonParameters.Has("interface_submodel_part_origin"))
+        {
+            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_origin"].GetString();
+            mpInterfaceModelPartOrigin = &mrModelPartOrigin.GetSubModelPart(name_interface_submodel_part);
+
+            if (echo_level >= 3 && comm_rank_origin == 0)
+            {
+                std::cout << "Mapper: SubModelPart used for Origin-ModelPart" << std::endl;
+            }
         }
-      }
+        else
+        {
+            mpInterfaceModelPartOrigin = &mrModelPartOrigin;
 
-      void ConstructMapper() {
-          m_mapper_type = m_json_parameters["mapper_type"].GetString();
+            if (echo_level >= 3 && comm_rank_origin == 0)
+            {
+                std::cout << "Mapper: Main ModelPart used for Origin-ModelPart" << std::endl;
+            }
+        }
 
-          double start_time = MapperUtilities::GetCurrentTime();
+        if (mJsonParameters.Has("interface_submodel_part_destination"))
+        {
+            std::string name_interface_submodel_part = mJsonParameters["interface_submodel_part_destination"].GetString();
+            mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
 
-          if (m_mapper_type == "NearestNeighbor") {
-              m_p_mapper = Mapper::Pointer(new NearestNeighborMapper(*m_p_interface_model_part_origin,
-                                                                     *m_p_interface_model_part_destination,
-                                                                     m_json_parameters));
-          } /*else if (m_mapper_type == "NearestElement") {
-              m_p_mapper = Mapper::Pointer(new NearestElementMapper(*m_p_interface_model_part_origin,
-                                                                    *m_p_interface_model_part_destination,
-                                                                    m_json_parameters));
+            if (echo_level >= 3 && comm_rank_destination == 0)
+            {
+                std::cout << "Mapper: SubModelPart used for Destination-ModelPart" << std::endl;
+            }
+        }
+        else
+        {
+            mpInterfaceModelPartDestination = &mrModelPartDestination;
 
-          } *//*else if (m_mapper_type == "Barycentric") {
-              m_p_mapper = Mapper::Pointer(new BarycentricMapper(*m_p_interface_model_part_origin,
-                                                                 *m_p_interface_model_part_destination,
-                                                                 m_json_parameters));
+            if (echo_level >= 3 && comm_rank_destination == 0)
+            {
+                std::cout << "Mapper: Main ModelPart used for Destination-ModelPart" << std::endl;
+            }
+        }
+    }
 
-          } *//*else if (m_mapper_type == "RBF") {
-              m_p_mapper = Mapper::Pointer(new RBFMapper(*m_p_interface_model_part_origin,
-                                                         *m_p_interface_model_part_destination,
-                                                         m_json_parameters));
+    void ConstructMapper()
+    {
+        double start_time = MapperUtilities::GetCurrentTime();
 
-          } *//*else if (m_mapper_type == "ApproximateMortar") {
-              m_p_mapper = Mapper::Pointer(new ApproximateMortarMapper(*m_p_interface_model_part_origin,
-                                                                       *m_p_interface_model_part_destination,
-                                                                       m_json_parameters));
+        if (!mJsonParameters.Has("mapper_type"))
+        {
+            KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
+        }
 
-          } *//*else if (m_mapper_type == "Mortar") {
-              m_p_mapper = Mapper::Pointer(new MortarMapper(*m_p_interface_model_part_origin,
-                                                            *m_p_interface_model_part_destination,
-                                                            m_json_parameters));
+        mMapperType = mJsonParameters["mapper_type"].GetString();
 
-          } *//*else if (m_mapper_type == "IGA") {
-              m_p_mapper = Mapper::Pointer(new IGAMapper(*m_p_interface_model_part_origin,
-                                                         *m_p_interface_model_part_destination,
-                                                         m_json_parameters));
+        if (mMapperType == "NearestNeighbor")
+        {
+            if (mJsonParameters.Has("approximation_tolerance"))
+            {
+                KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" "
+                             << "specified for Nearest Neighbor Mapper" << std::endl;
+            }
 
-          } */else {
-              KRATOS_ERROR << "MappingApplication; MapperFactory; "
-                           << "\"ConstructMapper\" Selected Mapper "
-                           << "not implemented" << std::endl;
-          }
+            mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
+                                       *mpInterfaceModelPartDestination,
+                                       mJsonParameters));
+        }
+        else if (mMapperType == "NearestElement")
+        {
+            mpMapper = Mapper::Pointer(new NearestElementMapper(*mpInterfaceModelPartOrigin,
+                                       *mpInterfaceModelPartDestination,
+                                       mJsonParameters));
 
-          double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+        } /*else if (mMapperType == "Barycentric") {
+              mpMapper = Mapper::Pointer(new BarycentricMapper(*mpInterfaceModelPartOrigin,
+                                                                 *mpInterfaceModelPartDestination,
+                                                                 mJsonParameters));
 
-          m_p_mapper->GetMapperCommunicator()->PrintTime(m_mapper_type,
-                                                         "Mapper Construction",
-                                                         elapsed_time);
+          } *//*else if (mMapperType == "RBF") {
+              mpMapper = Mapper::Pointer(new RBFMapper(*mpInterfaceModelPartOrigin,
+                                                         *mpInterfaceModelPartDestination,
+                                                         mJsonParameters));
 
-      }
+          } *//*else if (mMapperType == "Mortar") {
+              mpMapper = Mapper::Pointer(new MortarMapper(*mpInterfaceModelPartOrigin,
+                                                            *mpInterfaceModelPartDestination,
+                                                            mJsonParameters));
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+          } *//*else if (mMapperType == "IGA") {
+              mpMapper = Mapper::Pointer(new IGAMapper(*mpInterfaceModelPartOrigin,
+                                                         *mpInterfaceModelPartDestination,
+                                                         mJsonParameters));
+
+          } */else
+        {
+            KRATOS_ERROR << "Selected Mapper \"" << mMapperType << "\" not implemented" << std::endl;
+        }
+
+        double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
+
+        mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                "Mapper Construction",
+                elapsed_time);
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{s
+    ///@}
+    ///@name Private Inquiry
+    ///@{s
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-      /// Assignment operator.
-      MapperFactory& operator=(MapperFactory const& rOther);
+    /// Assignment operator.
+    MapperFactory& operator=(MapperFactory const& rOther);
 
     //   /// Copy constructor.
     //   MapperFactory(MapperFactory const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class MapperFactory
+}; // Class MapperFactory
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    MapperFactory& rThis)
-    {
-        return rIStream;
-    }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const MapperFactory& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MapperFactory& rThis)
+{
+    return rIStream;
+}
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MapperFactory& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

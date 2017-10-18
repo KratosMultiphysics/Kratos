@@ -99,7 +99,7 @@ public:
 
 
     /// Destructor.
-    virtual ~CGSolver() {}
+    ~CGSolver() override {}
 
 
     ///@}
@@ -125,7 +125,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -154,7 +154,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
 // 	  GetTimeTable()->Start(Info());
 
@@ -196,7 +196,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -204,13 +204,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

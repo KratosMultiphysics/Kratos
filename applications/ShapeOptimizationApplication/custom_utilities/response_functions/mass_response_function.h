@@ -1,46 +1,11 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//                        $Author:           armin.geiser@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
+//                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
 
@@ -117,23 +82,26 @@ public:
 	///@{
 
 	/// Default constructor.
-	MassResponseFunction(ModelPart &model_part, boost::python::dict response_settings)
+	MassResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
-		boost::python::extract<const char *> grad_mode(response_settings["gradient_mode"]);
+		std::string gradientMode = responseSettings["gradient_mode"].GetString();
+
+		// Strings for comparison
 
 		// Mode 3: global finite differencing
-		if (std::strcmp(grad_mode, "finite_differencing") == 0)
+		if (gradientMode.compare("finite_differencing") == 0)
 		{
 			m_gradient_mode = 3;
-			boost::python::extract<double> delta(response_settings["step_size"]);
-			m_delta = delta;
+			double delta = responseSettings["step_size"].GetDouble();
+			mDelta = delta;
 		}
-
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", grad_mode);
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
+
+		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
@@ -169,15 +137,15 @@ public:
 		// Incremental computation of total mass
 		for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
 		{
-			const unsigned int elem_dimension = elem_i->GetGeometry().WorkingSpaceDimension();
+			Element::GeometryType& element_geometry = elem_i->GetGeometry();
 			double elem_density = elem_i->GetProperties()[DENSITY];
 
 			// Compute mass according to element dimension
 			double elem_volume = 0.0;
-			if( elem_dimension == 2 )
-				elem_volume = elem_i->GetGeometry().Area()*elem_i->GetProperties()[THICKNESS];
+			if( isElementOfTypeShell(element_geometry) )
+				elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
 			else
-				elem_volume = elem_i->GetGeometry().Volume();
+				elem_volume = element_geometry.Volume();
 			m_total_mass +=  elem_density*elem_volume;
 		}
 
@@ -207,13 +175,13 @@ public:
 		switch (m_gradient_mode)
 		{
 		// Global finite differencing
-		case 3:
+    	case 3:
 		{
 			// Start process to identify element neighbors for every node
 			FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
 			neighorFinder.Execute();
 
-			for(NodesContainerType::iterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+			for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
 			{
 				// Get all neighbor elements of current node
 				WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
@@ -222,16 +190,16 @@ public:
 				double mass_before_fd = 0.0;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
-					Kratos::Element ng_elem_i = ng_elem[i];
-					const unsigned int elem_dimension = ng_elem_i.GetGeometry().WorkingSpaceDimension();
+					Kratos::Element& ng_elem_i = ng_elem[i];
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( elem_dimension == 2 )
-						elem_volume = ng_elem_i.GetGeometry().Area()*ng_elem_i.GetProperties()[THICKNESS];
+					if( isElementOfTypeShell(element_geometry) )
+						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
-						elem_volume = ng_elem_i.GetGeometry().Volume();
+						elem_volume = element_geometry.Volume();
 					mass_before_fd +=  elem_density*elem_volume;
 				}
 
@@ -240,72 +208,74 @@ public:
 
 				// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 				double mass_after_fd = 0.0;
-				node_i->X() += m_delta;
+				node_i->X() += mDelta;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
-					Kratos::Element ng_elem_i = ng_elem[i];
-					const unsigned int elem_dimension = ng_elem_i.GetGeometry().WorkingSpaceDimension();
+					Kratos::Element& ng_elem_i = ng_elem[i];
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( elem_dimension == 2 )
-						elem_volume = ng_elem_i.GetGeometry().Area()*ng_elem_i.GetProperties()[THICKNESS];
+					if( isElementOfTypeShell(element_geometry) )
+						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
-						elem_volume = ng_elem_i.GetGeometry().Volume();
+						elem_volume = element_geometry.Volume();
 					mass_after_fd +=  elem_density*elem_volume;
 				}
-				gradient[0] = (mass_after_fd - mass_before_fd) / m_delta;
-				node_i->X() -= m_delta;
+				gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i->X() -= mDelta;
 
 				// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
 				mass_after_fd = 0.0;
-				node_i->Y() += m_delta;
+				node_i->Y() += mDelta;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
-					Kratos::Element ng_elem_i = ng_elem[i];
-					const unsigned int elem_dimension = ng_elem_i.GetGeometry().WorkingSpaceDimension();
+					Kratos::Element& ng_elem_i = ng_elem[i];
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( elem_dimension == 2 )
-						elem_volume = ng_elem_i.GetGeometry().Area()*ng_elem_i.GetProperties()[THICKNESS];
+					if( isElementOfTypeShell(element_geometry) )
+						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
-						elem_volume = ng_elem_i.GetGeometry().Volume();
+						elem_volume = element_geometry.Volume();
 					mass_after_fd +=  elem_density*elem_volume;
 				}
-				gradient[1] = (mass_after_fd - mass_before_fd) / m_delta;
-				node_i->Y() -= m_delta;
+				gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i->Y() -= mDelta;
 
 				// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
 				mass_after_fd = 0.0;
-				node_i->Z() += m_delta;
+				node_i->Z() += mDelta;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
-					Kratos::Element ng_elem_i = ng_elem[i];
-					const unsigned int elem_dimension = ng_elem_i.GetGeometry().WorkingSpaceDimension();
+					Kratos::Element& ng_elem_i = ng_elem[i];
+					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 					double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 					// Compute mass according to element dimension
 					double elem_volume = 0.0;
-					if( elem_dimension == 2 )
-						elem_volume = ng_elem_i.GetGeometry().Area()*ng_elem_i.GetProperties()[THICKNESS];
+					if( isElementOfTypeShell(element_geometry) )
+						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
 					else
-						elem_volume = ng_elem_i.GetGeometry().Volume();
+						elem_volume = element_geometry.Volume();
 					mass_after_fd +=  elem_density*elem_volume;
 				}
-				gradient[2] = (mass_after_fd - mass_before_fd) / m_delta;
-				node_i->Z() -= m_delta;
+				gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i->Z() -= mDelta;
 
 				// Compute sensitivity
 				noalias(node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT)) = gradient;
 			}
 
-			break;
+			if (mConsiderDiscretization)
+				this->consider_discretization();
 		}
 
 		}
+
 
 		KRATOS_CATCH("");
 	}
@@ -348,6 +318,43 @@ public:
 		return dFdX;
 
 		KRATOS_CATCH("");
+	}
+
+	// --------------------------------------------------------------------------
+  	virtual void consider_discretization(){
+
+		std::cout<< "> Considering discretization size!" << std::endl;
+		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		{
+			// Get all neighbor elements of current node
+			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+
+			// Compute total mass of all neighbor elements before finite differencing
+			double scaling_factor = 0.0;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+
+				// Compute mass according to element dimension
+				if( isElementOfTypeShell(element_geometry) )
+					scaling_factor += element_geometry.Area();
+				else
+					scaling_factor += element_geometry.Volume();
+			}
+
+			// apply scaling
+			node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT) /= scaling_factor;
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
+	{
+		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
+			return true;
+		else
+		    return false;
 	}
 
 	// ==============================================================================
@@ -430,9 +437,10 @@ private:
 	ModelPart &mr_model_part;
 	unsigned int m_gradient_mode;
 	double m_total_mass;
-	double m_delta;
+	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
+	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

@@ -104,7 +104,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~ResidualBasedIncrementalUpdateStaticSchemeSlip(){}
+    ~ResidualBasedIncrementalUpdateStaticSchemeSlip() override{}
 
     ///@}
     ///@name Operators
@@ -116,11 +116,11 @@ public:
     ///@{
 
     /// Update the degrees of freedom after a solution iteration.
-    virtual void Update(ModelPart& r_model_part,
+    void Update(ModelPart& r_model_part,
                         DofsArrayType& rDofSet,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
-                        TSystemVectorType& b)
+                        TSystemVectorType& b) override
     {
         KRATOS_TRY;
 
@@ -135,11 +135,11 @@ public:
 
 
     /// Obtain an element's local contribution to the system and apply slip conditions if needed.
-    virtual void CalculateSystemContributions(Element::Pointer rCurrentElement,
+    void CalculateSystemContributions(Element::Pointer rCurrentElement,
                                               LocalSystemMatrixType& LHS_Contribution,
                                               LocalSystemVectorType& RHS_Contribution,
                                               Element::EquationIdVectorType& EquationId,
-                                              ProcessInfo& CurrentProcessInfo)
+                                              ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -152,10 +152,10 @@ public:
     }
 
     /// Obtain an element's local contribution to the RHS and apply slip conditions if needed.
-    virtual void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
+    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                             LocalSystemVectorType& RHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo)
+                                            ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -168,10 +168,10 @@ public:
     }
 
     /// Obtain an element's local contribution to the system matrix and apply slip conditions if needed.
-    virtual void Calculate_LHS_Contribution(Element::Pointer rCurrentElement,
+    void Calculate_LHS_Contribution(Element::Pointer rCurrentElement,
                                             LocalSystemMatrixType& LHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo)
+                                            ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -186,11 +186,11 @@ public:
 
 
     /// Obtain a condition's local contribution to the system and apply slip conditions if needed.
-    virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
                                                         LocalSystemMatrixType& LHS_Contribution,
                                                         LocalSystemVectorType& RHS_Contribution,
                                                         Element::EquationIdVectorType& EquationId,
-                                                        ProcessInfo& CurrentProcessInfo)
+                                                        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -203,10 +203,10 @@ public:
     }
 
     /// Obtain a condition's local contribution to the RHS and apply slip conditions if needed.
-    virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                       LocalSystemVectorType& RHS_Contribution,
                                                       Element::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo)
+                                                      ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 

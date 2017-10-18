@@ -1,5 +1,5 @@
-//Authors: M.A. Celigueta and G. Casas (CIMNE)
-//   Date: January 2016
+// Authors: Miguel Angel Celigueta, maceli@cimne.upc.edu
+//          Guillermo Casas, gcasas@cimne.upc.edu
 
 #if !defined(DEM_D_BENTONITE_COLLOID_CL_H_INCLUDED)
 #define  DEM_D_BENTONITE_COLLOID_CL_H_INCLUDED
@@ -12,7 +12,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Bentonite_Colloid);
@@ -21,7 +21,7 @@ namespace Kratos {
 
         void Initialize(const ProcessInfo& r_process_info) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         
         std::string GetTypeOfLaw() override;
 
@@ -96,15 +96,16 @@ namespace Kratos {
                                         SphericParticle* const element,
                                         DEMWall* const wall);
         
-        
-    private:
-
         double mA_H;
         double mA_p;
         double mD_p;
         double mThickness;
         double mDDLCoefficient;
         double mEquivRadius;
+        
+    private:
+
+
         
         friend class Serializer;
 

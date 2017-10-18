@@ -1,5 +1,5 @@
 //
-//   Project Name:        KratosPfemBaseApplication $
+//   Project Name:        KratosPfemApplication $
 //   Created by:          $Author:      JMCarbonell $
 //   Last modified by:    $Co-Author:               $
 //   Date:                $Date:      February 2016 $

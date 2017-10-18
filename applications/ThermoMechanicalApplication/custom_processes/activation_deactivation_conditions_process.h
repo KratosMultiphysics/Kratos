@@ -117,7 +117,7 @@ namespace Kratos
 			    unsigned int cond_ref_id = cnd->GetValue(REF_ID);
 			    
 			    if( hash_list(cond_ref_id - 1, 0) == 1.0)
-			      cnd->SetValue(IS_INACTIVE ,  ! hash_list(cond_ref_id-1,1) );
+			      cnd->Set(ACTIVE, hash_list(cond_ref_id-1,1) );
 			    
 			   //free or fix tenperature just for teh exterior environment_contact conditions 
 			    if(cond_ref_id <= mr_Nmax){

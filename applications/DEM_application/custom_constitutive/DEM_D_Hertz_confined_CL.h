@@ -22,7 +22,9 @@ namespace Kratos {
 
         //void Initialize(const ProcessInfo& r_process_info);
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        
+        using DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce;
         
         double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]) override;
             

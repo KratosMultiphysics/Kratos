@@ -1,49 +1,16 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
 //
-
 
 #if !defined(KRATOS_VARIABLE_H_INCLUDED )
 #define  KRATOS_VARIABLE_H_INCLUDED
@@ -126,7 +93,7 @@ public:
     Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
 
     /// Destructor.
-    virtual ~Variable() {}
+    ~Variable() override {}
 
     ///@}
     ///@name Operators
@@ -144,54 +111,54 @@ public:
     ///@name Operations
     ///@{
 
-    void* Clone(const void* pSource) const
+    void* Clone(const void* pSource) const override
     {
         return new TDataType(*static_cast<const TDataType* >(pSource) );
     }
 
-    void* Copy(const void* pSource, void* pDestination) const
+    void* Copy(const void* pSource, void* pDestination) const override
     {
         return new(pDestination) TDataType(*static_cast<const TDataType* >(pSource) );
     }
 
-    void Assign(const void* pSource, void* pDestination) const
+    void Assign(const void* pSource, void* pDestination) const override
     {
         (*static_cast<TDataType* >(pDestination) ) = (*static_cast<const TDataType* >(pSource) );
     }
 
-    void AssignZero(void* pDestination) const
+    void AssignZero(void* pDestination) const override
     {
         //(*static_cast<TDataType* >(pDestination) ) = mZero;
         new (pDestination) TDataType(mZero);
     }
 
-    void Delete(void* pSource) const
+    void Delete(void* pSource) const override
     {
         delete static_cast<TDataType* >(pSource);
     }
 
-    void Destruct(void* pSource) const
+    void Destruct(void* pSource) const override
     {
         static_cast<TDataType* >(pSource)->~TDataType();
     }
 
-    void Print(const void* pSource, std::ostream& rOStream) const
+    void Print(const void* pSource, std::ostream& rOStream) const override
     {
         rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
     }
 
-    virtual void Save(Serializer& rSerializer, void* pData) const
+    void Save(Serializer& rSerializer, void* pData) const override
     {
         // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
         rSerializer.save("Data",*static_cast<TDataType* >(pData));
     }
 
-    virtual void Allocate(void** pData) const
+    void Allocate(void** pData) const override
     {
         *pData = new TDataType;
     }
 
-    virtual void Load(Serializer& rSerializer, void* pData) const
+    void Load(Serializer& rSerializer, void* pData) const override
     {
         rSerializer.load("Data",*static_cast<TDataType* >(pData));
     }
@@ -220,7 +187,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << Name() << " variable";
@@ -228,7 +195,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Name() << " variable";
     }
@@ -308,13 +275,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
         rSerializer.save("Zero",mZero);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
         rSerializer.load("Zero",mZero);

@@ -187,18 +187,15 @@ public:
                             nodes_id[2] = (it)->GetGeometry() [1].Id();
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        if ( it->Has ( IS_INACTIVE ) )
-                        {
-                            if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
-                            {
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                            }
-                        }
-                        else
-                        {
+                        
+                        bool element_is_active = true;
+                        if ((it)->IsDefined(ACTIVE))
+                            element_is_active = (it)->Is(ACTIVE);
+
+                        if (element_is_active)
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                        }
+                        
                     }
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
@@ -293,18 +290,13 @@ public:
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
                         
-                        if ( it->Has ( IS_INACTIVE ) )
-                        {
-                            if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
-                            {
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                            }
-                        }
-                        else
-                        {
+                        bool element_is_active = true;
+                        if ((it)->IsDefined(ACTIVE))
+                            element_is_active = (it)->Is(ACTIVE);
+
+                        if (element_is_active)
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                        }
                     }
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);

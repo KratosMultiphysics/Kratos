@@ -3,7 +3,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_input_output
 import test_vms_adjoint_element_2d
-import test_vms_sensitivity_for_one_time_step_2d
 import test_vms_sensitivity_2d
 
 ## NIGTHLY TESTS
@@ -27,16 +26,10 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(test_input_output.TestCase('test_Execution'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_MASS_MATRIX_0'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_MASS_MATRIX_1'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_ADJOINT_MATRIX_1'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_ADJOINT_MATRIX_2'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_SHAPE_DERIVATIVE_MATRIX_1'))
-    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_SHAPE_DERIVATIVE_MATRIX_2'))
-    smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_PrimalGradient'))
-    smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_ElementSensitivity'))
-    smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_AdjointBossakDragScheme'))
-    smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_Sensitivity'))
+    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateSecondDerivativesLHS'))
+    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateFirstDerivativesLHS1'))
+    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateFirstDerivativesLHS2'))
+    smallSuite.addTest(test_vms_adjoint_element_2d.TestCase('test_CalculateSensitivityMatrix'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_OneElement'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_Cylinder'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_SteadyCylinder'))

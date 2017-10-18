@@ -39,7 +39,7 @@ namespace Kratos
 
 class ContactDomainLM3DCondition
     : public ContactDomainCondition
-{
+{ 
 public:
 
 
@@ -69,7 +69,6 @@ public:
     typedef ContactDomainUtilities::BaseLengths          BaseLengths;
 
     ///For 3D contact surfaces definition
-    typedef ContactDomainUtilities::TangentSurfaceScalar  TangentSurfaceScalar;
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
     /// Counted pointer of ContactDomainLM3DCondition
@@ -169,6 +168,13 @@ protected:
     ///@name Protected Operators
     ///@{
 
+
+    /**
+     * Check and resolve the element type EDGE_TO_EDGE (EdgeType) or FaceType
+     */
+    void ResolveElementType();
+  
+  
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
@@ -186,12 +192,35 @@ protected:
      */
     void CalculatePreviousGap();
 
+    /**
+     * Calculation of the Contact Previous Gap EdgeType
+     */
+    void CalculatePreviousGapEdgeType();
 
+    /**
+     * Calculation of the Contact Previous Gap FaceType
+     */
+    void CalculatePreviousGapFaceType();
+  
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
     virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
 					  ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
+     */
+    virtual void CalculateExplicitFactorsEdgeType(GeneralVariables& rVariables,
+						  ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
+     */
+    virtual void CalculateExplicitFactorsFaceType(GeneralVariables& rVariables,
+						  ProcessInfo& rCurrentProcessInfo);
+  
+
     /**
      * Tangent Matrix construction methods:
      */
@@ -206,9 +235,9 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				       unsigned int& ndi,unsigned int& ndj,
-				       unsigned int& idir,unsigned int& jdir);
+    virtual void CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,
+					    unsigned int& ndi,unsigned int& ndj,
+					    unsigned int& idir,unsigned int& jdir);
 
 
     /**
@@ -236,11 +265,13 @@ protected:
 
     PointType& CalculateCurrentTangent(PointType &rTangent);
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
+    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj);
 
 
+
+    void TransformCovariantToContravariantBase(SurfaceBase& Covariant,SurfaceBase& Contravariant);
 
     ///@}
     ///@name Protected  Access

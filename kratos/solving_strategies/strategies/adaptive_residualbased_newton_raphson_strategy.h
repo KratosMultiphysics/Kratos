@@ -1,48 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2008-11-10 14:23:33 $
-*   Revision:            $Revision: 1.12 $
-*
-* ***********************************************************/
 
 
 #if !defined(KRATOS_ADAPTIVE_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
@@ -300,7 +267,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~AdaptiveResidualBasedNewtonRaphsonStrategy() {}
+    ~AdaptiveResidualBasedNewtonRaphsonStrategy() override {}
 
     /** Destructor.
     */
@@ -359,7 +326,7 @@ public:
     // 2 -> printing linear solver data
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -372,7 +339,7 @@ public:
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
     */
-    void Predict()
+    void Predict() override
     {
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
@@ -587,7 +554,7 @@ public:
 
     }
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
         bool is_converged = false;
@@ -700,7 +667,7 @@ public:
     - the convergence criteria used is the one used inside the "solve" step
     */
     //**********************************************************************
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY
 
@@ -728,7 +695,7 @@ public:
 
     This operations should be called only when needed, before printing as it can involve a non negligible cost
     */
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -740,7 +707,7 @@ public:
 
     //**********************************************************************
     //**********************************************************************
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
         std::cout << "Newton Raphson strategy Clear function used" << std::endl;
@@ -899,7 +866,7 @@ protected:
     /*@{ */
     //**********************************************************************
     //**********************************************************************
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -928,7 +895,7 @@ protected:
 
     //**********************************************************************
     //**********************************************************************
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -938,7 +905,7 @@ protected:
 
 
         //setting up the Vectors involved to the correct size
-        pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;

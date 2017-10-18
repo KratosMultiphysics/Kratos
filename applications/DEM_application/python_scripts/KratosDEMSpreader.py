@@ -36,11 +36,11 @@ else:
 
 # TO_DO: Ungly fix. Change it. I don't like this to be in the main...
 # Strategy object
-if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+if   (DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D"     or DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+elif (DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D"):
     import continuum_sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+elif (DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy    
 
 ##############################################################################
@@ -100,10 +100,10 @@ procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
 
 # Reading the model_part
-spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
+spheres_mp_filename   = DEM_parameters["problem_name"].GetString() + "DEM"
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 
-if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+if "do_not_perform_initial_partition" in DEM_parameters.keys() and DEM_parameters["do_not_perform_initial_partition"].GetBool():
     pass
 else:
     parallelutils.PerformInitialPartition(model_part_io_spheres)
@@ -112,15 +112,15 @@ else:
 
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
-rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+rigidFace_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
 model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
-clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
+clusters_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_Clusters"
 model_part_io_clusters = ModelPartIO(clusters_mp_filename)
 model_part_io_clusters.ReadModelPart(cluster_model_part)
 
-DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
+DEM_Inlet_filename = DEM_parameters["problem_name"].GetString() + "DEM_Inlet"  
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
@@ -142,7 +142,7 @@ solver.AddDofs(DEM_inlet_model_part)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+[post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters["problem_name"].GetString()))
 
 os.chdir(main_path)
 
@@ -157,22 +157,22 @@ demio.AddContactVariables()
 #
 demio.AddMpiVariables()
 
-demio.Configure(DEM_parameters.problem_name,
-                DEM_parameters.OutputFileType,
-                DEM_parameters.Multifile,
-                DEM_parameters.ContactMeshOption)
+demio.Configure(DEM_parameters["problem_name"].GetString(),
+                DEM_parameters["OutputFileType"].GetString(),
+                DEM_parameters["Multifile"].GetString(),
+                DEM_parameters["ContactMeshOption"].GetBool())
 
-demio.SetOutputName(DEM_parameters.problem_name)
+demio.SetOutputName(DEM_parameters["problem_name"].GetString())
 
 os.chdir(post_path)
 
 multifiles = (
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name, 2),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),1 ),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(), 2),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),5 ),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),10),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),20),
+    DEM_procedures.MultifileList(DEM_parameters["problem_name"].GetString(),50),
     )
 
 demio.SetMultifileLists(multifiles)
@@ -193,24 +193,24 @@ parallelutils.CalculateModelNewIds(spheres_model_part)
 os.chdir(post_path)
 
 #Setting up the BoundingBox
-if(DEM_parameters.BoundingBoxOption == "ON"):
+if DEM_parameters["BoundingBoxOption"].GetBool():
     procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
 #solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
-dt = DEM_parameters.MaxTimeStep
+dt = DEM_parameters["MaxTimeStep"].GetDouble()
 solver.Initialize()    # Possible modifications of DELTA_TIME
 ##
 
-if ( DEM_parameters.ContactMeshOption =="ON" ) :
+if DEM_parameters["ContactMeshOption"].GetBool():
     contact_model_part = solver.contact_model_part
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 
-if (DEM_parameters.dem_inlet_option):    
+if DEM_parameters["dem_inlet_option"].GetBool():    
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 
@@ -235,22 +235,22 @@ step           = 0
 time           = 0.0
 time_old_print = 0.0
 
-report.Prepare(timer,DEM_parameters.ControlTime)
+report.Prepare(timer,DEM_parameters["ControlTime"].GetDouble())
 
 first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
     
 ## MODEL DATA #~CHARLIE~#:????
 
-if (DEM_parameters.ModelDataInfo == "ON"):
+if DEM_parameters["ModelDataInfo"].GetBool():
     os.chdir(data_and_results)
-    if (DEM_parameters.ContactMeshOption == "ON"):
+    if DEM_parameters["ContactMeshOption"].GetBool():
       (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
       KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
       os.chdir(main_path)
     else:
       KRATOSprint("Activate Contact Mesh for ModelData information")
 
-if(DEM_parameters.Dempack):
+if DEM_parameters["Dempack"].GetBool():
 #    if(mpi.rank == 0):
     materialTest.PrintChart();
     materialTest.PrepareDataForGraph()
@@ -261,7 +261,7 @@ if(DEM_parameters.Dempack):
 #                                                                            #
 ##############################################################################
 
-report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
+report.total_steps_expected = int(DEM_parameters["FinalTime"].GetDouble() / dt)
 
 KRATOSprint(report.BeginReport(timer))
 
@@ -293,7 +293,7 @@ flags = Flags()
 creator = DEM_procedures.MdpaCreator(main_path, DEM_parameters)
 #Z
 
-while (time < DEM_parameters.FinalTime):
+while time < DEM_parameters["FinalTime"].GetDouble():
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
@@ -325,7 +325,7 @@ while (time < DEM_parameters.FinalTime):
     #### TIME CONTROL ##################################
     
     # adding DEM elements by the inlet:
-    if (DEM_parameters.dem_inlet_option):
+    if DEM_parameters["dem_inlet_option"].GetBool(): 
         DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
     stepinfo = report.StepiReport(timer,time,step)
@@ -335,7 +335,7 @@ while (time < DEM_parameters.FinalTime):
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
-    if (DEM_parameters.VelocityTrapOption):
+    if DEM_parameters["VelocityTrapOption"].GetBool():
         compute_flow = False
         post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
@@ -350,7 +350,7 @@ while (time < DEM_parameters.FinalTime):
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if ( DEM_parameters.OutputTimeStep - time_to_print < 1e-2*dt  ):            
+    if ( DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2*dt  ):            
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
@@ -364,10 +364,9 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(list_path)
         demio.PrintMultifileLists(time, post_path)
         os.chdir(main_path)
-
         os.chdir(post_path)
 
-        if (DEM_parameters.ContactMeshOption == "ON"):
+        if DEM_parameters["ContactMeshOption"].GetBool():
             solver.PrepareContactElementsForPrinting()
         
         demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time)
@@ -377,7 +376,7 @@ while (time < DEM_parameters.FinalTime):
         time_old_print = time
         
     #if((step%500) == 0):
-      #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
+      #if (( DEM_parameters["ContactMeshOption"].GetBool()) and (DEM_parameters["TestType"].GetString() != "None"))  :
           #MaterialTest.OrientationStudy(contact_model_part, step)
     
     #print("TIME STEP ENDS +++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -393,7 +392,7 @@ DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
 DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
 
 # Charlie: This didn't exist. I replaced it with the line above
-#if((DEM_parameters.TestType == "None")):
+#if((DEM_parameters["TestType"].GetString()  == "None")):
 #    Procedures.FinalizeGraphs()
 
 demio.CloseMultifiles()

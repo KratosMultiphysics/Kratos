@@ -16,9 +16,11 @@ namespace Kratos {
         KRATOS_TRY
 
         const int number_of_particles = (int) rCustomListOfSphericParticles.size();
+        std::vector<PropertiesProxy>& vector_of_properties_proxies = PropertiesProxiesManager().GetPropertiesProxies(*mpDem_model_part);
+        
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
-          rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);
+          rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
         }
         return;
         KRATOS_CATCH("")
@@ -48,12 +50,13 @@ namespace Kratos {
         
         KRATOS_TRY
         
+        int max_Id = mpParticleCreatorDestructor->GetCurrentMaxNodeId();
         ModelPart& r_model_part = GetModelPart();
-        int max_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(r_model_part);
+        int max_DEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(r_model_part);
         int max_FEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(*mpFem_model_part);
         int max_cluster_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(*mpCluster_model_part);
 
-        //max_Id = std::max({max_Id, max_FEM_Id,max_cluster_Id});
+        max_Id = std::max(max_Id, max_DEM_Id);       
         max_Id = std::max(max_Id, max_FEM_Id);
         max_Id = std::max(max_Id, max_cluster_Id);
         mpParticleCreatorDestructor->SetMaxNodeId(max_Id);
@@ -109,6 +112,19 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+
+    void ExplicitSolverStrategy::DisplayThreadInfo() {
+
+        ModelPart& r_model_part = GetModelPart();
+        std::cout << "          **************************************************" << std::endl;
+        std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
+        if (r_model_part.GetCommunicator().TotalProcesses() > 1)
+            std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() << std::endl;
+        std::cout << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads << std::endl;
+        std::cout << "          **************************************************" << std::endl << std::endl;
+
+    }
+
     void ExplicitSolverStrategy::Initialize() {
         
         KRATOS_TRY
@@ -119,11 +135,12 @@ namespace Kratos {
         SendProcessInfoToClustersModelPart();
 
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        DisplayThreadInfo();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
-        CreatePropertiesProxies(mFastProperties, *mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
+        PropertiesProxiesManager().CreatePropertiesProxies(*mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
         RepairPointersToNormalProperties(mListOfSphericParticles); // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
         RepairPointersToNormalProperties(mListOfGhostSphericParticles);
@@ -160,7 +177,7 @@ namespace Kratos {
 
         // Finding overlapping of initial configurations
         if (r_process_info[CLEAN_INDENT_OPTION]) {
-            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
+            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
         }
 
         if (r_process_info[CRITICAL_TIME_OPTION]) {
@@ -244,6 +261,7 @@ namespace Kratos {
         const int number_of_clusters = pElements.size();
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         bool continuum_strategy = r_process_info[CONTINUUM_OPTION];
+        std::vector<PropertiesProxy>& vector_of_properties_proxies = PropertiesProxiesManager().GetPropertiesProxies(*mpDem_model_part);
 
         //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
 
@@ -257,10 +275,10 @@ namespace Kratos {
 
             PropertiesProxy* p_fast_properties = NULL;
             int general_properties_id = cluster_element.GetProperties().Id();
-            for (unsigned int i = 0; i < mFastProperties.size(); i++) {
-                int fast_properties_id = mFastProperties[i].GetId();
+            for (unsigned int i = 0; i < vector_of_properties_proxies.size(); i++) {
+                int fast_properties_id = vector_of_properties_proxies[i].GetId();
                 if (fast_properties_id == general_properties_id) {
-                    p_fast_properties = &(mFastProperties[i]);
+                    p_fast_properties = &(vector_of_properties_proxies[i]);
                     break;
                 }
             }
@@ -315,6 +333,7 @@ namespace Kratos {
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
         const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
         BoundingBoxUtility(is_time_to_mark_and_remove);
+
         if (is_time_to_search_neighbours) {
             if (!is_time_to_mark_and_remove) { //Just in case that some entities were marked as TO_ERASE without a bounding box (manual removal)
                 mpParticleCreatorDestructor->DestroyParticles(*mpCluster_model_part);
@@ -562,6 +581,16 @@ namespace Kratos {
             (it)->InitializeSolutionStep(r_process_info);
         }
 
+        ModelPart& r_fem_model_part = GetFemModelPart();
+        ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
+        ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int) pConditions.size(); k++) {
+            ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
+            (it)->InitializeSolutionStep(r_fem_process_info);
+        }
+
         ApplyPrescribedBoundaryConditions();
         KRATOS_CATCH("")
     }
@@ -569,8 +598,9 @@ namespace Kratos {
     void ExplicitSolverStrategy::BoundingBoxUtility(bool is_time_to_mark_and_remove) {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        if (ElementConfigureType::GetDomainPeriodicity()) {
+        if (r_process_info[DOMAIN_IS_PERIODIC]) {
             mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
         } else if (is_time_to_mark_and_remove) {
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);
@@ -628,16 +658,12 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         const int number_of_particles = (int) mListOfSphericParticles.size();
-        double total_mass = 0.0;
         
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->Initialize(r_process_info);
-            total_mass += mListOfSphericParticles[i]->GetMass();
         }
-        
-        KRATOS_WATCH(total_mass)
-        
+                
         KRATOS_CATCH("")
     }
 
@@ -1144,7 +1170,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }//DoubleHierarchyMethod
 
-    void ExplicitSolverStrategy::CalculateInitialMaxIndentations() {
+    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
         KRATOS_TRY
         std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());
@@ -1157,7 +1183,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 double indentation;
-                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
+                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation, r_process_info);
                 double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
 
                 mListOfSphericParticles[i]->CalculateMaxBallToFaceIndentation(indentation);
@@ -1184,7 +1210,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 double indentation;
-                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
+                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation, r_process_info);
             }
         } //#pragma omp parallel
 

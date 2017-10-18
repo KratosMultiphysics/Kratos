@@ -1,28 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-
-
-
-
-
-
-
-
-
-
-
-
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
 
 // System includes
 #include <string>
@@ -41,33 +27,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 
-#include "geometries/line_2d.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
-#include "geometries/line_3d_2.h"
-#include "geometries/line_3d_3.h"
-#include "geometries/point.h"
-#include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
-#include "geometries/sphere_3d_1.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/triangle_3d_6.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
-#include "geometries/quadrilateral_2d_9.h"
-#include "geometries/quadrilateral_3d_4.h"
-#include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_9.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-#include "geometries/prism_3d_6.h"
-#include "geometries/prism_3d_15.h"
-#include "geometries/hexahedra_3d_8.h"
-#include "geometries/hexahedra_3d_20.h"
-#include "geometries/hexahedra_3d_27.h"
-
 #include "python/add_deprecated_variables_to_python.h"
 
 #include "includes/convection_diffusion_settings.h"
@@ -84,7 +43,6 @@ namespace Kratos
 
 
     //for Structural application:
-    KRATOS_CREATE_VARIABLE( bool, IS_INACTIVE )
 
     //for Level Set application:
     KRATOS_CREATE_VARIABLE( bool, IS_DUPLICATED )
@@ -101,7 +59,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_X )
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_Y )
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_Z )
-    
+
     //For the DEM Application:
     KRATOS_CREATE_VARIABLE(double, IMPOSED_VELOCITY_X_VALUE)
     KRATOS_CREATE_VARIABLE(double, IMPOSED_VELOCITY_Y_VALUE)
@@ -178,12 +136,13 @@ namespace Kratos
 
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
-  
+    KRATOS_CREATE_VARIABLE( double, SOLID_FRACTION )
+    KRATOS_CREATE_VARIABLE( double, SOLID_FRACTION_RATE )
+
+
 
   void KratosApplication::RegisterDeprecatedVariables()
   {
-      
-    KRATOS_REGISTER_VARIABLE(  IS_INACTIVE )
 
     //for Level Set application:
     KRATOS_REGISTER_VARIABLE(  IS_DUPLICATED )
@@ -199,7 +158,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_X )
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_Y )
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_Z )
-    
+
     //For the DEM Application:
     KRATOS_REGISTER_VARIABLE(IMPOSED_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_VELOCITY_Y_VALUE)
@@ -276,14 +235,8 @@ namespace Kratos
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
+    KRATOS_REGISTER_VARIABLE( SOLID_FRACTION )
+    KRATOS_REGISTER_VARIABLE( SOLID_FRACTION_RATE )
 
   }
-
-
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
-
-
-

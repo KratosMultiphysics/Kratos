@@ -3,8 +3,8 @@
 
 namespace Kratos {
 
-    void ForwardEulerScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning ForwardEulerScheme to properties " << pProp->Id() << std::endl;
+    void ForwardEulerScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning ForwardEulerScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
     

@@ -8,38 +8,41 @@ def Factory(settings, Model):
     return ApplyDistanceModificationProcess(Model, settings["Parameters"])
 
 class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
-    
+
     def __init__(self, Model, settings):
-        
+
         KratosMultiphysics.Process.__init__(self)
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "mesh_id"                   : 0,
-            "model_part_name"           : "CHOOSE_FLUID_MODELPART_NAME",
-            "check_at_each_time_step"   : false
+            "mesh_id"                                   : 0,
+            "model_part_name"                           : "CHOOSE_FLUID_MODELPART_NAME",
+            "check_at_each_time_step"                   : false,
+            "recover_original_distance_at_each_step"    : false
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters);
-        
+
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
         self.check_at_each_time_step = settings["check_at_each_time_step"].GetBool()
-        
+        self.recover_original_distance_at_each_step = settings["recover_original_distance_at_each_step"].GetBool()
+
         self.DistanceModificationProcess = KratosFluid.DistanceModificationProcess(self.fluid_model_part,
-                                                                                   self.check_at_each_time_step)
+                                                                                   self.check_at_each_time_step,
+                                                                                   self.recover_original_distance_at_each_step)
 
 
     def ExecuteInitialize(self):
         self.DistanceModificationProcess.ExecuteInitialize()
-        
-    
+
+
     def ExecuteBeforeSolutionLoop(self):
         self.DistanceModificationProcess.ExecuteBeforeSolutionLoop()
-        
-        
+
+
     def ExecuteInitializeSolutionStep(self):
         self.DistanceModificationProcess.ExecuteInitializeSolutionStep()
-        
-        
-    def ExecuteFinalize(self):
-        self.DistanceModificationProcess.ExecuteFinalize()
+
+
+    def ExecuteFinalizeSolutionStep(self):
+        self.DistanceModificationProcess.ExecuteFinalizeSolutionStep()

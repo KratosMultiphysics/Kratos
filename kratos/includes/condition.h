@@ -178,7 +178,7 @@ public:
 
     /// Destructor.
 
-    virtual ~Condition()
+    ~Condition() override
     {
     }
 
@@ -849,15 +849,12 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        if (this->Id() < 1)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "Condition found with Id 0 or negative","")
-        }
-        if (this->GetGeometry().Area() < 0)
-        {
-            std::cout << "error on condition -> " << this->Id() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than 0","")
-        }
+
+        KRATOS_ERROR_IF( this->Id() < 1 ) << "Condition found with Id " << this->Id() << std::endl;
+
+        const double domain_size = this->GetGeometry().DomainSize();
+        KRATOS_ERROR_IF( domain_size < 0.0 ) << "Condition " << this->Id() << " has negative size " << domain_size << std::endl;
+
         return 0;
 
         KRATOS_CATCH("")
@@ -1049,7 +1046,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Condition #" << Id();
@@ -1058,14 +1055,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Condition #" << Id();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         pGetGeometry()->PrintData(rOStream);
     }
@@ -1127,7 +1124,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
@@ -1135,7 +1132,7 @@ private:
         rSerializer.save("Properties", mpProperties);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );

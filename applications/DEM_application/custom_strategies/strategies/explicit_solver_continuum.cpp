@@ -20,13 +20,7 @@ namespace Kratos {
 
         // Omp initializations
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
-        
-        std::cout << "          **************************************************" << std::endl;
-        std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
-        if (r_model_part.GetCommunicator().TotalProcesses() > 1)
-            std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() << std::endl;
-        std::cout << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads << std::endl;
-        std::cout << "          **************************************************" << std::endl << std::endl;
+        BaseType::DisplayThreadInfo();
 
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
@@ -36,7 +30,7 @@ namespace Kratos {
         r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
         for (int i = 0; i < mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
 
-        CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *mpInlet_model_part, *mpCluster_model_part);
+        PropertiesProxiesManager().CreatePropertiesProxies(r_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
         BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
         BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);

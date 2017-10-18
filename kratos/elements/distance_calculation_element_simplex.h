@@ -1,30 +1,14 @@
-/*
-Kratos Multi-Physics
-
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-		in the documentation and/or other materials provided with the distribution.
-	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-			This product includes Kratos Multi-Physics technology.
-	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-	
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2015-09-12
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 #if !defined(KRATOS_DISTANCE_CALCULATION_ELEMENT_H_INCLUDED )
@@ -167,7 +151,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~DistanceCalculationElementSimplex()
+    ~DistanceCalculationElementSimplex() override
     {}
 
 
@@ -189,15 +173,15 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new DistanceCalculationElementSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
     /// Calculate the element's local contribution to the system for the current step.
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int number_of_points = TDim+1;
 
@@ -225,6 +209,7 @@ public:
         for(unsigned int i=0; i<number_of_points; i++)
         {
             distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+			if (distances[i] >= 0.0 && distances[i] < 1e-30) distances[i] = 1e-30;
         }
 
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -383,8 +368,8 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
+    void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo) override
     {
 
         unsigned int number_of_nodes = TDim+1;
@@ -405,8 +390,8 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
+    void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo) override
     {
         unsigned int number_of_nodes = TDim+1;
 
@@ -451,7 +436,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
 {
         KRATOS_TRY
 
@@ -482,12 +467,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Initialize()
+    void Initialize() override
     {
     }
     
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "should not enter here" << std::endl;
         if (rRightHandSideVector.size() != 0)
@@ -503,7 +488,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceCalculationElementSimplex #" << Id();
@@ -511,7 +496,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DistanceCalculationElementSimplex" << TDim << "D";
     }
@@ -549,7 +534,7 @@ protected:
         Vector positive_side_rhs = ZeroVector(rhs.size());
         Vector negative_side_rhs = ZeroVector(rhs.size());
 
-        CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
+		CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
         CondenseLocally(lhs,rhs, distances,  -1.0, negative_side_lhs, negative_side_rhs);
         noalias(lhs) = positive_side_lhs + negative_side_lhs;
         noalias(rhs) = positive_side_rhs + negative_side_rhs;
@@ -682,12 +667,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

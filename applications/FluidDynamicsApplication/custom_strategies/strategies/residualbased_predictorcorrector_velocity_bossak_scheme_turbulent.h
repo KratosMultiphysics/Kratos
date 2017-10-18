@@ -1,46 +1,15 @@
-/*
-==============================================================================
-KratosFluidDynamicsApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
 
 #if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_VELOCITY_BOSSAK_TURBULENT_SCHEME )
 #define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_VELOCITY_BOSSAK_TURBULENT_SCHEME
@@ -256,7 +225,7 @@ namespace Kratos {
 
         /** Destructor.
          */
-        virtual ~ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent() {
+        ~ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent() override {
         }
 
 
@@ -270,11 +239,11 @@ namespace Kratos {
          */
         //***************************************************************************
 
-        virtual void Update(ModelPart& r_model_part,
+        void Update(ModelPart& r_model_part,
                             DofsArrayType& rDofSet,
                             TSystemMatrixType& A,
                             TSystemVectorType& Dv,
-                            TSystemVectorType& b)
+                            TSystemVectorType& b) override
         {
             KRATOS_TRY;
 
@@ -373,14 +342,14 @@ namespace Kratos {
         //***************************************************************************
         //predicts the solution at the current step as
         // v = vold
-        virtual void Predict(ModelPart& rModelPart,
+        void Predict(ModelPart& rModelPart,
                              DofsArrayType& rDofSet,
                              TSystemMatrixType& A,
                              TSystemVectorType& Dv,
-                             TSystemVectorType& b)
+                             TSystemVectorType& b) override
         {
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "prediction" << std::endl;
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "prediction" << std::endl;
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
@@ -435,8 +404,8 @@ namespace Kratos {
                 }
             }
 
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "end of prediction" << std::endl;
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "end of prediction" << std::endl;
 
         }
 
@@ -458,7 +427,7 @@ namespace Kratos {
                                           LocalSystemMatrixType& LHS_Contribution,
                                           LocalSystemVectorType& RHS_Contribution,
                                           Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
@@ -490,7 +459,7 @@ namespace Kratos {
         void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                         LocalSystemVectorType& RHS_Contribution,
                                         Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        ProcessInfo& CurrentProcessInfo) override
         {
             int k = OpenMPUtils::ThisThread();
 
@@ -517,11 +486,11 @@ namespace Kratos {
         /** functions totally analogous to the precedent but applied to
         the "condition" objects
          */
-        virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+        void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo)
+                                                            ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
@@ -546,10 +515,10 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+        void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo)
+                                                          ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
 
@@ -580,10 +549,10 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        virtual void InitializeSolutionStep(ModelPart& r_model_part,
+        void InitializeSolutionStep(ModelPart& r_model_part,
                                             TSystemMatrixType& A,
                                             TSystemVectorType& Dx,
-                                            TSystemVectorType& b)
+                                            TSystemVectorType& b) override
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -606,10 +575,10 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        virtual void InitializeNonLinIteration(ModelPart& r_model_part,
+        void InitializeNonLinIteration(ModelPart& r_model_part,
                                                TSystemMatrixType& A,
                                                TSystemVectorType& Dx,
-                                               TSystemVectorType& b)
+                                               TSystemVectorType& b) override
         {
             KRATOS_TRY
 
@@ -619,7 +588,7 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -627,8 +596,14 @@ namespace Kratos {
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
                 if (rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "Computing OSS projections" << std::endl;
-                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++) {
 
+
+                const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+                auto nbegin = rModelPart.NodesBegin();
+                #pragma omp parallel for firstprivate(nbegin,nnodes)
+                for(int i=0; i<nnodes; ++i)
+                {
+                    auto ind = nbegin + i;
                     noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
 
                     ind->FastGetSolutionStepValue(DIVPROJ) = 0.0;
@@ -642,8 +617,12 @@ namespace Kratos {
                 array_1d<double, 3 > output;
 
 
-                for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
+                const int nel = static_cast<int>(rModelPart.Elements().size());
+                auto elbegin = rModelPart.ElementsBegin();
+                #pragma omp parallel for firstprivate(elbegin,nel)
+                for(int i=0; i<nel; ++i)
                 {
+                    auto elem = elbegin + i;
                     elem->Calculate(ADVPROJ, output, CurrentProcessInfo);
                 }
 
@@ -654,8 +633,10 @@ namespace Kratos {
                 // Correction for periodic conditions
                 this->PeriodicConditionProjectionCorrection(rModelPart);
 
-                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+                #pragma omp parallel for firstprivate(nbegin,nnodes)
+                for(int i=0; i<nnodes; ++i)
                 {
+                    auto ind = nbegin + i;
                     if (ind->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
                     {
                         ind->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
@@ -668,7 +649,7 @@ namespace Kratos {
             }
         }
 
-        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
             Element::EquationIdVectorType EquationId;
             LocalSystemVectorType RHS_Contribution;
