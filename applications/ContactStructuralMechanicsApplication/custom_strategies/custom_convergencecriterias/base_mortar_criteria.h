@@ -128,8 +128,6 @@ public:
             aalm_adaptation_of_penalty.Execute();
         }
         
-        ResetWeightedGap(rModelPart);
-        
         return true;
     }
     
@@ -151,6 +149,9 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // Set to zero the weighted gap
+        ResetWeightedGap(rModelPart);
+        
         ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("Contact").Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
@@ -289,7 +290,7 @@ protected:
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
     
-    void ResetWeightedGap(ModelPart& rModelPart)
+    virtual void ResetWeightedGap(ModelPart& rModelPart)
     {       
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());

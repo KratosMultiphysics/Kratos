@@ -130,8 +130,6 @@ public:
     {
         BaseType::PreCriteria(rModelPart, rDofSet, A, Dx, b);
         
-        ResetWeightedSlip(rModelPart);
-        
         return true;
     }
     
@@ -477,13 +475,13 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
+    
     /**
-     * This method resets the weighted slip in the nodes of the problem
+     * This method resets the weighted gap in the nodes of the problem
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
     
-    void ResetWeightedSlip(ModelPart& rModelPart)
+    void ResetWeightedGap(ModelPart& rModelPart) override
     {       
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
@@ -493,6 +491,7 @@ protected:
         {
             auto it_node = nodes_array.begin() + i;
             
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
             it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
         }
     }

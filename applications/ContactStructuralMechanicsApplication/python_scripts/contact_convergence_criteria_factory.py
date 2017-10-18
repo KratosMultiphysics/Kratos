@@ -102,7 +102,7 @@ class convergence_criterion:
             Mortar.SetEchoLevel(echo_level)
 
             if (fancy_convergence_criterion == True):
-                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion, condn_convergence_criterion, linear_solver)
+                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion, condn_convergence_criterion)
             else:
                 self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
