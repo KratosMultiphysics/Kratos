@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_BOFANG_CONDITION_TEMPERATURE_PROCESS )
-#define  KRATOS_BOFANG_CONDITION_TEMPERATURE_PROCESS
+#if !defined(KRATOS_DAM_BOFANG_CONDITION_TEMPERATURE_PROCESS )
+#define  KRATOS__DAM_BOFANG_CONDITION_TEMPERATURE_PROCESS
 
 #include <cmath>
 
@@ -27,19 +27,19 @@
 namespace Kratos
 {
 
-class BofangConditionTemperatureProcess : public Process
+class DamBofangConditionTemperatureProcess : public Process
 {
     
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(BofangConditionTemperatureProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(DamBofangConditionTemperatureProcess);
     
     typedef Table<double,double> TableType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    BofangConditionTemperatureProcess(ModelPart& rModelPart,
+    DamBofangConditionTemperatureProcess(ModelPart& rModelPart,
                                 Parameters& rParameters
                                 ) : Process(Flags()) , mrModelPart(rModelPart)
     {
@@ -111,7 +111,7 @@ public:
     ///------------------------------------------------------------------------------------
     
     /// Destructor
-    virtual ~BofangConditionTemperatureProcess() {}
+    virtual ~DamBofangConditionTemperatureProcess() {}
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,18 +288,18 @@ protected:
 private:
 
     /// Assignment operator.
-    BofangConditionTemperatureProcess& operator=(BofangConditionTemperatureProcess const& rOther);
+    DamBofangConditionTemperatureProcess& operator=(DamBofangConditionTemperatureProcess const& rOther);
 
 };//Class
 
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  BofangConditionTemperatureProcess& rThis);
+    DamBofangConditionTemperatureProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const BofangConditionTemperatureProcess& rThis)
+                                  const DamBofangConditionTemperatureProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -310,5 +310,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_BOFANG_CONDITION_TEMPERATURE_PROCESS defined */
+#endif /* KRATOS_DAM_BOFANG_CONDITION_TEMPERATURE_PROCESS defined */
 

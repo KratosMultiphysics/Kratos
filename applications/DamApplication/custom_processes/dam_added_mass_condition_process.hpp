@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_ADDED_MASS_CONDITION_PROCESS )
-#define  KRATOS_ADDED_MASS_CONDITION_PROCESS
+#if !defined(KRATOS_DAM_ADDED_MASS_CONDITION_PROCESS )
+#define  KRATOS_DAM_ADDED_MASS_CONDITION_PROCESS
 
 #include <cmath>
 
@@ -256,4 +256,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ADDED_MASS_CONDITION_PROCESS defined */
+#endif /* KRATOS_DAM_ADDED_MASS_CONDITION_PROCESS defined */
