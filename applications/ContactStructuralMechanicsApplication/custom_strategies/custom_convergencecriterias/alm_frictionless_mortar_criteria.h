@@ -20,9 +20,7 @@
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
-#if !defined(_WIN32)
-    #include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -192,13 +190,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         table << BOLDFONT(FGRN("       Achieved"));
-                    #else
-                        table << "Achieved";
-                        //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
-                        //Table << &ThisStream;
-                    #endif
                     }
                     else
                     {
@@ -209,13 +201,7 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         table << BOLDFONT(FRED("   Not achieved"));
-                    #else
-                        table << "Not achieved";
-                        //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
-                        //Table << (&ThisStream);
-                    #endif
                     }
                     else
                     {
@@ -229,22 +215,14 @@ public:
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
-                        std::cout << "\tActive set convergence is achieved" << std::endl;
-                    #endif
                     }
                 }
                 else
                 {
                     if (mPrintingOutput == false)
                     {
-                    #if !defined(_WIN32)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    #else
-                        std::cout << "\tActive set convergence is not achieved" << std::endl;
-                    #endif
                     }
                     else
                     {

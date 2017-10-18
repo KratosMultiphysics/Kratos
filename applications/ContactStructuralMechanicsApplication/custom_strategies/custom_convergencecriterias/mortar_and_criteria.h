@@ -22,9 +22,7 @@
 #include "includes/model_part.h"
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
-#if !defined(_WIN32)
-    #include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 #include "utilities/svd_utils.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -194,11 +192,7 @@ public:
             {
                 if (mPrintingOutput == false)
                 {
-                #if !defined(_WIN32)
                     std::cout << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
-                #else
-                    std::cout << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
-                #endif
                 }
                 else
                 {
@@ -263,11 +257,7 @@ public:
             std::cout.precision(4);
             if (mPrintingOutput == false)
             {
-            #if !defined(_WIN32)
                 std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-            #else
-                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-            #endif
             }
             else
             {
