@@ -418,7 +418,7 @@ public:
                 {
                     if (mSearchTreeType == KdtreeInRadius)
                     {                  
-                        Point<3> center;
+                        Point center;
                         if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) == true)
                         {
                             center = ContactUtilities::GetHalfJumpCenter(it_cond->GetGeometry(), delta_time); // NOTE: Center in half delta time

@@ -144,7 +144,7 @@ public:
 
     void UpdatePoint(const double& DeltaTime)
     {        
-        Point<3> center;
+        Point center;
         if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true)
         {
             center = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
