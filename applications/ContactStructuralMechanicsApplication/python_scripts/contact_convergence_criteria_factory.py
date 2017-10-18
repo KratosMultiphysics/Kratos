@@ -102,16 +102,6 @@ class convergence_criterion:
             Mortar.SetEchoLevel(echo_level)
 
             if (fancy_convergence_criterion == True):
-                solver_settings = KratosMultiphysics.Parameters("""
-                {
-                    "solver_type": "skyline",
-                    "echo_level": 0
-                }
-                """)
-                if (solver_settings["solver_type"].GetString() == "pastix"):
-                    linear_solver = ExternalSolversApplication.PastixComplexSolver(solver_settings)
-                else:
-                    linear_solver = None
                 self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion, condn_convergence_criterion, linear_solver)
             else:
                 self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar)
