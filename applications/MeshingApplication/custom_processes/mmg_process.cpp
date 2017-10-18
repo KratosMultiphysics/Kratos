@@ -266,25 +266,51 @@ void MmgProcess<TDim>::InitializeMeshData()
         it_dof->FreeDof();
     }
     
-    #pragma omp parallel for firstprivate(nodes_colors)
-    for(SizeType i = 0; i < num_nodes; i++) 
+    if (mFramework == Lagrangian) // NOTE: The code is repeated due to performance reasons
     {
-        auto it_node = nodes_array.begin() + i;
-        
-        SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
-        
-        bool blocked = false;
-        if (it_node->IsDefined(BLOCKED) == true)
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(SizeType i = 0; i < num_nodes; i++) 
         {
-            blocked = it_node->Is(BLOCKED);
+            auto it_node = nodes_array.begin() + i;
+            
+            SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
+            
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED) == true)
+            {
+                blocked = it_node->Is(BLOCKED);
+            }
+            if (TDim == 3 && blocked == true)
+            {
+                BlockNode(i + 1);
+            }
+            
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
         }
-        if (TDim == 3 && blocked == true)
+    }
+    else
+    {
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(SizeType i = 0; i < num_nodes; i++) 
         {
-            BlockNode(i + 1);
+            auto it_node = nodes_array.begin() + i;
+            
+            SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
+            
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED) == true)
+            {
+                blocked = it_node->Is(BLOCKED);
+            }
+            if (TDim == 3 && blocked == true)
+            {
+                BlockNode(i + 1);
+            }
+            
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
         }
-        
-        // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-        it_node->SetId(i + 1);
     }
     
     /* Conditions */
