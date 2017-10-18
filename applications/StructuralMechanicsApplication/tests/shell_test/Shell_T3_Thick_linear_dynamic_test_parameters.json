@@ -9,12 +9,13 @@
         "end_time"        : 25,
         "echo_level"      : 0
     },
-        "material_import_settings" :{
-            "materials_filename": "shell_test/Shell_T3_Thick_linear_dynamic_test_materials.json"
-        },
+    "material_import_settings" :{
+        "materials_filename": "shell_test/Shell_T3_Thick_linear_dynamic_test_materials.json"
+    },
+    "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
-        "analysis_type"                      : "Linear",
+        "analysis_type"                      : "Non-Linear",
         "echo_level"                         : 0,
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Newmark",
