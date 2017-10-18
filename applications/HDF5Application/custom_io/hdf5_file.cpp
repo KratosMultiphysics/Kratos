@@ -88,18 +88,12 @@ HDF5File::~HDF5File()
     H5Fclose(m_file_id);
 }
 
-/// Check if string is a valid path.
-/**
- * Valid paths are similar to linux file system with alphanumeric names
- * and possible underscores separated by '/'. All paths are absolute.
- */
 bool HDF5File::IsPath(std::string rPath) const
 {
     std::regex pattern("(/\\w+)+");
     return regex_match(rPath, pattern);
 }
 
-/// Check if path exists in HDF5 file.
 bool HDF5File::HasPath(std::string rPath) const
 {
     KRATOS_TRY;
@@ -194,7 +188,7 @@ void HDF5File::WriteDataSet(std::string rPath, const std::vector<array_1d<double
     KRATOS_CATCH("");
 }
 
-std::vector<unsigned> HDF5File::GetDataDimensions(std::string rPath)
+std::vector<unsigned> HDF5File::GetDataDimensions(std::string rPath) const
 {
     KRATOS_TRY;
     constexpr int max_ndims = 5;
@@ -218,7 +212,7 @@ std::vector<unsigned> HDF5File::GetDataDimensions(std::string rPath)
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasIntDataType(std::string rPath)
+bool HDF5File::HasIntDataType(std::string rPath) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
@@ -235,7 +229,7 @@ bool HDF5File::HasIntDataType(std::string rPath)
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasFloatDataType(std::string rPath)
+bool HDF5File::HasFloatDataType(std::string rPath) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
