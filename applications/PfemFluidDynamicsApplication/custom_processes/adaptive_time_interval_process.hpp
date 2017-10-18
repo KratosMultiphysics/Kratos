@@ -298,7 +298,7 @@ namespace Kratos
 		  }
 	
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		 Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
 
@@ -333,9 +333,8 @@ namespace Kratos
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
-		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
-
+		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		    updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
 		if(itElem->GetGeometry().size()==3){
@@ -365,20 +364,15 @@ namespace Kratos
 		    solidElement=true;
 		  }
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		 Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
 
-	      double newVolume=0;
-	      if(itElem->GetGeometry().size()==4){
-		Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else if(itElem->GetGeometry().size()==10){
-		Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-	      }
+		  for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		    {
+		      const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+		      Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		      updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 
 	      if(solidElement==true){
 		newVolume=currentElementalVolume;
@@ -400,8 +394,8 @@ namespace Kratos
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
-		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		    updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
 		if(itElem->GetGeometry().size()==4){
@@ -420,7 +414,12 @@ namespace Kratos
 		}
 
 
-	      }
+		  for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		    {
+		      const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+		      Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		      updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+		    }
 
 
 

@@ -58,7 +58,7 @@ namespace Kratos
 		* Clone function (has to be implemented by any derived class)
 		* @return a pointer to a new instance of this constitutive law
 		*/
-		ConstitutiveLaw::Pointer Clone() const;
+		ConstitutiveLaw::Pointer Clone() const override;
 
 		/**
 		* Copy constructor.
@@ -68,7 +68,7 @@ namespace Kratos
 		/**
 		* Destructor.
 		*/
-		virtual ~LinearElasticOrthotropic2DLaw();
+		~LinearElasticOrthotropic2DLaw() override;
 
 		/**
 		* Operators
@@ -186,12 +186,12 @@ namespace Kratos
 		///@{
 		friend class Serializer;
 
-		virtual void save(Serializer& rSerializer) const
+		void save(Serializer& rSerializer) const override
 		{
 			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
 		}
 
-		virtual void load(Serializer& rSerializer)
+		void load(Serializer& rSerializer) override
 		{
 			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
 		}
