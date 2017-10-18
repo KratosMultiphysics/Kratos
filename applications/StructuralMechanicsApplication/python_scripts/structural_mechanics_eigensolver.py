@@ -46,7 +46,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
         if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
             custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("EigenValueDynamic")
+            custom_settings["scheme_type"].SetString("dynamic")
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
@@ -61,11 +61,11 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         generalized eigenvalue problem. 
         """
         scheme_type = self.settings["scheme_type"].GetString()
-        if scheme_type == "EigenValueDynamic":
+        if scheme_type == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
-        else:
+        else: # here e.g. a stability scheme could be added
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"EigenValueDynamic\""
+            err_msg += "Available options are: \"dynamic\""
             raise Exception(err_msg)
             
         return solution_scheme

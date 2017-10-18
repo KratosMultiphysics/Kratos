@@ -38,7 +38,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         # Validate the remaining settings in the base class.
         if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
             custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("Newmark")
+            custom_settings["scheme_type"].SetString("newmark")
         # Construct the base solver.
         super(TrilinosImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
@@ -58,13 +58,13 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         scheme_type = self.settings["scheme_type"].GetString()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
-        if (scheme_type == "Newmark"):
+        if (scheme_type == "newmark"):
             damp_factor_m = 0.0
-        elif (scheme_type == "Bossak"):
+        elif (scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"Newmark\", \"Bossak\""
+            err_msg += "Available options are: \"newmark\", \"bossak\""
             raise Exception(err_msg)
         mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(damp_factor_m)
         return mechanical_scheme

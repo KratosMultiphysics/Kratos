@@ -10,9 +10,9 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "Formfinding",
+        "analysis_type"                      : "formfinding",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"
@@ -21,7 +21,7 @@
             "materials_filename": "formfinding_test/Fofi_4Point_Tent_noCable_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "residual_relative_tolerance"        : 0.00000001,
         "max_iteration"                      : 1,
 		"move_mesh_flag"					 : true,
@@ -35,8 +35,8 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
