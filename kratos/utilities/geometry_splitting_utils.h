@@ -233,8 +233,9 @@ public:
     * @param IntegrationMethod: Integration quadrature.
     */
     virtual void GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                        Vector& rWeightsValues,
                                         const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
-                                        IntegrationMethodType IntegrationMethod);
+                                        const IntegrationMethodType IntegrationMethod);
 
     ///@}
 
@@ -404,8 +405,9 @@ public:
     * @param IntegrationMethod: Integration quadrature.
     */
     void GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                Vector& rWeightsValues,
                                 const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
-                                IntegrationMethodType IntegrationMethod) override;
+                                const IntegrationMethodType IntegrationMethod) override;
 
     ///@}
 
