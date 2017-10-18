@@ -758,6 +758,21 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* After that we reorder nodes, conditions and elements: */
     ReorderAllIds();
     
+    /* Unmoving the original mesh to be able to interpolate */
+    if (mFramework == Lagrangian) 
+    {
+        nodes_array = r_old_model_part.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+        
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; i++)
+        {
+            auto it_node = nodes_array.begin() + i;
+
+            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+        }
+    }
+
     /* We interpolate all the values */
     Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
     InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
@@ -771,9 +786,23 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* We initialize elements and conditions */
     InitializeElementsAndConditions();
     
-    /* We interpolate the internal variables */
+    /* We do some operations related with the Lagrangian framework */
     if (mFramework == Lagrangian) 
     {
+        /* We move the mesh */
+        nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; i++)
+        {
+            auto it_node = nodes_array.begin() + i;
+
+            noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
+            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+        }
+        
+        /* We interpolate the internal variables */
         InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
         InternalVariablesInterpolation.Execute();
     }
