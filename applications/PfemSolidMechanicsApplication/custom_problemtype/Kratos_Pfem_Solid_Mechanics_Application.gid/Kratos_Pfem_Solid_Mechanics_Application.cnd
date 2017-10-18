@@ -424,6 +424,14 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
+CONDITION: surface_UpdatedLagrangianUWElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
 CONDITION: surface_AxisymUpdatedLagrangianUwPStabElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
