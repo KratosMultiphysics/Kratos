@@ -424,16 +424,15 @@ class MechanicalSolver(object):
         return linear_solver
 
     def _create_builder_and_solver(self):
-        if self.settings["block_builder"].GetBool() and self.settings["multi_point_constraints_used"].GetBool():
-            raise Exception("Select either \"block_builder\" OR \"multi_point_constraints_used\"")
-
         linear_solver = self.get_linear_solver()
-
         if self.settings["block_builder"].GetBool():
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        elif self.settings["multi_point_constraints_used"].GetBool():
-            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(linear_solver)
+            if self.settings["multi_point_constraints_used"].GetBool():
+                builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
+            if self.settings["multi_point_constraints_used"].GetBool():
+                raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
