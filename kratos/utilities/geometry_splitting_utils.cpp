@@ -107,8 +107,9 @@ namespace Kratos
     };
 
     void GeometrySplittingUtils::GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                        Vector& rWeightsValues,
                                                         const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
-                                                        IntegrationMethodType IntegrationMethod) {
+                                                        const IntegrationMethodType IntegrationMethod) {
         KRATOS_ERROR << "Calling the base class geometry splitting GetShapeFunctionValues method. Call the specific geometry one.";
     };
 
@@ -161,8 +162,8 @@ namespace Kratos
                 // Store the relative coordinate values as the original geometry nodes sh. function value in the intersections
                 rIntPointCondMatrix(row, edge_node_i) = aux_node_rel_location;
                 rIntPointCondMatrix(row, edge_node_j) = 1.0 - aux_node_rel_location;
-                row++;
             }
+            row++;
         }
     }
 
@@ -300,8 +301,9 @@ namespace Kratos
     };
 
     void TriangleSplittingUtils::GetShapeFunctionValues(Matrix& rShapeFunctionValues,
+                                                        Vector& rWeightsValues,
                                                         const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
-                                                        IntegrationMethodType IntegrationMethod) {
+                                                        const IntegrationMethodType IntegrationMethod) {
         // Compute some auxiliar constans
         const unsigned int n_subdivision = rSubdivisionsVector.size();                                      // Number of positive or negative subdivisions
         const unsigned int n_int_pts = rSubdivisionsVector[0].IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
@@ -316,6 +318,11 @@ namespace Kratos
             rShapeFunctionValues.resize(n_total_int_pts, 3, false);
         }
 
+        // Resize the weights vector
+        if (rWeightsValues.size() != n_total_int_pts) {
+            rWeightsValues.resize(n_total_int_pts, false);
+        }
+
         // Get the intersection points condensation matrix
         Matrix p_matrix;
         SetIntersectionPointsCondensationMatrix(p_matrix, mEdgeNodeI, mEdgeNodeJ, mSplitEdges, split_edges_size);
@@ -327,7 +334,12 @@ namespace Kratos
             const IndexedPointGeometryType& r_subdivision_geom = rSubdivisionsVector[i_subdivision];
             const Matrix subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
 
-            KRATOS_WATCH(subdivision_sh_func_values)
+            // Get the subdivision Jacobian values on all Gauss pts.
+            Vector subdivision_jacobians_values;
+            r_subdivision_geom.DeterminantOfJacobian(subdivision_jacobians_values, IntegrationMethod);
+
+            // Get the subdivision Gauss pts. (x_coord, y_coord, z_coord, weight)
+            const IntegrationPointsArrayType subdivision_gauss_points = r_subdivision_geom.IntegrationPoints(IntegrationMethod);
 
             // Apply the original nodes condensation
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
@@ -337,16 +349,17 @@ namespace Kratos
                 for (unsigned int i = 0; i < 3; ++i) {
                     sh_func_vect(r_subdivision_geom[i].Id()) = subdivision_sh_func_values(i_gauss, i); // Note that the indexed ids. start with one.
                 }
-
-                KRATOS_WATCH(sh_func_vect)
                 
                 // Condense the values to obtain the real nodes ones
-                const Vector aux_values = prod(sh_func_vect, p_matrix);
+                const Vector condensed_sh_func_values = prod(sh_func_vect, p_matrix);
                 
-                // Store the obtained values
+                // Store the obtained shape functions values
                 for (unsigned int i = 0; i < 3; ++i) {
-                    rShapeFunctionValues(i_subdivision*n_int_pts + i_gauss, i) = aux_values(i);
+                    rShapeFunctionValues(i_subdivision*n_int_pts + i_gauss, i) = condensed_sh_func_values(i);
                 }
+
+                // Store the obtained Gauss pts. weights values
+                rWeightsValues(i_subdivision*n_int_pts + i_gauss) = subdivision_jacobians_values(i_gauss) * subdivision_gauss_points[i_gauss][3];
 
             }
         }
