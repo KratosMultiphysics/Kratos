@@ -639,6 +639,7 @@ namespace Kratos
 
       Matrix Q = ZeroMatrix(dimension, dimension);
       double Bulk = 1e+6; // to be changed LMV.
+      // PNA necessary the implementation of current porosity
       for (unsigned int i = 0; i < dimension; i++)
          for (unsigned int j = 0; j < dimension; j++)
             Q(i,j) = Bulk;
