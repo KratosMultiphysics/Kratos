@@ -226,7 +226,7 @@ namespace Kratos
                }
                else
                {
-                  CurrentDisplacement[0]  = PreviousDisplacement[0]; // LMV + ImposedDisplacement[0];//to impose fixed displacements;
+                  //CurrentDisplacement[0]  = PreviousDisplacement[0]; // LMV + ImposedDisplacement[0];//to impose fixed displacements;
                   //PreviousDisplacement[0] = 0;
                }
 
@@ -236,7 +236,8 @@ namespace Kratos
                }
                else
                {
-                  CurrentDisplacement[1]  = PreviousDisplacement[1]; // LMV + ImposedDisplacement[1];//to impose fixed displacements;
+                  //CurrentDisplacement[1]  = 0.01;
+                     //PreviousDisplacement[1]; // LMV + ImposedDisplacement[1];//to impose fixed displacements;
                   //PreviousDisplacement[1] = 0;
                }
 
@@ -249,7 +250,7 @@ namespace Kratos
                   }
                   else
                   {
-                     CurrentDisplacement[2]  = PreviousDisplacement[2]; // LMV + ImposedDisplacement[2];//to impose fixed displacements;
+                     //CurrentDisplacement[2]  = PreviousDisplacement[2]; // LMV + ImposedDisplacement[2];//to impose fixed displacements;
                      //PreviousDisplacement[2] = 0;
                   }
                }
@@ -308,7 +309,7 @@ namespace Kratos
                }
                else
                {
-                  CurrentWaterDisplacement[0]  = PreviousWaterDisplacement[0]; //LMV + ImposedWaterDisplacement[0];//to impose fixed displacements;
+                  //CurrentWaterDisplacement[0]  = PreviousWaterDisplacement[0]; //LMV + ImposedWaterDisplacement[0];//to impose fixed displacements;
                   //PreviousDisplacement[0] = 0;
                }
 
@@ -318,7 +319,7 @@ namespace Kratos
                }
                else
                {
-                  CurrentWaterDisplacement[1]  = PreviousWaterDisplacement[1]; //LMV + ImposedWaterDisplacement[1];//to impose fixed displacements;
+                  //CurrentWaterDisplacement[1]  = PreviousWaterDisplacement[1]; //LMV + ImposedWaterDisplacement[1];//to impose fixed displacements;
                   //PreviousDisplacement[1] = 0;
                }
 
@@ -331,7 +332,7 @@ namespace Kratos
                   }
                   else
                   {
-                     CurrentWaterDisplacement[2]  = PreviousWaterDisplacement[2]; //LMV + ImposedWaterDisplacement[2];//to impose fixed displacements;
+                     //CurrentWaterDisplacement[2]  = PreviousWaterDisplacement[2]; //LMV + ImposedWaterDisplacement[2];//to impose fixed displacements;
                      //PreviousDisplacement[2] = 0;
                   }
                }
