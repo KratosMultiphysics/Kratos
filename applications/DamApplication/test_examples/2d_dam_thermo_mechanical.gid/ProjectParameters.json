@@ -62,10 +62,11 @@
                 "solver_type" : "SuperLUSolver",
                 "scaling"     : false
             },
-            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "body_domain_sub_model_part_list"    : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-            "loads_sub_model_part_list"          : [],
-            "loads_variable_list"                : []
+            "problem_domain_sub_model_part_list" 	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "body_domain_sub_model_part_list"    	: ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+	    "mechanical_loads_sub_model_part_list" 	: ["HydroLinePressure2D_Hydrostatic_Pressure_Auto1"],
+            "loads_sub_model_part_list"          	: [],
+            "loads_variable_list"                	: []
         }
     },
     "output_configuration"     : {
