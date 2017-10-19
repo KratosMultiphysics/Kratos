@@ -86,7 +86,8 @@ void Initialize()
     {
         ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.ElementsBegin();
         ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();
-        
+        mNumNode = el_begin->GetGeometry().PointsNumber();
+
         #pragma omp parallel for
         for(unsigned int k = 0; k<nelements; ++k)
         {
@@ -119,6 +120,11 @@ void InitializeSolutionStep()
     const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
     const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
     std::vector<std::size_t> ConditionNodeIds(Dim);
+    if (mNumNode == 8)
+        ConditionNodeIds.resize(Dim+1);
+
+
+    
     int direction;
     
     if( mGravityDirection == "X")
@@ -234,8 +240,16 @@ void InitializeSolutionStep()
                             this->ActiveFaceHeatFluxStep(ConditionNodeIds);
                             #pragma omp critical
                             {
-                                mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", last_condition_id+1, ConditionNodeIds, 0);
-                                last_condition_id++;
+                                if (number_of_points==3)
+                                {
+                                    mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", last_condition_id+1, ConditionNodeIds, 0);
+                                    last_condition_id++;
+                                }
+                                else
+                                {
+                                    mrThermalModelPart.CreateNewCondition("FluxCondition3D4N", last_condition_id+1, ConditionNodeIds, 0);
+                                    last_condition_id++;
+                                }
                             }
                         }
                     }
@@ -257,6 +271,9 @@ void AfterOutputStep()
     const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
     const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE]; 
     std::vector<std::size_t> ConditionNodeIds(Dim);
+    if (mNumNode == 8)
+        ConditionNodeIds.resize(Dim+1);
+
     int last_condition_id = mMechanicalLastCondition + mThermalLastCondition;
     
     if (nelements != 0)
@@ -468,6 +485,7 @@ protected:
 
     ModelPart& mrMechanicalModelPart;
     ModelPart& mrThermalModelPart;
+    int mNumNode;
     std::size_t mMeshId;
     std::string mGravityDirection;
     double mReferenceCoordinate;
