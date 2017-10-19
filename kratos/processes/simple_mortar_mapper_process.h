@@ -381,26 +381,6 @@ private:
     }
     
     /**
-     * This method reset the auxiliar variable
-     */
-    void CopyAuxiliarVariable()
-    {
-        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size()); 
-        
-        // We set to zero
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(SLAVE) == true) 
-            {
-                MortarUtilities::CopyAuxiliarValue<TVarType, THist>(*(it_node.base()), mDestinationVariable);
-            }
-        }
-    }
-    
-    /**
      * This method assemble locally the mortar operators
      * @param ConditionsPointSlave: The list of points that form the triangle decomposition
      * @param SlaveGeometry: The slave geometry
@@ -596,16 +576,11 @@ private:
     }
     
     /**
-     * This method creates a slave database needed to assemble the system
+     * This method computes the size of the system
      * @param SizeSystem: The size of the system
-     * @param ConectivityDatabase: The database that will be used to assemble the system
-     * @param InverseConectivityDatabase: The inverse database that will be used to assemble the system
      */
         
-    void CreateSlaveConectivityDatabase(
-        std::size_t& SizeSystem,
-        std::unordered_map<int, int>& InverseConectivityDatabase
-        )
+    void GetSystemSize(std::size_t& SizeSystem)
     {
         // Initialize the value
         SizeSystem = 0;
@@ -614,12 +589,13 @@ private:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We create the database
+        #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(SLAVE) == true)
             {
-                InverseConectivityDatabase[it_node->Id()] = SizeSystem;
+                #pragma omp atomic
                 SizeSystem += 1;
             }
         }
@@ -817,18 +793,16 @@ private:
         ResetVariable();
         
         // Getting the auxiliar variable
-        const TVarType& aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
+        TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
 
         // Creating the assemble database
         std::size_t size_system;
-        std::unordered_map<int, int> inverse_conectivity_database;
-        CreateSlaveConectivityDatabase(size_system, inverse_conectivity_database);
+        GetSystemSize(size_system);
         
         // Defining the operators
         const unsigned int variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
         std::vector<bool> is_converged(variable_size, false);
-        const VectorType zero_vector = ZeroVector(size_system);
-        std::vector<VectorType> b(variable_size, zero_vector);
+        std::vector<double> residual_norm(variable_size, 0.0);
         std::vector<double> norm_b0(variable_size, 0.0);
         std::vector<double> norm_bi(variable_size, 0.0);
         double increment_residual_norm = 0.0;
@@ -846,17 +820,8 @@ private:
         {
             // We reset the auxiliar variable
             ResetAuxiliarVariable();
-            
-            // We reset the RHS
-            if (iteration > 0)
-            {
-                for (unsigned int i_size = 0; i_size < variable_size; ++i_size) 
-                {
-                    b[i_size] = zero_vector;
-                }
-            }
                 
-            // We map the values from one side to the other // TODO: Add OMP
+            // We compute nodally the residual // TODO: Add OMP
             for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
             {
                 auto it_cond = mrThisModelPart.ConditionsBegin() + i;
@@ -892,64 +857,129 @@ private:
                             
                             AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
                             
+                            /* We compute the residual */
                             Matrix residual_matrix;
                             ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
                             
-                            /* We compute the residual and assemble */
-                            AssembleRHS(b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database);
+// //                             MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                            MortarUtilities::AddAreaWeightedValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
                             
                             BoundedMatrixType inverse_D_operator;
                             FastInverse(this_mortar_operators.DOperator, inverse_D_operator);
-                            
-                            if (mEchoLevel > 1)
-                            {
-                                BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
-                                LumpMatrix(aux_copy_D);
-                                const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
-                                const double norm_diff = norm_frobenius(aux_diff);
-                                if (norm_diff > 1.0e-4) 
-                                {
-                                    std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                                }
-                                if (mEchoLevel == 3) 
-                                {
-                                    KRATOS_WATCH(norm_diff);
-                                    KRATOS_WATCH(this_mortar_operators.DOperator);
-                                }
-                            }
-//                             double aux_det;
-//                             BoundedMatrixType inverse_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(this_mortar_operators.DOperator, aux_det);
+
                             const Matrix solution_matrix = prod(inverse_D_operator, residual_matrix);
+
                             MortarUtilities::AddAreaWeightedValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
-//                             MortarUtilities::AddAreaWeightedValue<TVarType, NonHistorical>(slave_geometry, aux_variable, solution_matrix);
                         }
                     }
                 }
             }
             
-            // We copy the auxiliar variable
-//             CopyAuxiliarVariable();
+//             // We map the values from one side to the other // TODO: Add OMP
+//             for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
+//             {
+//                 auto it_cond = mrThisModelPart.ConditionsBegin() + i;
+//                 
+//                 if (it_cond->Is(SLAVE) == true)
+//                 {
+//                     const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
+//                     GeometryType& slave_geometry = it_cond->GetGeometry();
+//                     
+//                     boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
+//                     
+//                     for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+//                     {
+//                         Condition::Pointer p_cond_master = (it_pair->first); // MASTER
+//                         const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
+//                         GeometryType& master_geometry = p_cond_master->GetGeometry();
+//                         
+//                         const IntegrationMethod& this_integration_method = GetIntegrationMethod();
+//                         
+//                         // Reading integration points
+//                         std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping  
+//                         const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
+//                         
+//                         if (is_inside == true)
+//                         {
+//                             // Initialize general variables for the current master element
+//                             this_kinematic_variables.Initialize();
+//                     
+//                             // Initialize the mortar operators
+//                             this_mortar_operators.Initialize();
+//                             
+//                             const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+//                             
+//                             AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
+//                             
+//                             BoundedMatrixType inverse_D_operator;
+//                             FastInverse(this_mortar_operators.DOperator, inverse_D_operator);
+//                             
+//                             if (mEchoLevel > 1)
+//                             {
+//                                 BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
+//                                 LumpMatrix(aux_copy_D);
+//                                 const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
+//                                 const double norm_diff = norm_frobenius(aux_diff);
+//                                 if (norm_diff > 1.0e-4) 
+//                                 {
+//                                     std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
+//                                 }
+//                                 if (mEchoLevel == 3) 
+//                                 {
+//                                     KRATOS_WATCH(norm_diff);
+//                                     KRATOS_WATCH(this_mortar_operators.DOperator);
+//                                 }
+//                             }
+// 
+//                             Matrix residual_matrix;
+//                             MortarUtilities::MatrixValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+//                             
+//                             const Matrix solution_matrix = prod(inverse_D_operator, residual_matrix);
+// 
+//                             MortarUtilities::AddValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
+// //                             MortarUtilities::AddAreaWeightedValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
+//                         }
+//                     }
+//                 }
+//             }
+            
+            NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+            const int num_nodes = static_cast<int>(nodes_array.size()); 
+            
+            // We compute the residual norm
+            for (unsigned int i_size = 0; i_size < variable_size; ++i_size) residual_norm[i_size] = 0.0;
+            #pragma omp parallel for
+            for(int i = 0; i < num_nodes; ++i) 
+            {
+                auto it_node = nodes_array.begin() + i;
+                if (it_node->Is(SLAVE) == true)
+                {
+                    Node<3>::Pointer pnode = *(it_node.base());
+                    for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
+                    {   
+                        const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
+                        #pragma omp atomic
+                        residual_norm[i_size] += std::pow(value, 2);
+                    }
+                }
+            }
             
             // Finally we compute the residual
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
             {
-                if (mEchoLevel == 4)
-                {
-                    KRATOS_WATCH(b[i_size])
-                }
-                const double residual_norm = norm_2(b[i_size])/size_system;
-                if (iteration == 0) norm_b0[i_size] = residual_norm;
-                if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
-                if (residual_norm/norm_b0[i_size] < relative_convergence_tolerance) is_converged[i_size] = true;
+                residual_norm[i_size] = std::sqrt(residual_norm[i_size])/size_system;
+                if (iteration == 0) norm_b0[i_size] = residual_norm[i_size];
+                if (residual_norm[i_size] < absolute_convergence_tolerance) is_converged[i_size] = true;
+                if (residual_norm[i_size]/norm_b0[i_size] < relative_convergence_tolerance) is_converged[i_size] = true;
                 if (iteration > 0) 
                 {   
-                    increment_residual_norm = std::abs((residual_norm - norm_bi[i_size])/norm_bi[i_size]);
+                    increment_residual_norm = std::abs((residual_norm[i_size] - norm_bi[i_size])/norm_bi[i_size]);
                     if (increment_residual_norm < relative_convergence_tolerance) is_converged[i_size] = true;
                 }
-                norm_bi[i_size] = residual_norm;
+                norm_bi[i_size] = residual_norm[i_size];
                 if (mEchoLevel > 0)
                 {
-                    std::cout << "Iteration: " << iteration + 1 << "\tRESISUAL::\tABS: " << residual_norm << "\tRELATIVE: " << residual_norm/norm_b0[i_size] << "\tINCREMENT: " << increment_residual_norm << std::endl;
+                    std::cout << "Iteration: " << iteration + 1 << "\tRESISUAL::\tABS: " << residual_norm[i_size] << "\tRELATIVE: " << residual_norm[i_size]/norm_b0[i_size] << "\tINCREMENT: " << increment_residual_norm << std::endl;
                 }
             }
             

@@ -678,16 +678,14 @@ public:
      */
     template< class TVarType>
     static inline TVarType GetAuxiliarVariable();
-    
+
     /**
-     * This method resets the value
-     * @param ThisGeometry: The geometrty to update
-     * @param ThisVariable: The variable to set
+     * This method returns the auxiliar variable
      */
-    template< class TVarType, HistoricalValues THist>
-    static inline void CopyAuxiliarValue(
+    template< class TVarType>
+    static inline double GetAuxiliarValue(
         Node<3>::Pointer pThisNode,
-        TVarType& ThisVariable
+        unsigned int iSize
         );
     
     /**
@@ -700,6 +698,19 @@ public:
         GeometryType& ThisGeometry,
         TVarType& ThisVariable,
         Matrix& ThisValue
+        );
+    
+    /**
+     * This method adds the value
+     * WARNING: This operation is not threadsafe
+     * @param ThisGeometry: The geometrty to update
+     * @param ThisVariable: The variable to set
+     */
+    template< class TVarType, HistoricalValues THist>
+    static inline void AddValue(
+        GeometryType& ThisGeometry,
+        TVarType& ThisVariable,
+        const Matrix& ThisValue
         );
     
     /**
@@ -762,7 +773,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historica
         Variable<array_1d<double, 3>>& ThisVariable
         )
 {
-    auto& aux_value = pThisNode->FastGetSolutionStepValue(ThisVariable);
+    array_1d<double, 3>& aux_value = pThisNode->FastGetSolutionStepValue(ThisVariable);
     noalias(aux_value) = ZeroVector(3);
 }
 
@@ -790,7 +801,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
         Variable<array_1d<double, 3>>& ThisVariable
         )
 {
-    auto& aux_value = pThisNode->GetValue(ThisVariable);
+    array_1d<double, 3>& aux_value = pThisNode->GetValue(ThisVariable);
     noalias(aux_value) = ZeroVector(3);
 }
 
@@ -809,7 +820,7 @@ inline void MortarUtilities::ResetAuxiliarValue<ComponentType>(Node<3>::Pointer 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<array_1d<double, 3>>>(Node<3>::Pointer pThisNode)
 {
-    auto& aux_value = pThisNode->GetValue(NODAL_VAUX);
+    array_1d<double, 3>& aux_value = pThisNode->GetValue(NODAL_VAUX);
     noalias(aux_value) = ZeroVector(3);
 }
 
@@ -831,66 +842,43 @@ inline Variable<array_1d<double, 3>> MortarUtilities::GetAuxiliarVariable<Variab
     return NODAL_VAUX;
 }
 
-template<> 
-inline void MortarUtilities::CopyAuxiliarValue<Variable<double>, Historical>(
-        Node<3>::Pointer pThisNode,
-        Variable<double>& ThisVariable
-        )
+template< >
+inline double MortarUtilities::GetAuxiliarValue<Variable<double>>(
+    Node<3>::Pointer pThisNode,
+    unsigned int iSize
+    )
 {
-    const double& aux_value = pThisNode->GetValue(NODAL_MAUX);
-    pThisNode->FastGetSolutionStepValue(ThisVariable) = aux_value;
+    return pThisNode->GetValue(NODAL_MAUX);
 }
 
-template<> 
-inline void MortarUtilities::CopyAuxiliarValue<ComponentType, Historical>(
-        Node<3>::Pointer pThisNode,
-        ComponentType& ThisVariable
-        )
+template< >
+inline double MortarUtilities::GetAuxiliarValue<ComponentType>(
+    Node<3>::Pointer pThisNode,
+    unsigned int iSize
+    )
 {
-    const double& aux_value = pThisNode->GetValue(NODAL_VAUX_X);
-    pThisNode->FastGetSolutionStepValue(ThisVariable) = aux_value;
+    return pThisNode->GetValue(NODAL_VAUX_X);
 }
 
-template<> 
-inline void MortarUtilities::CopyAuxiliarValue<Variable<array_1d<double, 3>>, Historical>(
-        Node<3>::Pointer pThisNode,
-        Variable<array_1d<double, 3>>& ThisVariable
-        )
+template< >
+inline double MortarUtilities::GetAuxiliarValue<Variable<array_1d<double, 3>>>(
+    Node<3>::Pointer pThisNode,
+    unsigned int iSize
+    )
 {
-    array_1d<double, 3>& value = pThisNode->FastGetSolutionStepValue(ThisVariable);
-    const array_1d<double, 3>& aux_value = pThisNode->GetValue(NODAL_VAUX);
-    noalias(value) = aux_value;
-}
-
-template<> 
-inline void MortarUtilities::CopyAuxiliarValue<Variable<double>, NonHistorical>(
-        Node<3>::Pointer pThisNode,
-        Variable<double>& ThisVariable
-        )
-{
-    const double& aux_value = pThisNode->GetValue(NODAL_MAUX);
-    pThisNode->SetValue(ThisVariable, aux_value);
-}
-
-template<> 
-inline void MortarUtilities::CopyAuxiliarValue<ComponentType, NonHistorical>(
-        Node<3>::Pointer pThisNode,
-        ComponentType& ThisVariable
-        )
-{
-    const double& aux_value = pThisNode->GetValue(NODAL_VAUX_X);
-    pThisNode->SetValue(ThisVariable, aux_value);
-}
-
-template<> 
-inline void MortarUtilities::CopyAuxiliarValue<Variable<array_1d<double, 3>>, NonHistorical>(
-        Node<3>::Pointer pThisNode,
-        Variable<array_1d<double, 3>>& ThisVariable
-        )
-{
-    array_1d<double, 3>& value = pThisNode->GetValue(ThisVariable);
-    const array_1d<double, 3>& aux_value = pThisNode->GetValue(NODAL_VAUX);
-    noalias(value) = aux_value;
+    switch ( iSize )
+    {
+        case 0:
+            return pThisNode->GetValue(NODAL_VAUX_X);
+        case 1:
+            return pThisNode->GetValue(NODAL_VAUX_Y);
+        case 2:
+            return pThisNode->GetValue(NODAL_VAUX_Z);
+        default:
+            return 0.0;
+    }
+    
+    return 0.0;
 }
 
 template<> 
@@ -991,6 +979,86 @@ inline void MortarUtilities::MatrixValue<Variable<array_1d<double, 3>>, NonHisto
     for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
     {
         row(ThisValue, i_node) = ThisGeometry[i_node].GetValue(ThisVariable);
+    }
+}
+
+template<> 
+inline void MortarUtilities::AddValue<Variable<double>, Historical>(
+        GeometryType& ThisGeometry,
+        Variable<double>& ThisVariable,
+        const Matrix& ThisValue
+        )
+{
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    {
+        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
+    }
+}
+
+template<> 
+inline void MortarUtilities::AddValue<ComponentType, Historical>(
+        GeometryType& ThisGeometry,
+        ComponentType& ThisVariable,
+        const Matrix& ThisValue
+        )
+{
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    {
+        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
+    }
+}
+
+template<> 
+inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, Historical>(
+        GeometryType& ThisGeometry,
+        Variable<array_1d<double, 3>>& ThisVariable,
+        const Matrix& ThisValue
+        )
+{
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    {
+        auto& aux_vector = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
+        aux_vector += row(ThisValue, i_node);
+    }
+}
+template<> 
+inline void MortarUtilities::AddValue<Variable<double>, NonHistorical>(
+        GeometryType& ThisGeometry,
+        Variable<double>& ThisVariable,
+        const Matrix& ThisValue
+        )
+{
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    {
+        ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
+    }
+}
+
+template<> 
+inline void MortarUtilities::AddValue<ComponentType, NonHistorical>(
+        GeometryType& ThisGeometry,
+        ComponentType& ThisVariable,
+        const Matrix& ThisValue
+        )
+{
+
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    {
+        ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
+    }
+}
+
+template<> 
+inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, NonHistorical>(
+        GeometryType& ThisGeometry,
+        Variable<array_1d<double, 3>>& ThisVariable,
+        const Matrix& ThisValue
+        )
+{
+    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    {
+        auto& aux_vector = ThisGeometry[i_node].GetValue(ThisVariable);
+        aux_vector += row(ThisValue, i_node);
     }
 }
 
