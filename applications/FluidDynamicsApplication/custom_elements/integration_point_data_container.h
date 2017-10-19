@@ -23,6 +23,13 @@
 #include "fluid_dynamics_application_variables.h"
 #include "fluid_element_data.h"
 
+/**
+ * Note that this file makes use of the X-macro programming technique.
+ * Recommended reading:
+ * https://www.embedded.com/design/programming-languages-and-tools/4403953/C-language-coding-errors-with-X-macros-Part-1
+ * https://en.wikipedia.org/wiki/X_Macro
+ */ 
+
 #define FLUID_ELEMENT_VARIABLES(MACRO_TO_APPLY) \
 MACRO_TO_APPLY(VELOCITY,NodalVectorType) \
 MACRO_TO_APPLY(PRESSURE,NodalScalarType)
@@ -39,26 +46,18 @@ public: HandlerType& Get##Variable() \
 }
 
 #define CONSTRUCT_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
-MEMBER_NAME(Variable) (Variable), // mHandlerName(Variable),
+, MEMBER_NAME(Variable) (Variable) // , mHandlerName(Variable)
 
 #define INITIALIZE_HANDLER(Variable,HandlerType) \
 MEMBER_NAME(Variable).Initialize(rElement,rProcessInfo);
-
-
 
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
-/**
- * @brief Auxiliary class to evaluate and hold data at integration points for elements
- * based on FluidElement.
- * Note that this class makes heavy use of the X-macro programming technique. 
- * (see for example https://en.wikipedia.org/wiki/X_Macro for reference).
- * The 'X macro' is called APPLY_TO_VARIABLE here.
- */
-class IntegrationPointDataContainer
+///@brief Base class for data containers used within FluidElement and derived types.
+class FluidElementDataContainer
 {
 public:
     ///@name Type Definitions
@@ -71,50 +70,60 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
-    IntegrationPointDataContainer():
-    FLUID_ELEMENT_VARIABLES(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER)
-    dummy(0)
-    {
 
+    /// Default constructor
+    FluidElementDataContainer() {
+    }
+
+    /// Destructor
+    ~FluidElementDataContainer() {
     }
 
     /// (deleted) assignment operator.
-    IntegrationPointDataContainer& operator=(IntegrationPointDataContainer const& rOther) = delete;
+    FluidElementDataContainer& operator=(FluidElementDataContainer const& rOther) = delete;
 
     /// (deleted) copy constructor.
-    IntegrationPointDataContainer(IntegrationPointDataContainer const& rOther) = delete;
-
-    ///@}
-    ///@name Public members
-    ///@{
-
+    FluidElementDataContainer(FluidElementDataContainer const& rOther) = delete;
 
     ///@}
     ///@name Public Operations
     ///@{
 
     void Initialize(Element& rElement, const ProcessInfo& rProcessInfo) {
-        FLUID_ELEMENT_VARIABLES(INITIALIZE_HANDLER)
     }
 
     ///@}
+};
 
-    FLUID_ELEMENT_VARIABLES(DECLARE_CLASS_MEMBER_FOR_HANDLER)
+}
 
-    FLUID_ELEMENT_VARIABLES(DEFINE_GET_FUNCTION_FOR_HANDLER)
-    
-private:
+#define MAKE_FLUID_ELEMENT_DATA_CONTAINER(ClassName, HANDLER_LIST)  \
+class ClassName : public FluidElementDataContainer {                \
+public:                                                             \
+                                                                    \
+    ClassName()                                                     \
+    : FluidElementDataContainer()                                   \
+    HANDLER_LIST(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER)                \
+    {                                                               \
+    }                                                               \
+                                                                    \
+    ~ClassName() {                                                  \
+    }                                                               \
+                                                                    \
+    void Initialize(                                                \
+        Element& rElement,                                          \
+        const ProcessInfo& rProcessInfo) {                          \
+        HANDLER_LIST(INITIALIZE_HANDLER)                            \
+    }                                                               \
+                                                                    \
+    HANDLER_LIST(DECLARE_CLASS_MEMBER_FOR_HANDLER)                  \
+                                                                    \
+    HANDLER_LIST(DEFINE_GET_FUNCTION_FOR_HANDLER)                   \
+};
 
-    const int dummy;
-
-}; // struct IntegrationPointDataContainer
-
-///@}
-
-///@} addtogroup block
-
-} // namespace Kratos.
+namespace Kratos {
+MAKE_FLUID_ELEMENT_DATA_CONTAINER(IntegrationPointDataContainer, FLUID_ELEMENT_VARIABLES)
+}
 
 #undef FLUID_ELEMENT_VARIABLES
 
