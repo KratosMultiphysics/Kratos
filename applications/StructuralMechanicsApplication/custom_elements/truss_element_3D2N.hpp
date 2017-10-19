@@ -29,9 +29,9 @@ namespace Kratos
 	{
 	private:
 		//const values
-		static constexpr int number_of_nodes = 2;
-		static constexpr int dimension = 3;
-		static constexpr unsigned int local_size = number_of_nodes * dimension;
+		static constexpr int msNumberOfNodes = 2;
+		static constexpr int msDimension = 3;
+		static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
 
@@ -75,7 +75,7 @@ namespace Kratos
 
 		void Initialize() override;
 
-		bounded_matrix<double,local_size,local_size> CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
@@ -87,8 +87,8 @@ namespace Kratos
 			std::vector<double>& rValues,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		void UpdateInternalForces(bounded_vector<double,local_size>& rinternalForces);
-		void CreateTransformationMatrix(bounded_matrix<double,local_size,local_size>& rRotationMatrix);
+		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
+		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 		double CalculateCurrentLength();
 
 		void CalculateOnIntegrationPoints(
@@ -149,14 +149,14 @@ namespace Kratos
 		double CalculateGreenLagrangeStrain();
 		double CalculateReferenceLength();
 
-		bounded_vector<double,local_size> CalculateBodyForces();  
+		bounded_vector<double,msLocalSize> CalculateBodyForces();  
 
 		bool ReturnIfIsCable();
 
-		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rGeometricStiffnessMatrix,
+		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
-		void CalculateElasticStiffnessMatrix(bounded_matrix<double,local_size,local_size>& rElasticStiffnessMatrix,
+		void CalculateElasticStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
 
