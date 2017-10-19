@@ -67,6 +67,14 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(0.0, velocity[2], 1e-6); // Note: velocity Z is not stored in the 2D handler, so it should return 0
         }
 
+        // In-situ definition of FluidElementDataContainer list for tests
+        #define FLUID_ELEMENT_VARIABLES(MACRO_TO_APPLY) \
+        MACRO_TO_APPLY(VELOCITY,NodalVectorType) \
+        MACRO_TO_APPLY(PRESSURE,NodalScalarType)
+
+        MAKE_FLUID_ELEMENT_DATA_CONTAINER(TestFluidDataContainer, FLUID_ELEMENT_VARIABLES)
+        #undef FLUID_ELEMENT_VARIABLES
+
         KRATOS_TEST_CASE_IN_SUITE(FluidElementGaussPointData, FluidDynamicsApplicationFastSuite)
         {
             ModelPart model_part("Test");
@@ -82,7 +90,7 @@ namespace Kratos {
             }
 
             // Data container tests go here
-            IntegrationPointDataContainer DataPoint;
+            TestFluidDataContainer DataPoint;
 
             DataPoint.Initialize(r_element,model_part.GetProcessInfo());
 

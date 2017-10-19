@@ -30,10 +30,6 @@
  * https://en.wikipedia.org/wiki/X_Macro
  */ 
 
-#define FLUID_ELEMENT_VARIABLES(MACRO_TO_APPLY) \
-MACRO_TO_APPLY(VELOCITY,NodalVectorType) \
-MACRO_TO_APPLY(PRESSURE,NodalScalarType)
-
 #define MEMBER_NAME(Variable) m ## Variable ## Handler
 
 #define DECLARE_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
@@ -121,15 +117,11 @@ public:                                                             \
     HANDLER_LIST(DEFINE_GET_FUNCTION_FOR_HANDLER)                   \
 };
 
-namespace Kratos {
-MAKE_FLUID_ELEMENT_DATA_CONTAINER(IntegrationPointDataContainer, FLUID_ELEMENT_VARIABLES)
-}
+//#undef FLUID_ELEMENT_VARIABLES
 
-#undef FLUID_ELEMENT_VARIABLES
-
-#undef DECLARE_CLASS_MEMBER_FOR_HANDLER
-#undef DEFINE_GET_FUNCTION_FOR_HANDLER
-#undef CONSTRUCT_CLASS_MEMBER_FOR_HANDLER
-#undef INITIALIZE_HANDLER
+//#undef DECLARE_CLASS_MEMBER_FOR_HANDLER
+//#undef DEFINE_GET_FUNCTION_FOR_HANDLER
+//#undef CONSTRUCT_CLASS_MEMBER_FOR_HANDLER
+//#undef INITIALIZE_HANDLER
 
 #endif // KRATOS_INTEGRATION_POINT_DATA_CONTAINER_H_INCLUDED  defined
