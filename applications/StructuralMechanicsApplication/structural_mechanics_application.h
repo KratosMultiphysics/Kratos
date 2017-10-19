@@ -74,6 +74,8 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
 /* UTILITIES */
@@ -368,7 +370,9 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
-	const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+    const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

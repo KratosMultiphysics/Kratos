@@ -35,9 +35,8 @@ class Solution(object):
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
-        self.procedures = self.SetProcedures()       
+        self.procedures = self.SetProcedures()
         self.SetAnalyticParticleWatcher()
-        self.procedures.CheckInputParameters(DEM_parameters)
         self.PreUtilities = PreUtilities()
 
         # Creating necessary directories:
@@ -386,16 +385,17 @@ class Solution(object):
                     #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
                     #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                         self.FillAnalyticSubModelPartsWithNewParticles()
+    def BeforePrintingOperations(self, time):
+        pass
 
     def AfterSolveOperations(self):
-        if (hasattr(DEM_parameters, "PostNormalImpactVelocity")):
-            if (DEM_parameters.PostNormalImpactVelocity):
+        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
                 self.particle_watcher.MakeMeasurements(self.analytic_model_part)
                 time_to_print = self.time - self.time_old_print
                 if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                     self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                     self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
-                    #self.particle_watcher.MakeMeasurements(self.all_model_parts.Get('AnalyticParticlesPart'))
 
     def FinalizeTimeStep(self, time):
         pass

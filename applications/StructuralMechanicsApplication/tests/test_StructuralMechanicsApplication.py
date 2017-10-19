@@ -68,8 +68,21 @@ from SmallTests import EigenQ4Thick2x2PlateTests           as TEigenQ4Thick2x2Pl
 from SmallTests import EigenTL3D8NCubeTests                as TEigenTL3D8NCubeTests
 from SmallTests import Eigen3D3NThinCircleTests            as TEigen3D3NThinCircleTests
 # Membrane tests
-from SmallTests import Fofi4PointTentnoCableTests          as TFofi4PointTentnoCableTests
-from SmallTests import MembraneQ4PointLoadTests            as TMembraneQ4PointLoadTests
+from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
+from SmallTests import Fofi4PointTentCableTests         as TFofi4PointTentCableTests
+from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
+from SmallTests import MembraneQ4TrussPointLoadTests    as TMembraneQ4TrussPointLoadTests
+# 2Node Element tests
+from SmallTests import Simple3D2NTrussTest as T3D2NTrussTest
+from SmallTests import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
+from SmallTests import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
+from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
+from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
+from SmallTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+# Multipoint constraint tests
+from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
+from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
+
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests           as TNodalDampingTests
 # Spring damper element test
@@ -178,8 +191,17 @@ def AssambleTestSuites():
     smallSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     smallSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
+    # 2Node Element tests    
+    smallSuite.addTest(T3D2NTrussDynamicTest('test_execution')) 
+    smallSuite.addTest(T3D2NTrussLinearTest('test_execution'))  
+    smallSuite.addTest(T3D2NTrussTest('test_execution'))  
+    smallSuite.addTest(T3D2NBeamCrTest('test_execution'))    
+    smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))  
+    smallSuite.addTest(T3D2NBeamCrDynamicTest('test_execution')) 
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
+
+
 
     if (missing_external_dependencies == False):
         if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
@@ -270,6 +292,8 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+            TTestMultipointConstraints,
+            TTestMultipointConstraintsTwo,
             TShellT3ThickLinearStaticTests,
             TShellT3ThickNonLinearStaticTests,
             TShellT3ThickLinearDynamicTests,
@@ -278,6 +302,12 @@ def AssambleTestSuites():
             TShellQ4ThinNonLinearStaticTests,
             TShellQ4ThinLinearDynamicTests,
             TShellQ4ThinNonLinearDynamicTests,
+            T3D2NTrussTest,
+            T3D2NTrussLinearTest,
+            T3D2NTrussDynamicTest,
+            T3D2NBeamCrTest,
+            T3D2NBeamCrLinearTest,
+            T3D2NBeamCrDynamicTest,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ####TSprismPanTests # FIXME: Needs get up to date
         ])
