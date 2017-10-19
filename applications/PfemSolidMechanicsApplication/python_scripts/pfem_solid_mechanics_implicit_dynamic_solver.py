@@ -34,7 +34,7 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         if self.settings.Has("water_displacement_dofs"):
             if self.settings["water_displacement_dofs"].GetBool():
                 self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
-                self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED','NOT_DEFINED']
+                self.dof_reactions = self.dof_reactions + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION','CONTACT_FORCE']
 
 
     def _create_solution_scheme(self):
