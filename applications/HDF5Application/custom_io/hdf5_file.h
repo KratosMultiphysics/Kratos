@@ -17,7 +17,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <type_traits>
+#include <regex>
 
 // External includes
 extern "C" {
@@ -33,6 +35,35 @@ namespace Kratos
 {
 ///@addtogroup HDF5Application
 ///@{
+
+/// Provides helper functions that don't depend on the representation of a
+/// particular class.
+struct HDF5Utils
+{
+    /// Check if string is a valid path.
+    /**
+     * Valid paths are similar to linux file system with alphanumeric names
+     * and possible underscores separated by '/'. All paths are absolute.
+     */
+    static bool IsPath(std::string Path)
+    { 
+        return regex_match(Path, std::regex("(/\\w+)+"));
+    }
+
+    // Return vector of non-empty substrings separated by a delimiter.
+    static std::vector<std::string> Split(std::string Path, char Delimiter)
+    {
+        std::vector<std::string> result;
+        result.reserve(10);
+        std::stringstream ss(Path);
+        std::string sub_string;
+        while (std::getline(ss, sub_string, Delimiter))
+          if (sub_string.size() > 0)
+            result.push_back(sub_string);
+      
+        return result;
+    }
+};
 
 class HDF5File
 {
@@ -63,38 +94,33 @@ public:
     ///@name Operations
     ///@{
 
-    /// Check if string is a valid path.
-    /**
-     * Valid paths are similar to linux file system with alphanumeric names
-     * and possible underscores separated by '/'. All paths are absolute.
-     */
-    virtual bool IsPath(std::string rPath) const;
-
     /// Check if path exists in HDF5 file.
-    virtual bool HasPath(std::string rPath) const;
+    virtual bool HasPath(std::string Path) const;
 
-    virtual bool IsGroup(std::string rPath) const;
+    virtual bool IsGroup(std::string Path) const;
 
-    virtual bool IsDataSet(std::string rPath) const;
+    virtual bool IsDataSet(std::string Path) const;
 
-    virtual void CreateGroup(std::string rPath);
+    virtual void CreateGroup(std::string Path);
+
+    virtual void AddPath(std::string Path);
 
     /// Write a data set to the HDF5 file.
     /** This function must always be called colletively in MPI. For more
      *  than one process, data blocks are ordered by rank.
      */
-    virtual void WriteDataSet(std::string rPath, const std::vector<int>& rData);
+    virtual void WriteDataSet(std::string Path, const std::vector<int>& rData);
 
-    virtual void WriteDataSet(std::string rPath, const std::vector<double>& rData);
+    virtual void WriteDataSet(std::string Path, const std::vector<double>& rData);
 
-    virtual void WriteDataSet(std::string rPath,
+    virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
 
-    virtual std::vector<unsigned> GetDataDimensions(std::string rPath) const;
+    virtual std::vector<unsigned> GetDataDimensions(std::string Path) const;
 
-    virtual bool HasIntDataType(std::string rPath) const;
+    virtual bool HasIntDataType(std::string Path) const;
 
-    virtual bool HasFloatDataType(std::string rPath) const;
+    virtual bool HasFloatDataType(std::string Path) const;
 
     virtual void Flush();
 
@@ -108,11 +134,11 @@ public:
      *  for 10 processes each with a BlockSize of 1000, the process
      *  with rank 2 will read 1000 elements beginning at index 2000.
      */
-    virtual void ReadDataSet(std::string rPath, std::vector<int>& rData, unsigned BlockSize);
+    virtual void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned BlockSize);
 
-    virtual void ReadDataSet(std::string rPath, std::vector<double>& rData, unsigned BlockSize);
+    virtual void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned BlockSize);
 
-    virtual void ReadDataSet(std::string rPath,
+    virtual void ReadDataSet(std::string Path,
                              std::vector<array_1d<double, 3>>& rData,
                              unsigned BlockSize);
 
@@ -130,31 +156,15 @@ private:
     ///@name Private Operations
     ///@{
     template <class T>
-    void WriteDataSetImpl(std::string rPath, const std::vector<T>& rData)
+    void WriteDataSetImpl(std::string Path, const std::vector<T>& rData)
     {
-        KRATOS_ERROR_IF_NOT(IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
-
         // Create any missing subpaths.
-        std::string sub_path;
-        decltype(rPath.size()) pos = 0; /* Make sure pos has same size as
-           std::string::npos. */
-        while (pos < rPath.size()) // Check each link in the path.
-        {
-            pos = rPath.find('/', ++pos);
-            if (pos != std::string::npos)
-                sub_path = rPath.substr(0, pos); // Check current subpath.
-            else
-                break; // Exit loop after all links are present.
-
-            if (HasPath(sub_path) == false)
-                CreateGroup(sub_path); // Create missing link.
-            else
-                KRATOS_ERROR_IF_NOT(IsGroup(sub_path))
-                    << "Path exists and is not a group: " << sub_path << std::endl;
-        }
+        auto pos = Path.find_last_of('/');
+        std::string sub_path = Path.substr(0, pos);
+        AddPath(sub_path);
 
         // Check that full path does not exist before trying to write data.
-        KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
+        KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
 
         // Create and write data set.
         int ndims = 1; // Default rank is 1 (scalar data type).
@@ -179,7 +189,7 @@ private:
                           "Unsupported data type.");
 
         hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
-        hid_t dset_id = H5Dcreate(m_file_id, rPath.c_str(), dtype_id, dspace_id,
+        hid_t dset_id = H5Dcreate(m_file_id, Path.c_str(), dtype_id, dspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
         KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, rData.data()) < 0) << "H5Dwrite failed." << std::endl;
@@ -188,15 +198,15 @@ private:
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string rPath, std::vector<T>& rData, unsigned BlockSize)
+    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned BlockSize)
     {
         // Check that full path exists.
-        KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
-            << "Path is not a data set: " << rPath << std::endl;
+        KRATOS_ERROR_IF_NOT(IsDataSet(Path))
+            << "Path is not a data set: " << Path << std::endl;
 
         // Check data types and dimensions.
         hid_t dtype_id;
-        std::vector<unsigned> file_space_dims = GetDataDimensions(rPath);
+        std::vector<unsigned> file_space_dims = GetDataDimensions(Path);
         KRATOS_ERROR_IF(file_space_dims.size() == 0) << "Invalid data set." << std::endl;
         KRATOS_ERROR_IF(BlockSize > file_space_dims[0])
             << "BlockSize exceeds data set dimension by: "
@@ -214,24 +224,24 @@ private:
         constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
         if (is_int_type)
         {
-            KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
-                << "Data type is not int: " << rPath << std::endl;
+            KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
+                << "Data type is not int: " << Path << std::endl;
             KRATOS_ERROR_IF(file_space_dims.size() != 1)
                 << "Invalid data set dimension." << std::endl;
             dtype_id = H5T_NATIVE_INT;
         }
         else if (is_double_type)
         {
-            KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-                << "Data type is not float: " << rPath << std::endl;
+            KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
+                << "Data type is not float: " << Path << std::endl;
             KRATOS_ERROR_IF(file_space_dims.size() != 1)
                 << "Invalid data set dimension." << std::endl;
             dtype_id = H5T_NATIVE_DOUBLE;
         }
         else if (is_array_1d_type)
         {
-            KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-                << "Data type is not float: " << rPath << std::endl;
+            KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
+                << "Data type is not float: " << Path << std::endl;
             KRATOS_ERROR_IF(file_space_dims.size() != 2 || file_space_dims[1] != 3)
                 << "Invalid data set dimension." << std::endl;
             dtype_id = H5T_NATIVE_DOUBLE;
@@ -242,7 +252,7 @@ private:
             static_assert(is_int_type || is_double_type || is_array_1d_type,
                           "Unsupported data type.");
 
-        hid_t dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT);
+        hid_t dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
         hid_t mem_space_id =

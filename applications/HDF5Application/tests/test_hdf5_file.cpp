@@ -35,11 +35,11 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
 
     HDF5File test_file(test_params);
     // Check IsPath().
-    KRATOS_CHECK(test_file.IsPath("") == false);
-    KRATOS_CHECK(test_file.IsPath("/") == false);
-    KRATOS_CHECK(test_file.IsPath("/foo") == true);
-    KRATOS_CHECK(test_file.IsPath("/foo/") == false);
-    KRATOS_CHECK(test_file.IsPath("/foo/bar") == true);
+    KRATOS_CHECK(HDF5Utils::IsPath("") == false);
+    KRATOS_CHECK(HDF5Utils::IsPath("/") == false);
+    KRATOS_CHECK(HDF5Utils::IsPath("/foo") == true);
+    KRATOS_CHECK(HDF5Utils::IsPath("/foo/") == false);
+    KRATOS_CHECK(HDF5Utils::IsPath("/foo/bar") == true);
     // Check HasPath().
     KRATOS_CHECK(test_file.HasPath("/foo/bar") == false);
     test_file.CreateGroup("/foo");

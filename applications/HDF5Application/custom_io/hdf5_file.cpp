@@ -1,6 +1,5 @@
 #include "hdf5_file.h"
 
-#include <regex>
 #include <cassert>
 
 namespace Kratos
@@ -88,30 +87,24 @@ HDF5File::~HDF5File()
     H5Fclose(m_file_id);
 }
 
-bool HDF5File::IsPath(std::string rPath) const
-{
-    std::regex pattern("(/\\w+)+");
-    return regex_match(rPath, pattern);
-}
-
-bool HDF5File::HasPath(std::string rPath) const
+bool HDF5File::HasPath(std::string Path) const
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF_NOT(IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(HDF5Utils::IsPath(Path)) << "Invalid path: " << Path << std::endl;
 
     std::string sub_path;
-    decltype(rPath.size()) pos = 0; /* Make sure pos has same size as
+    decltype(Path.size()) pos = 0; /* Make sure pos has same size as
         std::string::npos. */
-    while (pos < rPath.size()) // Check each link in the path.
+    while (pos < Path.size()) // Check each link in the path.
     {
-        pos = rPath.find('/', ++pos);
+        pos = Path.find('/', ++pos);
         if (pos != std::string::npos)
-            sub_path = rPath.substr(0, pos); // Check current subpath.
+            sub_path = Path.substr(0, pos); // Check current subpath.
         else
         {
-            sub_path = rPath;   // Check the complete path.
-            pos = rPath.size(); // Exit on loop completion.
+            sub_path = Path;   // Check the complete path.
+            pos = Path.size(); // Exit on loop completion.
         }
 
         htri_t link_found = H5Lexists(m_file_id, sub_path.c_str(), H5P_DEFAULT);
@@ -129,73 +122,90 @@ bool HDF5File::HasPath(std::string rPath) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::IsGroup(std::string rPath) const
+bool HDF5File::IsGroup(std::string Path) const
 {
     KRATOS_TRY;
-    if (HasPath(rPath) == false)
+    if (HasPath(Path) == false)
         return false;
 
     H5O_info_t object_info;
-    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, rPath.c_str(), &object_info, H5P_DEFAULT) < 0)
+    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, Path.c_str(), &object_info, H5P_DEFAULT) < 0)
         << "H5Oget_info_by_name failed." << std::endl;
 
     return (object_info.type == H5O_TYPE_GROUP);
     KRATOS_CATCH("");
 }
 
-bool HDF5File::IsDataSet(std::string rPath) const
+bool HDF5File::IsDataSet(std::string Path) const
 {
     KRATOS_TRY;
-    if (HasPath(rPath) == false)
+    if (HasPath(Path) == false)
         return false;
 
     H5O_info_t object_info;
-    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, rPath.c_str(), &object_info, H5P_DEFAULT) < 0)
+    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, Path.c_str(), &object_info, H5P_DEFAULT) < 0)
         << "H5Oget_info_by_name failed." << std::endl;
 
     return (object_info.type == H5O_TYPE_DATASET);
     KRATOS_CATCH("");
 }
 
-void HDF5File::CreateGroup(std::string rPath)
+void HDF5File::CreateGroup(std::string Path)
 {
     KRATOS_TRY;
     hid_t group_id =
-        H5Gcreate(m_file_id, rPath.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Gcreate(m_file_id, Path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(group_id < 0) << "H5Gcreate failed." << std::endl;
     KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string rPath, const std::vector<int>& rData)
+void HDF5File::AddPath(std::string Path)
+{
+    KRATOS_ERROR_IF(HDF5Utils::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
+
+    std::vector<std::string> splitted_path = HDF5Utils::Split(Path, '/');
+    std::string sub_path;
+    for (const auto& r_link: splitted_path)
+    {
+        sub_path += '/' + r_link;
+        if (HasPath(sub_path) == false)
+            CreateGroup(sub_path); // Add missing link.
+        else
+            KRATOS_ERROR_IF_NOT(IsGroup(sub_path))
+                << "Path exists and is not a group: " << sub_path << std::endl;
+    }
+}
+
+void HDF5File::WriteDataSet(std::string Path, const std::vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(rPath, rData);
+    WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string rPath, const std::vector<double>& rData)
+void HDF5File::WriteDataSet(std::string Path, const std::vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(rPath, rData);
+    WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSet(std::string rPath, const std::vector<array_1d<double, 3>>& rData)
+void HDF5File::WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(rPath, rData);
+    WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-std::vector<unsigned> HDF5File::GetDataDimensions(std::string rPath) const
+std::vector<unsigned> HDF5File::GetDataDimensions(std::string Path) const
 {
     KRATOS_TRY;
     constexpr int max_ndims = 5;
     int ndims;
     hsize_t dims[max_ndims];
     hid_t dset_id, dspace_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
+    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
     KRATOS_ERROR_IF((dspace_id = H5Dget_space(dset_id)) < 0)
         << "H5Dget_space failed." << std::endl;
@@ -212,11 +222,11 @@ std::vector<unsigned> HDF5File::GetDataDimensions(std::string rPath) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasIntDataType(std::string rPath) const
+bool HDF5File::HasIntDataType(std::string Path) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
+    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
     KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
         << "H5Dget_type failed." << std::endl;
@@ -229,11 +239,11 @@ bool HDF5File::HasIntDataType(std::string rPath) const
     KRATOS_CATCH("");
 }
 
-bool HDF5File::HasFloatDataType(std::string rPath) const
+bool HDF5File::HasFloatDataType(std::string Path) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
+    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
     KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
         << "H5Dget_type failed." << std::endl;
@@ -266,24 +276,24 @@ std::string HDF5File::GetFileName() const
     return m_file_name;
 }
 
-void HDF5File::ReadDataSet(std::string rPath, std::vector<int>& rData, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(rPath, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string rPath, std::vector<double>& rData, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, std::vector<double>& rData, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(rPath, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string rPath, std::vector<array_1d<double, 3>>& rData, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(rPath, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
 }
 

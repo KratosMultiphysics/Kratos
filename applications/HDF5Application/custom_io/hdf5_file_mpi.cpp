@@ -69,45 +69,45 @@ HDF5FileMPI::~HDF5FileMPI()
 {
 }
 
-void HDF5FileMPI::WriteDataSet(std::string rPath, const std::vector<int>& rData)
+void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<int>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(rPath, rData);
+    WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSet(std::string rPath, const std::vector<double>& rData)
+void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<double>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(rPath, rData);
+    WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::WriteDataSet(std::string rPath, const std::vector<array_1d<double, 3>>& rData)
+void HDF5FileMPI::WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
-    WriteDataSetImpl(rPath, rData);
+    WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::ReadDataSet(std::string rPath, std::vector<int>& rData, unsigned BlockSize)
+void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(rPath, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::ReadDataSet(std::string rPath, std::vector<double>& rData, unsigned BlockSize)
+void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<double>& rData, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(rPath, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5FileMPI::ReadDataSet(std::string rPath, std::vector<array_1d<double, 3>>& rData, unsigned BlockSize)
+void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(rPath, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
 }
 
