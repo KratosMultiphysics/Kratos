@@ -658,8 +658,15 @@ private:
         MortarUtilities::MatrixValue<TVarType, THist>(MasterGeometry, mOriginVariable, var_origin_matrix);
         Matrix var_destination_matrix;
         MortarUtilities::MatrixValue<TVarType, THist>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
+     
+        const std::size_t size_1 = var_origin_matrix.size1();
+        const std::size_t size_2 = var_origin_matrix.size2();
+        if (ResidualMatrix.size1() != size_1  || ResidualMatrix.size2() !=  size_2)
+        {
+            ResidualMatrix.resize(size_1, size_2, false);
+        }
         
-        ResidualMatrix = prod(ThisMortarOperators.MOperator, var_origin_matrix) - prod(ThisMortarOperators.DOperator, var_destination_matrix);
+        noalias(ResidualMatrix) = prod(ThisMortarOperators.MOperator, var_origin_matrix) - prod(ThisMortarOperators.DOperator, var_destination_matrix);
     }
     
     /**
