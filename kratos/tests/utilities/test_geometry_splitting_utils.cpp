@@ -66,9 +66,10 @@ namespace Kratos
 
 			// Call the shape functions computation method
 			Matrix positive_side_sh_func, negative_side_sh_func;
+			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights; 
-			triangle_splitter.GetShapeFunctionValues(positive_side_sh_func, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
-			triangle_splitter.GetShapeFunctionValues(negative_side_sh_func, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
+			triangle_splitter.GetShapeFunctionsAndGradientsValues(positive_side_sh_func, positive_side_sh_func_gradients, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
+			triangle_splitter.GetShapeFunctionsAndGradientsValues(negative_side_sh_func, negative_side_sh_func_gradients, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
 
 			// Check general splitting values
 			KRATOS_CHECK(is_divided);
@@ -121,6 +122,26 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(negative_side_weights(0), 1.0/8.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_side_weights(1), 1.0/4.0, 1e-5);
 			
+			// Check Gauss pts. shape functions gradients values
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,1),  1.0, 1e-5);
+
 		}
 		
 		KRATOS_TEST_CASE_IN_SUITE(TriangleVerticalGeometrySplittingUtils, KratosCoreFastSuite)
@@ -165,10 +186,11 @@ namespace Kratos
 			
 			// Call the shape functions computation method
 			Matrix positive_side_sh_func, negative_side_sh_func;
+			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
 			Vector positive_side_weights, negative_side_weights; 
-			triangle_splitter.GetShapeFunctionValues(positive_side_sh_func, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
-			triangle_splitter.GetShapeFunctionValues(negative_side_sh_func, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
-			
+			triangle_splitter.GetShapeFunctionsAndGradientsValues(positive_side_sh_func, positive_side_sh_func_gradients, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
+			triangle_splitter.GetShapeFunctionsAndGradientsValues(negative_side_sh_func, negative_side_sh_func_gradients, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
+
 			// Check general splitting values
 			KRATOS_CHECK(is_divided);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mDivisionsNumber, 3);
@@ -219,6 +241,26 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_side_weights(0), 1.0/8.0, 1e-5);
 			KRATOS_CHECK_NEAR(negative_side_weights(1), 1.0/4.0, 1e-5);
+
+			// Check Gauss pts. shape functions gradients values
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,1),  1.0, 1e-5);
 
 		}
 		

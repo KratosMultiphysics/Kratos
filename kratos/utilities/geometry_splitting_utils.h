@@ -159,6 +159,7 @@ public:
     // General type definitions
     typedef Geometry < Node<3> >                                                  GeometryType;
     typedef GeometryData::IntegrationMethod                              IntegrationMethodType;
+    typedef typename GeometryData::ShapeFunctionsGradientsType     ShapeFunctionsGradientsType;
     
     typedef IndexedPoint                                                      IndexedPointType;
     typedef typename IndexedPoint::Pointer                             IndexedPointPointerType;
@@ -232,10 +233,11 @@ public:
     * @param rSubdivisionGeom: Subdivision point based geometry.
     * @param IntegrationMethod: Integration quadrature.
     */
-    virtual void GetShapeFunctionValues(Matrix& rShapeFunctionValues,
-                                        Vector& rWeightsValues,
-                                        const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
-                                        const IntegrationMethodType IntegrationMethod);
+    virtual void GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
+                                                     std::vector<Matrix>& rShapeFunctionsGradientsValues,
+                                                     Vector& rWeightsValues,
+                                                     const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                                     const IntegrationMethodType IntegrationMethod);
 
     ///@}
 
@@ -404,10 +406,11 @@ public:
     * @param rSubdivisionGeom: Subdivision point based geometry.
     * @param IntegrationMethod: Integration quadrature.
     */
-    void GetShapeFunctionValues(Matrix& rShapeFunctionValues,
-                                Vector& rWeightsValues,
-                                const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
-                                const IntegrationMethodType IntegrationMethod) override;
+    void GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
+                                             std::vector<Matrix>& rShapeFunctionsGradientsValues,
+                                             Vector& rWeightsValues,
+                                             const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                             const IntegrationMethodType IntegrationMethod) override;
 
     ///@}
 
