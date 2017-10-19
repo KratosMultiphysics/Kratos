@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/line_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 
@@ -27,7 +27,7 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
     
-    LineLoadCondition2D::LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
+    LineLoadCondition::LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
         : BaseLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
@@ -36,7 +36,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    LineLoadCondition2D::LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+    LineLoadCondition::LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : BaseLoadCondition( NewId, pGeometry, pProperties )
     {
     }
@@ -44,38 +44,38 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Condition::Pointer LineLoadCondition2D::Create(
+    Condition::Pointer LineLoadCondition::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
+        return boost::make_shared<LineLoadCondition>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
     //************************************************************************************
     
-    Condition::Pointer LineLoadCondition2D::Create( 
+    Condition::Pointer LineLoadCondition::Create( 
         IndexType NewId, 
         NodesArrayType const& ThisNodes,  
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return boost::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return boost::make_shared<LineLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
     
-    LineLoadCondition2D::~LineLoadCondition2D()
+    LineLoadCondition::~LineLoadCondition()
     {
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void LineLoadCondition2D::CalculateAll( 
+    void LineLoadCondition::CalculateAll( 
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -214,7 +214,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void LineLoadCondition2D::CalculateAndSubKp(
+    void LineLoadCondition::CalculateAndSubKp(
         Matrix& K,
         const Matrix& DN_De,
         const Vector& N,
@@ -257,7 +257,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void LineLoadCondition2D::CalculateAndAddPressureForce(
+    void LineLoadCondition::CalculateAndAddPressureForce(
         Vector& rRightHandSideVector,
         const Vector& N,
         const array_1d<double, 3>& Normal,
