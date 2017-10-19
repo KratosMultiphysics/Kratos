@@ -93,19 +93,11 @@ bool HDF5File::HasPath(std::string Path) const
 
     KRATOS_ERROR_IF_NOT(HDF5Utils::IsPath(Path)) << "Invalid path: " << Path << std::endl;
 
+    std::vector<std::string> splitted_path = HDF5Utils::Split(Path, '/');
     std::string sub_path;
-    decltype(Path.size()) pos = 0; /* Make sure pos has same size as
-        std::string::npos. */
-    while (pos < Path.size()) // Check each link in the path.
+    for (const auto& r_link: splitted_path)
     {
-        pos = Path.find('/', ++pos);
-        if (pos != std::string::npos)
-            sub_path = Path.substr(0, pos); // Check current subpath.
-        else
-        {
-            sub_path = Path;   // Check the complete path.
-            pos = Path.size(); // Exit on loop completion.
-        }
+        sub_path += '/' + r_link;
 
         htri_t link_found = H5Lexists(m_file_id, sub_path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(link_found < 0) << "H5Lexists failed." << std::endl;
