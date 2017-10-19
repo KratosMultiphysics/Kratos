@@ -2,14 +2,17 @@ import bisect as bi
 import numpy as np
 import h5py
 from KratosMultiphysics import *
+import json
 
 class FluidHDF5Loader:
+
     def __init__(self, fluid_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
         self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
         self.there_are_more_steps_to_load = True
+        self.pp = pp
 
         number_of_variables = 3
 
@@ -18,9 +21,9 @@ class FluidHDF5Loader:
         if pp.CFD_DEM["load_derivatives"].GetBool():
             number_of_variables += 9
 
-        self.extended_shape = self.shape + (number_of_variables,)
+        self.extended_shape = self.shape + (number_of_variables, )
 
-        self.file_name = main_path + '/box_32_history.hdf5'
+        self.file_name = main_path + '/mesh_' + str(self.n_nodes) + '_nodes.hdf5'
         self.fluid_model_part = fluid_model_part
 
         if pp.CFD_DEM["fluid_already_calculated"].GetBool():
@@ -185,3 +188,88 @@ class FluidHDF5Loader:
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
             self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
         print('Finished loading fluid from hdf5 file.\n')
+
+
+    def RecordParticlesInBox(self, particles_model_part, bb_low = [- float('inf')] * 3, bb_high = [+ float('inf')] * 3):
+        def IsInside(node):
+            is_inside = (node.X > bb_low[0] and node.X < bb_high[0])
+            is_inside = (node.Y > bb_low[1] and node.Y < bb_high[1]) and is_inside
+            is_inside = (node.Z > bb_low[2] and node.Z < bb_high[2]) and is_inside
+            return is_inside
+
+        nodes = particles_model_part.Nodes
+        n_nodes = len(nodes)
+        nodes_inside = [node for node in nodes if IsInside(node)]
+        n_nodes_inside = len(nodes_inside)
+
+        ids = np.zeros(n_nodes)
+        initial_x = np.zeros(n_nodes)
+        initial_y = np.zeros(n_nodes)
+        initial_z = np.zeros(n_nodes)
+        radii = np.zeros(n_nodes)
+
+        ids_inside = np.zeros(n_nodes_inside)
+        initial_x_inside = np.zeros(n_nodes_inside)
+        initial_y_inside = np.zeros(n_nodes_inside)
+        initial_z_inside = np.zeros(n_nodes_inside)
+        radii_inside = np.zeros(n_nodes_inside)
+
+        for i, node in enumerate(nodes):
+            ids[i] = node.Id
+            initial_x[i] = node.X0
+            initial_y[i] = node.Y0
+            initial_z[i] = node.Z0
+            radii[i] = node.GetSolutionStepValue(RADIUS)
+
+        for i, node in enumerate(nodes_inside):
+            ids_inside[i] = node.Id
+            initial_x_inside[i] = node.X0
+            initial_y_inside[i] = node.Y0
+            initial_z_inside[i] = node.Z0
+            radii_inside[i] = node.GetSolutionStepValue(RADIUS)
+
+        with h5py.File('particles_snapshot') as f:
+            current_fluid_file_name = self.file_name.split('/')[- 1]
+
+            if current_fluid_file_name in f:
+                f['/'].__delitem__(current_fluid_file_name)
+
+            current_fluid = f.create_group(current_fluid_file_name)
+
+            # storing the input parameters for this run, the one corresponding
+            # to the current pre-calculated fluid
+            for k, v in ((k, v) for k, v in json.loads(self.pp.CFD_DEM.WriteJsonString()).items() if 'comment' not in k):
+                current_fluid.attrs[k] = v
+
+            time = particles_model_part.ProcessInfo[TIME]
+            all_particles_name = 't=' + str(time) + '_all_particles'
+            snapshot_name = 't=' + str(time) + '_in_box'
+
+            if all_particles_name in f:
+                current_fluid['/'].__delitem__(all_particles_name)
+            if snapshot_name in f:
+                current_fluid['/'].__delitem__(snapshot_name)
+
+            all_particles = current_fluid.create_group(all_particles_name)
+            snapshot = current_fluid.create_group(snapshot_name)
+
+            all_particles.attrs['time'] = time
+            snapshot.attrs['time'] = time
+
+            for dset_name in ['Ids', 'initial_x', 'initial_y', 'initial_z', 'radii']:
+                if dset_name in all_particles:
+                    all_particles.__delitem__(dset_name)
+                if dset_name in snapshot:
+                    snapshot.__delitem__(dset_name)
+
+            all_particles.create_dataset(name = 'Id', data = ids)
+            all_particles.create_dataset(name = 'X0', data = initial_x)
+            all_particles.create_dataset(name = 'Y0', data = initial_y)
+            all_particles.create_dataset(name = 'Z0', data = initial_z)
+            all_particles.create_dataset(name = 'RADIUS', data = radii)
+
+            snapshot.create_dataset(name = 'Id', data = ids_inside)
+            snapshot.create_dataset(name = 'X0', data = initial_x_inside)
+            snapshot.create_dataset(name = 'Y0', data = initial_y_inside)
+            snapshot.create_dataset(name = 'Z0', data = initial_z_inside)
+            snapshot.create_dataset(name = 'RADIUS', data = radii_inside)
