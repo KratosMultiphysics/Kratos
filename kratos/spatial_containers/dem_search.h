@@ -117,9 +117,9 @@ class RadiusPoint
 
       SpatialSearch::ElementPointerType pNaseElem;
 
-      void operator=(Point<Dimension> const& Other){
+      void operator=(Point const& Other){
          for(std::size_t i = 0; i < Dimension; i++)
-            coord[i] = Other.coord[i];
+            coord[i] = Other[i];
       }
 };
 

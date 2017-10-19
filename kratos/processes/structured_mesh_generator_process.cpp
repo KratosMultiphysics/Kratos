@@ -92,8 +92,8 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::Generate2DMesh() {
-		Point<3> min_point(1.00, 1.00, 1.00);
-		Point<3> max_point(-1.00, -1.00, -1.00);
+		Point min_point(1.00, 1.00, 1.00);
+		Point max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
 
 		GenerateNodes2D(min_point, max_point);
@@ -102,8 +102,8 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::Generate3DMesh() {
-		Point<3> min_point(1.00, 1.00, 1.00);
-		Point<3> max_point(-1.00, -1.00, -1.00);
+		Point min_point(1.00, 1.00, 1.00);
+		Point max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
 
 		GenerateNodes3D(min_point, max_point);
@@ -111,12 +111,12 @@ namespace Kratos
 		GenerateTetrahedraElements();
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint) {
+	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
 		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
-		Point<3> local_coordinates = rMinPoint;
-		Point<3> global_coordinates = ZeroVector(3);
+		Point local_coordinates = rMinPoint;
+		Point global_coordinates = ZeroVector(3);
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
@@ -132,11 +132,11 @@ namespace Kratos
 		}
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateNodes3D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint) {
+	void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
-		Point<3> local_coordinates = rMinPoint;
-		Point<3> global_coordinates = ZeroVector(3);
+		Point local_coordinates = rMinPoint;
+		Point global_coordinates = ZeroVector(3);
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {
@@ -210,7 +210,7 @@ namespace Kratos
 		return mStartNodeId + (K * (mNumberOfDivisions + 1) * (mNumberOfDivisions + 1)) + (J * (mNumberOfDivisions + 1)) + I;
 	}
 
-    void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point<3>& rMinPoint, Point<3>& rMaxPoint) {
+    void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint) {
 		const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Matrix geometry_points_local_coordinates;
 		mrGeometry.PointsLocalCoordinates(geometry_points_local_coordinates);
@@ -265,7 +265,7 @@ namespace Kratos
 
         constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 1,3,2 }},{{ 1,4,3 }} };
 
-        std::vector<Point<3>::Pointer> my_points(3);
+        std::vector<Point::Pointer> my_points(3);
         double min_area = 1.0;
 
         for (std::size_t i_case = 0; i_case < number_of_cases; i_case++) {
@@ -273,11 +273,11 @@ namespace Kratos
             for (std::size_t i_position = 0; i_position < 3; i_position++)
             {
                 auto& cell_point = cell_points[connectivity[i_position]];
-                Point<3>::Pointer pPi(new Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                Point::Pointer pPi(new Point(cell_point[0], cell_point[1], cell_point[2]));
                 my_points[i_position] = pPi;
             }
 
-            Triangle2D3<Point<3> > trial_triangle(my_points[0], my_points[1], my_points[2]);
+            Triangle2D3<Point > trial_triangle(my_points[0], my_points[1], my_points[2]);
             min_area = std::min(min_area, trial_triangle.DomainSize());
         }
 
@@ -298,7 +298,7 @@ namespace Kratos
 
         constexpr tetrahedra_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 0,3,6,2 }},{{ 3,6,7,0 }},{{ 4,7,6,0 }},
                                                                                                {{ 0,4,5,6 }},{{ 0,1,2,6 }},{{ 1,5,6,0 }} };
-        std::vector<Point<3>::Pointer> my_points(4);
+        std::vector<Point::Pointer> my_points(4);
         double min_volume = 1.0;
 
         for (std::size_t i_case = 0; i_case < number_of_cases; i_case++) {
@@ -306,11 +306,11 @@ namespace Kratos
             for (std::size_t i_position = 0; i_position < 4; i_position++)
             {
                 auto& cell_point = cell_points[connectivity[i_position]];
-                Point<3>::Pointer pPi(new Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                Point::Pointer pPi(new Point(cell_point[0], cell_point[1], cell_point[2]));
                 my_points[i_position] = pPi;
             }
 
-            Tetrahedra3D4<Point<3> > trial_tetra(my_points[0], my_points[1], my_points[2], my_points[3]);
+            Tetrahedra3D4<Point > trial_tetra(my_points[0], my_points[1], my_points[2], my_points[3]);
             min_volume = std::min(min_volume, trial_tetra.DomainSize());
         }
 
