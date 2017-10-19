@@ -607,18 +607,19 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension);
 
-      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 
+      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 	
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int j = 0; j < number_of_nodes; j++) {
             for (unsigned int k = 0; k < dimension; k++) {
                for (unsigned int l = 0; l < dimension; l++) {
-                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l) += SmallMatrix( i*dimension+k, j*dimension+l);
+                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l) -= SmallMatrix( i*dimension+k, j*dimension+l);
                }
             }
          }
       }
 
+	
 
       KRATOS_CATCH("")
    }
@@ -632,60 +633,31 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+
       unsigned int dofs_per_node = dimension * 2;
+      unsigned int shear_size=1;
+      if (dimension == 3) shear_size=3;
+      unsigned int mat_B2_size = 2*dimension+shear_size;
 
-      Matrix B2 = ZeroMatrix(dimension, number_of_nodes*dimension);
-      CalculateB2Matrix( B2, rVariables.DN_DX );
+      Matrix B2 = ZeroMatrix(mat_B2_size, number_of_nodes*(2*dimension));
+      CalculateB2Matrix( B2, rVariables.DN_DX );   //No valdria para 3D PNA
 
-      Matrix Q = ZeroMatrix(dimension, dimension);
-      double Bulk = 1e+6; // to be changed LMV.
+      Matrix Q = ZeroMatrix(mat_B2_size, mat_B2_size);
+      double Bulk = 1e+8; // to be changed LMV.
       // PNA necessary the implementation of current porosity
       for (unsigned int i = 0; i < dimension; i++)
-         for (unsigned int j = 0; j < dimension; j++)
+         for (unsigned int j = 0; j < dimension; j++){
             Q(i,j) = Bulk;
+	    Q(dimension+shear_size+i,j) = Bulk;
+	    Q(i,dimension+shear_size+j) = Bulk;
+            Q(dimension+shear_size+i,dimension+shear_size+j) = Bulk;
+         }
 
-      Matrix SmallMatrix( number_of_nodes*dimension, number_of_nodes*dimension);
+      Matrix SmallMatrix( number_of_nodes*dofs_per_node, number_of_nodes*dofs_per_node);
       noalias( SmallMatrix ) = prod( trans(B2), rIntegrationWeight * Matrix( prod( Q, B2) ) );
+      rLeftHandSide -= SmallMatrix;
 
-      for (unsigned int i = 0; i < number_of_nodes; i++) {
-         for (unsigned int j = 0; j < number_of_nodes; j++) {
-            for (unsigned int k = 0; k < dimension; k++) {
-               for (unsigned int l = 0; l < dimension; l++) {
-                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l) += SmallMatrix( i*dimension+k, j*dimension+l);
-               }
-            }
-         }
-      }
-
-      for (unsigned int i = 0; i < number_of_nodes; i++) {
-         for (unsigned int j = 0; j < number_of_nodes; j++) {
-            for (unsigned int k = 0; k < dimension; k++) {
-               for (unsigned int l = 0; l < dimension; l++) {
-                  rLeftHandSide( i*dofs_per_node + k + dimension, j*dofs_per_node + l) += SmallMatrix( i*dimension+k, j*dimension+l);
-               }
-            }
-         }
-      }
-
-      for (unsigned int i = 0; i < number_of_nodes; i++) {
-         for (unsigned int j = 0; j < number_of_nodes; j++) {
-            for (unsigned int k = 0; k < dimension; k++) {
-               for (unsigned int l = 0; l < dimension; l++) {
-                  rLeftHandSide( i*dofs_per_node + k, j*dofs_per_node + l + dimension) += SmallMatrix( i*dimension+k, j*dimension+l);
-               }
-            }
-         }
-      }
-      for (unsigned int i = 0; i < number_of_nodes; i++) {
-         for (unsigned int j = 0; j < number_of_nodes; j++) {
-            for (unsigned int k = 0; k < dimension; k++) {
-               for (unsigned int l = 0; l < dimension; l++) {
-                  rLeftHandSide( i*dofs_per_node + k + dimension, j*dofs_per_node + l+dimension) += SmallMatrix( i*dimension+k, j*dimension+l);
-               }
-            }
-         }
-      }
-
+	std::cout << "Kel_con agua = " << rLeftHandSide << std::endl;
 
       KRATOS_CATCH("")
    }
@@ -703,10 +675,14 @@ namespace Kratos
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-         rB2( 0, i*dimension) = rDN_DX(i,0);
-         rB2( 1, i*dimension) = rDN_DX(i,1);
-         if ( dimension == 3) 
-            rB2( 2, i*dimension) = rDN_DX(i,2);
+	if ( dimension == 2){
+         rB2( 0, i*2*dimension) = rDN_DX(i,0);
+         rB2( 1, i*2*dimension+1) = rDN_DX(i,1);
+         rB2( 2, i*2*dimension+1) = rDN_DX(i,0);
+         rB2( 2, i*2*dimension) = rDN_DX(i,1);
+         rB2( dimension+1, i*2*dimension+2) = rDN_DX(i,0);
+         rB2( dimension+2, i*2*dimension+3) = rDN_DX(i,1);
+	}
       }
 
 
@@ -799,7 +775,8 @@ namespace Kratos
       Vector StressVector = ZeroVector( voigt_size);
       for (unsigned int i = 0; i < dimension; i++)
          StressVector(i) -= WaterPressure;
-
+      
+      //std::cout << "B = " << rVariables.B << std::endl;
       VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), StressVector );
 
 
@@ -833,7 +810,7 @@ namespace Kratos
          }
       }
 
-      double Bulk = 1e+6; // to be changed LMV.
+      double Bulk = 1e+8; // to be changed LMV.
 
       rWaterPressure = - Bulk * ( divU + divW);
 
@@ -935,14 +912,16 @@ namespace Kratos
       ElementVariables Variables;
       this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
+      
 
-
-      double CurrentPermeability = 1e-3; // LMV !!
+      double CurrentPermeability = 1e-6; // LMV !!
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
+	 
+	 //std::cout << "N = " << Variables.N << std::endl;
 
          //getting informations for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -952,7 +931,7 @@ namespace Kratos
          //compute point volume change
          double PointVolumeChange = 0;
          PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
-
+	
 
          for ( unsigned int i = 0; i < number_of_nodes; i++ )
          {
