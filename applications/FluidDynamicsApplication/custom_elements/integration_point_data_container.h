@@ -24,24 +24,25 @@
 #include "fluid_element_data.h"
 
 #define FLUID_ELEMENT_VARIABLES(MACRO_TO_APPLY) \
-MACRO_TO_APPLY(mVelocityHandler,VELOCITY,NodalVectorType) \
-MACRO_TO_APPLY(mPressureHandler,PRESSURE,NodalScalarType)
+MACRO_TO_APPLY(VELOCITY,NodalVectorType) \
+MACRO_TO_APPLY(PRESSURE,NodalScalarType)
 
+#define MEMBER_NAME(Variable) m ## Variable ## Handler
 
-#define DECLARE_CLASS_MEMBER_FOR_HANDLER(Name,Variable,Handler) \
-private: Handler Name;
+#define DECLARE_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
+private: HandlerType MEMBER_NAME(Variable);
 
-#define DEFINE_GET_FUNCTION_FOR_HANDLER(Name,Variable,Handler) \
-public: Handler& Get##Variable() \
+#define DEFINE_GET_FUNCTION_FOR_HANDLER(Variable,HandlerType) \
+public: HandlerType& Get##Variable() \
 { \
-    return Name; \
+    return MEMBER_NAME(Variable); \
 }
 
-#define CONSTRUCT_CLASS_MEMBER_FOR_HANDLER(Name,Variable,Handler) \
-Name(Variable),
+#define CONSTRUCT_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
+MEMBER_NAME(Variable) (Variable), // mHandlerName(Variable),
 
-#define INITIALIZE_HANDLER(Name,Variable,Handler) \
-Name.Initialize(rElement,rProcessInfo);
+#define INITIALIZE_HANDLER(Variable,HandlerType) \
+MEMBER_NAME(Variable).Initialize(rElement,rProcessInfo);
 
 
 
