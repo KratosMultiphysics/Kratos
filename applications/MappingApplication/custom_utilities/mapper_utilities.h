@@ -295,21 +295,21 @@ public:
 
         // check destination bbox corner points in origin bbox
         // check lower point
-        Point<3> point_to_check_1(bbox_destination[1], bbox_destination[3], bbox_destination[5]);
+        Point point_to_check_1(bbox_destination[1], bbox_destination[3], bbox_destination[5]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_origin_tol[0], point_to_check_1))
             return true;
         // check higher point
-        Point<3> point_to_check_2(bbox_destination[0], bbox_destination[2], bbox_destination[4]);
+        Point point_to_check_2(bbox_destination[0], bbox_destination[2], bbox_destination[4]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_origin_tol[0], point_to_check_2))
             return true;
 
         // check origin bbox corner points in destination bbox
         // check lower point
-        Point<3> point_to_check_3(bbox_origin[1], bbox_origin[3], bbox_origin[5]);
+        Point point_to_check_3(bbox_origin[1], bbox_origin[3], bbox_origin[5]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_destination_tol[0], point_to_check_3))
             return true;
         // check higher point
-        Point<3> point_to_check_4(bbox_origin[0], bbox_origin[2], bbox_origin[4]);
+        Point point_to_check_4(bbox_origin[0], bbox_origin[2], bbox_origin[4]);
         if (MapperUtilities::PointIsInsideBoundingBox(&bbox_destination_tol[0], point_to_check_4))
             return true;
 
@@ -317,7 +317,7 @@ public:
     }
 
     static bool PointIsInsideBoundingBox(double* BoundingBox,
-                                         const Point<3>& rPoint)
+                                         const Point& rPoint)
     {   // The Bounding Box should have some tolerance already!
         bool is_inside = false;
         if (rPoint.X() < BoundingBox[0] && rPoint.X() > BoundingBox[1])   // check x-direction

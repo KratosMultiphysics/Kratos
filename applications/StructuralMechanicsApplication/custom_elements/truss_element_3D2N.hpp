@@ -1,53 +1,37 @@
-// ==============================================================================
-/*
-TRUSS_ELEMENT_3D2N
-Main author: Klaus B. Sautter
-klaus.sautter@tum.de
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
-
-/* ****************************************************************************
-*  Projectname:         $TRUSS_ELEMENT_3D2N
-*  Last Modified by:    $Author: klaus.sautter@tum.de $
-*  Date:                $Date: April 2017 $
-*  Revision:            $Revision: 1.0 $
-* ***************************************************************************/
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:     BSD License
+//           license: structural_mechanics_application/license.txt
+//
+//  Main authors: Klaus B. Sautter
+//                   
+//                   
+//
 
 #if !defined(KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED
 
+// System includes
 
+// External includes
+
+// Project includes
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 
 namespace Kratos
 {
-
 	class TrussElement3D2N : public Element
 	{
+	private:
+		//const values
+		static constexpr int msNumberOfNodes = 2;
+		static constexpr int msDimension = 3;
+		static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
 
@@ -91,7 +75,7 @@ namespace Kratos
 
 		void Initialize() override;
 
-		MatrixType CreateElementStiffnessMatrix();
+		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
@@ -103,10 +87,8 @@ namespace Kratos
 			std::vector<double>& rValues,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		void UpdateInternalForces(
-			VectorType& rinternalForces);
-		void CreateTransformationMatrix(
-			Matrix& rRotationMatrix);
+		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
+		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 		double CalculateCurrentLength();
 
 		void CalculateOnIntegrationPoints(
@@ -167,16 +149,20 @@ namespace Kratos
 		double CalculateGreenLagrangeStrain();
 		double CalculateReferenceLength();
 
-		VectorType CalculateBodyForces();  
+		bounded_vector<double,msLocalSize> CalculateBodyForces();  
 
 		bool ReturnIfIsCable();
 
+		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
+		void CalculateElasticStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
 
 
 	private:
 		bool mIsCompressed;
 		bool mIsLinearElement = false;
-
 		TrussElement3D2N() {};
 
 		friend class Serializer;
