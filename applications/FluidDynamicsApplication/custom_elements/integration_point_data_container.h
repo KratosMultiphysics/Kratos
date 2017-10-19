@@ -78,6 +78,12 @@ public:
 
     }
 
+    /// (deleted) assignment operator.
+    IntegrationPointDataContainer& operator=(IntegrationPointDataContainer const& rOther) = delete;
+
+    /// (deleted) copy constructor.
+    IntegrationPointDataContainer(IntegrationPointDataContainer const& rOther) = delete;
+
     ///@}
     ///@name Public members
     ///@{
@@ -100,18 +106,6 @@ public:
 private:
 
     const int dummy;
-
-private:
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    IntegrationPointDataContainer& operator=(IntegrationPointDataContainer const& rOther);
-
-    /// Copy constructor.
-    IntegrationPointDataContainer(IntegrationPointDataContainer const& rOther);
-
-    ///@}
 
 }; // struct IntegrationPointDataContainer
 
