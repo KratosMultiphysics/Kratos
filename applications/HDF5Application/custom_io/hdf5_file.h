@@ -79,6 +79,8 @@ public:
     ///@{
 
     /// Constructor.
+    HDF5File() : m_file_id(-1) {}
+
     HDF5File(Parameters& rParams);
 
     // Copy constructor.
@@ -212,7 +214,7 @@ private:
         constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
         constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
 
-        // Check file's data set dimensions.
+        // Check consistency of file's data set dimensions.
         std::vector<unsigned> file_space_dims = GetDataDimensions(Path);
         KRATOS_ERROR_IF(file_space_dims.size() != ndims) << "Invalid data set dimension." << std::endl;
         KRATOS_ERROR_IF(BlockSize > file_space_dims[0])

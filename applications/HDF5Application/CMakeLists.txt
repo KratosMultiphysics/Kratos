@@ -19,6 +19,7 @@ set(HDF5_USE_STATIC_LIBRARIES OFF)
 if(MPI_NEEDED)
   message(STATUS "Searching for parallel HDF5 libraries.")
   set(HDF5_PREFER_PARALLEL ON)
+  set(KRATOS_HDF5_APPLICATION_SOURCES ${KRATOS_HDF5_APPLICATION_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_mpi.cpp)
 else()
   message(STATUS "Searching for serial HDF5 libraries.")
 endif()
@@ -37,6 +38,20 @@ if(MPI_NEEDED)
         OR (HDF5_LIBRARY_DIRS MATCHES ".*openmpi.*"))
       add_definitions(-DOMPI_SKIP_MPICXX)
     endif()
+    ##################################################################
+    # If cmake configures another application using HDF5 in serial,
+    # the find_library() used in FindHDF5.cmake may find the serial
+    # version of libhdf5.so even though the directory passed with
+    # HINTS is for the parallel version. If the other application
+    # cannot be switched off, a workaround is to call find_library
+    # with NO_CMAKE_PATH:
+    #    find_library(HDF5_LIBRARY
+    #                 NAMES "hdf5"
+    #                 HINTS ${HDF5_C_LIBRARY_DIRS}
+    #                 ENV HDF5_ROOT
+    #                 PATH_SUFFIXES lib Lib 
+    #                 NO_CMAKE_PATH)
+    ##################################################################
   else()
     message(FATAL_ERROR "Parallel HDF5 libraries were not found.")
   endif()
