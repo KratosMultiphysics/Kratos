@@ -23,9 +23,27 @@
 #include "fluid_dynamics_application_variables.h"
 #include "fluid_element_data.h"
 
-#define FLUID_ELEMENT_VARIABLES \
-APPLY_TO_VARIABLE(mVelocityHandler,VELOCITY,NodalVectorType) \
-APPLY_TO_VARIABLE(mPressureHandler,PRESSURE,NodalScalarType)
+#define FLUID_ELEMENT_VARIABLES(MACRO_TO_APPLY) \
+MACRO_TO_APPLY(mVelocityHandler,VELOCITY,NodalVectorType) \
+MACRO_TO_APPLY(mPressureHandler,PRESSURE,NodalScalarType)
+
+
+#define DECLARE_CLASS_MEMBER_FOR_HANDLER(Name,Variable,Handler) \
+private: Handler Name;
+
+#define DEFINE_GET_FUNCTION_FOR_HANDLER(Name,Variable,Handler) \
+public: Handler& Get##Variable() \
+{ \
+    return Name; \
+}
+
+#define CONSTRUCT_CLASS_MEMBER_FOR_HANDLER(Name,Variable,Handler) \
+Name(Variable),
+
+#define INITIALIZE_HANDLER(Name,Variable,Handler) \
+Name.Initialize(rElement,rProcessInfo);
+
+
 
 namespace Kratos
 {
@@ -52,18 +70,13 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-
-    #define APPLY_TO_VARIABLE(Name,Variable,Handler) Name(Variable),
     
     IntegrationPointDataContainer():
-    FLUID_ELEMENT_VARIABLES
+    FLUID_ELEMENT_VARIABLES(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER)
     dummy(0)
     {
 
     }
-
-    #undef APPLY_TO_VARIABLE
 
     ///@}
     ///@name Public members
@@ -75,27 +88,15 @@ public:
     ///@{
 
     void Initialize(Element& rElement, const ProcessInfo& rProcessInfo) {
-        #define APPLY_TO_VARIABLE(Name,Variable,Handler) Name.Initialize(rElement,rProcessInfo);
-        FLUID_ELEMENT_VARIABLES
-        #undef APPLY_TO_VARIABLE
+        FLUID_ELEMENT_VARIABLES(INITIALIZE_HANDLER)
     }
 
     ///@}
 
-    #define APPLY_TO_VARIABLE(Name,Variable,Handler) private: Handler Name;
-    FLUID_ELEMENT_VARIABLES
-    #undef APPLY_TO_VARIABLE
+    FLUID_ELEMENT_VARIABLES(DECLARE_CLASS_MEMBER_FOR_HANDLER)
 
-    #define APPLY_TO_VARIABLE(Name,Variable,Handler) public: \
-    Handler& Get##Variable() \
-    { \
-        return Name; \
-    }
-
-    FLUID_ELEMENT_VARIABLES
+    FLUID_ELEMENT_VARIABLES(DEFINE_GET_FUNCTION_FOR_HANDLER)
     
-    #undef APPLY_TO_VARIABLE
-
 private:
 
     const int dummy;
@@ -121,5 +122,10 @@ private:
 } // namespace Kratos.
 
 #undef FLUID_ELEMENT_VARIABLES
+
+#undef DECLARE_CLASS_MEMBER_FOR_HANDLER
+#undef DEFINE_GET_FUNCTION_FOR_HANDLER
+#undef CONSTRUCT_CLASS_MEMBER_FOR_HANDLER
+#undef INITIALIZE_HANDLER
 
 #endif // KRATOS_INTEGRATION_POINT_DATA_CONTAINER_H_INCLUDED  defined
