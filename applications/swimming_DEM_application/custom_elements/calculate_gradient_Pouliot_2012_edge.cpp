@@ -138,7 +138,6 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
         for (unsigned int i = 0; i < TDim; ++i){
             //F(TDim * node_e + i) += 2.0 * h_edge_inv * le[i] * vel_component_variation_along_edge;
             F(TDim * node_e + i) = 2.0 * h_edge_inv_2 * le[i] * vel_component_variation_along_edge;
-            KRATOS_WATCH(vel_component_variation_along_edge)
         }
     }
     KRATOS_CATCH("");
