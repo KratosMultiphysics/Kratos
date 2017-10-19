@@ -342,6 +342,10 @@ namespace Kratos
       {
          CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
       }
+      else if ( rVariable == WATER_PRESSURE )
+      {
+         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      }
       else{
 
          UpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
@@ -404,6 +408,19 @@ namespace Kratos
          {
             rOutput[PointNumber] = 1.0 - (1.0 - InitialPorosity) / DetF0[PointNumber] ;
          }
+      } else if (rVariable == WATER_PRESSURE ) {
+         if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize( mConstitutiveLawVector.size() );
+
+         ElementVariables Variables;
+         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+         const unsigned int PointNumber = 0;
+         this->CalculateKinematics( Variables, PointNumber );
+
+         double WaterPressure = this->CalculateGaussPointWaterPressure( Variables, WaterPressure);
+
+         rOutput[PointNumber] = WaterPressure;
+      
       }
       else if ( rVariable == VOID_RATIO) {
 
