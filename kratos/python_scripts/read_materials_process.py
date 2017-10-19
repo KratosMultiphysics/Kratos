@@ -117,12 +117,20 @@ class ReadMaterialsProcess(Process):
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
             var = self._GetItemFromModule(key)
-            if value.IsMatrix():
+            if value.IsDouble():
+                prop.SetValue( var, value.GetDouble() )
+            elif value.IsInt():
+                prop.SetValue( var, value.GetInt() )
+            elif value.IsBool():
+                prop.SetValue( var, value.GetBool() )
+            elif value.IsString():
+                prop.SetValue( var, value.GetString() )
+            elif value.IsMatrix():
                 prop.SetValue( var, value.GetMatrix() )
             elif value.IsVector():
                 prop.SetValue( var, value.GetVector() )
             else:
-                prop.SetValue( var, value.GetDouble() )
+                raise ValueError("Type of value is not available")
 
         # Add / override tables in the properties
         for key, table in mat["Tables"].items():
