@@ -87,7 +87,7 @@ public:
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
-
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -336,6 +336,66 @@ private:
             {
                 #pragma omp atomic
                 it_cond->GetGeometry()[i].GetValue(NODAL_AREA) += rArea;
+            }
+        }
+    }
+    
+    /**
+     * This method reset the destiantion variable
+     */
+    void ResetVariable()
+    {
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
+        
+        // We set to zero
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(SLAVE) == true) 
+            {
+                MortarUtilities::ResetValue<TVarType, THist>(*(it_node.base()), mDestinationVariable);
+            }
+        }
+    }
+    
+    /**
+     * This method reset the auxiliar variable
+     */
+    void ResetAuxiliarVariable()
+    {
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
+        
+        // We set to zero
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(SLAVE) == true)
+            {
+                MortarUtilities::ResetAuxiliarValue<TVarType>(*(it_node.base()));
+            }
+        }
+    }
+    
+    /**
+     * This method reset the auxiliar variable
+     */
+    void CopyAuxiliarVariable()
+    {
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
+        
+        // We set to zero
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(SLAVE) == true) 
+            {
+                MortarUtilities::CopyAuxiliarValue<TVarType, THist>(*(it_node.base()), mDestinationVariable);
             }
         }
     }
@@ -754,17 +814,11 @@ private:
         ComputeNodalArea();
         
         // We set to zero the variables
-        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
-        {
-            auto it_cond = mrThisModelPart.ConditionsBegin() + i;
-            
-            if (it_cond->Is(SLAVE) == true)
-            {
-                GeometryType& slave_geometry = it_cond->GetGeometry();
-                MortarUtilities::ResetValue<TVarType, THist>(slave_geometry, mDestinationVariable);
-            }
-        }
+        ResetVariable();
         
+        // Getting the auxiliar variable
+        const TVarType& aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
+
         // Creating the assemble database
         std::size_t size_system;
         std::unordered_map<int, int> inverse_conectivity_database;
@@ -790,6 +844,9 @@ private:
         
         while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations)
         {
+            // We reset the auxiliar variable
+            ResetAuxiliarVariable();
+            
             // We reset the RHS
             if (iteration > 0)
             {
@@ -864,10 +921,14 @@ private:
 //                             BoundedMatrixType inverse_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(this_mortar_operators.DOperator, aux_det);
                             const Matrix solution_matrix = prod(inverse_D_operator, residual_matrix);
                             MortarUtilities::AddAreaWeightedValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
+//                             MortarUtilities::AddAreaWeightedValue<TVarType, NonHistorical>(slave_geometry, aux_variable, solution_matrix);
                         }
                     }
                 }
             }
+            
+            // We copy the auxiliar variable
+//             CopyAuxiliarVariable();
             
             // Finally we compute the residual
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
@@ -912,16 +973,7 @@ private:
         unsigned int iteration = 0;
         
         // We set to zero the variables
-        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
-        {
-            auto it_cond = mrThisModelPart.ConditionsBegin() + i;
-            
-            if (it_cond->Is(SLAVE) == true)
-            {
-                GeometryType& slave_geometry = it_cond->GetGeometry();
-                MortarUtilities::ResetValue<TVarType, THist>(slave_geometry, mDestinationVariable);
-            }
-        }
+        ResetVariable();
         
         // Creating the assemble database
         std::size_t size_system;
