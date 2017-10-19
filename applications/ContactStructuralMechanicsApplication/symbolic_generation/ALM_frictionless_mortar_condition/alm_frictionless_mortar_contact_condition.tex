@@ -130,7 +130,7 @@ g_n \geq 0 \text{ , } p_n \leq 0 \text{ , } p_n g_n = 0 \text{ on } \Gamma_c^{(i
 \end{center}
 \end{figure}
 
-In the course of deriving a weak formulation, the balance of linear momentum at the unilateral contact problem  for the interface $\Gamma_c^{(i)}$ is typically exploited and a \textit{Lagrange multiplier} vector field $\boldsymbol{\lambda}_n$ is introduced, thus setting the basis for a mixed variational approach. Unilateral contact constraints are typically
+In the course of deriving a weak formulation, the balance of linear momentum at the unilateral contact problem  for the interface $\Gamma_c^{(i)}$ is typically exploited and a \textit{Lagrange multiplier} vector field $\lambda_n$ is introduced, thus setting the basis for a mixed variational approach. Unilateral contact constraints are typically
 formulated (and later also numerically evaluated) in the current configuration.
 
 \subsection{Weak formulation}
@@ -147,7 +147,7 @@ weighting spaces $\mathbfcal{V}^{(i)}$ need to be defined as \eqref{eq:eq7}.
  \end{cases}
 \end{equation}
 
-Additionally the \textit{Lagrange multiplier} vector $\boldsymbol{\lambda}_n = -\mathbf{t}_c^{(1)}$, which enforce the unilateral contact constraint\eqref{eq:eq6}, represents the negative slave side contact traction $\mathbf{t}_c^{(1)}$, is chosen from a corresponding solution space denoted as $\mathbfcal{M}$.%chosen the convex cone $\mathbfcal{M}(\boldsymbol{\lambda}) \subset \mathbfcal{M}$ given by \eqref{eq:eq7_5}. \textonehalf TODO: This is for the frinctional case
+Additionally the \textit{Lagrange multiplier} vector $\boldsymbol{\lambda}_n = \lambda_n \cdot \mathbf{n} = -\mathbf{t}_c^{(1)}$, which enforce the unilateral contact constraint\eqref{eq:eq6}, represents the negative slave side contact traction $\mathbf{t}_c^{(1)}$, is chosen from a corresponding solution space denoted as $\mathbfcal{M}$.%chosen the convex cone $\mathbfcal{M}(\boldsymbol{\lambda}) \subset \mathbfcal{M}$ given by \eqref{eq:eq7_5}. \textonehalf TODO: This is for the frictional case
 
 % \begin{equation}\label{eq:eq7_5}
 %  \mathbfcal{M}(\boldsymbol{\lambda}) \left\{  \right\}
@@ -155,23 +155,23 @@ Additionally the \textit{Lagrange multiplier} vector $\boldsymbol{\lambda}_n = -
 
 In terms of its classification in functional analysis, this space represents the dual space of the trace space $\mathbfcal{W}^{(1)}$ of $\mathbfcal{V}^{(1)}$. In the given context, this means that $\mathcal{M} = H^{−1/2} (\Gamma_c)$ and $\mathcal{W}^{(1)} = H^{1/2} (\Gamma_c)$, where $\mathcal{M}$  and $\mathcal{W}^{(1)}$ denote single scalar components of the corresponding vector-valued spaces $\mathbfcal{M}$ and $\mathbfcal{W}$.
 
-Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of non-linear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\boldsymbol{\lambda}_n \in \mathbfcal{M}$ such that we obtain \eqref{eq:eqfunct0}, than once derived \eqref{eq:eqfunct}.
+Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of non-linear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\lambda_n \in \mathbfcal{M}$ such that we obtain \eqref{eq:eqfunct0}, than once derived \eqref{eq:eqfunct}.
 
 \begin{subequations}
 \begin{equation}\label{eq:eqfunct0}
- \delta \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \int_{\Gamma_c^{(1)}} \boldsymbol{\lambda}_n \cdot \mathbf{g}_n \text{d}A_0
+ \delta \mathcal{W}^{co}(\mathbf{u},\lambda_n) = \int_{\Gamma_c^{(1)}} \lambda_n \cdot g_n \text{d}A
 \end{equation}
 
-Where $\mathbf{g}_n$ is the continuous normal gap, that can be defined as \eqref{eq:eqgap}.
+Where $g_n$ is the continuous normal gap, that can be defined as \eqref{eq:eqgap}.
 
 \begin{equation}\label{eq:eqgap}
- \mathbf{g}_n = \int_{\Gamma_c^{(1)}} \mathbf{n}^{(1)}\cdot\left( \mathbf{u}^{(1)} - \mathbf{u}^{(2)}\right) \text{d}A_0
+ g_n = \mathbf{n}^{(1)}\cdot\left( \mathbf{u}^{(1)} - \mathbf{u}^{(2)}\right)
 \end{equation}
 \end{subequations}
 
 \begin{subequations}\label{eq:eqfunct}
  \begin{align}
-\delta\mathcal{W}(\mathbf{u},\boldsymbol{\lambda}_n) = \delta\mathcal{W}_\mathbfcal{V} + \delta\mathcal{W}_\mathbfcal{M} & \\
+\delta\mathcal{W}(\mathbf{u},\lambda_n) = \delta\mathcal{W}_\mathbfcal{V} + \delta\mathcal{W}_\mathbfcal{M} & \\
 \delta\mathcal{W}_\mathbfcal{V} = -\delta \mathcal{W}_{kin}(\mathbf{u}^{(i)},\delta \mathbf{u}^{(i)}) - \delta \mathcal{W}_{int,ext}(\mathbf{u}^{(i)},\delta \mathbf{u}^{(i)}) & - \delta\mathcal{W}_{co}(\boldsymbol{\lambda}^{(i)},\delta \mathbf{u}^{(i)}) = 0 \text{ } \forall \delta \mathbf{u}^{(i)} \in  \mathbfcal{V} \label{eq:subeq8} \\ 
 \delta\mathcal{W}_\mathbfcal{M} = & - \delta\mathcal{W}_{\lambda}(\mathbf{u}^{(i)},\delta \boldsymbol{\lambda}^{(i)}) \geq 0 \text{ } \forall \delta \boldsymbol{\lambda}^{(i)} \in  \mathbfcal{M} \label{eq:subeq9}
  \end{align}
@@ -181,10 +181,10 @@ Herein, the kinetic contribution $\delta \mathcal{W}_{kin}$ , the internal and e
 
 \begin{subequations}\label{eq:constributions}
  \begin{align}
-  & -\delta \mathcal{W}_{kin} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \rho_0^{(i)} \ddot{\mathbf{u}}^{(i)} \cdot \delta \mathbf{u}^{(i)} \text{d}V_0\right] \label{eq:subeq10} \\
- & -\delta \mathcal{W}_{int,ext} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \left(\mathbf{S}^{(i)} : \delta \mathbf{E}^{(i)} - \hat{\mathbf{b}}\cdot \delta\mathbf{u}^{(i)} \right) \text{d}V_0 - \int_{\Gamma_\sigma^{(i)}} \hat{\mathbf{t}}_0^{(i)}\cdot\delta\mathbf{u}^{(i)} \text{d}A_0 \right] \label{eq:subeq11} \\
- & -\delta \mathcal{W}_{co} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \boldsymbol{\lambda}_n \cdot \delta\mathbf{g}_n \text{d}A_0\right] \label{eq:subeq12} \\ 
- & -\delta \mathcal{W}_{\lambda} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \delta \boldsymbol{\lambda}_n \cdot \mathbf{g}_n \text{d}A_0\right] \label{eq:subeq13}
+  & -\delta \mathcal{W}_{kin} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \rho_0^{(i)} \ddot{\mathbf{u}}^{(i)} \cdot \delta \mathbf{u}^{(i)} \text{d}V\right] \label{eq:subeq10} \\
+ & -\delta \mathcal{W}_{int,ext} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \left(\mathbf{S}^{(i)} : \delta \mathbf{E}^{(i)} - \hat{\mathbf{b}}\cdot \delta\mathbf{u}^{(i)} \right) \text{d}V - \int_{\Gamma_\sigma^{(i)}} \hat{\mathbf{t}}_0^{(i)}\cdot\delta\mathbf{u}^{(i)} \text{d}A \right] \label{eq:subeq11} \\
+ & -\delta \mathcal{W}_{co} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \lambda_n \cdot \delta g_n \text{d}A\right] \label{eq:subeq12} \\ 
+ & -\delta \mathcal{W}_{\lambda} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \delta \lambda_n \cdot g_n \text{d}A\right] \label{eq:subeq13}
  \end{align}
 \end{subequations}
 
@@ -199,10 +199,10 @@ As compared with the mesh tying case, it is noticeable that the weak formulation
 One of the main disadvantages of the standard \textit{Lagrange multiplier} is the saddle point problem that appears in the formulation. For solving that, an \textbf{Augmented Lagrangian} method to solve contact problems with friction was proposed by \textit{Alart and Curnier}\cite{alart} based on a reformulation of the contact and friction laws into a system
 of equations without inequalities. 
 
-Focusing in the functional relative to the contact ($\mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \mathcal{W}^{co}_\mathbfcal{V} + \mathcal{W}_\mathbfcal{M}$), we can rewrite \eqref{eq:eqfunct0} as \eqref{eq:eqalmfunct0}.
+Focusing in the functional relative to the contact ($\mathcal{W}^{co}(\mathbf{u},\lambda_n) = \mathcal{W}^{co}_\mathbfcal{V} + \mathcal{W}_\mathbfcal{M}$), we can rewrite \eqref{eq:eqfunct0} as \eqref{eq:eqalmfunct0}.
 
 \begin{equation}\label{eq:eqalmfunct0}
- \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} k \boldsymbol{\lambda}_n \cdot \mathbf{g}_n  + \frac{\varepsilon}{2} \mathbf{g}_n^2 - \frac{1}{2\varepsilon} \langle k \boldsymbol{\lambda}_n + \varepsilon \mathbf{g}_n \rangle^2\text{d}A_0\right]
+ \mathcal{W}^{co}(\mathbf{u},\lambda_n) = \int_{\Gamma_c^{(1)}} k \lambda_n \cdot g_n  + \frac{\varepsilon}{2} g_n^2 - \frac{1}{2\varepsilon} \langle k \lambda_n + \varepsilon g_n \rangle^2\text{d}A
 \end{equation}
 
 Where $\varepsilon$ is a positive penalty parameter, $k$ is a positive scale factor, and $\langle \rangle$ is the \textit{Macauley} bracket operator, that is \eqref{eq:eqmac}.
@@ -269,13 +269,13 @@ The solution does not depend on the value of parameters $\varepsilon$ and $k$. N
 The functional \eqref{eq:eqalmfunct0} can be separated in two different parts, as can be seen in \eqref{eq:eqalmfunct1}.
 
 \begin{equation}\label{eq:eqalmfunct1}
-  \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \sum_{i = 1}^2 \int_{\Gamma_c^{(i)}} \begin{cases}  k \boldsymbol{\lambda}_n \cdot \mathbf{g}_n  + \frac{\varepsilon}{2} \mathbf{g}_n^2 \text{d}A_0 & \text{ if } k\boldsymbol{\lambda}_n +\varepsilon \mathbf{g}_n \leq 0 \text{ (Contact zone)} \\ - \frac{k}{2\varepsilon} \boldsymbol{\lambda}_n^2   & \text{ if } k\boldsymbol{\lambda}_n +\varepsilon \mathbf{g}_n > 0 \text{ (Gap zone)} \end{cases}\text{d}A_0 
+  \mathcal{W}^{co}(\mathbf{u},\lambda_n) = \int_{\Gamma_c^{(1)}} \begin{cases}  k \lambda_n \cdot g_n  + \frac{\varepsilon}{2} g_n^2 \text{d}A & \text{ if } k\lambda_n +\varepsilon g_n \leq 0 \text{ (Contact zone)} \\ - \frac{k}{2\varepsilon} \lambda_n^2   & \text{ if } k\lambda_n +\varepsilon g_n > 0 \text{ (Gap zone)} \end{cases}\text{d}A 
 \end{equation}
 
-Finally we can derive \eqref{eq:eqalmfunct1} to obtain the variational form from \eqref{eq:eqalmfunct2}, where to simplify we define the augmented normal pressure $\hat{\boldsymbol{\lambda}}_{n} = k\boldsymbol{\lambda}_n +\varepsilon \mathbf{g}_n $.
+Finally we can derive \eqref{eq:eqalmfunct1} to obtain the variational form from \eqref{eq:eqalmfunct2}, where to simplify we define the augmented normal pressure $\hat{\boldsymbol{\lambda}}_{n} = k\lambda_n +\varepsilon g_n $.
 
 \begin{equation}\label{eq:eqalmfunct2}
-  \delta \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \sum_{i = 1}^2 \int_{\Gamma_c^{(i)}}\begin{cases}  \hat{\boldsymbol{\lambda}}_{n} \cdot \delta\mathbf{g}_n + k \mathbf{g}_n \delta\boldsymbol{\lambda}_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} \leq 0 \text{ (Contact zone)} \\  - \frac{k^2}{\varepsilon} \boldsymbol{\lambda}_n \delta\boldsymbol{\lambda}_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} > 0 \text{ (Gap zone)} \end{cases} \text{d}A_0 
+  \delta \mathcal{W}^{co}(\mathbf{u},\lambda_n) = \int_{\Gamma_c^{(1)}}\begin{cases}  \hat{\boldsymbol{\lambda}}_{n} \cdot \delta g_n + k g_n \delta\lambda_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} \leq 0 \text{ (Contact zone)} \\  - \frac{k^2}{\varepsilon} \lambda_n \delta\lambda_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} > 0 \text{ (Gap zone)} \end{cases} \text{d}A 
 \end{equation}
 
 The functional from \eqref{eq:eqalmfunct2} makes that the system obtained varies in function if the nodes are present in the contact or the gap zone, so the system is not a priori known and in the following to present the numerical discretisation will focus in the solution obtained in the gap zone. Once this is derived the solution in the gap zone can be obtained in a in a straight-forward way.
@@ -295,7 +295,7 @@ The discretisations of the displacements correspond with the standard ones in th
 Details on how to define dual Lagrange multiplier shape functions $\Phi_j$ using the so-called biorthogonality relationship with the standard displacement shape functions $N_k$ have first been presented in \textit{Wohlmuth}\cite{wohlmuth}. A common notation of the biorthogonality condition is \eqref{eq:eq15}.
 
 \begin{equation}\label{eq:eq15}
- \int_{\Gamma_{c,h}^{(1)}}\Phi_j N_k^{(1)} \text{d}A_0 = \delta_{jk} \int_{\Gamma_{c,h}^{(1)}} N_k^{(1)} \text{d}A_0 \text{ , } j,k=1,...,m^{(1)}
+ \int_{\Gamma_{c,h}^{(1)}}\Phi_j N_k^{(1)} \text{d}A = \delta_{jk} \int_{\Gamma_{c,h}^{(1)}} N_k^{(1)} \text{d}A \text{ , } j,k=1,...,m^{(1)}
 \end{equation}
 
 Herein, $\delta_{jk}$ is the \textit{Kronecker} delta, and the most common choice $m^{(1)} = n^{(1)}$ is assumed. For
@@ -347,31 +347,31 @@ To define $\Delta \phi$ it is necessary to define the derivatives from \eqref{eq
 Considering the discrete \textit{Lagrange multiplier}\eqref{eq:eq14} in \eqref{eq:subeq8} we obtain \eqref{eq:eq20}, where $\chi_h$ is the interface mapping.
 
 \begin{equation}\label{eq:eq20}
- -\delta \mathcal{W}_{co,h} = \sum_{j=1}^{m^{(1)}}\sum_{k=1}^{n^{(1)}} \boldsymbol{\lambda}_{nj}^T \left(\int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)} \text{d}A_0 \right) \delta \mathbf{d}_{nk}^{(1)} -\sum_{j=1}^{m^{(1)}}\sum_{l=1}^{n^{(2)}} \boldsymbol{\lambda}_{nj}^T \left(\int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h\right) \text{d}A_0 \right) \delta \mathbf{d}_{nl}^{(2)}
+ -\delta \mathcal{W}_{co,h} = \sum_{j=1}^{m^{(1)}}\sum_{k=1}^{n^{(1)}} \boldsymbol{\lambda}_{nj}^T \left(\int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)} \text{d}A \right) \delta \mathbf{d}_{nk}^{(1)} -\sum_{j=1}^{m^{(1)}}\sum_{l=1}^{n^{(2)}} \boldsymbol{\lambda}_{nj}^T \left(\int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h\right) \text{d}A \right) \delta \mathbf{d}_{nl}^{(2)}
 \end{equation}
 
 Numerical integration of the mortar coupling terms is exclusively performed on the slave side $\Gamma_{c,h}$ of the interface. In \eqref{eq:eq20}, nodal blocks of the two mortar integral matrices commonly denoted as $\mathbf{D}$ and $\mathbf{M}$ can be identified. This leads to the following definitions \eqref{eq:eq21}.
 
  \begin{subequations}\label{eq:eq21}
  \begin{align}
- & \mathbf{D}[j,k] = D_{jk} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} = \sum_{g = 1}^{n_{gp}} w_g \phi_{gj} N_{gk}^{(1)} J_g^{(1)} \\
- & \mathbf{M}[j,l] = M_{jl} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)} = \sum_{g = 1}^{n_{gp}} w_g \phi_{gj} N_{gk}^{(2)} J_g^{(1)} 
+ & \mathbf{D}[j,k] = D_{jk} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} = \sum_{g = 1}^{n_{gp}} w_g \phi_{gj} N_{gk}^{(1)} J_g^{(1)} \\
+ & \mathbf{M}[j,l] = M_{jl} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)} = \sum_{g = 1}^{n_{gp}} w_g \phi_{gj} N_{gk}^{(2)} J_g^{(1)} 
  \end{align}
 \end{subequations}
 
 Wit these matrices we can express the functional \eqref{eq:eq20} in the following way \eqref{eq:eq22}.
 
 \begin{equation}\label{eq:eq22}
- -\delta \mathcal{W}_{co,h} = \delta \mathbf{x}_{n\mathcal{S}}^T\mathbf{D}^T\boldsymbol{\lambda}_n - \delta \mathbf{x}_{n\mathcal{M}}^T\mathbf{M}^T\boldsymbol{\lambda}_n = \delta \mathbf{x}_n \underbrace{\left[\begin{array}{c} \mathbf{0} \\ -\mathbf{M}^T \\ \mathbf{D}^T\end{array} \right]}_{\mathbf{B}^T_{co}} \boldsymbol{\lambda}_n = \delta \mathbf{x}_n^T \mathbf{f}_{co}(\boldsymbol{\lambda}_n)
+ -\delta \mathcal{W}_{co,h} = \delta \mathbf{x}_{n\mathcal{S}}^T\mathbf{D}^T\lambda_n - \delta \mathbf{x}_{n\mathcal{M}}^T\mathbf{M}^T\lambda_n = \delta \mathbf{x}_n \underbrace{\left[\begin{array}{c} \mathbf{0} \\ -\mathbf{M}^T \\ \mathbf{D}^T\end{array} \right]}_{\mathbf{B}^T_{co}} \lambda_n = \delta \mathbf{x}_n^T \mathbf{f}_{co}(\lambda_n)
 \end{equation}
 
-Herein, the discrete mortar unilateral contact operator $\mathbf{B}_{co}$ and the resulting discrete vector of unilateral contact forces $\mathbf{f}_{co} (\boldsymbol{\lambda}_n) = \mathbf{B}_{co}\boldsymbol{\lambda}_n$ acting on the slave and the master side of the interface are introduced. 
+Herein, the discrete mortar unilateral contact operator $\mathbf{B}_{co}$ and the resulting discrete vector of unilateral contact forces $\mathbf{f}_{co} (\lambda_n) = \mathbf{B}_{co}\lambda_n$ acting on the slave and the master side of the interface are introduced. 
 
 To finalize the discretisation of the considered unilateral contact problem, a closer look needs to
 be taken at the weak constraint contribution $\delta \mathcal{W}_{\lambda,h} $ in \eqref{eq:subeq9}. Due to the saddle point characteristics and resulting symmetry of the mixed variational formulation in \eqref{eq:subeq8}  and \eqref{eq:subeq9}, all discrete components of $\delta \mathcal{W}_{\lambda,h}$ have already been introduced and the final formulation is given as \eqref{eq:eq23}, with $\mathbf{g}_{n}(\mathbf{x}) = \mathbf{B}_{mt} \mathbf{x} \cdot \mathbf{n}$ representing the discrete unilateral contact constraint at the coupling interface.
 
 \begin{equation}\label{eq:eq23}
- -\delta \mathcal{W}_{\lambda,h} = \delta \boldsymbol{\lambda}_n^T\mathbf{D}\mathbf{x}_{n\mathcal{S}} - \delta \boldsymbol{\lambda}_n^T\mathbf{M}\mathbf{x}_{n\mathcal{M}}= \delta \boldsymbol{\lambda}_n^T \mathbf{B}_{mt} \mathbf{x} \cdot \mathbf{n} = \delta \boldsymbol{\lambda}_n^T \mathbf{g}_{n}(\mathbf{x})
+ -\delta \mathcal{W}_{\lambda,h} = \delta \lambda_n^T\mathbf{D}\mathbf{x}_{n\mathcal{S}} - \delta \lambda_n^T\mathbf{M}\mathbf{x}_{n\mathcal{M}}= \delta \lambda_n^T \mathbf{B}_{mt} \mathbf{x} \cdot \mathbf{n} = \delta \lambda_n^T \mathbf{g}_{n}(\mathbf{x})
 \end{equation}
 
 This discrete form of $\mathbf{g}_{n}$ can be renamed as nodal weighted gap for each node ($\tilde{g}_n$). 
@@ -383,13 +383,13 @@ To obtain a fully quadratic convergence in the computation of the contact proble
 \begin{subequations}\label{eq:eq24}
 \begin{equation}
  \begin{aligned}
- \Delta\mathbf{D}[j,k] & = \Delta D_{jk} \mathbf{I}_{ndim} = \Delta  \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} \\ 
+ \Delta\mathbf{D}[j,k] & = \Delta D_{jk} \mathbf{I}_{ndim} = \Delta  \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} \\ 
  & = \sum_{g = 1}^{n_{gp}} w_g \Delta\phi_{gj}        N_{gk}^{(1)}        J_g^{(1)} + \sum_{g = 1}^{n_{gp}} w_g       \phi_{gj} \Delta N_{gk}^{(1)}        J_g^{(1)} + \sum_{g = 1}^{n_{gp}} w_g        \phi_{gj}       N_{gk}^{(1)} \Delta J_g^{(1)} 
  \end{aligned}
  \end{equation}
  \begin{equation}
  \begin{aligned}
- \Delta\mathbf{M}[j,l]  & = \Delta M_{jl} \mathbf{I}_{ndim}  = \Delta  \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)} \\
+ \Delta\mathbf{M}[j,l]  & = \Delta M_{jl} \mathbf{I}_{ndim}  = \Delta  \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)} \\
  & = \sum_{g = 1}^{n_{gp}} w_g \Delta\phi_{gj}        N_{gk}^{(2)}        J_g^{(1)}  + \sum_{g = 1}^{n_{gp}} w_g       \phi_{gj} \Delta N_{gk}^{(2)}        J_g^{(1)}  + \sum_{g = 1}^{n_{gp}} w_g        \phi_{gj}       N_{gk}^{(2)} \Delta J_g^{(1)} 
  \end{aligned}
  \end{equation}
@@ -402,7 +402,7 @@ To obtain a fully quadratic convergence in the computation of the contact proble
 Finally, once computed the mortar operators, the resulting system for unilateral contact corresponds (for fully activated system) with \eqref{eq:eq24}.
 
 \begin{equation}\label{eq:eq24}
- \left[ \begin{array}{cccc} \mathbf{K}_{\mathcal{N}\mathcal{N}} &  \mathbf{K}_{\mathcal{N}\mathcal{M}} & \mathbf{K}_{\mathcal{N}\mathcal{S}} & \mathbf{0} \\ \mathbf{K}_{\mathcal{N}\mathcal{N}}  & \mathbf{K}_{\mathcal{M}\mathcal{M}} & \mathbf{0} & -(\mathbf{M}\cdot \mathbf{n})^{T} \\ \mathbf{K}_{\mathcal{S}\mathcal{N}} & \mathbf{0} & \mathbf{K}_{\mathcal{S}\mathcal{S}} & (\mathbf{D}\cdot \mathbf{n})^T \\ \mathbf{0} & -(\mathbf{M}\cdot \mathbf{n}) & (\mathbf{D}\cdot \mathbf{n}) & \mathbf{0}   \end{array} \right] \left[ \begin{array}{c} \Delta\mathbf{d}_{\mathcal{N}} \\ \Delta\mathbf{d}_{\mathcal{M}} \\ \Delta\mathbf{d}_{\mathcal{S}} \\ \Delta\boldsymbol{\lambda}_n \end{array} \right] = - \left[ \begin{array}{c} \mathbf{r}_{\mathcal{N}} \\ \mathbf{r}_{\mathcal{M}} \\ \mathbf{r}_{\mathcal{S}} \\ \mathbf{g}_n \end{array} \right] 
+ \left[ \begin{array}{cccc} \mathbf{K}_{\mathcal{N}\mathcal{N}} &  \mathbf{K}_{\mathcal{N}\mathcal{M}} & \mathbf{K}_{\mathcal{N}\mathcal{S}} & \mathbf{0} \\ \mathbf{K}_{\mathcal{N}\mathcal{N}}  & \mathbf{K}_{\mathcal{M}\mathcal{M}} & \mathbf{0} & -(\mathbf{M}\cdot \mathbf{n})^{T} \\ \mathbf{K}_{\mathcal{S}\mathcal{N}} & \mathbf{0} & \mathbf{K}_{\mathcal{S}\mathcal{S}} & (\mathbf{D}\cdot \mathbf{n})^T \\ \mathbf{0} & -(\mathbf{M}\cdot \mathbf{n}) & (\mathbf{D}\cdot \mathbf{n}) & \mathbf{0}   \end{array} \right] \left[ \begin{array}{c} \Delta\mathbf{d}_{\mathcal{N}} \\ \Delta\mathbf{d}_{\mathcal{M}} \\ \Delta\mathbf{d}_{\mathcal{S}} \\ \Delta\lambda_n \end{array} \right] = - \left[ \begin{array}{c} \mathbf{r}_{\mathcal{N}} \\ \mathbf{r}_{\mathcal{M}} \\ \mathbf{r}_{\mathcal{S}} \\ g_n \end{array} \right] 
 \end{equation}
 
 \subsection{Active set strategy (Semismoth Newton Raphson)}
@@ -425,7 +425,7 @@ declare function={myfunction(\r,\k)={\k*y - max(0, \k*y+\r*x)};}
             ylabel={$\lambda_n$},
             yticklabel pos=left, 
             ylabel style={font=\Large},
-            zlabel={$C_j(\mathbf{d}, \boldsymbol{\lambda}_n)$},
+            zlabel={$C_j(\mathbf{d}, \lambda_n)$},
             zticklabel pos=left, 
             zlabel style={font=\huge},
             after end axis/.code={
@@ -439,7 +439,7 @@ declare function={myfunction(\r,\k)={\k*y - max(0, \k*y+\r*x)};}
 \addplot3[surf,shader=faceted]{myfunction(1.0,1.0)};
 \addplot3[samples=30, domain=-5:0, samples y=0, thick,red,smooth]({x},{0.0},{0.0});
 \addplot3[samples=30, domain= 0:5,samples y=0, thick,red,smooth]({0.0},{x},{0.0});
-\node at (axis cs: 0.0,0.0,0.0 ) [pin=90:\normalsize{$C_j(\mathbf{d}, \boldsymbol{\lambda}_n) = 0$}] {};
+\node at (axis cs: 0.0,0.0,0.0 ) [pin=90:\normalsize{$C_j(\mathbf{d}, \lambda_n) = 0$}] {};
 \end{axis}
 \end{tikzpicture}
 \caption{Exemplary nodal \textbf{NCP} function $\hat{\boldsymbol{\lambda}}_n$ the normal part of the nodal weighted
