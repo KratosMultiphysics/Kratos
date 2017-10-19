@@ -603,7 +603,8 @@ private:
      */
     IntegrationMethod GetIntegrationMethod()
     {        
-        switch ( mThisParameters["integration_order"].GetInt() )
+        const int& integration_order = mThisParameters["integration_order"].GetInt();
+        switch ( integration_order )
         {
             case 1:
                 return GeometryData::GI_GAUSS_1;
@@ -745,6 +746,18 @@ private:
         // We compute the nodal area
         ComputeNodalArea();
         
+        // We set to zero the variables
+        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
+        {
+            auto it_cond = mrThisModelPart.ConditionsBegin() + i;
+            
+            if (it_cond->Is(SLAVE) == true)
+            {
+                GeometryType& slave_geometry = it_cond->GetGeometry();
+                MortarUtilities::ResetValue<TVarType, THist>(slave_geometry, mDestinationVariable);
+            }
+        }
+        
         // Creating the assemble database
         std::size_t size_system;
         std::unordered_map<int, int> inverse_conectivity_database;
@@ -834,7 +847,7 @@ private:
                                 {
                                     std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
                                 }
-                                if (mEchoLevel > 2) 
+                                if (mEchoLevel == 3) 
                                 {
                                     KRATOS_WATCH(norm_diff);
                                     KRATOS_WATCH(this_mortar_operators.DOperator);
@@ -852,6 +865,10 @@ private:
             // Finally we compute the residual
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
             {
+                if (mEchoLevel == 4)
+                {
+                    KRATOS_WATCH(b[i_size])
+                }
                 const double residual_norm = norm_2(b[i_size])/size_system;
                 if (iteration == 0) norm_b0[i_size] = residual_norm;
                 if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
@@ -886,6 +903,18 @@ private:
         const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
         const unsigned int max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
         unsigned int iteration = 0;
+        
+        // We set to zero the variables
+        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
+        {
+            auto it_cond = mrThisModelPart.ConditionsBegin() + i;
+            
+            if (it_cond->Is(SLAVE) == true)
+            {
+                GeometryType& slave_geometry = it_cond->GetGeometry();
+                MortarUtilities::ResetValue<TVarType, THist>(slave_geometry, mDestinationVariable);
+            }
+        }
         
         // Creating the assemble database
         std::size_t size_system;
