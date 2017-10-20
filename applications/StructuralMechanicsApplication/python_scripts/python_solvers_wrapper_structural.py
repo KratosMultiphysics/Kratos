@@ -2,22 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
-def CheckForParallelism(settings):
-    if not settings["problem_data"].Has("parallel_type"):
-        raise Exception("\"parallel_type\" is not specified in the settings, please provide it")
-
-def CheckForSolverType(settings):
-    if not settings["solver_settings"].Has("solver_type"):
-        raise Exception("\"solver_type\" is not specified in the settings, please provide it")
-
-def CheckForAnalysisType(settings):
-    if not settings["solver_settings"].Has("analysis_type"):
-        raise Exception("\"analysis_type\" is not specified in the settings, please provide it")
-
-def CheckForTimeIntegrationMethod(settings):
-    if not settings["solver_settings"].Has("time_integration_method"):
-        raise Exception("\"time_integration_method\" is not specified in the settings, please provide it")
-    
 
 def CreateSolver(main_model_part, custom_settings):
 
@@ -27,17 +11,12 @@ def CreateSolver(main_model_part, custom_settings):
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    CheckForParallelism(custom_settings)
-    CheckForSolverType(custom_settings)
-
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "dynamic"):
-            CheckForAnalysisType(custom_settings)
-            CheckForTimeIntegrationMethod(custom_settings)
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "structural_mechanics_implicit_dynamic_solver"
@@ -47,7 +26,6 @@ def CreateSolver(main_model_part, custom_settings):
                 raise Exception(err_msg)
 
         elif (solver_type == "static"):
-            CheckForAnalysisType(custom_settings)
             solver_module_name = "structural_mechanics_static_solver"
 
         elif (solver_type == "eigen_value"):
@@ -61,8 +39,6 @@ def CreateSolver(main_model_part, custom_settings):
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
         if (solver_type == "dynamic"):
-            CheckForAnalysisType(custom_settings)
-            CheckForTimeIntegrationMethod(custom_settings)
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "trilinos_structural_mechanics_implicit_dynamic_solver"
@@ -72,7 +48,6 @@ def CreateSolver(main_model_part, custom_settings):
                 raise Exception(err_msg)
 
         elif (solver_type == "static"):
-            CheckForAnalysisType(custom_settings)
             solver_module_name = "trilinos_structural_mechanics_static_solver"
 
         else:
