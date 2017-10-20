@@ -15,16 +15,14 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "utilities/geometry_splitting_utils.h"
+#include "utilities/divide_triangle_2d_3.h"
 
 namespace Kratos
 {
 	namespace Testing
 	{
 
-		KRATOS_TEST_CASE_IN_SUITE(TriangleHorizontalGeometrySplittingUtils, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Horizontal, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
 			ModelPart base_model_part("Triangle");
@@ -55,23 +53,16 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the triangle splitting utility
-			TriangleSplittingUtils triangle_splitter(r_geometry, r_elemental_distances);
+			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
-			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
+			DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
 
-			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
-
-			// Call the shape functions computation method
-			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
-			Vector positive_side_weights, negative_side_weights; 
-			triangle_splitter.GetShapeFunctionsAndGradientsValues(positive_side_sh_func, positive_side_sh_func_gradients, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
-			triangle_splitter.GetShapeFunctionsAndGradientsValues(negative_side_sh_func, negative_side_sh_func_gradients, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
+			bool is_divided = triangle_splitter.GenerateDivision(aux_points_set, positive_subdivisions, negative_subdivisions);
 
 			// Call the intersection generation method
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_interfaces, negative_interfaces;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_interfaces, negative_interfaces;
 			triangle_splitter.GenerateIntersectionsSkin(positive_interfaces, aux_points_set, positive_subdivisions);
 			triangle_splitter.GenerateIntersectionsSkin(negative_interfaces, aux_points_set, negative_subdivisions);
 
@@ -120,45 +111,9 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].X(), 0.0, 1e-5);
 			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].Y(), 0.5, 1e-5);
 
-			// Check shape functions values
-			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func(0,1), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func(0,2), 2.0/3.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(0,0), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(0,1), 1.0/2.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(0,2), 1.0/3.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(1,0), 1.0/2.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(1,1), 1.0/3.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(1,2), 1.0/6.0, 1e-5);
-			
-			// Check Gauss pts. weights
-			KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_weights(0), 1.0/8.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_weights(1), 1.0/4.0, 1e-5);
-			
-			// Check Gauss pts. shape functions gradients values
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,0), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,1), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,0),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,1),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,0),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,1),  1.0, 1e-5);
-
 		}
 		
-		KRATOS_TEST_CASE_IN_SUITE(TriangleVerticalGeometrySplittingUtils, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Vertical, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
 			ModelPart base_model_part("Triangle");
@@ -189,23 +144,16 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 			
 			// Build the triangle splitting utility
-			TriangleSplittingUtils triangle_splitter(r_geometry, r_elemental_distances);
+			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
 			
 			// Call the divide geometry method
-			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
+			DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
 			
-			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
-			
-			// Call the shape functions computation method
-			Matrix positive_side_sh_func, negative_side_sh_func;
-			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
-			Vector positive_side_weights, negative_side_weights; 
-			triangle_splitter.GetShapeFunctionsAndGradientsValues(positive_side_sh_func, positive_side_sh_func_gradients, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
-			triangle_splitter.GetShapeFunctionsAndGradientsValues(negative_side_sh_func, negative_side_sh_func_gradients, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
+			bool is_divided = triangle_splitter.GenerateDivision(aux_points_set, positive_subdivisions, negative_subdivisions);
 
 			// Call the intersection generation method
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_interfaces, negative_interfaces;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_interfaces, negative_interfaces;
 			triangle_splitter.GenerateIntersectionsSkin(positive_interfaces, aux_points_set, positive_subdivisions);
 			triangle_splitter.GenerateIntersectionsSkin(negative_interfaces, aux_points_set, negative_subdivisions);
 
@@ -254,45 +202,9 @@ namespace Kratos
 			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].X(), 0.5, 1e-5);
 			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].Y(), 0.5, 1e-5);
 			
-			// Check shape functions values
-			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func(0,1), 2.0/3.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func(0,2), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(0,0), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(0,1), 1.0/3.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(0,2), 1.0/2.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(1,0), 1.0/2.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(1,1), 1.0/6.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func(1,2), 1.0/3.0, 1e-5);
-
-			// Check Gauss pts. weights
-			KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_weights(0), 1.0/8.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_weights(1), 1.0/4.0, 1e-5);
-
-			// Check Gauss pts. shape functions gradients values
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,0), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,1), -1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,0),  1.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,1),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,0),  0.0, 1e-5);
-			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,1),  1.0, 1e-5);
-
 		}
 		
-		KRATOS_TEST_CASE_IN_SUITE(TriangleNoIntersectionGeometrySplittingUtils, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3NoDivision, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
 			ModelPart base_model_part("Triangle");
@@ -323,14 +235,14 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the triangle splitting utility
-			TriangleSplittingUtils triangle_splitter(r_geometry, r_elemental_distances);
+			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
-			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > negative_subdivisions;
+			DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions;
+			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > negative_subdivisions;
 
-			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
+			bool is_divided = triangle_splitter.GenerateDivision(aux_points_set, positive_subdivisions, negative_subdivisions);
 
 			// Check general splitting values
 			KRATOS_CHECK_IS_FALSE(is_divided);
