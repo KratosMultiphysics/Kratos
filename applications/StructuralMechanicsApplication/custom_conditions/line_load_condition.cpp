@@ -89,7 +89,7 @@ namespace Kratos
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         // Resizing as needed the LHS
-        const unsigned int mat_size = number_of_nodes * dimension;
+        const unsigned int mat_size = number_of_nodes * dimension * 2;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
@@ -200,13 +200,17 @@ namespace Kratos
             }
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                const unsigned int base = ii * dimension;
+                const unsigned int base = ii * dimension * 2;
                 for(unsigned int k = 0; k < dimension; ++k)
                 {
                     rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
                 }
             }
         }
+
+        this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(line_load,rRightHandSideVector);
+
+        KRATOS_WATCH(rRightHandSideVector);
 
         KRATOS_CATCH( "" )
     }
@@ -277,6 +281,86 @@ namespace Kratos
             rRightHandSideVector[index + 1] -= coeff * Normal[1];
         }
     }
+
+    //***********************************************************************
+    //***********************************************************************
+
+    void LineLoadCondition::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+        const Vector ForceInput, VectorType& rRightHandSideVector)
+        {
+            KRATOS_TRY;
+            const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            //calculate orthogonal load vector
+            Vector GeometricOrientation = ZeroVector(dimension);
+            GeometricOrientation[0] = this->GetGeometry()[1].X() 
+                - this->GetGeometry()[0].X();
+            GeometricOrientation[1] = this->GetGeometry()[1].Y() 
+                - this->GetGeometry()[0].Y();
+            if (dimension == 3)
+            {
+                GeometricOrientation[2] = this->GetGeometry()[1].Z() 
+                    - this->GetGeometry()[0].Z();
+            }
+   
+            const double VectorNormA = MathUtils<double>::Norm(GeometricOrientation);
+            if (VectorNormA != 0.00) GeometricOrientation /= VectorNormA;
+    
+            Vector LineLoadDir = ZeroVector(dimension);
+            for (int i = 0; i < dimension; ++i)
+            {
+                LineLoadDir[i] = ForceInput[i];
+            }
+    
+            const double VectorNormB = MathUtils<double>::Norm(LineLoadDir);
+            if (VectorNormB != 0.00) LineLoadDir /= VectorNormB;
+    
+            double cosAngle = 0.00;
+            for (int i = 0; i < dimension; ++i)
+            {
+                cosAngle += LineLoadDir[i] * GeometricOrientation[i];
+            }
+    
+            const double sinAngle = sqrt(1.00 - (cosAngle*cosAngle));
+            const double NormForceVectorOrth = sinAngle * VectorNormB;
+    
+    
+            Vector NodeA = ZeroVector(dimension);
+            NodeA[0] = this->GetGeometry()[0].X();
+            NodeA[1] = this->GetGeometry()[0].Y();
+            if (dimension == 3)	NodeA[2] = this->GetGeometry()[0].Z();
+    
+            Vector NodeB = ZeroVector(dimension);
+            NodeB = NodeA + LineLoadDir;
+    
+            Vector NodeC = ZeroVector(dimension);
+            NodeC = NodeA + (GeometricOrientation*cosAngle);
+    
+            Vector LoadOrthogonalDir = ZeroVector(dimension);
+            LoadOrthogonalDir = NodeB - NodeC;
+            const double VectorNormC = MathUtils<double>::Norm(LoadOrthogonalDir);
+            if(VectorNormC != 0.00) LoadOrthogonalDir /= VectorNormC;
+    
+    
+    
+            // now caluclate respective work equivilent nodal moments
+    
+            const double CustomMoment = NormForceVectorOrth *
+                VectorNormA*VectorNormA / 12.00;
+    
+            Vector MomentNodeA = ZeroVector(dimension);
+            MomentNodeA = MathUtils<double>::CrossProduct(GeometricOrientation,
+                LoadOrthogonalDir);
+            MomentNodeA *= CustomMoment;
+    
+            for (int i = 0; i < dimension; ++i)
+            {
+                rRightHandSideVector[(1 * dimension) + i] += MomentNodeA[i];
+                rRightHandSideVector[(3 * dimension) + i] -= MomentNodeA[i];
+            }
+    
+            KRATOS_CATCH("")            
+        }
+
 
 } // Namespace Kratos
 

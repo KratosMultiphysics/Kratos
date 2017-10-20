@@ -175,6 +175,8 @@ protected:
         const double IntegrationWeight 
         );
 
+    void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+        const Vector ForceInput, VectorType& rRightHandSideVector);
     ///@}
     ///@name Protected  Access
     ///@{

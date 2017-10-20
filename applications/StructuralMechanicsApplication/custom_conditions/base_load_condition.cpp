@@ -68,9 +68,9 @@ namespace Kratos
         
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim * NumberOfNodes)
+        if (rResult.size() != dim * NumberOfNodes * 2)
         {
-            rResult.resize(dim*NumberOfNodes,false);
+            rResult.resize(dim*NumberOfNodes * 2,false);
         }
 
         const unsigned int pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
@@ -79,19 +79,24 @@ namespace Kratos
         {
             for (unsigned int i = 0; i < NumberOfNodes; ++i)
             {
-                const unsigned int index = i * 2;
+                const unsigned int index = i * 4;
                 rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+                rResult[index + 2] = GetGeometry()[i].GetDof(ROTATION_X,pos + 2).EquationId();
+                rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_Y,pos + 3).EquationId();
             }
         }
         else
         {
             for (unsigned int i = 0; i < NumberOfNodes; ++i)
             {
-                const unsigned int index = i * 3;
+                const unsigned int index = i * 6;
                 rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
                 rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
+                rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X,pos + 3).EquationId();
+                rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y,pos + 4).EquationId();
+                rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z,pos + 5).EquationId();
             }
         }
         KRATOS_CATCH("")
@@ -109,7 +114,7 @@ namespace Kratos
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
         ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim * NumberOfNodes);
+        ElementalDofList.reserve(dim * NumberOfNodes * 2);
 
         if(dim == 2)
         {
@@ -117,6 +122,8 @@ namespace Kratos
             {
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_X));
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Y));
             }
         }
         else
@@ -126,6 +133,9 @@ namespace Kratos
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_X));
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Y));
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Z));
             }
         }
         KRATOS_CATCH("")
@@ -141,7 +151,7 @@ namespace Kratos
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        const unsigned int MatSize = NumberOfNodes * dim * 2;
         
         if (rValues.size() != MatSize)
         {
@@ -151,10 +161,12 @@ namespace Kratos
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            const array_1d<double, 3 > & Rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
             unsigned int index = i * dim;
             for(unsigned int k = 0; k < dim; ++k)
             {
                 rValues[index + k] = Displacement[k];
+                rValues[index + k + dim] = Rotation[k];
             }
         }
     }
@@ -169,7 +181,7 @@ namespace Kratos
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        const unsigned int MatSize = NumberOfNodes * dim * 2;
         
         if (rValues.size() != MatSize)
         {
@@ -179,10 +191,12 @@ namespace Kratos
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double, 3 > & AngularVelocity = GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
             const unsigned int index = i * dim;
             for(unsigned int k = 0; k<dim; ++k)
             {
                 rValues[index + k] = Velocity[k];
+                rValues[index + k + dim] = AngularVelocity[k];
             }
         }
     }
@@ -197,7 +211,7 @@ namespace Kratos
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        const unsigned int MatSize = NumberOfNodes * dim * 2;
         
         if (rValues.size() != MatSize)
         {
@@ -207,10 +221,12 @@ namespace Kratos
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double, 3 > & AngularAcceleration = GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
             const unsigned int index = i * dim;
             for(unsigned int k = 0; k < dim; ++k)
             {
                 rValues[index + k] = Acceleration[k];
+                rValues[index + k] = AngularAcceleration[k];
             }
         }
     }
