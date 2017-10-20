@@ -164,6 +164,7 @@ public:
     typedef IndexedPoint                                                      IndexedPointType;
     typedef typename IndexedPoint::Pointer                             IndexedPointPointerType;
     typedef Geometry < IndexedPoint >                                 IndexedPointGeometryType;
+    typedef Geometry < IndexedPoint >::Pointer                 IndexedPointGeometryPointerType;
     typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
     typedef IndexedPointsContainerType::iterator                     IndexedPointsIteratorType;
 
@@ -224,19 +225,30 @@ public:
      * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
      */
     virtual bool DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                                std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
-                                std::vector < IndexedPointGeometryType >& rNegativeSubdivisions);
+                                std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
+                                std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions);
 
     /**
-    * Returns the shape function values in any element subdivision for a given quadrature.
+     * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
+     * @return rInterfacesVector: Reference to a std::vector containing the generated interface geometries.
+     * @param rSubdivisionsVector: std::vector of subdivisions point based geometries to its intersection geometries.
+     */
+    virtual void GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
+                                           IndexedPointsContainerType& rAuxPoints,
+                                           const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector);
+
+    /**
+    * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
     * @return rShapeFunctionValues: Matrix containing the computed shape function values.
-    * @param rSubdivisionGeom: Subdivision point based geometry.
-    * @param IntegrationMethod: Integration quadrature.
+    * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
+    * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
+    * @param rSubdivisionGeom: std::vector of subdivisions point based geometries where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
     */
     virtual void GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
                                                      std::vector<Matrix>& rShapeFunctionsGradientsValues,
                                                      Vector& rWeightsValues,
-                                                     const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                                     const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector,
                                                      const IntegrationMethodType IntegrationMethod);
 
     ///@}
@@ -342,6 +354,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Line2D2 < IndexedPointType >                                IndexedPointLineType;
     typedef Triangle2D3 < IndexedPointType >                        IndexedPointTriangleType;
 
     /// Pointer definition of TriangleSplittingUtils
@@ -397,8 +410,17 @@ public:
      * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
      */
     bool DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                        std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
-                        std::vector < IndexedPointGeometryType >& rNegativeSubdivisions) override;
+                        std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
+                        std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions) override;
+
+    /**
+     * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
+     * @return rInterfacesVector: Reference to a std::vector containing the generated interface geometries.
+     * @param rSubdivisionsVector: std::vector of subdivisions point based geometries to its intersection geometries.
+     */
+    void GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
+                                   IndexedPointsContainerType& rAuxPoints,
+                                   const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector) override;
 
     /**
     * Returns the shape function values in any element subdivision for a given quadrature.
@@ -409,7 +431,7 @@ public:
     void GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
                                              std::vector<Matrix>& rShapeFunctionsGradientsValues,
                                              Vector& rWeightsValues,
-                                             const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                             const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector,
                                              const IntegrationMethodType IntegrationMethod) override;
 
     ///@}
