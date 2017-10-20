@@ -119,7 +119,6 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
     const GeometryType& rGeom = this->GetGeometry();
     const array_1d<double, 3> le = rGeom[1].Coordinates() - rGeom[0].Coordinates(); // vector from node 0 to node 1
     const double h_edge_inv_2 = 1.0 / SWIMMING_INNER_PRODUCT_3(le, le);
-    //le *= h_edge_inv;
 
     double vel_component_variation_along_edge;
 
@@ -139,7 +138,6 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
         for (unsigned int i = 0; i < TDim; ++i){
             //F(TDim * node_e + i) += 2.0 * h_edge_inv * le[i] * vel_component_variation_along_edge;
             F(TDim * node_e + i) = 2.0 * h_edge_inv_2 * le[i] * vel_component_variation_along_edge;
-            KRATOS_WATCH(vel_component_variation_along_edge)
         }
     }
     KRATOS_CATCH("");
@@ -166,7 +164,13 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_Z_GRADIENT) == false)
+        Node<3> &rNode = this->GetGeometry()[i];
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z_GRADIENT_X,rNode);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z_GRADIENT_Y,rNode);
+        if (TDim == 3){
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z_GRADIENT_Z,rNode);
+        }
+        if(rNode.SolutionStepsDataHas(VELOCITY_Z_GRADIENT) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_Z_GRADIENT variable on solution step data for node ",this->GetGeometry()[i].Id());
     }
 

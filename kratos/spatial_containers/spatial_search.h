@@ -75,7 +75,7 @@ class SpatialSearch
       };
       
       /// Common Defines
-      typedef Point<Dimension, double>                          PointType;
+      typedef Point                          PointType;
      
       typedef ModelPart::ElementsContainerType                  ElementsContainerType;
       typedef ModelPart::ElementType                            ElementType;
