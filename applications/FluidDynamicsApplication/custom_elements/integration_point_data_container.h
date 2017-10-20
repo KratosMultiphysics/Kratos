@@ -117,8 +117,6 @@ public:                                                             \
     HANDLER_LIST(DEFINE_GET_FUNCTION_FOR_HANDLER)                   \
 };
 
-//#undef FLUID_ELEMENT_VARIABLES
-
 //#undef DECLARE_CLASS_MEMBER_FOR_HANDLER
 //#undef DEFINE_GET_FUNCTION_FOR_HANDLER
 //#undef CONSTRUCT_CLASS_MEMBER_FOR_HANDLER
