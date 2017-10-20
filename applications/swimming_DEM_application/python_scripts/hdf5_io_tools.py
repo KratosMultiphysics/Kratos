@@ -190,6 +190,10 @@ class FluidHDF5Loader:
         print('Finished loading fluid from hdf5 file.\n')
 
 
+# This function records the particles initial positions in an hdf5 file.
+# It records both the particles that fall within an input bounding box
+# and all the particles in the model part.
+# TO-DO: make tool to record all the particles in the creator_destructor, even when destroying some
     def RecordParticlesInBox(self, particles_model_part, bb_low = [- float('inf')] * 3, bb_high = [+ float('inf')] * 3):
         def IsInside(node):
             is_inside = (node.X > bb_low[0] and node.X < bb_high[0])
@@ -197,7 +201,7 @@ class FluidHDF5Loader:
             is_inside = (node.Z > bb_low[2] and node.Z < bb_high[2]) and is_inside
             return is_inside
 
-        nodes = particles_model_part.Nodes
+        nodes = [node for node in particles_model_part.Nodes if node.IsNot(BLOCKED)]
         n_nodes = len(nodes)
         nodes_inside = [node for node in nodes if IsInside(node)]
         n_nodes_inside = len(nodes_inside)
