@@ -185,10 +185,12 @@ class chebyshev {
             }
         }
 
+        // Uses Gershgorin disc theorem to estimate spectral radius of the
+        // matrix
         template <class Matrix>
         static scalar_type spectral_radius(const Matrix &A) {
             typedef typename backend::row_iterator<Matrix>::type row_iterator;
-            const size_t n = rows(A);
+            const ptrdiff_t n = rows(A);
 
             scalar_type emax = 0;
 
@@ -196,7 +198,7 @@ class chebyshev {
             {
                 scalar_type my_emax = 0;
 #pragma omp for nowait
-                for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+                for(ptrdiff_t i = 0; i < n; ++i) {
                     scalar_type hi = 0;
 
                     for(row_iterator a = backend::row_begin(A, i); a; ++a)

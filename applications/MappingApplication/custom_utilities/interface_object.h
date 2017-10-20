@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "mapper_utilities.h"
 #include "../mapping_application_variables.h"
 
@@ -50,10 +51,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Base Class for Searching Objects
+/** This class provides a set of functions that is used for identifying the nearest object.
+* It is needed such that the bin-search can be used with both nodes and elements/conditions
+* The bin search is implemented to work with this kind of object
+* It implements the function "EvaluateResult", which is used by the local search to determine which 
+* of the objects in teh vicinity of a point is the best search result. This function has to be 
+* implemented by all subclasses. It cannot be made pure virtual, because for remote searching,
+* objects of this type have to be created
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceObject : public Point<3>
+class InterfaceObject : public Point
 {
 public:
     ///@name Type Definitions
@@ -77,13 +85,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // TODO hide constructors that are only called from the derived classes
-    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)    // Default Constructor /TODO maybe delete zeros
-    {
-        SetInitialValuesToMembers();
-    }
-
-    InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z)   // constuct from coordinates
+    InterfaceObject(double X, double Y, double Z) : Point(X, Y, Z)   // constuct from coordinates
     {
         SetInitialValuesToMembers();
     }
@@ -109,20 +111,7 @@ public:
 
     bool IsInBoundingBox(double* pBoundingBox[])
     {
-        // xmax, xmin,  ymax, ymin,  zmax, zmin
-        bool is_inside = false;
-
-        if (this->X() < *pBoundingBox[0] && this->X() > *pBoundingBox[1])   // check x-direction
-        {
-            if (this->Y() < *pBoundingBox[2] && this->Y() > *pBoundingBox[3])   // check y-direction
-            {
-                if (this->Z() < *pBoundingBox[4] && this->Z() > *pBoundingBox[5])   // check z-direction
-                {
-                    is_inside = true;
-                }
-            }
-        }
-        return is_inside;
+        return MapperUtilities::PointIsInsideBoundingBox(*pBoundingBox, this->Coordinates());;
     }
 
     void ProcessSearchResult(const double Distance, const int PairingStatus, const int Rank)
@@ -253,6 +242,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    int mEchoLevel = 0;
 
     ///@}
     ///@name Protected Operators
@@ -262,6 +252,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    // This constructor is called by its derived classes
+    InterfaceObject() : Point(0.0f, 0.0f, 0.0f)
+    {
+        SetInitialValuesToMembers();
+    }
 
     void SetInitialValuesToMembers()
     {
@@ -324,6 +320,23 @@ private:
     int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
     int mNeighborRank;
     bool mIsBeingSent;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
+    }
 
     ///@}
     ///@name Private Operators

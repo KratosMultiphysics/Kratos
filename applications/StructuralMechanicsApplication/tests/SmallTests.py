@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+import Kratos_Execute_Structural_Test as Execute_Test
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -44,8 +44,7 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
 class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
-
-
+    
 class DynamicBossakTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_bossak_test"
 
@@ -127,31 +126,45 @@ class ULThreeDTensionTetraPatchTest(StructuralMechanichsTestFactory):
 class SprismMembranePatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_membrane_test"
 
-
 class SprismBendingPatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_bending_test"
-
-
-class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
-
-
-class ShellQ4ThickDrillingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
-
-
-class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
-
-
-class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
-
 
 class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 
-
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
     
+class Eigen3D3NThinCircleTests(StructuralMechanichsTestFactory):
+    file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
+    
+class Fofi4PointTentnoCableTests(StructuralMechanichsTestFactory):
+    file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"
+	
+class Fofi4PointTentCableTests(StructuralMechanichsTestFactory):
+    file_name = "formfinding_test/Fofi_4Point_Tent_Cable_test"	
+    
+class MembraneQ4PointLoadTests(StructuralMechanichsTestFactory):
+    file_name = "membrane_test/Membrane_Q4_PointLoad_test"
+    
+class MembraneQ4TrussPointLoadTests(StructuralMechanichsTestFactory):
+    file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"  
+  
+class Simple3D2NTrussTest(StructuralMechanichsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_test"
+    
+class Simple3D2NTrussLinearTest(StructuralMechanichsTestFactory):
+    file_name = "truss_test/linear_3D2NTruss_test"
+
+class Simple3D2NTrussDynamicTest(StructuralMechanichsTestFactory):
+    file_name = "truss_test/dynamic_3D2NTruss_test"
+
+class Simple3D2NBeamCrTest(StructuralMechanichsTestFactory):
+    file_name = "beam_test/nonlinear_3D2NBeamCr_test"
+     
+class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
+    file_name = "beam_test/linear_3D2NBeamCr_test"
+    
+class Simple3D2NBeamCrDynamicTest(StructuralMechanichsTestFactory):
+    file_name = "beam_test/dynamic_3D2NBeamCr_test"  
+

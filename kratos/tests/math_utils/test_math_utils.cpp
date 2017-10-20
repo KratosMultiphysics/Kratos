@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -131,7 +131,7 @@ namespace Kratos
             
             double det = MathUtils<double>::GeneralizedDet(mat23);
             
-            KRATOS_CHECK_NEAR(det, 0.0, tolerance);
+            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
             Matrix mat55 = ZeroMatrix(5, 5);
             mat55(0,0) =   1.0;
@@ -387,6 +387,39 @@ namespace Kratos
                     }
                 }
             }
+            
+            i_dim = 5;
+            mat.resize(i_dim, i_dim, false);
+            
+            mat = ZeroMatrix(5, 5);
+            mat(0,0) =   1.0;
+            mat(1,1) =   1.0;
+            mat(2,2) =   1.0;
+            mat(3,3) =   1.0;
+            mat(2,3) = - 1.0;
+            mat(3,2) =   1.0;
+            mat(4,4) =   2.0;
+
+            MathUtils<double>::InvertMatrix(mat,inv, det);
+            
+            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+            
+            I = prod(inv, mat);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
+            {
+                for (unsigned int j = 0; j < i_dim; j++)
+                {
+                    if (i == j) 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                    }
+                }
+            }
         }
         
         /** Checks if it calculates correctly the inverse of a non square matrix
@@ -515,7 +548,6 @@ namespace Kratos
             }
             
             KRATOS_CHECK_EQUAL(converged, true);
-            
         }
         
         /** Checks if it calculates the dot product 

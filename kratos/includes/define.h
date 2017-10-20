@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand 
+//  Main authors:    Pooyan Dadvand
 //
 
 #if !defined(KRATOS_DEFINE_H_INCLUDED )
@@ -330,10 +330,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Condition >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-
-
-
-
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
@@ -349,7 +345,18 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
 
-
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
+    scope().attr(#flag) = boost::ref(flag)      \
+ 
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
 
 namespace Kratos
@@ -403,10 +410,6 @@ typedef const char* PointerToConstCharType;
 
 #define KRATOS_TRACE(A,B)
 #endif
-
-#define KRATOS_TRIANGULAR_MEMBRANE_ELEMENT_INCLUDED
-#define KRATOS_QUADRILATERAL_DIFFUSION_CONVECTION_ELEMENT_INCLUDED
-#define KRATOS_TETRAHEDRAL_HEAT_CONDUCTIVITY_ELEMENT_INCLUDED
 
 #define KRATOS_WATCH(variable) \
   std::cout << #variable << " : " << variable << std::endl;

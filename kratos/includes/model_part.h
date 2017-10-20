@@ -251,11 +251,11 @@ public:
     ModelPart(std::string const& NewName, IndexType NewBufferSize);
 
     /// Copy constructor.
-    ModelPart(ModelPart const& rOther);
+    explicit ModelPart(ModelPart const& rOther);
 
 
     /// Destructor.
-    virtual ~ModelPart();
+    ~ModelPart() override;
 
 
     ///@}
@@ -1234,13 +1234,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override;
+    std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const override;
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const;
@@ -1314,9 +1314,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access

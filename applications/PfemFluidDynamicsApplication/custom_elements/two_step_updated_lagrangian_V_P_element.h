@@ -349,12 +349,12 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      std::vector< Matrix > mCurrentFgrad;
-      std::vector< Matrix > mUpdatedFgrad;
-      std::vector< Vector > mCurrentTotalCauchyStress;
-      std::vector< Vector > mCurrentDeviatoricCauchyStress;
-      std::vector< Vector > mUpdatedTotalCauchyStress;
-      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
+      /* std::vector< Matrix > mCurrentFgrad; */
+      /* std::vector< Matrix > mUpdatedFgrad; */
+      /* std::vector< Vector > mCurrentTotalCauchyStress; */
+      /* std::vector< Vector > mCurrentDeviatoricCauchyStress; */
+      /* std::vector< Vector > mUpdatedTotalCauchyStress; */
+      /* std::vector< Vector > mUpdatedDeviatoricCauchyStress; */
 
       ///@}
       ///@name Protected Operators
@@ -450,10 +450,11 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-      void ComputeMomentumMassTerm(Matrix& rMassMatrix,
-				   const ShapeFunctionsType& rN,
-				   const double Weight);
-
+      void ComputeMassMatrix(Matrix& rMassMatrix,
+			     const ShapeFunctionsType& rN,
+			     const double Weight,
+			     double& MeanValue);
+      
       void ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 				   const double Weight,
 				   double& MeanValue);
@@ -461,7 +462,6 @@ namespace Kratos
     
       void AddExternalForces( Vector& rRHSVector,
 			      const double Density,
-			      const array_1d<double,3>& rBodyForce,
 			      const ShapeFunctionsType& rN,
 			      const double Weight);
       
@@ -470,14 +470,6 @@ namespace Kratos
 			      ElementalVariables& rElementalVariables,
 			      const double Weight);
 
-      void AddDynamicForces(Vector& rRHSVector,
-			    const double Weight,
-			    const double TimeStep);
-
-      void AddDeviatoricInternalForces( Vector& rRHSVector,
-					const ShapeFunctionDerivativesType& rDN_DX,
-					ElementalVariables& rElementalVariables,
-					const double Weight);
 
       virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
@@ -488,20 +480,24 @@ namespace Kratos
 						 double& MeanValueMass,
 						 const double TimeStep){};
 
-      void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
-					  MatrixType& rDampingMatrix,
-					  const ShapeFunctionDerivativesType& rShapeDeriv,
-					  const double secondLame,
-					  const double bulkModulus,
-					  const double theta,
-					  const double Weight);
+      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+						   MatrixType StiffnessMatrix,
+						   double& meanValueStiff,
+						   double& bulkCoefficient,
+						   double timeStep){};
+
+      void ComputeCompleteTangentTerm(ElementalVariables& rElementalVariables,
+				      MatrixType& rDampingMatrix,
+				      const ShapeFunctionDerivativesType& rShapeDeriv,
+				      const double secondLame,
+				      const double bulkModulus,
+				      const double theta,
+				      const double Weight);
 	
       virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-						   const ShapeFunctionsType& rN,
 						   const double Weight){};
       
       virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
-						   const ShapeFunctionsType& rN,
 						   const double Weight){};
 
       virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
@@ -526,14 +522,20 @@ namespace Kratos
 					      const ShapeFunctionDerivativesType& rShapeDeriv,
 					      const double Weight){};
       
-      virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-					const ProcessInfo& rCurrentProcessInfo,
-					unsigned int g){return true;};
+      bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+				const ProcessInfo& rCurrentProcessInfo,
+				const ShapeFunctionDerivativesType& rDN_DX,
+				unsigned int g);
 
       bool CalcStrainRate(ElementalVariables & rElementalVariables,
 			  const ProcessInfo& rCurrentProcessInfo,
-			  unsigned int g,
+			  const ShapeFunctionDerivativesType& rDN_DX,
 			  const double theta);
+
+      bool CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
+				  const ProcessInfo& rCurrentProcessInfo,
+				  const ShapeFunctionDerivativesType& rDN_DX,
+				  const double theta);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
 			  MatrixType &FgradVel,
@@ -572,10 +574,7 @@ namespace Kratos
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
 
-      void CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
-						  double &NormalAcceleration,
-						  double &NormalProjSpatialDefRate,
-						  const double TimeStep);
+      double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
 
       void CheckStrain1(double &VolumetricDefRate,
 			MatrixType &SpatialVelocityGrad);
@@ -587,7 +586,6 @@ namespace Kratos
       bool CheckStrain3(VectorType &SpatialDefRate,
 			MatrixType &SpatialVelocityGrad);
 
-      bool CheckSliverElements();
 	
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
@@ -613,7 +611,6 @@ namespace Kratos
       virtual void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
 						 const double Tau,
 						 const double Density,
-						 const array_1d<double,3> BodyForce,
 						 const double Weight,
 						 const ShapeFunctionDerivativesType& rDN_DX,
 						 const SizeType i){};
@@ -735,6 +732,7 @@ namespace Kratos
 					std::vector<TValueType>& rOutput)
 	{
 	  unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
+	  /* unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_4); */
 	  rOutput.resize(NumValues);
 	  /*
 	    The cast is done to avoid modification of the element's data. Data modification

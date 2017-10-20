@@ -70,9 +70,9 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.OUTLET, True)
 
         # Construct the base process AssignValueProcess
-        import experimental_assign_value_process
-        self.aux_pressure_process = experimental_assign_value_process.AssignValueProcess(Model, pres_settings)
-        self.aux_external_pressure_process = experimental_assign_value_process.AssignValueProcess(Model, ext_pres_settings)
+        import assign_scalar_variable_process
+        self.aux_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, pres_settings)
+        self.aux_external_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, ext_pres_settings)
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -96,6 +96,12 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
     # Private methods section
     def _AddOutletHydrostaticComponent(self):
+        # Initialize body force value (avoid segfault in MPI if the local mesh has no outlet nodes)
+        body_force = KratosMultiphysics.Vector(3)
+        body_force[0] = 0.0
+        body_force[1] = 0.0
+        body_force[2] = 0.0
+
         # Get the body force value
         for node in self.outlet_model_part.Nodes:
             body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)

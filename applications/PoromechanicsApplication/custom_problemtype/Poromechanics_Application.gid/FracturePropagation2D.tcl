@@ -143,19 +143,6 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     puts $FileVar1 "\}"
     
     close $FileVar1
-
-    ## Start gid_preferences.ini file
-    set filename [file join $dir gid_preferences.ini]
-    set FileVar2 [open $filename w]
-        
-    puts $FileVar2 "GID_OMP_NUM_THREADS [GiD_Set GID_OMP_NUM_THREADS]"
-    puts $FileVar2 "AutomaticCorrectSizes [GiD_Set -meshing_parameters_model AutomaticCorrectSizes]"
-    puts $FileVar2 "SizeTransitionsFactor [GiD_Set -meshing_parameters_model SizeTransitionsFactor]"
-    puts $FileVar2 "BoundaryWeightedTransition [GiD_Set -meshing_parameters_model BoundaryWeightedTransition]"
-    puts $FileVar2 "SurfaceMesher [GiD_Set -meshing_parameters_model SurfaceMesher]"
-    puts $FileVar2 "VolumeMesher [GiD_Set -meshing_parameters_model VolumeMesher]"
-    
-    close $FileVar2
 }
 
 proc GenerateNewFractures { dir problemtypedir PropagationData } {
@@ -196,7 +183,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             set ConditionValues "true [lindex [lindex $Groups 0] 4] [lindex [lindex $Groups 0] 5] [lindex [lindex $Groups 0] 6] [lindex [lindex $Groups 0] 7] \
             [lindex [lindex $Groups 0] 8] [lindex [lindex $Groups 0] 9] [lindex [lindex $Groups 0] 10] [lindex [lindex $Groups 0] 11] [lindex [lindex $Groups 0] 12]\
             [lindex [lindex $Groups 0] 13] [lindex [lindex $Groups 0] 14] [lindex [lindex $Groups 0] 15] [lindex [lindex $Groups 0] 16] [lindex [lindex $Groups 0] 17]\
-            0.0 [lindex [lindex $Groups 0] 19]"
+            0.0 [lindex [lindex $Groups 0] 19] [lindex [lindex $Groups 0] 20] [lindex [lindex $Groups 0] 21]"
             GiD_AssignData condition Interface_Part groups $ConditionValues $LinkInterfaceGroup
         }
     }
@@ -433,9 +420,9 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             GiD_EntitiesGroups assign [lindex $BodySurfaceGroups $i] surfaces $NewBodySurfaceId
         }
         
-        GiD_Process Mescape Meshing ElemType [dict get $BodySurface ElemType] $NewBodySurfaceId escape
+        GiD_Process Mescape Meshing ElemType [dict get $BodySurface ElemType] $NewBodySurfaceId escape escape
         if {[dict get $BodySurface MeshSize] > 0.0} {
-            GiD_Process Mescape Meshing AssignSizes Surfaces [dict get $BodySurface MeshSize] $NewBodySurfaceId escape
+            GiD_Process Mescape Meshing AssignSizes Surfaces [dict get $BodySurface MeshSize] $NewBodySurfaceId escape escape
         }
 
         dict set BodySurfacesDict $NewBodySurfaceId Groups [dict get $BodySurface Groups]
@@ -455,7 +442,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
     }
     
     # Generate New Mesh
-    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Preferences
+    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Model Mescape
 
     ## Update FracturesData.json file
     set filename [file join $dir FracturesData.json]

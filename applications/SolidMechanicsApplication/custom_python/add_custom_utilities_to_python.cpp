@@ -31,37 +31,55 @@
 #include "custom_utilities/energy_utilities.h"
 #include "custom_utilities/isotropic_damage_utilities.hpp"
 
+#include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
+
+
 namespace Kratos
 {
 
-namespace Python
-{
+  namespace Python
+  {
 
-// //Boundary Skin Generator
-// void GenerateSkin(ModelPart& model_part,char* ConditionName,unsigned int dimension,unsigned int preserve )
-// {
-//   GenerateBoundarySkin(model_part,KratosComponents<Condition>::Get(ConditionName),dimension,preserve);
-// }
+  inline
+  void TransferEigenvector1(
+        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
+        ModelPart& rModelPart,
+        int iEigenMode)
+  {
+    rThisUtil.Transfer(rModelPart,iEigenMode);
+  }
 
+  inline
+  void TransferEigenvector2(
+        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
+        ModelPart& rModelPart,
+        int iEigenMode,
+        int step)
+  {
+    rThisUtil.Transfer(rModelPart,iEigenMode,step);
+  }
 
+  void  AddCustomUtilitiesToPython()
+  {
 
-void  AddCustomUtilitiesToPython()
-{
+      using namespace boost::python;
 
-    using namespace boost::python;
+      class_<EnergyUtilities>("EnergyUtilities",init<>())
+	.def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
+	.def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
+	.def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
+	.def("GetGravitationalEnergy",&EnergyUtilities::GetGravitationalEnergy)
+	.def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
+	;
 
-    class_<EnergyUtilities>("EnergyUtilities",init<>())
-    .def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
-    .def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
-    .def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
-    .def("GetGravitationalEnergy",&EnergyUtilities::GetGravitationalEnergy)
-    .def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
-    ;
+      class_<EigenvectorToSolutionStepVariableTransferUtility>("EigenvectorToSolutionStepVariableTransferUtility")
+	.def("Transfer",TransferEigenvector1)
+	.def("Transfer",TransferEigenvector2)
+	;
 
+  }
 
-}
-
-}  // namespace Python.
+  }  // namespace Python.
 
 } // Namespace Kratos
 

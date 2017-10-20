@@ -780,7 +780,7 @@ namespace Kratos
                   TSystemVectorType& mDx = *mpDx;
                   TSystemVectorType& mb  = *mpb;
 
-                  LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch(this->GetEchoLevel());
+                  LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch(this->GetEchoLevel(), BaseType::MoveMeshFlag());
 
                   double ComputedAlpha = LineSearch.ExecuteLineSearch(mpBuilderAndSolver, mpScheme, this->GetModelPart(), mA, mDx, mb, rCurrentAlpha, rPreviousAlpha); 
 

@@ -347,12 +347,12 @@ public:
      */
     virtual ~NurbsPatchGeometry2D() {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Quadrilateral;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Triangle3D3;
     }
@@ -425,9 +425,9 @@ public:
 
 
 
-    typename BaseType::Pointer Create( PointerVector< Point<3> > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const 
+    typename BaseType::Pointer Create( PointerVector< Point > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const 
     {
-        return typename BaseType::Pointer( new NurbsPatchGeometry2D(PointerVector< Point<3> >(),KnotsXi, KnotsEta) );
+        return typename BaseType::Pointer( new NurbsPatchGeometry2D(PointerVector< Point >(),KnotsXi, KnotsEta) );
     }
 
 

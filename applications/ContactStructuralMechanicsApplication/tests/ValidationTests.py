@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+import Kratos_Execute_Contact_Structural_Test as Execute_Test
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -23,7 +23,7 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
+class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         # Within this location context:
@@ -42,3 +42,18 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
+
+class ALMIroningTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/ironing_test"
+    
+class ALMIroningDieTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/ironing_die_test"
+
+class LargeDisplacementPatchTestHexa(StructuralMechanichsTestFactory):
+    file_name = "mesh_tying_test/3D_contact_patch_test_large_disp_hexa"
+
+class ALMLargeDisplacementPatchTestTetra(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
+    
+class ALMLargeDisplacementPatchTestHexa(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_hexa"

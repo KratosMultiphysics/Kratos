@@ -1,20 +1,20 @@
 {
     "optimization_settings" : {
-        "objectives" : [{ 
+        "objectives" : [{
                 "identifier"    : "targetDeviation",
                 "use_kratos"    : false
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing",
             "input_model_part_name"     : "vertex_morphing_tent",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "gaussian",
-                "filter_radius"              : 5,
+                "filter_radius"              : 5.0,
                 "max_nodes_in_filter_radius" : 100,
-                "matrix_free_filtering"      : false                  
+                "matrix_free_filtering"      : false
             },
             "damping" : {
                 "perform_damping" : false,
@@ -38,7 +38,7 @@
             "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
                                           "DESIGN_UPDATE",
-                                          "SHAPE_UPDATE" ],           
+                                          "SHAPE_UPDATE" ],
             "output_format" : {
                 "name"                   : "gid",
                 "VolumeOutput"           : true,
@@ -46,7 +46,7 @@
                 "GiDWriteMeshFlag"       : true,
                 "GiDWriteConditionsFlag" : true,
                 "GiDMultiFileFlag"       : "Single"
-            }      
-        }                  
+            }
+        }
     }
 }

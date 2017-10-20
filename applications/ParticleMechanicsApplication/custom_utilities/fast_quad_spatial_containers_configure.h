@@ -27,24 +27,24 @@
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
 
 template <std::size_t TDimension>
@@ -53,7 +53,8 @@ class FastQuadSpatialContainersConfigure
 
 public:
 
-    enum {
+    enum
+    {
         Dimension = TDimension,
         DIMENSION = TDimension,
         MAX_LEVEL = 16,
@@ -63,7 +64,7 @@ public:
     /// Pointer definition of FastQuadSpatialContainersConfigure
     KRATOS_CLASS_POINTER_DEFINITION(FastQuadSpatialContainersConfigure);
 
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
@@ -90,8 +91,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    FastQuadSpatialContainersConfigure(){};
-    virtual ~FastQuadSpatialContainersConfigure(){}
+    FastQuadSpatialContainersConfigure() {};
+    virtual ~FastQuadSpatialContainersConfigure() {}
 
     ///@}
     ///@name Operators
@@ -154,18 +155,22 @@ public:
             }
         }
 
-        if (rHighPoint1[0] < rLowPoint2[0]) {
-          return false;
-		    }
-    		else if (rLowPoint1[0] > rHighPoint2[0]) {
-    			return false;
-    		}
-    		else if (rLowPoint1[1] > rHighPoint2[1]) {
-    			return false;
-    		}
-    		else if (rHighPoint1[1] < rLowPoint2[1]) {
-    			return false;
-    		}
+        if (rHighPoint1[0] < rLowPoint2[0])
+        {
+            return false;
+        }
+        else if (rLowPoint1[0] > rHighPoint2[0])
+        {
+            return false;
+        }
+        else if (rLowPoint1[1] > rHighPoint2[1])
+        {
+            return false;
+        }
+        else if (rHighPoint1[1] < rLowPoint2[1])
+        {
+            return false;
+        }
 
         return true;
     }
@@ -179,7 +184,7 @@ public:
 
     static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
-		    Element::GeometryType& geom_1 = rObject->GetGeometry();
+        Element::GeometryType& geom_1 = rObject->GetGeometry();
 
         PointType rHighPoint1 = geom_1.GetPoint(0);
         PointType rLowPoint1  = geom_1.GetPoint(0);
@@ -204,20 +209,24 @@ public:
         // std::cout << rLowPoint[0] << " " << rLowPoint[1] << std::endl;
         // std::cout << rHighPoint[0] << " " << rHighPoint[1] << std::endl;
 
-        if (rHighPoint1[0] < rLowPoint[0]) {
-          return false;
+        if (rHighPoint1[0] < rLowPoint[0])
+        {
+            return false;
         }
-        else if (rLowPoint1[0] > rHighPoint[0]) {
-        	return false;
+        else if (rLowPoint1[0] > rHighPoint[0])
+        {
+            return false;
         }
-        else if (rLowPoint1[1] > rHighPoint[1]) {
-        	return false;
+        else if (rLowPoint1[1] > rHighPoint[1])
+        {
+            return false;
         }
-        else if (rHighPoint1[1] < rLowPoint[1]) {
-        	return false;
+        else if (rHighPoint1[1] < rLowPoint[1])
+        {
+            return false;
         }
 
-		    return true;
+        return true;
     }
 
     static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double & Radius)
@@ -232,12 +241,12 @@ public:
 
     //static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     //{
-        //array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry()[0];
-        //array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry()[0];
+    //array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry()[0];
+    //array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry()[0];
 
-        //distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
-                        //(center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
-                        //(center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
+    //distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
+    //(center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
+    //(center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
     //}
 
     //******************************************************************************************************************
@@ -257,7 +266,10 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return " Spatial Containers Configure for Quadrilaterals"; }
+    virtual std::string Info() const
+    {
+        return " Spatial Containers Configure for Quadrilaterals";
+    }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}
@@ -319,15 +331,15 @@ private:
     ///@{
 
     //static inline bool floateq(double a, double b) {
-        //return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
+    //return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     //}
 
     //static inline bool floatle(double a, double b) {
-        //return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
+    //return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
     //}
 
     //static inline bool floatge(double a, double b) {
-        //return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
+    //return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
     //}
 
     ///@}
@@ -350,34 +362,36 @@ private:
 
     ///@}
 
-    }; // Class ParticleConfigure
+}; // Class ParticleConfigure
 
-    ///@}
+///@}
 
-    ///@name Type Definitions
-    ///@{
+///@name Type Definitions
+///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
+///@}
+///@name Input and output
+///@{
 
-    /// input stream function
-    template <std::size_t TDimension>
-    inline std::istream& operator >> (std::istream& rIStream, FastQuadSpatialContainersConfigure<TDimension> & rThis){
-        return rIStream;
-        }
+/// input stream function
+template <std::size_t TDimension>
+inline std::istream& operator >> (std::istream& rIStream, FastQuadSpatialContainersConfigure<TDimension> & rThis)
+{
+    return rIStream;
+}
 
-    /// output stream function
-    template <std::size_t TDimension>
-    inline std::ostream& operator << (std::ostream& rOStream, const FastQuadSpatialContainersConfigure<TDimension>& rThis){
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
+/// output stream function
+template <std::size_t TDimension>
+inline std::ostream& operator << (std::ostream& rOStream, const FastQuadSpatialContainersConfigure<TDimension>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-        return rOStream;
-        }
+    return rOStream;
+}
 
-    ///@}
+///@}
 
 }   // namespace Kratos.
 #endif	/* FAST_QUAD_SPATIAL_CONTAINERS_CONFIGURE_H */

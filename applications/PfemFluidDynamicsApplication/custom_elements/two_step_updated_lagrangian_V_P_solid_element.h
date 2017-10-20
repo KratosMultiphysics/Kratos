@@ -290,7 +290,10 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-
+      std::vector< Vector > mCurrentTotalCauchyStress;
+      std::vector< Vector > mCurrentDeviatoricCauchyStress;
+      std::vector< Vector > mUpdatedTotalCauchyStress;
+      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
       ///@}
       ///@name Protected Operators
       ///@{
@@ -328,9 +331,14 @@ namespace Kratos
 						 const double Weight,
 						 double& MeanValueMass,
 						 const double TimeStep){};
-	
+      
+      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+					   MatrixType StiffnessMatrix,
+					   double& meanValueStiff,
+					   double& bulkCoefficient,
+					   double timeStep){};
+      
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					       const ShapeFunctionsType& rN,
 					       const double Weight);
 
 
@@ -348,9 +356,10 @@ namespace Kratos
 				const double BoundRHSCoeffAcc,
 				const double BoundRHSCoeffDev){};
 
-      virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-					const ProcessInfo& rCurrentProcessInfo,
-					unsigned int g);
+      /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
+      /* 					const ProcessInfo& rCurrentProcessInfo, */
+      /* 					const ShapeFunctionDerivativesType& rDN_DX, */
+      /* 					unsigned int g); */
 	
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,

@@ -48,8 +48,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// GeometricalObject-based objects (Element or Condition) on the Interface for Searching
+/** This class Is the "wrapper" for Elements/Conditions on the interface. It uses the fact that both 
+* Elements and Conditions are deriving from "GeometricalObject". The search is caarried out using the 
+* center of the geometry. 
+* It saves a pointer to the original geometry, not to the Condition/Element itself. This is e.g. why the Id is not accessible.
+* It selects the best result by the closest projection distance of the successful projections.
+* In case no projection is successful, it uses an approximation (closest node of the geometry with the
+* smallest center distance to the point for which a neighbor is to be found)
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
 class InterfaceGeometryObject : public InterfaceObject
 {
@@ -64,8 +71,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int ConstructionIndex,
+    // A default constructor necessary for serialization 
+    InterfaceGeometryObject() : InterfaceObject()
+    {
+    }
+    
+    InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int EchoLevel, const int ConstructionIndex,
                             GeometryData::IntegrationMethod IntegrationMethod = GeometryData::NumberOfIntegrationMethods) :
         mpGeometry(&rGeometry),
         mApproximationTolerance(ApproximationTolerance),
@@ -73,10 +84,18 @@ public:
         mIntegrationMethod(IntegrationMethod)
     {
         SetCoordinates();
+    
         mGeometryFamily = mpGeometry->GetGeometryFamily();
+        KRATOS_ERROR_IF(mGeometryFamily == GeometryData::Kratos_Point) 
+            << "Elements/Conditions with point-based geometries cannot be used with interpolative "
+            << "Mapping, use the Nearest Neighbor Mapper instead!" << std::endl;
+    
         mNumPoints = mpGeometry->PointsNumber();
         KRATOS_ERROR_IF(mNumPoints == 0) << "Number of Points cannot be zero" << std::endl;
-        mpPoint = &(mpGeometry->GetPoint(0));
+    
+        mpPoint = &(mpGeometry->GetPoint(0)); // used for debugging
+    
+        mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
@@ -104,7 +123,7 @@ public:
         // Distance is the distance to the center and not the projection distance, therefore it is unused
         bool is_closer = false;
         bool is_inside = false;
-        double projection_distance;
+        double projection_distance = std::numeric_limits<double>::max();
         array_1d<double, 3> projection_local_coords;
 
         if (mGeometryFamily == GeometryData::Kratos_Linear
@@ -137,16 +156,24 @@ public:
                         projection_distance);
         }
         else
-        {
-            std::cout << "MAPPER WARNING, Unsupported geometry, "
-                      << "using an approximation" << std::endl;
+        {   
+            if (mEchoLevel >= 2) {
+                std::cout << "MAPPER WARNING, Unsupported geometry, "
+                          << "using an approximation (Nearest Node)"
+                          << " | InterfaceGeometryObject, Center: [ "
+                          << this->X() << " | "
+                          << this->Y() << " | "
+                          << this->Z() << " ], "
+                          << "(KratosGeometryFamily \"" << mGeometryFamily 
+                          << "\", num points: " << mNumPoints << std::endl;              
+            }
             return false;
         }
 
-        projection_distance = fabs(projection_distance);
-
         if (is_inside)
         {
+            projection_distance = fabs(projection_distance);
+
             if (projection_distance < rMinDistance)
             {
                 rMinDistance = projection_distance;
@@ -313,11 +340,27 @@ private:
     Geometry<Node<3>>* mpGeometry;
     Node<3>* mpPoint;
     GeometryData::KratosGeometryFamily mGeometryFamily;
-    int mNumPoints; //TODO check if still needed
+    int mNumPoints; 
     double mApproximationTolerance = 0.0f;
     int mConstructionIndex;
     GeometryData::IntegrationMethod mIntegrationMethod;
+        
+    ///@}
+    ///@name Serialization
+    ///@{
 
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
+    }
 
     ///@}
     ///@name Private Operators
@@ -360,7 +403,6 @@ private:
             this->Coordinates() = gauss_point_global_coords;
         }
     }
-
 
     ///@}
     ///@name Private  Access

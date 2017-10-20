@@ -285,7 +285,7 @@ public:
     // 	{
     // 	  return inner_prod(row(rA, i), rX);
     // 	}
-    void SetValue(VectorType& rX, IndexType i, double value)
+    static void SetValue(VectorType& rX, IndexType i, double value)
     {
         Epetra_IntSerialDenseVector indices(1);
         Epetra_SerialDenseVector values(1);
@@ -293,11 +293,10 @@ public:
         values[0] = value;
 
         int ierr = rX.ReplaceGlobalValues(indices, values);
-        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-        
-        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure when attempting to insert value in function SetValue", "");
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
+        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
     }
 
     /// rX = A
@@ -317,7 +316,7 @@ public:
     {
         KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
     }
-    
+
     static void Resize(VectorPointerType& pX, SizeType n)
     {
 //         if(pX != NULL)
@@ -546,29 +545,29 @@ public:
     void ReadMatrixMarket(const std::string FileName, MatrixPointerType& pA)
     {
         KRATOS_TRY
-        
+
         Epetra_CrsMatrix* pp = nullptr;
 
         int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), pA->Comm(), pp);
-        
+
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
-        
+
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = boost::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
-        
-        int NumMyRows = rGraph.RowMap().NumMyElements();
+
+        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
 
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-        
-        
-        for(IndexType i=0; i< NumMyRows; i++)
+
+
+        for(IndexType i = 0; i < NumMyRows; ++i)
         {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
             IndexType GlobalRow = MyGlobalElements[i];
-            
+
             int NumEntries;
             std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
 
@@ -576,25 +575,25 @@ public:
             int* Indices = new int[Length];          // extracted global column indices for the corresponding values
 
             error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
-            
+
             if(error_code != 0)
                 KRATOS_ERROR << "error thrown in ExtractGlobalRowCopy : " << error_code;
 
             error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
-            
+
             if(error_code != 0)
                 KRATOS_ERROR << "error thrown in ReplaceGlobalValues : " << error_code;
-            
+
             delete [] Values;
             delete [] Indices;
         }
-        
+
         paux->GlobalAssemble();
         pA.swap(paux);
         delete [] MyGlobalElements;
 //         std::cout << pp << std::endl;
         delete pp;
-        
+
         KRATOS_CATCH("");
     }
 
@@ -771,6 +770,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_SPACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_TRILINOS_SPACE_H_INCLUDED  defined

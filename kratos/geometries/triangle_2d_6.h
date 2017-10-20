@@ -268,14 +268,14 @@ public:
     /**
      * Destructor. Does nothing!!!
      */
-    virtual ~Triangle2D6() {}
+    ~Triangle2D6() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Triangle;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Triangle2D6;
     }
@@ -328,28 +328,28 @@ public:
         return typename BaseType::Pointer( new Triangle2D6( ThisPoints ) );
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Triangle2D6< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Triangle2D6< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
     
     /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
      * @return the local coordinates of all nodes
      */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         rResult.resize( 6, 2,false );
         noalias( rResult ) = ZeroMatrix( 6, 2 );
@@ -369,7 +369,7 @@ public:
     }
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const override
+    Vector& LumpingFactors( Vector& rResult ) const override
     {
         if(rResult.size() != 6)
             rResult.resize( 6, false );
@@ -400,7 +400,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Length() const override
+    double Length() const override
     {
         return sqrt( fabs( Area() ) );
     }
@@ -420,7 +420,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Area() const override
+    double Area() const override
     {
 
         Vector temp;
@@ -451,26 +451,40 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double DomainSize() const override
+    double DomainSize() const override
     {
         return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (0.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) )
-            if ( (rResult[1] >= (0.0 - Tolerance)) && (rResult[1] <= (1.0 + Tolerance)) )
-                if ( (rResult[0] + rResult[1]) <= (1.0 + Tolerance) )
+        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
+        {
+            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
+            {
+                if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
+                {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
-
 
     ///@}
     ///@name Shape Function
@@ -488,7 +502,7 @@ public:
      *
      * @return the value of the shape function at the given point
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
 
@@ -527,7 +541,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "2 dimensional triangle with six nodes in 2D space";
     }
@@ -538,7 +552,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const override
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "2 dimensional triangle with six nodes in 2D space";
     }
@@ -557,7 +571,7 @@ public:
      * :TODO: needs to be reviewed because it is not properly implemented yet
      * (comment by janosch)
      */
-    virtual void PrintData( std::ostream& rOStream ) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
         PrintInfo( rOStream );
         BaseType::PrintData( rOStream );
@@ -577,10 +591,17 @@ public:
     @see Edges()
     @see Edge()
      */
-    virtual SizeType EdgesNumber() const override
+    SizeType EdgesNumber() const override
     {
         return 3;
     }
+
+
+    SizeType FacesNumber() const override
+    {
+        return 3;
+    }
+
 
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
@@ -593,7 +614,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    virtual GeometriesArrayType Edges( void ) override
+    GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -602,6 +623,44 @@ public:
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
+
+
+   //Connectivities of faces required
+    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    {
+        if(NumberNodesInFaces.size() != 3 )
+            NumberNodesInFaces.resize(3,false);
+
+        NumberNodesInFaces[0]=3;
+        NumberNodesInFaces[1]=3;
+        NumberNodesInFaces[2]=3;
+
+    }
+
+
+    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    {
+        if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
+            NodesInFaces.resize(4,3,false);
+
+	//compatible to Edges() function. Triangle library considers a different order
+        NodesInFaces(0,0)=0;//face or master node
+        NodesInFaces(1,0)=1;
+        NodesInFaces(2,0)=4;
+        NodesInFaces(3,0)=2;
+ 
+        NodesInFaces(0,1)=1;//face or master node
+        NodesInFaces(1,1)=2;
+        NodesInFaces(2,1)=5;
+        NodesInFaces(3,1)=0;
+
+        NodesInFaces(0,2)=2;//face or master node
+        NodesInFaces(1,2)=0;
+        NodesInFaces(2,2)=3;
+        NodesInFaces(3,2)=1;
+
+    }
+
 
     /**
      * Calculates the local gradients for all integration points for
@@ -654,7 +713,7 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
+    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
         rResult.resize( 6, 2 ,false);
@@ -718,7 +777,7 @@ public:
      * @param rResult a third order tensor which contains the second derivatives
      * @param rPoint the given point the second order derivatives are calculated in
      */
-    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -769,7 +828,7 @@ public:
      * @param rResult a fourth order tensor which contains the third derivatives
      * @param rPoint the given point the third order derivatives are calculated in
      */
-    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -839,12 +898,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

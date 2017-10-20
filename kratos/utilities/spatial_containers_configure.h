@@ -1,11 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine  $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Nelson Lafontaine
+//                    
 //
-
 
 #if !defined(KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED )
 #define  KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED
@@ -57,7 +61,7 @@ public:
            MAX_LEVEL = 16,
            MIN_LEVEL = 2
          };
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;

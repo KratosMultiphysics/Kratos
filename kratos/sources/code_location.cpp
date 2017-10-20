@@ -83,7 +83,7 @@ namespace Kratos
 		ReduceTemplateArgumentsToFirstN(clean_function_name, "ResidualBasedLinearStrategy", 1);
 		ReplaceAll(clean_function_name, "Dof<double>", "Dof");
 		ReplaceAll(clean_function_name, "Node<3, Dof >", "Node");
-		ReplaceAll(clean_function_name, "Point<3,double>", "Point");
+
 
 
 		return clean_function_name;

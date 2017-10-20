@@ -54,8 +54,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Auxiliary functions for the MappingApplication
+/** This class provides a set of auxiliary functions that are used by several other functions / classes
 */
 class MapperUtilities
 {
@@ -207,10 +207,10 @@ public:
         }
         else
         {
-            if (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+            if (EchoLevel >= 2 && rModelPart.GetCommunicator().MyPID() == 0)
                 std::cout << "MAPPER WARNING, no conditions/elements for search radius "
                           << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
-                          << "using nodes (less efficient)" << std::endl;
+                          << "using nodes (less efficient, bcs search radius will be larger)" << std::endl;
             max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
         }
 
@@ -228,6 +228,139 @@ public:
         return NumNodesOrigin / NumNodesDestination;
     }
 
+    // **********************************************************************
+    // Functions related to Bounding Boxes **********************************
+    // **********************************************************************
+    static void ComputeLocalBoundingBox(ModelPart& rModelPart,
+                                        double* pLocalBoundingBox)
+    {
+        // xmax, xmin,  ymax, ymin,  zmax, zmin
+        // loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
+        for (auto &r_node : rModelPart.Nodes())
+        {
+            pLocalBoundingBox[0] = std::max(r_node.X(), pLocalBoundingBox[0]);
+            pLocalBoundingBox[1] = std::min(r_node.X(), pLocalBoundingBox[1]);
+            pLocalBoundingBox[2] = std::max(r_node.Y(), pLocalBoundingBox[2]);
+            pLocalBoundingBox[3] = std::min(r_node.Y(), pLocalBoundingBox[3]);
+            pLocalBoundingBox[4] = std::max(r_node.Z(), pLocalBoundingBox[4]);
+            pLocalBoundingBox[5] = std::min(r_node.Z(), pLocalBoundingBox[5]);
+        }
+    }
+
+    static void ComputeBoundingBoxWithTolerance(double* pLocalBoundingBox,
+            const double Tolerance,
+            double* pLocalBoundingBoxWithTolerance)
+    {
+        // xmax, xmin,  ymax, ymin,  zmax, zmin
+        pLocalBoundingBoxWithTolerance[0] = pLocalBoundingBox[0] + Tolerance;
+        pLocalBoundingBoxWithTolerance[1] = pLocalBoundingBox[1] - Tolerance;
+        pLocalBoundingBoxWithTolerance[2] = pLocalBoundingBox[2] + Tolerance;
+        pLocalBoundingBoxWithTolerance[3] = pLocalBoundingBox[3] - Tolerance;
+        pLocalBoundingBoxWithTolerance[4] = pLocalBoundingBox[4] + Tolerance;
+        pLocalBoundingBoxWithTolerance[5] = pLocalBoundingBox[5] - Tolerance;
+    }
+
+    static std::vector<double> ComputeModelPartBoundingBox(ModelPart& rModelPart){
+        double init_max = std::numeric_limits<double>::max();
+        double init_min = std::numeric_limits<double>::lowest();
+        
+        std::vector<double> model_part_bbox{ init_min, init_max, init_min, init_max, init_min, init_max };
+        // xmax, xmin,  ymax, ymin,  zmax, zmin
+        MapperUtilities::ComputeLocalBoundingBox(rModelPart, &model_part_bbox[0]);
+
+        // this is not the most efficient way, but it is less implementational 
+        // effort and anyway only used for debugging
+        rModelPart.GetCommunicator().MaxAll(model_part_bbox[0]);
+        rModelPart.GetCommunicator().MinAll(model_part_bbox[1]);
+        rModelPart.GetCommunicator().MaxAll(model_part_bbox[2]);
+        rModelPart.GetCommunicator().MinAll(model_part_bbox[3]);
+        rModelPart.GetCommunicator().MaxAll(model_part_bbox[4]);
+        rModelPart.GetCommunicator().MinAll(model_part_bbox[5]);
+
+        return model_part_bbox;
+    }
+
+    static bool ComputeBoundingBoxIntersection(std::vector<double>& bbox_origin,
+                                               std::vector<double>& bbox_destination)
+    {   
+        std::vector<double> bbox_origin_tol(6);
+        std::vector<double> bbox_destination_tol(6);
+        
+        const double tolerance = std::numeric_limits<double>::epsilon();
+
+        MapperUtilities::ComputeBoundingBoxWithTolerance(&bbox_origin[0], tolerance, &bbox_origin_tol[0]);
+        MapperUtilities::ComputeBoundingBoxWithTolerance(&bbox_destination[0], tolerance, &bbox_destination_tol[0]);
+
+        // xmax, xmin,  ymax, ymin,  zmax, zmin
+
+        // check destination bbox corner points in origin bbox
+        // check lower point
+        Point point_to_check_1(bbox_destination[1], bbox_destination[3], bbox_destination[5]);
+        if (MapperUtilities::PointIsInsideBoundingBox(&bbox_origin_tol[0], point_to_check_1))
+            return true;
+        // check higher point
+        Point point_to_check_2(bbox_destination[0], bbox_destination[2], bbox_destination[4]);
+        if (MapperUtilities::PointIsInsideBoundingBox(&bbox_origin_tol[0], point_to_check_2))
+            return true;
+
+        // check origin bbox corner points in destination bbox
+        // check lower point
+        Point point_to_check_3(bbox_origin[1], bbox_origin[3], bbox_origin[5]);
+        if (MapperUtilities::PointIsInsideBoundingBox(&bbox_destination_tol[0], point_to_check_3))
+            return true;
+        // check higher point
+        Point point_to_check_4(bbox_origin[0], bbox_origin[2], bbox_origin[4]);
+        if (MapperUtilities::PointIsInsideBoundingBox(&bbox_destination_tol[0], point_to_check_4))
+            return true;
+
+        return false;
+    }
+
+    static bool PointIsInsideBoundingBox(double* BoundingBox,
+                                         const Point& rPoint)
+    {   // The Bounding Box should have some tolerance already!
+        bool is_inside = false;
+        if (rPoint.X() < BoundingBox[0] && rPoint.X() > BoundingBox[1])   // check x-direction
+        {
+            if (rPoint.Y() < BoundingBox[2] && rPoint.Y() > BoundingBox[3])   // check y-direction
+            {
+                if (rPoint.Z() < BoundingBox[4] && rPoint.Z() > BoundingBox[5])   // check z-direction
+                {
+                    is_inside = true;
+                }
+            }
+        }
+        return is_inside;
+    }
+
+    static std::string PrintModelPartBoundingBoxes(std::vector<double>& bbox_origin,
+                                          std::vector<double>& bbox_destination)
+    {
+        std::stringstream buffer;
+        buffer << "Bounding Box Origin: "
+               << MapperUtilities::BoundingBoxStingStream(&bbox_origin[0]) << ", "
+               << "Bounding Box Destination: "
+               << MapperUtilities::BoundingBoxStingStream(&bbox_destination[0]) 
+               << std::endl;
+        return buffer.str();
+    }
+
+    static std::string BoundingBoxStingStream(double* pBoundingBox)
+    {
+        // xmax, xmin,  ymax, ymin,  zmax, zmin
+        std::stringstream buffer;
+        buffer << "[" << pBoundingBox[1] << " "  // xmin
+               << pBoundingBox[3] << " "         // ymin
+               << pBoundingBox[5] << "]|["       // zmin
+               << pBoundingBox[0] << " "         // xmax
+               << pBoundingBox[2] << " "         // ymax
+               << pBoundingBox[4] << "]";        // zmax
+        return buffer.str();
+    }
+
+    // **********************************************************************
+    // Functions related to Projection **************************************
+    // **********************************************************************
     static bool ProjectPointToLine(const Geometry<Node<3>>* pGeometry,
                                    const array_1d<double, 3>& GlobalCoords,
                                    array_1d<double, 3>& rLocalCoords,

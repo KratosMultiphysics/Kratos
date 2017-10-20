@@ -34,6 +34,7 @@
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
+#include "utilities/condition_number_utility.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -45,8 +46,12 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
-#include "utilities/connectivity_preserve_modeler.h"
 #include "utilities/cutting_utility.h"
+
+#include "utilities/python_function_callback_utility.h"
+#include "utilities/interval_utility.h"
+#include "utilities/table_stream_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -55,82 +60,23 @@ namespace Python
 {
 
 
-class PythonGenericFunctionUtility
-{
-    public:
-        PythonGenericFunctionUtility(  ModelPart::NodesContainerType& rNodes, PyObject* obj): mrNodes(rNodes), mpy_obj(obj)
-        {}
-
-        void ApplyFunctionToScalar(const Variable<double>& rVariable, const double t)
-        {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-            {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                i->FastGetSolutionStepValue(rVariable) = value;
-            }
-        }
-
-        void ApplyFunctionToComponent(const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, const double t)
-        {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-            {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                i->FastGetSolutionStepValue(rVariable) = value;
-            }
-        }
-
-        std::vector <double> ReturnFunction(const double t)
-        {
-            std::vector<double> values;
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-            {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                values.push_back(value);
-            }
-
-            return values;
-        }
-
-    private:
-        ModelPart::NodesContainerType& mrNodes;
-        PyObject* mpy_obj;
-
-
-        double CallFunction(const double x, const double y, const double z, const double t)
-        {
-            return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
-        }
-};
-
-void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
-{
-    if( !KratosComponents< Element >::Has( ElementName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", ElementName);
-    if( !KratosComponents< Condition >::Has( ConditionName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
-
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(ElementName),
-                         KratosComponents<Condition>::Get(ConditionName));
-
-}
-
-
-
 void AddUtilitiesToPython()
 {
     using namespace boost::python;
 
-    class_<PythonGenericFunctionUtility >("PythonGenericFunctionUtility", init<ModelPart::NodesContainerType& , PyObject*>() )
-    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToScalar)
-    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToComponent)
-    .def("ReturnFunction", &PythonGenericFunctionUtility::ReturnFunction)
+    // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
+    class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
+    .def(init<const std::string&, Parameters>())
+    .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
+    .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+    .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
+    .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+    ;
+
+    class_<ApplyFunctionToNodesUtility >("ApplyFunctionToNodesUtility", init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
+    .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+    .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
     ;
 
 
@@ -138,6 +84,9 @@ void AddUtilitiesToPython()
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
+    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
     .def("SetVectorVar", &VariableUtils::SetVectorVar)
@@ -175,6 +124,8 @@ void AddUtilitiesToPython()
     .def("AddDof", &VariableUtils::AddDof< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< Variable<double> > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+	.def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
+	.def("CheckDofs", &VariableUtils::CheckDofs)
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -358,15 +309,42 @@ void AddUtilitiesToPython()
     .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
     ;
 
-    class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
-    .def("GenerateModelPart", GenerateModelPart)
-    ;
-
     class_<CuttingUtility >("CuttingUtility", init< >())
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
+    ;
+
+    class_<IntervalUtility >("IntervalUtility", init<Parameters >())
+    .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
+    .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
+    .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Adding table from table stream to python
+    class_<TableStreamUtility>("TableStreamUtility", init<>())
+    .def(init< bool >())
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
 }
 

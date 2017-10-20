@@ -230,10 +230,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
 
-      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo);
-
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
-      /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
       ///@}
       ///@name Access
@@ -329,12 +326,16 @@ namespace Kratos
 						 double& MeanValueMass,
 						 const double TimeStep);   
 	
+      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+						   MatrixType StiffnessMatrix,
+						   double& meanValueStiff,
+						   double& bulkCoefficient,
+						   double timeStep);
+      
      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					      const ShapeFunctionsType& rN,
 					      const double Weight);
 	
      void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
-					      const ShapeFunctionsType& rN,
 					      const double Weight);
 
      void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
@@ -360,9 +361,10 @@ namespace Kratos
 				     const double Weight);
 
 
-      bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-				const ProcessInfo& rCurrentProcessInfo,
-				unsigned int g);
+      /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
+      /* 				const ProcessInfo& rCurrentProcessInfo, */
+      /* 				const ShapeFunctionDerivativesType& rDN_DX, */
+      /* 				unsigned int g); */
 
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
@@ -392,7 +394,6 @@ namespace Kratos
       void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
 					 const double Tau,
 					 const double Density,
-					 const array_1d<double,3> BodyForce,
 					 const double Weight,
 					 const ShapeFunctionDerivativesType& rDN_DX,
 					 const SizeType i);

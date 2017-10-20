@@ -3,7 +3,10 @@
 #define KRATOS_MINOR_VERSION  @KratosMultiphysics_MINOR_VERSION@
 #define KRATOS_PATCH_VERSION  @KratosMultiphysics_PATCH_VERSION@
 
-//svn version at configure time
+//git revision at configure time
 #define KRATOS_SHA1_NUMBER  @KratosMultiphysics_SHA1_NUMBER@
 
-#define KRATOS_VERSION  "@KratosMultiphysics_MAJOR_VERSION@.@KratosMultiphysics_MINOR_VERSION@.@KratosMultiphysics_PATCH_VERSION@-@KratosMultiphysics_SHA1_NUMBER@"
+//cmake build type
+#define KRATOS_BUILD_TYPE @KratosMultiphysics_BUILD_TYPE@
+
+#define KRATOS_VERSION  "@KratosMultiphysics_MAJOR_VERSION@.@KratosMultiphysics_MINOR_VERSION@.@KratosMultiphysics_PATCH_VERSION@-@KratosMultiphysics_SHA1_NUMBER@@KratosMultiphysics_BUILD_SUFFIX@"

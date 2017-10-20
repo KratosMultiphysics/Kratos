@@ -13,19 +13,6 @@ namespace Kratos
     
     //Create Variables //Note that the application variables must not be defined if they already exist in KRATOS
     KRATOS_CREATE_VARIABLE( double, THERMAL_EXPANSION )
-
-    //Bofang, Hidrostatic and uplift variables for evolution changes
-    KRATOS_CREATE_VARIABLE( std::string, GRAVITY_DIRECTION )
-    KRATOS_CREATE_VARIABLE( double, COORDINATE_BASE_DAM )
-    KRATOS_CREATE_VARIABLE( double, SURFACE_TEMP )
-    KRATOS_CREATE_VARIABLE( double, BOTTOM_TEMP )
-    KRATOS_CREATE_VARIABLE( double, HEIGHT_DAM )
-    KRATOS_CREATE_VARIABLE( double, AMPLITUDE )
-    KRATOS_CREATE_VARIABLE( double, DAY_MAXIMUM )
-    KRATOS_CREATE_VARIABLE( double, SPECIFIC_WEIGHT )
-    KRATOS_CREATE_VARIABLE( std::string, UPLIFT_DIRECTION )
-    KRATOS_CREATE_VARIABLE( double, COORDINATE_BASE_DAM_UPLIFT )
-    KRATOS_CREATE_VARIABLE( double, BASE_OF_DAM )
     
     // Thermal Variables
     KRATOS_CREATE_VARIABLE( Matrix, THERMAL_STRESS_TENSOR )
@@ -49,6 +36,6 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, ACCELERATION_PRESSURE_COEFFICIENT )  
 
     KRATOS_CREATE_VARIABLE( double, NODAL_YOUNG_MODULUS )  
-    
+    KRATOS_CREATE_VARIABLE( double, ADDED_MASS )
 
 }// namespace Kratos.

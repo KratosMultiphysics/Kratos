@@ -55,6 +55,8 @@ struct iluk {
 
     typedef typename math::scalar_of<value_type>::type scalar_type;
 
+    typedef detail::ilu_solve<Backend> ilu_solve;
+
     /// Relaxation parameters.
     struct params {
         /// Level of fill-in.
@@ -63,29 +65,23 @@ struct iluk {
         /// Damping factor.
         scalar_type damping;
 
-        /// Use serial version of the algorithm
-        bool serial;
+        /// Parameters for sparse triangular system solver
+        typename ilu_solve::params solve;
 
-        /// Number of Jacobi iterations.
-        /** \note Used for approximate solution of triangular systems on parallel backends */
-        unsigned jacobi_iters;
-
-        params() : k(1), damping(1), serial(false), jacobi_iters(2) {}
+        params() : k(1), damping(1) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, k)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
-            , AMGCL_PARAMS_IMPORT_VALUE(p, serial)
-            , AMGCL_PARAMS_IMPORT_VALUE(p, jacobi_iters)
+            , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
         {
-            AMGCL_PARAMS_CHECK(p, (k)(damping)(serial)(jacobi_iters));
+            AMGCL_PARAMS_CHECK(p, (k)(damping)(solve));
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, k);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, jacobi_iters);
+            AMGCL_PARAMS_EXPORT_CHILD(p, path, solve);
         }
     };
 
@@ -154,7 +150,7 @@ struct iluk {
         ilu = boost::make_shared<ilu_solve>(
                 boost::make_shared<build_matrix>(n, n, Lptr, Lcol, Lval),
                 boost::make_shared<build_matrix>(n, n, Uptr, Ucol, Uval),
-                D, prm, bprm);
+                D, prm.solve, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -189,7 +185,6 @@ struct iluk {
     }
 
     private:
-        typedef detail::ilu_solve<Backend> ilu_solve;
         boost::shared_ptr<ilu_solve> ilu;
 
         struct nonzero {

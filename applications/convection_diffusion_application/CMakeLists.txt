@@ -20,6 +20,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face2D.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face3D.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
 )
 
 ###############################################################

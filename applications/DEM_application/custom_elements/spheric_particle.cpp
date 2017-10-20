@@ -188,13 +188,14 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
 
-    ComputeBallToRigidFaceContactForce(elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, data_buffer.mDt, search_control);
+    ComputeBallToRigidFaceContactForce(data_buffer, elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, search_control);
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
-        
+        #ifdef KRATOS_DEBUG
         DemDebugFunctions::CheckIfNan(additional_forces, "NAN in Additional Force in RHS of Ball");
         DemDebugFunctions::CheckIfNan(additionally_applied_moment, "NAN in Additional Torque in RHS of Ball");     
+        #endif
     }
     
     // ROLLING FRICTION
@@ -220,9 +221,11 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
     
+    #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball"); 
     DemDebugFunctions::CheckIfNan(total_moment, "NAN in Total Torque in RHS of Ball"); 
-
+    #endif
+    
     FinalizeForceComputation(data_buffer);
     KRATOS_CATCH("")
 }
@@ -281,8 +284,10 @@ void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_in
         int ContactType = -1;
         array_1d<double, 4>& Weight = this->mContactConditionWeights[i];
 
-        ComputeConditionRelativeData(i,rNeighbours[i], LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
+        //ComputeConditionRelativeData(i,rNeighbours[i], LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
 
+        rNeighbours[i]->ComputeConditionRelativeData(i, this, LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
+        
         if(ContactType > 0){
             double indentation = GetInteractionRadius() - DistPToB;
             r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
@@ -741,9 +746,10 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
     }// for each neighbor
     
+    #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
     DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
-    
+    #endif
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce
@@ -778,17 +784,17 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
             ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
 }
 
-void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
+void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                         array_1d<double, 3>& r_elastic_force,
                                                          array_1d<double, 3>& r_contact_force,
                                                          double& RollingResistance,
                                                          array_1d<double, 3>& rigid_element_force,
-                                                         ProcessInfo& r_process_info,
-                                                         double mTimeStep,
+                                                         ProcessInfo& r_process_info,                                                        
                                                          int search_control)
 {
     KRATOS_TRY
 
-    RenewData();
+    RenewData();    
 
     std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;
     array_1d<double, 3> vel              = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -893,7 +899,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 const double area              = KRATOS_M_PI * GetInteractionRadius() * GetInteractionRadius();
                 const double density           = GetDensity();
                 const double inverse_of_volume = 1.0 / (4.0 * 0.333333333333333 * area * GetInteractionRadius());
-                ComputeWear(LocalCoordSystem, vel, DeltVel, mTimeStep, density, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
+                ComputeWear(LocalCoordSystem, vel, DeltVel, data_buffer.mDt, density, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
             } //wall->GetProperties()[COMPUTE_WEAR] if
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -909,7 +915,7 @@ void SphericParticle::RenewData()
 {
   //To be redefined
 }
-void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,
+void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   // check for delete
                                                   DEMWall* const wall,
                                             double LocalCoordSystem[3][3],
                                             double& DistPToB,
