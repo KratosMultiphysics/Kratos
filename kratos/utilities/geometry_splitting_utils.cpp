@@ -51,14 +51,15 @@ namespace Kratos
 
     /// Print object's data.
     void IndexedPoint::PrintData(std::ostream& rOStream) const {
-        rOStream << "Indexed point object constructed with:\n";
-        rOStream << "   Index value: " << this->Id() << "\n";
+        rOStream << "Indexed point object:\n";
+        rOStream << "\tIndex value: " << this->Id() << std::endl;
+
         const array_1d<double, 3> point_coords = this->Coordinates();
         std::stringstream coordinates_buffer;
         for (unsigned int i = 0; i < 3; ++i) {
             coordinates_buffer << std::to_string(point_coords(i)) << " ";
         }
-        rOStream << "   Coordinates: " << coordinates_buffer.str();
+        rOStream << "\tCoordinates: " << coordinates_buffer.str() << std::endl;
     };
 
     /// GeometrySplittingUtils implementation
@@ -101,15 +102,21 @@ namespace Kratos
     };
 
     bool GeometrySplittingUtils::DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                                                std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
-                                                std::vector < IndexedPointGeometryType >& rNegativeSubdivisions) {
+                                                std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
+                                                std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions) {
         KRATOS_ERROR << "Calling the base class geometry splitting DivideGeometry method. Call the specific geometry one.";
+    };
+    
+    void GeometrySplittingUtils::GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
+                                                           IndexedPointsContainerType& rAuxPoints,
+                                                           const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector) {
+        KRATOS_ERROR << "Calling the base class geometry splitting GenerateIntersectionsSkin method. Call the specific geometry one.";
     };
 
     void GeometrySplittingUtils::GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
                                                                      std::vector<Matrix>& rShapeFunctionsGradientsValues,
                                                                      Vector& rWeightsValues,
-                                                                     const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                                                     const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector,
                                                                      const IntegrationMethodType IntegrationMethod) {
         KRATOS_ERROR << "Calling the base class geometry splitting GetShapeFunctionValues method. Call the specific geometry one.";
     };
@@ -202,8 +209,8 @@ namespace Kratos
 
     // TODO: Save this arguments as member variables
     bool TriangleSplittingUtils::DivideGeometry(IndexedPointsContainerType& rAuxPoints,
-                                                std::vector < IndexedPointGeometryType >& rPositiveSubdivisions,
-                                                std::vector < IndexedPointGeometryType >& rNegativeSubdivisions) {
+                                                std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
+                                                std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions) {
         const GeometryType geometry = this->GetInputGeometry();
         const Vector nodal_distances = this->GetNodalDistances();
 
@@ -270,8 +277,8 @@ namespace Kratos
                 int i0, i1, i2;
                 TriangleGetNewConnectivityGID(idivision, t, this->mSplitEdges, &i0, &i1, &i2);
 
-                // Generate an auxiliar triangular geometry with the subdivision points
-                IndexedPointTriangleType aux_partition(rAuxPoints(i0), rAuxPoints(i1), rAuxPoints(i2));
+                // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
+                IndexedPointGeometryPointerType p_aux_partition = boost::make_shared<IndexedPointTriangleType>(rAuxPoints(i0), rAuxPoints(i1), rAuxPoints(i2));
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 bool is_positive;
@@ -285,9 +292,9 @@ namespace Kratos
 
                 // Add the generated triangle to its corresponding partition arrays
                 if (is_positive) {
-                    rPositiveSubdivisions.push_back(aux_partition);
+                    rPositiveSubdivisions.push_back(p_aux_partition);
                 } else {
-                    rNegativeSubdivisions.push_back(aux_partition);
+                    rNegativeSubdivisions.push_back(p_aux_partition);
                 }
             }
 
@@ -301,14 +308,46 @@ namespace Kratos
         }
     };
 
+void TriangleSplittingUtils::GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
+                                                       IndexedPointsContainerType& rAuxPoints, // TODO: WHY THIS ARGUMENT CANNOT BE const ?¿?¿?¿?¿?¿?¿?¿?¿?¿?¿?¿¿?¿
+                                                       const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector) {
+        // Set some geometry constant parameters
+        const int n_nodes = 3;
+        const unsigned int n_faces = 3;
+        const unsigned int n_subdivision = rSubdivisionsVector.size();
+        
+        for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
+            // Get the subdivision geometry
+            const IndexedPointGeometryType& r_subdivision_geom = *rSubdivisionsVector[i_subdivision];
+
+            // Faces iteration
+            for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                // Get the subdivision face nodal keys
+                int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
+                int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
+                
+                // Check the nodal keys to state which nodes belong to the interface
+                // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
+                    // Generate an indexed point line geometry pointer with the two interface nodes
+                    IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(rAuxPoints(node_i_key), rAuxPoints(node_j_key));
+                    rInterfacesVector.push_back(p_intersection_line);
+
+                    // In triangles, a unique face can belong to the interface
+                    break; 
+                }
+            }
+        }
+    };
+
     void TriangleSplittingUtils::GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
                                                                      std::vector<Matrix>& rShapeFunctionsGradientsValues,
                                                                      Vector& rWeightsValues,
-                                                                     const std::vector < IndexedPointGeometryType >& rSubdivisionsVector,
+                                                                     const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector,
                                                                      const IntegrationMethodType IntegrationMethod) {
         // Compute some auxiliar constans
-        const unsigned int n_subdivision = rSubdivisionsVector.size();                                      // Number of positive or negative subdivisions
-        const unsigned int n_int_pts = rSubdivisionsVector[0].IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
+        const unsigned int n_subdivision = rSubdivisionsVector.size();                                         // Number of positive or negative subdivisions
+        const unsigned int n_int_pts = (*rSubdivisionsVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
         const unsigned int split_edges_size = 6;
  
         // Resize the shape function values matrix
@@ -332,7 +371,7 @@ namespace Kratos
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
             
-            const IndexedPointGeometryType& r_subdivision_geom = rSubdivisionsVector[i_subdivision];
+            const IndexedPointGeometryType& r_subdivision_geom = *rSubdivisionsVector[i_subdivision];
             const unsigned int n_dim_subdivision = r_subdivision_geom.Dimension();
             const unsigned int n_nodes_subdivision = r_subdivision_geom.PointsNumber();
             

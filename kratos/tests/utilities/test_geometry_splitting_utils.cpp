@@ -59,8 +59,7 @@ namespace Kratos
 
 			// Call the divide geometry method
 			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > negative_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
 
 			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
 
@@ -70,6 +69,11 @@ namespace Kratos
 			Vector positive_side_weights, negative_side_weights; 
 			triangle_splitter.GetShapeFunctionsAndGradientsValues(positive_side_sh_func, positive_side_sh_func_gradients, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
 			triangle_splitter.GetShapeFunctionsAndGradientsValues(negative_side_sh_func, negative_side_sh_func_gradients, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
+
+			// Call the intersection generation method
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_interfaces, negative_interfaces;
+			triangle_splitter.GenerateIntersectionsSkin(positive_interfaces, aux_points_set, positive_subdivisions);
+			triangle_splitter.GenerateIntersectionsSkin(negative_interfaces, aux_points_set, negative_subdivisions);
 
 			// Check general splitting values
 			KRATOS_CHECK(is_divided);
@@ -85,26 +89,36 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[5],  5);
 
 			// Check subdivisions
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].Y(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].Y(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].Y(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[1].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[2].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[2].Y(), 1.0, 1e-5);
 
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].Y(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].X(), 1.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].Y(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[1].X(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[2].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[2].Y(), 0.5, 1e-5);
 
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].Y(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].Y(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].X(), 1.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[2].X(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[2].Y(), 0.0, 1e-5);
+
+			// Check interfaces
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[0].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[1].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].Y(), 0.5, 1e-5);
 
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
@@ -179,8 +193,7 @@ namespace Kratos
 			
 			// Call the divide geometry method
 			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > negative_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
 			
 			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
 			
@@ -190,6 +203,11 @@ namespace Kratos
 			Vector positive_side_weights, negative_side_weights; 
 			triangle_splitter.GetShapeFunctionsAndGradientsValues(positive_side_sh_func, positive_side_sh_func_gradients, positive_side_weights, positive_subdivisions, GeometryData::GI_GAUSS_1);
 			triangle_splitter.GetShapeFunctionsAndGradientsValues(negative_side_sh_func, negative_side_sh_func_gradients, negative_side_weights, negative_subdivisions, GeometryData::GI_GAUSS_1);
+
+			// Call the intersection generation method
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_interfaces, negative_interfaces;
+			triangle_splitter.GenerateIntersectionsSkin(positive_interfaces, aux_points_set, positive_subdivisions);
+			triangle_splitter.GenerateIntersectionsSkin(negative_interfaces, aux_points_set, negative_subdivisions);
 
 			// Check general splitting values
 			KRATOS_CHECK(is_divided);
@@ -205,26 +223,36 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(triangle_splitter.mSplitEdges[5], -1);
 			
 			// Check subdivisions
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[0].Y(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[1].Y(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].X(), 1.0, 1e-5);
-			KRATOS_CHECK_NEAR((positive_subdivisions[0])[2].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[2].X(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_subdivisions[0])[2].Y(), 0.0, 1e-5);
 			
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[0].Y(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[1].Y(), 1.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[0])[2].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[1].Y(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[2].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[0])[2].Y(), 0.0, 1e-5);
 			
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].X(), 0.5, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[0].Y(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[1].Y(), 1.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].X(), 0.0, 1e-5);
-			KRATOS_CHECK_NEAR((negative_subdivisions[1])[2].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[0].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[1].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[1].Y(), 1.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[2].X(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_subdivisions[1])[2].Y(), 0.0, 1e-5);
+
+			// Check interfaces
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[0].Y(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*positive_interfaces[0])[1].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[0].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[0].Y(), 0.0, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].X(), 0.5, 1e-5);
+			KRATOS_CHECK_NEAR((*negative_interfaces[0])[1].Y(), 0.5, 1e-5);
 			
 			// Check shape functions values
 			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
@@ -299,8 +327,8 @@ namespace Kratos
 
 			// Call the divide geometry method
 			TriangleSplittingUtils::IndexedPointsContainerType aux_points_set;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > positive_subdivisions;
-			std::vector < TriangleSplittingUtils::IndexedPointGeometryType > negative_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > positive_subdivisions;
+			std::vector < TriangleSplittingUtils::IndexedPointGeometryPointerType > negative_subdivisions;
 
 			bool is_divided = triangle_splitter.DivideGeometry(aux_points_set, positive_subdivisions, negative_subdivisions);
 
