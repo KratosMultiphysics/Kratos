@@ -276,12 +276,17 @@ namespace Kratos
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            const int index = dimension * i * 2;
+            unsigned int index = dimension * i;
+            if(this->HasRotDof()) index *= 2;
+
             const double coeff = Pressure * N[i] * IntegrationWeight;
             
             rRightHandSideVector[index   ]  -= coeff * Normal[0];
             rRightHandSideVector[index + 1] -= coeff * Normal[1];
+            if (dimension == 3)
+            {
             rRightHandSideVector[index + 2] -= coeff * Normal[2];
+            }
         }
     }
 
