@@ -68,12 +68,6 @@ void  AddLinearSolversToPython()
 
     using namespace boost::python;
 
-    class_<TLinearSolverType<std::complex<double>>, TLinearSolverType<std::complex<double>>::Pointer, boost::noncopyable>(
-        "ComplexLinearSolver").def(self_ns::str(self));
-    class_<TDirectSolverType<std::complex<double>>,
-           TDirectSolverType<std::complex<double>>::Pointer,
-           bases<TLinearSolverType<std::complex<double>>>,
-           boost::noncopyable>("ComplexDirectSolver").def(self_ns::str(self));
 
     //***************************************************************************
     //linear solvers
