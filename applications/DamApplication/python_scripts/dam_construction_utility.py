@@ -45,7 +45,11 @@ class DamConstructionUtility:
         self.Construction.Initialize()
 
     def InitializeSolutionStep(self):
-        self.Construction.InitializeSolutionStep()
+
+        thermal_name = "Thermal_Part_Auto_1"
+        mechanical_name = "Parts_Parts_Auto1"
+
+        self.Construction.InitializeSolutionStep(thermal_name, mechanical_name)
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()

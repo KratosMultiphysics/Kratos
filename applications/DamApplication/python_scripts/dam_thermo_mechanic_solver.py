@@ -213,7 +213,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts
-        self.thermal_computing_model_part = self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
+        self.thermal_computing_model_part = self.GetComputingThermalModelPart()
         self.mechanical_computing_model_part = self.GetComputingModelPart()
         
         # Builder and solver creation

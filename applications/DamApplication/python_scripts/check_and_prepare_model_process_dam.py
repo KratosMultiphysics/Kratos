@@ -56,6 +56,19 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for cond in part.Conditions:
                 list_of_ids.add(cond.Id)
         thermal_model_part.AddConditions(list(list_of_ids))
+        print("Adding Thermal Sub Sub Model Parts")
+        for i in range(self.thermal_domain_sub_model_part_list.size()):
+            thermal_sub_model_part = self.main_model_part.GetSubModelPart(self.thermal_domain_sub_model_part_list[i].GetString())
+            thermal_model_part.CreateSubModelPart(self.thermal_domain_sub_model_part_list[i].GetString())
+            thermal_sub_sub_model_part = thermal_model_part.GetSubModelPart(self.thermal_domain_sub_model_part_list[i].GetString())
+            list_of_ids = set()
+            for elem in thermal_sub_model_part.Elements:
+                list_of_ids.add(elem.Id)
+            thermal_sub_sub_model_part.AddElements(list(list_of_ids))
+            list_of_ids = set()
+            for node in thermal_sub_model_part.Nodes:
+                list_of_ids.add(node.Id)
+            thermal_sub_sub_model_part.AddNodes(list(list_of_ids))
         print(thermal_model_part)
         
         ## Construct the mechanical model part:
@@ -86,6 +99,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for cond in part.Conditions:
                 list_of_ids.add(cond.Id)
         mechanical_model_part.AddConditions(list(list_of_ids))
+        print("Adding Mechanical Sub Sub Model Parts")
         # Sub sub model parts
         # Body - Joints
         for i in range(self.body_domain_sub_model_part_list.size()):

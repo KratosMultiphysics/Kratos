@@ -117,14 +117,7 @@ void InitializeSolutionStep()
 {
     KRATOS_TRY;
     
-    const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
-    const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    std::vector<std::size_t> ConditionNodeIds(Dim);
-    if (mNumNode == 8)
-        ConditionNodeIds.resize(Dim+1);
-
-
-    
+    const unsigned int nelements = mrThermalModelPart.GetSubModelPart("Thermal_Part_Auto_1").Elements().size();
     int direction;
     
     if( mGravityDirection == "X")
@@ -139,15 +132,13 @@ void InitializeSolutionStep()
     
     // Getting the value of the table and computing the current height
     unsigned int current_number_of_phases = mrTablePhases.GetValue(int_time-1);
-
     double current_height = mReferenceCoordinate + (mHeight/mPhases)*current_number_of_phases;
-    int last_condition_id = mMechanicalLastCondition + mThermalLastCondition; 
 
     if (nelements != 0)
     {
         // ELEMENTS
-        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.ElementsBegin();
-        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto1").ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart("Thermal_Part_Auto_1").ElementsBegin();
            
         #pragma omp parallel for
         for(unsigned int k = 0; k<nelements; ++k)
@@ -168,7 +159,132 @@ void InitializeSolutionStep()
                 }
             }
         }
+    }
 
+    // Detecting and creating 
+    this->SearchingFluxes();
+
+    // Updating Heat Fluxes
+    this->ActiveHeatFlux();
+            
+    KRATOS_CATCH("");
+}
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void AfterOutputStep()
+{
+    KRATOS_TRY;
+    
+    const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
+    const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE]; 
+    std::vector<std::size_t> ConditionNodeIds(Dim);
+    if (mNumNode == 8)
+        ConditionNodeIds.resize(Dim+1);
+
+    int last_condition_id = mMechanicalLastCondition + mThermalLastCondition;
+    
+    if (nelements != 0)
+    {
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();               
+        
+        if (Dim == 2)
+        {
+            #pragma omp parallel for
+            for(unsigned int k = 0; k<nelements; ++k)
+            {
+                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+                // Elements
+                if((it_thermal)->Is(ACTIVE) == false)
+                {
+                    for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
+                    {
+                        const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
+                        unsigned int count = 0;
+                        for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                        {
+                            if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
+                            {
+                                count++;
+                            }
+                        }
+                        if (count == number_of_points)
+                        {
+                            for  (unsigned int m = 0; m < number_of_points; ++m)
+                            {
+                                ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
+                            }
+                            this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
+                            #pragma omp critical
+                            {
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id+1, 0);
+                                last_condition_id++;
+                            }
+                        }
+                    }
+                }
+            }
+        } else
+        {
+            #pragma omp parallel for
+            for(unsigned int k = 0; k<nelements; ++k)
+            {
+                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+                // Elements
+                if((it_thermal)->Is(ACTIVE) == false)
+                {
+                    for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
+                    {
+                        const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
+                        unsigned int count = 0;
+                        for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                        {
+                            if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
+                            {
+                                count++;
+                            }
+                        }
+                        if (count == number_of_points)
+                        {
+                            for  (unsigned int m = 0; m < number_of_points; ++m)
+                            {
+                                ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
+                            }
+                            this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
+                            #pragma omp critical
+                            {
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id+1, 0);
+                                last_condition_id++;   
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    KRATOS_CATCH("");    
+}
+
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void SearchingFluxes()
+{
+    KRATOS_TRY;
+
+    const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+    const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    std::vector<std::size_t> ConditionNodeIds(Dim);
+    if (mNumNode == 8)
+        ConditionNodeIds.resize(Dim+1);
+    
+    int last_condition_id = mMechanicalLastCondition + mThermalLastCondition;
+        
+    if (nelements != 0)
+    {
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();
+        
         if (Dim == 2)
         {
             // Searching for thermal boundary conditions Edges
@@ -258,102 +374,7 @@ void InitializeSolutionStep()
         }
     }
 
-    // Updating Heat Fluxes
-    this->ActiveHeatFlux();
-            
-    KRATOS_CATCH("");
-}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void AfterOutputStep()
-{
-    const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
-    const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE]; 
-    std::vector<std::size_t> ConditionNodeIds(Dim);
-    if (mNumNode == 8)
-        ConditionNodeIds.resize(Dim+1);
-
-    int last_condition_id = mMechanicalLastCondition + mThermalLastCondition;
-    
-    if (nelements != 0)
-    {
-        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();               
-        
-        if (Dim == 2)
-        {
-            #pragma omp parallel for
-            for(unsigned int k = 0; k<nelements; ++k)
-            {
-                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-                // Elements
-                if((it_thermal)->Is(ACTIVE) == false)
-                {
-                    for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
-                    {
-                        const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                        unsigned int count = 0;
-                        for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                        {
-                            if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
-                            {
-                                count++;
-                            }
-                        }
-                        if (count == number_of_points)
-                        {
-                            for  (unsigned int m = 0; m < number_of_points; ++m)
-                            {
-                                ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
-                            }
-                            this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-                            #pragma omp critical
-                            {
-                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id+1, 0);
-                                last_condition_id++;
-                            }
-                        }
-                    }
-                }
-            }
-        } else
-        {
-            #pragma omp parallel for
-            for(unsigned int k = 0; k<nelements; ++k)
-            {
-                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-                // Elements
-                if((it_thermal)->Is(ACTIVE) == false)
-                {
-                    for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
-                    {
-                        const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                        unsigned int count = 0;
-                        for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                        {
-                            if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
-                            {
-                                count++;
-                            }
-                        }
-                        if (count == number_of_points)
-                        {
-                            for  (unsigned int m = 0; m < number_of_points; ++m)
-                            {
-                                ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
-                            }
-                            this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-                            #pragma omp critical
-                            {
-                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id+1, 0);
-                                last_condition_id++;   
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    KRATOS_CATCH("");    
 }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
