@@ -151,9 +151,9 @@ namespace Kratos
                 pressure_on_nodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
             }
         }
-
         // Vector with a loading applied to the elemnt
         array_1d<double, 3 > line_load = ZeroVector(3);
+        array_1d<double,3> gauss_load  = ZeroVector(3);
         if( this->Has( LINE_LOAD ) )
         {
             noalias(line_load) = this->GetValue( LINE_LOAD );
@@ -190,7 +190,7 @@ namespace Kratos
                 }
             }
 
-            array_1d<double,3> gauss_load = line_load;
+            gauss_load = line_load;
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 if( GetGeometry()[ii].SolutionStepsDataHas( LINE_LOAD ) )
@@ -198,6 +198,7 @@ namespace Kratos
                     noalias(gauss_load) += ( Ncontainer( point_number, ii )) * GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
                 }
             }
+
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 const unsigned int base = ii * dimension * 2;
@@ -208,9 +209,7 @@ namespace Kratos
             }
         }
 
-        this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(line_load,rRightHandSideVector);
-
-        KRATOS_WATCH(rRightHandSideVector);
+        this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
 
         KRATOS_CATCH( "" )
     }
