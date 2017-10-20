@@ -7,15 +7,15 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Josep Maria Carbonell                 
+//                   
+//  contributors:    Hoang Giang Bui
+//                   Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
-//                   Josep Maria Carbonell
-//
-
-#if !defined(KRATOS_LINE_GL_3D_2_H_INCLUDED )
-#define  KRATOS_LINE_GL_3D_2_H_INCLUDED
+		     
+#if !defined(KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED )
+#define  KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED
 
 // System includes
 
@@ -52,7 +52,7 @@ namespace Kratos
 */
 template<class TPointType>
 
-class LineGL3D2 : public Geometry<TPointType>
+class LineGaussLobatto3D2 : public Geometry<TPointType>
 {
 
 public:
@@ -63,8 +63,8 @@ public:
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
 
-    /// Pointer definition of LineGL3D2
-    KRATOS_CLASS_POINTER_DEFINITION( LineGL3D2 );
+    /// Pointer definition of LineGaussLobatto3D2
+    KRATOS_CLASS_POINTER_DEFINITION( LineGaussLobatto3D2 );
 
     /** Integration methods implemented in geometry.
     */
@@ -151,21 +151,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-//     LineGL3D2( const PointType& FirstPoint, const PointType& SecondPoint )
+//     LineGaussLobatto3D2( const PointType& FirstPoint, const PointType& SecondPoint )
 //         : BaseType( PointsArrayType(), &msGeometryData )
 //     {
 //         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
 //         BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
 //     }
 
-    LineGL3D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
+    LineGaussLobatto3D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         BaseType::Points().push_back( pFirstPoint );
         BaseType::Points().push_back( pSecondPoint );
     }
 
-    LineGL3D2( const PointsArrayType& ThisPoints )
+    LineGaussLobatto3D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 2 )
@@ -180,7 +180,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    LineGL3D2( LineGL3D2 const& rOther )
+    LineGaussLobatto3D2( LineGaussLobatto3D2 const& rOther )
         : BaseType( rOther )
     {
     }
@@ -197,13 +197,13 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> LineGL3D2( LineGL3D2<TOtherPointType> const& rOther )
+    template<class TOtherPointType> LineGaussLobatto3D2( LineGaussLobatto3D2<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
 
     /// Destructor. Do nothing!!!
-    ~LineGL3D2() override {}
+    ~LineGaussLobatto3D2() override {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
@@ -229,7 +229,7 @@ public:
     @see Clone
     @see ClonePoints
     */
-    LineGL3D2& operator=( const LineGL3D2& rOther )
+    LineGaussLobatto3D2& operator=( const LineGaussLobatto3D2& rOther )
     {
         BaseType::operator=( rOther );
 
@@ -247,7 +247,7 @@ public:
     @see ClonePoints
     */
     template<class TOtherPointType>
-    LineGL3D2& operator=( LineGL3D2<TOtherPointType> const & rOther )
+    LineGaussLobatto3D2& operator=( LineGaussLobatto3D2<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
 
@@ -260,20 +260,20 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new LineGL3D2( ThisPoints ) );
+        return typename BaseType::Pointer( new LineGaussLobatto3D2( ThisPoints ) );
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
+    Geometry< Point >::Pointer Clone() const
     {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+        Geometry< Point >::PointsArrayType NewPoints;
 
         //making a copy of the nodes TO POINTS (not Nodes!!!)
 
         for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+            NewPoints.push_back(boost::make_shared< Point >((*this)[i]));
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new LineGL3D2< Point<3> >( NewPoints ) );
+       Geometry< Point >::Pointer p_clone( new LineGaussLobatto3D2< Point >( NewPoints ) );
 
         p_clone->ClonePoints();
 
@@ -769,7 +769,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
-    LineGL3D2(): BaseType( PointsArrayType(), &msGeometryData ) {}
+    LineGaussLobatto3D2(): BaseType( PointsArrayType(), &msGeometryData ) {}
 
 
     ///@}
@@ -832,11 +832,11 @@ private:
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values = {{
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -845,11 +845,11 @@ private:
     static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
 
             }
         };
@@ -870,7 +870,7 @@ private:
     ///@name Private Friends
     ///@{
 
-    template<class TOtherPointType> friend class LineGL3D2;
+    template<class TOtherPointType> friend class LineGaussLobatto3D2;
 
     ///@}
     ///@name Un accessible methods
@@ -894,12 +894,12 @@ private:
 /// input stream function
 template<class TPointType>
 inline std::istream& operator >> ( std::istream& rIStream,
-                                   LineGL3D2<TPointType>& rThis );
+                                   LineGaussLobatto3D2<TPointType>& rThis );
 
 /// output stream function
 template<class TPointType>
 inline std::ostream& operator << ( std::ostream& rOStream,
-                                   const LineGL3D2<TPointType>& rThis )
+                                   const LineGaussLobatto3D2<TPointType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -912,12 +912,12 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData LineGL3D2<TPointType>::msGeometryData( 3,
+const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData( 3,
         3,
         1,
         GeometryData::GI_GAUSS_1,
-        LineGL3D2<TPointType>::AllIntegrationPoints(),
-        LineGL3D2<TPointType>::AllShapeFunctionsValues(),
+        LineGaussLobatto3D2<TPointType>::AllIntegrationPoints(),
+        LineGaussLobatto3D2<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );
 
 }  // namespace Kratos.

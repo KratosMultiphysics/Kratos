@@ -151,19 +151,20 @@ class MembraneQ4TrussPointLoadTests(StructuralMechanichsTestFactory):
     file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"  
   
 class Simple3D2NTrussTest(StructuralMechanichsTestFactory):
-    file_name = "3D2N_TRUSS_test/nonlinear_3D2NTruss_test"
+    file_name = "truss_test/nonlinear_3D2NTruss_test"
     
 class Simple3D2NTrussLinearTest(StructuralMechanichsTestFactory):
-    file_name = "3D2N_TRUSS_test/linear_3D2NTruss_test"
+    file_name = "truss_test/linear_3D2NTruss_test"
 
 class Simple3D2NTrussDynamicTest(StructuralMechanichsTestFactory):
-    file_name = "3D2N_TRUSS_test/dynamic_3D2NTruss_test"
+    file_name = "truss_test/dynamic_3D2NTruss_test"
 
 class Simple3D2NBeamCrTest(StructuralMechanichsTestFactory):
-    file_name = "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test"
+    file_name = "beam_test/nonlinear_3D2NBeamCr_test"
      
 class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
-    file_name = "3D2N_BEAMCR_test/linear_3D2NBeamCr_test"
+    file_name = "beam_test/linear_3D2NBeamCr_test"
     
 class Simple3D2NBeamCrDynamicTest(StructuralMechanichsTestFactory):
-    file_name = "3D2N_BEAMCR_test/dynamic_3D2NBeamCr_test" 
+    file_name = "beam_test/dynamic_3D2NBeamCr_test"  
+

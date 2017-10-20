@@ -119,8 +119,8 @@ namespace Kratos
 	}
 
 	void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox() {
-		Point<3> low(mrModelPart1.NodesBegin()->Coordinates());
-		Point<3> high(mrModelPart1.NodesBegin()->Coordinates());
+		Point low(mrModelPart1.NodesBegin()->Coordinates());
+		Point high(mrModelPart1.NodesBegin()->Coordinates());
 
 		// loop over all nodes in first modelpart
 		for (auto i_node = mrModelPart1.NodesBegin(); i_node != mrModelPart1.NodesEnd(); i_node++) {
