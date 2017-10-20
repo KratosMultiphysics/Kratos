@@ -372,7 +372,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
-	const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators
