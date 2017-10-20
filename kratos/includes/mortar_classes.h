@@ -561,8 +561,7 @@ public:
         NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
         
         // Displacements and velocities of the slave       
-        u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) 
-           - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
+        u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
         X1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
         
         // We get the ALM variables
@@ -615,7 +614,7 @@ public:
     
     virtual void UpdateMasterPair(const Condition::Pointer& pCond)
     {
-        GeometryType& MasterGeometry =  pCond->GetGeometry();
+        const GeometryType& MasterGeometry =  pCond->GetGeometry();
         
         NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
         
@@ -772,8 +771,7 @@ public:
         
         TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
         
-        u1old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
-              - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
+        u1old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
     }
     
     /**
@@ -785,10 +783,9 @@ public:
     {
         BaseClassType::UpdateMasterPair(pCond);
         
-        GeometryType& MasterGeometry = pCond->GetGeometry();
+        const GeometryType& MasterGeometry = pCond->GetGeometry();
         
-        u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
-              - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
+        u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
     }
     
     ///@}
@@ -875,7 +872,8 @@ private:
  * In particular the thesis of contact mechanics based in mortar method available at: https://mediatum.ub.tum.de/?id=1109994
  * These mortar operator are assembled as mass matrices in order to transfer information from the slave side to the master side. 
  * The operators are DOperator for the slave side and MOperator for master respectively.
- * In order to compute these operators, the shape functions of both domains are necessary (using the slave side as reference), as well as the integration weight and jacobian in the integration point
+ * In order to compute these operators, the shape functions of both domains are necessary (using the slave side as reference), as well as the integration weight and jacobian in the integration point. 
+ * Popp thesis pge 50 and following
  */
 template< const unsigned int TNumNodes>
 class MortarOperator
@@ -898,7 +896,7 @@ public:
     virtual ~MortarOperator(){}
     
     // Mortar condition matrices - DOperator and MOperator
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
+    bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
 
     ///@}
     ///@name Operators
@@ -920,7 +918,7 @@ public:
     }
     
     /**
-     * It calculates the mortar operators
+     * It calculates the mortar operators. Popp thesis page 56, equation 3.31 and 3.32
      * @param rKinematicVariables: Corresponds with the kinematic variables
      * @param rIntegrationWeight: The corresponding integration weight
      */
@@ -949,15 +947,16 @@ public:
     
     /**
      * It calculates the POperator (Inverse(D x M))
+     * Popp thesis page 83 equation 3.88
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputePOperator()
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputePOperator()
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        const bounded_matrix<double, TNumNodes, TNumNodes>& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
         
         // We calculate the P operator
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
+        const bounded_matrix<double, TNumNodes, TNumNodes> POperator = prod(inv_D_operator, MOperator);
         
         return POperator;
     }
@@ -1053,6 +1052,7 @@ private:
 /** \brief MortarOperatorWithDerivatives
  * This class derives from the MortarOperator class and it includes the derived operators. 
  * The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives
+ * Popp thesis page 102 and following 
  */
 template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
 class MortarOperatorWithDerivatives : public MortarOperator<TNumNodes>
@@ -1115,6 +1115,7 @@ public:
     
     /**
      * It calculates the mortar operators
+     * Popp thesis page 102 equation equation 4.32 and 4.33 / 4.37 and 4.38
      * @param rKinematicVariables: Corresponds with the kinematic variables
      * @param rIntegrationWeight: The corresponding integration weight
      */
@@ -1268,6 +1269,7 @@ private:
  * This is the definition dual lagrange multiplier operators according to the work of Alexander Popp: https://www.lnm.mw.tum.de/staff/alexander-popp/
  * In particular the thesis of contact mechanics based in mortar method available at: https://mediatum.ub.tum.de/?id=1109994
  * In order to compute the dual LM shape function the Ae operator must be computed, which depends of the Me and De operators. Phi = Ae * NSlave.  In a similar way to the mortar operators, the De corresponds with a diagonal operator and Me with a sparse operator respectively. Ae = De * inv(Me) 
+ * Popp thesis page 69 and following
  */
 
 template< const unsigned int TNumNodes>
@@ -1290,7 +1292,7 @@ public:
     
     virtual ~DualLagrangeMultiplierOperators(){}
     
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
+    bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
         
     ///@}
     ///@name Operators
@@ -1312,7 +1314,7 @@ public:
     }
     
     /**
-     * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions. For that it integrates De and Me
+     * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions. For that it integrates De and Me. Popp thesis page 70 eq. 3.65
      * @param rKinematicVariables: The kinematic variables
      * @param rIntegrationWeight: The integration weight considered
      */
@@ -1331,21 +1333,22 @@ public:
     
     /**
      * Calculates the matrix Ae. To avoid problems in the inversion the matrix is normalized
+     * Popp thesis page 70. Equation 3.65
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
+    bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
     {        
         // We compute the norm
         const double& norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
         
         // We compute the normalized inverse
         double aux_det;
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_me, aux_det, std::numeric_limits<double>::epsilon()); 
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_me, aux_det, std::numeric_limits<double>::epsilon()); 
         
         // Now we compute the inverse
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> inv_me = normalized_inv_me/norm_me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> inv_me = normalized_inv_me/norm_me;
 
         return prod(De, inv_me);
     }   
@@ -1355,12 +1358,12 @@ public:
      * @param N1: The shape function 
      * @param detJ: The jacobian of the geometry 
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
         const Vector N1, 
         const double detJ 
         )
     {
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> De;
+        bounded_matrix<double, TNumNodes, TNumNodes> De;
     
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
@@ -1470,6 +1473,7 @@ private:
 
 /** \brief DualLagrangeMultiplierOperatorsWithDerivatives
  * This is the definition dual lagrange multiplier operators including the derivatives. Is based in the same work as the previous class. In this case it computes the derivatives in order to compute the directionald erivative of the dual shape functions
+ * Popp thesis page 111 and following
  */
 
 template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
@@ -1504,8 +1508,8 @@ public:
     static const unsigned int size_1 = (TNumNodes * TDim);
     
     // Derivatives matrices
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaMe;
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaDe;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaMe;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaDe;
         
     ///@}
     ///@name Operators
@@ -1532,7 +1536,7 @@ public:
     }
     
     /**
-     * Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions
+     * Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions. Popp thesis page 112 eq. 4.59
      * @param rKinematicVariables: The kinematic variables
      * @param rIntegrationWeight: The integration weight considered
      */
@@ -1557,7 +1561,7 @@ public:
     }
  
     /**
-     * Calculates the matrix DeltaAe
+     * Calculates the matrix DeltaAe. Popp thesis page 112 equation 4.58
      */
     bool CalculateDeltaAe(DerivativeDataType& rDerivativeData)
     {        
@@ -1589,7 +1593,7 @@ public:
         
         for (unsigned int i = 0; i < TDim * TNumNodes; ++i)
         {
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+            const bounded_matrix<double, TNumNodes, TNumNodes> aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
         
