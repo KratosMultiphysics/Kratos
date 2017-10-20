@@ -357,7 +357,7 @@ namespace Kratos
 		{
 			if ((i_neighbour_node->Is(COARSE_MESH_NODE)))
 			{
-				Point<3> d = *i_neighbour_node - rThisNode;
+				Point d = *i_neighbour_node - rThisNode;
 				double distance2 = inner_prod(d,d);
 				if (distance2 < min_distance)
 				{
@@ -471,7 +471,7 @@ namespace Kratos
 			std::size_t size = rOptimumPoints.size();
 			if (size > 0)
 			{
-				Point<3> optimal_position = ZeroVector(3);
+				Point optimal_position = ZeroVector(3);
 				double weight_sum = 0.00;
 
 				for (std::size_t i = 0; i < size; i++)

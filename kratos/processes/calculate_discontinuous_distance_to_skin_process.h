@@ -122,7 +122,7 @@ namespace Kratos
 		class Plane3D {
 		public:
 			using VectorType = array_1d<double, 3>;
-			using PointType = Point<3>;
+			using PointType = Point;
 
 			Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
 			Plane3D() = delete;

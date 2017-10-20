@@ -163,7 +163,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
     /** Destructor.
 	 */
-    virtual ~ResidualBasedBlockBuilderAndSolverWithMpc()
+    ~ResidualBasedBlockBuilderAndSolverWithMpc() override
     {
     }
 

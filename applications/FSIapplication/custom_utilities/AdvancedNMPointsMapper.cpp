@@ -37,8 +37,8 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
 
     if (dimension == 2)
     {
-        Point<3> point_projected;
-        Point<3> point_to_project = Point(this->Coordinate(1), this->Coordinate(2), this->Coordinate(3));
+        Point point_projected;
+        Point point_to_project = Point(this->Coordinate(1), this->Coordinate(2), this->Coordinate(3));
         ProjectPointToLine(rOriginGeom[0], point_to_project, point_projected, Dist);
 
         array_1d<double, 3> point_projected_local_coor;
@@ -94,9 +94,9 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
  * @return PointProjected: The point pojected over the plane
  * @return dist: The distance between the point and the plane
  */
-void GaussPointItem::ProjectPointToLine(const Point<3>& PointInPlane,
-                                        const Point<3>& PointToBeProjected,
-                                        Point<3>& PointProjected,
+void GaussPointItem::ProjectPointToLine(const Point& PointInPlane,
+                                        const Point& PointToBeProjected,
+                                        Point& PointProjected,
                                         double& dist)
 {
      array_1d<double,3> vector_points;
@@ -122,7 +122,7 @@ void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar,
         const unsigned int dimension = rOriginGeom.WorkingSpaceDimension();
 
         // Shape functions values in the projected Gauss pt.
-        Point<3> GPloccoords = (dimension == 2) ? Point(mOriginCoords[0], 0.0, 0.0) : Point(mOriginCoords[0], mOriginCoords[1], 0.0);
+        Point GPloccoords = (dimension == 2) ? Point(mOriginCoords[0], 0.0, 0.0) : Point(mOriginCoords[0], mOriginCoords[1], 0.0);
         Vector shfunc_values;
         rOriginGeom.ShapeFunctionsValues(shfunc_values, GPloccoords);
 
@@ -153,7 +153,7 @@ void GaussPointItem::GetProjectedValue(const Variable<array_1d<double,3> >& rOri
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
         // Shape functions values in the projected Gauss pt.
-        Point<3> GPloccoords = (dimension == 2) ? Point(mOriginCoords[0], 0.0, 0.0) : Point(mOriginCoords[0], mOriginCoords[1], 0.0);
+        Point GPloccoords = (dimension == 2) ? Point(mOriginCoords[0], 0.0, 0.0) : Point(mOriginCoords[0], mOriginCoords[1], 0.0);
         Vector shfunc_values;
         rOriginGeom.ShapeFunctionsValues(shfunc_values, GPloccoords);
 
@@ -293,7 +293,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
             cond_it != mrOriginModelPart.ConditionsEnd();
             cond_it++)
     {
-        Point<3> Center;
+        Point Center;
         ComputeGeometryCenterAndRadius(*cond_it.base(), Center, Radius);
         MaxRadius = std::max(MaxRadius, Radius);
 
@@ -412,7 +412,7 @@ void AdvancedNMPointsMapper::ComputeConditionNormal(const Condition::Pointer Con
  * @return Radius: Geometry radius
  */
 void AdvancedNMPointsMapper::ComputeGeometryCenterAndRadius(const Condition::Pointer Cond,
-                                                            Point<3>& Center,
+                                                            Point& Center,
                                                             double& Radius)
 {
     Radius = 0.0;
