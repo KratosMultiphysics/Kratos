@@ -83,9 +83,6 @@ from SmallTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
 from test_multipoint_contstraints import TestMultipointConstraintsTwo as TTestMultipointConstraintsTwo
 
-
-
-
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests           as TNodalDampingTests
 # Spring damper element test
@@ -289,9 +286,7 @@ def AssambleTestSuites():
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
             TFofi4PointTentnoCableTests,
-            TFofi4PointTentCableTests,
             TMembraneQ4PointLoadTests,
-            TMembraneQ4TrussPointLoadTests,
             TShellQ4ThickBendingRollUpTests,
             # TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
             TShellT3ThinBendingRollUpTests,
