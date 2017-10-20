@@ -681,7 +681,7 @@ namespace Kratos
             
             for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
             {
-                Point<3> global_point;
+                Point global_point;
                 GetGeometry().GlobalCoordinates(global_point, integration_points[point_number]);
                 
                 rOutput[point_number] = global_point.Coordinates();

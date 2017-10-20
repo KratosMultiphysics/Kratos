@@ -244,7 +244,7 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     /// Destructor.
-    virtual ~ApplyMultipointConstraintsProcess()
+    ~ApplyMultipointConstraintsProcess() override
     {
     }
 
@@ -274,7 +274,7 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ApplyMultipointConstraintsProcess";
@@ -282,7 +282,7 @@ class ApplyMultipointConstraintsProcess : public Process
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const override { rOStream << "ApplyMultipointConstraintsProcess"; }
+    void PrintInfo(std::ostream &rOStream) const override { rOStream << "ApplyMultipointConstraintsProcess"; }
 
     /// Print object's data.
     void PrintData()

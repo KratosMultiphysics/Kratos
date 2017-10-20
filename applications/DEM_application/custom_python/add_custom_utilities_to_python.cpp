@@ -228,6 +228,7 @@ void AddCustomUtilitiesToPython() {
         .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
         .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
         .def("SetNodalMaxImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxImpactVelocities)
+        .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
 
     class_<AnalyticFaceWatcher, boost::noncopyable >
@@ -254,6 +255,7 @@ void AddCustomUtilitiesToPython() {
         .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
         .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
         .def("BreakBondUtility", &PreUtilities::BreakBondUtility)
+        .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
         ;
          
     class_<PostUtilities, boost::noncopyable >

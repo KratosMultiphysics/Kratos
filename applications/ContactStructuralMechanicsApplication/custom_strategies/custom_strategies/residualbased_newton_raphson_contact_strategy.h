@@ -28,9 +28,7 @@
 
 // Utilities
 #include "utilities/variable_utils.h"
-#if !defined(_WIN32)
-	#include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 #include "custom_utilities/process_factory_utility.h"
 
 // TODO: Extend the descriptions
@@ -692,15 +690,9 @@ protected:
             const double Time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
             std::cout.precision(4);
             std::cout << "|----------------------------------------------------|" << std::endl;
-            #if !defined(_WIN32)
-                std::cout << "|     " << BOLDFONT("Max. iter. exceeded: SPLITTING TIME STEP") << "       |" << std::endl;
-                std::cout << "| " << BOLDFONT("COMING BACK TO TIME: ") << std::scientific << Time << "                    |" << std::endl;
-                std::cout << "| " << BOLDFONT("      NEW TIME STEP: ") << std::scientific << AuxDeltaTime << "                    |" << std::endl;
-            #else
-                std::cout << "|     Max. iter. exceeded: SPLITTING TIME STEP       |" << std::endl;
-                std::cout << "| COMING BACK TO TIME: " << std::scientific << Time << "                    |" << std::endl;
-                std::cout << "|       NEW TIME STEP: " << std::scientific << AuxDeltaTime << "                    |" << std::endl;
-            #endif
+            std::cout << "|     " << BOLDFONT("Max. iter. exceeded: SPLITTING TIME STEP") << "       |" << std::endl;
+            std::cout << "| " << BOLDFONT("COMING BACK TO TIME: ") << std::scientific << Time << "                    |" << std::endl;
+            std::cout << "| " << BOLDFONT("      NEW TIME STEP: ") << std::scientific << AuxDeltaTime << "                    |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
@@ -714,11 +706,7 @@ protected:
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "|----------------------------------------------------|" << std::endl;
-            #if !defined(_WIN32)
-                std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
-            #else
-                std::cout << "|        ATTENTION: Max iterations exceeded          |" << std::endl;
-            #endif
+            std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
@@ -732,13 +720,8 @@ protected:
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "|----------------------------------------------------|" << std::endl;
-            #if !defined(_WIN32)
-                std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
-                std::cout << "|        " << BOLDFONT(FRED("   Max number of splits exceeded  ")) << "          |" << std::endl;
-            #else
-                std::cout << "|        ATTENTION: Max iterations exceeded          |" << std::endl;
-                std::cout << "|           Max number of splits exceeded            |" << std::endl;
-            #endif
+            std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
+            std::cout << "|        " << BOLDFONT(FRED("   Max number of splits exceeded  ")) << "          |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
