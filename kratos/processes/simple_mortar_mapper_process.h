@@ -313,51 +313,11 @@ private:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We set to zero
-//         #pragma omp parallel for
+        #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             it_node->SetValue(NODAL_AREA, 0.0);
-        }
-    }
-    
-    /**
-     * This method reset the destiantion variable
-     */
-    void ResetVariable()
-    {
-        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size()); 
-        
-        // We set to zero
-//         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(SLAVE) == true) 
-            {
-                MortarUtilities::ResetValue<TVarType, THist>(*(it_node.base()), mDestinationVariable);
-            }
-        }
-    }
-    
-    /**
-     * This method reset the auxiliar variable
-     */
-    void ResetAuxiliarVariable()
-    {
-        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size()); 
-        
-        // We set to zero
-//         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(SLAVE) == true)
-            {
-                MortarUtilities::ResetAuxiliarValue<TVarType>(*(it_node.base()));
-            }
         }
     }
     
@@ -570,13 +530,13 @@ private:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We create the database
-//         #pragma omp parallel for
+        #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(SLAVE) == true)
             {
-//                 #pragma omp atomic
+                #pragma omp atomic
                 SizeSystem += 1;
             }
         }
@@ -768,7 +728,7 @@ private:
         unsigned int iteration = 0;
         
         // We set to zero the variables
-        ResetVariable();
+        MortarUtilities::ResetValue<TVarType, THist>(mrThisModelPart, mDestinationVariable);
         
         // Getting the auxiliar variable
         TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
@@ -800,13 +760,13 @@ private:
             ResetNodalArea();
         
             // We reset the auxiliar variable
-            ResetAuxiliarVariable();
+            MortarUtilities::ResetAuxiliarValue<TVarType>(mrThisModelPart);
                 
             ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
             const int num_conditions = static_cast<int>(conditions_array.size()); 
             
             // We map the values from one side to the other
-//             #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
+            #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
             for(int i = 0; i < num_conditions; ++i) 
             {
                 auto it_cond = conditions_array.begin() + i;
@@ -880,7 +840,7 @@ private:
             
             // We compute the residual norm
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size) residual_norm[i_size] = 0.0;
-//             #pragma omp parallel for
+            #pragma omp parallel for
             for(int i = 0; i < num_nodes; ++i) 
             {
                 auto it_node = nodes_array.begin() + i;
@@ -891,7 +851,7 @@ private:
                     for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
                     {   
                         const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
-//                         #pragma omp atomic
+                        #pragma omp atomic
                         residual_norm[i_size] += std::pow(value, 2);
                     }
                 }
@@ -936,7 +896,7 @@ private:
         unsigned int iteration = 0;
         
         // We set to zero the variables
-        ResetVariable();
+        MortarUtilities::ResetValue<TVarType, THist>(mrThisModelPart, mDestinationVariable);
         
         // Creating the assemble database
         std::size_t size_system;
