@@ -13,7 +13,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
-    def __base_test_mapping(self, input_filename, num_nodes):
+    def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
         self.main_model_part = KratosMultiphysics.ModelPart("Structure")
         
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
@@ -105,7 +105,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
 
         map_parameters = KratosMultiphysics.Parameters("""
         {
-            "echo_level"                       : 1,
+            "echo_level"                       : 0,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
@@ -113,7 +113,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         }
         """)
 
-        if (implicit == True):
+        if (pure_implicit == True):
             #linear_solver = ExternalSolversApplication.SuperLUSolver()
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
 
@@ -131,39 +131,39 @@ class TestMortarMapping(KratosUnittest.TestCase):
                 self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.main_model_part, KratosMultiphysics.TEMPERATURE, map_parameters)
                 self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.main_model_part, KratosMultiphysics.DISPLACEMENT, map_parameters)
         
-    def _mapper_tests(self, input_filename, num_nodes):
+    def _mapper_tests(self, input_filename, num_nodes, pure_implicit = False):
         
-        self.__base_test_mapping(input_filename, num_nodes)
+        self.__base_test_mapping(input_filename, num_nodes, pure_implicit)
         
         self.mortar_mapping_double.Execute()
-        #self.mortar_mapping_vector.Execute()
+        self.mortar_mapping_vector.Execute()
         
         ## DEBUG
         #self.__post_process()
         
-        #import from_json_check_result_process
+        import from_json_check_result_process
 
-        #check_parameters = KratosMultiphysics.Parameters("""
-        #{
-            #"check_variables"      : ["TEMPERATURE"],
-            #"input_file_name"      : "",
-            #"model_part_name"      : "Structure",
-            #"sub_model_part_name"  : "Parts_Parts_Auto1"
-        #}
-        #""")
+        check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "check_variables"      : ["TEMPERATURE","DISPLACEMENT"],
+            "input_file_name"      : "",
+            "model_part_name"      : "Structure",
+            "sub_model_part_name"  : "Parts_Parts_Auto1"
+        }
+        """)
 
-        #check_parameters["input_file_name"].SetString(input_filename+".json")
+        check_parameters["input_file_name"].SetString(input_filename+".json")
         
-        #check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
-        #check.ExecuteInitialize()
-        #check.ExecuteBeforeSolutionLoop()
-        #check.ExecuteFinalizeSolutionStep()
+        check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
+        check.ExecuteInitialize()
+        check.ExecuteBeforeSolutionLoop()
+        check.ExecuteFinalizeSolutionStep()
         
         #import json_output_process
         
         #out_parameters = KratosMultiphysics.Parameters("""
         #{
-            #"output_variables"     : ["TEMPERATURE"],
+            #"output_variables"     : ["TEMPERATURE","DISPLACEMENT"],
             #"output_file_name"     : "",
             #"model_part_name"      : "Structure",
             #"sub_model_part_name"  : "Parts_Parts_Auto1"
@@ -189,21 +189,21 @@ class TestMortarMapping(KratosUnittest.TestCase):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles"
         self._mapper_tests(input_filename, 3, False)
         
-    #def test_less_basic_2_mortar_mapping_triangle(self):
-        #input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles_2"
-        #self._mapper_tests(input_filename, 3, False)
+    def test_less_basic_2_mortar_mapping_triangle(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_triangles_2"
+        self._mapper_tests(input_filename, 3, False)
         
-    #def test_simple_curvature_mortar_mapping_triangle(self):
-        #input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
-        #self._mapper_tests(input_filename, 3, False)
+    def test_simple_curvature_mortar_mapping_triangle(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
+        self._mapper_tests(input_filename, 3, False)
         
     def test_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_triangle"
-        self._mapper_tests(input_filename, 3, True)
+        self._mapper_tests(input_filename, 3, False)
         
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_quadrilateral"
-        self._mapper_tests(input_filename, 4, True)
+        self._mapper_tests(input_filename, 4, False)
         
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
@@ -219,7 +219,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
                                                     "MultiFileFlag": "SingleFile"
                                                 },        
                                                 "nodal_results"       : ["DISPLACEMENT","TEMPERATURE"],
-                                                "nodal_nonhistorical_results": ["NORMAL","NODAL_AREA","NODAL_MAUX"],
+                                                "nodal_nonhistorical_results": ["NORMAL","NODAL_AREA"],
                                                 "nodal_flags_results": ["MASTER","SLAVE"]
                                             }
                                         }

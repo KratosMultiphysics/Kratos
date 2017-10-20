@@ -305,38 +305,19 @@ private:
     ///@{
     
     /**
-     * This method computes the nodal area
+     * This method resets the nodal area
      */
-    void ComputeNodalArea()
+    void ResetNodalArea()
     {
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We set to zero
-        #pragma omp parallel for
+//         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             it_node->SetValue(NODAL_AREA, 0.0);
-        }
-        
-        // Sum all the nodes areas
-        ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
-        
-        #pragma omp parallel for
-        for(int i = 0; i < num_conditions; ++i) 
-        {
-            auto it_cond = conditions_array.begin() + i;
-            
-            const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
-            const double& rArea = it_cond->GetGeometry().Area()/number_nodes;
-            
-            for (unsigned int i = 0; i < number_nodes; ++i)
-            {
-                #pragma omp atomic
-                it_cond->GetGeometry()[i].GetValue(NODAL_AREA) += rArea;
-            }
         }
     }
     
@@ -349,7 +330,7 @@ private:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We set to zero
-        #pragma omp parallel for
+//         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
@@ -369,7 +350,7 @@ private:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We set to zero
-        #pragma omp parallel for
+//         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
@@ -589,13 +570,13 @@ private:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         // We create the database
-        #pragma omp parallel for
+//         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(SLAVE) == true)
             {
-                #pragma omp atomic
+//                 #pragma omp atomic
                 SizeSystem += 1;
             }
         }
@@ -776,7 +757,7 @@ private:
     /**
      * This method executes the explicit mapping (when no linear solver is avalaible)
      */
-    void ExecuteExplicitMapping() // TODO: Correct, many mistakes
+    void ExecuteExplicitMapping()
     {
         KRATOS_TRY;
 
@@ -785,9 +766,6 @@ private:
         const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
         const unsigned int max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
         unsigned int iteration = 0;
-        
-        // We compute the nodal area
-        ComputeNodalArea();
         
         // We set to zero the variables
         ResetVariable();
@@ -818,13 +796,20 @@ private:
         
         while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations)
         {
+            // We reset the nodal area
+            ResetNodalArea();
+        
             // We reset the auxiliar variable
             ResetAuxiliarVariable();
                 
-            // We compute nodally the residual // TODO: Add OMP
-            for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
+            ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+            const int num_conditions = static_cast<int>(conditions_array.size()); 
+            
+            // We map the values from one side to the other
+//             #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
+            for(int i = 0; i < num_conditions; ++i) 
             {
-                auto it_cond = mrThisModelPart.ConditionsBegin() + i;
+                auto it_cond = conditions_array.begin() + i;
                 
                 if (it_cond->Is(SLAVE) == true)
                 {
@@ -861,104 +846,52 @@ private:
                             Matrix residual_matrix;
                             ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
                             
-// //                             MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
-                            MortarUtilities::AddAreaWeightedValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                            MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
                             
-                            BoundedMatrixType inverse_D_operator;
-                            FastInverse(this_mortar_operators.DOperator, inverse_D_operator);
-
-                            const Matrix solution_matrix = prod(inverse_D_operator, residual_matrix);
-
-                            MortarUtilities::AddAreaWeightedValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
+                            // We check if DOperator is diagonal
+                            if (mEchoLevel > 1)
+                            {
+                                BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
+                                LumpMatrix(aux_copy_D);
+                                const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
+                                const double norm_diff = norm_frobenius(aux_diff);
+                                if (norm_diff > 1.0e-4) 
+                                {
+                                    std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
+                                }
+                                if (mEchoLevel == 3) 
+                                {
+                                    KRATOS_WATCH(norm_diff);
+                                    KRATOS_WATCH(this_mortar_operators.DOperator);
+                                }
+                            }
+                            
+                            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+                            {
+                                slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
+                            }
                         }
                     }
                 }
             }
-            
-//             // We map the values from one side to the other // TODO: Add OMP
-//             for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
-//             {
-//                 auto it_cond = mrThisModelPart.ConditionsBegin() + i;
-//                 
-//                 if (it_cond->Is(SLAVE) == true)
-//                 {
-//                     const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
-//                     GeometryType& slave_geometry = it_cond->GetGeometry();
-//                     
-//                     boost::shared_ptr<ConditionMap>& all_conditions_maps = it_cond->GetValue( MAPPING_PAIRS ); // These are the master conditions
-//                     
-//                     for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
-//                     {
-//                         Condition::Pointer p_cond_master = (it_pair->first); // MASTER
-//                         const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
-//                         GeometryType& master_geometry = p_cond_master->GetGeometry();
-//                         
-//                         const IntegrationMethod& this_integration_method = GetIntegrationMethod();
-//                         
-//                         // Reading integration points
-//                         std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping  
-//                         const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
-//                         
-//                         if (is_inside == true)
-//                         {
-//                             // Initialize general variables for the current master element
-//                             this_kinematic_variables.Initialize();
-//                     
-//                             // Initialize the mortar operators
-//                             this_mortar_operators.Initialize();
-//                             
-//                             const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
-//                             
-//                             AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
-//                             
-//                             BoundedMatrixType inverse_D_operator;
-//                             FastInverse(this_mortar_operators.DOperator, inverse_D_operator);
-//                             
-//                             if (mEchoLevel > 1)
-//                             {
-//                                 BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
-//                                 LumpMatrix(aux_copy_D);
-//                                 const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
-//                                 const double norm_diff = norm_frobenius(aux_diff);
-//                                 if (norm_diff > 1.0e-4) 
-//                                 {
-//                                     std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-//                                 }
-//                                 if (mEchoLevel == 3) 
-//                                 {
-//                                     KRATOS_WATCH(norm_diff);
-//                                     KRATOS_WATCH(this_mortar_operators.DOperator);
-//                                 }
-//                             }
-// 
-//                             Matrix residual_matrix;
-//                             MortarUtilities::MatrixValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
-//                             
-//                             const Matrix solution_matrix = prod(inverse_D_operator, residual_matrix);
-// 
-//                             MortarUtilities::AddValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
-// //                             MortarUtilities::AddAreaWeightedValue<TVarType, THist>(slave_geometry, mDestinationVariable, solution_matrix);
-//                         }
-//                     }
-//                 }
-//             }
             
             NodesArrayType& nodes_array = mrThisModelPart.Nodes();
             const int num_nodes = static_cast<int>(nodes_array.size()); 
             
             // We compute the residual norm
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size) residual_norm[i_size] = 0.0;
-            #pragma omp parallel for
+//             #pragma omp parallel for
             for(int i = 0; i < num_nodes; ++i) 
             {
                 auto it_node = nodes_array.begin() + i;
                 if (it_node->Is(SLAVE) == true)
-                {
+                {                    
                     Node<3>::Pointer pnode = *(it_node.base());
+                    MortarUtilities::AddAreaWeightedNodalValue<TVarType, THist>(pnode, mDestinationVariable);
                     for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
                     {   
                         const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
-                        #pragma omp atomic
+//                         #pragma omp atomic
                         residual_norm[i_size] += std::pow(value, 2);
                     }
                 }

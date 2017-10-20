@@ -715,15 +715,13 @@ public:
     
     /**
      * This method adds the value
-     * WARNING: This operation is not threadsafe
      * @param ThisGeometry: The geometrty to update
      * @param ThisVariable: The variable to set
      */
     template< class TVarType, HistoricalValues THist>
-    static inline void AddAreaWeightedValue(
-        GeometryType& ThisGeometry,
-        TVarType& ThisVariable,
-        const Matrix& ThisValue
+    static inline void AddAreaWeightedNodalValue(
+        Node<3>::Pointer pThisNode,
+        TVarType& ThisVariable
         );
 
     /**
@@ -1063,100 +1061,71 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, NonHistoric
 }
 
 template<> 
-inline void MortarUtilities::AddAreaWeightedValue<Variable<double>, Historical>(
-        GeometryType& ThisGeometry,
-        Variable<double>& ThisVariable,
-        const Matrix& ThisValue
+inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, Historical>(
+        Node<3>::Pointer pThisNode,
+        Variable<double>& ThisVariable
         )
 {
-    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
-    
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-    {
-        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
-        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
-    }
+    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 template<> 
-inline void MortarUtilities::AddAreaWeightedValue<ComponentType, Historical>(
-        GeometryType& ThisGeometry,
-        ComponentType& ThisVariable,
-        const Matrix& ThisValue
+inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, Historical>(
+        Node<3>::Pointer pThisNode,
+        ComponentType& ThisVariable
         )
 {
-    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
-    
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-    {
-        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
-        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
-    }
+    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
 }
 
 template<> 
-inline void MortarUtilities::AddAreaWeightedValue<Variable<array_1d<double, 3>>, Historical>(
-        GeometryType& ThisGeometry,
-        Variable<array_1d<double, 3>>& ThisVariable,
-        const Matrix& ThisValue
+inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
+        Node<3>::Pointer pThisNode,
+        Variable<array_1d<double, 3>>& ThisVariable
         )
 {
-    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
-    
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-    {
-        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
-        auto& aux_vector = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
-        aux_vector += area_coeff * row(ThisValue, i_node);
-    }
-}
-template<> 
-inline void MortarUtilities::AddAreaWeightedValue<Variable<double>, NonHistorical>(
-        GeometryType& ThisGeometry,
-        Variable<double>& ThisVariable,
-        const Matrix& ThisValue
-        )
-{
-    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
-    
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-    {
-        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
-        ThisGeometry[i_node].GetValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
-    }
+    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    auto& aux_vector = pThisNode->FastGetSolutionStepValue(ThisVariable);
+    aux_vector += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
 
 template<> 
-inline void MortarUtilities::AddAreaWeightedValue<ComponentType, NonHistorical>(
-        GeometryType& ThisGeometry,
-        ComponentType& ThisVariable,
-        const Matrix& ThisValue
+inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, NonHistorical>(
+        Node<3>::Pointer pThisNode,
+        Variable<double>& ThisVariable
         )
 {
-    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
-    
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-    {
-        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
-        ThisGeometry[i_node].GetValue(ThisVariable) += area_coeff * ThisValue(i_node, 0);
-    }
+    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 template<> 
-inline void MortarUtilities::AddAreaWeightedValue<Variable<array_1d<double, 3>>, NonHistorical>(
-        GeometryType& ThisGeometry,
-        Variable<array_1d<double, 3>>& ThisVariable,
-        const Matrix& ThisValue
+inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, NonHistorical>(
+        Node<3>::Pointer pThisNode,
+        ComponentType& ThisVariable
         )
 {
-    const double& r_area = ThisGeometry.Area()/ThisGeometry.PointsNumber();
-    
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-    {
-        const double area_coeff = r_area/ThisGeometry[i_node].GetValue(NODAL_AREA);
-        auto& aux_vector = ThisGeometry[i_node].GetValue(ThisVariable);
-        aux_vector += area_coeff * row(ThisValue, i_node);
-    }
+    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
+}
+
+template<> 
+inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, NonHistorical>(
+        Node<3>::Pointer pThisNode,
+        Variable<array_1d<double, 3>>& ThisVariable
+        )
+{
+    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    auto& aux_vector = pThisNode->GetValue(ThisVariable);
+    aux_vector += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
 
 template<> 
