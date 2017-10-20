@@ -25,27 +25,10 @@
 
 /**
  * Note that this file makes use of the X-macro programming technique.
- * Recommended reading:
+ * Suggested reading:
  * https://www.embedded.com/design/programming-languages-and-tools/4403953/C-language-coding-errors-with-X-macros-Part-1
  * https://en.wikipedia.org/wiki/X_Macro
  */ 
-
-#define MEMBER_NAME(Variable) m ## Variable ## Handler
-
-#define DECLARE_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
-private: HandlerType MEMBER_NAME(Variable);
-
-#define DEFINE_GET_FUNCTION_FOR_HANDLER(Variable,HandlerType) \
-public: HandlerType& Get##Variable() \
-{ \
-    return MEMBER_NAME(Variable); \
-}
-
-#define CONSTRUCT_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
-, MEMBER_NAME(Variable) (Variable) // , mHandlerName(Variable)
-
-#define INITIALIZE_HANDLER(Variable,HandlerType) \
-MEMBER_NAME(Variable).Initialize(rElement,rProcessInfo);
 
 namespace Kratos
 {
@@ -93,6 +76,25 @@ public:
 
 }
 
+// Variable -> mVariableHandler
+#define MEMBER_NAME(Variable) m ## Variable ## Handler
+
+#define DECLARE_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
+private: HandlerType MEMBER_NAME(Variable);
+
+#define DEFINE_GET_FUNCTION_FOR_HANDLER(Variable,HandlerType) \
+public: HandlerType& Get##Variable() \
+{ \
+    return MEMBER_NAME(Variable); \
+}
+
+// Adds ", mVariableHandler(Variable)" (used for constructor initialization list)
+#define CONSTRUCT_CLASS_MEMBER_FOR_HANDLER(Variable,HandlerType) \
+, MEMBER_NAME(Variable) (Variable) 
+
+#define INITIALIZE_HANDLER(Variable,HandlerType) \
+MEMBER_NAME(Variable).Initialize(rElement,rProcessInfo);
+
 #define MAKE_FLUID_ELEMENT_DATA_CONTAINER(ClassName, HANDLER_LIST)  \
 class ClassName : public FluidElementDataContainer {                \
 public:                                                             \
@@ -116,10 +118,5 @@ public:                                                             \
                                                                     \
     HANDLER_LIST(DEFINE_GET_FUNCTION_FOR_HANDLER)                   \
 };
-
-//#undef DECLARE_CLASS_MEMBER_FOR_HANDLER
-//#undef DEFINE_GET_FUNCTION_FOR_HANDLER
-//#undef CONSTRUCT_CLASS_MEMBER_FOR_HANDLER
-//#undef INITIALIZE_HANDLER
 
 #endif // KRATOS_INTEGRATION_POINT_DATA_CONTAINER_H_INCLUDED  defined
