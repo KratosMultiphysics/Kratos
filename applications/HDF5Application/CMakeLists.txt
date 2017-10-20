@@ -31,6 +31,8 @@ if(NOT HDF5_MAJOR_MINOR_VERSION EQUAL "1.8")
   message(FATAL_ERROR "HDF5 1.8 is required.")
 endif()
 
+set(KRATOS_HDF5_APPLICATION_EXTRA_LIBS "")
+
 if(MPI_NEEDED)
   if(HDF5_IS_PARALLEL)
     message(STATUS "Using parallel HDF5 libraries.")
@@ -38,6 +40,7 @@ if(MPI_NEEDED)
         OR (HDF5_LIBRARY_DIRS MATCHES ".*openmpi.*"))
       add_definitions(-DOMPI_SKIP_MPICXX)
     endif()
+    set(KRATOS_HDF5_APPLICATION_EXTRA_LIBS ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
     ##################################################################
     # If cmake configures another application using HDF5 in serial,
     # the find_library() used in FindHDF5.cmake may find the serial
@@ -68,7 +71,7 @@ add_definitions(${HDF5_DEFINITIONS})
 
 # define library Kratos which defines the basic python interface
 add_library(KratosHDF5Application SHARED ${KRATOS_HDF5_APPLICATION_SOURCES})
-target_link_libraries(KratosHDF5Application KratosCore ${HDF5_C_LIBRARIES})
+target_link_libraries(KratosHDF5Application KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 install(TARGETS KratosHDF5Application DESTINATION libs)
 
