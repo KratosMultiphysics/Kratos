@@ -13,10 +13,10 @@
         "solver_type"                        : "Implicit",
         "echo_level"                         : 0,
         "solution_type"                      : "Dynamic",
-        "scheme_type"			             : "Bossak",
-        "damp_factor_m"	         	         : -0.1,
-        "rayleigh_alpha"		             : 8.0,
-        "rayleigh_beta"	         	         : 0.001,
+        "scheme_type"		             : "Bossak",
+        "damp_factor_m"	                     : -0.1,
+        "rayleigh_alpha"                     : 8.0,
+        "rayleigh_beta"	                     : 0.001,
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -90,11 +90,11 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "assign_vector_to_condition_process",
+        "python_module"   : "assign_vector_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorToConditionProcess",
+        "process_name"          : "AssignVectorVariableToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_line_load",
@@ -103,11 +103,11 @@
             "value"           : [0.0, "-1.0e-1*t", 0.0]
         }
     },{
-        "python_module"   : "assign_vector_to_condition_process",
+        "python_module"   : "assign_vector_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorToConditionProcess",
+        "process_name"          : "AssignVectorVariableToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_line_load",
@@ -116,7 +116,7 @@
             "value"           : [0.0, -1.0e0, 0.0]
         }
     }],
-    "contact_processes" :[{
+    "contact_process_list" :[{
         "python_module"   : "alm_contact_process",
         "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"                  : "",

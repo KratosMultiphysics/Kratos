@@ -34,6 +34,7 @@
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
+#include "utilities/condition_number_utility.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -83,6 +84,9 @@ void AddUtilitiesToPython()
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
+    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
     .def("SetVectorVar", &VariableUtils::SetVectorVar)

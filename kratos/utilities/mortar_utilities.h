@@ -20,6 +20,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "includes/enums.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
 #include "utilities/openmp_utils.h"
