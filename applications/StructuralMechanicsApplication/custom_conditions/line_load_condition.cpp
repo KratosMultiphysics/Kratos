@@ -87,9 +87,11 @@ namespace Kratos
         
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const bool bHasRotDof = this->HasRotDof();
 
         // Resizing as needed the LHS
-        const unsigned int mat_size = number_of_nodes * dimension * 2;
+        unsigned int mat_size = number_of_nodes * dimension;
+        if (bHasRotDof) mat_size *= 2;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
@@ -201,7 +203,8 @@ namespace Kratos
 
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                const unsigned int base = ii * dimension * 2;
+                unsigned int base = ii * dimension;
+                if (bHasRotDof) base *= 2;
                 for(unsigned int k = 0; k < dimension; ++k)
                 {
                     rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
@@ -209,7 +212,7 @@ namespace Kratos
             }
         }
 
-        this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
+        if (bHasRotDof) this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(gauss_load,rRightHandSideVector);
 
         KRATOS_CATCH( "" )
     }
