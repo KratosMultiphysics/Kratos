@@ -33,10 +33,10 @@ namespace Kratos {
     std::cout << "Initializing KratosUmatApplication... " << std::endl;
 
     
-    Serializer::Register( "SmallStrainUmat3DLaw" , mSmallStrainUmat3DLaw);
-    Serializer::Register( "LargeStrainUmat3DLaw" , mLargeStrainUmat3DLaw);
-    Serializer::Register( "SmallStrainUmatModel" , mSmallStrainUmatModel); 
+
     Serializer::Register( "VonMisesUmatSmallStrainModel", mVonMisesSmallStrainUmatModel);
+    Serializer::Register( "HypoplasticUmatSmallStrainModel", mHypoplasticSmallStrainUmatModel);
+    Serializer::Register( "VonMisesUmatLargeStrainModel", mVonMisesLargeStrainUmatModel);
     
 
   }

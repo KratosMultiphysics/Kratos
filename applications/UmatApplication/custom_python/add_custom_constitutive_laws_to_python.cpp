@@ -24,9 +24,11 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
-//constitutive laws
-#include "custom_laws/small_strain_umat_3D_law.hpp"
-#include "custom_laws/large_strain_umat_3D_law.hpp"
+
+//models
+#include "custom_models/hypoplastic_Umat_small_strain_model.hpp"
+#include "custom_models/von_mises_Umat_small_strain_model.hpp"
+#include "custom_models/von_mises_Umat_large_strain_model.hpp"
 
 namespace Kratos
 {
@@ -36,16 +38,25 @@ namespace Python
 
 using namespace boost::python;
 
-typedef ConstitutiveLaw ConstitutiveLawBaseType;
+typedef ConstitutiveLaw      ConstitutiveLawBaseType;
+typedef ConstitutiveModel  ConstitutiveModelBaseType;
 
 void  AddCustomConstitutiveLawsToPython()
 {
-    class_< SmallStrainUmat3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "SmallStrainUmat3DLaw", init<>() )
-    ;
-    class_< LargeStrainUmat3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LargeStrainUmat3DLaw", init<>() )
-    ;
+
+    // models
+    class_< VonMisesSmallStrainUmatModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+    	( "VonMisesSmallStrainUmatModel",
+    	  init<>() )
+     	;
+    class_< VonMisesLargeStrainUmatModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+    	( "VonMisesLargeStrainUmatModel",
+    	  init<>() )
+     	;
+    class_< HypoplasticSmallStrainUmatModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+    	( "HypoplasticSmallStrainUmatModel",
+    	  init<>() )
+     	;
 }
 }  // namespace Python.
 } // Namespace Kratos

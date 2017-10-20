@@ -35,11 +35,12 @@
 #include "includes/variables.h"
 
 // ConstitutiveLaw interfaces
-#include "custom_laws/small_strain_umat_3D_law.hpp"
-#include "custom_laws/large_strain_umat_3D_law.hpp"
+//#include "custom_laws/small_strain_umat_3D_law.hpp"
+//#include "custom_laws/large_strain_umat_3D_law.hpp"
 
-#include "custom_models/small_strain_Umat_model.hpp"
 #include "custom_models/von_mises_Umat_small_strain_model.hpp"
+#include "custom_models/hypoplastic_Umat_small_strain_model.hpp"
+#include "custom_models/von_mises_Umat_large_strain_model.hpp"
 
 namespace Kratos {
 
@@ -181,10 +182,9 @@ private:
 	///@name Static Member Variables
 	///@{
 
-	const SmallStrainUmat3DLaw  mSmallStrainUmat3DLaw;
-	const LargeStrainUmat3DLaw  mLargeStrainUmat3DLaw;
-   const SmallStrainUmatModel  mSmallStrainUmatModel;
    const VonMisesSmallStrainUmatModel mVonMisesSmallStrainUmatModel;
+   const HypoplasticSmallStrainUmatModel mHypoplasticSmallStrainUmatModel;
+   const VonMisesLargeStrainUmatModel mVonMisesLargeStrainUmatModel;
 	
 	///@}
 	///@name Member Variables

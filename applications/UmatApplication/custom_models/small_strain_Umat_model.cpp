@@ -20,7 +20,7 @@ extern "C" void umat_wrapper_( double* STRESS, double* STATEV, double** DDSDDE, 
 			       double* TIME, double* DTIME, double* TEMP, double* DTEMP, double* PREDEF, double* DPRED,
 			       char* MATERL, int* NDI, int* NSHR, int* NTENS, int* NSTATV, double* PROPS, int* NPROPS,
 			       double* COORDS, double** DROT, double* PNEWDT, double* CELENT, double** DFGRD0,
-			       double** DFGRD1, double* NOEL, int* NPT, double* KSLAY, double* KSPT, double* KSTEP,
+			       double** DFGRD1, int* NOEL, int* NPT, double* KSLAY, double* KSPT, double* KSTEP,
 			       double* KINC, int* MATERIALNUMBER );
 
 
@@ -200,7 +200,6 @@ namespace Kratos
 
       // allocate variables
       int ndi = 3, nshr = 3, ntens = 6; // number of stress and strain components
-      int npt = 0; // integration point number
 
       double pConstitutiveMatrix[ntens][ntens];
       for (unsigned int i = 0; i < 6; i++) {
@@ -219,6 +218,8 @@ namespace Kratos
 
       // ??
       double SPD;
+      int element_number = 0;
+      int npt = 0; // integration point number
 
       // A. Create Properties vector
       const Properties & rMaterialProperties = rModelData.GetMaterialProperties();
@@ -248,7 +249,7 @@ namespace Kratos
       umat_wrapper_( pStressVector, pStateVariables, (double**) pConstitutiveMatrix, NULL, &SPD,
          NULL, NULL, NULL, NULL, NULL, pStrain, pDeltaStrain,
 		   pTime, &delta_time, NULL, NULL, NULL, NULL, NULL, &ndi, &nshr, &ntens, &number_state_variables, pPropertiesVector, &number_properties,
-		   NULL, NULL, NULL, NULL, NULL, NULL, NULL, &npt, NULL, NULL, NULL, NULL, &material_number );
+		   NULL, NULL, NULL, NULL, NULL, NULL, &element_number, &npt, NULL, NULL, NULL, NULL, &material_number );
 
 
       // Save stress vector
