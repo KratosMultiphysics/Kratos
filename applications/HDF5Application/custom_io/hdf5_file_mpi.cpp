@@ -21,7 +21,8 @@ HDF5FileMPI::HDF5FileMPI(Parameters& rParams)
     
         m_file_name = rParams["file_name"].GetString();
 
-        int rank = GetRank();
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     
         std::string file_access_mode = rParams["file_access_mode"].GetString();
         hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
@@ -109,13 +110,6 @@ void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>
     KRATOS_TRY;
     ReadDataSetImpl(Path, rData, BlockSize);
     KRATOS_CATCH("");
-}
-
-int HDF5FileMPI::GetRank() const
-{
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    return rank;
 }
 
 } // // namespace Kratos.

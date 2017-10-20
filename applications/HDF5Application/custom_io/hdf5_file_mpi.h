@@ -86,8 +86,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    int GetRank() const;
-
     ///@}
 
 private:
