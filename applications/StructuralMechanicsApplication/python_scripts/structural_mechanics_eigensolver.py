@@ -76,26 +76,8 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
-        eigenvalue_solver_type = self.eigensolver_settings["solver_type"].GetString()
-        if eigenvalue_solver_type == "FEAST":
-            feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
-            linear_solver_type = feast_system_solver_settings["solver_type"].GetString()
-            if linear_solver_type == "skyline_lu":
-                # default built-in feast system solver
-                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings)
-            elif linear_solver_type == "pastix":
-                feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
-                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings, feast_system_solver)
-            else:
-                err_msg =  "The requested linear solver for FEAST \"" + linear_solver_type + "\" is not available!\n"
-                err_msg += "Available options are: \"skyline_lu\", \"pastix\""
-                raise Exception(err_msg)
-        else:
-            err_msg =  "The requested eigenvalue solver type \"" + eigenvalue_solver_type + "\" is not available!\n"
-            err_msg += "Available options are: \"FEAST\""
-            raise Exception(err_msg)
-
-        return linear_solver
+        import eigen_solver_factory
+        return eigen_solver_factory.ConstructSolver(self.eigensolver_settings)
 
     def _create_mechanical_solver(self):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
