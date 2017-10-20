@@ -173,7 +173,7 @@ public:
 					Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
 					//putting the new node also in an auxiliary list
-					KRATOS_WATCH("adding nodes AT THE EDGE==================================")
+					//KRATOS_WATCH("adding nodes AT THE EDGE==================================")
 																							
 					
 					//std::cout << "new node id = " << pnode->Id() << std::endl;
@@ -191,7 +191,7 @@ public:
 					pnode->X0() = pnode->X() - disp[0];
 					pnode->Y0() = pnode->Y() - disp[1];
 					pnode->Z0() = 0.0;
-					KRATOS_WATCH("Added node at the EDGE")
+					//KRATOS_WATCH("Added node at the EDGE")
 					}
 
 				
@@ -303,7 +303,7 @@ public:
 
         clean_triangulateio(in_mid);
         clean_triangulateio(vorout_mid);
-        KRATOS_WATCH("ln367");
+        //KRATOS_WATCH("ln367");
         //NOW WE SHALL PERFORM ADAPTIVE REMESHING, i.e. insert and remove nodes based upon mesh quality
         // and prescribed sizes
         struct triangulateio in2;
@@ -332,7 +332,7 @@ public:
 //			in2.trianglelist = new int[in2.numberoftriangles * 3];
 //			in2.trianglearealist = new double[in2.numberoftriangles];
 
-        KRATOS_WATCH(el_number);
+        //KRATOS_WATCH(el_number);
         int counter = 0;
         //here I will assign a huge number of NODAL_H to the free surface nodes, so that there no nodes will be added
         for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
@@ -383,7 +383,7 @@ public:
 
 
         clean_triangulateio(out_mid);
-        KRATOS_WATCH("ln420");
+        //KRATOS_WATCH("ln420");
         //here we generate a new mesh adding/removing nodes, by initializing "q"-quality mesh and "a"-area constraint switches
         //
         // MOST IMPORTANT IS "r" switch, that refines previously generated mesh!!!!!!!!!!(that is the one given inside in2)
@@ -411,7 +411,7 @@ public:
         typedef PointVector::iterator PointIterator;
         typedef std::vector<double>               DistanceVector;
         typedef std::vector<double>::iterator     DistanceIterator;
-        KRATOS_WATCH("ln449");
+        //KRATOS_WATCH("ln449");
 
         typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
 
@@ -613,12 +613,12 @@ public:
         //identifying boundary, creating skin
         IdentifyBoundary(ThisModelPart, rReferenceBoundaryCondition, properties, out2);
 
-        KRATOS_WATCH("ln749");
+        //KRATOS_WATCH("ln749");
 
         clean_triangulateio(in2);
-        KRATOS_WATCH("ln752");
+        //KRATOS_WATCH("ln752");
         clean_triangulateio(out2);
-        KRATOS_WATCH("ln754");
+        //KRATOS_WATCH("ln754");
         clean_triangulateio(vorout2);
         KRATOS_WATCH("Finished remeshing with Trigen_GLASS_Refine")
 
@@ -1207,7 +1207,7 @@ private:
 	void InterpolateOnEdge( Geometry<Node<3> >& geom, unsigned int step_data_size, Node<3>::Pointer pnode)
 		{
 		unsigned int buffer_size = pnode->GetBufferSize();
-		KRATOS_WATCH(buffer_size)
+		//KRATOS_WATCH(buffer_size)
 
 		for(unsigned int step = 0; step<buffer_size; step++)
 		{	
