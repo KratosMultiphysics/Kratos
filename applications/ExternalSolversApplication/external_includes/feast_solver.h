@@ -23,13 +23,6 @@
 
 // External includes
 #include <boost/smart_ptr.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/numeric/ublas/storage.hpp>
-#include <amgcl/backend/builtin.hpp>
-#include <amgcl/adapter/zero_copy.hpp>
-#include <amgcl/value_type/complex.hpp>
-#include <amgcl/solver/skyline_lu.hpp>
 extern "C" {
 #include "feast.h"
 }
@@ -38,8 +31,9 @@ extern "C" {
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
-#include "linear_solvers/direct_solver.h"
+#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 
 #if !defined(KRATOS_FEAST_SOLVER)
@@ -49,75 +43,6 @@ namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
-
-template <class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
-class SkylineLUSolver
-    : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(SkylineLUSolver);
-
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-
-    typedef typename TSparseSpaceType::VectorType VectorType;
-
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-
-    typedef typename TSparseSpaceType::DataType DataType;
-    
-    typedef typename amgcl::backend::builtin<DataType>::matrix BuiltinMatrixType;
-    
-    typedef amgcl::solver::skyline_lu<DataType> SolverType;
-
-    ~SkylineLUSolver() override
-    {
-        Clear();
-    }
-
-    void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        Clear();
-
-        pBuiltinMatrix = amgcl::adapter::zero_copy(
-                rA.size1(),
-                rA.index1_data().begin(),
-                rA.index2_data().begin(),
-                rA.value_data().begin());
-
-        pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
-    }
-
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        std::vector<DataType> x(rX.size());
-        std::vector<DataType> b(rB.size());
-
-        std::copy(std::begin(rB), std::end(rB), std::begin(b));
-
-        (*pSolver)(b, x);
-
-        std::copy(std::begin(x), std::end(x), std::begin(rX));
-
-        return true;
-    }
-
-    void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        Clear();
-    }
-
-    void Clear() override
-    {
-        pSolver.reset();
-        pBuiltinMatrix.reset();
-    }
-
-private:
-
-    boost::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
-
-    boost::shared_ptr<SolverType> pSolver;
-};
 
 /// Adapter to FEAST eigenvalue problem solver.
 template<class TSparseSpaceType, class TDenseSpaceType,
@@ -141,21 +66,16 @@ public:
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef std::complex<double> ComplexType;
+    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;
 
-    typedef boost::numeric::ublas::compressed_matrix<ComplexType> ComplexSparseMatrixType;
-
-    typedef boost::numeric::ublas::matrix<ComplexType> ComplexDenseMatrixType;
-
-    typedef boost::numeric::ublas::vector<ComplexType> ComplexVectorType;
-
-    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
-
-    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
+    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexDenseSpaceType;
 
     typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
+    typedef ComplexLinearSolverType::SparseMatrixType ComplexSparseMatrixType;
 
+    typedef ComplexLinearSolverType::VectorType ComplexVectorType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -174,22 +94,19 @@ public:
             "solve_eigenvalue_problem": true,
             "lambda_min": 0.0,
             "lambda_max": 1.0,
-            "echo_level": 1,
             "number_of_eigenvalues": 0,
             "search_dimension": 10,
             "linear_solver_settings": {
-                "solver_type": "skyline_lu"
+                "solver_type": "complex_skyline_lu_solver"
             }
         })");
 
         mpParam->RecursivelyValidateAndAssignDefaults(default_params);
 
-        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
-        {
-            KRATOS_ERROR << "Built-in solver type must be used with this constructor" << std::endl;
-        }
-
-        mpLinearSolver = boost::make_shared<SkylineLUSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
+            KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
+            
+        mpLinearSolver = boost::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
     /// Constructor for externally provided linear solver.
@@ -200,10 +117,8 @@ public:
      *          solvers normally don't perform efficiently with FEAST 
      *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
      */
-    FEASTSolver(
-        Parameters::Pointer pParam, 
-        ComplexLinearSolverType::Pointer pLinearSolver
-        ): mpParam(pParam)
+    FEASTSolver(Parameters::Pointer pParam, ComplexLinearSolverType::Pointer pLinearSolver)
+        : mpParam(pParam), mpLinearSolver(pLinearSolver)
     {
         Parameters default_params(R"(
         {
@@ -213,24 +128,13 @@ public:
             "solve_eigenvalue_problem": true,
             "lambda_min": 0.0,
             "lambda_max": 1.0,
-            "echo_level": 1,
             "number_of_eigenvalues": 0,
             "search_dimension": 10,
             "linear_solver_settings": {}
         })");
 
-        // Don't validate linear_solver_settings here
+        // don't validate linear_solver_settings here
         mpParam->ValidateAndAssignDefaults(default_params);
-        
-        if (pLinearSolver != nullptr)
-        {
-            mpLinearSolver = pLinearSolver;
-        }
-        else
-        {
-            mpLinearSolver = boost::make_shared<SkylineLUSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
-        }
-        
     }
 
     /// Deleted copy constructor.
@@ -260,44 +164,41 @@ public:
             DenseVectorType& Eigenvalues,
             DenseMatrixType& Eigenvectors) override
     {
-        const auto system_size = K.size1();
+        const auto SystemSize = K.size1();
 
-        Parameters& feast_settings = *mpParam;
-        const double eigen_value_range_min = feast_settings["lambda_min"].GetDouble();
-        const double eigen_value_range_max = feast_settings["lambda_max"].GetDouble();
+        Parameters& FEAST_Settings = *mpParam;
+        const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble();
+        const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble();
 
-        int search_dimension = feast_settings["search_dimension"].GetInt();
-        int num_eigenvalues = feast_settings["number_of_eigenvalues"].GetInt();
-        const int echo_level = feast_settings["echo_level"].GetInt();
+        int SearchDimension = FEAST_Settings["search_dimension"].GetInt();
+        int NumEigenvalues = FEAST_Settings["number_of_eigenvalues"].GetInt();
 
-        Eigenvalues.resize(search_dimension,false);
-        Eigenvectors.resize(search_dimension,system_size,false);
+        Eigenvalues.resize(SearchDimension,false);
+        Eigenvectors.resize(SearchDimension,SystemSize,false);
 
-        if (feast_settings["perform_stochastic_estimate"].GetBool())
+        if (FEAST_Settings["perform_stochastic_estimate"].GetBool())
         {
-            // This estimates the number of eigenvalues in the interval [lambda_min, lambda_max]
-            Calculate(M,K,eigen_value_range_min,eigen_value_range_max,search_dimension,
-                    num_eigenvalues,Eigenvalues,Eigenvectors,true);
+            // this estimates the number of eigenvalues in the interval [lambda_min, lambda_max]
+            Calculate(M,K,EigenvalueRangeMin,EigenvalueRangeMax,SearchDimension,
+                    NumEigenvalues,Eigenvalues,Eigenvectors,true);
 
-            if (echo_level > 0)
-            {
-                std::cout << "Estimated number of eigenvalues = " << num_eigenvalues << std::endl;
-            }
+            std::cout << "Estimated number of eigenvalues = " << NumEigenvalues << std::endl;
 
-            // Recommended estimate of search dimension from FEAST documentation
-            search_dimension = num_eigenvalues + num_eigenvalues/2 + 1;
-            feast_settings["search_dimension"].SetInt(search_dimension);
+            // recommended estimate of search dimension from FEAST documentation
+            SearchDimension = NumEigenvalues + NumEigenvalues/2 + 1;
+            FEAST_Settings["search_dimension"].SetInt(SearchDimension);
         }
-        if (feast_settings["solve_eigenvalue_problem"].GetBool())
+        if (FEAST_Settings["solve_eigenvalue_problem"].GetBool())
         {
-            // This attempts to solve the generalized eigenvalue problem
-            Calculate(M,K,eigen_value_range_min,eigen_value_range_max,search_dimension,
-                    num_eigenvalues,Eigenvalues,Eigenvectors,false);
+            // this attempts to solve the generalized eigenvalue problem
+            Calculate(M,K,EigenvalueRangeMin,EigenvalueRangeMax,SearchDimension,
+                    NumEigenvalues,Eigenvalues,Eigenvectors,false);
 
-            Eigenvalues.resize(num_eigenvalues,true);
-            Eigenvectors.resize(num_eigenvalues,system_size,true);
+            Eigenvalues.resize(NumEigenvalues,true);
+            Eigenvectors.resize(NumEigenvalues,SystemSize,true);
+
         }
-        feast_settings["number_of_eigenvalues"].SetInt(num_eigenvalues);
+        FEAST_Settings["number_of_eigenvalues"].SetInt(NumEigenvalues);
     }
 
     ///@}
@@ -343,63 +244,63 @@ private:
     {
         KRATOS_TRY
 
-        int feast_params[64] = {};
-        int num_iter, info, system_size;
-        double eps_out;
-        DenseVectorType residual(SearchDimension);
-        std::vector<std::complex<double> > integration_nodes, integration_weights;
-        system_size = static_cast<int>(rMassMatrix.size1());
-        matrix<double,column_major> work(system_size,SearchDimension);
-        matrix<std::complex<double>,column_major> zwork(system_size,SearchDimension);
+        int FEAST_Params[64] = {};
+        int NumIter, Info, SystemSize;
+        double Epsout;
+        DenseVectorType Residual(SearchDimension);
+        std::vector<std::complex<double> > IntegrationNodes, IntegrationWeights;
+        SystemSize = static_cast<int>(rMassMatrix.size1());
+        matrix<double,column_major> work(SystemSize,SearchDimension);
+        matrix<std::complex<double>,column_major> zwork(SystemSize,SearchDimension);
         matrix<double,column_major> Aq(SearchDimension,SearchDimension);
         matrix<double,column_major> Bq(SearchDimension,SearchDimension);
         std::complex<double> Ze;
         ComplexSparseMatrixType Az;
-        ComplexVectorType b(system_size);
-        ComplexVectorType x(system_size);
+        ComplexVectorType b(SystemSize);
+        ComplexVectorType x(SystemSize);
 
         this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
-        Parameters& feast_settings = *mpParam;
+        Parameters& FEAST_Settings = *mpParam;
 
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
-        feastinit(feast_params);
-        if (feast_settings["print_feast_output"].GetBool())
-            feast_params[0] = 1;
-        feast_params[2] = 8; // stopping convergence criteria 10^-feast_params[2]
-        feast_params[28] = 1;// not sure if this is needed
+        feastinit(FEAST_Params);
+        if (FEAST_Settings["print_feast_output"].GetBool())
+            FEAST_Params[0] = 1;
+        FEAST_Params[2] = 8; // stopping convergence criteria 10^-FEAST_Params[2]
+        FEAST_Params[28] = 1;// not sure if this is needed
         if (PerformStochasticEstimate)
         {
-            feast_params[1] = 4; // number of quadrature points (default: 8)
-            feast_params[13] = 2;
+            FEAST_Params[1] = 4; // number of quadrature points (default: 8)
+            FEAST_Params[13] = 2;
         }
 
-        integration_nodes.resize(feast_params[1]);
-        integration_weights.resize(feast_params[1]);
+        IntegrationNodes.resize(FEAST_Params[1]);
+        IntegrationWeights.resize(FEAST_Params[1]);
 
         // get quadrature nodes and weights
         zfeast_contour(&EigenvalueRangeMin,
                 &EigenvalueRangeMax,
-                &feast_params[1],
-                &feast_params[15],
-                &feast_params[17],
-                (double *)integration_nodes.data(),
-                (double *)integration_weights.data());
+                &FEAST_Params[1],
+                &FEAST_Params[15],
+                &FEAST_Params[17],
+                (double *)IntegrationNodes.data(),
+                (double *)IntegrationWeights.data());
 
         int ijob = -1;
         // solve the eigenvalue problem
         while (ijob != 0)
         {
             // FEAST's reverse communication interface
-            dfeast_srcix(&ijob,&system_size,(double *)&Ze,(double *)work.data().begin(),
+            dfeast_srcix(&ijob,&SystemSize,(double *)&Ze,(double *)work.data().begin(),
                     (double *)zwork.data().begin(),(double *)Aq.data().begin(),
-                    (double *)Bq.data().begin(),feast_params,&eps_out,&num_iter,
+                    (double *)Bq.data().begin(),FEAST_Params,&Epsout,&NumIter,
                     &EigenvalueRangeMin,&EigenvalueRangeMax,&SearchDimension,
                     (double *)rEigenvalues.data().begin(),
                     (double *)rEigenvectors.data().begin(),
-                    &rNumEigenvalues,(double *)residual.data().begin(),&info,
-                    (double *)integration_nodes.data(),
-                    (double *)integration_weights.data());
+                    &rNumEigenvalues,(double *)Residual.data().begin(),&Info,
+                    (double *)IntegrationNodes.data(),
+                    (double *)IntegrationWeights.data());
 
             switch (ijob)
             {
@@ -414,30 +315,30 @@ private:
                 case 11:
                 {
                     // solve the linear system for one quadrature point
-                    for (int j=0; j < feast_params[22]; j++)
+                    for (int j=0; j < FEAST_Params[22]; j++)
                     {
-                        for (int i=0; i < system_size; i++)
+                        for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
                         mpLinearSolver->Solve(Az,x,b);
-                        for (int i=0; i < system_size; i++)
+                        for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }
                 } break;
                 case 30:
                 {
                     // multiply Kx
-                    for (int i=0; i < feast_params[24]; i++)
+                    for (int i=0; i < FEAST_Params[24]; i++)
                     {
-                        int k = feast_params[23]-1+i;
+                        int k = FEAST_Params[23]-1+i;
                         noalias(column(work,k)) = prod(rStiffnessMatrix,row(rEigenvectors,k));
                     }
                 } break;
                 case 40:
                 {
                     // multiply Mx
-                    for (int i=0; i < feast_params[24]; i++)
+                    for (int i=0; i < FEAST_Params[24]; i++)
                     {
-                        int k = feast_params[23]-1+i;
+                        int k = FEAST_Params[23]-1+i;
                         noalias(column(work,k)) = prod(rMassMatrix,row(rEigenvectors,k));
                     }
                 }
@@ -450,11 +351,9 @@ private:
     /**
      * Initialize CSR matrix structure for FEAST system matrix: C = z * B - A.
      */
-    void InitializeFEASTSystemMatrix(
-        const SparseMatrixType& B,
-        const SparseMatrixType& A,
-        ComplexSparseMatrixType& C
-        )
+    void InitializeFEASTSystemMatrix(const SparseMatrixType& B,
+                                     const SparseMatrixType& A,
+                                     ComplexSparseMatrixType& C)
     {
         C.resize(B.size1(), B.size2(), false);
 
@@ -503,12 +402,10 @@ private:
     /**
      * Calculate FEAST system matrix: C = z * B - A. Similar to FEAST's zdaddcsr subroutine.
      */
-    void CalculateFEASTSystemMatrix(
-        std::complex<double> z,
-        SparseMatrixType& B,
-        SparseMatrixType& A,
-        ComplexSparseMatrixType& C
-        )
+    void CalculateFEASTSystemMatrix(std::complex<double> z,
+                                    SparseMatrixType& B,
+                                    SparseMatrixType& A,
+                                    ComplexSparseMatrixType& C)
     {
         std::size_t jb, ja;
         const std::size_t dimension = B.size1();

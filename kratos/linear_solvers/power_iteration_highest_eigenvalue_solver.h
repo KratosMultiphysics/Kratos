@@ -7,13 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//  Collaborator:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined(KRATOS_POWER_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED )
-#define  KRATOS_POWER_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED
+#if !defined(KRATOS_POWER_ITERATION_HIGHEST_EIGENVALUE_SOLVER_H_INCLUDED )
+#define  KRATOS_POWER_ITERATION_HIGHEST_EIGENVALUE_SOLVER_H_INCLUDED
 
 // System includes
 #include <string>
@@ -59,14 +58,14 @@ namespace Kratos
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class PowerIterationEigenvalueSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+class PowerIterationHighestEigenvalueSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PowerIterationEigenvalueSolver
-    KRATOS_CLASS_POINTER_DEFINITION(PowerIterationEigenvalueSolver);
+    /// Pointer definition of PowerIterationHighestEigenvalueSolver
+    KRATOS_CLASS_POINTER_DEFINITION(PowerIterationHighestEigenvalueSolver);
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 
@@ -87,9 +86,9 @@ public:
     ///@{
 
     /// Default constructor.
-    PowerIterationEigenvalueSolver() {}
+    PowerIterationHighestEigenvalueSolver() {}
 
-    PowerIterationEigenvalueSolver(
+    PowerIterationHighestEigenvalueSolver(
         double MaxTolerance,
         unsigned int MaxIterationNumber,
         unsigned int RequiredEigenvalueNumber,
@@ -101,14 +100,14 @@ public:
 
     }
 
-    PowerIterationEigenvalueSolver(
+    PowerIterationHighestEigenvalueSolver(
         Parameters ThisParameters,
         typename TLinearSolverType::Pointer pLinearSolver
         ): mpLinearSolver(pLinearSolver)
     {
         Parameters DefaultParameters = Parameters(R"(
         {
-            "solver_type"             : "power_iteration_eigenvalue_solver",
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
             "max_iteration"           : 10000,
             "tolerance"               : 1e-8,
             "required_eigen_number"   : 1,
@@ -126,14 +125,14 @@ public:
     }
 
     /// Copy constructor.
-    PowerIterationEigenvalueSolver(const PowerIterationEigenvalueSolver& Other) : BaseType(Other)
+    PowerIterationHighestEigenvalueSolver(const PowerIterationHighestEigenvalueSolver& Other) : BaseType(Other)
     {
 
     }
 
 
     /// Destructor.
-    ~PowerIterationEigenvalueSolver() override
+    ~PowerIterationHighestEigenvalueSolver() override
     {
 
     }
@@ -144,7 +143,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    PowerIterationEigenvalueSolver& operator=(const PowerIterationEigenvalueSolver& Other)
+    PowerIterationHighestEigenvalueSolver& operator=(const PowerIterationHighestEigenvalueSolver& Other)
     {
         BaseType::operator=(Other);
         return *this;
@@ -168,7 +167,6 @@ public:
         DenseMatrixType& Eigenvectors
         ) override
     {
-
         using boost::numeric::ublas::trans;
 
         const SizeType size = K.size1();
@@ -186,35 +184,26 @@ public:
         }
 
         // Starting with first step
-        double beta = 0.0;
         double ro = 0.0;
         double old_ro = Eigenvalues[0];
         VectorType y_old = ZeroVector(size);
 
         if (mEchoLevel > 1)
         {
-            std::cout << "Iteration  beta \t\t ro \t\t convergence norm" << std::endl;
+            std::cout << "Iteration ro \t\t convergence norm" << std::endl;
         }
 
         for(SizeType i = 0 ; i < max_iteration ; i++)
         {
-            // K*x = y
-            mpLinearSolver->Solve(K, x, y);
-            
-            ro = inner_prod(y, x);
+            // x = K*y
+            TSparseSpaceType::Mult(K, y, x);
             
             // y = M*x
             TSparseSpaceType::Mult(M, x, y);
-            beta = inner_prod(x, y);
             
-            if(beta <= 0.0)
-            {
-                KRATOS_ERROR << "M is not Positive-definite. beta = " << beta << std::endl;
-            }
-
-            ro /= beta;
-            beta = std::sqrt(beta);
-            TSparseSpaceType::InplaceMult(y, 1.0/beta);
+            ro = static_cast<double>(*boost::max_element(y));
+            
+            TSparseSpaceType::InplaceMult(y, 1.0/ro);
 
             if(ro == 0.0)
             {
@@ -226,7 +215,7 @@ public:
 
             if (mEchoLevel > 1)
             {
-                std::cout << "Iteration: " << i << " \t beta: " << beta << "\tro: " << ro << " \tConvergence norm: " << convergence_norm << " \tConvergence ro: " << convergence_ro << std::endl;
+                std::cout << "Iteration: " << i << "\tro: " << ro << " \tConvergence norm: " << convergence_norm << " \tConvergence ro: " << convergence_ro << std::endl;
             }
             
             if(convergence_norm < tolerance || convergence_ro < tolerance)
@@ -397,7 +386,7 @@ private:
 
     ///@}
 
-}; // Class PowerIterationEigenvalueSolver
+}; // Class PowerIterationHighestEigenvalueSolver
 
 ///@}
 
@@ -415,7 +404,7 @@ template<class TSparseSpaceType, class TDenseSpaceType,
          class TPreconditionerType,
          class TReordererType>
 inline std::istream& operator >> (std::istream& IStream,
-                                  PowerIterationEigenvalueSolver<TSparseSpaceType, TDenseSpaceType,
+                                  PowerIterationHighestEigenvalueSolver<TSparseSpaceType, TDenseSpaceType,
                                   TPreconditionerType, TReordererType>& rThis)
 {
     return IStream;
@@ -426,7 +415,7 @@ template<class TSparseSpaceType, class TDenseSpaceType,
          class TPreconditionerType,
          class TReordererType>
 inline std::ostream& operator << (std::ostream& OStream,
-                                  const PowerIterationEigenvalueSolver<TSparseSpaceType, TDenseSpaceType,
+                                  const PowerIterationHighestEigenvalueSolver<TSparseSpaceType, TDenseSpaceType,
                                   TPreconditionerType, TReordererType>& rThis)
 {
     rThis.PrintInfo(OStream);
@@ -440,4 +429,4 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POWER_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED defined
+#endif // KRATOS_POWER_ITERATION_HIGHEST_EIGENVALUE_SOLVER_H_INCLUDED defined
