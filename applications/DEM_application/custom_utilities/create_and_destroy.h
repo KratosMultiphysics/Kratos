@@ -281,7 +281,6 @@ private:
     double mScaleFactor;
     int mGreatestParticleId;
     bool mDoSearchNeighbourElements;
-    AnalyticWatcher mEmptyAnalyticWatcher;
     AnalyticWatcher::Pointer mpAnalyticWatcher;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable);
