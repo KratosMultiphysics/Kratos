@@ -13,6 +13,7 @@ errors = []
 varying_parameters["fluid_already_calculated"] = True
 varying_parameters["do_search_neighbours"] = False
 varying_parameters["BoundingBoxOption"] = False
+varying_parameters["full_particle_history_watcher"] = 'ParticlesHistoryWatcher'
 
 parameters = Parameters(json.dumps(varying_parameters))
 

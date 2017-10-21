@@ -313,9 +313,13 @@ void AddCustomUtilitiesToPython() {
         .def("ExecuteInitializeSolutionStep", &ExcavatorUtility::ExecuteInitializeSolutionStep)   
         ;
 
-    class_<ParticlesHistoryWatcher, bases<AnalyticWatcher>, ParticlesHistoryWatcher::Pointer>
-        ("ParticlesHistoryWatcher", init<>())
+    class_<AnalyticWatcher, AnalyticWatcher::Pointer >
+        ("AnalyticWatcher", init<>())
         .def("GetNewParticlesData", &ParticlesHistoryWatcher::GetNewParticlesData)
+        ;
+
+    class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, bases<AnalyticWatcher> >
+        ("ParticlesHistoryWatcher", init<>())
         ;
     }
 

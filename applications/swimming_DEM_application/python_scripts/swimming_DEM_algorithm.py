@@ -172,6 +172,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.AddEmptyValue("filter_velocity_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("print_PARTICLE_VEL_option").SetBool(False)
         self.pp.CFD_DEM.AddEmptyValue("apply_time_filter_to_fluid_fraction_option").SetBool(False)
+        self.pp.CFD_DEM.AddEmptyValue("full_particle_history_watcher").SetString("Empty")
         self.pp.CFD_DEM.print_DISPERSE_FRACTION_option = False
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
