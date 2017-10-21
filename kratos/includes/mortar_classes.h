@@ -896,7 +896,7 @@ public:
     virtual ~MortarOperator(){}
     
     // Mortar condition matrices - DOperator and MOperator
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
+    bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
 
     ///@}
     ///@name Operators
@@ -949,7 +949,7 @@ public:
      * It calculates the POperator (Inverse(D x M))
      * Popp thesis page 83 equation 3.88
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputePOperator()
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputePOperator()
     {
         // We calculate the inverse of D operator
         double auxdet;
@@ -1292,7 +1292,7 @@ public:
     
     virtual ~DualLagrangeMultiplierOperators(){}
     
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
+    bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
         
     ///@}
     ///@name Operators
@@ -1335,7 +1335,7 @@ public:
      * Calculates the matrix Ae. To avoid problems in the inversion the matrix is normalized
      * Popp thesis page 70. Equation 3.65
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
+    bounded_matrix<double, TNumNodes, TNumNodes> CalculateAe()
     {        
         const double tolerance = std::numeric_limits<double>::epsilon(); 
         
@@ -1343,7 +1343,7 @@ public:
         const double& norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
         
         // We compute the normalized inverse 
         double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_me); 
@@ -1367,7 +1367,7 @@ public:
         const double& detJ 
         )
     {
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> De;
+        bounded_matrix<double, TNumNodes, TNumNodes> De;
     
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
@@ -1512,8 +1512,8 @@ public:
     static const unsigned int size_1 = (TNumNodes * TDim);
     
     // Derivatives matrices
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaMe;
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaDe;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaMe;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaDe;
         
     ///@}
     ///@name Operators
