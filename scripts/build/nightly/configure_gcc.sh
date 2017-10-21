@@ -7,6 +7,7 @@ cmake .. \
 -DCMAKE_INSTALL_RPATH="${HOME}/Kratos/libs"                                                     \
 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                                        \
 -DCMAKE_CXX_COMPILER=g++                                                                        \
+-DCMAKE_BUILD_TYPE=Release                                                                      \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -fopenmp"                                              \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
