@@ -356,23 +356,21 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssembleRHSAnd
     const MortarOperator<TNumNodes>& ThisMortarOperators
     )
 {
-    // First we assemble the RHS
     for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
     {
         const int& node_i_id = SlaveGeometry[i_node].Id();
         const int& pos_i_id = InverseConectivityDatabase[node_i_id];
+        
+        // First we assemble the RHS
         for (unsigned int i_var = 0; i_var < VariableSize; ++i_var)
         {
-            b[i_var][pos_i_id] += ResidualMatrix(i_node, i_var);
+            double& aux_b = b[i_var][pos_i_id];
+            #pragma omp atomic
+            aux_b += ResidualMatrix(i_node, i_var);
         }
-
-        // We assemble the LHS
-        for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node)
-        {
-            const int& node_j_id = SlaveGeometry[j_node].Id();
-            const int& pos_j_id = InverseConectivityDatabase[node_j_id];
-            A(pos_i_id, pos_j_id) += ThisMortarOperators.DOperator(i_node, j_node);
-        }
+        
+        #pragma omp critical // TODO: Solve this, use somethis instead the critical
+        A(pos_i_id, pos_i_id) += ThisMortarOperators.DOperator(i_node, i_node);
     }
 }
 
@@ -395,7 +393,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssembleRHS(
         const int& pos_i_id = InverseConectivityDatabase[node_i_id];
         for (unsigned int i_var = 0; i_var < VariableSize; ++i_var)
         {
-            b[i_var][pos_i_id] += ResidualMatrix(i_node, i_var);
+            double& aux_b = b[i_var][pos_i_id];
+            #pragma omp atomic
+            aux_b += ResidualMatrix(i_node, i_var);
         }
     }
 }
@@ -624,7 +624,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
             }
         }
             
-        // We map the values from one side to the other // TODO: Add OMP
+        // We map the values from one side to the other
+        #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
         for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i)
         {
             auto it_cond = mrThisModelPart.ConditionsBegin() + i;
@@ -656,15 +657,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
                         // Initialize the mortar operators
                         this_mortar_operators.Initialize();
                         
-//                             const bounded_matrix<double, TNumNodes, TNumNodes> Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                        const bounded_matrix<double, TNumNodes, TNumNodes>& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
                         
-                        AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method);
+                        AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal ,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
                         
                         Matrix residual_matrix;
                         ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
                         
                         /* We compute the residual and assemble */
-                    
                         if (iteration == 0)
                         {
                             AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database, this_mortar_operators);
