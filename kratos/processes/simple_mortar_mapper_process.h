@@ -754,11 +754,11 @@ private:
         // We call the exact integration utility
         ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
         
+        // We reset the nodal area
+        ResetNodalArea();
+            
         while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations)
         {
-            // We reset the nodal area
-            ResetNodalArea();
-        
             // We reset the auxiliar variable
             MortarUtilities::ResetAuxiliarValue<TVarType>(mrThisModelPart);
                 
@@ -826,9 +826,12 @@ private:
                                 }
                             }
                             
-                            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+                            if (iteration == 0) // Just assembled the first iteration
                             {
-                                slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
+                                for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+                                {
+                                    slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
+                                }
                             }
                         }
                     }
