@@ -22,23 +22,22 @@ else:
 
 class Solution(object):
 
-    def LoadParametersFile(self):
-        parameters_file = open("ProjectParametersDEM.json",'r')
-        self.DEM_parameters = Parameters(parameters_file.read())
-
-    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
-        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-
-    def __init__(self):
-
-        self.LoadParametersFile()
+    def __init__(self, DEM_parameters=DEM_parameters):
+        print("entering _init_ main_script")
+        if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+            def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+        else:
+            def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+                #return ModelPartIO(modelpart)                
+                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+        self.model_part_reader = model_part_reader
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
-
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
@@ -242,8 +241,11 @@ class Solution(object):
         self.materialTest.PrintChart()
         self.materialTest.PrepareDataForGraph()
 
-        self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
-        self.report.total_steps_expected = int(self.final_time / self.dt)
+        self.post_utils = DEM_procedures.PostUtils(DEM_parameters, self.spheres_model_part)
+       
+        #self.SetFinalTime()
+        #self.Setdt()
+        self.report.total_steps_expected = int(self.final_time / self.dt)       
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def GetMpFilename(self):               
@@ -383,7 +385,6 @@ class Solution(object):
                     #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
                     #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                         self.FillAnalyticSubModelPartsWithNewParticles()
-
     def BeforePrintingOperations(self, time):
         pass
 

@@ -116,11 +116,11 @@
     }],
     "loads_process_list"       : [
     {
-        "python_module"   : "assign_vector_to_condition_process",
+        "python_module"   : "assign_vector_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorToConditionProcess",
+        "process_name"          : "AssignVectorVariableToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "CUSTOM",
@@ -129,11 +129,11 @@
             "value"                : [0.0, "-1.0e3*t", 0.0]
         }
     },{
-        "python_module"   : "assign_vector_to_condition_process",
+        "python_module"   : "assign_vector_variable_to_conditions_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorToConditionProcess",
+        "process_name"          : "AssignVectorVariableToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "CUSTOM",
@@ -142,7 +142,7 @@
             "value"                : [0.0, -1.0e3, 0.0]
         }
     }],
-    "contact_processes" :[{
+    "contact_process_list" :[{
         "python_module" : "alm_contact_process",
         "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",

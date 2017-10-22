@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include <omp.h>
 
 // Project includes
 #include "includes/model_part.h"
@@ -177,7 +178,6 @@ public:
         ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
-//         #pragma omp parallel for 
         for(int i = 0; i < num_conditions; i++) 
         {
             auto it_cond = conditions_array.begin() + i;
@@ -321,19 +321,41 @@ public:
     
     void CreatePointListMortar()
     {
+        // Clearing the vector
+        mPointListDestination.clear();
+        
         // Iterate in the conditions
         ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
-        #pragma omp for nowait schedule(static)
-        for(int i = 0; i < num_conditions; i++) 
+        // Creating a buffer for parallel vector fill
+        const unsigned int num_threads = omp_get_max_threads();
+        std::vector<PointVector> points_buffer(num_threads);
+
+        #pragma omp parallel
         {
-            auto it_cond = conditions_array.begin() + i;
-            
-            if (it_cond->Is(MASTER) == true)
+            const unsigned int thread_id = omp_get_thread_num();
+
+            #pragma omp for
+            for(int i = 0; i < num_conditions; i++) 
             {
-                PointTypePointer p_point = PointTypePointer(new PointItem((*it_cond.base())));
-                (mPointListDestination).push_back(p_point);
+                auto it_cond = conditions_array.begin() + i;
+                
+                if (it_cond->Is(MASTER) == true)
+                {
+                    PointTypePointer p_point = PointTypePointer(new PointItem((*it_cond.base())));
+//                     (mPointListDestination).push_back(p_point);
+                    (points_buffer[thread_id]).push_back(p_point);
+                }
+            }
+            
+            // Combine buffers together
+            #pragma omp single
+            {
+                for( auto& point_buffer : points_buffer)
+                {
+                    std::move(point_buffer.begin(),point_buffer.end(),back_inserter(mPointListDestination));
+                }
             }
         }
     }
@@ -344,12 +366,14 @@ public:
     
     void UpdatePointListMortar()
     {
+        const double& delta_time = mrMainModelPart.GetProcessInfo()[DELTA_TIME];
+        
         const int num_points = static_cast<int>(mPointListDestination.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < num_points; i++) 
         {
-            mPointListDestination[i]->UpdatePoint();
+            mPointListDestination[i]->UpdatePoint(delta_time);
         }
     }
 
@@ -367,6 +391,8 @@ public:
         
         // Calculate the mean of the normal in all the nodes
         ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
+        
+        const double& delta_time = mrMainModelPart.GetProcessInfo()[DELTA_TIME];
         
 //         #pragma omp parallel 
 //         {
@@ -391,8 +417,16 @@ public:
                 if (it_cond->Is(SLAVE) == true)
                 {
                     if (mSearchTreeType == KdtreeInRadius)
-                    {                        
-                        const Point center = it_cond->GetGeometry().Center();
+                    {                  
+                        Point center;
+                        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) == true)
+                        {
+                            center = ContactUtilities::GetHalfJumpCenter(it_cond->GetGeometry(), delta_time); // NOTE: Center in half delta time
+                        }
+                        else
+                        {
+                            center = it_cond->GetGeometry().Center(); // NOTE: Real center
+                        }
                         const double search_radius = mSearchFactor * Radius(it_cond->GetGeometry());
 
                         number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), mAllocationSize);
@@ -414,8 +448,8 @@ public:
                         it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
                         it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
                     
-                        const array_1d<double,3> normal_min = ContactUtilities::GaussPointNormal(N_min, it_cond->GetGeometry());
-                        const array_1d<double,3> normal_max = ContactUtilities::GaussPointNormal(N_max, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
+                        const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
                         
                         ContactUtilities::ScaleNode<Node<3>>(min_point, normal_min, length_search);
                         ContactUtilities::ScaleNode<Node<3>>(max_point, normal_max, length_search);
@@ -751,9 +785,18 @@ protected:
         const Condition::Pointer& pCond2
         )
     {
-        if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
+        if (pCond1 == pCond2) // Avoiding "auto self-contact"
         {
             return Fail;
+        }
+        
+        
+        if (((pCond1->GetValue(ELEMENT_POINTER) != nullptr) && (pCond2->GetValue(ELEMENT_POINTER) != nullptr)) == true)
+        {
+            if ((pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER)) == false) // Avoiding "auto element contact"
+            {
+                return Fail;
+            }
         }
 
         // Avoid conditions oriented in the same direction
