@@ -158,19 +158,11 @@ public:
 
     // General type definitions
     typedef Geometry < Node<3> >                                                  GeometryType;
-    typedef GeometryData::IntegrationMethod                              IntegrationMethodType;
-    typedef typename GeometryData::ShapeFunctionsGradientsType     ShapeFunctionsGradientsType;
-    
     typedef IndexedPoint                                                      IndexedPointType;
     typedef typename IndexedPoint::Pointer                             IndexedPointPointerType;
     typedef Geometry < IndexedPoint >                                 IndexedPointGeometryType;
     typedef Geometry < IndexedPoint >::Pointer                 IndexedPointGeometryPointerType;
     typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
-    typedef IndexedPointsContainerType::iterator                     IndexedPointsIteratorType;
-
-    typedef IntegrationPoint<3>                                                                          IntegrationPointType;
-    typedef std::vector<IntegrationPointType>                                                      IntegrationPointsArrayType;
-    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     int mSplitEdgesNumber;  // Number of split edges
     int mDivisionsNumber;   // Number of generated subdivisions

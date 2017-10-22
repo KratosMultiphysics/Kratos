@@ -52,20 +52,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedShapeFunctions);
 
     // General type definitions
-    typedef Geometry < Node<3> >                                                  GeometryType;
-    typedef GeometryData::IntegrationMethod                              IntegrationMethodType;
-    typedef typename GeometryData::ShapeFunctionsGradientsType     ShapeFunctionsGradientsType;
+    typedef Geometry < Node<3> >                                                                                      GeometryType;
+    typedef GeometryData::IntegrationMethod                                                                  IntegrationMethodType;
+    typedef typename GeometryData::ShapeFunctionsGradientsType                                         ShapeFunctionsGradientsType;
     
-    typedef IndexedPoint                                                      IndexedPointType;
-    typedef typename IndexedPoint::Pointer                             IndexedPointPointerType;
-    typedef Geometry < IndexedPoint >                                 IndexedPointGeometryType;
-    typedef Geometry < IndexedPoint >::Pointer                 IndexedPointGeometryPointerType;
-    typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
-    typedef IndexedPointsContainerType::iterator                     IndexedPointsIteratorType;
+    typedef typename DivideGeometry::IndexedPointGeometryType                                             IndexedPointGeometryType;
+    typedef typename DivideGeometry::IndexedPointGeometryPointerType                               IndexedPointGeometryPointerType;
 
-    typedef IntegrationPoint<3>                                                                          IntegrationPointType;
-    typedef std::vector<IntegrationPointType>                                                      IntegrationPointsArrayType;
-    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef IntegrationPoint<3>                                                                               IntegrationPointType;
+    typedef std::vector<IntegrationPointType>                                                           IntegrationPointsArrayType;
+    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
 
     int mSplitEdgesNumber;  // Number of split edges
     int mDivisionsNumber;   // Number of generated subdivisions
@@ -114,18 +110,46 @@ public:
     GeometryType GetInputGeometry() const;
 
     /**
-    * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
-    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
-    * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
-    * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
-    * @param rSubdivisionGeom: std::vector of subdivisions point based geometries where the values are to be computed.
+    * Returns the shape function values in both the positive or negative split element sides for a given quadrature.
+    * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
+    * @return rNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
+    * @return rNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
+    * @return rNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod: Desired integration quadrature.
     */
-    virtual void GetShapeFunctionsAndGradientsValues(Matrix& rShapeFunctionsValues,
-                                                     std::vector<Matrix>& rShapeFunctionsGradientsValues,
-                                                     Vector& rWeightsValues,
-                                                     const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector,
+    virtual void GetShapeFunctionsAndGradientsValues(Matrix &rPositiveSideShapeFunctionsValues,
+                                                     Matrix &rNegativeSideShapeFunctionsValues,
+                                                     std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+                                                     std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+                                                     Vector &rPositiveSideWeightsValues,
+                                                     Vector &rNegativeSideWeightsValues,
                                                      const IntegrationMethodType IntegrationMethod);
+
+    /**
+    * Returns the shape function values in the positive split element side for a given quadrature.
+    * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
+    * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
+    * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void GetPositiveSideShapeFunctionsAndGradientsValues(Matrix &rPositiveSideShapeFunctionsValues,
+                                                                 std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+                                                                 Vector &rPositiveSideWeightsValues,
+                                                                 const IntegrationMethodType IntegrationMethod);
+                                                                 
+    /**
+    * Returns the shape function values in the negative split element side for a given quadrature.
+    * @return rNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void GetNegativeSideShapeFunctionsAndGradientsValues(Matrix &rNegativeSideShapeFunctionsValues,
+                                                                 std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+                                                                 Vector &rNegativeSideWeightsValues,
+                                                                 const IntegrationMethodType IntegrationMethod);
 
     ///@}
 
@@ -164,6 +188,21 @@ protected:
                                                  const int rSplitEdges[],
                                                  const unsigned int splitEdgesNumber);
 
+    /**
+    * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
+    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
+    * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
+    * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
+    * @param rSubdivisionGeom: std::vector of subdivisions point based geometries where the values are to be computed.
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    virtual void ComputeValuesOnOneSide(Matrix &rShapeFunctionsValues,
+                                        std::vector<Matrix> &rShapeFunctionsGradientsValues,
+                                        Vector &rWeightsValues,
+                                        const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
+                                        const Matrix &p_matrix,
+                                        const IntegrationMethodType IntegrationMethod);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -178,7 +217,7 @@ protected:
 
     ///@}
 
-private:
+    private :
     ///@name Static Member Variables
     ///@{
 
@@ -186,7 +225,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    GeometryType& mrInputGeometry;
+    GeometryType &mrInputGeometry;
     Vector& mrNodalDistances;
 
     ///@}

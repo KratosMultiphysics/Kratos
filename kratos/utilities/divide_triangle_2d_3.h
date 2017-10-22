@@ -55,8 +55,9 @@ public:
     /// Pointer definition of DivideTriangle2D3
     KRATOS_CLASS_POINTER_DEFINITION(DivideTriangle2D3);
 
-    int mEdgeNodeI[3] = {0, 1, 2};
-    int mEdgeNodeJ[3] = {1, 2, 0};
+    const int mEdgeNodeI[3] = {0, 1, 2};
+    const int mEdgeNodeJ[3] = {1, 2, 0};
+    const unsigned int mSplitEdgesSize = 6;
     int mSplitEdges[6] = {0, 1, 2, -1, -1, -1};
 
     ///@}
