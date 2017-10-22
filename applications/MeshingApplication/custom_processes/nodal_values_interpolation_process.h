@@ -142,14 +142,14 @@ public:
         point_locator.UpdateSearchDatabase();
         
         // Iterate in the nodes
-        NodesArrayType& p_node = mrDestinationMainModelPart.Nodes();
-        auto num_nodes = p_node.end() - p_node.begin();
+        NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
+        auto num_nodes = nodes_array.end() - nodes_array.begin();
         
         /* Nodes */
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < num_nodes; i++) 
         {
-            auto it_node = p_node.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
             Vector shape_functions;
             Element::Pointer p_element;
