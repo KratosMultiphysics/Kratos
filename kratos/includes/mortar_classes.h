@@ -1343,16 +1343,23 @@ public:
         const double& norm_me = norm_frobenius(Me);
         
         // Now we normalize the matrix
-        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_me = Me/norm_me;
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = Me/norm_me;
         
         // We compute the normalized inverse 
-        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_me); 
+        double aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me); 
         if (std::abs(aux_det) >= tolerance) 
         { 
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_me, aux_det, tolerance);  
+            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);  
              
-            return (1.0/norm_me) * prod(De, normalized_inv_me); 
+            return (1.0/norm_me) * prod(De, normalized_inv_Me); 
         } 
+    #ifdef KRATOS_DEBUG
+        else
+        {
+            KRATOS_WATCH(normalized_Me);
+            KRATOS_ERROR << "Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
+        }
+    #endif
         
         return IdentityMatrix(TNumNodes);  
     }   

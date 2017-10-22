@@ -1166,7 +1166,11 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, Histori
         )
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    const bool null_area = (area_coeff == 0.0);
+#ifdef KRATOS_DEBUG 
+    if (null_area) KRATOS_ERROR << "NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+#endif
+    area_coeff = null_area ? 1.0 : 1.0/area_coeff;
     pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
@@ -1177,7 +1181,11 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, Historical
         )
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    const bool null_area = (area_coeff == 0.0);
+#ifdef KRATOS_DEBUG 
+    if (null_area) KRATOS_ERROR << "NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+#endif
+    area_coeff = null_area ? 1.0 : 1.0/area_coeff;
     pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
 }
 
@@ -1188,7 +1196,11 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double,
         )
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    const bool null_area = (area_coeff == 0.0);
+#ifdef KRATOS_DEBUG 
+    if (null_area) KRATOS_ERROR << "NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+#endif
+    area_coeff = null_area ? 1.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->FastGetSolutionStepValue(ThisVariable);
     aux_vector += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
@@ -1200,7 +1212,11 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, NonHist
         )
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    const bool null_area = (area_coeff == 0.0);
+#ifdef KRATOS_DEBUG 
+    if (null_area) KRATOS_ERROR << "NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+#endif
+    area_coeff = null_area ? 1.0 : 1.0/area_coeff;
     pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
@@ -1211,7 +1227,11 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, NonHistori
         )
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    const bool null_area = (area_coeff == 0.0);
+#ifdef KRATOS_DEBUG 
+    if (null_area) KRATOS_ERROR << "NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+#endif
+    area_coeff = null_area ? 1.0 : 1.0/area_coeff;
     pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
 }
 
@@ -1222,7 +1242,11 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double,
         )
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    area_coeff = (area_coeff == 0.0) ? 1.0 : 1.0/area_coeff;
+    const bool null_area = (area_coeff == 0.0);
+#ifdef KRATOS_DEBUG 
+    if (null_area) KRATOS_ERROR << "NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+#endif
+    area_coeff = null_area ? 1.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->GetValue(ThisVariable);
     aux_vector += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
