@@ -214,7 +214,7 @@ public:
                         decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                         SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
                         
-                        // Calculate the kinematic variables
+                        // Calculate the kinematic variables // TODO: Check this
                         const PointType& local_point = integration_points_slave[point_number].Coordinates();
 
                         /// SLAVE CONDITION ///
