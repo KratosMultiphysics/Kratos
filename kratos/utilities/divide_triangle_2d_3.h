@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Default constructor
-    DivideTriangle2D3(GeometryType& rInputGeometry, Vector& rNodalDistances);
+    DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
     ~DivideTriangle2D3();
@@ -101,22 +101,13 @@ public:
 
     /**
      * Divides the input geometry according to the provided distance data.
-     * @return rAuxPoints: Reference to the pointer vector set containing the original nodes plus the intersection ones.
-     * @return rPositiveSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the positive subdivisions.
-     * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
      */
-    bool GenerateDivision(IndexedPointsContainerType& rAuxPoints,
-                          std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
-                          std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions) override;
+    void GenerateDivision() override;
 
     /**
      * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
-     * @return rInterfacesVector: Reference to a std::vector containing the generated interface geometries.
-     * @param rSubdivisionsVector: std::vector of subdivisions point based geometries to its intersection geometries.
      */
-    void GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
-                                   IndexedPointsContainerType& rAuxPoints,
-                                   const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector) override;
+    void GenerateIntersectionsSkin() override;
 
     ///@}
 

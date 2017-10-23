@@ -164,15 +164,23 @@ public:
     typedef Geometry < IndexedPoint >::Pointer                 IndexedPointGeometryPointerType;
     typedef PointerVectorSet<IndexedPointType, IndexedObject>       IndexedPointsContainerType;
 
-    int mSplitEdgesNumber;  // Number of split edges
-    int mDivisionsNumber;   // Number of generated subdivisions
+    bool mIsSplit;          // True if the element is split.
+
+    int mSplitEdgesNumber;  // Number of split edges.
+    int mDivisionsNumber;   // Number of generated subdivisions.
+
+    IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.                              
+    std::vector < IndexedPointGeometryPointerType > mPositiveSubdivisions;  // Array to store the generated positive subdivisions geometries.
+    std::vector < IndexedPointGeometryPointerType > mNegativeSubdivisions;  // Array to store the generated negative subdivisions geometries.
+    std::vector < IndexedPointGeometryPointerType > mPositiveInterfaces;    // Array to store the generated positive interfaces geometries.
+    std::vector < IndexedPointGeometryPointerType > mNegativeInterfaces;    // Array to store the generated negative interfaces geometries.
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    DivideGeometry(GeometryType& rInputGeometry, Vector& rNodalDistances);
+    DivideGeometry(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
     ~DivideGeometry();
@@ -212,22 +220,13 @@ public:
 
     /**
      * Divides the input geometry according to the provided distance data.
-     * @return rAuxPoints: Reference to the pointer vector set containing the original nodes plus the intersection ones.
-     * @return rPositiveSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the positive subdivisions.
-     * @return rNegativeSubdivisions: Reference to a vector containing the nodal auxiliar ids. that conform the negative subdivisions.
      */
-    virtual bool GenerateDivision(IndexedPointsContainerType& rAuxPoints,
-                                  std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
-                                  std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions);
+    virtual void GenerateDivision();
 
     /**
      * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
-     * @return rInterfacesVector: Reference to a std::vector containing the generated interface geometries.
-     * @param rSubdivisionsVector: std::vector of subdivisions point based geometries to its intersection geometries.
      */
-    virtual void GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
-                                           IndexedPointsContainerType& rAuxPoints,
-                                           const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector);
+    virtual void GenerateIntersectionsSkin();
 
     ///@}
 
@@ -250,7 +249,7 @@ protected:
     /**
     * Returns true if the element is split and false otherwise.
     */
-    bool IsSplit();
+    void IsSplit();
 
     ///@}
     ///@name Protected  Access
@@ -274,8 +273,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    GeometryType& mrInputGeometry;
-    Vector& mrNodalDistances;
+    const GeometryType& mrInputGeometry;
+    const Vector& mrNodalDistances;
 
     ///@}
     ///@name Serialization
