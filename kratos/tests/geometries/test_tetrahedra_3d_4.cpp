@@ -420,7 +420,7 @@ namespace Kratos {
       KRATOS_CHECK(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(1.1,1.1,1.2)));
 
       //tetrahedron not intersects the box
-      KRATOS_CHECK(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
+      KRATOS_CHECK_IS_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
     }
 
 
