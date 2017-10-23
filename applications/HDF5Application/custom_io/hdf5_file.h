@@ -81,7 +81,7 @@ public:
     /// Constructor.
     HDF5File() {}
 
-    HDF5File(Parameters& rParams);
+    explicit HDF5File(Parameters& rParams);
 
     // Copy constructor.
     HDF5File(const HDF5File& rOther) = delete;
