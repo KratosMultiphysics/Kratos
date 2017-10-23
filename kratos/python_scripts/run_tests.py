@@ -8,6 +8,7 @@ import sys
 import subprocess
 import threading
 
+from KratosMultiphysics import Tester
 from KratosMultiphysics import KratosLoader
 from KratosMultiphysics.KratosUnittest import CaptureStdout
 
@@ -255,7 +256,7 @@ def main():
             assert False, 'unhandled option'
 
     # Capture stdout from KratosUnittest
-    CaptureStdout()
+    # CaptureStdout()
 
     # Set timeout of the different levels
     signalTime = int(-1)
@@ -302,10 +303,10 @@ def main():
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
     try:
-        Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
+        Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
         Tester.RunAllTestCases()
-    except:
-        print('[Warning]: Cpp tests were unable to run', file=sys.stderr)
+    except Exception as e:
+        print('[Warning]:', e, file=sys.stderr)
 
     sys.exit(commander.exitCode)
 
