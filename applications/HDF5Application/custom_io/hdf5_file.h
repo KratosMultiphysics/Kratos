@@ -79,7 +79,7 @@ public:
     ///@{
 
     /// Constructor.
-    HDF5File() : m_file_id(-1) {}
+    HDF5File() {}
 
     HDF5File(Parameters& rParams);
 
@@ -150,7 +150,7 @@ protected:
     ///@name Member Variables
     ///@{
     std::string m_file_name;
-    hid_t m_file_id;
+    hid_t m_file_id = -1; // Default invalid file id.
     int m_echo_level;
     ///@}
 
