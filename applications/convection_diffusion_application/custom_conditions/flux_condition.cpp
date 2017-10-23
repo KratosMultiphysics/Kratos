@@ -320,6 +320,13 @@ void FluxCondition<3>::CalculateNormal(array_1d<double,3>& An )
     An *= 0.5;
 }
 
+template <>
+void FluxCondition<4>::CalculateNormal(array_1d<double,3>& An )
+{
+    KRATOS_ERROR << "This function is not yet implemented" << std::endl;
+  
+}
+
 // Serialization //////////////////////////////////////////////////////////////
 
 template< unsigned int TNodeNumber >
@@ -342,5 +349,6 @@ void FluxCondition<TNodeNumber>::load(Serializer& rSerializer)
 
 template class FluxCondition<2>;
 template class FluxCondition<3>;
+template class FluxCondition<4>;
 
 }
