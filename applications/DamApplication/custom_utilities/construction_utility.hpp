@@ -112,12 +112,9 @@ void Initialize()
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void InitializeSolutionStep(Parameters& rParameters) //std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName)
+void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName)
 {
     KRATOS_TRY;
-
-    std::string ThermalSubModelPartName = rParameters["ThermalSubModelPartName"].GetString();
-    std::string MechanicalSubModelPartName = rParameters["MechanicalSubModelPartName"].GetString();    
     
     const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
     int direction;
@@ -165,10 +162,7 @@ void InitializeSolutionStep(Parameters& rParameters) //std::string ThermalSubMod
 
     // Detecting and creating face heat flux
     this->SearchingFluxes();
-
-    // Updating Heat Fluxes
-    this->ActiveHeatFlux();
-            
+           
     KRATOS_CATCH("");
 }
 
@@ -381,15 +375,11 @@ void SearchingFluxes()
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ActiveHeatFlux()
+void ActiveHeatFlux(std::string ThermalSubModelPartName, int phase, double phase_time)
 {
     KRATOS_TRY;
     
-    const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
-    double time = mrMechanicalModelPart.GetProcessInfo()[TIME];    
-    int int_time = time/mTimeUnitConverter;
-
-    unsigned int current_number_of_phases = mrTablePhases.GetValue(int_time-1);
+    const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
 
     int direction;
     if( mGravityDirection == "X")
@@ -401,35 +391,31 @@ void ActiveHeatFlux()
 
     if(nelements != 0)
     {
-        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();               
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();               
         
-        for(unsigned int j = 0; j<current_number_of_phases; ++j)
-        {
-            double current_height = mReferenceCoordinate + (mHeight/mPhases)*(j+1);
-            double previous_height =mReferenceCoordinate + (mHeight/mPhases)*(j);         
-            double real_time = time - (mrTableTimes.GetValue(j));
+        double current_height = mReferenceCoordinate + (mHeight/mPhases)*(phase);
+        double previous_height = mReferenceCoordinate + (mHeight/mPhases)*(phase-1);         
 
-            // This formulation is developed using hours as temporal variable
-            real_time = real_time/3600.0;
+        // This formulation is developed using hours as temporal variable
+        double real_time = phase_time/3600.0;
         
-            // Computing the value of heat flux according the time
-            double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*real_time));
-            
-            #pragma omp parallel for
-            for(unsigned int k = 0; k<nelements; ++k)
+        // Computing the value of heat flux according the time
+        double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*real_time));
+        
+        #pragma omp parallel for
+        for(unsigned int k = 0; k<nelements; ++k)
+        {
+            ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+            array_1d<double,3> central_position = it_thermal->GetGeometry().Center();
+            if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height) )
             {
-                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-                array_1d<double,3> central_position = it_thermal->GetGeometry().Center();
-                if((central_position(direction) >= previous_height) && (central_position(direction) <= current_height) )
+                const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
+                for(unsigned int i = 0; i<number_of_points; ++i)
                 {
-                    const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
-                    for(unsigned int i = 0; i<number_of_points; ++i)
-                    {
-                        it_thermal->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) = value;                    
-                    }
+                    it_thermal->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) = value;                    
                 }
-            }  
-        }            
+            }
+        }             
     }
 
     KRATOS_CATCH("");

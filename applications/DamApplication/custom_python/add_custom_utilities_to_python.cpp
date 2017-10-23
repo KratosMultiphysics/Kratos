@@ -37,10 +37,21 @@ namespace Python
 inline
 void InitializeSolutionStep(
         ConstructionUtility& rThisUtil,
-        Parameters& rParameters)
+        std::string ThermalSubModelPartName,
+        std::string MechanicalSubModelPartName)
 {
-    rThisUtil.InitializeSolutionStep(rParameters);
+    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName);
 }
+
+inline
+void ActiveHeatFlux(
+        ConstructionUtility& rThisUtil,    
+        std::string ThermalSubModelPartName,
+        int phase, double phase_time)
+{
+    rThisUtil.ActiveHeatFlux(ThermalSubModelPartName, phase, phase_time);
+}
+
 
 void  AddCustomUtilitiesToPython() 
 {
@@ -63,6 +74,7 @@ void  AddCustomUtilitiesToPython()
     class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, TableType&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
     .def("InitializeSolutionStep",InitializeSolutionStep)
+    .def("ActiveHeatFlux",ActiveHeatFlux)    
     .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep)
     ;
     

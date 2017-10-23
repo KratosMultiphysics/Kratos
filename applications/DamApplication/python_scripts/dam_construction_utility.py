@@ -22,6 +22,7 @@ class DamConstructionUtility:
                 file_1 = line.split(" ")
                 if (len(file_1)) > 1: 
                     self.table_phase.AddRow(float(file_1[0]), float(file_1[1]))
+                self.number_iter = j
 
         self.table_times = PiecewiseLinearTable()
         with open(times_input_file_name,'r') as file_name2:
@@ -47,7 +48,7 @@ class DamConstructionUtility:
 
         time = self.mechanical_model_part.ProcessInfo[TIME]
         delta_time = self.mechanical_model_part.ProcessInfo[DELTA_TIME]
-        step = int(time/delta_time)
+        step = int(time/delta_time)-1
 
         with open('thermal_parts.txt','r') as file_name4:
             it_t=(thermal_linea for i,thermal_linea in enumerate(file_name4) if i==step)
@@ -59,7 +60,17 @@ class DamConstructionUtility:
             for mechanical_linea in it_m:
                 mechanical_name = mechanical_linea.rstrip('\n')
 
-        self.Construction.InitializeSolutionStep(parts_params)
+        self.Construction.InitializeSolutionStep(thermal_name,mechanical_name)
+
+        for i in range(self.number_iter+1):
+            phase_time = time - self.table_times.GetValue(i)
+            if (phase_time>0.0):
+                with open('thermal_parts.txt','r') as file_name4:
+                    it_t=(thermal_linea for w,thermal_linea in enumerate(file_name4) if w==i)
+                    for thermal_linea in it_t:
+                        thermal_name = thermal_linea.rstrip('\n')
+
+                self.Construction.ActiveHeatFlux(thermal_name,int(self.table_phase.GetValue(i)),phase_time)
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
