@@ -829,7 +829,7 @@ namespace Kratos
 
       Vector WaterStressVector = ZeroVector( voigt_size);
       for (unsigned int i = 0; i < dimension; i++)
-         WaterStressVector(i) += WaterPressure;
+         WaterStressVector(i) -= WaterPressure;
       
       //std::cout << "B = " << rVariables.B << std::endl;
       VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), WaterStressVector );
@@ -837,7 +837,7 @@ namespace Kratos
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int j = 0; j < dimension; j++) {
-            rRightHandSideVector(i*dofs_per_node + j+ dimension) += InternalForces(i*dimension + j);
+            rRightHandSideVector(i*dofs_per_node + j+ dimension) -= InternalForces(i*dimension + j);
          }
       }
 
