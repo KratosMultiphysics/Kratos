@@ -80,7 +80,7 @@ public:
     //ModelPart& fluid_model_part, ModelPart& structure_model_part, ModelPart& combined_model_part)
     //: mr_fluid_model_part(fluid_model_part), mr_structure_model_part(structure_model_part), mr_combined_model_part(combined_model_part)
     {
-	KRATOS_WATCH(" INSIDE ADD WALL NODES CONSTRUCTOR") 
+	//KRATOS_WATCH(" INSIDE ADD WALL NODES CONSTRUCTOR") 
     }
 
     /// Destructor.
@@ -128,10 +128,12 @@ public:
         {
 		//set the NODAL_H in the wall node to the average size and then add this node to the fluid model part
 		in->FastGetSolutionStepValue(NODAL_H)=av_mesh_size;
-		fluid_model_part.Nodes().push_back(*(in.base()));
+		//fluid_model_part.Nodes().push_back(*(in.base()));
 	    
 		
         }
+	//ADDING ALL THE SECOND MOULD WALL NODES TO THE MODEL PART
+        fluid_model_part.AddNodes(wall_model_part.NodesBegin(), wall_model_part.NodesEnd());
 	
 	
         //sorting and renumbering the fluid elements

@@ -80,7 +80,7 @@ public:
     //ModelPart& fluid_model_part, ModelPart& structure_model_part, ModelPart& combined_model_part)
     //: mr_fluid_model_part(fluid_model_part), mr_structure_model_part(structure_model_part), mr_combined_model_part(combined_model_part)
     {
-	KRATOS_WATCH(" INSIDE REMOVE AND SAVE WALL CONSTRUCTOR") 
+	//KRATOS_WATCH(" INSIDE REMOVE AND SAVE WALL CONSTRUCTOR") 
     }
 
     /// Destructor.
@@ -107,44 +107,38 @@ public:
     {
         KRATOS_TRY
 	ModelPart fluid_only_model_part;
-
-        fluid_only_model_part.Elements().clear();
-        fluid_only_model_part.Conditions().clear();
-        fluid_only_model_part.Nodes().clear();
-
-	wall_model_part.Elements().clear();
-	wall_model_part.Conditions().clear();
-	wall_model_part.Nodes().clear();
-	
-        fluid_only_model_part.Elements()=fluid_model_part.Elements();
-	//KRATOS_WATCH(fluid_only_model_part.Elements())
-        fluid_only_model_part.Conditions()=fluid_model_part.Conditions();
-
+        
         for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
                 in != fluid_model_part.NodesEnd() ; ++in)
 	//in a two stage process I distinguish the second wall by the FLAG_VARIABLE=5
         {
             //if (in->FastGetSolutionStepValue(IS_FLUID)!=0)
             if (in->FastGetSolutionStepValue(FLAG_VARIABLE)!=5)
-                fluid_only_model_part.Nodes().push_back(*(in.base()));
+                fluid_only_model_part.AddNode(*(in.base()),0);
 	    else
-		wall_model_part.Nodes().push_back(*(in.base()));
+		wall_model_part.AddNode(*(in.base()),0);
+
+
+	    in->Set(TO_ERASE,true);
+
         }
 
 
+
         //sorting and renumbering the fluid elements
+/*
         unsigned int id=1;
-        for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
-                in != fluid_model_part.NodesEnd() ; ++in)
+        for(ModelPart::NodesContainerType::iterator in = fluid_only_model_part.NodesBegin() ;
+                in != fluid_only_model_part.NodesEnd() ; ++in)
         {
             in->SetId(id);
 //				im->Id() = id;
             id++;
         }
-
-        fluid_only_model_part.Nodes().Sort();
-        fluid_only_model_part.Elements().Sort();
-        fluid_only_model_part.Conditions().Sort();
+*/
+  //      fluid_only_model_part.Nodes().Sort();
+        //fluid_only_model_part.Elements().Sort();
+        //fluid_only_model_part.Conditions().Sort();
 
 	wall_model_part.Nodes().Sort();
 
@@ -152,13 +146,23 @@ public:
         fluid_only_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
 	wall_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
 
-	fluid_model_part.Elements().clear();
-        fluid_model_part.Conditions().clear();
-        fluid_model_part.Nodes().clear();
+	fluid_model_part.RemoveNodes();
+  	//fluid_model_part.RemoveConditions();
+        //fluid_model_part.RemoveElements();
 
-	fluid_model_part.Nodes()=fluid_only_model_part.Nodes();
-	fluid_model_part.Elements()=fluid_only_model_part.Elements();
-	fluid_model_part.Conditions()=fluid_only_model_part.Conditions();	
+	//fluid_model_part.Nodes()=fluid_only_model_part.Nodes();
+	//fluid_model_part.Elements()=fluid_only_model_part.Elements();
+	//fluid_model_part.Conditions()=fluid_only_model_part.Conditions();
+	fluid_model_part.AddNodes(fluid_only_model_part.NodesBegin(), fluid_only_model_part.NodesEnd());	
+	
+	for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
+                in != fluid_model_part.NodesEnd() ; ++in)
+        {
+	in->Set(TO_ERASE,false);	
+	}
+
+	//fluid_model_part.AddElements(fluid_only_model_part.ElementsBegin(), fluid_only_model_part.ElementsEnd())
+	//fluid_model_part.AddConditions(fluid_only_model_part.ConditionsBegin(), fluid_only_model_part.ConditionsEnd())
 
         KRATOS_CATCH("")
     }

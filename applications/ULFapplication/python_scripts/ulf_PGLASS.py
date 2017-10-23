@@ -51,6 +51,22 @@ def AddDofs(model_part, compute_reactions):
               node.AddDof(DISPLACEMENT_Y, REACTION_Y);
               node.AddDof(DISPLACEMENT_Z, REACTION_Z);	      
 
+#THIS FUNCTION STORES THE NODES OF THE SECOND MOULD IN A SEPARATE SUBPART (THAT WILL BE DISACTIVATED IN THE STEPS OF THE FIRST BLOW)
+#THE NODES OF THE SECOND MOULD ARE DISTINGUISHED BY THE FLAG
+def CreateSubModelPartsFirstSecondBlow(total_model_part, second_mould_flag_value):
+  init_domain_model_part=total_model_part.CreateSubModelPart("InitialDomain");
+  second_mould_model_part=total_model_part.CreateSubModelPart("SecondMould");
+  for node in total_model_part.Nodes:
+    if (node.GetSolutionStepValue(FLAG_VARIABLE)==second_mould_flag_value):
+      second_mould_model_part.AddNode(node, 0 );  
+    else:
+      init_domain_model_part.AddNode(node, 0 );  
+  
+  for element in total_model_part.Elements:
+    init_domain_model_part.AddElement(element, 0 );  
+  for condition in total_model_part.Conditions:
+    init_domain_model_part.AddCondition(condition, 0 );  
+
 class ULF_FSISolver:
 
     def __init__(self, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes, blow_pressure):
@@ -394,3 +410,6 @@ class ULF_FSISolver:
         for node in self.fluid_model_part.Nodes:
            if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
               node.SetSolutionStepValue(NODAL_H, av_nodal_h)
+    ######################################################################
+    
+	  

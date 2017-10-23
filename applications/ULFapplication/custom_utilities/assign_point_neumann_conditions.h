@@ -91,28 +91,25 @@ namespace Kratos
 		void AssignPointNeumannConditionsDisp(ModelPart& ThisModelPart)
 		{			
 			KRATOS_TRY;
-			KRATOS_WATCH("INSide of AssignPointNeumannConditions UTILITY")
+			KRATOS_WATCH("Inside of AssignPointNeumannConditions UTILITY")
 			const int TDim=ThisModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
 			int id = ThisModelPart.Conditions().size();
-                        //const char* ConditionName = "NoSlipCondition2D";
-			KRATOS_WATCH(ThisModelPart.Conditions().size())
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())
+			Condition::NodesArrayType temp;	
 			for(ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin(); 
 				it!=ThisModelPart.NodesEnd(); it++)
 			 {
 				if( it->FastGetSolutionStepValue(FLAG_VARIABLE) == 1.0)
 				   {	
-	      			       //KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> ASSIGNING THE NEUMANN POINT CONDITIONS -> EXTERNAL PRESSURE WILL BE APPLIED <<<<<<<<<<<<<<<<<<<<<");
-				       Condition::NodesArrayType temp;	
-				       temp.reserve(1);
+	      			       temp.reserve(1);
 				       temp.push_back(*(it.base()));	
 		
 					if (TDim==3)
 						{
 						Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumann3D")).Create(id, temp, properties);	
 						(ThisModelPart.Conditions()).push_back(p_cond);
-						//KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> ASSIGNING THE NEUMANN POINT CONDITIONS -> EXTERNAL PRESSURE WILL BE APPLIED <<<<<<<<<<<<<<<<<<<<<");
 						}
 					else if (TDim==2)
 						{
@@ -122,33 +119,33 @@ namespace Kratos
 						}
 					
 					id++;
+					temp.clear();
 					
 				  }
 
 			}
-//KRATOS_WATCH(ThisModelPart.Conditions().size())
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())
 			//KRATOS_WATCH("BEFORE SORTING")
 			ThisModelPart.Conditions().Sort();
-KRATOS_WATCH(ThisModelPart.Conditions().size())
-			
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())			
 
 			KRATOS_CATCH("")
 		}
 
 		void AssignPointNeumannConditionsDispAxisym(ModelPart& ThisModelPart)
 		{
-KRATOS_TRY;
-			KRATOS_WATCH("INSide of AssignPointNeumannConditions UTILITY")
+			KRATOS_TRY;
+			KRATOS_WATCH("Inside of AssignPointNeumannConditions UTILITY")
 			const int TDim=ThisModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
 			int id = ThisModelPart.Conditions().size();
-                        //const char* ConditionName = "NoSlipCondition2D";
-			KRATOS_WATCH(ThisModelPart.Conditions().size())
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())
+			Condition::NodesArrayType temp;	
 			for(ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin(); 
 				it!=ThisModelPart.NodesEnd(); it++)
 			 {
-			 	Condition::NodesArrayType temp;	
+			 	
 			       	temp.reserve(1);
 			       	temp.push_back(*(it.base()));	
 
@@ -159,14 +156,15 @@ KRATOS_TRY;
 					
 					
 					id++;
+					temp.clear();
 					
 				  }
 
 			}
-KRATOS_WATCH(ThisModelPart.Conditions().size())
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())
 			//KRATOS_WATCH("BEFORE SORTING")
 			ThisModelPart.Conditions().Sort();
-KRATOS_WATCH(ThisModelPart.Conditions().size())
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())
 			
 
 			KRATOS_CATCH("")
