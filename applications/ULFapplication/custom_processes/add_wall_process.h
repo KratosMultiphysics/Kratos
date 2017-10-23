@@ -115,10 +115,10 @@ public:
 	av_mesh_size+=in->FastGetSolutionStepValue(NODAL_H);
 	}
 
-	av_mesh_size/=fluid_model_part.Nodes().size();
+	unsigned int n_fluid_nodes=fluid_model_part.Nodes().size();
+	av_mesh_size/=n_fluid_nodes;
 
-
-	KRATOS_WATCH(av_mesh_size)
+	unsigned wall_node_id=n_fluid_nodes+1;
 
 	if (av_mesh_size==0)
 		KRATOS_THROW_ERROR(std::logic_error,"your wall nodes will have NODAL_H=0","");
@@ -128,27 +128,25 @@ public:
         {
 		//set the NODAL_H in the wall node to the average size and then add this node to the fluid model part
 		in->FastGetSolutionStepValue(NODAL_H)=av_mesh_size;
-		//fluid_model_part.Nodes().push_back(*(in.base()));
+		in->SetId(wall_node_id);
+		wall_node_id++;
+		//ADDING ALL THE SECOND MOULD WALL NODES TO THE MODEL PART
+		fluid_model_part.AddNode(*(in.base()),0);
 	    
 		
         }
-	//ADDING ALL THE SECOND MOULD WALL NODES TO THE MODEL PART
-        fluid_model_part.AddNodes(wall_model_part.NodesBegin(), wall_model_part.NodesEnd());
 	
-	
+        //fluid_model_part.AddNodes(wall_model_part.NodesBegin(), wall_model_part.NodesEnd());	
         //sorting and renumbering the fluid elements
         unsigned int id=1;
         for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
                 in != fluid_model_part.NodesEnd() ; ++in)
         {
             in->SetId(id);
-//				im->Id() = id;
             id++;
         }
 
-        fluid_model_part.Nodes().Sort();
-        fluid_model_part.Elements().Sort();
-        fluid_model_part.Conditions().Sort();
+
 	
         KRATOS_CATCH("")
     }

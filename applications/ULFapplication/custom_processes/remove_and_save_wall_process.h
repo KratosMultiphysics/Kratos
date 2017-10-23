@@ -106,63 +106,46 @@ public:
     void RemoveAndSave(ModelPart& fluid_model_part, ModelPart& wall_model_part)
     {
         KRATOS_TRY
-	ModelPart fluid_only_model_part;
-        
+	//ModelPart fluid_only_model_part;
+       
         for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
                 in != fluid_model_part.NodesEnd() ; ++in)
 	//in a two stage process I distinguish the second wall by the FLAG_VARIABLE=5
         {
-            //if (in->FastGetSolutionStepValue(IS_FLUID)!=0)
-            if (in->FastGetSolutionStepValue(FLAG_VARIABLE)!=5)
-                fluid_only_model_part.AddNode(*(in.base()),0);
-	    else
-		wall_model_part.AddNode(*(in.base()),0);
-
-
-	    in->Set(TO_ERASE,true);
-
+		//second mould nodes are marked with FLAG=5
+	if (in->FastGetSolutionStepValue(FLAG_VARIABLE)==5)
+		{
+		wall_model_part.AddNode(*(in.base()),0);		
+		}
         }
 
-
-
-        //sorting and renumbering the fluid elements
-/*
-        unsigned int id=1;
-        for(ModelPart::NodesContainerType::iterator in = fluid_only_model_part.NodesBegin() ;
-                in != fluid_only_model_part.NodesEnd() ; ++in)
-        {
-            in->SetId(id);
-//				im->Id() = id;
-            id++;
-        }
-*/
-  //      fluid_only_model_part.Nodes().Sort();
-        //fluid_only_model_part.Elements().Sort();
-        //fluid_only_model_part.Conditions().Sort();
-
-	wall_model_part.Nodes().Sort();
-
-        //WE HAVE TO COPY THE ProcessInfo pointer to the new part, otherwise it is empty
-        fluid_only_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
 	wall_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
 
-	fluid_model_part.RemoveNodes();
-  	//fluid_model_part.RemoveConditions();
-        //fluid_model_part.RemoveElements();
-
-	//fluid_model_part.Nodes()=fluid_only_model_part.Nodes();
-	//fluid_model_part.Elements()=fluid_only_model_part.Elements();
-	//fluid_model_part.Conditions()=fluid_only_model_part.Conditions();
-	fluid_model_part.AddNodes(fluid_only_model_part.NodesBegin(), fluid_only_model_part.NodesEnd());	
 	
-	for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
+        //removing second mould nodes (wall nodes) from fluid_model_part
+	for(ModelPart::NodesContainerType::iterator in = wall_model_part.NodesBegin() ;
+                in != wall_model_part.NodesEnd() ; ++in)
+        {
+            unsigned int id=in->GetId();
+            fluid_model_part.RemoveNode(id);
+        }
+
+
+	unsigned int id=1;
+        for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ;
                 in != fluid_model_part.NodesEnd() ; ++in)
         {
-	in->Set(TO_ERASE,false);	
-	}
-
-	//fluid_model_part.AddElements(fluid_only_model_part.ElementsBegin(), fluid_only_model_part.ElementsEnd())
-	//fluid_model_part.AddConditions(fluid_only_model_part.ConditionsBegin(), fluid_only_model_part.ConditionsEnd())
+            in->SetId(id);
+            id++;
+        }
+	
+	//wall_nodes_id  must still be reset when the wall nodes are added
+        for(ModelPart::NodesContainerType::iterator in = wall_model_part.NodesBegin() ;
+                in != wall_model_part.NodesEnd() ; ++in)
+        {
+            in->SetId(id);
+            id++;
+        }	
 
         KRATOS_CATCH("")
     }
