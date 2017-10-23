@@ -338,10 +338,8 @@ namespace Kratos
       double density = 0.0;
       if ( GetProperties().Has(DENSITY)  ) {
          density = GetProperties()[DENSITY];
-         std::cout << " here1 " << density << std::endl;
       } else if ( rCurrentProcessInfo.Has(DENSITY) ) {
          density = rCurrentProcessInfo[DENSITY];
-         std::cout << " here2 " << density << std::endl;
       }
       GetProperties().SetValue(DENSITY, density);
       
@@ -712,7 +710,7 @@ namespace Kratos
 
       Matrix SmallMatrix( number_of_nodes*dofs_per_node, number_of_nodes*dofs_per_node);
       noalias( SmallMatrix ) = prod( trans(B2), rIntegrationWeight * Matrix( prod( Q, B2) ) );
-      rLeftHandSide -= SmallMatrix;
+      rLeftHandSide += SmallMatrix;
 
       //std::cout << "Kel_con agua = " << rLeftHandSide << std::endl;
 
@@ -829,12 +827,12 @@ namespace Kratos
       if ( dimension == 3)
          voigt_size = 6;
 
-      Vector StressVector = ZeroVector( voigt_size);
+      Vector WaterStressVector = ZeroVector( voigt_size);
       for (unsigned int i = 0; i < dimension; i++)
-         StressVector(i) -= WaterPressure;
+         WaterStressVector(i) += WaterPressure;
       
       //std::cout << "B = " << rVariables.B << std::endl;
-      VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), StressVector );
+      VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), WaterStressVector );
 
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -906,7 +904,7 @@ namespace Kratos
       double   WaterDensity = GetProperties()[DENSITY_WATER];
 
 
-      double CurrentPorosity = 0.3; // LMV !!
+      double CurrentPorosity = GetProperties()[INITIAL_POROSITY]; 
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -930,9 +928,9 @@ namespace Kratos
                for ( unsigned int k = 0; k < dimension; k++ )
                {
                   rMassMatrix( dofs_per_node*i+k, dofs_per_node*j +k  )                     += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
-                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j +k  )           -= Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
-                  rMassMatrix( dofs_per_node*i+k, dofs_per_node*j+dimension +k  )           -= Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
-                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) -= Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight / CurrentPorosity;
+                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j +k  )           += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
+                  rMassMatrix( dofs_per_node*i+k, dofs_per_node*j+dimension +k  )           += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
+                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight / CurrentPorosity;
                }
             }
          }
@@ -996,7 +994,7 @@ namespace Kratos
             {
                for ( unsigned int k = 0; k < dimension; k++ )
                {
-                  rDampingMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) -= Variables.N[i] * Variables.N[j] * IntegrationWeight / CurrentPermeability;
+                  rDampingMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) += Variables.N[i] * Variables.N[j] * IntegrationWeight / CurrentPermeability;
                }
             }
          }
