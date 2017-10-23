@@ -281,8 +281,6 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             step = step + 1
             mp.CloneTimeStep(time)
             if (step > 3):
-                print('############################### Time :: ', time,
-                      ' ### step ', step)
                 self._solve()
         # Checking the results
         self._check_results(mp)
