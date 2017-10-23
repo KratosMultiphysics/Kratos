@@ -22,6 +22,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
   
   ## EXTERNAL LIBRARIES
   
