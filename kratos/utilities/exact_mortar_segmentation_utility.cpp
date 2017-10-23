@@ -21,7 +21,7 @@
 namespace Kratos
 {
 template<>  
-inline bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(         
+bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(         
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -168,7 +168,7 @@ inline bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
 /***********************************************************************************/
 
 template<>
-inline bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(    
+bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(    
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -253,7 +253,7 @@ inline bool ExactMortarIntegrationUtility<3,3, false>::GetExactIntegration(
 /***********************************************************************************/
 
 template<>
-inline bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(   
+bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(   
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -350,7 +350,7 @@ inline bool ExactMortarIntegrationUtility<3,4, false>::GetExactIntegration(
 /***********************************************************************************/
 
 template<>  
-inline bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(         
+bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(         
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -512,7 +512,7 @@ inline bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
 /***********************************************************************************/
 
 template<>
-inline bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(    
+bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(    
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -597,7 +597,7 @@ inline bool ExactMortarIntegrationUtility<3,3, true>::GetExactIntegration(
 /***********************************************************************************/
 
 template<>
-inline bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(   
+bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(   
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -680,7 +680,7 @@ inline bool ExactMortarIntegrationUtility<3,4, true>::GetExactIntegration(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegration(    
+bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegration(    
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -729,7 +729,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactInt
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegration(    
+bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegration(    
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -952,7 +952,7 @@ GeometryNodeType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim,
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
 inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoints(
-    AuxType4& PointList,
+    VectorPoints& PointList,
     const array_1d<bool, TNumNodes>& AllInside,
     GeometryPointType& ThisGeometry
     )
@@ -984,7 +984,7 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoi
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
 inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoints(
-    AuxType3& PointList,
+    VectorPointsBelong& PointList,
     const array_1d<bool, TNumNodes>& AllInside,
     GeometryPointType& ThisGeometry,
     const PointBelongs& ThisBelongs

@@ -82,29 +82,29 @@ public:
     
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
     
-    typedef std::vector<array_1d<PointBelong<TNumNodes>,TDim>>                           AuxType1;
+    typedef std::vector<array_1d<PointBelong<TNumNodes>,TDim>>                                  VectorArrayPointsBelong;
     
-    typedef std::vector<array_1d<PointType,TDim>>                                        AuxType2;
+    typedef std::vector<array_1d<PointType,TDim>>                                                     VectorArrayPoints;
     
-    typedef typename std::conditional<TBelong, AuxType1, AuxType2>::type   ConditionArrayListType;
+    typedef typename std::conditional<TBelong, VectorArrayPointsBelong, VectorArrayPoints>::type ConditionArrayListType;
     
-    typedef std::vector<PointBelong<TNumNodes>>                                          AuxType3;
+    typedef std::vector<PointBelong<TNumNodes>>                                                      VectorPointsBelong;
     
-    typedef std::vector<PointType>                                                       AuxType4;
+    typedef std::vector<PointType>                                                                         VectorPoints;
     
-    typedef typename std::conditional<TBelong, AuxType3, AuxType4>::type            PointListType;
+    typedef typename std::conditional<TBelong, VectorPointsBelong, VectorPoints>::type                    PointListType;
     
-    typedef array_1d<PointBelong<TNumNodes>, 3>                                          AuxType5;
+    typedef array_1d<PointBelong<TNumNodes>, 3>                                                       ArrayPointsBelong;
     
-    typedef array_1d<PointType, 3>                                                       AuxType6;
+    typedef array_1d<PointType, 3>                                                                          ArrayPoints;
     
-    typedef typename std::conditional<TBelong, AuxType5, AuxType6>::type        ArrayTriangleType;
+    typedef typename std::conditional<TBelong, ArrayPointsBelong, ArrayPoints>::type                  ArrayTriangleType;
     
-    typedef Line2D2<Point>                                                            LineType;
+    typedef Line2D2<Point>                                                                                     LineType;
     
-    typedef Triangle3D3<Point>                                                    TriangleType;
+    typedef Triangle3D3<Point>                                                                             TriangleType;
     
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                       DecompositionType;
     
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(ExactMortarIntegrationUtility);
@@ -151,7 +151,7 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
-    inline bool GetExactIntegration(    
+    bool GetExactIntegration(    
         GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
@@ -169,7 +169,7 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
-    inline bool GetExactIntegration(    
+    bool GetExactIntegration(    
         GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
@@ -187,7 +187,7 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
-    inline bool GetExactAreaIntegration(    
+    bool GetExactAreaIntegration(    
         GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
@@ -468,7 +468,7 @@ protected:
      */
     
     inline void PushBackPoints(
-        AuxType4& PointList,
+        VectorPoints& PointList,
         const array_1d<bool, TNumNodes>& AllInside,
         GeometryPointType& ThisGeometry
         );
@@ -481,7 +481,7 @@ protected:
      */
     
     inline void PushBackPoints(
-        AuxType3& PointList,
+        VectorPointsBelong& PointList,
         const array_1d<bool, TNumNodes>& AllInside,
         GeometryPointType& ThisGeometry,
         const PointBelongs& ThisBelongs
