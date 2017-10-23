@@ -256,7 +256,7 @@ def main():
             assert False, 'unhandled option'
 
     # Capture stdout from KratosUnittest
-    # CaptureStdout()
+    CaptureStdout()
 
     # Set timeout of the different levels
     signalTime = int(-1)
