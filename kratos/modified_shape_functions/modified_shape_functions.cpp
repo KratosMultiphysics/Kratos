@@ -23,8 +23,7 @@ namespace Kratos
     /// ModifiedShapeFunctions implementation
     /// Default constructor
     ModifiedShapeFunctions::ModifiedShapeFunctions(GeometryPointerType pInputGeometry, Vector& rNodalDistances) :
-        mpInputGeometry(pInputGeometry),
-        mrNodalDistances(rNodalDistances) {
+        mpInputGeometry(pInputGeometry), mrNodalDistances(rNodalDistances) {
     };
 
     /// Destructor
@@ -59,7 +58,7 @@ namespace Kratos
     };
     
     // Returns the nodal distances vector.
-    Vector ModifiedShapeFunctions::GetNodalDistances() const {
+    Vector& ModifiedShapeFunctions::GetNodalDistances() const {
         return mrNodalDistances;
     };
 
@@ -136,9 +135,81 @@ namespace Kratos
                                                         Vector &rWeightsValues,
                                                         const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
                                                         const Matrix &p_matrix,
-                                                        const IntegrationMethodType IntegrationMethod)
-    {
-        KRATOS_ERROR << "Calling the base class ComputeValuesOnOneSide method. Call the specific geometry one.";
+                                                        const IntegrationMethodType IntegrationMethod) {
+
+        // Set some auxiliar constants
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        const unsigned int n_edges_global = p_input_geometry->EdgesNumber();       // Number of edges in original geometry
+        const unsigned int n_nodes_global = p_input_geometry->PointsNumber();      // Number of nodes in original geometry
+        const unsigned int split_edges_size = n_edges_global + n_nodes_global;     // Split edges vector size 
+
+        const unsigned int n_subdivision = rSubdivisionsVector.size();                                         // Number of positive or negative subdivisions
+        const unsigned int n_dim = (*rSubdivisionsVector[0]).Dimension();                                      // Number of dimensions 
+        const unsigned int n_nodes = (*rSubdivisionsVector[0]).PointsNumber();                                 // Number of nodes per subdivision
+        const unsigned int n_int_pts = (*rSubdivisionsVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
+ 
+        // Resize the shape function values matrix
+        const unsigned int n_total_int_pts = n_subdivision * n_int_pts;
+
+        if (rShapeFunctionsValues.size1() != n_total_int_pts) {
+            rShapeFunctionsValues.resize(n_total_int_pts, n_nodes, false);
+        } else if (rShapeFunctionsValues.size2() != n_nodes) {
+            rShapeFunctionsValues.resize(n_total_int_pts, n_nodes, false);
+        }
+
+        // Resize the weights vector
+        if (rWeightsValues.size() != n_total_int_pts) {
+            rWeightsValues.resize(n_total_int_pts, false);
+        }
+
+        // Compute each Gauss pt. shape functions values
+        for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
+            
+            const IndexedPointGeometryType& r_subdivision_geom = *rSubdivisionsVector[i_subdivision];
+            
+            // Get the subdivision shape function values
+            const Matrix subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
+            ShapeFunctionsGradientsType subdivision_sh_func_gradients_values;
+            r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
+
+            // Get the subdivision Jacobian values on all Gauss pts.
+            Vector subdivision_jacobians_values;
+            r_subdivision_geom.DeterminantOfJacobian(subdivision_jacobians_values, IntegrationMethod);
+
+            // Get the subdivision Gauss pts. (x_coord, y_coord, z_coord, weight)
+            const IntegrationPointsArrayType subdivision_gauss_points = r_subdivision_geom.IntegrationPoints(IntegrationMethod);
+
+            // Apply the original nodes condensation
+            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+
+                // Store the Gauss pts. weights values
+                rWeightsValues(i_subdivision*n_int_pts + i_gauss) = subdivision_jacobians_values(i_gauss) * subdivision_gauss_points[i_gauss].Weight();
+
+                // Condense the shape function local values to obtain the original nodes ones
+                Vector sh_func_vect = ZeroVector(split_edges_size);
+                for (unsigned int i = 0; i < n_nodes; ++i) {
+                    sh_func_vect(r_subdivision_geom[i].Id()) = subdivision_sh_func_values(i_gauss, i); 
+                }
+                
+                const Vector condensed_sh_func_values = prod(sh_func_vect, p_matrix);
+                
+                for (unsigned int i = 0; i < n_nodes; ++i) {
+                    rShapeFunctionsValues(i_subdivision*n_int_pts + i_gauss, i) = condensed_sh_func_values(i);
+                }
+                
+                // Condense the shape function gradients local values to obtain the original nodes ones
+                Matrix aux_gauss_gradients = ZeroMatrix(n_nodes, n_dim);
+
+                Matrix sh_func_gradients_mat = ZeroMatrix(n_dim, split_edges_size);
+                for (unsigned int dim = 0; dim < n_dim; ++dim ) {
+                    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                        sh_func_gradients_mat(dim, r_subdivision_geom[i_node].Id()) = subdivision_sh_func_gradients_values[i_gauss](i_node, dim); 
+                    }
+                }
+
+                rShapeFunctionsGradientsValues.push_back(trans(prod(sh_func_gradients_mat, p_matrix)));
+            }
+        }
     };
 
 }; // namespace Kratos

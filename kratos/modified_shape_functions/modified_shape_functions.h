@@ -64,15 +64,12 @@ public:
     typedef std::vector<IntegrationPointType>                                                           IntegrationPointsArrayType;
     typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
 
-    int mSplitEdgesNumber;  // Number of split edges
-    int mDivisionsNumber;   // Number of generated subdivisions
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    ModifiedShapeFunctions(GeometryPointerType rInputGeometry, Vector& rNodalDistances);
+    ModifiedShapeFunctions(GeometryPointerType pInputGeometry, Vector& rNodalDistances);
 
     /// Destructor
     ~ModifiedShapeFunctions();
@@ -106,9 +103,15 @@ public:
     ///@name Operations
     ///@{
 
-    Vector GetNodalDistances() const ;
-
+    /**
+    * Returns a the member pointer to the input geometry.
+    */
     GeometryPointerType GetInputGeometry() const;
+    
+    /**
+    * Returns a reference to the nodal distances vector member variable.
+    */
+    Vector& GetNodalDistances() const ;
 
     /**
     * Returns the shape function values in both the positive or negative split element sides for a given quadrature.

@@ -61,9 +61,6 @@ public:
     typedef typename BaseType::IntegrationPointsArrayType               IntegrationPointsArrayType;
     typedef typename BaseType::IntegrationPointsContainerType           IntegrationPointsContainerType;
 
-    int mSplitEdgesNumber;  // Number of split edges
-    int mDivisionsNumber;   // Number of generated subdivisions
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -163,34 +160,19 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-    * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
-    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
-    * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
-    * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
-    * @param rSubdivisionGeom: std::vector of subdivisions point based geometries where the values are to be computed.
-    * @param IntegrationMethod: Desired integration quadrature.
-    */
-    void ComputeValuesOnOneSide(Matrix &rShapeFunctionsValues,
-                                std::vector<Matrix> &rShapeFunctionsGradientsValues,
-                                Vector &rWeightsValues,
-                                const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
-                                const Matrix &p_matrix,
-                                const IntegrationMethodType IntegrationMethod) override;
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-  ///@}
-  ///@name Protected  Access
-  ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
-
-  ///@}
+    ///@}
 
 private:
     ///@name Static Member Variables
@@ -224,12 +206,12 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // /// Assignment operator.
-    // Triangle2D3ModifiedShapeFunctions& operator=(Triangle2D3ModifiedShapeFunctions const& rOther);
+    /// Assignment operator.
+    Triangle2D3ModifiedShapeFunctions& operator=(Triangle2D3ModifiedShapeFunctions const& rOther);
 
-    // /// Copy constructor.
-    // Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther)
-    //     : mrInputGeometry(rOther.mrInputGeometry) , mrNodalDistances(rOther.mrNodalDistances) {};
+    /// Copy constructor.
+    Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther)
+        : ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
 
     ///@}
 
