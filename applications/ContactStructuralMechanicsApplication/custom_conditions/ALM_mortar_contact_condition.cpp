@@ -496,6 +496,25 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 const bool dual_LM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo, pair_index, conditions_points_slave, this_integration_method, master_normal);
                 
+            #ifdef KRATOS_DEBUG
+                if (dual_LM == false)
+                {
+                    std::cout << "WARNING:: NOT USING DUAL LM" << std::endl;
+                    std::cout << "Slave Condition ID: " << this->Id() << std::endl;
+                    auto& geom_slave = GetGeometry();
+                    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+                    {
+                        std::cout << "NODE ID: " << geom_slave[i_node].Id() << "\tX: " << geom_slave[i_node].X() << "\tY: " << geom_slave[i_node].Y() << "\tZ: " << geom_slave[i_node].Z() << std::endl;
+                    }
+                    std::cout << "Master Condition ID: " << mThisMasterElements[pair_index]->Id() << std::endl;
+                    auto& geom_master = mThisMasterElements[pair_index]->GetGeometry();
+                    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+                    {
+                        std::cout << "NODE ID: " << geom_master[i_node].Id() << "\tX: " << geom_master[i_node].X() << "\tY: " << geom_master[i_node].Y() << "\tZ: " << geom_master[i_node].Z() << std::endl;
+                    }
+                }
+            #endif
+                
                 for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
                     std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -533,8 +552,20 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                             rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
                         }
                     }
+                #ifdef KRATOS_DEBUG
+                    else
+                    {
+                        std::cout << "WARNING:: BAD SHAPE GEOMETRY" << std::endl;
+                        std::cout << "Slave Condition ID: " << this->Id() << std::endl;
+                        std::cout << "Master Condition ID: " << mThisMasterElements[pair_index]->Id() << std::endl;
+                        for (unsigned int i_node = 0; i_node < TDim; ++i_node)
+                        {
+                            std::cout << "X: " << decomp_geom[i_node].X() << "\tY: " << decomp_geom[i_node].Y() << "\tZ: " << decomp_geom[i_node].Z() << std::endl;
+                        }
+                    }
+                #endif
                 }
-
+                
                 // Setting the weighted gap
                 // Mortar condition matrices - DOperator and MOperator
                 const bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
