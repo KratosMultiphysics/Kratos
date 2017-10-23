@@ -136,13 +136,13 @@ public:
      *  for 10 processes each with a BlockSize of 1000, the process
      *  with rank 2 will read 1000 elements beginning at index 2000.
      */
-    virtual void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned BlockSize);
+    virtual void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize);
 
-    virtual void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned BlockSize);
+    virtual void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize);
 
     virtual void ReadDataSet(std::string Path,
                              std::vector<array_1d<double, 3>>& rData,
-                             unsigned BlockSize);
+                             unsigned StartIndex, unsigned BlockSize);
 
     ///@}
 
@@ -203,7 +203,7 @@ private:
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned BlockSize)
+    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
@@ -216,19 +216,21 @@ private:
 
         // Check consistency of file's data set dimensions.
         std::vector<unsigned> file_space_dims = GetDataDimensions(Path);
-        KRATOS_ERROR_IF(file_space_dims.size() != ndims) << "Invalid data set dimension." << std::endl;
-        KRATOS_ERROR_IF(BlockSize > file_space_dims[0])
-            << "BlockSize exceeds data set dimension by: "
-            << BlockSize - file_space_dims[0] << std::endl;
+        KRATOS_ERROR_IF(file_space_dims.size() != ndims)
+            << "Invalid data set dimension." << std::endl;
+        KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
+            << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
+            << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
         if (is_array_1d_type)
             KRATOS_ERROR_IF(file_space_dims[1] != 3)
                 << "Invalid data set dimension." << std::endl;
-        
+
         if (rData.size() != BlockSize)
             rData.resize(BlockSize);
 
         // Initialize memory space dimensions.
         hsize_t start[ndims] = {0}, mem_dims[ndims];
+        start[0] = StartIndex;
         mem_dims[0] = BlockSize; // Set first dimension.
         if (is_array_1d_type)
             mem_dims[1] = 3; // Set second dimension.

@@ -72,13 +72,13 @@ public:
      *  for 10 processes each with a BlockSize of 1000, the process
      *  with rank 2 will read 1000 elements beginning at index 2000.
      */
-    void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned BlockSize) override;
+    void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize) override;
 
-    void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned BlockSize) override;
+    void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize) override;
 
     void ReadDataSet(std::string Path,
                      std::vector<array_1d<double, 3>>& rData,
-                     unsigned BlockSize) override;
+                     unsigned StartIndex, unsigned BlockSize) override;
 
     ///@}
 
@@ -158,7 +158,7 @@ private:
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned BlockSize)
+    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
@@ -172,19 +172,14 @@ private:
         // Check consistency of file's data set dimensions.
         std::vector<unsigned> file_space_dims = GetDataDimensions(Path);
         KRATOS_ERROR_IF(file_space_dims.size() != ndims) << "Invalid data set dimension." << std::endl;
-        hsize_t local_mem_dims[ndims], global_mem_dims[ndims];
+        KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
+        << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
+        << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
+        hsize_t local_mem_dims[ndims];
         // Set first memory space dimension.
         local_mem_dims[0] = BlockSize;
-        unsigned send_buf, recv_buf;
-        send_buf = local_mem_dims[0];
-        MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        global_mem_dims[0] = recv_buf;
         if (is_array_1d_type)
-            local_mem_dims[1] = global_mem_dims[1] = 3; // Set second dimension.
-        KRATOS_ERROR_IF(global_mem_dims[0] > file_space_dims[0])
-            << "Memory space dimension (" << global_mem_dims[0] << ") exceeds"
-            << " data set dimension in file (" << file_space_dims[0] << ")."
-            << std::endl;
+            local_mem_dims[1] = 3; // Set second dimension.
         if (is_array_1d_type)
             KRATOS_ERROR_IF(file_space_dims[1] != 3)
                 << "Invalid data set dimension." << std::endl;
@@ -192,12 +187,9 @@ private:
         if (rData.size() != BlockSize)
             rData.resize(BlockSize);
 
-        // Get global position where local data set ends.
-        send_buf = local_mem_dims[0];
-        MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        // Set global position where local dat set starts.
+        // Set global position where local data set starts.
         hsize_t local_start[ndims];
-        local_start[0] = recv_buf - local_mem_dims[0];
+        local_start[0] = StartIndex;
         if (is_array_1d_type)
             local_start[1] = 0;
 
@@ -230,7 +222,7 @@ private:
         hid_t dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
-        hid_t mem_space_id = H5Screate_simple(ndims, global_mem_dims, nullptr);
+        hid_t mem_space_id = H5Screate_simple(ndims, local_mem_dims, nullptr);
         KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
                                             nullptr, local_mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;

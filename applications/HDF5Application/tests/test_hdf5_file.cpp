@@ -70,8 +70,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
     // Check ReadDataSet() reading full data set.
     std::vector<int> read_data_1;
     std::vector<array_1d<double, 3>> read_data_2;
-    test_file.ReadDataSet("/foo/data1", read_data_1, 5);
-    test_file.ReadDataSet("/foo/bar/data2", read_data_2, 2);
+    test_file.ReadDataSet("/foo/data1", read_data_1, 0, 5);
+    test_file.ReadDataSet("/foo/bar/data2", read_data_2, 0, 2);
     for (unsigned i = 0; i < write_data_1.size(); ++i)
         KRATOS_CHECK(write_data_1[i] == read_data_1[i]);
     for (unsigned i = 0; i < write_data_2.size(); ++i)
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5Test1, KratosHDF5TestSuite)
             KRATOS_CHECK(write_data_2[i][j] == read_data_2[i][j]);
     // Check ReadDataSet() reading partial data set.
     read_data_2.resize(0);
-    test_file.ReadDataSet("/foo/bar/data2", read_data_2, 1);
+    test_file.ReadDataSet("/foo/bar/data2", read_data_2, 0, 1);
     KRATOS_CHECK(read_data_2.size() == 1);
     for (unsigned j = 0; j < write_data_2[0].size(); ++j)
         KRATOS_CHECK(write_data_2[0][j] == read_data_2[0][j]);

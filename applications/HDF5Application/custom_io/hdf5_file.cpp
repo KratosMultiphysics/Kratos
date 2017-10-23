@@ -268,24 +268,24 @@ std::string HDF5File::GetFileName() const
     return m_file_name;
 }
 
-void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, std::vector<double>& rData, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned BlockSize)
+void HDF5File::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetImpl(Path, rData, BlockSize);
+    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
