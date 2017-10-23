@@ -358,8 +358,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssembleRHSAnd
 {
     for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
     {
-        const int& node_i_id = SlaveGeometry[i_node].Id();
-        const int& pos_i_id = InverseConectivityDatabase[node_i_id];
+        const std::size_t& node_i_id = SlaveGeometry[i_node].Id();
+        const std::size_t& pos_i_id = static_cast<std::size_t>(InverseConectivityDatabase[node_i_id]);
         
         // First we assemble the RHS
         for (unsigned int i_var = 0; i_var < VariableSize; ++i_var)
@@ -369,8 +369,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssembleRHSAnd
             aux_b += ResidualMatrix(i_node, i_var);
         }
         
-        #pragma omp critical // TODO: Solve this, use somethis instead the critical
-        A(pos_i_id, pos_i_id) += ThisMortarOperators.DOperator(i_node, i_node);
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+        std::size_t left_limit = index1_vector[pos_i_id];
+        std::size_t last_pos = left_limit;
+        while(pos_i_id != index2_vector[last_pos]) last_pos++;
+        double& a_value = values_vector[last_pos];
+        
+        #pragma omp atomic
+        a_value += ThisMortarOperators.DOperator(i_node, i_node);
     }
 }
 
@@ -421,8 +429,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
     TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
 
     // Creating the assemble database
-    std::size_t size_system;
-    GetSystemSize(size_system);
+    std::size_t system_size;
+    GetSystemSize(system_size);
     
     // Defining the operators
     const unsigned int variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
@@ -550,7 +558,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteExplici
         // Finally we compute the residual
         for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
         {
-            residual_norm[i_size] = std::sqrt(residual_norm[i_size])/size_system;
+            residual_norm[i_size] = std::sqrt(residual_norm[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm[i_size];
             if (residual_norm[i_size] < absolute_convergence_tolerance) is_converged[i_size] = true;
             if (residual_norm[i_size]/norm_b0[i_size] < relative_convergence_tolerance) is_converged[i_size] = true;
@@ -590,19 +598,23 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
     MortarUtilities::ResetValue<TVarType, THist>(mrThisModelPart, mDestinationVariable);
     
     // Creating the assemble database
-    std::size_t size_system;
+    std::size_t system_size;
     std::unordered_map<int, int> conectivity_database, inverse_conectivity_database;
-    CreateSlaveConectivityDatabase(size_system, conectivity_database, inverse_conectivity_database);
+    CreateSlaveConectivityDatabase(system_size, conectivity_database, inverse_conectivity_database);
     
     // Defining the operators
     const unsigned int variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
     std::vector<bool> is_converged(variable_size, false);
-    MatrixType A = ZeroMatrix(size_system, size_system);
-    const VectorType zero_vector = ZeroVector(size_system);
+    MatrixType A(system_size, system_size);
+    for (std::size_t i = 0; i < system_size; ++i)
+    {
+        A.push_back(i, i, 0.0); 
+    }
+    const VectorType zero_vector = ZeroVector(system_size);
     std::vector<VectorType> b(variable_size, zero_vector);
     std::vector<double> norm_b0(variable_size, 0.0);
     std::vector<double> norm_Dx0(variable_size, 0.0);
-    VectorType Dx(size_system);
+    VectorType Dx(system_size);
     
     // Create and initialize condition variables:
     MortarKinematicVariables<TNumNodes> this_kinematic_variables;
@@ -683,9 +695,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
         {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
             MortarUtilities::UpdateDatabase<TVarType, THist>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
-            const double residual_norm = norm_2(b[i_size])/size_system;
+            const double residual_norm = norm_2(b[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm;
-            const double increment_norm = norm_2(Dx)/size_system;
+            const double increment_norm = norm_2(Dx)/system_size;
             if (iteration == 0) norm_Dx0[i_size] = increment_norm;
             if (residual_norm < absolute_convergence_tolerance) is_converged[i_size] = true;
             if (residual_norm/norm_b0[i_size] < relative_convergence_tolerance) is_converged[i_size] = true;
