@@ -310,12 +310,29 @@ namespace Kratos
       if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
          KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUWElement" )
 
-            //verify that the variables are correctly initialized
+      //verify that the variables are correctly initialized
 
-            if ( PRESSURE.Key() == 0 )
+      if ( PRESSURE.Key() == 0 )
                KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
-                  return correct;
+      double WaterBulk = 1e+7;
+      if ( GetProperties().Has(WATER_BULK_MODULUS)  ) {
+         WaterBulk = GetProperties()[WATER_BULK_MODULUS];
+      } else if ( rCurrentProcessInfo.Has(WATER_BULK_MODULUS) ) {
+         WaterBulk = rCurrentProcessInfo[WATER_BULK_MODULUS];
+      }
+      GetProperties().SetValue(WATER_BULK_MODULUS, WaterBulk);
+
+      double Permeability = 1e-5;
+      if ( GetProperties().Has(PERMEABILITY)  ) {
+         Permeability = GetProperties()[PERMEABILITY];
+      } else if ( rCurrentProcessInfo.Has(PERMEABILITY) ) {
+         Permeability = rCurrentProcessInfo[PERMEABILITY];
+      }
+      GetProperties().SetValue(PERMEABILITY, Permeability);
+      
+      
+      return correct;
 
       KRATOS_CATCH( "" );
    }
@@ -660,8 +677,10 @@ namespace Kratos
       CalculateB2Matrix( B2, rVariables.DN_DX );   //No valdria para 3D PNA
 
       Matrix Q = ZeroMatrix(mat_B2_size, mat_B2_size);
-      double Bulk = 1e+8; // to be changed LMV.
+      double Bulk = GetProperties()[WATER_BULK_MODULUS]; 
+
       // PNA necessary the implementation of current porosity
+
       for (unsigned int i = 0; i < dimension; i++)
          for (unsigned int j = 0; j < dimension; j++){
             Q(i,j) = Bulk;
@@ -827,7 +846,7 @@ namespace Kratos
          }
       }
 
-      double Bulk = 1e+8; // to be changed LMV.
+      double Bulk = GetProperties()[WATER_BULK_MODULUS]; 
 
       rWaterPressure = - Bulk * ( divU + divW);
 
@@ -931,7 +950,7 @@ namespace Kratos
 
       
 
-      double CurrentPermeability = 1e-6; // LMV !!
+      double CurrentPermeability = GetProperties()[PERMEABILITY]; 
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
