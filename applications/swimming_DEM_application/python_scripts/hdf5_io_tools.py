@@ -6,13 +6,18 @@ import json
 
 class FluidHDF5Loader:
 
-    def __init__(self, fluid_model_part, pp, main_path):
+    def __init__(self, fluid_model_part, particles_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
         self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
         self.there_are_more_steps_to_load = True
+        self.main_path = main_path
         self.pp = pp
+        self.fluid_model_part = fluid_model_part
+        self.disperse_phase_model_part = particles_model_part
+
+        self.CreateAllParticlesFileIfNecessary()
 
         number_of_variables = 3
 
@@ -22,9 +27,7 @@ class FluidHDF5Loader:
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables, )
-
         self.file_name = main_path + '/mesh_' + str(self.n_nodes) + '_nodes.hdf5'
-        self.fluid_model_part = fluid_model_part
 
         if pp.CFD_DEM["fluid_already_calculated"].GetBool():
 
@@ -37,8 +40,6 @@ class FluidHDF5Loader:
                 self.times     = np.array([float(f[key].attrs['time']) for key in self.times_str])
                 self.times_str = np.array([x for (y, x) in sorted(zip(self.times, self.times_str))])
                 self.times = sorted(self.times)
-                print('time0',f[self.times_str[0]].attrs['time'])
-                print('time1',f[self.times_str[1]].attrs['time'])
                 self.dt = self.times[-1] - self.times[-2]
 
             self.old_data_array = np.zeros(self.extended_shape)
@@ -73,6 +74,31 @@ class FluidHDF5Loader:
         self.last_time = 0.0
 
         self.current_data_array = np.zeros(self.extended_shape)
+
+    def DeleteDataSet(self, file_or_group, dset_name):
+        if dset_name in file_or_group:
+            file_or_group.__delitem__(dset_name)
+
+    def WriteDataToFile(self, file_or_group, names, data):
+        for name, datum in zip(names, data):
+            self.DeleteDataSet(file_or_group, name)
+            file_or_group.create_dataset(name = name, data = datum)
+
+    def CreateAllParticlesFileIfNecessary(self):
+        if not self.pp.CFD_DEM["full_particle_history_watcher"].GetString() == 'Empty':
+            self.particles_list_file_name = self.main_path + '/all_particles.h5py'
+            nodes = [node for node in self.disperse_phase_model_part.Nodes if node.IsNot(BLOCKED)]
+            ids = np.array([node.Id for node in nodes])
+            initial_x = np.array([node.X0 for node in nodes])
+            initial_y = np.array([node.Y0 for node in nodes])
+            initial_z = np.array([node.Z0 for node in nodes])
+            radii = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes])
+            times = np.array([0.0 for node in nodes])
+
+            with h5py.File(self.particles_list_file_name) as f:
+                self.WriteDataToFile(file_or_group = f,
+                                     names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME'],
+                                     data = [ids, initial_x, initial_y, initial_z, radii, times])
 
     def GetOldTimeIndicesAndWeights(self, current_time, times_array, fluid_dt):
         old_index = bi.bisect(times_array, current_time)
@@ -190,10 +216,22 @@ class FluidHDF5Loader:
         print('Finished loading fluid from hdf5 file.\n')
 
 
+    def UpdateListOfAllParticles(self, ids, X0s, Y0s, Z0s, radii, times):
+
+        names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS', 'TIME']
+        data = [ids, X0s, Y0s, Z0s, radii, times]
+        new_data = []
+        with h5py.File(self.particles_list_file_name) as f:
+            for name, datum in zip(names, data):
+                old_datum = f['/' + name][:]
+                new_datum = np.concatenate((old_datum, datum))
+                new_data.append(new_datum)
+
+            self.WriteDataToFile(file_or_group = f, names = names, data = new_data)
+
 # This function records the particles initial positions in an hdf5 file.
 # It records both the particles that fall within an input bounding box
 # and all the particles in the model part.
-# TO-DO: make tool to record all the particles in the creator_destructor, even when destroying some
     def RecordParticlesInBox(self, particles_model_part, bb_low = [- float('inf')] * 3, bb_high = [+ float('inf')] * 3):
         def IsInside(node):
             is_inside = (node.X > bb_low[0] and node.X < bb_high[0])
@@ -277,3 +315,9 @@ class FluidHDF5Loader:
             snapshot.create_dataset(name = 'Y0', data = initial_y_inside)
             snapshot.create_dataset(name = 'Z0', data = initial_z_inside)
             snapshot.create_dataset(name = 'RADIUS', data = radii_inside)
+
+class ParticleHistoryLoader:
+    def __init__(self, particles_model_part, pp, main_path):
+        self.n_nodes = len(particles_model_part.Nodes)
+        self.model_part = particles_model_part
+        self.prerun_fluid_file = pp.CFD_DEM["prerun_fluid_file"].GetString()

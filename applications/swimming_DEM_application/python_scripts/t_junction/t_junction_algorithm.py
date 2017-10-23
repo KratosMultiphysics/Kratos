@@ -11,3 +11,17 @@ class Algorithm(BaseAlgorithm):
     def PerformFinalOperations(self, time = None):
         BaseAlgorithm.PerformFinalOperations(self, time)
         self.fluid_loader.RecordParticlesInBox(self.disperse_phase_algorithm.spheres_model_part)
+
+    def PerformZeroStepInitializations(self):
+        BaseAlgorithm.PerformZeroStepInitializations(self)
+
+    def FluidSolve(self, time = 'None'):
+        BaseAlgorithm.FluidSolve(self)
+        ids = []
+        X0s = []
+        Y0s = []
+        Z0s = []
+        radii = []
+        times = []
+        self.disperse_phase_algorithm.watcher.GetNewParticlesData(ids, X0s, Y0s, Z0s, radii, times)
+        self.fluid_loader.UpdateListOfAllParticles(ids, X0s, Y0s, Z0s, radii, times)

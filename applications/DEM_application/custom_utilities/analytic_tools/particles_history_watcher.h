@@ -48,16 +48,7 @@ void GetNewParticlesData(boost::python::list ids,
 
 void MakeMeasurements(ModelPart& analytic_model_part);
 
-void Record(SphericParticle* p_particle, ModelPart& r_model_part)
-{
-    Node<3>& node = p_particle->GetGeometry()[0];
-    mIds.push_back(p_particle->Id());
-    mX0s.push_back(node.X0());
-    mY0s.push_back(node.Y0());
-    mZ0s.push_back(node.Z0());
-    mRadii.push_back(node.FastGetSolutionStepValue(RADIUS));
-    mTimesOfCreation.push_back(r_model_part.GetProcessInfo()[TIME]);
-}
+void Record(SphericParticle* p_particle, ModelPart& r_model_part);
 
 /// Turn back information as a string
 std::string Info() const;

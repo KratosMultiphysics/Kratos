@@ -41,6 +41,18 @@ void ParticlesHistoryWatcher::ClearList(boost::python::list& my_list)
     }
 }
 
+void ParticlesHistoryWatcher::Record(SphericParticle* p_particle, ModelPart& r_model_part)
+{
+    Node<3>& node = p_particle->GetGeometry()[0];
+    mIds.push_back(node.Id());
+    mX0s.push_back(node.X0());
+    mY0s.push_back(node.Y0());
+    mZ0s.push_back(node.Z0());
+    mRadii.push_back(node.FastGetSolutionStepValue(RADIUS));
+    mTimesOfCreation.push_back(r_model_part.GetProcessInfo()[TIME]);
+}
+
+
 void ParticlesHistoryWatcher::GetNewParticlesData(boost::python::list ids,
                                                   boost::python::list X0s,
                                                   boost::python::list Y0s,
@@ -48,7 +60,25 @@ void ParticlesHistoryWatcher::GetNewParticlesData(boost::python::list ids,
                                                   boost::python::list radii,
                                                   boost::python::list times_of_creation)
 {
+    ParticlesHistoryWatcher::ClearList(ids);
+    ParticlesHistoryWatcher::ClearList(X0s);
+    ParticlesHistoryWatcher::ClearList(Y0s);
+    ParticlesHistoryWatcher::ClearList(Z0s);
+    ParticlesHistoryWatcher::ClearList(radii);
+    ParticlesHistoryWatcher::ClearList(times_of_creation);
 
+
+    const int n_particles = mIds.size();
+    for (int i = 0; i < n_particles; ++i){
+        ids.append(mIds[i]);
+        X0s.append(mX0s[i]);
+        Y0s.append(mY0s[i]);
+        Z0s.append(mZ0s[i]);
+        radii.append(mRadii[i]);
+        times_of_creation.append(mTimesOfCreation[i]);
+    }
+
+    ClearData();
 }
 
 

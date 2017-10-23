@@ -113,12 +113,12 @@ class Solution(object):
 
     def SetParticleCreatorDestructor(self):
 
-        watcher = self.GetParticleHistoryWatcher()
+        self.watcher = self.GetParticleHistoryWatcher()
 
-        if watcher == None:
+        if self.watcher == None:
             return ParticleCreatorDestructor()
         else:
-            return ParticleCreatorDestructor(watcher)
+            return ParticleCreatorDestructor(self.watcher)
 
     def SelectScheme(self):
         if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler'):
