@@ -37,7 +37,6 @@ class DamConstructionUtility:
                 if (len(file_3)) > 1: 
                     self.table_ambient.AddRow(float(file_3[0]), float(file_3[1]))
 
-
         # Construct the utility
         self.Construction = ConstructionUtility(self.mechanical_model_part,self.thermal_model_part, self.table_phase, self.table_times, self.table_ambient, parameters)
     
@@ -46,10 +45,21 @@ class DamConstructionUtility:
 
     def InitializeSolutionStep(self):
 
-        thermal_name = "Thermal_Part_Auto_1"
-        mechanical_name = "Parts_Parts_Auto1"
+        time = self.mechanical_model_part.ProcessInfo[TIME]
+        delta_time = self.mechanical_model_part.ProcessInfo[DELTA_TIME]
+        step = int(time/delta_time)
 
-        self.Construction.InitializeSolutionStep(thermal_name, mechanical_name)
+        with open('thermal_parts.txt','r') as file_name4:
+            it_t=(thermal_linea for i,thermal_linea in enumerate(file_name4) if i==step)
+            for thermal_linea in it_t:
+                thermal_name = thermal_linea.rstrip('\n')
+        
+        with open('mechanical_parts.txt','r') as file_name5:
+            it_m=(mechanical_linea for j,mechanical_linea in enumerate(file_name5) if j==step)
+            for mechanical_linea in it_m:
+                mechanical_name = mechanical_linea.rstrip('\n')
+
+        self.Construction.InitializeSolutionStep(parts_params)
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()

@@ -34,6 +34,14 @@ namespace Kratos
 namespace Python
 {
 
+inline
+void InitializeSolutionStep(
+        ConstructionUtility& rThisUtil,
+        Parameters& rParameters)
+{
+    rThisUtil.InitializeSolutionStep(rParameters);
+}
+
 void  AddCustomUtilitiesToPython() 
 {
     typedef Table<double,double> TableType;  
@@ -54,7 +62,7 @@ void  AddCustomUtilitiesToPython()
     
     class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, TableType&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
-    .def("InitializeSolutionStep",&ConstructionUtility::InitializeSolutionStep)
+    .def("InitializeSolutionStep",InitializeSolutionStep)
     .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep)
     ;
     

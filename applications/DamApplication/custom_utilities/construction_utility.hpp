@@ -38,7 +38,6 @@ public:
     typedef std::size_t IndexType;
     typedef Table<double,double> TableType;  
     
-    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
@@ -113,11 +112,14 @@ void Initialize()
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void InitializeSolutionStep()
+void InitializeSolutionStep(Parameters& rParameters) //std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName)
 {
     KRATOS_TRY;
+
+    std::string ThermalSubModelPartName = rParameters["ThermalSubModelPartName"].GetString();
+    std::string MechanicalSubModelPartName = rParameters["MechanicalSubModelPartName"].GetString();    
     
-    const unsigned int nelements = mrThermalModelPart.GetSubModelPart("Thermal_Part_Auto_1").Elements().size();
+    const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
     int direction;
     
     if( mGravityDirection == "X")
@@ -137,8 +139,8 @@ void InitializeSolutionStep()
     if (nelements != 0)
     {
         // ELEMENTS
-        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto1").ElementsBegin();
-        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart("Thermal_Part_Auto_1").ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(MechanicalSubModelPartName).ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();
            
         #pragma omp parallel for
         for(unsigned int k = 0; k<nelements; ++k)
@@ -161,7 +163,7 @@ void InitializeSolutionStep()
         }
     }
 
-    // Detecting and creating 
+    // Detecting and creating face heat flux
     this->SearchingFluxes();
 
     // Updating Heat Fluxes
