@@ -108,8 +108,8 @@ public:
     virtual void AddPath(std::string Path);
 
     /// Write a data set to the HDF5 file.
-    /** This function must always be called colletively in MPI. For more
-     *  than one process, data blocks are ordered by rank.
+    /**
+     * Performs independent write in MPI.
      */
     virtual void WriteDataSet(std::string Path, const std::vector<int>& rData);
 
@@ -117,6 +117,18 @@ public:
 
     virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
+    
+    // Collectively write data set to the HDF5 file.
+    /** 
+     *  Performs collective write in MPI. The data is written blockwise according to
+     *  processor rank. In serial, it calls the default write.
+     */
+    virtual void WriteDataSetCollective(std::string Path, const std::vector<int>& rData);
+                              
+    virtual void WriteDataSetCollective(std::string Path, const std::vector<double>& rData);
+
+    virtual void WriteDataSetCollective(std::string Path,
+                                        const std::vector<array_1d<double, 3>>& rData);
 
     virtual std::vector<unsigned> GetDataDimensions(std::string Path) const;
 
@@ -131,18 +143,42 @@ public:
     virtual std::string GetFileName() const;
 
     /// Read a data set from the HDF5 file.
-    /** This function must always be called colletively in MPI. For more
-     *  than one process, data blocks are ordered by rank. For example,
-     *  for 10 processes each with a BlockSize of 1000, the process
-     *  with rank 2 will read 1000 elements beginning at index 2000.
+    /**
+     * Performs independent read in MPI.
      */
-    virtual void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize);
+    virtual void ReadDataSet(std::string Path,
+                             std::vector<int>& rData,
+                             unsigned StartIndex,
+                             unsigned BlockSize);
 
-    virtual void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize);
+    virtual void ReadDataSet(std::string Path,
+                             std::vector<double>& rData,
+                             unsigned StartIndex,
+                             unsigned BlockSize);
 
     virtual void ReadDataSet(std::string Path,
                              std::vector<array_1d<double, 3>>& rData,
-                             unsigned StartIndex, unsigned BlockSize);
+                             unsigned StartIndex,
+                             unsigned BlockSize);
+
+    // Collectively read data set from the HDF5 file.
+    /**
+     *  Performs collective read in MPI. In serial, it calls the default read.
+     */
+    virtual void ReadDataSetCollective(std::string Path,
+                                       std::vector<int>& rData,
+                                       unsigned StartIndex,
+                                       unsigned BlockSize);
+
+    virtual void ReadDataSetCollective(std::string Path,
+                                       std::vector<double>& rData,
+                                       unsigned StartIndex,
+                                       unsigned BlockSize);
+
+    virtual void ReadDataSetCollective(std::string Path,
+                                       std::vector<array_1d<double, 3>>& rData,
+                                       unsigned StartIndex,
+                                       unsigned BlockSize);
 
     ///@}
 

@@ -190,6 +190,27 @@ void HDF5File::WriteDataSet(std::string Path, const std::vector<array_1d<double,
     KRATOS_CATCH("");
 }
 
+void HDF5File::WriteDataSetCollective(std::string Path, const std::vector<int>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::WriteDataSetCollective(std::string Path, const std::vector<double>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::WriteDataSetCollective(std::string Path, const std::vector<array_1d<double, 3>>& rData)
+{
+    KRATOS_TRY;
+    WriteDataSetImpl(Path, rData);
+    KRATOS_CATCH("");
+}
+
 std::vector<unsigned> HDF5File::GetDataDimensions(std::string Path) const
 {
     KRATOS_TRY;
@@ -283,6 +304,27 @@ void HDF5File::ReadDataSet(std::string Path, std::vector<double>& rData, unsigne
 }
 
 void HDF5File::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::ReadDataSetCollective(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::ReadDataSetCollective(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+{
+    KRATOS_TRY;
+    ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+void HDF5File::ReadDataSetCollective(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetImpl(Path, rData, StartIndex, BlockSize);

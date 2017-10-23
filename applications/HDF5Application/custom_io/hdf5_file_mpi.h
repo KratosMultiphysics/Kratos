@@ -29,6 +29,7 @@ namespace Kratos
 
 class HDF5FileMPI : public HDF5File
 {
+    enum class DataTransferMode { independent, collective };
 public:
     ///@name Type Definitions
     ///@{
@@ -56,30 +57,45 @@ public:
     ///@name Operations
     ///@{
 
-    /// Write a data set to the HDF5 file.
-    /** This function must always be called colletively in MPI. For more
-     *  than one process, data blocks are ordered by rank.
-     */
     void WriteDataSet(std::string Path, const std::vector<int>& rData) override;
 
     void WriteDataSet(std::string Path, const std::vector<double>& rData) override;
 
     void WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData) override;
 
-    /// Read a data set from the HDF5 file.
-    /** This function must always be called colletively in MPI. For more
-     *  than one process, data blocks are ordered by rank. For example,
-     *  for 10 processes each with a BlockSize of 1000, the process
-     *  with rank 2 will read 1000 elements beginning at index 2000.
-     */
+    void WriteDataSetCollective(std::string Path, const std::vector<int>& rData) override;
+
+    void WriteDataSetCollective(std::string Path, const std::vector<double>& rData) override;
+
+    void WriteDataSetCollective(std::string Path,
+                                const std::vector<array_1d<double, 3>>& rData) override;
+
     void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize) override;
 
-    void ReadDataSet(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize) override;
+    void ReadDataSet(std::string Path,
+                     std::vector<double>& rData,
+                     unsigned StartIndex,
+                     unsigned BlockSize) override;
 
     void ReadDataSet(std::string Path,
                      std::vector<array_1d<double, 3>>& rData,
-                     unsigned StartIndex, unsigned BlockSize) override;
+                     unsigned StartIndex,
+                     unsigned BlockSize) override;
 
+    void ReadDataSetCollective(std::string Path,
+                               std::vector<int>& rData,
+                               unsigned StartIndex,
+                               unsigned BlockSize) override;
+
+    void ReadDataSetCollective(std::string Path,
+                               std::vector<double>& rData,
+                               unsigned StartIndex,
+                               unsigned BlockSize) override;
+
+    void ReadDataSetCollective(std::string Path,
+                               std::vector<array_1d<double, 3>>& rData,
+                               unsigned StartIndex,
+                               unsigned BlockSize) override;
     ///@}
 
 protected:
@@ -92,7 +108,7 @@ private:
     ///@name Private Operations
     ///@{
     template <class T>
-    void WriteDataSetImpl(std::string Path, const std::vector<T>& rData)
+    void WriteDataSetImpl(std::string Path, const std::vector<T>& rData, DataTransferMode Mode)
     {
         // Check that full path does not exist before trying to write data.
         KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
@@ -110,19 +126,31 @@ private:
         hsize_t local_dims[ndims], global_dims[ndims];
         // Set first data space dimension.
         local_dims[0] = rData.size();
-        unsigned send_buf, recv_buf;
-        send_buf = local_dims[0];
-        MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        global_dims[0] = recv_buf;
+        if (Mode == DataTransferMode::collective)
+        {
+            unsigned send_buf, recv_buf;
+            send_buf = local_dims[0];
+            MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
+            global_dims[0] = recv_buf;
+        }
+        else
+            global_dims[0] = local_dims[0];
         if (is_array_1d_type)
             local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
         
-        // Get global position where local data set ends.
-        send_buf = local_dims[0];
-        MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        // Set global position where local data set starts.
         hsize_t local_start[ndims];
-        local_start[0] = recv_buf - local_dims[0];
+        if (Mode == DataTransferMode::collective)
+        { 
+            unsigned send_buf, recv_buf;
+            send_buf = local_dims[0];
+            // Get global position where local data set ends.
+            MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
+            // Set global position where local data set starts.
+            local_start[0] = recv_buf - local_dims[0];
+        }
+        else
+            local_start[0] = 0;
+ 
         if (is_array_1d_type)
             local_start[1] = 0;
         
@@ -140,7 +168,10 @@ private:
 
         // Create and write the data set.
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+        if (Mode == DataTransferMode::collective)
+            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+        else
+            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
         hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
         hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
         H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
@@ -158,7 +189,11 @@ private:
     }
 
     template <class T>
-    void ReadDataSetImpl(std::string Path, std::vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
+    void ReadDataSetImpl(std::string Path,
+                         std::vector<T>& rData,
+                         unsigned StartIndex,
+                         unsigned BlockSize,
+                         DataTransferMode Mode)
     {
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(Path))
@@ -218,7 +253,10 @@ private:
                           "Unsupported data type.");
 
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+        if (Mode == DataTransferMode::collective)
+            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+        else
+            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
         hid_t dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
