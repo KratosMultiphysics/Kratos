@@ -12,7 +12,7 @@ set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
-SET( CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo;Debug;FullDebug" )
+SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug )
 SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
@@ -23,6 +23,18 @@ SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
 SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
 SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+
+# If build mode is not defined, assume Release
+if(NOT CMAKE_BUILD_TYPE)
+  message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
+  set(CMAKE_BUILD_TYPE Release)
+else(NOT CMAKE_BUILD_TYPE)
+  list(FIND CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} FOUND_MODE)
+  if(FOUND_MODE EQUAL -1)
+    message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+    set(CMAKE_BUILD_TYPE Release)
+  endif(FOUND_MODE EQUAL -1)
+endif(NOT CMAKE_BUILD_TYPE)
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
