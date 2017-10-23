@@ -79,6 +79,11 @@ public:
 	{
 		KRATOS_ERROR << "Accessing base class DataHandler::Interpolate() method." << std::endl;
 	}
+
+    virtual int Check(const Element& rElement)
+    {
+        KRATOS_ERROR << "Accessing base class DataHandler::Interpolate() method." << std::endl;
+    }
     
     ///@}
     ///@name Access

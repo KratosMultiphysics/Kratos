@@ -64,6 +64,8 @@ public:
 
 	TDataType Interpolate(boost::numeric::ublas::matrix_row< Matrix >& rN, Element* pElement) override;
 
+    int Check(const Element& rElement) override;
+
     ///@}
     ///@name Access
     ///@{

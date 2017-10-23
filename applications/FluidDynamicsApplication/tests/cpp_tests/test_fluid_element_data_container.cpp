@@ -52,19 +52,26 @@ namespace Kratos {
 
             Matrix NContainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-            NodalDataHandler<double, 3, array_1d<double, 3>> PressureHandler(PRESSURE);
-            NodalDataHandler<array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2>> VelocityHandler(VELOCITY);
+            NodalDataHandler<double, 3, array_1d<double, 3>> pressure_handler(PRESSURE);
+            NodalDataHandler<array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2>> velocity_handler(VELOCITY);
 
-			PressureHandler.Initialize(r_element, model_part.GetProcessInfo());
-            VelocityHandler.Initialize(r_element, model_part.GetProcessInfo());
+			pressure_handler.Initialize(r_element, model_part.GetProcessInfo());
+            velocity_handler.Initialize(r_element, model_part.GetProcessInfo());
 
             boost::numeric::ublas::matrix_row< Matrix > shape_functions = row(NContainer,0);
-            KRATOS_CHECK_NEAR(2.0, PressureHandler.Interpolate(shape_functions, &r_element), 1e-6);
+            KRATOS_CHECK_NEAR(2.0, pressure_handler.Interpolate(shape_functions, &r_element), 1e-6);
 
-            array_1d<double,3> velocity = VelocityHandler.Interpolate(shape_functions, &r_element);
+            array_1d<double,3> velocity = velocity_handler.Interpolate(shape_functions, &r_element);
             KRATOS_CHECK_NEAR(0.0, velocity[0], 1e-6);
             KRATOS_CHECK_NEAR(3.0, velocity[1], 1e-6);
             KRATOS_CHECK_NEAR(0.0, velocity[2], 1e-6); // Note: velocity Z is not stored in the 2D handler, so it should return 0
+
+            // Test Check method: success case
+            KRATOS_CHECK_EQUAL(pressure_handler.Check(r_element), 0);
+            
+            // Test Check method: failure case
+            NodalDataHandler<array_1d<double,3>, 3, boost::numeric::ublas::bounded_matrix<double,3,2>> displacement_handler(DISPLACEMENT);
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(displacement_handler.Check(r_element), "Missing DISPLACEMENT variable");
         }
 
         // In-situ definition of FluidElementDataContainer list for tests

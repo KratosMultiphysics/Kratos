@@ -1,5 +1,6 @@
 #include "nodal_data_handler.h"
 
+#include "includes/checks.h"
 #include "containers/array_1d.h"
 #include "boost/numeric/ublas/matrix.hpp"
 
@@ -17,6 +18,21 @@ NodalDataHandler<TDataType, TNumNodes, TStorageType>::NodalDataHandler(const Var
 template <class TDataType, unsigned int TNumNodes, class TStorageType>
 NodalDataHandler<TDataType, TNumNodes, TStorageType>::~NodalDataHandler()
 {
+}
+
+template <class TDataType, unsigned int TNumNodes, class TStorageType>
+int NodalDataHandler<TDataType,TNumNodes,TStorageType >::Check(const Element& rElement) {
+
+    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    
+    KRATOS_CHECK_VARIABLE_KEY(this->mrVariable);
+
+     for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(this->mrVariable,r_geometry[i]);
+    }
+
+    return 0;
 }
 
 // Variable<double> version ///////////////////////////////////////////////////
