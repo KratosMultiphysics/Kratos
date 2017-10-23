@@ -23,8 +23,14 @@ namespace Kratos
     
     /// Triangle2D3ModifiedShapeFunctions implementation
     /// Default constructor
-    Triangle2D3ModifiedShapeFunctions::Triangle2D3ModifiedShapeFunctions(GeometryPointerType pInputGeometry, Vector& rNodalDistances) :
-        ModifiedShapeFunctions(pInputGeometry, rNodalDistances) {};
+    Triangle2D3ModifiedShapeFunctions::Triangle2D3ModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances) :
+        ModifiedShapeFunctions(pInputGeometry, rNodalDistances), 
+        mpTriangleSplitter(new DivideTriangle2D3(*pInputGeometry, rNodalDistances)) {
+
+        // Perform the element splitting
+        mpTriangleSplitter->GenerateDivision();
+        mpTriangleSplitter->GenerateIntersectionsSkin();
+    };
 
     /// Destructor
     Triangle2D3ModifiedShapeFunctions::~Triangle2D3ModifiedShapeFunctions() {};
@@ -52,84 +58,28 @@ namespace Kratos
         rOStream << "\tDistance values: " << distances_buffer.str();
     };
 
-    // Internally computes the splitting pattern and returns all the shape function values for both sides.
-    void Triangle2D3ModifiedShapeFunctions::GetShapeFunctionsAndGradientsValues(Matrix &rPositiveSideShapeFunctionsValues,
-                                                                                Matrix &rNegativeSideShapeFunctionsValues,
-                                                                                std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
-                                                                                std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
-                                                                                Vector &rPositiveSideWeightsValues,
-                                                                                Vector &rNegativeSideWeightsValues,
-                                                                                const IntegrationMethodType IntegrationMethod){
-        // Build the triangle splitting utility
-        Vector nodal_distances = this->GetNodalDistances();
-        GeometryPointerType p_input_geometry = this->GetInputGeometry();
-        DivideTriangle2D3 triangle_splitter(*p_input_geometry, nodal_distances);
-        
-        // Call the divide geometry method
-        DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
-        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
-        bool is_divided = triangle_splitter.GenerateDivision(aux_points_set, positive_subdivisions, negative_subdivisions);
-
-        if (is_divided) {
-            // Get the intersection points condensation matrix
-            Matrix p_matrix;
-            SetIntersectionPointsCondensationMatrix(p_matrix, 
-                                                    triangle_splitter.mEdgeNodeI, 
-                                                    triangle_splitter.mEdgeNodeJ, 
-                                                    triangle_splitter.mSplitEdges, 
-                                                    triangle_splitter.mSplitEdgesSize);
-
-            // Compute the positive side values
-            this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues, 
-                                        rPositiveSideShapeFunctionsGradientsValues, 
-                                        rPositiveSideWeightsValues,
-                                        positive_subdivisions,
-                                        p_matrix,
-                                        IntegrationMethod);
-
-            // Compute the negative side values
-            this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues, 
-                                        rNegativeSideShapeFunctionsGradientsValues, 
-                                        rNegativeSideWeightsValues,
-                                        negative_subdivisions,
-                                        p_matrix,
-                                        IntegrationMethod);
-        } else {
-            KRATOS_ERROR << "Using the GetShapeFunctionsAndGradientsValues method for a non divided geometry.";
-        }
-    };
-
     // Internally computes the splitting pattern and returns all the shape function values for the positive side.
     void Triangle2D3ModifiedShapeFunctions::GetPositiveSideShapeFunctionsAndGradientsValues(Matrix &rPositiveSideShapeFunctionsValues,
                                                                                             std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
                                                                                             Vector &rPositiveSideWeightsValues,
                                                                                             const IntegrationMethodType IntegrationMethod) {
-        // Build the triangle splitting utility
-        Vector nodal_distances = this->GetNodalDistances();
-        GeometryPointerType p_input_geometry = this->GetInputGeometry();
-        DivideTriangle2D3 triangle_splitter(*p_input_geometry, nodal_distances);
 
-        // Call the divide geometry method
-        DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
-        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
-        bool is_divided = triangle_splitter.GenerateDivision(aux_points_set, positive_subdivisions, negative_subdivisions);
-
-        if (is_divided) {
+        if (this->mIsSplit) {
             // Get the intersection points condensation matrix
             Matrix p_matrix;
             SetIntersectionPointsCondensationMatrix(p_matrix, 
-                                                    triangle_splitter.mEdgeNodeI, 
-                                                    triangle_splitter.mEdgeNodeJ, 
-                                                    triangle_splitter.mSplitEdges, 
-                                                    triangle_splitter.mSplitEdgesSize);
+                                                    mpTriangleSplitter->mEdgeNodeI, 
+                                                    mpTriangleSplitter->mEdgeNodeJ, 
+                                                    mpTriangleSplitter->mSplitEdges, 
+                                                    mpTriangleSplitter->mSplitEdgesSize);
 
             // Compute the positive side values
             this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues, 
-                                        rPositiveSideShapeFunctionsGradientsValues, 
-                                        rPositiveSideWeightsValues,
-                                        positive_subdivisions,
-                                        p_matrix,
-                                        IntegrationMethod);
+                                         rPositiveSideShapeFunctionsGradientsValues, 
+                                         rPositiveSideWeightsValues,
+                                         mpTriangleSplitter->mPositiveSubdivisions,
+                                         p_matrix,
+                                         IntegrationMethod);
         } else {
             KRATOS_ERROR << "Using the GetPositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
         }
@@ -139,36 +89,81 @@ namespace Kratos
     void Triangle2D3ModifiedShapeFunctions::GetNegativeSideShapeFunctionsAndGradientsValues(Matrix &rNegativeSideShapeFunctionsValues,
                                                                                             std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
                                                                                             Vector &rNegativeSideWeightsValues,
-                                                                                            const IntegrationMethodType IntegrationMethod) {
-        // Build the triangle splitting utility
-        Vector nodal_distances = this->GetNodalDistances();
-        GeometryPointerType p_input_geometry = this->GetInputGeometry();
-        DivideTriangle2D3 triangle_splitter(*p_input_geometry, nodal_distances);
+                                                                                            const IntegrationMethodType IntegrationMethod) {       
 
-        // Call the divide geometry method
-        DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
-        std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
-        bool is_divided = triangle_splitter.GenerateDivision(aux_points_set, positive_subdivisions, negative_subdivisions);
-
-        if (is_divided) {
+        if (this->mIsSplit) {
             // Get the intersection points condensation matrix
             Matrix p_matrix;
             SetIntersectionPointsCondensationMatrix(p_matrix, 
-                                                    triangle_splitter.mEdgeNodeI, 
-                                                    triangle_splitter.mEdgeNodeJ, 
-                                                    triangle_splitter.mSplitEdges, 
-                                                    triangle_splitter.mSplitEdgesSize);
+                                                    mpTriangleSplitter->mEdgeNodeI, 
+                                                    mpTriangleSplitter->mEdgeNodeJ, 
+                                                    mpTriangleSplitter->mSplitEdges, 
+                                                    mpTriangleSplitter->mSplitEdgesSize);
 
             // Compute the negative side values
             this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues, 
-                                        rNegativeSideShapeFunctionsGradientsValues, 
-                                        rNegativeSideWeightsValues,
-                                        negative_subdivisions,
-                                        p_matrix,
-                                        IntegrationMethod);
+                                         rNegativeSideShapeFunctionsGradientsValues, 
+                                         rNegativeSideWeightsValues,
+                                         mpTriangleSplitter->mNegativeSubdivisions,
+                                         p_matrix,
+                                         IntegrationMethod);
         } else {
             KRATOS_ERROR << "Using the GetNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
         }
+    };
+
+    // Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
+    void Triangle2D3ModifiedShapeFunctions::GetInterfacePositiveSideShapeFunctionsAndGradientsValues(Matrix &rInterfacePositiveSideShapeFunctionsValues,
+                                                                                                     std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+                                                                                                     Vector &rInterfacePositiveSideWeightsValues,
+                                                                                                     const IntegrationMethodType IntegrationMethod) {
+
+        // if (is_divided) {
+        //     // Get the intersection points condensation matrix
+        //     Matrix p_matrix;
+        //     SetIntersectionPointsCondensationMatrix(p_matrix, 
+        //                                             triangle_splitter.mEdgeNodeI, 
+        //                                             triangle_splitter.mEdgeNodeJ, 
+        //                                             triangle_splitter.mSplitEdges, 
+        //                                             triangle_splitter.mSplitEdgesSize);
+
+        //     // Compute the positive side values
+        //     this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues, 
+        //                                 rPositiveSideShapeFunctionsGradientsValues, 
+        //                                 rPositiveSideWeightsValues,
+        //                                 positive_subdivisions,
+        //                                 p_matrix,
+        //                                 IntegrationMethod);
+        // } else {
+        //     KRATOS_ERROR << "Using the GetPositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
+        // }
+    };
+
+    // Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
+    void Triangle2D3ModifiedShapeFunctions::GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(Matrix &rInterfaceNegativeSideShapeFunctionsValues,
+                                                                                                     std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+                                                                                                     Vector &rInterfaceNegativeSideWeightsValues,
+                                                                                                     const IntegrationMethodType IntegrationMethod) {
+
+        // if (is_divided) {
+        //     // Get the intersection points condensation matrix
+        //     Matrix p_matrix;
+        //     SetIntersectionPointsCondensationMatrix(p_matrix, 
+        //                                             triangle_splitter.mEdgeNodeI, 
+        //                                             triangle_splitter.mEdgeNodeJ, 
+        //                                             triangle_splitter.mSplitEdges, 
+        //                                             triangle_splitter.mSplitEdgesSize);
+
+        //     // Compute the negative side values
+        //     this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues, 
+        //                                 rNegativeSideShapeFunctionsGradientsValues, 
+        //                                 rNegativeSideWeightsValues,
+        //                                 negative_subdivisions,
+        //                                 p_matrix,
+        //                                 IntegrationMethod);
+        // } else {
+        //     KRATOS_ERROR << "Using the GetNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
+        // }
     };
 
 };

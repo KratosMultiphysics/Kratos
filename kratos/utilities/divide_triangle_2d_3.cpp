@@ -22,7 +22,7 @@
 namespace Kratos
 {
     /// Default constructor
-    DivideTriangle2D3::DivideTriangle2D3(GeometryType& rInputGeometry, Vector& rNodalDistances) :
+    DivideTriangle2D3::DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
         DivideGeometry(rInputGeometry, rNodalDistances) {};
 
     /// Destructor
@@ -51,41 +51,40 @@ namespace Kratos
         rOStream << "   Distance values: " << distances_buffer.str();
     };
 
-    // TODO: Save this arguments as member variables
-    bool DivideTriangle2D3::GenerateDivision(IndexedPointsContainerType& rAuxPoints,
-                                             std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
-                                             std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions) {
-        const GeometryType geometry = this->GetInputGeometry();
-        const Vector nodal_distances = this->GetNodalDistances();
+    // Performs and saves the splitting pattern.
+    void DivideTriangle2D3::GenerateDivision() {
+
+        const GeometryType geometry = GetInputGeometry();
+        const Vector nodal_distances = GetNodalDistances();
 
         // Fill the auxiliar points vector set
-        if (DivideGeometry::IsSplit()) {
+        if (mIsSplit) {
 
             // Set the triangle geometry parameters
             const unsigned int n_nodes = 3;
             const unsigned int n_edges = 3;
 
             // Clear the auxiliar vector points set
-            rAuxPoints.clear();
+            mAuxPointsContainer.clear();
 
             // Add the original geometry points
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
                 IndexedPointPointerType paux_point(new IndexedPoint(aux_point_coords, i));
-                rAuxPoints.push_back(paux_point);
+                mAuxPointsContainer.push_back(paux_point);
             }
 
             // Decide the splitting pattern
             unsigned int aux_node_id = n_nodes;
 
             for(unsigned int idedge = 0; idedge < n_edges; ++idedge) {
-                const unsigned int edge_node_i = (this->mEdgeNodeI)[idedge];
-                const unsigned int edge_node_j = (this->mEdgeNodeJ)[idedge];
+                const unsigned int edge_node_i = mEdgeNodeI[idedge];
+                const unsigned int edge_node_j = mEdgeNodeJ[idedge];
 
                 // Check if the edge is split
                 if(nodal_distances(edge_node_i) * nodal_distances(edge_node_j) < 0) {
                     // Set the new node id. in the split edge array corresponding slot
-                    (this->mSplitEdges)[idedge + n_nodes] = aux_node_id;
+                    mSplitEdges[idedge + n_nodes] = aux_node_id;
 
                     // Edge nodes coordinates
                     const array_1d<double, 3> i_node_coords = geometry[edge_node_i].Coordinates();
@@ -100,7 +99,7 @@ namespace Kratos
 
                     // Add the intersection point to the auxiliar points array
                     IndexedPointPointerType paux_point(new IndexedPoint(aux_point_coords, aux_node_id));
-                    rAuxPoints.push_back(paux_point);
+                    mAuxPointsContainer.push_back(paux_point);
                 }
 
                 aux_node_id++;
@@ -108,21 +107,23 @@ namespace Kratos
 
             // Call the splitting mode computation function
             int edge_ids[3];
-            TriangleSplitMode(this->mSplitEdges, edge_ids);
+            TriangleSplitMode(mSplitEdges, edge_ids);
 
             // Call the splitting function
             int t[12];          // Ids of the generated subdivisions
             int n_int = 0;      // Number of internal nodes (set to 0 since it is not needed for triangle splitting)
-            Split_Triangle(edge_ids, t, &(this->mDivisionsNumber), &(this->mSplitEdgesNumber), &n_int);
+            Split_Triangle(edge_ids, t, &mDivisionsNumber, &mSplitEdgesNumber, &n_int);
 
             // Fill the subdivisions arrays
-            for (int idivision = 0; idivision < this->mDivisionsNumber; ++idivision) {
+            for (int idivision = 0; idivision < mDivisionsNumber; ++idivision) {
                 // Get the subdivision indices
                 int i0, i1, i2;
-                TriangleGetNewConnectivityGID(idivision, t, this->mSplitEdges, &i0, &i1, &i2);
+                TriangleGetNewConnectivityGID(idivision, t, mSplitEdges, &i0, &i1, &i2);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
-                IndexedPointGeometryPointerType p_aux_partition = boost::make_shared<IndexedPointTriangleType>(rAuxPoints(i0), rAuxPoints(i1), rAuxPoints(i2));
+                IndexedPointGeometryPointerType p_aux_partition = boost::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(i0), 
+                                                                                                               mAuxPointsContainer(i1), 
+                                                                                                               mAuxPointsContainer(i2));
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 bool is_positive;
@@ -136,51 +137,79 @@ namespace Kratos
 
                 // Add the generated triangle to its corresponding partition arrays
                 if (is_positive) {
-                    rPositiveSubdivisions.push_back(p_aux_partition);
+                    mPositiveSubdivisions.push_back(p_aux_partition);
                 } else {
-                    rNegativeSubdivisions.push_back(p_aux_partition);
+                    mNegativeSubdivisions.push_back(p_aux_partition);
                 }
             }
 
-            return true;
-
         } else {
-            (this->mDivisionsNumber) = 1;
-            (this->mSplitEdgesNumber) = 0;
-
-            return false;
+            mDivisionsNumber = 1;
+            mSplitEdgesNumber = 0;
         }
     };
 
-void DivideTriangle2D3::GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
-                                                  IndexedPointsContainerType& rAuxPoints, // TODO: WHY THIS ARGUMENT CANNOT BE const ?¿?¿?¿?¿?¿?¿?¿?¿?¿?¿?¿¿?¿
-                                                  const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector) {
+void DivideTriangle2D3::GenerateIntersectionsSkin() {
         // Set some geometry constant parameters
         const int n_nodes = 3;
         const unsigned int n_faces = 3;
-        const unsigned int n_subdivision = rSubdivisionsVector.size();
-        
-        for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
-            // Get the subdivision geometry
-            const IndexedPointGeometryType& r_subdivision_geom = *rSubdivisionsVector[i_subdivision];
 
-            // Faces iteration
-            for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
-                // Get the subdivision face nodal keys
-                int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
-                int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
-                
-                // Check the nodal keys to state which nodes belong to the interface
-                // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
-                if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
-                    // Generate an indexed point line geometry pointer with the two interface nodes
-                    IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(rAuxPoints(node_i_key), rAuxPoints(node_j_key));
-                    rInterfacesVector.push_back(p_intersection_line);
+        if (mIsSplit) {
 
-                    // In triangles, a unique face can belong to the interface
-                    break; 
+            const unsigned int n_positive_subdivision = mPositiveSubdivisions.size();
+            const unsigned int n_negative_subdivision = mNegativeSubdivisions.size();
+            
+            // Compute the positive side intersection geometries
+            for (unsigned int i_subdivision = 0; i_subdivision < n_positive_subdivision; ++i_subdivision) {
+                // Get the subdivision geometry
+                const IndexedPointGeometryType& r_subdivision_geom = *mPositiveSubdivisions[i_subdivision];
+
+                // Faces iteration
+                for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                    // Get the subdivision face nodal keys
+                    int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
+                    int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
+                    
+                    // Check the nodal keys to state which nodes belong to the interface
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
+                        // Generate an indexed point line geometry pointer with the two interface nodes
+                        IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key), 
+                                                                                                                    mAuxPointsContainer(node_j_key));
+                        mPositiveInterfaces.push_back(p_intersection_line);
+
+                        // In triangles, a unique face can belong to the interface
+                        break; 
+                    }
                 }
             }
+
+            // Compute the negative side intersection geometries
+            for (unsigned int i_subdivision = 0; i_subdivision < n_negative_subdivision; ++i_subdivision) {
+                // Get the subdivision geometry
+                const IndexedPointGeometryType& r_subdivision_geom = *mNegativeSubdivisions[i_subdivision];
+
+                // Faces iteration
+                for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                    // Get the subdivision face nodal keys
+                    int node_i_key = r_subdivision_geom[mEdgeNodeI[i_face]].Id();
+                    int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
+                    
+                    // Check the nodal keys to state which nodes belong to the interface
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
+                        // Generate an indexed point line geometry pointer with the two interface nodes
+                        IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key), 
+                                                                                                                    mAuxPointsContainer(node_j_key));
+                        mNegativeInterfaces.push_back(p_intersection_line);
+
+                        // In triangles, a unique face can belong to the interface
+                        break; 
+                    }
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Trying to generate the intersection skin in DivideTriangle2D3::GenerateIntersectionsSkin() for a non-split element.";
         }
     };
         

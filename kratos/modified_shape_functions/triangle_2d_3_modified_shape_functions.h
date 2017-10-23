@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Default constructor
-    Triangle2D3ModifiedShapeFunctions(GeometryPointerType rpInputGeometry, Vector& rNodalDistances);
+    Triangle2D3ModifiedShapeFunctions(const GeometryPointerType rpInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
     ~Triangle2D3ModifiedShapeFunctions();
@@ -101,24 +101,6 @@ public:
     ///@{
 
     /**
-    * Returns the shape function values in both the positive or negative split element sides for a given quadrature.
-    * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
-    * @return rNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
-    * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
-    * @return rNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
-    * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
-    * @return rNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
-    * @param IntegrationMethod: Desired integration quadrature.
-    */
-    void GetShapeFunctionsAndGradientsValues(Matrix &rPositiveSideShapeFunctionsValues,
-                                             Matrix &rNegativeSideShapeFunctionsValues,
-                                             std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
-                                             std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
-                                             Vector &rPositiveSideWeightsValues,
-                                             Vector &rNegativeSideWeightsValues,
-                                             const IntegrationMethodType IntegrationMethod) override;
-
-    /**
     * Returns the shape function values in the positive split element side for a given quadrature.
     * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
     * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
@@ -141,6 +123,32 @@ public:
                                                          std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
                                                          Vector &rNegativeSideWeightsValues,
                                                          const IntegrationMethodType IntegrationMethod) override;
+
+    ///@}
+
+    /**
+    * Returns the shape function values in the positive split element interface side for a given quadrature.
+    * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
+    * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
+    * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void GetInterfacePositiveSideShapeFunctionsAndGradientsValues(Matrix &rInterfacePositiveSideShapeFunctionsValues,
+                                                                  std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+                                                                  Vector &rInterfacePositiveSideWeightsValues,
+                                                                  const IntegrationMethodType IntegrationMethod) override;
+
+    /**
+    * Returns the shape function values in the negative split element interface side for a given quadrature.
+    * @return rInterfaceNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rInterfaceNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod: Desired integration quadrature.
+    */
+    void GetInterfaceNegativeSideShapeFunctionsAndGradientsValues(Matrix &rInterfaceNegativeSideShapeFunctionsValues,
+                                                                  std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+                                                                  Vector &rInterfaceNegativeSideWeightsValues,
+                                                                  const IntegrationMethodType IntegrationMethod) override;
 
     ///@}
 
@@ -182,6 +190,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    DivideTriangle2D3::Pointer mpTriangleSplitter;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -210,8 +220,14 @@ private:
     Triangle2D3ModifiedShapeFunctions& operator=(Triangle2D3ModifiedShapeFunctions const& rOther);
 
     /// Copy constructor.
-    Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther)
-        : ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
+    Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther) : 
+        ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()), 
+        mpTriangleSplitter(new DivideTriangle2D3(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
+
+        // Perform the element splitting
+        mpTriangleSplitter->GenerateDivision();
+        mpTriangleSplitter->GenerateIntersectionsSkin();
+    };
 
     ///@}
 

@@ -62,9 +62,10 @@ namespace Kratos
 
     /// DivideGeometry implementation
     /// Default constructor
-    DivideGeometry::DivideGeometry(GeometryType& rInputGeometry, Vector& rNodalDistances) :
+    DivideGeometry::DivideGeometry(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
         mrInputGeometry(rInputGeometry),
         mrNodalDistances(rNodalDistances) {
+        this->IsSplit(); // Fast operation to state if the element is split or not.
     };
 
     /// Destructor
@@ -99,19 +100,15 @@ namespace Kratos
         return mrNodalDistances;
     };
 
-    bool DivideGeometry::GenerateDivision(IndexedPointsContainerType& rAuxPoints,
-                                          std::vector < IndexedPointGeometryPointerType >& rPositiveSubdivisions,
-                                          std::vector < IndexedPointGeometryPointerType >& rNegativeSubdivisions) {
+    void DivideGeometry::GenerateDivision() {
         KRATOS_ERROR << "Calling the base class geometry splitting DivideGeometry method. Call the specific geometry one.";
     };
     
-    void DivideGeometry::GenerateIntersectionsSkin(std::vector < IndexedPointGeometryPointerType >& rInterfacesVector,
-                                                   IndexedPointsContainerType& rAuxPoints,
-                                                   const std::vector < IndexedPointGeometryPointerType >& rSubdivisionsVector) {
+    void DivideGeometry::GenerateIntersectionsSkin() {
         KRATOS_ERROR << "Calling the base class geometry splitting GenerateIntersectionsSkin method. Call the specific geometry one.";
     };
 
-    bool DivideGeometry::IsSplit() {
+    void DivideGeometry::IsSplit() {
         unsigned int n_pos = 0 , n_neg = 0;
 
         for (unsigned int i = 0; i < mrNodalDistances.size(); ++i) {
@@ -123,9 +120,9 @@ namespace Kratos
         }
 
         if ((n_pos > 0) && (n_neg > 0)) {
-            return true;
+            mIsSplit = true;
         } else {
-            return false;
+            mIsSplit = false;
         }
     };
 
