@@ -10,6 +10,9 @@
 //
 
 // System includes
+#ifdef KRATOS_DEBUG
+#include <iomanip>
+#endif
 
 // External includes
 
@@ -456,12 +459,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     KRATOS_TRY;
 
+    // The slave geometry
+    GeometryType& slave_geometry = GetGeometry();
+    
     // Create and initialize condition variables
     GeneralVariables rVariables;
     
     // Create the current contact data
     DerivativeDataType rDerivativeData;
-    rDerivativeData.Initialize(this->GetGeometry(), rCurrentProcessInfo);
+    rDerivativeData.Initialize(slave_geometry, rCurrentProcessInfo);
     
     // Create the mortar operators
     MortarConditionMatrices rThisMortarConditionMatrices;
@@ -474,14 +480,19 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     {   
         if (mThisMasterElementsActive[pair_index] == true)
         {
+            GeometryType& master_geometry = mThisMasterElements[pair_index]->GetGeometry();
+            
             // The normal of the master condition
             const array_1d<double, 3>& master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
             
             // Reading integration points
             ConditionArrayListType conditions_points_slave;
-            const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
+            const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, this->GetValue(NORMAL), master_geometry, master_normal, conditions_points_slave);
             
-            if (is_inside == true)
+            double integration_area;
+            integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
+            
+            if ((is_inside == true) && ((integration_area/slave_geometry.Area()) > 1.0e-3 * slave_geometry.Area()))
             {            
                 IntegrationMethod this_integration_method = GetIntegrationMethod();
                 
@@ -496,25 +507,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 const bool dual_LM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo, pair_index, conditions_points_slave, this_integration_method, master_normal);
                 
-            #ifdef KRATOS_DEBUG
-                if (dual_LM == false)
-                {
-                    std::cout << "WARNING:: NOT USING DUAL LM" << std::endl;
-                    std::cout << "Slave Condition ID: " << this->Id() << std::endl;
-                    auto& geom_slave = GetGeometry();
-                    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-                    {
-                        std::cout << "NODE ID: " << geom_slave[i_node].Id() << "\tX: " << geom_slave[i_node].X() << "\tY: " << geom_slave[i_node].Y() << "\tZ: " << geom_slave[i_node].Z() << std::endl;
-                    }
-                    std::cout << "Master Condition ID: " << mThisMasterElements[pair_index]->Id() << std::endl;
-                    auto& geom_master = mThisMasterElements[pair_index]->GetGeometry();
-                    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-                    {
-                        std::cout << "NODE ID: " << geom_master[i_node].Id() << "\tX: " << geom_master[i_node].X() << "\tY: " << geom_master[i_node].Y() << "\tZ: " << geom_master[i_node].Z() << std::endl;
-                    }
-                }
-            #endif
-                
                 for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
                     std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -522,14 +514,14 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                     for (unsigned int i_node = 0; i_node < TDim; i_node++)
                     {
                         PointType global_point;
-                        GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                        slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                         points_array[i_node] = boost::make_shared<PointType>(global_point);
                         belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                     }
                     
                     DecompositionType decomp_geom( points_array );
                     
-                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
                     
                     if (bad_shape == false)
                     {
@@ -542,7 +534,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                             PointType local_point_parent;
                             PointType gp_global;
                             decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                            GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
+                            slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
                             
                             // Calculate the kinematic variables
                             this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, dual_LM);//, delta_position_slave);
@@ -552,18 +544,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                             rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
                         }
                     }
-                #ifdef KRATOS_DEBUG
-                    else
-                    {
-                        std::cout << "WARNING:: BAD SHAPE GEOMETRY" << std::endl;
-                        std::cout << "Slave Condition ID: " << this->Id() << std::endl;
-                        std::cout << "Master Condition ID: " << mThisMasterElements[pair_index]->Id() << std::endl;
-                        for (unsigned int i_node = 0; i_node < TDim; ++i_node)
-                        {
-                            std::cout << "X: " << decomp_geom[i_node].X() << "\tY: " << decomp_geom[i_node].Y() << "\tZ: " << decomp_geom[i_node].Z() << std::endl;
-                        }
-                    }
-                #endif
                 }
                 
                 // Setting the weighted gap
@@ -572,17 +552,17 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
                 
                 // Current coordinates 
-                const bounded_matrix<double, TNumNodes, TDim>& x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry());
-                const bounded_matrix<double, TNumNodes, TDim>& x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(mThisMasterElements[pair_index]->GetGeometry());
+                const bounded_matrix<double, TNumNodes, TDim>& x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
+                const bounded_matrix<double, TNumNodes, TDim>& x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry);
         
                 const bounded_matrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2); 
                 
                 for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
                 {
-                    const array_1d<double, 3>& normal = GetGeometry()[i_node].GetValue(NORMAL);
+                    const array_1d<double, 3>& normal = slave_geometry[i_node].GetValue(NORMAL);
                     const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
                                     
-                    double& weighted_gap = GetGeometry()[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
+                    double& weighted_gap = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
                     
                     #pragma omp atomic
                     weighted_gap += inner_prod(aux_array, - subrange(normal, 0, TDim)); 
@@ -591,16 +571,16 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 if (TFrictional == true) // TODO: Check this!!!
                 {
                     // Old coordinates 
-                    const bounded_matrix<double, TNumNodes, TDim> x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false, 1);
-                    const bounded_matrix<double, TNumNodes, TDim> x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(mThisMasterElements[pair_index]->GetGeometry(), false, 1);
+                    const bounded_matrix<double, TNumNodes, TDim> x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry, false, 1);
+                    const bounded_matrix<double, TNumNodes, TDim> x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry, false, 1);
             
                     const bounded_matrix<double, TNumNodes, TDim> D_x1_old_M_x2_old = prod(DOperator, x1_old) - prod(MOperator, x2_old); 
                     
                     for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
                     {
                         // We compute the tangent
-                        const array_1d<double, 3>& normal = GetGeometry()[i_node].GetValue(NORMAL);
-                        const array_1d<double, 3>& lm = GetGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                        const array_1d<double, 3>& normal = slave_geometry[i_node].GetValue(NORMAL);
+                        const array_1d<double, 3>& lm = slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                         const double lm_normal = inner_prod(normal, lm);
                         array_1d<double, 3> tangent_lm = lm - lm_normal * normal;
                         tangent_lm /= norm_2(tangent_lm); 
@@ -608,7 +588,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                         
                         const array_1d<double, TDim> aux_array = row(D_x1_old_M_x2_old, i_node);
                                   
-                        double& weighted_slip = GetGeometry()[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
+                        double& weighted_slip = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
                         #pragma omp atomic
                         weighted_slip += inner_prod(aux_array, tangent); 
@@ -644,12 +624,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 {
     KRATOS_TRY;
         
+    // The slave geometry
+    GeometryType& slave_geometry = GetGeometry();
+    
     // Create and initialize condition variables
     GeneralVariables rVariables;
     
     // Create the current contact data
     DerivativeDataType rDerivativeData;
-    rDerivativeData.Initialize(this->GetGeometry(), rCurrentProcessInfo);
+    rDerivativeData.Initialize(slave_geometry, rCurrentProcessInfo);
     
     const bool& consider_normal_variation = rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION];
     
@@ -669,6 +652,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     // Iterate over the master segments
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
     {   
+        GeometryType& master_geometry = mThisMasterElements[pair_index]->GetGeometry();
+        
         if (mThisMasterElementsActive[pair_index] == true)
         {
             // The normal of the master condition
@@ -676,9 +661,12 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             
             // Reading integration points
             ConditionArrayListType conditions_points_slave;
-            const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
+            const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, this->GetValue(NORMAL), master_geometry, master_normal, conditions_points_slave);
             
-            if (is_inside == true)
+            double integration_area;
+            integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
+            
+            if ((is_inside == true) && ((integration_area/slave_geometry.Area()) > 1.0e-3 * slave_geometry.Area()))
             {            
                 IntegrationMethod this_integration_method = GetIntegrationMethod();
                 
@@ -694,10 +682,74 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 if (consider_normal_variation == true)
                 {
                     // Compute the normal derivatives of the master
-                    this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
+                    this->CalculateDeltaNormalMaster(rDerivativeData, master_geometry);
                 }
                 
                 const bool dual_LM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo, pair_index, conditions_points_slave, this_integration_method, master_normal);
+                
+            #ifdef KRATOS_DEBUG
+                if (dual_LM == false)
+                {
+                    std::cout << "WARNING:: NOT USING DUAL LM. Integration area: " << integration_area << "\tOriginal area: " << slave_geometry.Area() << "\tRatio: " << integration_area/slave_geometry.Area() << std::endl;
+//                     std::cout << "Slave Condition ID: " << this->Id() << std::endl;
+//                     for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+//                     {
+//                         std::cout << "NODE ID: " << slave_geometry[i_node].Id() << "\tX: " << slave_geometry[i_node].X() << "\tY: " << slave_geometry[i_node].Y() << "\tZ: " << slave_geometry[i_node].Z() << std::endl;
+//                     }
+//                     std::cout << "Master Condition ID: " << mThisMasterElements[pair_index]->Id() << std::endl;
+//                     for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+//                     {
+//                         std::cout << "NODE ID: " << master_geometry[i_node].Id() << "\tX: " << master_geometry[i_node].X() << "\tY: " << master_geometry[i_node].Y() << "\tZ: " << master_geometry[i_node].Z() << std::endl;
+//                     }
+//                     std::cout << std::endl;
+                    
+// //                     // Mathematica debug
+// //                     auto& slave_geometry = GetGeometry();
+// //                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
+// //             
+// //                     for (unsigned int i = 0; i < TNumNodes; i++)
+// //                     {
+// //                         std::cout << slave_geometry[i].X() << "," << slave_geometry[i].Y() << "," << slave_geometry[i].Z();
+// //                         
+// //                         if (i < TNumNodes - 1) std::cout << "},{";
+// //                     }
+// //                     std::cout << "}}],Text[Style["<< this->Id() <<", Tiny],{"<< slave_geometry.Center().X() << "," << slave_geometry.Center().Y() << ","<< slave_geometry.Center().Z() << "}]}],";// << std::endl;
+// //                     
+// //                     std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
+// //             
+// //                     for (unsigned int i = 0; i < TNumNodes; i++)
+// //                     {
+// //                         std::cout << master_geometry[i].X() << "," << master_geometry[i].Y() << "," << master_geometry[i].Z();
+// //                         
+// //                         if (i < TNumNodes - 1) std::cout << "},{";
+// //                     }
+// //                     std::cout << "}}],Text[Style["<< mThisMasterElements[pair_index]->Id() <<", Tiny],{"<< master_geometry.Center().X() << "," << master_geometry.Center().Y() << ","<< master_geometry.Center().Z() << "}]}],";// << std::endl;
+// //                     
+// //                     for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
+// //                     {
+// //                         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+// //                         for (unsigned int i_node = 0; i_node < TDim; i_node++)
+// //                         {
+// //                             PointType global_point;
+// //                             slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+// //                             points_array[i_node] = boost::make_shared<PointType>(global_point);
+// //                         }
+// //                         
+// //                         DecompositionType decomp_geom( points_array );
+// //                         
+// //                         std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
+// //                         for (unsigned int i = 0; i < 3; i++)
+// //                         {
+// //                             std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
+// //                             
+// //                             if (i < 2) std::cout << "},{";
+// //                         }
+// //                         std::cout << "}}]}],";// << std::endl;
+// //                     }
+// //                     
+// //                     std::cout << std::endl;
+                }
+            #endif
                 
                 for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
@@ -706,14 +758,14 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     for (unsigned int i_node = 0; i_node < TDim; i_node++)
                     {
                         PointType global_point;
-                        GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                        slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                         points_array[i_node] = boost::make_shared<PointType>(global_point);
                         belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                     }
                     
                     DecompositionType decomp_geom( points_array );
                     
-                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
                     
                     if (bad_shape == false)
                     {
@@ -730,7 +782,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             PointType local_point_parent;
                             PointType gp_global;
                             decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                            GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
+                            slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
                             
                             // Calculate the kinematic variables
                             this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, dual_LM);//, delta_position_slave);
@@ -742,11 +794,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             {
                                 /* Update the derivatives */
                                 // Update the derivative of the integration vertex (just in 3D)
-                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, mThisMasterElements[pair_index]->GetGeometry());
+                                if (TDim == 3) this->CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, master_geometry);
                                 // Update the derivative of DetJ
                                 this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
                                 // Update the derivatives of the shape functions and the gap
-                                this->CalculateDeltaN(rVariables, rDerivativeData, mThisMasterElements[pair_index]->GetGeometry(), master_normal, decomp_geom, local_point_decomp, local_point_parent);
+                                this->CalculateDeltaN(rVariables, rDerivativeData, master_geometry, master_normal, decomp_geom, local_point_decomp, local_point_parent);
                                 // The derivatives of the dual shape function 
                                 this->CalculateDeltaPhi(rVariables, rDerivativeData);
                                 
@@ -758,6 +810,29 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             }
                         }
                     }
+//                 #ifdef KRATOS_DEBUG
+//                     else
+//                     {
+//                         std::cout << "WARNING:: BAD SHAPE GEOMETRY" << std::endl;
+//                         std::cout << "Slave Condition ID: " << this->Id() << std::endl;
+//                         std::cout << "Master Condition ID: " << mThisMasterElements[pair_index]->Id() << std::endl;
+//                         for (unsigned int i_node = 0; i_node < TDim; ++i_node)
+//                         {
+//                             std::cout << "X: " << decomp_geom[i_node].X() << "\tY: " << decomp_geom[i_node].Y() << "\tZ: " << decomp_geom[i_node].Z() << std::endl;
+//                         }
+//                         std::cout << std::endl;
+//                         
+// //                         // Mathematica debug
+// //                         std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
+// //                         for (unsigned int i = 0; i < 3; i++)
+// //                         {
+// //                             std::cout << std::setprecision(16) << decomp_geom[i_node].X() << "," << decomp_geom[i_node].Y() << "," << decomp_geom[i_node].Z();
+// //                             
+// //                             if (i < 2) std::cout << "},{";
+// //                         }
+// //                         std::cout << "}}]}],";// << std::endl;
+//                     }
+//                 #endif
                 }
                         
 //                 // Debug
@@ -767,7 +842,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 //                 rThisMortarConditionMatrices.print();
                 
                 // Calculates the active/inactive combination pair
-                const unsigned int active_inactive = GetActiveInactiveValue(this->GetGeometry());
+                const unsigned int active_inactive = GetActiveInactiveValue(slave_geometry);
                 
                 // Assemble of the matrix is required
                 if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
