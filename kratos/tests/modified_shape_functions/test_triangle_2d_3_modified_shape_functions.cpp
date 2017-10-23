@@ -42,22 +42,68 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
 			// Set the elemental distances vector
-			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
-
+			Geometry<Node<3>>::Pointer p_geometry = boost::make_shared<Triangle2D3<Node<3>>>(base_model_part.Elements()[1].GetGeometry());
+			
 			array_1d<double, 3> distances_vector;
-			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-				distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
+			for (unsigned int i = 0; i < p_geometry->size(); ++i) {
+				distances_vector(i) = (*p_geometry)[i].FastGetSolutionStepValue(DISTANCE);
 			}
-
+			
 			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
-
+			
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
-
+			
 			// Call the modified shape functions calculator
-			Triangle2D3ModifiedShapeFunctions triangle_shape_functions(r_geometry, r_elemental_distances);
-
+			Triangle2D3ModifiedShapeFunctions triangle_shape_functions(p_geometry, r_elemental_distances);
+			Matrix positive_side_sh_func, negative_side_sh_func;
+			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			Vector positive_side_weights, negative_side_weights;
+			triangle_shape_functions.GetShapeFunctionsAndGradientsValues(positive_side_sh_func,
+																		 negative_side_sh_func,
+																		 positive_side_sh_func_gradients,
+																		 negative_side_sh_func_gradients,
+																		 positive_side_weights,
+																		 negative_side_weights,
+																		 GeometryData::GI_GAUSS_1);
+				
+			// Check shape functions values
+			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func(0,1), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func(0,2), 2.0/3.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(0,0), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(0,1), 1.0/2.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(0,2), 1.0/3.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(1,0), 1.0/2.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(1,1), 1.0/3.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(1,2), 1.0/6.0, 1e-5);
+			
+			// Check Gauss pts. weights
+			KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_weights(0), 1.0/8.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_weights(1), 1.0/4.0, 1e-5);
+			
+			// Check Gauss pts. shape functions gradients values
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,1),  1.0, 1e-5);
+				
 		}
-		
+			
 		KRATOS_TEST_CASE_IN_SUITE(ModifiedShapeFunctionsTriangle2D3Vertical, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
@@ -77,11 +123,11 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			
 			// Set the elemental distances vector
-			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
+			Geometry<Node<3>>::Pointer p_geometry = boost::make_shared<Triangle2D3<Node<3>>>(base_model_part.Elements()[1].GetGeometry());
 			
 			array_1d<double, 3> distances_vector;
-			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-				distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
+			for (unsigned int i = 0; i < p_geometry->size(); ++i) {
+				distances_vector(i) = (*p_geometry)[i].FastGetSolutionStepValue(DISTANCE);
 			}
 			
 			base_model_part.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
@@ -89,9 +135,55 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 			
 			// Call the modified shape functions calculator
-			Triangle2D3ModifiedShapeFunctions triangle_shape_functions(r_geometry, r_elemental_distances);
-			
-        }
+			Triangle2D3ModifiedShapeFunctions triangle_shape_functions(p_geometry, r_elemental_distances);
+			Matrix positive_side_sh_func, negative_side_sh_func;
+			std::vector<Matrix> positive_side_sh_func_gradients, negative_side_sh_func_gradients;
+			Vector positive_side_weights, negative_side_weights;
+			triangle_shape_functions.GetShapeFunctionsAndGradientsValues(positive_side_sh_func,
+																			negative_side_sh_func,
+																			positive_side_sh_func_gradients,
+																			negative_side_sh_func_gradients,
+																			positive_side_weights,
+																			negative_side_weights,
+																			GeometryData::GI_GAUSS_1);
+
+			// Check shape functions values
+			KRATOS_CHECK_NEAR(positive_side_sh_func(0,0), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func(0,1), 2.0/3.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func(0,2), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(0,0), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(0,1), 1.0/3.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(0,2), 1.0/2.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(1,0), 1.0/2.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(1,1), 1.0/6.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func(1,2), 1.0/3.0, 1e-5);
+
+			// Check Gauss pts. weights
+			KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_weights(0), 1.0/8.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_weights(1), 1.0/4.0, 1e-5);
+
+			// Check Gauss pts. shape functions gradients values
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(positive_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[0](2,1),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,0), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](0,1), -1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,0),  1.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](1,1),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,0),  0.0, 1e-5);
+			KRATOS_CHECK_NEAR(negative_side_sh_func_gradients[1](2,1),  1.0, 1e-5);
+		
+		}
         
 	}   // namespace Testing.
 }  // namespace Kratos.

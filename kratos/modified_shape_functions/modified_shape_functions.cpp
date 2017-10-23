@@ -22,8 +22,8 @@ namespace Kratos
     
     /// ModifiedShapeFunctions implementation
     /// Default constructor
-    ModifiedShapeFunctions::ModifiedShapeFunctions(GeometryType& rInputGeometry, Vector& rNodalDistances) :
-        mrInputGeometry(rInputGeometry),
+    ModifiedShapeFunctions::ModifiedShapeFunctions(GeometryPointerType pInputGeometry, Vector& rNodalDistances) :
+        mpInputGeometry(pInputGeometry),
         mrNodalDistances(rNodalDistances) {
     };
 
@@ -42,10 +42,10 @@ namespace Kratos
     
     /// Print object's data.
     void ModifiedShapeFunctions::PrintData(std::ostream& rOStream) const {
-        const GeometryType geometry = this->GetInputGeometry();
+        const GeometryPointerType p_geometry = this->GetInputGeometry();
         const Vector nodal_distances = this->GetNodalDistances();
         rOStream << "Modified shape functions computation base class:\n";
-        rOStream << "\tGeometry type: " << geometry.Info() << "\n";
+        rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
         std::stringstream distances_buffer;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
             distances_buffer << std::to_string(nodal_distances(i)) << " ";
@@ -54,8 +54,8 @@ namespace Kratos
     };
     
     // Returns the input original geometry.
-    ModifiedShapeFunctions::GeometryType ModifiedShapeFunctions::GetInputGeometry() const {
-        return mrInputGeometry;
+    ModifiedShapeFunctions::GeometryPointerType ModifiedShapeFunctions::GetInputGeometry() const {
+        return mpInputGeometry;
     };
     
     // Returns the nodal distances vector.
@@ -100,8 +100,8 @@ namespace Kratos
         const unsigned int SplitEdgesSize) {
 
         // Initialize intersection points condensation matrix
-        const unsigned int nedges = mrInputGeometry.EdgesNumber();
-        const unsigned int nnodes = mrInputGeometry.PointsNumber();
+        const unsigned int nedges = mpInputGeometry->EdgesNumber();
+        const unsigned int nnodes = mpInputGeometry->PointsNumber();
 
         rIntPointCondMatrix = ZeroMatrix(SplitEdgesSize, nnodes);
 
