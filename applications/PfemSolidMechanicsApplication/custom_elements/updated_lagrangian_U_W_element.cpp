@@ -205,13 +205,14 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int element_size          = 2 * number_of_nodes * dimension;
+      unsigned int dofs_per_node = dimension * 2;
 
       if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         unsigned int index = i * dimension + i;
+         unsigned int index = i * dofs_per_node;
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 
@@ -237,13 +238,14 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int element_size          = 2 * number_of_nodes * dimension;
+      unsigned int dofs_per_node = dimension * 2;
 
       if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         unsigned int index = i * dimension + i;
+         unsigned int index = i * dofs_per_node;
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
 
@@ -268,13 +270,15 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int element_size          = 2 * number_of_nodes * dimension;
+      unsigned int dofs_per_node = dimension * 2;
 
       if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         unsigned int index = i * dimension + i;
+         unsigned int index = i * dofs_per_node;
+
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
 
