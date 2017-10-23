@@ -196,6 +196,17 @@ public:
         );
     
     /**
+     * It returns the total area inside the integration area
+     * @param ConditionsPointsSlave: The points that perform the exact integration
+     * @param Area: The total area integrated
+     */
+    void GetTotalArea(
+        GeometryNodeType& OriginalSlaveGeometry,
+        ConditionArrayListType& ConditionsPointsSlave,
+        double& rArea
+        );
+    
+    /**
      * This utility computes the exact integration of the mortar condition
      * @param SlaveCond: The slave condition
      * @param MasterCond: The master condition

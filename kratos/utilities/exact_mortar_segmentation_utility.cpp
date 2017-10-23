@@ -741,18 +741,35 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegr
     
     const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
     
-    for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
+    GetTotalArea(OriginalSlaveGeometry, conditions_points_slave, rArea);
+    
+    return is_inside;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
+void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(  
+    GeometryNodeType& OriginalSlaveGeometry,
+    ConditionArrayListType& ConditionsPointsSlave,
+    double& rArea
+    )
+{        
+    rArea = 0.0;
+    
+    for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
     {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (unsigned int i_node = 0; i_node < TDim; i_node++)
         {
             PointType global_point;
-            OriginalSlaveGeometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+            OriginalSlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
             points_array[i_node] = boost::make_shared<PointType>(global_point);
         }
         
         DecompositionType decomp_geom( points_array );
-        
+    #ifdef KRATOS_DEBUG
         if (mDebugGeometries == true)
         {
             std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{"; 
@@ -766,11 +783,10 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegr
             
             std::cout << "}}]}],";// << std::endl;
         }
+    #endif
         
         rArea += decomp_geom.Area();
     }
-    
-    return is_inside;
 }
 
 /***********************************************************************************/
