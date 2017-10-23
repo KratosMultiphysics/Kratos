@@ -23,8 +23,8 @@ namespace Kratos
     
     /// Triangle2D3ModifiedShapeFunctions implementation
     /// Default constructor
-    Triangle2D3ModifiedShapeFunctions::Triangle2D3ModifiedShapeFunctions(GeometryType& rInputGeometry, Vector& rNodalDistances) :
-        ModifiedShapeFunctions(rInputGeometry, rNodalDistances) {};
+    Triangle2D3ModifiedShapeFunctions::Triangle2D3ModifiedShapeFunctions(GeometryPointerType pInputGeometry, Vector& rNodalDistances) :
+        ModifiedShapeFunctions(pInputGeometry, rNodalDistances) {};
 
     /// Destructor
     Triangle2D3ModifiedShapeFunctions::~Triangle2D3ModifiedShapeFunctions() {};
@@ -41,10 +41,10 @@ namespace Kratos
 
     /// Print object's data.
     void Triangle2D3ModifiedShapeFunctions::PrintData(std::ostream& rOStream) const {
-        const GeometryType geometry = this->GetInputGeometry();
+        const GeometryPointerType p_geometry = this->GetInputGeometry();
         const Vector nodal_distances = this->GetNodalDistances();
         rOStream << "Triangle2D3N modified shape functions computation class:\n";
-        rOStream << "\tGeometry type: " << geometry.Info() << "\n";
+        rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
         std::stringstream distances_buffer;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
             distances_buffer << std::to_string(nodal_distances(i)) << " ";
@@ -62,9 +62,9 @@ namespace Kratos
                                                                                 const IntegrationMethodType IntegrationMethod){
         // Build the triangle splitting utility
         Vector nodal_distances = this->GetNodalDistances();
-        GeometryType input_geometry = this->GetInputGeometry();
-        DivideTriangle2D3 triangle_splitter(input_geometry, nodal_distances);
-
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        DivideTriangle2D3 triangle_splitter(*p_input_geometry, nodal_distances);
+        
         // Call the divide geometry method
         DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
         std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > positive_subdivisions, negative_subdivisions;
@@ -106,8 +106,8 @@ namespace Kratos
                                                                                             const IntegrationMethodType IntegrationMethod) {
         // Build the triangle splitting utility
         Vector nodal_distances = this->GetNodalDistances();
-        GeometryType input_geometry = this->GetInputGeometry();
-        DivideTriangle2D3 triangle_splitter(input_geometry, nodal_distances);
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        DivideTriangle2D3 triangle_splitter(*p_input_geometry, nodal_distances);
 
         // Call the divide geometry method
         DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
@@ -142,8 +142,8 @@ namespace Kratos
                                                                                             const IntegrationMethodType IntegrationMethod) {
         // Build the triangle splitting utility
         Vector nodal_distances = this->GetNodalDistances();
-        GeometryType input_geometry = this->GetInputGeometry();
-        DivideTriangle2D3 triangle_splitter(input_geometry, nodal_distances);
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        DivideTriangle2D3 triangle_splitter(*p_input_geometry, nodal_distances);
 
         // Call the divide geometry method
         DivideTriangle2D3::IndexedPointsContainerType aux_points_set;
@@ -177,13 +177,12 @@ namespace Kratos
                                                                    Vector &rWeightsValues,
                                                                    const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
                                                                    const Matrix &p_matrix,
-                                                                   const IntegrationMethodType IntegrationMethod)
-    {
-        // Compute some auxiliar constants
-        GeometryType input_geometry = this->GetInputGeometry();
-        const unsigned int n_edges_global = input_geometry.EdgesNumber();      // Number of edges in original geometry
-        const unsigned int n_nodes_global = input_geometry.PointsNumber();    // Number of nodes in original geometry
-        const unsigned int split_edges_size = n_nodes_global + n_edges_global; // Split edges vector size 
+                                                                   const IntegrationMethodType IntegrationMethod) {
+        // Set some auxiliar constants
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        const unsigned int n_edges_global = p_input_geometry->EdgesNumber();       // Number of edges in original geometry
+        const unsigned int n_nodes_global = p_input_geometry->PointsNumber();      // Number of nodes in original geometry
+        const unsigned int split_edges_size = n_edges_global + n_nodes_global;  // Split edges vector size 
 
         const unsigned int n_subdivision = rSubdivisionsVector.size();                                         // Number of positive or negative subdivisions
         const unsigned int n_dim = (*rSubdivisionsVector[0]).Dimension();                                      // Number of dimensions 

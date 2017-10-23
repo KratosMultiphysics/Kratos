@@ -53,6 +53,7 @@ public:
 
     // General type definitions
     typedef Geometry < Node<3> >                                                                                      GeometryType;
+    typedef typename GeometryType::Pointer                                                                     GeometryPointerType;
     typedef GeometryData::IntegrationMethod                                                                  IntegrationMethodType;
     typedef typename GeometryData::ShapeFunctionsGradientsType                                         ShapeFunctionsGradientsType;
     
@@ -71,7 +72,7 @@ public:
     ///@{
 
     /// Default constructor
-    ModifiedShapeFunctions(GeometryType& rInputGeometry, Vector& rNodalDistances);
+    ModifiedShapeFunctions(GeometryPointerType rInputGeometry, Vector& rNodalDistances);
 
     /// Destructor
     ~ModifiedShapeFunctions();
@@ -107,7 +108,7 @@ public:
 
     Vector GetNodalDistances() const ;
 
-    GeometryType GetInputGeometry() const;
+    GeometryPointerType GetInputGeometry() const;
 
     /**
     * Returns the shape function values in both the positive or negative split element sides for a given quadrature.
@@ -225,7 +226,7 @@ protected:
     ///@name Member Variables
     ///@{
 
-    GeometryType &mrInputGeometry;
+    GeometryPointerType mpInputGeometry;
     Vector& mrNodalDistances;
 
     ///@}
@@ -257,7 +258,7 @@ protected:
 
     /// Copy constructor.
     ModifiedShapeFunctions(ModifiedShapeFunctions const& rOther)
-        : mrInputGeometry(rOther.mrInputGeometry) , mrNodalDistances(rOther.mrNodalDistances) {};
+        : mpInputGeometry(rOther.mpInputGeometry) , mrNodalDistances(rOther.mrNodalDistances) {};
 
     ///@}
 

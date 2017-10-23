@@ -50,6 +50,7 @@ public:
     // General type definitions
     typedef ModifiedShapeFunctions                                      BaseType;
     typedef typename BaseType::GeometryType                             GeometryType;
+    typedef typename BaseType::GeometryPointerType                             GeometryPointerType;
     typedef typename BaseType::IntegrationMethodType                    IntegrationMethodType;
     typedef typename BaseType::ShapeFunctionsGradientsType              ShapeFunctionsGradientsType;
     
@@ -68,7 +69,7 @@ public:
     ///@{
 
     /// Default constructor
-    Triangle2D3ModifiedShapeFunctions(GeometryType& rInputGeometry, Vector& rNodalDistances);
+    Triangle2D3ModifiedShapeFunctions(GeometryPointerType rpInputGeometry, Vector& rNodalDistances);
 
     /// Destructor
     ~Triangle2D3ModifiedShapeFunctions();
