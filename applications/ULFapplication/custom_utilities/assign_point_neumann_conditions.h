@@ -91,7 +91,7 @@ namespace Kratos
 		void AssignPointNeumannConditionsDisp(ModelPart& ThisModelPart)
 		{			
 			KRATOS_TRY;
-			KRATOS_WATCH("Inside of AssignPointNeumannConditions UTILITY")
+			//KRATOS_WATCH("Inside of AssignPointNeumannConditions UTILITY")
 			const int TDim=ThisModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
@@ -124,10 +124,9 @@ namespace Kratos
 				  }
 
 			}
-			//KRATOS_WATCH(ThisModelPart.Conditions().size())
-			//KRATOS_WATCH("BEFORE SORTING")
-			ThisModelPart.Conditions().Sort();
-			//KRATOS_WATCH(ThisModelPart.Conditions().size())			
+
+			//ThisModelPart.Conditions().Sort();
+
 
 			KRATOS_CATCH("")
 		}
@@ -163,7 +162,7 @@ namespace Kratos
 			}
 			//KRATOS_WATCH(ThisModelPart.Conditions().size())
 			//KRATOS_WATCH("BEFORE SORTING")
-			ThisModelPart.Conditions().Sort();
+			//ThisModelPart.Conditions().Sort();
 			//KRATOS_WATCH(ThisModelPart.Conditions().size())
 			
 

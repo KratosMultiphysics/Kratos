@@ -139,7 +139,7 @@ public:
             combined_model_part.Elements().push_back(*(im.base()));
             id++;
         }
-        combined_model_part.Elements().Sort();
+        //combined_model_part.Elements().Sort();
 
 
         //renumbering
@@ -161,7 +161,7 @@ public:
             combined_model_part.Conditions().push_back(*(im.base()));
             id++;
         }
-        combined_model_part.Conditions().Sort();
+        //combined_model_part.Conditions().Sort();
 
         //renumbering
         /*

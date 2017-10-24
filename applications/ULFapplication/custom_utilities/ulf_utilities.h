@@ -697,7 +697,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
     void MarkExcessivelyCloseNodes(ModelPart::NodesContainerType& rNodes, const double admissible_distance_factor)
     {
         KRATOS_TRY;
-        KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
+        //KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 
         const double fact2 = admissible_distance_factor*admissible_distance_factor;
 
@@ -777,7 +777,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
         }
         if (domain_size==3)
         {
-            KRATOS_WATCH("NOT IMPLEMENTED IN 3D")
+            KRATOS_THROW_ERROR(std::logic_error, "NOt implemented in 3D!", "");
 
         }
     }
@@ -833,7 +833,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
         }
         if (domain_size==3)
         {
-            KRATOS_WATCH("Inside mark nodes close to wall process")
+            //KRATOS_WATCH("Inside mark nodes close to wall process")
             for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
                     i!=ThisModelPart.ElementsEnd(); i++)
             {
@@ -919,11 +919,11 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
             {
                 for (unsigned int iii=0; iii<geom.size(); iii++)
                 {
-                    KRATOS_WATCH("before")
-                    KRATOS_WATCH(geom[iii].FastGetSolutionStepValue(NODAL_H))
+                    //KRATOS_WATCH("before")
+                    //KRATOS_WATCH(geom[iii].FastGetSolutionStepValue(NODAL_H))
                     geom[iii].FastGetSolutionStepValue(NODAL_H)*=factor;
-                    KRATOS_WATCH("after")
-                    KRATOS_WATCH(geom[iii].FastGetSolutionStepValue(NODAL_H))
+                    //KRATOS_WATCH("after")
+                    //KRATOS_WATCH(geom[iii].FastGetSolutionStepValue(NODAL_H))
                 }
 
             }
@@ -975,7 +975,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
             if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)!=1.0)
             {
                 in->Set(TO_ERASE,true);
-                KRATOS_WATCH("Marking lonelynodes!!!")
+                //KRATOS_WATCH("Marking lonelynodes!!!")
             }
 
         }
@@ -1446,7 +1446,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
     double CalculateVolume(ModelPart& ThisModelPart, int domain_size)
     {
         KRATOS_TRY;
-        KRATOS_WATCH("ENTERED calc vol")
+        //KRATOS_WATCH("ENTERED calc vol")
         bool inverted_elements = false;
         //auxiliary vectors
         double Atot = 0.00;
@@ -1510,7 +1510,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
         if( inverted_elements == true)
             Atot = -Atot;
         //return the total area
-        KRATOS_WATCH("FINISHED calc vol LAST!!!!!!!! ")
+        //KRATOS_WATCH("FINISHED calc vol LAST!!!!!!!! ")
         KRATOS_WATCH(Atot)
         return Atot;
 
@@ -1534,7 +1534,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
         //and now we set the data values to the ones of the previous time
 
         unsigned int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
-        KRATOS_WATCH(step_data_size)
+        //KRATOS_WATCH(step_data_size)
         for(ModelPart::NodesContainerType::iterator i = ThisModelPart.NodesBegin();
                 i!=ThisModelPart.NodesEnd(); i++)
         {

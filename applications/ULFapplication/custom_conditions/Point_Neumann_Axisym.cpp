@@ -81,7 +81,7 @@ namespace Kratos
 	Condition::Pointer PointNeumannAxisym::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
 		return Condition::Pointer(new PointNeumannAxisym(NewId, GetGeometry().Create(ThisNodes), pProperties));
-		KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		//KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	}
 
 	PointNeumannAxisym::~PointNeumannAxisym()
@@ -158,11 +158,6 @@ namespace Kratos
 			//double temp1=An[1]*ext_pr;
 			//double temp2=An[2]*ext_pr;
 
-//	KRATOS_WATCH("¿¿¿¿¿¿¿¿¿")
-			//KRATOS_WATCH(temp)
-			//KRATOS_WATCH(temp1)
-			//KRATOS_WATCH(temp2)
-			//KRATOS_WATCH("¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿/()(/)(/()/()/)(/)(/()¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿")
 			//add to RHS
 			rRightHandSideVector[0] = An[0]*ext_pr;
 			rRightHandSideVector[1] = An[1]*ext_pr;

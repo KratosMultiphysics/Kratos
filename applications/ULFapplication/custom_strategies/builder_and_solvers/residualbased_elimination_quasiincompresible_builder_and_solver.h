@@ -171,7 +171,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
+        //KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
         KRATOS_CATCH("")
     }
 
@@ -182,7 +182,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
+        //KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
         KRATOS_CATCH("")
     }
 
@@ -198,7 +198,7 @@ public:
     {
         KRATOS_TRY
 	
-	KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
+	//KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
 	mActiveNodes.clear(); 
         mActiveNodes.reserve(r_model_part.Nodes().size() );
 
@@ -235,7 +235,7 @@ public:
 
         BaseType::mDofSetIsInitialized = true;
 
-	KRATOS_WATCH("FINISHED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
+	//KRATOS_WATCH("FINISHED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
 
 	//BELOW IS THE OLD VERSION
 	/*
@@ -439,8 +439,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -888,8 +888,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -1331,8 +1331,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, r_model_part.Elements().size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -2084,7 +2084,7 @@ public:
             {
                 if (in->FastGetSolutionStepValue(IS_FLUID)==1.0 && in->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
                 {
-                    KRATOS_WATCH("Computing pressure at a free surface node")
+                    //KRATOS_WATCH("Computing pressure at a free surface node")
                     in->FastGetSolutionStepValue(PRESSURE)=bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
 //=in->FastGetSolutionStepValue(PRESSURE,1)+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
 

@@ -763,7 +763,7 @@ private:
         TSystemMatrixType& mD,  ModelPart& r_model_part)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Constructing fluid div matrix")
+        //KRATOS_WATCH("Constructing fluid div matrix")
         unsigned int reduced_dim = this->mpb->size() / TDim;
 
         mD.resize(reduced_dim,this->mpb->size(),false);
@@ -794,7 +794,7 @@ private:
         }
 
         mD.reserve(total_nnz* TDim,false);
-        KRATOS_WATCH("Constructing fluid div matrix 1")
+        //KRATOS_WATCH("Constructing fluid div matrix 1")
 
         unsigned int row_index;
         //fill the matrix row by row
@@ -861,7 +861,7 @@ private:
         ModelPart& r_model_part) //TSystemMatrixType& WorkMatrix, double density_str,	ModelPart& r_model_part)
     {
         KRATOS_TRY
-        KRATOS_WATCH("BUILDING MATRIX DM-1G for the FSI interface nodes")
+        //KRATOS_WATCH("BUILDING MATRIX DM-1G for the FSI interface nodes")
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
         //mb-right hand side vector (global)
