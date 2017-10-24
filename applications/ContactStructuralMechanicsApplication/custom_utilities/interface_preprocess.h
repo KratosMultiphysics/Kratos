@@ -185,7 +185,30 @@ private:
     unsigned int ReorderConditions();
     
     /**
-     * It method helps to reduce code duplication due two the use for flat and solids elements
+     * This method creates the conditions for the edges
+     * @param rInterfacePart: The model part of the interface
+     * @param rpElem: Pointer to the element
+     * @param EdgeGeometry: Geometry considered
+     * @param ConditionName: The name of the condition
+     * @param FinalString: The last part added to the name condition
+     * @param SimplestGeometry: If consider or not the simplest geometry
+     * @param CondCounter: The counter of conditions
+     * @param CondId: The condition id
+     */
+
+    inline void GenerateEdgeCondition(
+        ModelPart& rInterfacePart,
+        Element::Pointer rpElem,
+        GeometryType& EdgeGeometry,
+        const std::string& ConditionName,
+        const std::string& FinalString,
+        const bool& SimplestGeometry,
+        unsigned int& CondCounter,
+        unsigned int& CondId
+        );
+    
+    /**
+     * This method creates the conditions for the faces
      * @param rInterfacePart: The model part of the interface
      * @param rpElem: Pointer to the element
      * @param FaceGeometry: Geometry considered

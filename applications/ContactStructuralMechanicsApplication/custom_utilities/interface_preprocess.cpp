@@ -51,9 +51,6 @@ namespace Kratos
         const std::string& final_string = ThisParameters["final_string"].GetString();
         const bool& simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
         
-        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-        const unsigned int num_nodes = static_cast<int>(nodes_array.size());
-        
         unsigned int cond_counter = 0;
         
         // We reorder the conditions
@@ -64,64 +61,16 @@ namespace Kratos
         {
             GeometryType& this_geometry = it_elem->GetGeometry();
             
-            for (unsigned int i_edge = 0; i_edge < this_geometry.EdgesNumber(); i_edge++)
+            for (unsigned int i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
             {
-                unsigned int count = 0;
-                const unsigned int number_of_points = this_geometry.Edges()[i_edge].PointsNumber();
-                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                {
-                    if (this_geometry.Edges()[i_edge][i_node].IsDefined(INTERFACE) == true)  
-                    {
-                        if (this_geometry.Edges()[i_edge][i_node].Is(INTERFACE) == true)  
-                        {
-                            count++;
-                        }
-                    }
-                }
-                
-                if (count == number_of_points)
-                {
-                    std::string Edgecondition_name = condition_name;
-                    ++cond_id; // NOTE: To paralellize be careful with this ID
-                    if (number_of_points == 2)
-                    {
-                        Edgecondition_name.append("Condition2D2N");
-                        Edgecondition_name.append(final_string);
-                        
-                        CreateNewCondition(rInterfacePart, *(it_elem.base()), this_geometry.Edges()[i_edge], cond_id, Edgecondition_name);
-                        ++cond_counter;
-                    }
-                    else
-                    {                            
-                        if (simplest_geometry == false)
-                        {
-                            Edgecondition_name.append("Condition2D3N"); 
-                            Edgecondition_name.append(final_string); 
-                            
-                            CreateNewCondition(rInterfacePart, *(it_elem.base()), this_geometry.Edges()[i_edge], cond_id, Edgecondition_name);
-                            ++cond_counter;
-                        }
-                        else
-                        {
-                            Edgecondition_name.append("Condition2D2N"); 
-                            Edgecondition_name.append(final_string); 
-
-                            Line2D2< Node<3> > lin_1(this_geometry.Edges()[i_edge](0), this_geometry.Edges()[i_edge](1));
-                            CreateNewCondition(rInterfacePart, *(it_elem.base()), lin_1, cond_id, Edgecondition_name);
-                            ++cond_counter;
-                            ++cond_id;
-                            Line2D2< Node<3> > lin_2(this_geometry.Edges()[i_edge](1), this_geometry.Edges()[i_edge](2));
-                            CreateNewCondition(rInterfacePart, *(it_elem.base()), lin_2, cond_id, Edgecondition_name);
-                            ++cond_counter;
-                        }
-                    }
-                }
+                GenerateEdgeCondition(rInterfacePart, *(it_elem.base()), this_geometry.Edges()[i_edge], condition_name, final_string, simplest_geometry, cond_counter, cond_id);
             }
         }
        
       
         // NOTE: Reorder ID if parallellization
       
+        const unsigned int num_nodes = static_cast<int>(mrMainModelPart.Nodes().size());
         PrintNodesAndConditions(num_nodes, cond_counter);
       
         KRATOS_CATCH("");
@@ -164,7 +113,7 @@ namespace Kratos
             
             if (this_geometry.LocalSpaceDimension() == 3)
             {
-                for (unsigned int i_face = 0; i_face < this_geometry.FacesNumber(); i_face++)
+                for (unsigned int i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
                 {
                     GenerateFaceCondition(rInterfacePart, *(it_elem.base()), this_geometry.Faces()[i_face], condition_name, final_string, simplest_geometry, cond_counter, cond_id);
                 }
@@ -257,6 +206,88 @@ namespace Kratos
         }
         
         return num_conditions;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    inline void InterfacePreprocessCondition::GenerateEdgeCondition(
+        ModelPart& rInterfacePart,
+        Element::Pointer rpElem,
+        GeometryType& EdgeGeometry,
+        const std::string& ConditionName,
+        const std::string& FinalString,
+        const bool& SimplestGeometry,
+        unsigned int& CondCounter,
+        unsigned int& CondId
+        )
+    {
+        unsigned int count = 0;
+        const unsigned int number_of_points = EdgeGeometry.PointsNumber();
+        for (unsigned int it_node = 0; it_node < number_of_points; ++it_node)
+        {
+            if (EdgeGeometry[it_node].IsDefined(INTERFACE) == true)  
+            {
+                if (EdgeGeometry[it_node].Is(INTERFACE) == true) ++count;
+            }
+        }
+            
+        if (count == number_of_points)
+        {
+            std::string EdgeConditionName = ConditionName;
+            ++CondId; // NOTE: To paralellize be careful with this ID
+            if (number_of_points == 2)
+            {
+                // We initialize a vector for the IDs
+                std::vector<std::size_t> condition_ids(1);
+        
+                EdgeConditionName.append("Condition2D2N");
+                EdgeConditionName.append(FinalString);
+                
+                CreateNewCondition(rpElem, EdgeGeometry, CondId, EdgeConditionName);
+                condition_ids[0] = CondId;
+                ++CondCounter;
+                
+                rInterfacePart.AddConditions(condition_ids);
+            }
+            else
+            {                            
+                if (SimplestGeometry == false)
+                {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(1);
+                
+                    EdgeConditionName.append("Condition2D3N"); 
+                    EdgeConditionName.append(FinalString); 
+                    
+                    CreateNewCondition(rpElem, EdgeGeometry, CondId, EdgeConditionName);
+                    condition_ids[0] = CondId;
+                    ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
+                }
+                else
+                {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(2);
+                
+                    EdgeConditionName.append("Condition2D2N"); 
+                    EdgeConditionName.append(FinalString); 
+
+                    Line2D2< Node<3> > lin_1(EdgeGeometry(0), EdgeGeometry(1));
+                    CreateNewCondition(rpElem, lin_1, CondId, EdgeConditionName);
+                    condition_ids[0] = CondId;
+                    ++CondCounter;
+                    ++CondId;
+                    Line2D2< Node<3> > lin_2(EdgeGeometry(1), EdgeGeometry(2));
+                    CreateNewCondition(rpElem, lin_2, CondId, EdgeConditionName);
+                    condition_ids[1] = CondId;
+                    ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
+                }
+            }
+        }
     }
     
     /***********************************************************************************/
