@@ -370,19 +370,6 @@ public:
         }
     }
 
-    // 	static void Clear(VectorType& rX)
-    // 	{
-    // 		int global_elems = 0;
-    // 		Epetra_Map Map(global_elems,0,rX.Comm());
-    // 		rX = VectorType(Map);
-    // 	}
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.PutScalar(0.0);
-    }
-
     inline static void SetToZero(MatrixType& rA)
     {
         rA.PutScalar(0.0);
