@@ -164,7 +164,7 @@ private:
             Element::Pointer rpElem,
             Geometry<Node<3> > & rGeometry,
             const unsigned int CondId,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -176,7 +176,7 @@ private:
     void GenerateLine2NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -188,7 +188,7 @@ private:
     void GenerateLine3NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -200,7 +200,7 @@ private:
     void GenerateTriangle3NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -212,7 +212,7 @@ private:
     void GenerateTriangle6NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -224,7 +224,7 @@ private:
     void GenerateQuadrilateral4NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -236,7 +236,7 @@ private:
     void GenerateQuadrilateral8NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -248,7 +248,7 @@ private:
     void GenerateQuadrilateral9NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -260,7 +260,7 @@ private:
     void GenerateLine2D2NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -272,7 +272,7 @@ private:
     void GenerateLine3D2NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -284,7 +284,7 @@ private:
     void GenerateLine2D3NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -296,7 +296,7 @@ private:
     void GenerateLine3D3NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -308,7 +308,7 @@ private:
     void GenerateTriangular3D3NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rTriConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -320,7 +320,7 @@ private:
     void GenerateTriangular3D6NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rTriConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
 
     /**
@@ -332,7 +332,7 @@ private:
     void GenerateQuadrilateral3D4NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rQuadConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -344,7 +344,7 @@ private:
     void GenerateQuadrilateral3D8NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rQuadConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -356,7 +356,7 @@ private:
     void GenerateQuadrilateral3D9NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rQuadConds,
-            const std::string ConditionName
+            const std::string& ConditionName
             );
     
     /**
@@ -366,8 +366,8 @@ private:
      */
 
     void PrintNodesAndConditions(
-            const int NodesCounter,
-            const int CondCounter
+            const int& NodesCounter,
+            const int& CondCounter
             );
     
     /**
