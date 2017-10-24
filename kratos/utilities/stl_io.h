@@ -25,7 +25,7 @@
 
 // Std::vecotr << operator
 template<class T>
-std::ostream& KRATOS_API(KRATOS_CORE) operator<<(std::ostream& os, const std::vector<T> & data) {
+std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
 
     std::cout << "[";
     std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
