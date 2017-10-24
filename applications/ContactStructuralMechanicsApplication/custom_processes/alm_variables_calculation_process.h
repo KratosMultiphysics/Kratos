@@ -41,7 +41,7 @@ namespace Kratos
     
 /// Short class definition.
 // This process calculates the variables related with the ALM 
-/** Detail class definition.
+/** It is assumed that the YOUNG_MODULUS is provided
 */
 class ALMVariablesCalculationProcess
     : public Process
