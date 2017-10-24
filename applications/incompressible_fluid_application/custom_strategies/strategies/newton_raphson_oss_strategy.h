@@ -593,13 +593,9 @@ public:
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
-            //TSparseSpace::Clear(mA);
-            //TSparseSpace::Clear(mDx);
-            //TSparseSpace::Clear(mb);
-
-            TSparseSpace::ClearData(mA);
-            TSparseSpace::ClearData(mDx);
-            TSparseSpace::ClearData(mb);
+            TSparseSpace::Clear(mA);
+            TSparseSpace::Clear(mDx);
+            TSparseSpace::Clear(mb);
         }
 
         return 0.00;

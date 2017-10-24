@@ -388,11 +388,7 @@ public:
             SparseSpaceType::Clear(this->mpA);
             SparseSpaceType::Clear(this->mpDx);
             SparseSpaceType::Clear(this->mpb);
-            //TSparseSpace::ClearData(mA);
-            //TSparseSpace::ClearData(mDx);
-            //TSparseSpace::ClearData(mb);
         }
-
 
         return 0.00;
 
