@@ -40,7 +40,7 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
     GeometryNodeType::CoordinatesArrayType projected_gp_local;
     
     // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
-    for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
+    for (unsigned int i_slave = 0; i_slave < 2; ++i_slave)
     {
         const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
         
@@ -48,27 +48,22 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
         
         const bool is_inside = OriginalMasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, tolerance );
         
-        if (is_inside == true) 
+        if (is_inside == true) // The slave node belongs to the master
         {
-            if (i_slave == 0)
-            {
-                auxiliar_coordinates[0] = - 1.0;
-            }
-            else if (i_slave == 1)
-            {
-                auxiliar_coordinates[1] =   1.0;
-            }
+            if ( i_slave == 0 ) auxiliar_coordinates[0] = - 1.0; // First node
+            else auxiliar_coordinates[1] =   1.0; // Second node
         }
     }
     
-    if ((auxiliar_coordinates[0] == - 1.0 && auxiliar_coordinates[1] == 1.0) == true)
+    // We check if the element is fully integrated
+    if ((auxiliar_coordinates[0] == - 1.0 && auxiliar_coordinates[1] == 1.0))
     {
         total_weight = 2.0;
     }
-    else
+    else // If not then we proceed
     {
         std::vector<double> auxiliar_xi;
-        for (unsigned int i_master = 0; i_master < 2; i_master++)
+        for (unsigned int i_master = 0; i_master < 2; ++i_master)
         {
             projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
@@ -80,6 +75,7 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
             }
         }
         
+        // In this case one edge of the slave belongs to the master and additionally one node of the master belongs to the slave
         if (auxiliar_xi.size() == 1 && ((auxiliar_coordinates[0] == - 1.0 || auxiliar_coordinates[1] == 1.0)))
         {
             if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
@@ -98,19 +94,19 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 0)" << std::endl;
             }
         }
-        else  if (auxiliar_xi.size() == 2)
+        else if (auxiliar_xi.size() == 2) // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
         {
-            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
+            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned 
             {
-                auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0];
+                auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0]; // We set in the proper position
             }
-            else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0
+            else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0. In this case the node in the right edge is already assigned 
             {
-                auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1];
+                auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1]; // We set in the proper position
             }
-            else
+            else // There isn't any coincidence with the edges
             {
-                if (auxiliar_xi[0] < auxiliar_xi[1])
+                if (auxiliar_xi[0] < auxiliar_xi[1]) // We check that are in proper order
                 {
                     auxiliar_coordinates[0] = auxiliar_xi[0];
                     auxiliar_coordinates[1] = auxiliar_xi[1];
@@ -122,7 +118,7 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
                 }
             }
         }
-        else
+        else // THIS IS NOT SUPPOSED TO HAPPEN
         {
         #ifdef KRATOS_DEBUG
             KRATOS_WATCH(OriginalSlaveGeometry);
@@ -144,6 +140,7 @@ bool ExactMortarIntegrationUtility<2,2, false>::GetExactIntegration(
         KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
     }
     
+    // We do the final assignmen
     if (total_weight > std::numeric_limits<double>::epsilon())
     {
         ConditionsPointsSlave.resize(1);
@@ -370,7 +367,7 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
     GeometryNodeType::CoordinatesArrayType projected_gp_local;
     
     // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
-    for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
+    for (unsigned int i_slave = 0; i_slave < 2; ++i_slave)
     {
         const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
         
@@ -378,14 +375,14 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
         
         const bool is_inside = OriginalMasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, tolerance );
         
-        if (is_inside == true) 
+        if (is_inside == true) // The slave node belongs to the master
         {
-            if (i_slave == 0)
+            if ( i_slave == 0 ) // First node
             {
                 auxiliar_coordinates[0] = - 1.0;
                 auxiliar_belong[0] = SlaveLine2D2N0;
             }
-            else if (i_slave == 1)
+            else // Second node
             {
                 auxiliar_coordinates[1] =   1.0;
                 auxiliar_belong[1] = SlaveLine2D2N1;
@@ -393,15 +390,16 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
         }
     }
     
+    // We check if the element is fully integrated
     if ((auxiliar_coordinates[0] == - 1.0 && auxiliar_coordinates[1] == 1.0) == true)
     {
         total_weight = 2.0;
     }
-    else
+    else // If not then we proceed
     {
         std::vector<double> auxiliar_xi;
         std::vector<PointBelongsLine2D2N> auxiliar_master_belong;
-        for (unsigned int i_master = 0; i_master < 2; i_master++)
+        for (unsigned int i_master = 0; i_master < 2; ++i_master)
         {
             projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
@@ -414,6 +412,7 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
             }
         }
         
+        // In this case one edge of the slave belongs to the master and additionally one node of the master belongs to the slave
         if (auxiliar_xi.size() == 1 && ((auxiliar_coordinates[0] == - 1.0 || auxiliar_coordinates[1] == 1.0)))
         {
             if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
@@ -434,21 +433,21 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 0)" << std::endl;
             }
         }
-        else  if (auxiliar_xi.size() == 2)
+        else if (auxiliar_xi.size() == 2) // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
         {
-            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0
+            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned 
             {
-                auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0];
+                auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0]; // We set in the proper position
                 auxiliar_belong[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_master_belong[1] : auxiliar_master_belong[0];
             }
-            else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0
+            else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) // NOTE: Equivalent to == 1.0. In this case the node in the right edge is already assigned 
             {
-                auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1];
+                auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1]; // We set in the proper position
                 auxiliar_belong[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_master_belong[0] : auxiliar_master_belong[1];
             }
-            else
+            else  // There isn't any coincidence with the edges
             {
-                if (auxiliar_xi[0] < auxiliar_xi[1])
+                if (auxiliar_xi[0] < auxiliar_xi[1]) // We check that are in proper order
                 {
                     auxiliar_coordinates[0] = auxiliar_xi[0];
                     auxiliar_coordinates[1] = auxiliar_xi[1];
@@ -464,7 +463,7 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
                 }
             }
         }
-        else
+        else // THIS IS NOT SUPPOSED TO HAPPEN
         {
         #ifdef KRATOS_DEBUG
             KRATOS_WATCH(OriginalSlaveGeometry);
@@ -486,6 +485,7 @@ bool ExactMortarIntegrationUtility<2,2, true>::GetExactIntegration(
         KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
     }
     
+    // We do the final assignmen
     if (total_weight > std::numeric_limits<double>::epsilon())
     {
         ConditionsPointsSlave.resize(1);
@@ -844,7 +844,7 @@ double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactArea
 {        
     // Initalize values
     double area = 0.0;
-    boost::shared_ptr<ConditionMap>& all_conditions_maps = SlaveCond->GetValue( MAPPING_PAIRS );
+    ConditionMap::Pointer& all_conditions_maps = SlaveCond->GetValue( MAPPING_PAIRS );
     
 #ifdef KRATOS_DEBUG
     if (mDebugGeometries == true)
