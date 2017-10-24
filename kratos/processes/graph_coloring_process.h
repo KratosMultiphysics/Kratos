@@ -74,7 +74,7 @@ public:
 
         @see GraphType
     */
-    GraphColoringProcess(int NumberOfPartitions, GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph, int& rMaxColor):
+    GraphColoringProcess(int NumberOfPartitions, const GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph, int& rMaxColor):
         mNumberOfPartitions(NumberOfPartitions), mrMaxColor(rMaxColor), mrDomainsGraph(rDomainsGraph), mrDomainsColoredGraph(rDomainsColoredGraph)
     {}
 
@@ -169,7 +169,7 @@ private:
 
     int mNumberOfPartitions;
     int& mrMaxColor;
-    GraphType& mrDomainsGraph;
+    const GraphType& mrDomainsGraph;
     GraphType& mrDomainsColoredGraph;
 
 
