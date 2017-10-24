@@ -1356,8 +1356,8 @@ public:
     #ifdef KRATOS_DEBUG
         else
         {
+            std::cout << "WARNING:: Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
             KRATOS_WATCH(normalized_Me);
-            KRATOS_ERROR << "Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
         }
     #endif
         
