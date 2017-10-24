@@ -60,17 +60,19 @@ namespace Kratos
         unsigned int cond_id = ReorderConditions();
         
         // Generate Conditions from original the edges that can be considered interface
-        for (ModelPart::ElementsContainerType::const_iterator it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); it_elem++)
+        for (ModelPart::ElementsContainerType::const_iterator it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem)
         {
-            for (unsigned int i_edge = 0; i_edge < (*it_elem).GetGeometry().EdgesNumber(); i_edge++)
+            GeometryType& this_geometry = it_elem->GetGeometry();
+            
+            for (unsigned int i_edge = 0; i_edge < this_geometry.EdgesNumber(); i_edge++)
             {
                 unsigned int count = 0;
-                const unsigned int number_of_points = (*it_elem).GetGeometry().Edges()[i_edge].PointsNumber();
-                for (unsigned int i_node = 0; i_node < number_of_points; i_node++)
+                const unsigned int number_of_points = this_geometry.Edges()[i_edge].PointsNumber();
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                 {
-                    if ((*it_elem).GetGeometry().Edges()[i_edge][i_node].IsDefined(INTERFACE) == true)  
+                    if (this_geometry.Edges()[i_edge][i_node].IsDefined(INTERFACE) == true)  
                     {
-                        if ((*it_elem).GetGeometry().Edges()[i_edge][i_node].Is(INTERFACE) == true)  
+                        if (this_geometry.Edges()[i_edge][i_node].Is(INTERFACE) == true)  
                         {
                             count++;
                         }
@@ -80,14 +82,14 @@ namespace Kratos
                 if (count == number_of_points)
                 {
                     std::string Edgecondition_name = condition_name;
-                    cond_id += 1; // NOTE: To paralellize be careful with this ID
+                    ++cond_id; // NOTE: To paralellize be careful with this ID
                     if (number_of_points == 2)
                     {
                         Edgecondition_name.append("Condition2D2N");
                         Edgecondition_name.append(final_string);
                         
-                        CreateNewCondition(rInterfacePart, *(it_elem.base()), (*it_elem).GetGeometry().Edges()[i_edge], cond_id, Edgecondition_name);
-                        cond_counter ++;
+                        CreateNewCondition(rInterfacePart, *(it_elem.base()), this_geometry.Edges()[i_edge], cond_id, Edgecondition_name);
+                        ++cond_counter;
                     }
                     else
                     {                            
@@ -96,21 +98,21 @@ namespace Kratos
                             Edgecondition_name.append("Condition2D3N"); 
                             Edgecondition_name.append(final_string); 
                             
-                            CreateNewCondition(rInterfacePart, *(it_elem.base()), (*it_elem).GetGeometry().Edges()[i_edge], cond_id, Edgecondition_name);
-                            cond_counter ++;
+                            CreateNewCondition(rInterfacePart, *(it_elem.base()), this_geometry.Edges()[i_edge], cond_id, Edgecondition_name);
+                            ++cond_counter;
                         }
                         else
                         {
                             Edgecondition_name.append("Condition2D2N"); 
                             Edgecondition_name.append(final_string); 
 
-                            Line2D2< Node<3> > lin_1((*it_elem).GetGeometry().Edges()[i_edge](0), (*it_elem).GetGeometry().Edges()[i_edge](1));
+                            Line2D2< Node<3> > lin_1(this_geometry.Edges()[i_edge](0), this_geometry.Edges()[i_edge](1));
                             CreateNewCondition(rInterfacePart, *(it_elem.base()), lin_1, cond_id, Edgecondition_name);
-                            cond_counter ++;
-                            cond_id += 1;
-                            Line2D2< Node<3> > lin_2((*it_elem).GetGeometry().Edges()[i_edge](1), (*it_elem).GetGeometry().Edges()[i_edge](2));
+                            ++cond_counter;
+                            ++cond_id;
+                            Line2D2< Node<3> > lin_2(this_geometry.Edges()[i_edge](1), this_geometry.Edges()[i_edge](2));
                             CreateNewCondition(rInterfacePart, *(it_elem.base()), lin_2, cond_id, Edgecondition_name);
-                            cond_counter ++;
+                            ++cond_counter;
                         }
                     }
                 }
@@ -156,18 +158,20 @@ namespace Kratos
         unsigned int cond_id = ReorderConditions();
 
         // Generate Conditions from original the faces that can be considered interface
-        for (ModelPart::ElementsContainerType::const_iterator it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); it_elem++)
-        {                
-            if ((*it_elem).GetGeometry().LocalSpaceDimension() == 3)
+        for (ModelPart::ElementsContainerType::const_iterator it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem)
+        {          
+            GeometryType& this_geometry = it_elem->GetGeometry();
+            
+            if (this_geometry.LocalSpaceDimension() == 3)
             {
-                for (unsigned int i_face = 0; i_face < (*it_elem).GetGeometry().FacesNumber(); i_face++)
+                for (unsigned int i_face = 0; i_face < this_geometry.FacesNumber(); i_face++)
                 {
-                    GenerateFaceCondition(rInterfacePart, *(it_elem.base()), (*it_elem).GetGeometry().Faces()[i_face], condition_name, final_string, simplest_geometry, cond_counter, cond_id);
+                    GenerateFaceCondition(rInterfacePart, *(it_elem.base()), this_geometry.Faces()[i_face], condition_name, final_string, simplest_geometry, cond_counter, cond_id);
                 }
             }
             else
             {
-                GenerateFaceCondition(rInterfacePart, *(it_elem.base()), (*it_elem).GetGeometry(), condition_name, final_string, simplest_geometry, cond_counter, cond_id);
+                GenerateFaceCondition(rInterfacePart, *(it_elem.base()), this_geometry, condition_name, final_string, simplest_geometry, cond_counter, cond_id);
             }
         }
       
@@ -195,6 +199,7 @@ namespace Kratos
         Condition const & rCondition = KratosComponents<Condition>::Get(ConditionName); 
         Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(CondId, rGeometry, rpElem->pGetProperties()));
         rInterfacePart.AddCondition(p_cond);
+        GeometryType& this_geometry = p_cond->GetGeometry();
         if (ConditionName.find("Mortar") != std::string::npos)
         {
             p_cond->GetValue(ELEMENT_POINTER) = rpElem;
@@ -202,22 +207,13 @@ namespace Kratos
             // We set the condition as master or slave (master by default)
             if (ConditionName.find("ALM") != std::string::npos || ConditionName.find("MeshTying") != std::string::npos)
             {
-                bool IsSlave = true;
-                for (unsigned int i_node = 0; i_node < p_cond->GetGeometry().size(); i_node++)
+                bool is_slave = true;
+                for (unsigned int i_node = 0; i_node < this_geometry.size(); ++i_node)
                 {
-                    if (p_cond->GetGeometry()[i_node].Is(SLAVE) == false)
-                    {
-                        IsSlave = false;
-                    }
+                    if (this_geometry[i_node].Is(SLAVE) == false) is_slave = false;
                 }
-                if (IsSlave == true)
-                {
-                    p_cond->Set(SLAVE, true);
-                }
-                else
-                {
-                    p_cond->Set(MASTER, true);
-                }
+                if (is_slave == true)  p_cond->Set(SLAVE, true);
+                else  p_cond->Set(MASTER, true);
             }
         }
         
@@ -235,16 +231,16 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const unsigned int dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        const unsigned int& dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
                     
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
 
@@ -252,14 +248,14 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
             if (
                 ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
                 ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -288,16 +284,16 @@ namespace Kratos
     {
         KRATOS_TRY;
         
-        const unsigned int dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        const unsigned int& dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
         
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
         
@@ -305,15 +301,16 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
+            GeometryType& this_geometry = (*it_cond).GetGeometry();
             if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[2].Is(INTERFACE) == true))
+                (this_geometry[0].Is(INTERFACE) == true) &&
+                (this_geometry[1].Is(INTERFACE) == true) &&
+                (this_geometry[2].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -344,12 +341,12 @@ namespace Kratos
         
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
 
@@ -357,15 +354,16 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
+            GeometryType& this_geometry = (*it_cond).GetGeometry();
             if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[2].Is(INTERFACE) == true))
+                (this_geometry[0].Is(INTERFACE) == true) &&
+                (this_geometry[1].Is(INTERFACE) == true) &&
+                (this_geometry[2].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -389,12 +387,12 @@ namespace Kratos
 
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
 
@@ -402,18 +400,19 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
+            GeometryType& this_geometry = (*it_cond).GetGeometry();
             if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[2].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[3].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[4].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[5].Is(INTERFACE) == true))
+                (this_geometry[0].Is(INTERFACE) == true) &&
+                (this_geometry[1].Is(INTERFACE) == true) &&
+                (this_geometry[2].Is(INTERFACE) == true) &&
+                (this_geometry[3].Is(INTERFACE) == true) &&
+                (this_geometry[4].Is(INTERFACE) == true) &&
+                (this_geometry[5].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -437,12 +436,12 @@ namespace Kratos
 
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
 
@@ -450,16 +449,17 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
+            GeometryType& this_geometry = (*it_cond).GetGeometry();
             if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[2].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[3].Is(INTERFACE) == true))
+                (this_geometry[0].Is(INTERFACE) == true) &&
+                (this_geometry[1].Is(INTERFACE) == true) &&
+                (this_geometry[2].Is(INTERFACE) == true) &&
+                (this_geometry[3].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -483,12 +483,12 @@ namespace Kratos
 
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
 
@@ -496,20 +496,21 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
+            GeometryType& this_geometry = (*it_cond).GetGeometry();
             if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[2].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[3].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[4].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[5].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[6].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[7].Is(INTERFACE) == true))
+                (this_geometry[0].Is(INTERFACE) == true) &&
+                (this_geometry[1].Is(INTERFACE) == true) &&
+                (this_geometry[2].Is(INTERFACE) == true) &&
+                (this_geometry[3].Is(INTERFACE) == true) &&
+                (this_geometry[4].Is(INTERFACE) == true) &&
+                (this_geometry[5].Is(INTERFACE) == true) &&
+                (this_geometry[6].Is(INTERFACE) == true) &&
+                (this_geometry[7].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -533,12 +534,12 @@ namespace Kratos
 
         // Store pointers to all interface nodes
         unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
         {
             if (i_node->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(i_node.base()) );
-                nodes_counter ++;
+                ++nodes_counter;
             }
         }
 
@@ -546,21 +547,22 @@ namespace Kratos
         ModelPart::ConditionsContainerType aux;
         unsigned int cond_counter = 0;
 
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); it_cond++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
         {
+            GeometryType& this_geometry = (*it_cond).GetGeometry();
             if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[2].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[3].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[4].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[5].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[6].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[7].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[8].Is(INTERFACE) == true))
+                (this_geometry[0].Is(INTERFACE) == true) &&
+                (this_geometry[1].Is(INTERFACE) == true) &&
+                (this_geometry[2].Is(INTERFACE) == true) &&
+                (this_geometry[3].Is(INTERFACE) == true) &&
+                (this_geometry[4].Is(INTERFACE) == true) &&
+                (this_geometry[5].Is(INTERFACE) == true) &&
+                (this_geometry[6].Is(INTERFACE) == true) &&
+                (this_geometry[7].Is(INTERFACE) == true) &&
+                (this_geometry[8].Is(INTERFACE) == true))
             {
                 aux.push_back( *(it_cond.base()) );
-                cond_counter ++;
+                ++cond_counter;
             }
         }
 
@@ -588,19 +590,21 @@ namespace Kratos
         Condition::IndexType lin_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 2)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
             {
-                rLinConds.push_back( rCondition.Create(lin_id++, it->GetGeometry(), it->pGetProperties()));
+                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 3)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D3)
             {
-                Line2D2< Node<3> > lin_1(it->GetGeometry()(0), it->GetGeometry()(1));
-                Line2D2< Node<3> > lin_2(it->GetGeometry()(1), it->GetGeometry()(2));
+                Line2D2< Node<3> > lin_1(this_geometry(0), this_geometry(1));
+                Line2D2< Node<3> > lin_2(this_geometry(1), this_geometry(2));
 
-                rLinConds.push_back(rCondition.Create(lin_id++, lin_1, it->pGetProperties()));
-                rLinConds.push_back(rCondition.Create(lin_id++, lin_2, it->pGetProperties()));
+                rLinConds.push_back(rCondition.Create(++lin_id, lin_1, this_properties));
+                rLinConds.push_back(rCondition.Create(++lin_id, lin_2, this_properties));
             }
             else
             {
@@ -626,19 +630,21 @@ namespace Kratos
         Condition::IndexType lin_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 2)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2)
             {
-                rLinConds.push_back( rCondition.Create(lin_id++, it->GetGeometry(), it->pGetProperties()));
+                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 3)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D3)
             {
-                Line3D2< Node<3> > lin_1(it->GetGeometry()(0), it->GetGeometry()(1));
-                Line3D2< Node<3> > lin_2(it->GetGeometry()(1), it->GetGeometry()(2));
+                Line3D2< Node<3> > lin_1(this_geometry(0), this_geometry(1));
+                Line3D2< Node<3> > lin_2(this_geometry(1), this_geometry(2));
 
-                rLinConds.push_back(rCondition.Create(lin_id++, lin_1, it->pGetProperties()));
-                rLinConds.push_back(rCondition.Create(lin_id++, lin_2, it->pGetProperties()));
+                rLinConds.push_back(rCondition.Create(++lin_id, lin_1, this_properties));
+                rLinConds.push_back(rCondition.Create(++lin_id, lin_2, this_properties));
             }
             else
             {
@@ -664,11 +670,13 @@ namespace Kratos
         Condition::IndexType lin_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 3)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D3)
             {
-                rLinConds.push_back( rCondition.Create(lin_id++, it->GetGeometry(), it->pGetProperties()));
+                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
             }
             else
             {
@@ -694,11 +702,13 @@ namespace Kratos
         Condition::IndexType lin_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 3)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D3)
             {
-                rLinConds.push_back( rCondition.Create(lin_id++, it->GetGeometry(), it->pGetProperties()));
+                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
             }
             else
             {
@@ -724,67 +734,69 @@ namespace Kratos
         Condition::IndexType tri_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 3)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
             {
-                rTriConds.push_back( rCondition.Create(tri_id++, it->GetGeometry(), it->pGetProperties()));
+                rTriConds.push_back( rCondition.Create(++tri_id, this_geometry, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 4)
+            else if (this_geometry.PointsNumber() == 4)
             {
-                Triangle3D3< Node<3> > tri_1(it->GetGeometry()(0), it->GetGeometry()(1), it->GetGeometry()(2));
-                Triangle3D3< Node<3> > tri_2(it->GetGeometry()(2), it->GetGeometry()(3), it->GetGeometry()(0));
+                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(2));
+                Triangle3D3< Node<3> > tri_2(this_geometry(2), this_geometry(3), this_geometry(0));
 
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_1, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_2, it->pGetProperties()));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 6)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6)
             {
-                Triangle3D3< Node<3> > tri_1(it->GetGeometry()(0), it->GetGeometry()(1), it->GetGeometry()(5));
-                Triangle3D3< Node<3> > tri_2(it->GetGeometry()(1), it->GetGeometry()(2), it->GetGeometry()(3));
-                Triangle3D3< Node<3> > tri_3(it->GetGeometry()(1), it->GetGeometry()(3), it->GetGeometry()(5));
-                Triangle3D3< Node<3> > tri_4(it->GetGeometry()(3), it->GetGeometry()(4), it->GetGeometry()(5));
+                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(5));
+                Triangle3D3< Node<3> > tri_2(this_geometry(1), this_geometry(2), this_geometry(3));
+                Triangle3D3< Node<3> > tri_3(this_geometry(1), this_geometry(3), this_geometry(5));
+                Triangle3D3< Node<3> > tri_4(this_geometry(3), this_geometry(4), this_geometry(5));
 
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_1, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_2, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_3, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_4, it->pGetProperties()));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_3, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_4, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 8)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8)
             {
-                Triangle3D3< Node<3> > tri_1(it->GetGeometry()(0), it->GetGeometry()(1), it->GetGeometry()(7));
-                Triangle3D3< Node<3> > tri_2(it->GetGeometry()(1), it->GetGeometry()(5), it->GetGeometry()(7));
-                Triangle3D3< Node<3> > tri_3(it->GetGeometry()(1), it->GetGeometry()(3), it->GetGeometry()(5));
-                Triangle3D3< Node<3> > tri_4(it->GetGeometry()(1), it->GetGeometry()(2), it->GetGeometry()(3));
-                Triangle3D3< Node<3> > tri_5(it->GetGeometry()(3), it->GetGeometry()(4), it->GetGeometry()(5));
-                Triangle3D3< Node<3> > tri_6(it->GetGeometry()(5), it->GetGeometry()(6), it->GetGeometry()(7));
+                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(7));
+                Triangle3D3< Node<3> > tri_2(this_geometry(1), this_geometry(5), this_geometry(7));
+                Triangle3D3< Node<3> > tri_3(this_geometry(1), this_geometry(3), this_geometry(5));
+                Triangle3D3< Node<3> > tri_4(this_geometry(1), this_geometry(2), this_geometry(3));
+                Triangle3D3< Node<3> > tri_5(this_geometry(3), this_geometry(4), this_geometry(5));
+                Triangle3D3< Node<3> > tri_6(this_geometry(5), this_geometry(6), this_geometry(7));
 
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_1, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_2, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_3, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_4, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_5, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_6, it->pGetProperties()));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_3, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_4, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_5, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_6, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 9)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
             {
-                Triangle3D3< Node<3> > tri_1(it->GetGeometry()(0), it->GetGeometry()(1), it->GetGeometry()(8));
-                Triangle3D3< Node<3> > tri_2(it->GetGeometry()(1), it->GetGeometry()(2), it->GetGeometry()(3));
-                Triangle3D3< Node<3> > tri_3(it->GetGeometry()(1), it->GetGeometry()(3), it->GetGeometry()(8));
-                Triangle3D3< Node<3> > tri_4(it->GetGeometry()(8), it->GetGeometry()(3), it->GetGeometry()(4));
-                Triangle3D3< Node<3> > tri_5(it->GetGeometry()(8), it->GetGeometry()(4), it->GetGeometry()(5));
-                Triangle3D3< Node<3> > tri_6(it->GetGeometry()(5), it->GetGeometry()(6), it->GetGeometry()(7));
-                Triangle3D3< Node<3> > tri_7(it->GetGeometry()(5), it->GetGeometry()(7), it->GetGeometry()(8));
-                Triangle3D3< Node<3> > tri_8(it->GetGeometry()(0), it->GetGeometry()(8), it->GetGeometry()(7));
+                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(8));
+                Triangle3D3< Node<3> > tri_2(this_geometry(1), this_geometry(2), this_geometry(3));
+                Triangle3D3< Node<3> > tri_3(this_geometry(1), this_geometry(3), this_geometry(8));
+                Triangle3D3< Node<3> > tri_4(this_geometry(8), this_geometry(3), this_geometry(4));
+                Triangle3D3< Node<3> > tri_5(this_geometry(8), this_geometry(4), this_geometry(5));
+                Triangle3D3< Node<3> > tri_6(this_geometry(5), this_geometry(6), this_geometry(7));
+                Triangle3D3< Node<3> > tri_7(this_geometry(5), this_geometry(7), this_geometry(8));
+                Triangle3D3< Node<3> > tri_8(this_geometry(0), this_geometry(8), this_geometry(7));
 
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_1, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_2, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_3, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_4, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_5, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_6, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_7, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_8, it->pGetProperties()));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_3, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_4, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_5, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_6, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_7, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_8, this_properties));
             }
             else
             {
@@ -810,19 +822,21 @@ namespace Kratos
         Condition::IndexType tri_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 6)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6)
             {
-                rTriConds.push_back( rCondition.Create(tri_id++, it->GetGeometry(), it->pGetProperties()));
+                rTriConds.push_back( rCondition.Create(++tri_id, this_geometry, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 9)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
             {
-                Triangle3D6< Node<3> > tri_1(it->GetGeometry()(0), it->GetGeometry()(1), it->GetGeometry()(3), it->GetGeometry()(4), it->GetGeometry()(8), it->GetGeometry()(7));
-                Triangle3D6< Node<3> > tri_2(it->GetGeometry()(2), it->GetGeometry()(3), it->GetGeometry()(1), it->GetGeometry()(6), it->GetGeometry()(8), it->GetGeometry()(5));
+                Triangle3D6< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(3), this_geometry(4), this_geometry(8), this_geometry(7));
+                Triangle3D6< Node<3> > tri_2(this_geometry(2), this_geometry(3), this_geometry(1), this_geometry(6), this_geometry(8), this_geometry(5));
 
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_1, it->pGetProperties()));
-                rTriConds.push_back(rCondition.Create(tri_id++, tri_2, it->pGetProperties()));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
+                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
             }
             else
             {
@@ -848,28 +862,29 @@ namespace Kratos
         Condition::IndexType quad_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-
-            if (it->GetGeometry().PointsNumber() == 4)
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
             {
-                rQuadConds.push_back( rCondition.Create(quad_id++, it->GetGeometry(), it->pGetProperties()));
+                rQuadConds.push_back( rCondition.Create(++quad_id, this_geometry, this_properties));
             }
-            else if (it->GetGeometry().PointsNumber() == 9)
+            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
             {
-                Quadrilateral3D4< Node<3> > quad_1(it->GetGeometry()(0), it->GetGeometry()(4), it->GetGeometry()(8), it->GetGeometry()(7));
-                Quadrilateral3D4< Node<3> > quad_2(it->GetGeometry()(4), it->GetGeometry()(1), it->GetGeometry()(5), it->GetGeometry()(8));
-                Quadrilateral3D4< Node<3> > quad_3(it->GetGeometry()(8), it->GetGeometry()(5), it->GetGeometry()(2), it->GetGeometry()(6));
-                Quadrilateral3D4< Node<3> > quad_4(it->GetGeometry()(7), it->GetGeometry()(8), it->GetGeometry()(6), it->GetGeometry()(3));
+                Quadrilateral3D4< Node<3> > quad_1(this_geometry(0), this_geometry(4), this_geometry(8), this_geometry(7));
+                Quadrilateral3D4< Node<3> > quad_2(this_geometry(4), this_geometry(1), this_geometry(5), this_geometry(8));
+                Quadrilateral3D4< Node<3> > quad_3(this_geometry(8), this_geometry(5), this_geometry(2), this_geometry(6));
+                Quadrilateral3D4< Node<3> > quad_4(this_geometry(7), this_geometry(8), this_geometry(6), this_geometry(3));
 
-                rQuadConds.push_back(rCondition.Create(quad_id++, quad_1, it->pGetProperties()));
-                rQuadConds.push_back(rCondition.Create(quad_id++, quad_2, it->pGetProperties()));
-                rQuadConds.push_back(rCondition.Create(quad_id++, quad_3, it->pGetProperties()));
-                rQuadConds.push_back(rCondition.Create(quad_id++, quad_4, it->pGetProperties()));
+                rQuadConds.push_back(rCondition.Create(++quad_id, quad_1, this_properties));
+                rQuadConds.push_back(rCondition.Create(++quad_id, quad_2, this_properties));
+                rQuadConds.push_back(rCondition.Create(++quad_id, quad_3, this_properties));
+                rQuadConds.push_back(rCondition.Create(++quad_id, quad_4, this_properties));
             }
             else
             {
-                KRATOS_ERROR << "The geometry can not be divided using linear quadrilaterals " << std::endl;
+                KRATOS_ERROR << "The geometry can not be divided using bilinear quadrilaterals " << std::endl;
             }
         }
     }
@@ -891,11 +906,11 @@ namespace Kratos
         Condition::IndexType quad_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
         {
-            if (it->GetGeometry().PointsNumber() == 8)
+            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8)
             {
-                rQuadConds.push_back( rCondition.Create(quad_id++, it->GetGeometry(), it->pGetProperties()));
+                rQuadConds.push_back( rCondition.Create(++quad_id, it_cond->GetGeometry(), it_cond->pGetProperties()));
             }
             else
 	    {
@@ -921,12 +936,11 @@ namespace Kratos
         Condition::IndexType quad_id = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); ++it)
         {
-
             if (it->GetGeometry().PointsNumber() == 9)
             {
-                rQuadConds.push_back( rCondition.Create(quad_id++, it->GetGeometry(), it->pGetProperties()));
+                rQuadConds.push_back( rCondition.Create(++quad_id, it->GetGeometry(), it->pGetProperties()));
             }
             else
             {
@@ -991,28 +1005,25 @@ namespace Kratos
     {
         unsigned int count = 0;
         const unsigned int number_of_points = FaceGeometry.PointsNumber();
-        for (unsigned int i_node = 0; i_node < number_of_points; i_node++)
+        for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
         {
             if (FaceGeometry[i_node].IsDefined(INTERFACE) == true)  
             {
-                if (FaceGeometry[i_node].Is(INTERFACE) == true)  
-                {
-                    count++;
-                }
+                if (FaceGeometry[i_node].Is(INTERFACE) == true) ++count;
             }
         }
         
         if (count == number_of_points)
         {
             std::string face_condition_name = ConditionName;
-            CondId += 1;
+            ++CondId;
             if (number_of_points == 3)
             {
                 face_condition_name.append("Condition3D3N");
                 face_condition_name.append(FinalString);
                 
                 CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
-                CondCounter ++;
+                ++CondCounter;
             }
             else if (number_of_points == 4)
             {
@@ -1022,7 +1033,7 @@ namespace Kratos
                     face_condition_name.append(FinalString);
                 
                     CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
                 else
                 {
@@ -1031,11 +1042,11 @@ namespace Kratos
                     
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(2));
                     CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(2), FaceGeometry(3), FaceGeometry(0));
                     CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
             }
             else if (number_of_points == 6)
@@ -1046,7 +1057,7 @@ namespace Kratos
                     face_condition_name.append(FinalString);
                     
                     CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
                 else
                 {
@@ -1055,19 +1066,19 @@ namespace Kratos
                     
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(5));
                     CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(1), FaceGeometry(2), FaceGeometry(3));
                     CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_3(FaceGeometry(1), FaceGeometry(3), FaceGeometry(5));
                     CreateNewCondition(rInterfacePart, rpElem, tri_3, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_4(FaceGeometry(3), FaceGeometry(4), FaceGeometry(5));
                     CreateNewCondition(rInterfacePart, rpElem, tri_4, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
             }
             else if (number_of_points == 8)
@@ -1078,7 +1089,7 @@ namespace Kratos
                     face_condition_name.append(FinalString);
                     
                     CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
                 else
                 {
@@ -1087,27 +1098,27 @@ namespace Kratos
 
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(7));
                     CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(1), FaceGeometry(5), FaceGeometry(7));
                     CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_3(FaceGeometry(1), FaceGeometry(3), FaceGeometry(5));
                     CreateNewCondition(rInterfacePart, rpElem, tri_3, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_4(FaceGeometry(1), FaceGeometry(2), FaceGeometry(3));
                     CreateNewCondition(rInterfacePart, rpElem, tri_4, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_5(FaceGeometry(3), FaceGeometry(4), FaceGeometry(5));
                     CreateNewCondition(rInterfacePart, rpElem, tri_5, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_6(FaceGeometry(5), FaceGeometry(6), FaceGeometry(7));
                     CreateNewCondition(rInterfacePart, rpElem, tri_6, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
             }
             else // Assuming it will not be a very weird geometry
@@ -1118,7 +1129,7 @@ namespace Kratos
                     face_condition_name.append(FinalString);
                     
                     CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
                 else
                 {
@@ -1127,35 +1138,35 @@ namespace Kratos
 
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(8));
                     CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(1), FaceGeometry(2), FaceGeometry(3));
                     CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_3(FaceGeometry(1), FaceGeometry(3), FaceGeometry(8));
                     CreateNewCondition(rInterfacePart, rpElem, tri_3, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_4(FaceGeometry(8), FaceGeometry(3), FaceGeometry(4));
                     CreateNewCondition(rInterfacePart, rpElem, tri_4, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_5(FaceGeometry(8), FaceGeometry(4), FaceGeometry(5));
                     CreateNewCondition(rInterfacePart, rpElem, tri_5, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_6(FaceGeometry(5), FaceGeometry(6), FaceGeometry(7));
                     CreateNewCondition(rInterfacePart, rpElem, tri_6, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_7(FaceGeometry(5), FaceGeometry(7), FaceGeometry(8));
                     CreateNewCondition(rInterfacePart, rpElem, tri_7, CondId, face_condition_name);
-                    CondCounter ++;
-                    CondId += 1;
+                    ++CondCounter;
+                    ++CondId;
                     Triangle3D3< Node<3> > tri_8(FaceGeometry(0), FaceGeometry(8), FaceGeometry(7));
                     CreateNewCondition(rInterfacePart, rpElem, tri_8, CondId, face_condition_name);
-                    CondCounter ++;
+                    ++CondCounter;
                 }
             }
         }
