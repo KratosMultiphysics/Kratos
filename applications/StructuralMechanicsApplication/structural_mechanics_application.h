@@ -31,7 +31,6 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 
 /* Adding beam element */
-#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
 
@@ -65,7 +64,7 @@
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/line_load_condition.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 
@@ -246,7 +245,6 @@ private:
     const TrussElement3D2N mTrussLinearElement3D2N;
 
     // Adding the beam element 
-    const SmallDisplacementBeamElement3D2N mSmallDisplacementBeamElement3D2N;
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
@@ -346,8 +344,9 @@ private:
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
     // Line load
-    const LineLoadCondition2D mLineLoadCondition2D2N;
-    const LineLoadCondition2D mLineLoadCondition2D3N;
+    const LineLoadCondition mLineLoadCondition2D2N;
+    const LineLoadCondition mLineLoadCondition2D3N;
+    const LineLoadCondition mLineLoadCondition3D2N;
     
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
@@ -372,7 +371,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
-	const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

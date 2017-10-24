@@ -70,7 +70,7 @@ class Element;
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point<TDimension>,  public IndexedObject, public Flags
+class Node : public Point,  public IndexedObject, public Flags
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -90,9 +90,9 @@ public:
 
     typedef Node<TDimension, TDofType> NodeType;
 
-    typedef Point<TDimension> BaseType;
+    typedef Point BaseType;
 
-    typedef Point<TDimension> PointType;
+    typedef Point PointType;
 
     typedef TDofType DofType;
 
@@ -260,10 +260,6 @@ public:
     /** Copy constructor from a node with different dimension.*/
     template<SizeType TOtherDimension>
     Node(Node<TOtherDimension> const& rOtherNode) = delete;
-
-    /** Copy constructor from a point with different dimension.*/
-    template<SizeType TOtherDimension>
-    Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint) = delete;
 
 
     /**
@@ -1306,9 +1302,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-// 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
-// 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<TDimension> );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
@@ -1318,14 +1312,11 @@ private:
         rSerializer.save("Initial Position", mInitialPosition);
         rSerializer.save("Data", mDofs);
 
-// 	  KRATOS_WATCH((rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin())-size);
     }
 
     void load(Serializer& rSerializer) override
     {
-// 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
-// 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point<TDimension> );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
@@ -1333,7 +1324,6 @@ private:
         rSerializer.load("Solution Steps Nodal Data", pSolutionStepsNodalData);
         rSerializer.load("Initial Position", mInitialPosition);
         rSerializer.load("Data", mDofs);
-// 	  KRATOS_WATCH(size- (rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin()));
     }
 
     ///@}

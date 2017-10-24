@@ -281,7 +281,7 @@ namespace Kratos
             return -1;                 // do not deal with this case
 
 		double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
-		Point<3> ray_point_1, ray_point_2;
+		Point ray_point_1, ray_point_2;
 
 		for(int i = 0 ; i < 3 ; i++)
         {

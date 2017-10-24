@@ -14,7 +14,11 @@
 #if !defined(KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED
 
+// System includes
 
+// External includes
+
+// Project includes
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -25,6 +29,13 @@ namespace Kratos
 
 	class CrBeamElement3D2N : public Element
 	{
+	private:
+		//const values
+		static constexpr int msNumberOfNodes = 2;
+		static constexpr int msDimension = 3;
+		static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+		static constexpr unsigned int msElementSize = msLocalSize * 2;
+
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(CrBeamElement3D2N);
 
@@ -66,19 +77,19 @@ namespace Kratos
 
 		void Initialize() override;
 
-		Matrix CreateElementStiffnessMatrix_Material();
-		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
-		Matrix CalculateDeformationStiffness();
-		Matrix CalculateTransformationS();
+		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
+		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
+		bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
 
-		Vector CalculateElementForces();
+		bounded_vector<double,msLocalSize> CalculateElementForces();
 
 		void CalculateTransformationMatrix(
-			Matrix& rRotationMatrix);
+			bounded_matrix<double,msElementSize,msElementSize>& rRotationMatrix);
 
 		void CalculateInitialLocalCS();
 
-		Matrix UpdateRotationMatrixLocal();
+		bounded_matrix<double,msDimension,msDimension> UpdateRotationMatrixLocal();
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -130,7 +141,8 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
-		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);
+		void AssembleSmallInBigMatrix(Matrix SmallMatrix, bounded_matrix<double,
+			msElementSize,msElementSize>& BigMatrix);
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -141,7 +153,7 @@ namespace Kratos
 		double CalculateReferenceLength();
 		void UpdateIncrementDeformation();
 
-		Vector CalculateBodyForces();  
+		bounded_vector<double,msElementSize> CalculateBodyForces();  
 
 		void CalculateOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
@@ -167,15 +179,24 @@ namespace Kratos
 		IntegrationMethod GetIntegrationMethod() const override;
 
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-			const Vector ForceInput, VectorType& rRightHandSideVector,
+			const bounded_vector<double,msDimension> ForceInput,
+			bounded_vector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
+
+
+		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
+		void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
 
 	private:
 		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
 		Vector mDeformationModes, mIncrementDeformation;
-		Matrix mLHS, mRotationMatrix, mRotationMatrix0;
+		Matrix mLHS, mRotationMatrix;
+		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
 		Vector mQuaternionVEC_A, mQuaternionVEC_B;
 		double mQuaternionSCA_A, mQuaternionSCA_B;
@@ -198,15 +219,19 @@ namespace Kratos
 
 	class Orientation 
 	{
+	private:
+		//const values
+		static constexpr int msDimension = 3;
+		
 	public:
-		Orientation(array_1d<double, 3>& v1, const double theta = 0.00);
-		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
+		Orientation(array_1d<double, msDimension>& v1, const double theta = 0.00);
+		Orientation(array_1d<double, msDimension>& v1, array_1d<double, msDimension>& v2);
 
 
 		void CalculateRotationMatrix(Matrix& R);
-		void CalculateBasisVectors(array_1d<double, 3>& v1,
-								   array_1d<double, 3>& v2,
-								   array_1d<double, 3>& v3);
+		void CalculateBasisVectors(array_1d<double, msDimension>& v1,
+								   array_1d<double, msDimension>& v2,
+								   array_1d<double, msDimension>& v3);
 
 		Quaternion<double>& GetQuaternion() { return morientation; }
 

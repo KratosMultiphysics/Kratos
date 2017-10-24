@@ -3,16 +3,16 @@
         "problem_name"    : "flat_membrane",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "membrane_test/Membrane_Q4_PointLoad"
@@ -21,7 +21,7 @@
             "materials_filename": "membrane_test/Membrane_Q4_PointLoad_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.000001,
         "displacement_absolute_tolerance"    : 1e-6,
         "residual_relative_tolerance"        : 0.000001,
@@ -38,8 +38,8 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -53,8 +53,8 @@
         }
     }],
     "loads_process_list"       : [{
-        "implemented_in_file"   : "process_factory",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
         "check"                 : "DirectorVectorNonZero direction",
         "help"                  : "This process ",
         "process_name"          : "ApplyConstantVectorValueProcess",

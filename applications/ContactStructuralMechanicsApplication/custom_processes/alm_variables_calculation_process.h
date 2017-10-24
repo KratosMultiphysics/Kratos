@@ -58,7 +58,7 @@ public:
     
     // General type definitions
     typedef Node<3>                                          NodeType;
-    typedef Point<3>                                        PointType;
+    typedef Point                                        PointType;
     typedef Geometry<NodeType>                           GeometryType;
     typedef Geometry<PointType>                     GeometryPointType;
     typedef ModelPart::NodesContainerType              NodesArrayType;

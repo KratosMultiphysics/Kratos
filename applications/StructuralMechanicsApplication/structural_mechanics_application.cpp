@@ -57,7 +57,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),    
     mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
     // Adding the beam element
-    mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
     mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
     // Adding the shells elements
@@ -144,6 +143,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding line load conditions
     mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAxisymLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     // Adding surface load conditions
@@ -299,7 +299,6 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
 
     // Register the beam element
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "CrBeamElement3D2N", mCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
 
@@ -401,6 +400,7 @@ void KratosStructuralMechanicsApplication::Register()
     // Line loads
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N", mLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N", mLineLoadCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N", mLineLoadCondition3D2N )
     
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N )
