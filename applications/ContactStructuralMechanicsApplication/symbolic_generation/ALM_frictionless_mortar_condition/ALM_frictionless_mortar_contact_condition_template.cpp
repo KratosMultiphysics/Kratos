@@ -78,7 +78,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 {
     KRATOS_TRY;   
     
-    boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
+    ConditionMap::Pointer& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
     
     // Calculates the size of the system
     const unsigned int condition_size = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* all_conditions_maps->size(); 
@@ -142,7 +142,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 {
     KRATOS_TRY;
     
-    boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
+    ConditionMap::Pointer& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
     
     // Calculates the size of the system
     const unsigned int condition_size = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* all_conditions_maps->size(); 

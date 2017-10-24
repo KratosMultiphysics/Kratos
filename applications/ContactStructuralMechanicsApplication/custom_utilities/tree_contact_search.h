@@ -299,7 +299,7 @@ protected:
      */
     
     static inline CheckResult CheckCondition(
-        boost::shared_ptr<ConditionMap>& ConditionPointers1,
+        ConditionMap::Pointer& ConditionPointers1,
         const Condition::Pointer& pCond1,
         const Condition::Pointer& pCond2
         );

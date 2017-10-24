@@ -32,7 +32,7 @@ namespace Kratos
         {
             auto it_cond = conditions_array.begin() + i;
 
-            it_cond->GetValue(MAPPING_PAIRS) = boost::shared_ptr<ConditionMap>(new ConditionMap); 
+            it_cond->GetValue(MAPPING_PAIRS) = ConditionMap::Pointer(new ConditionMap); 
 //             it_cond->GetValue(MAPPING_PAIRS)->reserve(mAllocationSize); 
         }
     }
@@ -52,11 +52,8 @@ namespace Kratos
         {
             auto it_node = nodes_array.begin() + i;
             
-            if (it_node->Is(ACTIVE) == true)
-            {
-                it_node->Set( ACTIVE, false );
-                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
-            }
+            it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+            if (it_node->Is(ACTIVE) == true) it_node->Set( ACTIVE, false );
         }  
     }
     
@@ -74,12 +71,8 @@ namespace Kratos
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
-            
-            if (it_node->Is(ACTIVE) == true)
-            {
-                it_node->Set( ACTIVE, false );
-                noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
-            }
+            noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
+            if (it_node->Is(ACTIVE) == true) it_node->Set( ACTIVE, false );
         }  
     }
     
@@ -98,11 +91,8 @@ namespace Kratos
         {
             auto it_node = nodes_array.begin() + i;
             
-            if (it_node->Is(ACTIVE) == true)
-            {
-                it_node->Set( ACTIVE, false );
-                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
-            }
+            it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            if (it_node->Is(ACTIVE) == true) it_node->Set( ACTIVE, false );
         }  
     }
     
@@ -118,10 +108,7 @@ namespace Kratos
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ACTIVE) == false)
-            {
-                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
-            }
+            it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
         } 
     }
     
@@ -137,10 +124,7 @@ namespace Kratos
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ACTIVE) == false)
-            {
-                noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
-            }
+            noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
         } 
     }
 
@@ -156,10 +140,7 @@ namespace Kratos
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ACTIVE) == false)
-            {
-                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
-            }
+            it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
         } 
     }
       
@@ -236,6 +217,12 @@ namespace Kratos
         
         const double& delta_time = mrMainModelPart.GetProcessInfo()[DELTA_TIME];
         
+        // We check if we are in a dynamic or static case
+        const bool dynamic = mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) ;
+        
+        // Taking the ACTIVE_CHECK_FACTOR
+        const double& active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+        
 //         #pragma omp parallel 
 //         {
             // Initialize values
@@ -261,7 +248,7 @@ namespace Kratos
                     if (mSearchTreeType == KdtreeInRadius)
                     {                  
                         Point center;
-                        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) == true)
+                        if (dynamic == true)
                         {
                             center = ContactUtilities::GetHalfJumpCenter(it_cond->GetGeometry(), delta_time); // NOTE: Center in half delta time
                         }
@@ -305,10 +292,10 @@ namespace Kratos
                     
                     if (number_points_found > 0)
                     {                           
-                        boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
+                        ConditionMap::Pointer& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
                         Condition::Pointer p_cond_slave = (*it_cond.base()); // MASTER
                         const array_1d<double, 3>& contact_normal_origin = p_cond_slave->GetValue(NORMAL);
-                        const double active_check_length = p_cond_slave->GetGeometry().Length() * p_cond_slave->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+                        const double active_check_length = p_cond_slave->GetGeometry().Length() *active_check_factor;
                         
                         // If not active we check if can be potentially in contact
                         if (mUseExactIntegration == false) // LEGACY WAY
@@ -479,17 +466,19 @@ namespace Kratos
         ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
+        const double& active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+        
         #pragma omp parallel for 
         for(int i = 0; i < num_conditions; i++) 
         {
             auto it_cond = conditions_array.begin() + i;
             if ( (it_cond)->Is(ACTIVE) == true )
             {
-                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
+                ConditionMap::Pointer& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
                 
                 // Initialize geometries
                 const array_1d<double, 3>& contact_normal = it_cond->GetValue(NORMAL);
-                const double active_check_length = it_cond->GetGeometry().Length() * it_cond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+                const double active_check_length = it_cond->GetGeometry().Length() * active_check_factor;
                 
                 if (mUseExactIntegration == false) // LEGACY WAY
                 {
@@ -544,7 +533,7 @@ namespace Kratos
                 KRATOS_WATCH(it_cond->Id());
                 KRATOS_WATCH(it_cond->GetGeometry());
                 
-                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
+                ConditionMap::Pointer& conditions_pointers_destination = it_cond->GetValue(MAPPING_PAIRS);
                 KRATOS_WATCH(conditions_pointers_destination->size());
                 conditions_pointers_destination->print();
             }
@@ -568,7 +557,7 @@ namespace Kratos
     /***********************************************************************************/
     
     inline CheckResult TreeContactSearch::CheckCondition(
-        boost::shared_ptr<ConditionMap>& ConditionPointers1,
+        ConditionMap::Pointer& ConditionPointers1,
         const Condition::Pointer& pCond1,
         const Condition::Pointer& pCond2
         )

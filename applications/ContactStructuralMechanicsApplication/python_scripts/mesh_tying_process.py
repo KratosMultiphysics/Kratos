@@ -68,7 +68,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         # Setting the integration order and active check factor
         for prop in computing_model_part.GetProperties():
             prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt() 
-            prop[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
+        
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
             
         for node in self.mesh_tying_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)

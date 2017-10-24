@@ -47,9 +47,9 @@ namespace Kratos
         
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
         
-        const std::string condition_name = ThisParameters["condition_name"].GetString();
-        const std::string final_string = ThisParameters["final_string"].GetString();
-        const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
+        const std::string& condition_name = ThisParameters["condition_name"].GetString();
+        const std::string& final_string = ThisParameters["final_string"].GetString();
+        const bool& simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
         
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
         const unsigned int num_nodes = static_cast<int>(nodes_array.size());
@@ -187,7 +187,6 @@ namespace Kratos
     /***********************************************************************************/
     
     void InterfacePreprocessCondition::CreateNewCondition(
-            ModelPart& rInterfacePart,
             Element::Pointer rpElem,
             Geometry<Node<3> > & rGeometry,
             const unsigned int CondId,
@@ -196,10 +195,10 @@ namespace Kratos
     {
         KRATOS_TRY;
     
-        Condition const & rCondition = KratosComponents<Condition>::Get(ConditionName); 
+        Condition const& rCondition = KratosComponents<Condition>::Get(ConditionName); 
         Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(CondId, rGeometry, rpElem->pGetProperties()));
-        rInterfacePart.AddCondition(p_cond);
         GeometryType& this_geometry = p_cond->GetGeometry();
+        mrMainModelPart.AddCondition(p_cond);
         if (ConditionName.find("Mortar") != std::string::npos)
         {
             p_cond->SetValue(ELEMENT_POINTER, rpElem);
@@ -208,9 +207,9 @@ namespace Kratos
             if (ConditionName.find("ALM") != std::string::npos || ConditionName.find("MeshTying") != std::string::npos)
             {
                 bool is_slave = true;
-                for (unsigned int i_node = 0; i_node < this_geometry.size(); ++i_node)
+                for (unsigned int it_node = 0; it_node < this_geometry.size(); ++it_node)
                 {
-                    if (this_geometry[i_node].Is(SLAVE) == false) is_slave = false;
+                    if (this_geometry[it_node].Is(SLAVE) == false) is_slave = false;
                 }
                 if (is_slave == true)  p_cond->Set(SLAVE, true);
                 else  p_cond->Set(MASTER, true);
@@ -220,735 +219,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    void InterfacePreprocessCondition::GenerateLine2NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-
-        const unsigned int& dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
-                    
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-
-        // Generate linear Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            if (
-                ((*it_cond).GetGeometry()[0].Is(INTERFACE) == true) &&
-                ((*it_cond).GetGeometry()[1].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        if (dimension == 2) // By default, but someone can be interested in project values to a BEAM for example
-        {
-            GenerateLine2D2NConditions(aux, InterfacePart.Conditions(), ConditionName);
-        }
-        else
-        {
-            GenerateLine3D2NConditions(aux, InterfacePart.Conditions(), ConditionName);
-        }
-
-        KRATOS_CATCH("");
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateLine3NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-        
-        const unsigned int& dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-        
-        // Generate linear Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            GeometryType& this_geometry = (*it_cond).GetGeometry();
-            if (
-                (this_geometry[0].Is(INTERFACE) == true) &&
-                (this_geometry[1].Is(INTERFACE) == true) &&
-                (this_geometry[2].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        if (dimension == 2) // By default, but someone can be interested in project values to a BEAM for example
-        {
-            GenerateLine2D3NConditions(aux, InterfacePart.Conditions(), ConditionName);
-        }
-        else
-        {
-            GenerateLine3D3NConditions(aux, InterfacePart.Conditions(), ConditionName);
-        }
-
-        KRATOS_CATCH("");
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateTriangle3NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-        
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-
-        // Generate triangular Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            GeometryType& this_geometry = (*it_cond).GetGeometry();
-            if (
-                (this_geometry[0].Is(INTERFACE) == true) &&
-                (this_geometry[1].Is(INTERFACE) == true) &&
-                (this_geometry[2].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        GenerateTriangular3D3NConditions(aux, InterfacePart.Conditions(), ConditionName);
-
-        KRATOS_CATCH("");
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateTriangle6NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-
-        // Generate triangular Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            GeometryType& this_geometry = (*it_cond).GetGeometry();
-            if (
-                (this_geometry[0].Is(INTERFACE) == true) &&
-                (this_geometry[1].Is(INTERFACE) == true) &&
-                (this_geometry[2].Is(INTERFACE) == true) &&
-                (this_geometry[3].Is(INTERFACE) == true) &&
-                (this_geometry[4].Is(INTERFACE) == true) &&
-                (this_geometry[5].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        GenerateTriangular3D6NConditions(aux, InterfacePart.Conditions(), ConditionName);
-
-        KRATOS_CATCH("");
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    void InterfacePreprocessCondition::GenerateQuadrilateral4NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-
-        // Generate quadrilateral Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            GeometryType& this_geometry = (*it_cond).GetGeometry();
-            if (
-                (this_geometry[0].Is(INTERFACE) == true) &&
-                (this_geometry[1].Is(INTERFACE) == true) &&
-                (this_geometry[2].Is(INTERFACE) == true) &&
-                (this_geometry[3].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        GenerateQuadrilateral3D4NConditions(aux, InterfacePart.Conditions(), ConditionName);
-
-        KRATOS_CATCH("");
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    void InterfacePreprocessCondition::GenerateQuadrilateral8NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-
-        // Generate quadrilateral Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            GeometryType& this_geometry = (*it_cond).GetGeometry();
-            if (
-                (this_geometry[0].Is(INTERFACE) == true) &&
-                (this_geometry[1].Is(INTERFACE) == true) &&
-                (this_geometry[2].Is(INTERFACE) == true) &&
-                (this_geometry[3].Is(INTERFACE) == true) &&
-                (this_geometry[4].Is(INTERFACE) == true) &&
-                (this_geometry[5].Is(INTERFACE) == true) &&
-                (this_geometry[6].Is(INTERFACE) == true) &&
-                (this_geometry[7].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        GenerateQuadrilateral3D8NConditions(aux, InterfacePart.Conditions(), ConditionName);
-
-        KRATOS_CATCH("");
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    void InterfacePreprocessCondition::GenerateQuadrilateral9NInterfacePart(
-            const ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            const std::string& ConditionName
-            )
-    {
-        KRATOS_TRY;
-
-        // Store pointers to all interface nodes
-        unsigned int nodes_counter = 0;
-        for (ModelPart::NodesContainerType::const_iterator i_node = rOriginPart.NodesBegin(); i_node != rOriginPart.NodesEnd(); ++i_node)
-        {
-            if (i_node->Is(INTERFACE) == true)
-            {
-                InterfacePart.Nodes().push_back( *(i_node.base()) );
-                ++nodes_counter;
-            }
-        }
-
-        // Generate quadrilateral Conditions from original interface conditions
-        ModelPart::ConditionsContainerType aux;
-        unsigned int cond_counter = 0;
-
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginPart.ConditionsBegin(); it_cond != rOriginPart.ConditionsEnd(); ++it_cond)
-        {
-            GeometryType& this_geometry = (*it_cond).GetGeometry();
-            if (
-                (this_geometry[0].Is(INTERFACE) == true) &&
-                (this_geometry[1].Is(INTERFACE) == true) &&
-                (this_geometry[2].Is(INTERFACE) == true) &&
-                (this_geometry[3].Is(INTERFACE) == true) &&
-                (this_geometry[4].Is(INTERFACE) == true) &&
-                (this_geometry[5].Is(INTERFACE) == true) &&
-                (this_geometry[6].Is(INTERFACE) == true) &&
-                (this_geometry[7].Is(INTERFACE) == true) &&
-                (this_geometry[8].Is(INTERFACE) == true))
-            {
-                aux.push_back( *(it_cond.base()) );
-                ++cond_counter;
-            }
-        }
-
-        PrintNodesAndConditions(nodes_counter, cond_counter);
-
-        GenerateQuadrilateral3D9NConditions(aux, InterfacePart.Conditions(), ConditionName);
-
-        KRATOS_CATCH("");
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateLine2D2NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rLinConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition2D2N"); 
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType lin_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
-            {
-                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D3)
-            {
-                Line2D2< Node<3> > lin_1(this_geometry(0), this_geometry(1));
-                Line2D2< Node<3> > lin_2(this_geometry(1), this_geometry(2));
-
-                rLinConds.push_back(rCondition.Create(++lin_id, lin_1, this_properties));
-                rLinConds.push_back(rCondition.Create(++lin_id, lin_2, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateLine3D2NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rLinConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D2N");
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType lin_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2)
-            {
-                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D3)
-            {
-                Line3D2< Node<3> > lin_1(this_geometry(0), this_geometry(1));
-                Line3D2< Node<3> > lin_2(this_geometry(1), this_geometry(2));
-
-                rLinConds.push_back(rCondition.Create(++lin_id, lin_1, this_properties));
-                rLinConds.push_back(rCondition.Create(++lin_id, lin_2, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateLine2D3NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rLinConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition2D3N");
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType lin_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D3)
-            {
-                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateLine3D3NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rLinConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D3N");
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType lin_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D3)
-            {
-                rLinConds.push_back( rCondition.Create(++lin_id, this_geometry, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateTriangular3D3NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rTriConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D"); 
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType tri_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
-            {
-                rTriConds.push_back( rCondition.Create(++tri_id, this_geometry, this_properties));
-            }
-            else if (this_geometry.PointsNumber() == 4)
-            {
-                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(2));
-                Triangle3D3< Node<3> > tri_2(this_geometry(2), this_geometry(3), this_geometry(0));
-
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6)
-            {
-                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(5));
-                Triangle3D3< Node<3> > tri_2(this_geometry(1), this_geometry(2), this_geometry(3));
-                Triangle3D3< Node<3> > tri_3(this_geometry(1), this_geometry(3), this_geometry(5));
-                Triangle3D3< Node<3> > tri_4(this_geometry(3), this_geometry(4), this_geometry(5));
-
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_3, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_4, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8)
-            {
-                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(7));
-                Triangle3D3< Node<3> > tri_2(this_geometry(1), this_geometry(5), this_geometry(7));
-                Triangle3D3< Node<3> > tri_3(this_geometry(1), this_geometry(3), this_geometry(5));
-                Triangle3D3< Node<3> > tri_4(this_geometry(1), this_geometry(2), this_geometry(3));
-                Triangle3D3< Node<3> > tri_5(this_geometry(3), this_geometry(4), this_geometry(5));
-                Triangle3D3< Node<3> > tri_6(this_geometry(5), this_geometry(6), this_geometry(7));
-
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_3, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_4, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_5, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_6, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
-            {
-                Triangle3D3< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(8));
-                Triangle3D3< Node<3> > tri_2(this_geometry(1), this_geometry(2), this_geometry(3));
-                Triangle3D3< Node<3> > tri_3(this_geometry(1), this_geometry(3), this_geometry(8));
-                Triangle3D3< Node<3> > tri_4(this_geometry(8), this_geometry(3), this_geometry(4));
-                Triangle3D3< Node<3> > tri_5(this_geometry(8), this_geometry(4), this_geometry(5));
-                Triangle3D3< Node<3> > tri_6(this_geometry(5), this_geometry(6), this_geometry(7));
-                Triangle3D3< Node<3> > tri_7(this_geometry(5), this_geometry(7), this_geometry(8));
-                Triangle3D3< Node<3> > tri_8(this_geometry(0), this_geometry(8), this_geometry(7));
-
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_3, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_4, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_5, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_6, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_7, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_8, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using linear triangles " << std::endl;
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    void InterfacePreprocessCondition::GenerateTriangular3D6NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rTriConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D6N"); 
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType tri_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6)
-            {
-                rTriConds.push_back( rCondition.Create(++tri_id, this_geometry, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
-            {
-                Triangle3D6< Node<3> > tri_1(this_geometry(0), this_geometry(1), this_geometry(3), this_geometry(4), this_geometry(8), this_geometry(7));
-                Triangle3D6< Node<3> > tri_2(this_geometry(2), this_geometry(3), this_geometry(1), this_geometry(6), this_geometry(8), this_geometry(5));
-
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_1, this_properties));
-                rTriConds.push_back(rCondition.Create(++tri_id, tri_2, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using quadratic triangles " << std::endl;
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateQuadrilateral3D4NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rQuadConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D4N"); 
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType quad_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            boost::shared_ptr<Kratos::Properties> this_properties = it_cond->pGetProperties();
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
-            {
-                rQuadConds.push_back( rCondition.Create(++quad_id, this_geometry, this_properties));
-            }
-            else if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
-            {
-                Quadrilateral3D4< Node<3> > quad_1(this_geometry(0), this_geometry(4), this_geometry(8), this_geometry(7));
-                Quadrilateral3D4< Node<3> > quad_2(this_geometry(4), this_geometry(1), this_geometry(5), this_geometry(8));
-                Quadrilateral3D4< Node<3> > quad_3(this_geometry(8), this_geometry(5), this_geometry(2), this_geometry(6));
-                Quadrilateral3D4< Node<3> > quad_4(this_geometry(7), this_geometry(8), this_geometry(6), this_geometry(3));
-
-                rQuadConds.push_back(rCondition.Create(++quad_id, quad_1, this_properties));
-                rQuadConds.push_back(rCondition.Create(++quad_id, quad_2, this_properties));
-                rQuadConds.push_back(rCondition.Create(++quad_id, quad_3, this_properties));
-                rQuadConds.push_back(rCondition.Create(++quad_id, quad_4, this_properties));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using bilinear quadrilaterals " << std::endl;
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateQuadrilateral3D8NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rQuadConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D8N"); 
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType quad_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it_cond = rOriginConds.begin(); it_cond != rOriginConds.end(); ++it_cond)
-        {
-            if (it_cond->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8)
-            {
-                rQuadConds.push_back( rCondition.Create(++quad_id, it_cond->GetGeometry(), it_cond->pGetProperties()));
-            }
-            else
-	    {
-                KRATOS_ERROR << "The geometry can not be divided using quadratic (8 nodes) quadrilaterals " << std::endl;
-	    }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void InterfacePreprocessCondition::GenerateQuadrilateral3D9NConditions(
-            const ModelPart::ConditionsContainerType& rOriginConds,
-            ModelPart::ConditionsContainerType& rQuadConds,
-            const std::string& ConditionName
-            )
-    {
-        // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
-//         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D9N"); 
-
-        // Required information for new conditions: Id, geometry and properties
-        Condition::IndexType quad_id = 1; // Id
-
-        // Loop over origin conditions and create a set of triangular ones
-        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); ++it)
-        {
-            if (it->GetGeometry().PointsNumber() == 9)
-            {
-                rQuadConds.push_back( rCondition.Create(++quad_id, it->GetGeometry(), it->pGetProperties()));
-            }
-            else
-            {
-                KRATOS_ERROR << "The geometry can not be divided using quadratic (9 nodes) quadrilaterals " << std::endl;
-            }
-        }
-    }
-    
     /***********************************************************************************/
     /***********************************************************************************/
     
@@ -1005,11 +275,11 @@ namespace Kratos
     {
         unsigned int count = 0;
         const unsigned int number_of_points = FaceGeometry.PointsNumber();
-        for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+        for (unsigned int it_node = 0; it_node < number_of_points; ++it_node)
         {
-            if (FaceGeometry[i_node].IsDefined(INTERFACE) == true)  
+            if (FaceGeometry[it_node].IsDefined(INTERFACE) == true)  
             {
-                if (FaceGeometry[i_node].Is(INTERFACE) == true) ++count;
+                if (FaceGeometry[it_node].Is(INTERFACE) == true) ++count;
             }
         }
         
@@ -1019,154 +289,224 @@ namespace Kratos
             ++CondId;
             if (number_of_points == 3)
             {
+                // We initialize a vector for the IDs
+                std::vector<std::size_t> condition_ids(1);
+                    
                 face_condition_name.append("Condition3D3N");
                 face_condition_name.append(FinalString);
                 
-                CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
+                CreateNewCondition(rpElem, FaceGeometry, CondId, face_condition_name);
+                condition_ids[0] = CondId;
                 ++CondCounter;
+                
+                rInterfacePart.AddConditions(condition_ids);
             }
             else if (number_of_points == 4)
             {
                 if (SimplestGeometry == false)
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(1);
+                    
                     face_condition_name.append("Condition3D4N");
                     face_condition_name.append(FinalString);
                 
-                    CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, FaceGeometry, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
                 else
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(2);
+                    
                     face_condition_name.append("Condition3D3N");
                     face_condition_name.append(FinalString);
                     
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(2));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_1, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(2), FaceGeometry(3), FaceGeometry(0));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_2, CondId, face_condition_name);
+                    condition_ids[1] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
             }
             else if (number_of_points == 6)
             {
                 if (SimplestGeometry == false)
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(1);
+                    
                     face_condition_name.append("Condition3D6N");
                     face_condition_name.append(FinalString);
                     
-                    CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, FaceGeometry, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
                 else
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(4);
+                    
                     face_condition_name.append("Condition3D3N");
                     face_condition_name.append(FinalString);
                     
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(5));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_1, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(1), FaceGeometry(2), FaceGeometry(3));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_2, CondId, face_condition_name);
+                    condition_ids[1] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_3(FaceGeometry(1), FaceGeometry(3), FaceGeometry(5));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_3, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_3, CondId, face_condition_name);
+                    condition_ids[2] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_4(FaceGeometry(3), FaceGeometry(4), FaceGeometry(5));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_4, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_4, CondId, face_condition_name);
+                    condition_ids[3] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
             }
             else if (number_of_points == 8)
             {
                 if (SimplestGeometry == false)
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(1);
+                    
                     face_condition_name.append("Condition3D8N");
                     face_condition_name.append(FinalString);
                     
-                    CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, FaceGeometry, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
                 else
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(6);
+                    
                     face_condition_name.append("Condition3D3N");
                     face_condition_name.append(FinalString);
 
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(7));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_1, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(1), FaceGeometry(5), FaceGeometry(7));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_2, CondId, face_condition_name);
+                    condition_ids[1] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_3(FaceGeometry(1), FaceGeometry(3), FaceGeometry(5));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_3, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_3, CondId, face_condition_name);
+                    condition_ids[2] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_4(FaceGeometry(1), FaceGeometry(2), FaceGeometry(3));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_4, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_4, CondId, face_condition_name);
+                    condition_ids[3] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_5(FaceGeometry(3), FaceGeometry(4), FaceGeometry(5));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_5, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_5, CondId, face_condition_name);
+                    condition_ids[4] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_6(FaceGeometry(5), FaceGeometry(6), FaceGeometry(7));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_6, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_6, CondId, face_condition_name);
+                    condition_ids[5] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
             }
             else // Assuming it will not be a very weird geometry
             {
                 if (SimplestGeometry == false)
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(1);
+                    
                     face_condition_name.append("Condition3D4N");
                     face_condition_name.append(FinalString);
                     
-                    CreateNewCondition(rInterfacePart, rpElem, FaceGeometry, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, FaceGeometry, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
                 else
                 {
+                    // We initialize a vector for the IDs
+                    std::vector<std::size_t> condition_ids(8);
+                    
                     face_condition_name.append("Condition3D3N");
                     face_condition_name.append(FinalString);
 
                     Triangle3D3< Node<3> > tri_1(FaceGeometry(0), FaceGeometry(1), FaceGeometry(8));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_1, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_1, CondId, face_condition_name);
+                    condition_ids[0] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_2(FaceGeometry(1), FaceGeometry(2), FaceGeometry(3));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_2, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_2, CondId, face_condition_name);
+                    condition_ids[1] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_3(FaceGeometry(1), FaceGeometry(3), FaceGeometry(8));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_3, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_3, CondId, face_condition_name);
+                    condition_ids[2] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_4(FaceGeometry(8), FaceGeometry(3), FaceGeometry(4));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_4, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_4, CondId, face_condition_name);
+                    condition_ids[3] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_5(FaceGeometry(8), FaceGeometry(4), FaceGeometry(5));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_5, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_5, CondId, face_condition_name);
+                    condition_ids[4] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_6(FaceGeometry(5), FaceGeometry(6), FaceGeometry(7));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_6, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_6, CondId, face_condition_name);
+                    condition_ids[5] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_7(FaceGeometry(5), FaceGeometry(7), FaceGeometry(8));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_7, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_7, CondId, face_condition_name);
+                    condition_ids[6] = CondId;
                     ++CondCounter;
                     ++CondId;
                     Triangle3D3< Node<3> > tri_8(FaceGeometry(0), FaceGeometry(8), FaceGeometry(7));
-                    CreateNewCondition(rInterfacePart, rpElem, tri_8, CondId, face_condition_name);
+                    CreateNewCondition(rpElem, tri_8, CondId, face_condition_name);
+                    condition_ids[7] = CondId;
                     ++CondCounter;
+                    
+                    rInterfacePart.AddConditions(condition_ids);
                 }
             }
         }
