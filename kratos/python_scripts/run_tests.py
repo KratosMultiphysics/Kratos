@@ -10,7 +10,7 @@ import threading
 
 from KratosMultiphysics import Tester
 from KratosMultiphysics import KratosLoader
-from KratosMultiphysics.KratosUnittest import CaptureStdout
+from KratosMultiphysics.KratosUnittest import CaptureStdout, ReleaseStdout
 
 
 def Usage():
@@ -256,7 +256,7 @@ def main():
             assert False, 'unhandled option'
 
     # Capture stdout from KratosUnittest
-    CaptureStdout()
+    sysstdout = CaptureStdout()
 
     # Set timeout of the different levels
     signalTime = int(-1)
@@ -300,10 +300,13 @@ def main():
 
     sys.stderr.flush()
 
+    # Releases stdout
+    ReleaseStdout(sysstdout)
+
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
     try:
-        Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
+        Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
         Tester.RunAllTestCases()
     except Exception as e:
         print('[Warning]:', e, file=sys.stderr)
