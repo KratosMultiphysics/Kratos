@@ -35,6 +35,7 @@
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
+#include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
 // Builder and solvers
@@ -83,7 +84,9 @@ void  AddCustomStrategiesToPython()
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     
+
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
@@ -136,6 +139,14 @@ void  AddCustomStrategiesToPython()
             EigensolverDynamicSchemeType::Pointer, bases< BaseSchemeType >, boost::noncopyable >
             (
                 "EigensolverDynamicScheme", init<>() )
+            ;
+    
+    // Explicit Central Differences Scheme Type
+    class_< ExplicitCentralDifferencesSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+            "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
+            .def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
     //********************************************************************
