@@ -43,8 +43,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 else:
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
-        #print(settings.PrettyPrintJsonString())
-
         settings.ValidateAndAssignDefaults(default_settings)
         
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
@@ -94,14 +92,13 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             z_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, z_params) )
 
-        # print("Finished construction of AssignVectorProcess Process")
+    def ExecuteBeforeSolutionLoop(self):
+        self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:
             process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
-        #print("---")
         for process in self.aux_processes:
-            #print("current_time = ", self.model_part.ProcessInfo[KratosMultiphysics.TIME], " interval = ", process.interval)
             process.ExecuteFinalizeSolutionStep()
