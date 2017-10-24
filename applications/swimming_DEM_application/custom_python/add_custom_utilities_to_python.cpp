@@ -231,15 +231,18 @@ using namespace boost::python;
         ;
 
     class_<SpaceTimeRule> ("SpaceTimeRule", boost::python::no_init)
+        .def("Evaluate", &TimeDependantForceField::Evaluate)
         ;
 
     class_<BoundingBoxRule, bases<SpaceTimeRule> > ("BoundingBoxRule", init<>())
+        .def(init<const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("SetTimeBoundingInterval", &BoundingBoxRule::SetTimeBoundingInterval)
         .def("SetXBoundingInterval", &BoundingBoxRule::SetXBoundingInterval)
         .def("SetYBoundingInterval", &BoundingBoxRule::SetYBoundingInterval)
         .def("SetZBoundingInterval", &BoundingBoxRule::SetZBoundingInterval)
         .def("SetSpaceTimeBoundingBox", &BoundingBoxRule::SetSpaceTimeBoundingBox)
         .def("CheckIfRuleIsMet", &BoundingBoxRule::CheckIfRuleIsMet)
+        .def("Info", &BoundingBoxRule::Info)
         ;
 
     class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRule", init<RealField::Pointer, const double>())

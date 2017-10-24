@@ -62,7 +62,7 @@ virtual bool CheckIfRuleIsMet(const double time, const double coor_x, const doub
 
 virtual std::string Info() const
 {
-    return "";
+    return "SpaceTimeRule";
 }
 
 /// Print information about this object.
@@ -173,6 +173,25 @@ BoundingBoxRule(): SpaceTimeRule()
     mHighZ    =   std::numeric_limits<double>::max();
 }
 
+BoundingBoxRule(const double min_time,
+                const double max_time,
+                const double min_x,
+                const double max_x,
+                const double min_y,
+                const double max_y,
+                const double min_z,
+                const double max_z): SpaceTimeRule()
+{
+    mLowTime  = min_time;
+    mHighTime = max_time;
+    mLowX     = min_x;
+    mHighX    = max_x;
+    mLowY     = min_y;
+    mHighY    = max_y;
+    mLowZ     = min_z;
+    mHighZ    = max_z;
+}
+
 ~BoundingBoxRule(){}
 
 void SetTimeBoundingInterval(const double& low, const double& high)
@@ -218,15 +237,41 @@ void SetSpaceTimeBoundingBox(const array_1d<double, 4>& low, const array_1d<doub
 
 bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z)
 {
-    array_1d<double, 3> coor;
-    coor[0] = coor_x;
-    coor[1] = coor_y;
-    coor[2] = coor_z;
-
     bool low  = time < mLowTime  || coor_x < mLowX  || coor_y < mLowY  || coor_z < mLowZ;
     bool high = time > mHighTime || coor_x > mHighX || coor_y > mHighY || coor_z > mHighZ;
 
     return !(high || low);
+}
+
+virtual std::string Info() const
+{
+    std::ostringstream os;
+    os << "Bounding box limits : "  << std::endl
+       << "min time: " << mLowTime  << std::endl
+       << "max time: " << mHighTime << std::endl
+       << "min x : "   << mLowX     << std::endl
+       << "max x : "   << mHighX    << std::endl
+       << "min y : "   << mLowY     << std::endl
+       << "max y : "   << mHighY    << std::endl
+       << "min z : "   << mLowZ     << std::endl
+       << "max z : "   << mHighZ    << std::endl;
+
+    std::string info = os.str();
+
+    return info;
+}
+
+void PrintData( std::ostream& rOStream = std::cout ) const override
+{
+    rOStream << "Bounding box limits : "  << std::endl
+             << "min time: " << mLowTime  << std::endl
+             << "max time: " << mHighTime << std::endl
+             << "min x : "   << mLowX     << std::endl
+             << "max x : "   << mHighX    << std::endl
+             << "min y : "   << mLowY     << std::endl
+             << "max y : "   << mHighY    << std::endl
+             << "min z : "   << mLowZ     << std::endl
+             << "max z : "   << mHighZ    << std::endl;
 }
 
 protected:
@@ -234,7 +279,7 @@ void Check()
 {
     KRATOS_TRY
 
-    if (mHighTime < mLowTime ||  mHighX < mLowX || mHighY < mLowY || mHighZ < mLowZ){
+    if (mHighTime < mLowTime || mHighX < mLowX || mHighY < mLowY || mHighZ < mLowZ){
         KRATOS_THROW_ERROR(std::runtime_error, "Entered low bounds greater than corresponding bounds", "");
     }
 

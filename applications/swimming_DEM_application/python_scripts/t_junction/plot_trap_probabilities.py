@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 
 z_plane_of_symmetry = -0.0024
 n_intervals = 10
+fluid_run_name = 'mesh_38288_nodes'
+snapshot_name = 't=0.2900000000000001_in_box'
 
 def IntervalIndex(x, bottom, top, number_of_intervals):
     if x < bottom:
@@ -21,23 +23,19 @@ def CalculateProbabilityOfGettingTrapped():
                          z_min + (i + 1) * abs(2 * z_min) / n_intervals] for i in range(n_intervals)]
     z_midpoints = [0.5 * (i[1] + i[0]) for i in z_init_intervals]
 
-    with h5py.File('all_particles.h5py', 'r') as f:
-        Ids = f['/Id'][:]
+    with h5py.File('all_particles.hdf5', 'r') as f:
         Z0s = f['/Z0'][:]
-        N = len(Ids)
+        N = len(Z0s)
         histogram = [0.0 for i in z_init_intervals]
         for z in Z0s:
             histogram[IntervalIndex(z, z_plane_of_symmetry, 0., n_intervals)] += 1
-        print('hist', histogram)
 
-    with h5py.File('particles_snapshot', 'r') as f:
-        Ids_trapped = f['/mesh_38288_nodes.hdf5/t=0.04_in_box/Id'][:]
-        Z0s_trapped = f['/mesh_38288_nodes.hdf5/t=0.04_in_box/Z0'][:]
+    with h5py.File('particles_snapshot.hdf5', 'r') as f:
+        Z0s_trapped = f['/' + fluid_run_name + '.hdf5/' + snapshot_name + '/Z0'][:]
         trapped_hist = [0.0 for i in z_init_intervals]
-        for z in Z0s:
+        for z in Z0s_trapped:
             trapped_hist[IntervalIndex(z, z_plane_of_symmetry, 0., n_intervals)] += 1
-        N_trapped = len(Ids_trapped)
-        print('trapped_hist', trapped_hist)
+        N_trapped = len(Z0s_trapped)
 
     def RobustQuotient(a, b):
         if a == b:
@@ -45,8 +43,6 @@ def CalculateProbabilityOfGettingTrapped():
         else:
             return a / b
     histogram = [RobustQuotient(h, H) for h, H in zip(trapped_hist, histogram)]
-    print('normalized', histogram)
-    print('z_init_intervals', z_init_intervals)
     plt.plot(z_midpoints, histogram, '.')
     plt.show()
 
