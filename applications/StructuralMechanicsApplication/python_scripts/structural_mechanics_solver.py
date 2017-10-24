@@ -43,7 +43,7 @@ class MechanicalSolver(object):
             "solver_type": "Static",
             "echo_level": 0,
             "buffer_size": 2,
-            "analysis_type": "Linear",
+            "analysis_type": "NonLinear",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
             "model_import_settings": {
@@ -443,13 +443,13 @@ class MechanicalSolver(object):
 
     def _create_mechanical_solver(self):
         analysis_type = self.settings["analysis_type"].GetString()
-        if analysis_type == "linear":
+        if analysis_type == "Linear":
             mechanical_solver = self._create_linear_strategy()
-        elif analysis_type == "non_linear":
+        elif analysis_type == "NonLinear":
             mechanical_solver = self._create_newton_raphson_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\""
+            err_msg += "Available options are: \"Linear\", \"NonLinear\""
             raise Exception(err_msg)
         return mechanical_solver
 

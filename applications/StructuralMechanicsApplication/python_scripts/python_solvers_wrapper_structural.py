@@ -11,48 +11,48 @@ def CreateSolver(main_model_part, custom_settings):
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
+    parallel_type = custom_settings["problem_data"]["parallel_type"].GetString()
     solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
-    if (parallelism == "OpenMP"):
-        if (solver_type == "dynamic"):
+    if (parallel_type == "OpenMP"):
+        if (solver_type == "Dynamic"):
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
-            if (time_integration_method == "implicit"):
+            if (time_integration_method == "Implicit"):
                 solver_module_name = "structural_mechanics_implicit_dynamic_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
-                err_msg += "Available options are: \"implicit\""
+                err_msg += "Available options are: \"Implicit\""
                 raise Exception(err_msg)
 
-        elif (solver_type == "static"):
+        elif (solver_type == "Static"):
             solver_module_name = "structural_mechanics_static_solver"
 
-        elif (solver_type == "eigen_value"):
+        elif (solver_type == "EigenValue"):
             solver_module_name = "structural_mechanics_eigensolver"
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\""
+            err_msg += "Available options are: \"Static\", \"Dynamic\", \"EigenValue\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
-    elif (parallelism == "MPI"):
-        if (solver_type == "dynamic"):
+    elif (parallel_type == "MPI"):
+        if (solver_type == "Dynamic"):
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
-            if (time_integration_method == "implicit"):
+            if (time_integration_method == "Implicit"):
                 solver_module_name = "trilinos_structural_mechanics_implicit_dynamic_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
-                err_msg += "Available options are: \"implicit\""
+                err_msg += "Available options are: \"Implicit\""
                 raise Exception(err_msg)
 
-        elif (solver_type == "static"):
+        elif (solver_type == "Static"):
             solver_module_name = "trilinos_structural_mechanics_static_solver"
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\""
+            err_msg += "Available options are: \"Static\", \"Dynamic\""
             raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallel_type + "\" is not available!\n"
