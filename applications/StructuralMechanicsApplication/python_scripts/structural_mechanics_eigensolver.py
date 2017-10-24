@@ -61,11 +61,11 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         generalized eigenvalue problem. 
         """
         scheme_type = self.settings["scheme_type"].GetString()
-        if scheme_type == "Dynamic":
+        if scheme_type == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else: # here e.g. a stability scheme could be added
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"Dynamic\""
+            err_msg += "Available options are: \"dynamic\""
             raise Exception(err_msg)
             
         return solution_scheme

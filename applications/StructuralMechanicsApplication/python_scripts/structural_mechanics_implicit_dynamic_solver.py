@@ -35,7 +35,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
         if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
             custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("Newmark")
+            custom_settings["scheme_type"].SetString("newmark")
         
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
@@ -57,19 +57,19 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         scheme_type = self.settings["scheme_type"].GetString()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
-        if(scheme_type == "Newmark"):
+        if(scheme_type == "newmark"):
             damp_factor_m = 0.0
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        elif(scheme_type == "Bossak"):
+        elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        elif(scheme_type == "Relaxation"):
+        elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0
             mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(
                                                                        damp_factor_f, dynamic_factor_m)
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"Newmark\", \"Bossak\", \"Relaxation\""
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"relaxation\""
             raise Exception(err_msg)
         return mechanical_scheme

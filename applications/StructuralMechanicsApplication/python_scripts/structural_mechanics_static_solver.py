@@ -52,14 +52,14 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def Initialize(self):
         print("::[StaticMechanicalSolver]:: Initializing ...")
-        if self.settings["analysis_type"].GetString() == "ArcLength":
+        if self.settings["analysis_type"].GetString() == "arc_length":
             self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA] = 0.0
         super(StaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
         print("::[StaticMechanicalSolver]:: Finished initialization.")
     
     def Solve(self):
         super(StaticMechanicalSolver, self).Solve()
-        if self.settings["analysis_type"].GetString() == "ArcLength":
+        if self.settings["analysis_type"].GetString() == "arc_length":
             lambda_value = self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA]
             if self.settings["echo_level"].GetInt() > 0:
                 print("LAMBDA: ", lambda_value)
@@ -103,17 +103,17 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             mechanical_solver = self._create_line_search_strategy()
         else:
             analysis_type = self.settings["analysis_type"].GetString()
-            if analysis_type == "Linear":
+            if analysis_type == "linear":
                 mechanical_solver = self._create_linear_strategy()
-            elif analysis_type == "NonLinear":
+            elif analysis_type == "non_linear":
                 mechanical_solver = self._create_newton_raphson_strategy()
-            elif analysis_type == "ArcLength":
+            elif analysis_type == "arc_length":
                 mechanical_solver = self._create_arc_length_strategy()
-            elif analysis_type == "FormFinding":
+            elif analysis_type == "formfinding":
                 mechanical_solver = self._create_formfinding_strategy()
             else:
                 err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-                err_msg += "Available options are: \"Linear\", \"NonLinear\", \"ArcLength\", \"FormFinding\""
+                err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\", \"formfinding\""
                 raise Exception(err_msg)
         return mechanical_solver
 
