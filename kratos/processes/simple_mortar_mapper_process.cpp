@@ -676,6 +676,24 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::ExecuteImplici
                         Matrix residual_matrix;
                         ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
                         
+                        // We check if DOperator is diagonal
+                        if (mEchoLevel > 1)
+                        {
+                            bounded_matrix<double, TNumNodes, TNumNodes> aux_copy_D = this_mortar_operators.DOperator;
+                            LumpMatrix(aux_copy_D);
+                            const bounded_matrix<double, TNumNodes, TNumNodes> aux_diff = aux_copy_D - this_mortar_operators.DOperator;
+                            const double norm_diff = norm_frobenius(aux_diff);
+                            if (norm_diff > 1.0e-4) 
+                            {
+                                std::cout << "WARNING: THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
+                            }
+                            if (mEchoLevel == 3) 
+                            {
+                                KRATOS_WATCH(norm_diff);
+                                KRATOS_WATCH(this_mortar_operators.DOperator);
+                            }
+                        }
+                        
                         /* We compute the residual and assemble */
                         if (iteration == 0)
                         {
