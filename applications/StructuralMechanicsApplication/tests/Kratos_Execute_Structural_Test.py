@@ -18,8 +18,8 @@ class Kratos_Execute_Test:
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
         # Construct the solver (main setting methods are located in the solver_module)
-        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+        import python_solvers_wrapper_structural
+        self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.ProjectParameters)
 
         # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers

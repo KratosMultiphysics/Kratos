@@ -1,6 +1,5 @@
 from KratosMultiphysics import * 
 import importlib
-#from KratosMultiphysics.SolidMechanicsApplication import *
         
 def Factory(settings, Model):
     if(type(settings) != Parameters):
@@ -37,14 +36,12 @@ class ReadMaterialsProcess(Process):
             
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
-        
-        #TODO: change to use the KratosParameters once dictionary iterators are exported
-        import json
-        with open(settings["materials_filename"].GetString()) as data_file:    
-            materials = json.load(data_file)
 
-        for prop in materials["properties"]:
-            self._AssignPropertyBlock(prop)
+        parameter_file = open(settings["materials_filename"].GetString(), 'r')
+        materials = Parameters(parameter_file.read())
+        
+        for i in range(materials["properties"].size()):
+            self._AssignPropertyBlock(materials["properties"][i])
         
         print("finished reading materials")
         
@@ -95,8 +92,8 @@ class ReadMaterialsProcess(Process):
         }
         """
         # Get the properties for the specified model part.
-        model_part = self.Model[data["model_part_name"]]
-        property_id = data["properties_id"]
+        model_part = self.Model[data["model_part_name"].GetString()]
+        property_id = data["properties_id"].GetInt()
         mesh_id = 0
         prop = model_part.GetProperties(property_id, mesh_id)
         
@@ -111,40 +108,40 @@ class ReadMaterialsProcess(Process):
 
         # Set the CONSTITUTIVE_LAW for the current properties.
         if "Variables" in mat["constitutive_law"].keys(): #pass the list of variables when constructing the constitutive law
-           constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"])(mat["constitutive_law"]["Variables"])
+           constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"].GetString())(mat["constitutive_law"]["Variables"])
         else:
-           constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"])()
+           constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"].GetString())()
            
         prop.SetValue(CONSTITUTIVE_LAW, constitutive_law)
         
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
             var = self._GetItemFromModule(key)
-            if isinstance(value, (list, tuple)):
-                size_1 = len(value)
-                if isinstance(value[0], (list, tuple)):
-                    size_2 = len(value[0])
-                    matrix = Matrix(size_1,size_2)
-                    for i in range(size_1):
-                        for j in range(size_2):
-                            matrix[i, j] = value[i][j]
-                    prop.SetValue( var, matrix)
-                else:
-                    vector = Vector(size_1)
-                    for i in range(size_1):
-                        vector[i] = value[i]
-                    prop.SetValue( var, vector)
+            if value.IsDouble():
+                prop.SetValue( var, value.GetDouble() )
+            elif value.IsInt():
+                prop.SetValue( var, value.GetInt() )
+            elif value.IsBool():
+                prop.SetValue( var, value.GetBool() )
+            elif value.IsString():
+                prop.SetValue( var, value.GetString() )
+            elif value.IsMatrix():
+                prop.SetValue( var, value.GetMatrix() )
+            elif value.IsVector():
+                prop.SetValue( var, value.GetVector() )
             else:
-                prop.SetValue( var, value)
+                raise ValueError("Type of value is not available")
 
         # Add / override tables in the properties
         for key, table in mat["Tables"].items():
             table_name = key
 
-            input_var = self._GetItemFromModule(table["input_variable"])
-            output_var = self._GetItemFromModule(table["output_variable"])
+            input_var = self._GetItemFromModule(table["input_variable"].GetString())
+            output_var = self._GetItemFromModule(table["output_variable"].GetString())
 
             new_table = PiecewiseLinearTable()
-            for i in range(len(table["data"])):
-                new_table.AddRow(table["data"][i][0], table["data"][i][1])
+
+            for i in range(table["data"].size()):
+                new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
+
             prop.SetTable(input_var,output_var,new_table)
