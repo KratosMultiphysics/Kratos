@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -137,6 +137,13 @@ public:
         // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
         NormalCalculationUtils normal_util = NormalCalculationUtils();
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        if (domain_size == 3);
+        {
+            if (mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)
+            {
+                KRATOS_ERROR << "> Normal calculation of 2-noded conditions in 3D domains is not possible!";
+            }
+        }
         normal_util.CalculateOnSimplex(mrModelPart,domain_size);
 
         // Take into account boundary conditions, normalize area normal and store in respective variable
@@ -175,8 +182,8 @@ public:
     {
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
-            array_3d& shape_update = node_i->FastGetSolutionStepValue(rNodalVariable);                
-           
+            array_3d& shape_update = node_i->FastGetSolutionStepValue(rNodalVariable);
+
             node_i->X() += shape_update[0];
             node_i->Y() += shape_update[1];
             node_i->Z() += shape_update[2];

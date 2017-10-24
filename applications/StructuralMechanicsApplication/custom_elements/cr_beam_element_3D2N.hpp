@@ -170,6 +170,13 @@ namespace Kratos
 			const Vector ForceInput, VectorType& rRightHandSideVector,
 			const double GeometryLength);
 
+		std::string Info() const override; //fusseder needed for sensitivity analysis
+
+	protected:
+		CrBeamElement3D2N():Element() 
+		{
+		}	
+
 	private:
 		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
@@ -186,7 +193,7 @@ namespace Kratos
 		bool mIsLinearElement = false;
 		bool mIsLumpedMassMatrix = false;
 
-		CrBeamElement3D2N() {};
+		//CrBeamElement3D2N() {}; --> M.Fusseder moved to protected in order to call it in derived adjoint element class
 
 
 

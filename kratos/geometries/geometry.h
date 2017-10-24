@@ -667,21 +667,69 @@ public:
         const SizeType points_number = this->size();
 
         if ( points_number == 0 )
+        {
             KRATOS_ERROR << "can not compute the ceneter of a geometry of zero points" << std::endl;
             // return PointType();
+        }
 
         Point<3> result = ( *this )[0];
 
         for ( IndexType i = 1 ; i < points_number ; i++ )
+        {
             result.Coordinates() += ( *this )[i];
+        }
 
-        double temp = 1.0 / double( points_number );
+        const double temp = 1.0 / double( points_number );
 
         result.Coordinates() *= temp;
 
         return result;
     }
+    
+    /**
+     * It computes the unit normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates)
+    {
+        const unsigned int local_space_dimension = this->LocalSpaceDimension();
+        const unsigned int dimension = this->WorkingSpaceDimension();
+        
+        if (dimension == local_space_dimension)
+        {
+            KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
+        }
+        
+        // We define the normal and tangents
+        array_1d<double,3> tangent_xi(0.0);
+        array_1d<double,3> tangent_eta(0.0);
+        
+        Matrix j_node = ZeroMatrix( dimension, local_space_dimension ); 
+        this->Jacobian( j_node, rPointLocalCoordinates);
+        
+        // Using the Jacobian tangent directions
+        if (dimension == 2)
+        {
+            tangent_eta[2] = 1.0;
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
+            {
+                tangent_xi[i_dim]  = j_node(i_dim, 0);
+            } 
+        }
+        else
+        {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
+            {
+                tangent_xi[i_dim]  = j_node(i_dim, 0);
+                tangent_eta[i_dim] = j_node(i_dim, 1);
+            } 
+        }
 
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal/norm_2(normal);
+    }
+    
     /** Calculates the quality of the geometry according to a given criteria.
      *
      * Calculates the quality of the geometry according to a given criteria. In General
@@ -710,7 +758,7 @@ public:
        } else if(qualityCriteria == QualityCriteria::SHORTEST_TO_LONGEST_EDGE) {
          quality = ShortestToLongestEdgeQuality();
        } else if(qualityCriteria == QualityCriteria::REGULARITY) {
-         quality = RegualrityQuiality();
+         quality = RegularityQuality();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_SURFACE_AREA) {
          quality = VolumeToSurfaceAreaQuality();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_EDGE_LENGTH) {
@@ -815,10 +863,15 @@ public:
     }
 
     /**
-    * Returns the local coordinates of a given arbitrary point
-    */
-    virtual CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint )
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates( 
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint 
+            )
     {
         Matrix J = ZeroMatrix( LocalSpaceDimension(), LocalSpaceDimension() );
 
@@ -829,11 +882,11 @@ public:
         CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
         //Newton iteration:
-        double tol = 1.0e-8;
+        const double tol = 1.0e-8;
 
-        int maxiter = 1000;
+        unsigned int maxiter = 1000;
 
-        for ( int k = 0; k < maxiter; k++ )
+        for ( unsigned int k = 0; k < maxiter; k++ )
         {
             CurrentGlobalCoords = ZeroVector( 3 );
             GlobalCoordinates( CurrentGlobalCoords, rResult );
@@ -859,15 +912,23 @@ public:
     }
 
     /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-        * local point for the given global point
-    */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
     {
         KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return false;
     }
-
+    
     ///@}
     ///@name Inquiry
     ///@{
@@ -2222,8 +2283,8 @@ protected:
       return 0.0;
     }
 
-    /** Calculates the Regualrity quality metric.
-     * Calculates the Regualrity quality metric.
+    /** Calculates the Regularity quality metric.
+     * Calculates the Regularity quality metric.
      * This metric is bounded by the interval (-1,1) being:
      *  1 -> Optimal value
      *  0 -> Worst value
@@ -2231,10 +2292,10 @@ protected:
      *
      * \f$ \frac{4r}{H} \f$
      *
-     * @return regualirty quality.
+     * @return regularity quality.
      */
-    virtual double RegualrityQuiality() const {
-      KRATOS_ERROR << "Calling base class 'RegualrityQuiality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    virtual double RegularityQuality() const {
+      KRATOS_ERROR << "Calling base class 'RegularityQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return 0.0;
     }
 

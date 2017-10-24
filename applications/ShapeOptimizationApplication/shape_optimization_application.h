@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -79,15 +79,18 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
 
-	KRATOS_DEFINE_VARIABLE(double,CROSS_AREA); //fusseder
-	//KRATOS_DEFINE_APPLICATION_VARIABLE( SHAPE_OPTIMIZATION_APPLICATION, double, CROSS_AREA ); //Fusseder
+	KRATOS_DEFINE_VARIABLE(double, CROSS_AREA); //fusseder
 
 	KRATOS_DEFINE_VARIABLE(double, STRESS_VALUE); //fusseder
 	KRATOS_DEFINE_VARIABLE(int, LOCATION_OF_TRACED_STRESS); //fusseder
 	KRATOS_DEFINE_VARIABLE(std::string, TRACED_STRESS_TYPE); //fusseder
-	KRATOS_DEFINE_VARIABLE(Vector, ADJOINT_LOAD); //fusseder
-	KRATOS_DEFINE_VARIABLE(Vector, ZERO_ADJOINT_LOAD); //fusseder
-	KRATOS_DEFINE_VARIABLE(std::string, STRESS_TREATMENT); //fusseder
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DISP_DERIV_ON_NODE); //fusseder
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DISP_DERIV_ON_GP); //fusseder
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DV_DERIV_ON_NODE); //fusseder
+	KRATOS_DEFINE_VARIABLE(Matrix, STRESS_DV_DERIV_ON_GP); //fusseder
+	KRATOS_DEFINE_VARIABLE(Vector, STRESS_ON_GP ); //fusseder
+	KRATOS_DEFINE_VARIABLE(Vector, STRESS_ON_NODE ); //fusseder
+	KRATOS_DEFINE_VARIABLE(std::string, DESIGN_VARIABLE_NAME); //fusseder
 	
 
 

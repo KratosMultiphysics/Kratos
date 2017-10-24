@@ -570,6 +570,9 @@ protected:
 		KRATOS_CATCH("");
 	}
 
+	virtual void consider_discretization(){
+	}
+
 	// ==============================================================================
 
 	///@}

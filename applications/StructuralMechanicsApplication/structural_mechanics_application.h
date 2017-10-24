@@ -34,9 +34,10 @@
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
-//fusseder move this element to other application
-#include "custom_elements/cr_beam_element_3D2N_for_SA.hpp"
-
+/* Adding the adjoint elements */
+#include "custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.hpp" //TODO: remove this
+#include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
+#include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -53,8 +54,8 @@
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* Adding solid elements */
-#include "custom_elements/kinematic_linear.h"
-#include "custom_elements/axisym_kinematic_linear.h"
+#include "custom_elements/small_displacement.h"
+#include "custom_elements/axisym_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/updated_lagrangian.h"
@@ -69,6 +70,12 @@
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+
+//fusseder TODO: move this to another application
+#include "custom_conditions/point_load_condition_for_SA.h"
+
+/* Adding the adjoint conditions */
+#include "custom_conditions/adjoint_conditions/point_load_adjoint_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -247,8 +254,10 @@ private:
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
-    //fusseder move this element to other application
-    const CrBeamElement3D2NForSA mCrBeamElement3D2NForSA;
+    // Adding adjoint elements
+    const CrBeamElement3D2NForSA mCrBeamElement3D2NForSA; //TODO: remove this
+    const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
+    const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
 
     // Adding the shells elements 
@@ -274,24 +283,24 @@ private:
     const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     // Linear kinematic elements
-    const KinematicLinear mKinematicLinear2D3N;
-    const KinematicLinear mKinematicLinear2D4N;
-    const KinematicLinear mKinematicLinear2D6N;
-    const KinematicLinear mKinematicLinear2D8N;
-    const KinematicLinear mKinematicLinear2D9N;
-    const KinematicLinear mKinematicLinear3D4N;
-    const KinematicLinear mKinematicLinear3D6N;
-    const KinematicLinear mKinematicLinear3D8N;
-    const KinematicLinear mKinematicLinear3D10N;
-    const KinematicLinear mKinematicLinear3D15N;
-    const KinematicLinear mKinematicLinear3D20N;
-    const KinematicLinear mKinematicLinear3D27N;
+    const SmallDisplacement mSmallDisplacement2D3N;
+    const SmallDisplacement mSmallDisplacement2D4N;
+    const SmallDisplacement mSmallDisplacement2D6N;
+    const SmallDisplacement mSmallDisplacement2D8N;
+    const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D6N;
+    const SmallDisplacement mSmallDisplacement3D8N;
+    const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D15N;
+    const SmallDisplacement mSmallDisplacement3D20N;
+    const SmallDisplacement mSmallDisplacement3D27N;
     
-    const AxisymKinematicLinear mAxisymKinematicLinear2D3N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D4N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D6N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D8N;
-    const AxisymKinematicLinear mAxisymKinematicLinear2D9N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
     
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
@@ -340,6 +349,9 @@ private:
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
+
+    //fusseder TODO: move this to another application
+    const PointLoadConditionForSA mPointLoadCondition3D1NForSA;
     
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
@@ -361,6 +373,10 @@ private:
     const PointMoment3DCondition mPointMomentCondition3D1N;
     // Torque condition
     const PointTorque3DCondition mPointTorqueCondition3D1N;
+
+    // Adjoint Conditions
+    const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
+    const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws

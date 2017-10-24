@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -82,9 +82,13 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, STRESS_VALUE ); //fusseder
     KRATOS_CREATE_VARIABLE( int, LOCATION_OF_TRACED_STRESS ); //fusseder
     KRATOS_CREATE_VARIABLE( std::string, TRACED_STRESS_TYPE ); //fusseder
-    KRATOS_CREATE_VARIABLE( Vector, ADJOINT_LOAD ); //fusseder
-    KRATOS_CREATE_VARIABLE( Vector, ZERO_ADJOINT_LOAD ); //fusseder
-    KRATOS_CREATE_VARIABLE( std::string, STRESS_TREATMENT ); //fusseder
+    KRATOS_CREATE_VARIABLE( Matrix, STRESS_DISP_DERIV_ON_NODE); //fusseder
+    KRATOS_CREATE_VARIABLE( Matrix, STRESS_DISP_DERIV_ON_GP ); //fusseder
+    KRATOS_CREATE_VARIABLE( Matrix, STRESS_DV_DERIV_ON_NODE); //fusseder
+    KRATOS_CREATE_VARIABLE( Matrix, STRESS_DV_DERIV_ON_GP ); //fusseder
+    KRATOS_CREATE_VARIABLE( Vector, STRESS_ON_GP ); //fusseder
+    KRATOS_CREATE_VARIABLE( Vector, STRESS_ON_NODE ); //fusseder
+    KRATOS_CREATE_VARIABLE( std::string, DESIGN_VARIABLE_NAME ); //fusseder
 
 
 
@@ -155,9 +159,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( CROSS_AREA ) //fusseder
         KRATOS_REGISTER_VARIABLE( LOCATION_OF_TRACED_STRESS ) //fusseder
         KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE ) //fusseder
-        KRATOS_REGISTER_VARIABLE( ADJOINT_LOAD ) //fusseder
-        KRATOS_REGISTER_VARIABLE( ZERO_ADJOINT_LOAD ) //fusseder
-        KRATOS_REGISTER_VARIABLE( STRESS_TREATMENT ) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_GP ) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_NODE) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_DV_DERIV_ON_GP ) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_DV_DERIV_ON_NODE) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  ) //fusseder
+        KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  ) //fusseder
+        KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME ) //fusseder
         
 
         

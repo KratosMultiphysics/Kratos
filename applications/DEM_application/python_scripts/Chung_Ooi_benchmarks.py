@@ -231,7 +231,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
                 DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
                 DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-                DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
+                DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)             
 
         # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
         DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    

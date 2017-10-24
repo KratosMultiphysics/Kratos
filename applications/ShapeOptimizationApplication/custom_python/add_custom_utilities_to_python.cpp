@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -28,6 +28,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
@@ -37,6 +38,8 @@
 #include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 #include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
 #include "custom_utilities/response_functions/local_stress_response_function.h"
+#include "custom_utilities/response_functions/nodal_displacement_response_function.h"
+#include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //fusseder rename it after finishing
 
 // ==============================================================================
 
@@ -46,6 +49,28 @@ namespace Kratos
 namespace Python
 {
 
+inline
+void CalculateGradient1(
+        StructuralResponseFunction& rThisUtil,
+        const Condition& rAdjointCondition,
+        const Matrix& rAdjointMatrix,
+        Vector& rResponseGradient,
+        ProcessInfo& rProcessInfo)
+{
+    rThisUtil.CalculateGradient(rAdjointCondition,rAdjointMatrix,rResponseGradient,rProcessInfo);
+}
+
+inline
+void CalculateGradient2(
+        StructuralResponseFunction& rThisUtil,
+        const Element& rAdjointElem,
+        const Matrix& rAdjointMatrix,
+        Vector& rResponseGradient,
+        ProcessInfo& rProcessInfo)
+{
+    rThisUtil.CalculateGradient(rAdjointElem,rAdjointMatrix,rResponseGradient,rProcessInfo);
+}
+   
 
 void  AddCustomUtilitiesToPython()
 {
@@ -63,14 +88,20 @@ void  AddCustomUtilitiesToPython()
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
-    
+
+    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
+        ;
+
+
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
     class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
- 
+
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
@@ -106,15 +137,15 @@ void  AddCustomUtilitiesToPython()
     class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &StrainEnergyResponseFunction::initialize)
         .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
+        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)
         .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
-        ; 
+        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)
+        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)
+        ;
     class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &MassResponseFunction::initialize)
         .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
+        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)
         .def("get_value", &MassResponseFunction::get_value)
         .def("get_initial_value", &MassResponseFunction::get_initial_value) 
         .def("get_gradient", &MassResponseFunction::get_gradient)                              
@@ -147,27 +178,42 @@ void  AddCustomUtilitiesToPython()
         .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
         ;
 
-    class_<LocalStressResponseFunction, bases<Process> >("LocalStressResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &LocalStressResponseFunction::initialize)
-        .def("calculate_value", &LocalStressResponseFunction::calculate_value)
-        .def("calculate_gradient", &LocalStressResponseFunction::calculate_gradient) 
-        .def("get_value", &LocalStressResponseFunction::get_value)
-        .def("get_initial_value", &LocalStressResponseFunction::get_initial_value)  
-        .def("get_gradient", &LocalStressResponseFunction::get_gradient)                              
-        ;           
+    class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
+        .def("Initialize", &StructuralResponseFunction::Initialize)
+        .def("InitializeSolutionStep", &StructuralResponseFunction::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep)
+        .def("Check", &StructuralResponseFunction::Check)
+        .def("Clear", &StructuralResponseFunction::Clear)
+        .def("CalculateGradient", CalculateGradient1)
+        .def("CalculateGradient", CalculateGradient2)
+        .def("CalculateFirstDerivativesGradient",
+             &StructuralResponseFunction::CalculateFirstDerivativesGradient)
+        .def("CalculateSecondDerivativesGradient",
+             &StructuralResponseFunction::CalculateSecondDerivativesGradient)
+        .def("CalculateValue", &StructuralResponseFunction::CalculateValue)
+        .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);  
+
+    class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>()); 
+
+    class_<NodalDisplacementResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());    
+
+    class_<ReworkStrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());            
 
     // ========================================================================
     // For input / output
-    // ======================================================================== 
+    // ========================================================================
     class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &UniversalFileIO::initializeLogging)
         .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;           
-     
+        ;
+
     class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &VTKFileIO::initializeLogging)
         .def("logNodalResults", &VTKFileIO::logNodalResults)
-        ;           
+        ;
 }
 
 

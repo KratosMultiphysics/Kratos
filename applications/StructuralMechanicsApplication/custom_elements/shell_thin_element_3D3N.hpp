@@ -165,6 +165,7 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+    std::string Info() const override; //fusseder needed for sensitivity analysis
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -185,6 +186,12 @@ protected:
     ShellThinElement3D3N() : Element()
     {
     }
+
+    // by M.Fusseder
+    // Needed to reset the sections for semi analytical sensitivity analysis where the derivatives are calculated with finite differenes.
+    // There it is necessary the reset the sections and re-initialize them again after the design variable is perturbed
+    // in order have sections with the changed properties.
+    void ResetSections();
 
     ///@}
 

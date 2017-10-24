@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -25,7 +25,9 @@
 #include "includes/define.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "shape_optimization_application.h"
+#include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_schemes_to_python.h"
+
  
 // ==============================================================================
 
@@ -48,6 +50,8 @@ namespace Python
 			;
 
 	AddCustomUtilitiesToPython();
+  AddCustomSchemesToPython();
+  AddCustomProcessesToPython();
 
 	//registering variables in python
 
@@ -85,9 +89,13 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_VALUE); //fusseder
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(LOCATION_OF_TRACED_STRESS); //fusseder
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(TRACED_STRESS_TYPE); //fusseder
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ADJOINT_LOAD); //fusseder
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ZERO_ADJOINT_LOAD); //fusseder
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_TREATMENT); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DISP_DERIV_ON_NODE); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DISP_DERIV_ON_GP); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DV_DERIV_ON_NODE); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_DV_DERIV_ON_GP); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_ON_GP); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_ON_NODE); //fusseder
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DESIGN_VARIABLE_NAME); //fusseder
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_ID);

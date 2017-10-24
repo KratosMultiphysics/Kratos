@@ -1,0 +1,162 @@
+{
+    "test_settings" : {
+        "execute_solve" : true
+    },
+    "problem_data"             : {
+        "problem_name"    : "Beam_structure",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 1,
+        "parallel_type"   : "OpenMP",
+        "start_step"      : 0.0,
+        "nsteps"          : 1
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_static_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Static",
+        "analysis_type"                      : "Linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "Beam_structure"
+        },
+
+        "material_import_settings" :{
+            "materials_filename": "materials_beam.json"
+        },
+		"line_search"                        : false,
+        "compute_reactions"					 : true,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 1e-12,
+        "displacement_absolute_tolerance"    : 1e-12,
+        "residual_relative_tolerance"        : 1e-12,
+        "residual_absolute_tolerance"        : 1e-12,
+        "max_iteration"                      : 100,
+        "linear_solver_settings"             : {
+            "solver_type" : "Super_LU",
+            "scaling"     : true,
+            "verbosity"   : 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "DISPLACEMENT_support_1", "ROTATION_support","PointLoad3D_load"],
+        "rotation_dofs"                      : true
+
+    },
+    "constraints_process_list" : [{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+        },
+        {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "ROTATION_support",
+            "variable_name"   : "ROTATION",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : false,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },
+    {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_support_1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    }
+    ],
+    "list_other_processes" :[{
+        "kratos_module"    : "KratosMultiphysics.ShapeOptimizationApplication",
+        "python_module"    : "output_primal_solution_process",
+        "help"             : "",
+        "process_name"     : "OutputPrimalSolutionProcess",
+        "Parameters"          : {
+            "model_part_name" : "Structure",
+            "file_name"       : "beam_test",
+            "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          : 1.0,
+            "direction"       : [0.0,0.0,1.0]
+        }
+    }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
+            "gauss_point_results" : ["FORCE","MOMENT"]
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "optimization_settings" : {
+        "objectives" : [{ 
+                "identifier"        : "rework_strain_energy",
+                "use_kratos"        : true,
+                "gradient_mode"     : "semi_analytic", 
+                "nodal_sensitivity_variables"  : [],
+                "element_sensitivity_variables"  : ["IZ"],
+                "condition_sensitivity_variables"  : [],
+                "step_size"         : 1e-6
+        }]
+       
+    }
+
+}
+
+
+

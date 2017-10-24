@@ -234,9 +234,9 @@ while(time <= end_time):
 # for objectiveNumber in range(numberOfObjectives):
     main_model_part.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
     MyResponseFunction = LocalStressResponseFunction(main_model_part,ProjectParameters["optimization_settings"]["objectives"][0]) 
-    MyResponseFunction.calculate_value()
+    MyResponseFunction.CalculateValue()
     #MyResponseFunction.calculate_gradient()
-    print("I am ready")
+    print("I am ready with the sensitivty analysis computations")
    
 
 #eigen_values = [ev for ev in main_model_part.ProcessInfo[EIGENVALUE_VECTOR]]

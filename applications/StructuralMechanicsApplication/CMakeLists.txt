@@ -35,8 +35,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
-  #fusseder TODO: move this element to other application
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N_for_SA.cpp
+
+
 
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
@@ -45,10 +45,15 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
 
+  # Adding elements for adjoint sensitivity analysis
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_element_3D2N_for_SA.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
+
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_kinematic_linear.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_total_lagrangian.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
@@ -72,6 +77,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
+  #fusseder TODO: move this element to other application
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition_for_SA.cpp
+
+  # Adding conditions for adjoint sensitivity analysis
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/point_load_adjoint_condition.cpp
 )
 
 ###############################################################
@@ -98,12 +108,12 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_TESTING_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" EXCLUDE)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)

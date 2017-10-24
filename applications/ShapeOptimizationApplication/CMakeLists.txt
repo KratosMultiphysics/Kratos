@@ -5,21 +5,26 @@ message("**** configuring KratosShapeOptimizationApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shape_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_schemes_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/shape_optimization_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_analytic_sensitivity_element.cpp
 )
 
+find_package(HDF5 REQUIRED COMPONENTS CXX)
+include_directories( ${HDF5_INCLUDE_DIRS} )
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosShapeOptimizationApplication SHARED ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosSolidMechanicsApplication)
+target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES})
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
 

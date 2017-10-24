@@ -52,6 +52,7 @@
 #include "custom_elements/linear_solid_element.hpp"
 
 #include "custom_elements/small_displacement_element.hpp"
+#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/axisym_small_displacement_element.hpp"
 
 #include "custom_elements/total_lagrangian_element.hpp"
@@ -303,6 +304,9 @@ typedef array_1d<double,6> Vector6;
    const SmallDisplacementElement mSmallDisplacementElement3D15N;
    const SmallDisplacementElement mSmallDisplacementElement3D20N;
    const SmallDisplacementElement mSmallDisplacementElement3D27N;
+
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D3N;
+   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D4N;
 
    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
