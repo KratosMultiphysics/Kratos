@@ -59,6 +59,7 @@ def CaptureStderr(newBuffer=None):
     is provided stderr is redirected to os.devnull by default '''
 
     sys.stderr.flush()
+    newsterr = os.dup(1)
 
     if newBuffer is None:
         devnull = os.open(os.devnull, os.O_WRONLY)
@@ -67,12 +68,12 @@ def CaptureStderr(newBuffer=None):
     else:
         os.dup2(newBuffer, 2)
 
-    sys.stderr = os.fdopen(newstderr, 'w')
+    return newsterr
 
 
 def ReleaseStderr(newBuffer):
     ''' Releases the stderr '''
-    
+
     os.dup2(newBuffer, 2)
 
 def Usage():
