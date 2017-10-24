@@ -571,8 +571,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 if (TFrictional == true) // TODO: Check this!!!
                 {
                     // Old coordinates 
-                    const bounded_matrix<double, TNumNodes, TDim> x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry, false, 1);
-                    const bounded_matrix<double, TNumNodes, TDim> x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry, false, 1);
+                    const bounded_matrix<double, TNumNodes, TDim>& x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry, false, 1);
+                    const bounded_matrix<double, TNumNodes, TDim>& x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry, false, 1);
             
                     const bounded_matrix<double, TNumNodes, TDim> D_x1_old_M_x2_old = prod(DOperator, x1_old) - prod(MOperator, x2_old); 
                     
@@ -584,9 +584,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                         const double lm_normal = inner_prod(normal, lm);
                         array_1d<double, 3> tangent_lm = lm - lm_normal * normal;
                         tangent_lm /= norm_2(tangent_lm); 
-                        array_1d<double, TDim> tangent = subrange(tangent_lm, 0, TDim);
+                        const array_1d<double, TDim>& tangent = subrange(tangent_lm, 0, TDim);
                         
-                        const array_1d<double, TDim> aux_array = row(D_x1_old_M_x2_old, i_node);
+                        const array_1d<double, TDim>& aux_array = row(D_x1_old_M_x2_old, i_node);
                                   
                         double& weighted_slip = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
