@@ -22,6 +22,9 @@ class Algorithm(BaseAlgorithm):
 
     def PerformZeroStepInitializations(self):
         import hdf5_io_tools
+        n_nodes = len(self.fluid_model_part.Nodes)
+        self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").SetString('/mesh_' + str(n_nodes) + '_nodes.hdf5')
+
         self.fluid_loader = hdf5_io_tools.FluidHDF5Loader(self.all_model_parts.Get('FluidPart'), self.all_model_parts.Get('SpheresPart'), self.pp, self.main_path)
 
     def FluidSolve(self, time = 'None'):
