@@ -33,7 +33,7 @@ def CreateSolver(main_model_part, custom_settings):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\""
+            err_msg += "Available options are: \"Static\", \"Dynamic\", \"eigen_value\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
@@ -55,7 +55,7 @@ def CreateSolver(main_model_part, custom_settings):
             err_msg += "Available options are: \"Static\", \"Dynamic\""
             raise Exception(err_msg)
     else:
-        err_msg =  "The requested parallel type \"" + parallel_type + "\" is not available!\n"
+        err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
