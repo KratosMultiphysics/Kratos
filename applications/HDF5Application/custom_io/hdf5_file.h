@@ -119,7 +119,7 @@ public:
     virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
     
-    // Collectively write data set to the HDF5 file.
+    /// Collectively write data set to the HDF5 file.
     /** 
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank. In serial, it calls the default write.
