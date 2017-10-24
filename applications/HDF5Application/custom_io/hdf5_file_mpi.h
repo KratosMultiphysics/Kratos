@@ -126,22 +126,19 @@ private:
         hsize_t local_dims[ndims], global_dims[ndims];
         // Set first data space dimension.
         local_dims[0] = rData.size();
-        if (Mode == DataTransferMode::collective)
-        {
-            unsigned send_buf, recv_buf;
-            send_buf = local_dims[0];
-            MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-            global_dims[0] = recv_buf;
-        }
-        else
-            global_dims[0] = local_dims[0];
+        unsigned send_buf, recv_buf;
+        send_buf = local_dims[0];
+        MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
+        global_dims[0] = recv_buf;
+        if (Mode == DataTransferMode::independent)
+            if (local_dims[0] > 0)
+                KRATOS_ERROR_IF(local_dims[0] != global_dims[0]) << "Can't perform independent write with MPI. Invalid data." << std::endl;
         if (is_array_1d_type)
             local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
         
         hsize_t local_start[ndims];
         if (Mode == DataTransferMode::collective)
         { 
-            unsigned send_buf, recv_buf;
             send_buf = local_dims[0];
             // Get global position where local data set ends.
             MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
@@ -167,23 +164,28 @@ private:
                           "Unsupported data type.");
 
         // Create and write the data set.
-        hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        if (Mode == DataTransferMode::collective)
-            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-        else
-            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-        hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
         hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
-        H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
-                            local_dims, nullptr);
-        hid_t dset_id = H5Dcreate(m_file_id, Path.c_str(), dtype_id,
-                                  fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        // H5Dcreate() must be called collectively for both collective and independent write.
+        hid_t dset_id = H5Dcreate(m_file_id, Path.c_str(), dtype_id, fspace_id,
+                                  H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                 dxpl_id, rData.data()) < 0)
-            << "H5Dwrite failed." << std::endl;
-        KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
-        KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
+
+        if (Mode == DataTransferMode::collective || local_dims[0] > 0)
+        {
+            hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
+            if (Mode == DataTransferMode::collective)
+                H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+            else
+                H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+            H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
+                                local_dims, nullptr);
+            hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
+            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
+                                     dxpl_id, rData.data()) < 0)
+                << "H5Dwrite failed." << std::endl;
+            KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
+            KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
+        }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
     }

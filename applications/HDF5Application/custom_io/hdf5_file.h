@@ -109,7 +109,8 @@ public:
 
     /// Write a data set to the HDF5 file.
     /**
-     * Performs independent write in MPI.
+     * Performs independent write in MPI. Must be called collectively with only
+     * one process having non-empty data.
      */
     virtual void WriteDataSet(std::string Path, const std::vector<int>& rData);
 
