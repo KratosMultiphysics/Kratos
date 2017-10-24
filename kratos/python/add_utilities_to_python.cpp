@@ -34,6 +34,7 @@
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
+#include "utilities/condition_number_utility.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -49,6 +50,8 @@
 
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
+#include "utilities/table_stream_utility.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -81,6 +84,9 @@ void AddUtilitiesToPython()
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
+    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
     .def("SetVectorVar", &VariableUtils::SetVectorVar)
@@ -314,6 +320,31 @@ void AddUtilitiesToPython()
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
+    ;
+    
+    // Adding table from table stream to python
+    class_<TableStreamUtility>("TableStreamUtility", init<>())
+    .def(init< bool >())
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
+    .def(init<const unsigned int>())
+    .def(init<const unsigned int, const bool>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
 }
 

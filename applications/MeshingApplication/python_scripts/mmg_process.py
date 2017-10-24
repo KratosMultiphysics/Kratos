@@ -2,18 +2,17 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-import os
-import math
+
 from json_utilities import *
 import json
-KratosMultiphysics.CheckForPreviousImport()
+import os
 
+KratosMultiphysics.CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MmgProcess(Model, settings["Parameters"])
-
 
 class MmgProcess(KratosMultiphysics.Process):
 
@@ -69,6 +68,7 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
+            "debug_mode"                  : false,
             "echo_level"                       : 3
         }
         """)
@@ -122,10 +122,10 @@ class MmgProcess(KratosMultiphysics.Process):
                 mean = stat.mean(nodal_h_values)
                 stdev = stat.stdev(nodal_h_values)
                 prob = (self.params["automatic_remesh_parameters"]["min_size_current_percentage"].GetDouble())/100
-                self.params["minimal_size"].SetDouble(normvalf(prob, mean, stdev))
+                self.params["minimal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the minimal size as a stadistical meaninful value
 
                 prob = (self.params["automatic_remesh_parameters"]["max_size_current_percentage"].GetDouble())/100
-                self.params["maximal_size"].SetDouble(normvalf(prob, mean, stdev))
+                self.params["maximal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the maximal size as a stadistical meaninful value
 
         # Anisotropic remeshing parameters
         self.anisotropy_remeshing = self.params["anisotropy_remeshing"].GetBool()
@@ -278,6 +278,13 @@ class MmgProcess(KratosMultiphysics.Process):
         print("Remeshing")
         self.MmgProcess.Execute()
 
+        if (self.params["debug_mode"].GetBool() == True):
+            self.gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+            self.singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
+            self.deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+            self.write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
+            self._debug_output(self.step, "")
+
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
 
@@ -320,50 +327,50 @@ class MmgProcess(KratosMultiphysics.Process):
 
       return variable_list
 
-def linear_interpolation(x, x_list, y_list):
-    ind_inf = 0
-    ind_sup = -1
-    x_inf = x_list[ind_inf]
-    x_sup = x_list[ind_sup]
+    def _debug_output(self, label, name):
+
+        gid_io = KratosMultiphysics.GidIO("REMESHING_"+name+"_STEP_"+str(label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
+        
+        gid_io.InitializeMesh(label)
+        gid_io.WriteMesh(self.Model[self.model_part_name].GetMesh())
+        gid_io.FinalizeMesh()
+        gid_io.InitializeResults(label, self.Model[self.model_part_name].GetMesh())
+        if (self.params["framework"].GetString() ==  "Lagrangian"):
+            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.Model[self.model_part_name].Nodes, label, 0)
+        else:
+            gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY, self.Model[self.model_part_name].Nodes, label, 0)
+        gid_io.FinalizeResults()
+        
+        #raise NameError("DEBUG")
+
+def _linear_interpolation(x, x_list, y_list):
+    tb = KratosMultiphysics.PiecewiseLinearTable()
     for i in range(len(x_list)):
-        if x_list[i] <= x:
-            ind_inf = i
-            x_inf = x_list[ind_inf]
-        if x_list[-(1 + i)] >= x:
-            ind_sup = -(1 + i)
-            x_sup = x_list[ind_sup]
+        tb.AddRow(x_list[i], y_list[i])
+        
+    return tb.GetNearestValue(x)
 
-    if (x_sup - x_inf == 0):
-        y = y_list[ind_inf]
-    else:
-        prop_sup = (x - x_inf)/(x_sup - x_inf)
-        prop_inf = 1.0 - prop_sup
-        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup
-
-    return y
-
-
-def normpdf(x, mean, sd):
+def _normpdf(x, mean, sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     data = read_external_json(dir_path+"/normal_distribution.json")
     z = (x-mean)/sd
     z_list = data["Z"]
     prob_list = data["Prob"]
     if (z > 0):
-        prob = linear_interpolation(z, z_list, prob_list)
+        prob = _linear_interpolation(z, z_list, prob_list)
     else:
-        prob = 1.0 - linear_interpolation(-z, z_list, prob_list)
+        prob = 1.0 - _linear_interpolation(-z, z_list, prob_list)
     return prob
 
 
-def normvalf(prob, mean, sd):
+def _normvalf(prob, mean, sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     data = read_external_json(dir_path+"/normal_distribution.json")
     z_list = data["Z"]
     prob_list = data["Prob"]
     if (prob >= 0.5):
-        z = linear_interpolation(prob, prob_list, z_list)
+        z = _linear_interpolation(prob, prob_list, z_list)
     else:
-        z = - linear_interpolation(1.0 - prob, prob_list, z_list)
+        z = - _linear_interpolation(1.0 - prob, prob_list, z_list)
     x = z * sd + mean
     return x

@@ -74,20 +74,20 @@ public:
 	// Define an auxiliary structure to hold a pointer to the element of interest and a position in space to be searched for.
 	// This is needed to know the neighbours and where the element is for the filter.
 
-	class ElementPositionItem: public Point<3>
+	class ElementPositionItem: public Point
 	{
 	public:
 
 		KRATOS_CLASS_POINTER_DEFINITION( ElementPositionItem );
 
 		ElementPositionItem(): // This Constructor is used by the tree
-			Point<3>(),
+			Point(),
 			mpElement()
 			{
 			}
 
 		ElementPositionItem(array_1d<double,3> Coords, Element::Pointer pElement):
-			Point<3>(Coords),
+			Point(Coords),
 			mpElement(pElement)
 			{}
 

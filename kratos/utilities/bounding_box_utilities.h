@@ -113,10 +113,10 @@ public:
 };
 
 template<class TPointType, std::size_t TDimension>
-class Segment : public Point<TDimension, double>
+class Segment : public Point
 {
     enum {Dimension = TDimension };
-    typedef Point<Dimension, double>    PointType;
+    typedef Point    PointType;
     typedef array_1d<double, Dimension> VectorType;
 public:
 
@@ -188,7 +188,7 @@ public:
 //
 
     const static std::size_t dimension = 2;
-    typedef Point<dimension, double>                         PointType;
+    typedef Point                                            PointType;
     typedef Segment<PointType, 2>                            SegmentType;
     typedef SegmentType*                                     SegmentPointer;
     typedef std::vector<SegmentType>                         ContainerSegmentType;
@@ -681,7 +681,7 @@ public:
        {
 
       const std::size_t dimension = 2;
-      typedef Point<dimension, double>                         PointType;
+      typedef Point                         PointType;
            typedef ModelPart::ElementsContainerType::ContainerType  ElementsArrayType;
       typedef ElementsArrayType::value_type                    PointerType;
       typedef ElementsArrayType::iterator                      ElementsArrayTypeIterator;

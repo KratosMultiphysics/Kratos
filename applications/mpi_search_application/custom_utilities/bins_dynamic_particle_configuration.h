@@ -52,7 +52,7 @@ public:
     typedef std::size_t  SizeType;
     typedef std::size_t  IndexType;
 
-    typedef Kratos::Point<Dim>                  PointType;
+    typedef Kratos::Point                  PointType;
     typedef Kratos::Tetrahedra3D4<PointType>    ObjectType;
 
     typedef PointType*                          PtrPointType;

@@ -7,6 +7,7 @@ cmake .. \
 -DCMAKE_INSTALL_RPATH="${HOME}/Kratos/libs"                                                     \
 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                                        \
 -DCMAKE_CXX_COMPILER=${HOME}/CompiledLibs/clang-3.8.0-16.04-prebuilt/bin/clang++                \
+-DCMAKE_BUILD_TYPE=Custom                                                                      \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -fopenmp"                                              \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
@@ -23,7 +24,7 @@ cmake .. \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
 -DMESHING_APPLICATION=ON                                                                        \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
--DPARTICLE_MECHANICS_APPLICATION=OFF                                                            \
+-DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
 -DPFEM_APPLICATION=ON                                                                           \
 -DCONTACT_MECHANICS_APPLICATION=ON                                                              \
 -DPFEM_FLUID_DYNAMICS_APPLICATION=ON                                                            \
@@ -34,7 +35,7 @@ cmake .. \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
 -DSWIMMING_DEM_APPLICATION=ON                                                                   \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
--DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=OFF                                                  \
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMKL_SOLVERS_APPLICATION=OFF                                                                   \
 -DMKLSOLVER_INCLUDE_DIR=\"UNSET\"                                                               \
