@@ -10,8 +10,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "EigenValue",
-        "scheme_type"                        : "Dynamic",
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",

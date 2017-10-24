@@ -10,9 +10,9 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "NonLinear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "membrane_test/Membrane_Q4_PointLoad"
@@ -21,7 +21,7 @@
             "materials_filename": "membrane_test/Membrane_Q4_PointLoad_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "ResidualCriterion",
+        "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.000001,
         "displacement_absolute_tolerance"    : 1e-6,
         "residual_relative_tolerance"        : 0.000001,

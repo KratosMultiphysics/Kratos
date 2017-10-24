@@ -10,10 +10,10 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
         "buffer_size"                        : 3,
-        "analysis_type"                      : "ArcLength",
+        "analysis_type"                      : "arc_length",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "sprism_test/pan_test"
@@ -23,7 +23,7 @@
         "compute_reactions"                  : true,
         "block_builder"                      : false,
         "move_mesh_flag"                     : true,
-        "convergence_criterion"              : "AndCriterion",
+        "convergence_criterion"              : "and_criterion",
         "displacement_relative_tolerance"    : 1e-4,
         "displacement_absolute_tolerance"    : 1e-4,
         "residual_relative_tolerance"        : 1e-4,

@@ -10,16 +10,16 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "NonLinear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test",
             "input_file_label" : 0
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "AndCriterion",
+        "convergence_criterion"              : "and_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
