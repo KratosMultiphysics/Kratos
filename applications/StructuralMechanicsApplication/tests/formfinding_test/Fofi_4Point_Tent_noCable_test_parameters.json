@@ -10,9 +10,9 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "static",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "formfinding",
+        "analysis_type"                      : "FormFinding",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"
@@ -21,7 +21,7 @@
             "materials_filename": "formfinding_test/Fofi_4Point_Tent_noCable_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
+        "convergence_criterion"              : "ResidualCriterion",
         "residual_relative_tolerance"        : 0.00000001,
         "max_iteration"                      : 1,
 		"move_mesh_flag"					 : true,

@@ -11,9 +11,9 @@
     },
     "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
-        "solver_type"                        : "static",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "non_linear",
+        "analysis_type"                      : "NonLinear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "shell_test/Shell_T3_Thick_linear_static_test"
@@ -22,7 +22,7 @@
             "materials_filename": "shell_test/Shell_T3_Thick_linear_static_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
+        "convergence_criterion"              : "ResidualCriterion",
         "displacement_relative_tolerance"    : 1e-9,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 1e-9,
