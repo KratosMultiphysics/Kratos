@@ -403,7 +403,8 @@ protected:
                     domains_graph(index2, index1) = 1;
                 }
 
-            int max_color = 2 * num_processors;
+            // max_color is overwritten by the GraphColoringProcess.
+            int max_color = 2 * num_processors; // Max. number of one-directional communications (this has no effect).
             GraphColoringProcess coloring_process(num_processors, domains_graph, domains_colored_graph, max_color);
             coloring_process.Execute();
             // Count max colors.
