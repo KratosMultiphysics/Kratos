@@ -2,8 +2,16 @@
 
 namespace Kratos
 {
+
 HDF5ModelPartIO::HDF5ModelPartIO(Parameters& rParams, HDF5File::Pointer pFile)
+: mpFile(pFile)
 {
+    m_pid = pFile->GetPID();
+}
+
+bool HDF5ModelPartIO::ReadNodes(NodesContainerType& rThisNodes)
+{
+    return true;
 }
 
 std::size_t HDF5ModelPartIO::ReadNodesNumber()
@@ -13,6 +21,7 @@ std::size_t HDF5ModelPartIO::ReadNodesNumber()
 
 void HDF5ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
+
 }
 
 void HDF5ModelPartIO::ReadElements(NodesContainerType& rThisNodes,
@@ -57,5 +66,10 @@ void HDF5ModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
 void HDF5ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
 {
+}
+
+unsigned HDF5ModelPartIO::GetPID() const
+{
+    return m_pid;
 }
 } // namespace Kratos.

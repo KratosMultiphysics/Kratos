@@ -51,6 +51,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    bool ReadNodes(NodesContainerType& rThisNodes) override;
 
     std::size_t ReadNodesNumber() override;
 
@@ -82,10 +83,17 @@ public:
 
     ///@}
 
+protected:
+    ///@name Protected Operations
+    ///@{
+    unsigned GetPID() const;
+    ///@}
+
 private:
     ///@name Member Variables
     ///@{
     HDF5File::Pointer mpFile;
+    unsigned m_pid;
     ///@}
 
     ///@name Private Operations

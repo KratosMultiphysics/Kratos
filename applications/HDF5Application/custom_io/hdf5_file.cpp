@@ -292,6 +292,11 @@ void HDF5File::SetEchoLevel(int Level)
     m_echo_level = Level;
 }
 
+unsigned HDF5File::GetPID() const
+{
+    return 0;
+}
+
 void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;

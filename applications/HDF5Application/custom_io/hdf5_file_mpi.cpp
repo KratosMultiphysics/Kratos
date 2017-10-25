@@ -72,6 +72,14 @@ void HDF5FileMPI::WriteDataSetIndependent(std::string Path, const std::vector<ar
     KRATOS_CATCH("");
 }
 
+unsigned HDF5FileMPI::GetPID() const
+{
+    int rank, ierr;
+    ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
+    return static_cast<unsigned>(rank);
+}
+
 void HDF5FileMPI::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;

@@ -152,6 +152,8 @@ public:
 
     void SetEchoLevel(int Level);
 
+    virtual unsigned GetPID() const;
+
     /// Read a data set from the HDF5 file.
     /**
      * Performs collective read in MPI.
@@ -258,7 +260,8 @@ private:
     template <class T>
     void WriteDataPartitionImpl(std::string Path, const std::vector<T>& rData)
     {
-        std::vector<int> partition{0, rData.size()}; // Serial partition.
+        int n = rData.size();
+        std::vector<int> partition{0, n}; // Serial partition.
         WriteDataSet(Path, partition);
     }
 

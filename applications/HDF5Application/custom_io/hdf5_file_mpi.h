@@ -74,6 +74,8 @@ public:
     void WriteDataSetIndependent(std::string Path,
                                 const std::vector<array_1d<double, 3>>& rData) override;
 
+    unsigned GetPID() const override;
+
     void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize) override;
 
     void ReadDataSet(std::string Path,
