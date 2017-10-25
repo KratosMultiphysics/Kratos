@@ -138,7 +138,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         if(self.settings["line_search"].GetBool()):
             mechanical_solver = self._create_line_search_strategy()
         else:
-            if self.settings["analysis_type"].GetString() == "Linear":
+            if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solver = self._create_linear_strategy()
             else:
                 if  self.contact_settings["mortar_type"].GetString() != "":
