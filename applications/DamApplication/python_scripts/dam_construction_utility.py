@@ -16,6 +16,12 @@ class DamConstructionUtility:
         times_input_file_name = parameters["times_input_file_name"].GetString()
         ambient_input_file_name = parameters["ambient_input_file_name"].GetString()
         
+        # Getting the part corresponding to soil part for its activation in the initialize
+        part_number = parameters["soil_part"].GetString()
+        parameters.RemoveValue("soil_part")
+        parameters.AddEmptyValue("mechanical_soil_part").SetString("Parts_Parts_"+part_number[6:])
+        parameters.AddEmptyValue("thermal_soil_part").SetString("Thermal_Part_"+part_number[6:])
+
         self.table_phase = PiecewiseLinearTable()
         with open(phase_input_file_name,'r') as file_name1:
             for j, line in enumerate(file_name1):
@@ -70,9 +76,6 @@ class DamConstructionUtility:
                     for thermal_linea in it_t:
                         thermal_name = thermal_linea.rstrip('\n')
 
-                print(thermal_name)
-                print(self.table_phase.GetValue(i))
-                print(phase_time)
                 self.Construction.ActiveHeatFlux(thermal_name,int(self.table_phase.GetValue(i)),phase_time)
 
     def AfterOutputStep(self):

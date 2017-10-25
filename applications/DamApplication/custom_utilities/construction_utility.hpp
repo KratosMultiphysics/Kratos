@@ -58,7 +58,9 @@ public:
             mAlpha = rParameters["alpha"].GetDouble();
             mTMax = rParameters["tmax"].GetDouble();
             mH0 = rParameters["h_0"].GetDouble();
-            mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];    
+            mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
+            mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();   
+            mThermalSoilPart = rParameters["thermal_soil_part"].GetString();   
             
             KRATOS_CATCH("");
         }
@@ -107,13 +109,13 @@ void Initialize()
 
     }
 
-    const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").Elements().size();   
-    const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").Nodes().size();
+    const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();   
+    const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
 
     if (soil_nelements != 0)
     {
-        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").ElementsBegin();
-        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart("Thermal_Part_Auto_9").ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).ElementsBegin();
+        ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).ElementsBegin();
         mNumNode = el_begin->GetGeometry().PointsNumber();
 
         #pragma omp parallel for
@@ -126,7 +128,7 @@ void Initialize()
         }
 
         // Same nodes for both computing model part
-        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.GetSubModelPart("Parts_Parts_Auto9").NodesBegin();        
+        ModelPart::NodesContainerType::iterator it_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).NodesBegin();        
         #pragma omp parallel for
         for(unsigned int i = 0; i<soil_nnodes; ++i)
         {
@@ -527,6 +529,8 @@ protected:
     int mNumNode;
     std::size_t mMeshId;
     std::string mGravityDirection;
+    std::string mMechanicalSoilPart;
+    std::string mThermalSoilPart;    
     double mReferenceCoordinate;
     double mHeight;
     int mPhases;
