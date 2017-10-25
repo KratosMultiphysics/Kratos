@@ -65,13 +65,13 @@ public:
     
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef typename SparseSpaceType::MatrixType SparseMatrixType;
+    typedef SparseSpaceType::MatrixType SparseMatrixType;
 
-    typedef typename SparseSpaceType::VectorType VectorType;
+    typedef SparseSpaceType::VectorType VectorType;
 
-    typedef typename LocalSpaceType::MatrixType DenseMatrixType;
+    typedef LocalSpaceType::MatrixType DenseMatrixType;
 
-    typedef typename LocalSpaceType::VectorType DenseVectorType;
+    typedef LocalSpaceType::VectorType DenseVectorType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 

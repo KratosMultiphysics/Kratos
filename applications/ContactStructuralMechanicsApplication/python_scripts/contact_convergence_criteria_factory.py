@@ -15,7 +15,7 @@ class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
         # Note that all the convergence settings are introduced via a Kratos parameters object.
         
-        if "Contact" in convergence_criterion_parameters["convergence_criterion"].GetString():
+        if "contact" in convergence_criterion_parameters["convergence_criterion"].GetString():
             D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
             D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
             R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
@@ -37,28 +37,28 @@ class convergence_criterion:
             if (fancy_convergence_criterion == True):
                 table = KratosMultiphysics.TableStreamUtility()
             
-            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Contact_Displacement_criterion"):
+            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "contact_displacement_criterion"):
                 if (fancy_convergence_criterion == True):
                     self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact, table, print_convergence_criterion)
                 else:
                     self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Contact_Residual_criterion"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "contact_residual_criterion"):
                 if (fancy_convergence_criterion == True):
                     self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, table, print_convergence_criterion)
                 else:
                     self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Contact_Mixed_criterion"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "contact_mixed_criterion"):
                 if (fancy_convergence_criterion == True):
                     self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, table, print_convergence_criterion)
                 else:
                     self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
                     
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Contact_And_criterion"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "contact_and_criterion"):
                 if (fancy_convergence_criterion == True):
                     Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, table, print_convergence_criterion)
                     Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, table, print_convergence_criterion)
@@ -70,7 +70,7 @@ class convergence_criterion:
                 Residual.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Contact_Or_criterion"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "contact_or_criterion"):
                 if (fancy_convergence_criterion == True):
                     Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, table, print_convergence_criterion)
                     Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, table, print_convergence_criterion)

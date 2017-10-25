@@ -14,7 +14,7 @@
     },
     "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
-        "solver_type"                        : "dynamic",
+        "solver_type"                        : "Dynamic",
         "analysis_type"                      : "non_linear",
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",

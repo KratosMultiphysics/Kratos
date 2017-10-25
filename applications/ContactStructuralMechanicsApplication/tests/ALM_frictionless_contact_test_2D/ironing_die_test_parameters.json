@@ -12,8 +12,8 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 1,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/ironing_die_test"
@@ -30,7 +30,7 @@
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
-        "convergence_criterion"              : "Contact_Residual_criterion",
+        "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
