@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "mapper_utilities.h"
 #include "../mapping_application_variables.h"
 
@@ -60,7 +61,7 @@ namespace Kratos
 * objects of this type have to be created
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceObject : public Point<3>
+class InterfaceObject : public Point
 {
 public:
     ///@name Type Definitions
@@ -84,7 +85,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z)   // constuct from coordinates
+    InterfaceObject(double X, double Y, double Z) : Point(X, Y, Z)   // constuct from coordinates
     {
         SetInitialValuesToMembers();
     }
@@ -253,7 +254,7 @@ protected:
     ///@{
 
     // This constructor is called by its derived classes
-    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)
+    InterfaceObject() : Point(0.0f, 0.0f, 0.0f)
     {
         SetInitialValuesToMembers();
     }
@@ -319,6 +320,23 @@ private:
     int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
     int mNeighborRank;
     bool mIsBeingSent;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+    
+    virtual void save(Serializer& rSerializer) const 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
+    }
+    virtual void load(Serializer& rSerializer) 
+    {
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
+    }
 
     ///@}
     ///@name Private Operators

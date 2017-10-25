@@ -10,14 +10,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 # Exact integration tests
-from TestExactIntegration import TestLineExactIntegration1          as TTestLineExactIntegration1
-from TestExactIntegration import TestLineExactIntegration2          as TTestLineExactIntegration2
-from TestExactIntegration import TestLineExactIntegration3          as TTestLineExactIntegration3
-from TestExactIntegration import TestTriangleExactIntegration1      as TTestTriangleExactIntegration1
-from TestExactIntegration import TestTriangleExactIntegration2      as TTestTriangleExactIntegration2
-from TestExactIntegration import TestTriangleExactIntegration3      as TTestTriangleExactIntegration3
-from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
-from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 
 # Mesh tying tests
@@ -57,6 +49,9 @@ from NightlyTests import ALMHertzCompleteTestContact         as TALMHertzComplet
 # ALM frictionless tests
 from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
 from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
+from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
+from ValidationTests import ALMLargeDisplacementPatchTestTetra as TALMLargeDisplacementPatchTestTetra
+from ValidationTests import ALMLargeDisplacementPatchTestHexa as TALMLargeDisplacementPatchTestHexa
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -75,15 +70,9 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     # Exact integration tests
-    smallSuite.addTest(TTestLineExactIntegration1('test_execution'))
-    smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
-    smallSuite.addTest(TTestLineExactIntegration3('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration2('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
-    smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
-    smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
-    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_triangle'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_quad'))
+    smallSuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
     
     # Mesh tying tests 
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -124,20 +113,15 @@ def AssambleTestSuites():
     validationSuite.addTests(nightSuite)
     #validationSuite.addTest(TALMIroningTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
-
+    validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
+    validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
+    validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
+    
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             ## SMALL
-            TTestLineExactIntegration1,
-            TTestLineExactIntegration2,
-            TTestLineExactIntegration3,
-            TTestTriangleExactIntegration1,
-            TTestTriangleExactIntegration2,
-            TTestTriangleExactIntegration3,
-            TTestQuadrilateralExactIntegration1,
-            TTestQuadrilateralExactIntegration2,
             TTestDoubleCurvatureIntegration,
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
@@ -161,7 +145,7 @@ def AssambleTestSuites():
             TALMMeshMovingMatchingTestContact,
             TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
-            TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
+            TALMTaylorPatchDynamicTestContact,
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
@@ -169,6 +153,9 @@ def AssambleTestSuites():
             ## VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
+            #TLargeDisplacementPatchTestHexa,
+            #TALMLargeDisplacementPatchTestTetra,
+            #TALMLargeDisplacementPatchTestHexa,
         ])
     )
 

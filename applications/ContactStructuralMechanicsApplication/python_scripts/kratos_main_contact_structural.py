@@ -24,8 +24,8 @@ main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"]
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 ## Solver construction
-import python_solvers_wrapper_structural
-solver = python_solvers_wrapper_structural.CreateSolver(main_model_part, ProjectParameters)
+import python_solvers_wrapper_contact_structural
+solver = python_solvers_wrapper_contact_structural.CreateSolver(main_model_part, ProjectParameters)
 
 solver.AddVariables()
 
@@ -72,6 +72,8 @@ list_of_processes = process_factory.KratosProcessFactory(StructureModel).Constru
 list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["loads_process_list"])
 if (ProjectParameters.Has("list_other_processes") == True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
+if (ProjectParameters.Has("contact_process_list") == True):
+    list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["contact_process_list"])
 if (ProjectParameters.Has("json_output_process") == True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["json_output_process"])
 

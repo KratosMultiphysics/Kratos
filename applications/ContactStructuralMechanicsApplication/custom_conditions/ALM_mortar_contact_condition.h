@@ -26,12 +26,7 @@
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
-
-/* Custom includes */
-#include "custom_includes/mortar_operator.h"
-#include "custom_includes/dual_LM_operators.h"
-#include "custom_includes/mortar_kinematic_variables.h"
-#include "custom_includes/point_belong.h"
+#include "includes/mortar_classes.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -51,7 +46,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                  PointType;
+    typedef Point                                  PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -251,6 +246,18 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
+       
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition contribution in explicit calculation.
+     * NodalData is modified Inside the function, so the
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+      * @param rCurrentProcessInfo: the current process info instance
+     */
+    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
         
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/

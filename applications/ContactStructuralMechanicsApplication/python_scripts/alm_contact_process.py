@@ -37,7 +37,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "normal_variation"            : false,
             "pair_variation"              : true,
             "manual_ALM"                  : false,
-            "stiffness_factor"            : 10.0,
+            "stiffness_factor"            : 1.0,
             "penalty_scale_factor"        : 1.0,
             "use_scale_factor"            : true,
             "penalty"                     : 0.0,
@@ -47,7 +47,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "use_exact_integration"       : true,
             "hard_clear_after_step"       : false,
             "database_step_update"        : 1,
-            "integration_order"           : 2,
+            "integration_order"           : 3,
             "predict_with_linear_solver"  : false,
             "max_gap_factor"              : 0.0,
             "linear_solver_settings"      : {
@@ -121,10 +121,7 @@ class ALMContactProcess(python_process.PythonProcess):
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_PAIR_VARIATION] = self.params["pair_variation"].GetBool()
         # We set the max gap factor for the gap adaptation
         max_gap_factor = self.params["max_gap_factor"].GetDouble()
-        if (max_gap_factor > 0.0):
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = True
-        else:
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = False
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ADAPT_PENALTY] = (max_gap_factor > 0.0)
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.MAX_GAP_FACTOR] = max_gap_factor
         
         # We set the value that scales in the tangent direction the penalty and scale parameter
@@ -200,16 +197,16 @@ class ALMContactProcess(python_process.PythonProcess):
             self.alm_var_process.Execute()
             # We don't consider scale factor
             if (self.params["use_scale_factor"].GetBool() == False):
-                self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR] = 1.0
+                self.main_model_part.ProcessInfo[KratosMultiphysics.SCALE_FACTOR] = 1.0
         else:
             # We set the values in the process info
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER] = self.params["penalty"].GetDouble()
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR] = self.params["scale_factor"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.INITIAL_PENALTY] = self.params["penalty"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SCALE_FACTOR] = self.params["scale_factor"].GetDouble()
             
         # We print the parameters considered
         print("The parameters considered finally are: ")            
-        print("SCALE_FACTOR: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]))
-        print("PENALTY_PARAMETER: ","{:.2e}".format(self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER]))
+        print("SCALE_FACTOR: ","{:.2e}".format(self.main_model_part.ProcessInfo[KratosMultiphysics.SCALE_FACTOR]))
+        print("INITIAL_PENALTY: ","{:.2e}".format(self.main_model_part.ProcessInfo[KratosMultiphysics.INITIAL_PENALTY]))
             
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)

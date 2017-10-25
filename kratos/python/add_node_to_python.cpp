@@ -148,7 +148,7 @@ void  AddNodeToPython()
 
 
     class_<NodeType, NodeType::Pointer, bases<NodeType::BaseType, IndexedObject, Flags >, boost::noncopyable >("Node", init<int, double, double, double>())
-    .def(init<int, const Point<3>& >())
+    .def(init<int, const Point& >())
     .def(VariableIndexingPython<NodeType, Variable<bool> >())
     .def(VariableIndexingPython<NodeType, Variable<bool> >())
     .def(VariableIndexingPython<NodeType, Variable<int> >())

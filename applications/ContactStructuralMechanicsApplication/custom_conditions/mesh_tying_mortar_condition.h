@@ -25,14 +25,10 @@
 #include "includes/ublas_interface.h"
 #include "includes/condition.h"
 #include "includes/kratos_flags.h"
+#include "includes/mortar_classes.h"
 
 /* Utilities */
 #include "utilities/math_utils.h"
-
-/* Custom includes */
-#include "custom_includes/mortar_operator.h"
-#include "custom_includes/dual_LM_operators.h"
-#include "custom_includes/mortar_kinematic_variables.h"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
@@ -48,7 +44,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                             PointType;
+    typedef Point                                             PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
     
@@ -106,9 +102,9 @@ public:
     
     typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
     
-    typedef Line2D2<Point<3>>                                                            LineType;
+    typedef Line2D2<Point>                                                            LineType;
     
-    typedef Triangle3D3<Point<3>>                                                    TriangleType;
+    typedef Triangle3D3<Point>                                                    TriangleType;
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 

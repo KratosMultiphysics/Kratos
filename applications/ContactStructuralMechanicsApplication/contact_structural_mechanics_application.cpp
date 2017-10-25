@@ -80,7 +80,6 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // VARIABLES
     /* Mortar method general variables */
-    KRATOS_REGISTER_VARIABLE( CONTACT_MAPS )                                    // An unordened map of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
     KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator
@@ -99,8 +98,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )               // The resultant augmented pressure in the normal direction
     KRATOS_REGISTER_VARIABLE( AUGMENTED_TANGENT_CONTACT_PRESSURE )              // The resultant augmented pressure in the tangent direction
-    KRATOS_REGISTER_VARIABLE( PENALTY_PARAMETER )                               // The penalty factor for the ALM
-    KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
     KRATOS_REGISTER_VARIABLE( TANGENT_FACTOR )                                  // The proportion between the tangent and normal penalty
     KRATOS_REGISTER_VARIABLE( CONSIDER_NORMAL_VARIATION )                       // A value used to check if consider normal variation or not
     KRATOS_REGISTER_VARIABLE( CONSIDER_PAIR_VARIATION )                         // A value used to check if consider variation or not in the active inactive pairs

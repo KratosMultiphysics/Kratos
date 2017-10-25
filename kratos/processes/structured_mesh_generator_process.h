@@ -41,10 +41,10 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class StructuredMeshGeneratorProcess : public Process
+  class KRATOS_API(KRATOS_CORE) StructuredMeshGeneratorProcess : public Process
     {
     public:
-		using GeometryType = Geometry<Point<3> >;
+        using GeometryType = Geometry<Node<3> >;
       ///@name Type Definitions
       ///@{
 
@@ -58,10 +58,14 @@ namespace Kratos
       /// Default constructor is deleted.
       StructuredMeshGeneratorProcess() = delete;
 
-	  /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
-	  StructuredMeshGeneratorProcess(GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters TheParameters);
+      /// Constructors to be used. They take the geometry to be meshed and ModelPart to be filled. The second constructor is
+      /// provided for the Python interface.
+      StructuredMeshGeneratorProcess(const GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters& TheParameters);
 
-	  /// The object is not copyable.
+      StructuredMeshGeneratorProcess(GeometryType::Pointer pGeometry, ModelPart& rOutputModelPart, Parameters& TheParameters):
+          StructuredMeshGeneratorProcess(*pGeometry, rOutputModelPart, TheParameters){KRATOS_WATCH(mNumberOfDivisions)};
+
+      /// The object is not copyable.
 	  StructuredMeshGeneratorProcess(StructuredMeshGeneratorProcess const& rOther) = delete;
 
       /// Destructor.
@@ -120,8 +124,7 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-		  GeometryType& mrGeometry;
-
+          const GeometryType& mrGeometry;
 		  std::size_t mNumberOfDivisions;
 		  std::size_t mStartNodeId;
 		  std::size_t mStartElementId;
@@ -130,7 +133,7 @@ namespace Kratos
 		  std::size_t mConditiongPropertiesId;
 		  std::string mElementName;
 		  std::string mConditionName;
-		  bool mCrateSkinSubModelPart;
+          bool mCreateSkinSubModelPart;
 		  ModelPart& mrOutputModelPart;
 
 
@@ -140,11 +143,11 @@ namespace Kratos
 
 		  void Generate2DMesh();
 
-		  void Generate3DMesh();
+          void Generate3DMesh();
 
-		  void GenerateNodes2D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint);
+		  void GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint);
 
-		  void GenerateNodes3D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint);
+		  void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
 
 		  void GenerateTriangularElements();
 
@@ -154,7 +157,15 @@ namespace Kratos
 
 		  std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
 
-		  void GetLocalCoordinatesRange(Point<3>& rMinPoint, Point<3>& rMaxPoint);
+		  void GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint);
+
+          void Check();
+
+          bool CheckDomainGeometry();
+
+          bool CheckDomainGeometryConnectivityForQuadrilateral2D4();
+
+          bool CheckDomainGeometryConnectivityForHexahedra3D8();
 
       ///@}
       ///@name Private  Access

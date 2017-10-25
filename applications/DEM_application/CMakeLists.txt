@@ -100,6 +100,7 @@ add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
 ADD_COMPILER_EXPORT_FLAGS()
 target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
+set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
 install(TARGETS KratosDEMApplication DESTINATION libs )
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
@@ -117,7 +118,6 @@ endif()
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .pyd)
-    set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so

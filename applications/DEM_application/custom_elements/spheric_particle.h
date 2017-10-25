@@ -99,6 +99,9 @@ array_1d<double, 3> mDomainMin;
 array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
+
+std::vector<DEMWall*> mNeighbourRigidFaces;
+
 };
 
 typedef std::unique_ptr<ParticleDataBuffer> BufferPointerType;
@@ -256,6 +259,7 @@ double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<int>                  mContactingNeighbourIds;
+std::vector<int>                  mContactingFaceNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
@@ -285,13 +289,13 @@ protected:
 
 SphericParticle();
 
-virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
+virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
+                                                array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
                                                 double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
-                                                ProcessInfo& r_process_info,
-                                                double mTimeStep,
-                                                int search_control) final;
+                                                ProcessInfo& r_process_info,                                                
+                                                int search_control) ;
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
 

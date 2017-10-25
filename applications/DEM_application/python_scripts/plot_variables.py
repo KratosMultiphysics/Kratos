@@ -16,6 +16,7 @@ class variable_plotter:
         for node in model_part.Nodes:
             for id in list_of_nodes_ids:
                 if node.Id == id:
+                    print(id)
                     self.list_of_nodes.append(node)
                     file_writer = open("variables_for_node_" + str(id) + ".txt", 'w');
                     file_writer.write("#Time  DISPLACEMENT_X  DISPLACEMENT_Y  DISPLACEMENT_Z  ")

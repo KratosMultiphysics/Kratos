@@ -21,7 +21,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "custom_includes/condition_map.h"
 
 namespace Kratos
 {
@@ -30,7 +29,6 @@ typedef array_1d<double,3> Vector3;
 
 // VARIABLES
 /* Mortar method */ 
-KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_MAPS )              // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                          // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                            // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                            // Mortar Contact Operator
@@ -49,8 +47,6 @@ KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                  
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )                 // The resultant augmented pressure in the normal direction
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_TANGENT_CONTACT_PRESSURE )                // The resultant augmented pressure in the tangent direction
-KRATOS_DEFINE_VARIABLE( double, PENALTY_PARAMETER )                                 // The penalty factor for the ALM
-KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                      // The scale factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                                    // The proportion between the tangent and normal penalty
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                           // A value used to check if consider normal variation or not
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                             // A value used to check if consider variation or not in the active inactive pairs

@@ -58,7 +58,7 @@ namespace Kratos
 /** @brief Custom Gauss Point container to be used by the search
  */
 class GaussPointItem
-    : public Point<3>
+    : public Point
 {
 public:
 
@@ -73,12 +73,12 @@ public:
 
     /// Default constructors
     GaussPointItem():
-        Point<3>()
+        Point()
     {
     }
 
     GaussPointItem(const array_1d<double, 3> Coords):
-        Point<3>(Coords)
+        Point(Coords)
     {
     }
 
@@ -86,7 +86,7 @@ public:
         const array_1d<double, 3> Coords,
         ConstitutiveLaw::Pointer pConstitutiveLaw,
         const double Weight
-        ):Point<3>(Coords),
+        ):Point(Coords),
           mpConstitutiveLaw(std::move(pConstitutiveLaw)),
           mWeight(Weight)
     {
@@ -111,9 +111,9 @@ public:
      * @return The point
      */
 
-    Point<3> GetPoint()
+    Point GetPoint()
     {
-        Point<3> Point(this->Coordinates());
+        Point Point(this->Coordinates());
 
         return Point;
     }
@@ -123,7 +123,7 @@ public:
      * @param The point
      */
 
-    void SetPoint(const Point<3> Point)
+    void SetPoint(const Point Point)
     {
         this->Coordinates() = Point.Coordinates();
     }

@@ -32,15 +32,15 @@
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 
 /* Utilities */
-#include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/mortar_utilities.h"
+#include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos 
 {
     namespace Testing 
     {
 
-        typedef Point<3>                                             PointType;
+        typedef Point                                             PointType;
         typedef Node<3>                                               NodeType;
         typedef Geometry<NodeType>                            GeometryNodeType;
         typedef Geometry<PointType>                          GeometryPointType;
@@ -580,8 +580,8 @@ namespace Kratos
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                ContactUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, false);
-                ContactUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, true);
+                MortarUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, false);
+                MortarUtilities::RotatePoint( aux_geometry[i_node], center, slave_tangent_xi, slave_tangent_eta, true);
             }
             
             const double tolerance = 1.0e-6;

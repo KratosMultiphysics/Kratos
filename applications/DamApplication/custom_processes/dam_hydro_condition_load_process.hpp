@@ -39,9 +39,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamHydroConditionLoadProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamHydroConditionLoadProcess(ModelPart& rModelPart,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
 			 
@@ -51,7 +51,6 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                              : false,
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
@@ -70,19 +69,18 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mspecific = rParameters["Spe_weight"].GetDouble();
-        mwater_level = rParameters["Water_level"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mSpecific = rParameters["Spe_weight"].GetDouble();
+        mWaterLevel = rParameters["Water_level"].GetDouble();
         
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["Water_Table"].GetInt();
         
         if(mTableId != 0)
-            mpTable = model_part.pGetTable(mTableId);
+            mpTable = mrModelPart.pGetTable(mTableId);
 
         
         KRATOS_CATCH("");
@@ -106,34 +104,29 @@ public:
     {
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         int direction;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
         
-		double ref_coord = mreference_coordinate + mwater_level;     
+		double ref_coord = mReferenceCoordinate + mWaterLevel;     
                        
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if(mis_fixed)
-                {
-                    it->Fix(var);
-                }
-                
-                double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
+                double pressure = (mSpecific*(ref_coord- (it->Coordinate(direction))));
                 
                 if(pressure>0.0)
                 {
@@ -156,44 +149,39 @@ public:
         
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
         
         // Getting the values of table in case that it exist        
         if(mTableId != 0)
         { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mwater_level = mpTable->GetValue(time);
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time/mTimeUnitConverter;
+            mWaterLevel = mpTable->GetValue(time);
         }
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         
         int direction;
         
-        if( mgravity_direction == "X")
+        if( mGravityDirection == "X")
             direction = 1;
-        else if( mgravity_direction == "Y")
+        else if( mGravityDirection == "Y")
             direction = 2;
         else
             direction = 3;
                 
-        double ref_coord = mreference_coordinate + mwater_level;        
+        double ref_coord = mReferenceCoordinate + mWaterLevel;        
         
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if(mis_fixed)
-                {
-                    it->Fix(var);
-                }
-                
-                double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
+               
+                double pressure = (mSpecific*(ref_coord- (it->Coordinate(direction))));
                                
                 if(pressure>0.0)
                 {
@@ -232,15 +220,14 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    std::string mgravity_direction;
-    bool mis_fixed;
-    double mreference_coordinate;
-    double mspecific;
-    double mwater_level;
-    double mtime_unit_converter;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    std::string mGravityDirection;
+    double mReferenceCoordinate;
+    double mSpecific;
+    double mWaterLevel;
+    double mTimeUnitConverter;
     TableType::Pointer mpTable;
     int mTableId;
 

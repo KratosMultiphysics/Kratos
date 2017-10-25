@@ -11,7 +11,6 @@
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
@@ -24,7 +23,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos

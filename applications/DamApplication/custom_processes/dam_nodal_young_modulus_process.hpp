@@ -37,9 +37,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamNodalYoungModulusProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamNodalYoungModulusProcess(ModelPart& rmodel_part,
+                                Parameters& rParameters
+                                ) : Process(Flags()) , mrModelPart(rmodel_part)
     {
         KRATOS_TRY
 			 
@@ -65,13 +65,13 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        myoung_1 = rParameters["Young_Modulus_1"].GetDouble();
-        myoung_2 = rParameters["Young_Modulus_2"].GetDouble();
-        myoung_3 = rParameters["Young_Modulus_3"].GetDouble();
-        myoung_4 = rParameters["Young_Modulus_4"].GetDouble();
+        mMeshId = rParameters["mesh_id"].GetInt();
+        mVariableName = rParameters["variable_name"].GetString();
+        mIsFixed = rParameters["is_fixed"].GetBool();
+        mYoung1 = rParameters["Young_Modulus_1"].GetDouble();
+        mYoung2 = rParameters["Young_Modulus_2"].GetDouble();
+        mYoung3 = rParameters["Young_Modulus_3"].GetDouble();
+        mYoung4 = rParameters["Young_Modulus_4"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -89,24 +89,24 @@ public:
         
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
         
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
-                if(mis_fixed)
+                if(mIsFixed)
                 {
                     it->Fix(var);
                 }
                                 
-                double Young = myoung_1 + (myoung_2*it->Coordinate(1)) + (myoung_3*it->Coordinate(2)) + (myoung_4*it->Coordinate(3));
+                double Young = mYoung1 + (mYoung2*it->Coordinate(1)) + (mYoung3*it->Coordinate(2)) + (mYoung4*it->Coordinate(3));
 
                 if(Young <= 0.0)
                 {                   
@@ -128,24 +128,24 @@ public:
         
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
                 
     if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
         
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
-                if(mis_fixed)
+                if(mIsFixed)
                 {
                     it->Fix(var);
                 }
                 
-                double Young = myoung_1 + (myoung_2*it->Coordinate(1)) + (myoung_3*it->Coordinate(2)) + (myoung_4*it->Coordinate(3));
+                double Young = mYoung1 + (mYoung2*it->Coordinate(1)) + (mYoung3*it->Coordinate(2)) + (mYoung4*it->Coordinate(3));
                 
                 if(Young <= 0.0)
                 {                   
@@ -183,14 +183,14 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    bool mis_fixed;
-    double myoung_1;
-    double myoung_2;
-    double myoung_3;
-    double myoung_4;
+    ModelPart& mrModelPart;
+    std::size_t mMeshId;
+    std::string mVariableName;
+    bool mIsFixed;
+    double mYoung1;
+    double mYoung2;
+    double mYoung3;
+    double mYoung4;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

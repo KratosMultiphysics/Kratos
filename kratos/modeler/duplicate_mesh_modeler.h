@@ -65,7 +65,7 @@ public:
 
     typedef Modeler BaseType;
 
-    typedef Point < 3 > PointType;
+    typedef Point PointType;
 
     typedef Node < 3 > NodeType;
 

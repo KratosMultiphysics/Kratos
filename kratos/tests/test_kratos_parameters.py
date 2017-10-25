@@ -1,5 +1,7 @@
 ﻿from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Parameters
+from KratosMultiphysics import Vector
+from KratosMultiphysics import Matrix
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -121,6 +123,71 @@ expected_validation_output = """{
     }
 }"""
 
+four_levels = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "level2": {
+            "level3": {
+                "level4": {
+                }
+            }
+        } 
+    }
+}"""
+
+four_levels_variation = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "a":11.0,
+        "level2": {
+            "level3": {
+                "level4": {
+                }
+            }
+        } 
+    }
+}"""
+
+four_levels_wrong_variation = """{
+    "int_value": 10,
+    "double_value": "hi",
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "a":11.0,
+        "level2": {
+            "level3": {
+                "level4": {
+                }
+            }
+        } 
+    }
+}"""
+
+four_levels_defaults = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { 
+        "a":1.0,
+        "level2": {
+            "b":2.0,
+            "level3": {
+                "c":3.0,
+                "level4": {
+                    "d":4.0
+                }
+            }
+        } 
+    }
+}"""
 
 class TestParameters(KratosUnittest.TestCase):    
 
@@ -216,6 +283,22 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             kp.RecursivelyValidateAndAssignDefaults(defaults_params)
 
+    def test_recursive_validation_4_levels(self):
+        kp = Parameters(four_levels)
+        kp_variation = Parameters(four_levels_variation)
+        kp_wrong_wariation = Parameters(four_levels_wrong_variation)
+        defaults_params = Parameters(four_levels_defaults)
+
+        kp.RecursivelyValidateAndAssignDefaults(defaults_params)
+        kp_variation.RecursivelyValidateAndAssignDefaults(defaults_params)
+
+        self.assertTrue( kp.IsEquivalentTo(defaults_params) )
+        self.assertFalse( kp_variation.IsEquivalentTo(defaults_params) )
+        
+        self.assertTrue( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        self.assertTrue( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        self.assertFalse( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        
     def test_validation_succeds_error_on_first_level(self):
         kp = Parameters(wrong_lev2)
         defaults_params = Parameters(defaults)
@@ -256,8 +339,6 @@ class TestParameters(KratosUnittest.TestCase):
             #print(key,value)
             
         #testing values
-                          
-
         expected_values = ['10', '2.0', 'true', '"hello"', '{"list_value":[3,"hi",false],"tmp":5.0}']
         counter = 0
         
@@ -276,14 +357,172 @@ class TestParameters(KratosUnittest.TestCase):
         kp = Parameters(json_string)
         self.assertTrue(kp.Has("int_value"))
         self.assertTrue(kp.Has("level1"))
-        print(kp)
                          
         kp.RemoveValue("int_value")
         kp.RemoveValue("level1")
         
-        print(kp)
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
+    def test_is_methods(self):
+        # This method checks all the "IsXXX" Methods
+        tmp = Parameters("""{
+            "int_value" : 10,   
+            "double_value": 2.0,   
+            "bool_value" : true,   
+            "string_value" : "hello",
+            "vector_value" : [5,3,4], 
+            "matrix_value" : [[1,2],[3,6]]
+        }""") # if you add more values to this, make sure to add the corresponding in the loop
+
+        for key in tmp.keys():
+            val_type = key[:-6] # removing "_value"
+
+            if val_type == "int":
+                self.assertTrue(tmp[key].IsInt())
+            else:                    
+                self.assertFalse(tmp[key].IsInt())
+
+            if val_type == "double":
+                self.assertTrue(tmp[key].IsDouble())
+            else:
+                self.assertFalse(tmp[key].IsDouble())
+
+            if val_type == "bool":
+                self.assertTrue(tmp[key].IsBool())
+            else:
+                self.assertFalse(tmp[key].IsBool())
+
+            if val_type == "string":
+                self.assertTrue(tmp[key].IsString())
+            else:
+                self.assertFalse(tmp[key].IsString())
+
+            if val_type == "vector":
+                self.assertTrue(tmp[key].IsVector())
+            else:
+                self.assertFalse(tmp[key].IsVector())
+
+            if val_type == "matrix":
+                self.assertTrue(tmp[key].IsMatrix())
+            else:
+                self.assertFalse(tmp[key].IsMatrix())   
+
+    def test_get_methods(self):
+        # This method checks all the "GetXXX" Methods if they throw an error
+        tmp = Parameters("""{
+            "int_value" : 10,   
+            "double_value": 2.0,   
+            "bool_value" : true,   
+            "string_value" : "hello",
+            "vector_value" : [5.2,-3.1,4.33], 
+            "matrix_value" : [[1,2],[3,4],[5,6]]
+        }""") # if you add more values to this, make sure to add the corresponding in the loop
+
+        for key in tmp.keys():
+            val_type = key[:-6] # removing "_value"
+
+            # Int and Double are checked tgth bcs both internally call "IsNumber"
+            if val_type == "int" or val_type == "double": 
+                if val_type == "int":
+                    self.assertEqual(tmp[key].GetInt(),10)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetInt()
+            
+            if val_type == "double" or val_type == "int":
+                if val_type == "double":
+                    self.assertEqual(tmp[key].GetDouble(),2.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetDouble()
+            
+            if val_type == "bool":
+                self.assertEqual(tmp[key].GetBool(),True)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetBool()
+            
+            if val_type == "string":
+                self.assertEqual(tmp[key].GetString(),"hello")
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetString()
+
+            if val_type == "vector":
+                V = tmp[key].GetVector()
+                self.assertEqual(V[0],5.2)
+                self.assertEqual(V[1],-3.1)
+                self.assertEqual(V[2],4.33)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetVector()
+
+            if val_type == "matrix":
+                A = tmp[key].GetMatrix()
+                self.assertEqual(A[0,0],1.0)
+                self.assertEqual(A[0,1],2.0)
+                self.assertEqual(A[1,0],3.0)
+                self.assertEqual(A[1,1],4.0)
+                self.assertEqual(A[2,0],5.0)
+                self.assertEqual(A[2,1],6.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetMatrix()   
+        
+    def test_vector_interface(self):
+        tmp = Parameters("""{ }""")
+        # Manually assign and check a Vector
+        vec = Vector(3)
+        vec[0] = 1.32
+        vec[1] = -2.22
+        vec[2] = 5.5
+
+        tmp.AddEmptyValue("vector_value")
+        tmp["vector_value"].SetVector(vec)
+
+        self.assertTrue(tmp["vector_value"].IsVector())
+
+        V2 = tmp["vector_value"].GetVector()
+        self.assertEqual(V2[0],1.32)
+        self.assertEqual(V2[1],-2.22)
+        self.assertEqual(V2[2],5.5)
+
+    def test_matrix_interface(self):
+        # Read and check a Matrix from a Parameters-Object
+        tmp = Parameters("""{
+            "false_matrix_value": [[2, 1.5,3.3],[1,2]]
+        }""")
+        
+        # Manually assign and check a Matrix
+        mat = Matrix(3,2)
+        mat[0,0] = 1.0
+        mat[0,1] = 2.0
+        mat[1,0] = 3.0
+        mat[1,1] = 4.0
+        mat[2,0] = 5.0
+        mat[2,1] = 6.0
+
+        tmp.AddEmptyValue("matrix_value")
+        tmp["matrix_value"].SetMatrix(mat)
+        
+        self.assertTrue(tmp["matrix_value"].IsMatrix())
+        
+        A2 = tmp["matrix_value"].GetMatrix()
+        self.assertEqual(A2[0,0],1.0)
+        self.assertEqual(A2[0,1],2.0)
+        self.assertEqual(A2[1,0],3.0)
+        self.assertEqual(A2[1,1],4.0)
+        self.assertEqual(A2[2,0],5.0)
+        self.assertEqual(A2[2,1],6.0)
+
+        # Check the IsMatrix Method
+        self.assertFalse(tmp["false_matrix_value"].IsMatrix()) # Mis-sized Matrix
+
+        # check that the errors of the GetMatrix method are thrown correctly
+        with self.assertRaises(RuntimeError):        
+            tmp["false_matrix_value"].GetMatrix() # Mis-sized Matrix
+        
+        
 if __name__ == '__main__':
     KratosUnittest.main()

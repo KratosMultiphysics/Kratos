@@ -25,6 +25,7 @@
 #include "interface_object_manager_serial.h"
 #include "interface_search_structure.h"
 #include "mapper_utilities.h"
+#include "mapper_flags.h"
 
 
 namespace Kratos
@@ -212,6 +213,13 @@ public:
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
+
+    virtual void TransferVariableData(std::function<void*(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+                                      std::function<void(InterfaceObject*, void*)> FunctionPointerDestination )
+    {
+        ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
+    }
+   
 
     virtual int MyPID() // Copy from "kratos/includes/communicator.h"
     {

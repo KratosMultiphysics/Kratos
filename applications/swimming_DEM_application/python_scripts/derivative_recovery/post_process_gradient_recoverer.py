@@ -6,7 +6,7 @@ from . import recoverer
 
 class PostProcessGradientMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        self.store_full_gradient = pp.CFD_DEM.store_full_gradient
+        self.store_full_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
         recoverer.MaterialAccelerationRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
 
     def RecoverMaterialAcceleration(self):

@@ -13,7 +13,7 @@ class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientR
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.pp.CFD_DEM.lift_force_type
+        self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
 
 class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool, do_pre_recovery = False):
@@ -26,7 +26,7 @@ class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
         tolerance = 1e-12
         max_iterations = 200
-        verbosity = 2 #0->shows no information, 1->some information, 2->all the information
+        verbosity = 2 # 0->shows no information, 1->some information, 2->all the information
         gmres_size = 400
 
         if self.use_lumped_mass_matrix:

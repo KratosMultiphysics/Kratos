@@ -18,11 +18,9 @@
 
 /* Project includes */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/bprinter_utility.h"
+#include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
-#if !defined(_WIN32)
-    #include "custom_utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -77,7 +75,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<BprinterUtility>                   TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -86,10 +84,12 @@ public:
     /// Default constructors
     ALMFrictionalMortarConvergenceCriteria(        
         double Tolerance = std::numeric_limits<double>::epsilon(),
-        TablePrinterPointerType pTable = nullptr
+        TablePrinterPointerType pTable = nullptr,
+        const bool PrintingOutput = false
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mTolerance(Tolerance),
         mpTable(pTable),
+        mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
@@ -97,6 +97,9 @@ public:
     ///Copy constructor 
     ALMFrictionalMortarConvergenceCriteria( ALMFrictionalMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
+      ,mpTable(rOther.mpTable)
+      ,mPrintingOutput(rOther.mPrintingOutput)
+      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
 
@@ -106,6 +109,29 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    
+    /**
+     * Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    
+    bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        BaseType::PreCriteria(rModelPart, rDofSet, A, Dx, b);
+        
+        return true;
+    }
     
     /**
      * Compute relative and absolute error.
@@ -125,13 +151,14 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
+        // We call the base class
+        BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
         unsigned int is_converged_active = 0;
         unsigned int is_converged_slip = 0;
         
-//         const double& epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+//         const double& epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double& scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
         const double& tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
@@ -145,7 +172,7 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             
-            const double& epsilon = it_node->GetValue(PENALTY_PARAMETER); 
+            const double& epsilon = it_node->GetValue(INITIAL_PENALTY); 
             
             // Check if the node is slave
             bool node_is_slave = true;
@@ -207,8 +234,6 @@ public:
                 }
                 else
                 {
-                    (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = zero_vector; // NOTE: To clear the value (can affect future iterations)
-                    
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);
@@ -226,71 +251,95 @@ public:
                 auto& table = mpTable->GetTable();
                 if (is_converged_active == 0)
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         table << BOLDFONT(FGRN("       Achieved"));
-                    #else
+                    }
+                    else
+                    {
                         table << "Achieved";
-                    #endif
+                    }
                 }
                 else
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         table << BOLDFONT(FRED("   Not achieved"));
-                    #else
+                    }
+                    else
+                    {
                         table << "Not achieved";
-                    #endif
+                    }
                 }
                 if (is_converged_slip == 0)
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         table << BOLDFONT(FGRN("       Achieved"));
-                    #else
+                    }
+                    else
+                    {
                         table << "Achieved";
-                    #endif
+                    }
                 }
                 else
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         table << BOLDFONT(FRED("   Not achieved"));
-                    #else
+                    }
+                    else
+                    {
                         table << "Not achieved";
-                    #endif
+                    }
                 }
             }
             else
             {
                 if (is_converged_active == 0)
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
+                    }
+                    else
+                    {
                         std::cout << "\tActive set convergence is achieved" << std::endl;
-                    #endif
+                    }
                 }
                 else
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    #else
+                    }
+                    else
+                    {
                         std::cout << "\tActive set convergence is not achieved" << std::endl;
-                    #endif
+                    }
                 }
                 
                 if (is_converged_slip == 0)
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    #else
+                    }
+                    else
+                    {
                         std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
-                    #endif
+                    }
                 }
                 else
                 {
-                    #if !defined(_WIN32)
+                    if (mPrintingOutput == false)
+                    {
                         std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    #else
+                    }
+                    else
+                    {
                         std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
-                    #endif
+                    }
                 }
             }
         }
@@ -426,7 +475,27 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * This method resets the weighted gap in the nodes of the problem
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     */
+    
+    void ResetWeightedGap(ModelPart& rModelPart) override
+    {       
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
 
+        #pragma omp parallel for 
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
+            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -451,6 +520,7 @@ private:
     double mTolerance;               // Tolerance considered in contact check
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mPrintingOutput;            // If the colors and bold are printed
     bool mTableIsInitialized;        // If the table is already initialized
     
     ///@}

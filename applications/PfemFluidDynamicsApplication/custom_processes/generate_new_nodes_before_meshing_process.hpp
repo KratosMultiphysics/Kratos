@@ -337,8 +337,10 @@ private:
     array_1d<unsigned int,3> FirstEdgeNode(3,0);
     array_1d<unsigned int,3> SecondEdgeNode(3,0);
     double WallCharacteristicDistance=0;
-    array_1d<double,3> CoorDifference(3,0.0);
-    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    array_1d<double,3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    // array_1d<double,3> CoorDifference(3,0.0);   
+    // noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+    // CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -350,7 +352,8 @@ private:
     for (unsigned int i = 2; i < nds; i++){
       for(unsigned int j = 0; j < i; j++)
 	{
-	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+	  // CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 	  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
 	  Counter+=1;
 	  Edges[Counter]=sqrt(SquaredLength);
@@ -388,7 +391,7 @@ private:
 
     if(dangerousElement==false && toEraseNodeFound==false){
 
-      array_1d<double,3> NewPosition(3,0.0);
+      // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=3;
       double LargestEdge=0;
 
@@ -401,8 +404,9 @@ private:
 	}
 
       if(CountNodes<ElementsToRefine && LargestEdge>limitEdgeLength){
-
-	NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	array_1d<double,3> NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
@@ -426,8 +430,9 @@ private:
 
 	      bool suitableElement=true;
 	      if(maxCount<3 && LargestEdge>limitEdgeLength){
-
-		NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+		array_1d<double,3> NewPosition=(Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+		// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+		// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
 		for(int j= 0; j< ElementsToRefine; j++)
 		  {
 		    if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1]){
@@ -519,8 +524,10 @@ private:
     array_1d<unsigned int,6> FirstEdgeNode(6,0);
     array_1d<unsigned int,6> SecondEdgeNode(6,0);
     double WallCharacteristicDistance=0;
-    array_1d<double,3> CoorDifference(3,0.0);
-    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    array_1d<double,3> CoorDifference  = Element[1].Coordinates() - Element[0].Coordinates();
+    // array_1d<double,3> CoorDifference(3,0.0);
+    // noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+    // CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1]  + CoorDifference[2]*CoorDifference[2];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -532,7 +539,8 @@ private:
     for (unsigned int i = 2; i < nds; i++){
       for(unsigned int j = 0; j < i; j++)
 	{
-	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+	  // CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 	  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
 	  Counter+=1;
 	  Edges[Counter]=sqrt(SquaredLength);
@@ -555,6 +563,10 @@ private:
 	// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
 	//   Edges[i]=0;
 	// }
+	if((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID))  && 
+	   (Element[SecondEdgeNode[i]].Is(FREE_SURFACE)|| Element[SecondEdgeNode[i]].Is(RIGID))){
+	  Edges[i]=0;
+	}
       }
 
     }else if(rigidNodes==1){
@@ -587,7 +599,7 @@ private:
     //just to fill the vector
     if(dangerousElement==false && toEraseNodeFound==false){
 
-      array_1d<double,3> NewPosition(3,0.0);
+      // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=6;
       double LargestEdge=0;
 			
@@ -600,8 +612,9 @@ private:
 	}
 
       if(CountNodes<ElementsToRefine && LargestEdge>limitEdgeLength){
-
-	NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	array_1d<double,3> NewPosition= (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
@@ -625,8 +638,9 @@ private:
 	      bool suitableElement=true;
 
 	      if(maxCount<6 && LargestEdge>limitEdgeLength){
-
-		NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+		array_1d<double,3> NewPosition= (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+		// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+		// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 		for(int j= 0; j< ElementsToRefine; j++)
 		  {
 		    if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1] && NewPositions[j][2]==NewPosition[2]){
@@ -795,8 +809,8 @@ private:
 		//getting the data of the solution step
 		double& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		double& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		double& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
 		node_data = (0.5*node0_data + 0.5*node1_data);
 		  
@@ -810,10 +824,11 @@ private:
 		//getting the data of the solution step
 		array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 		  
-		array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-		array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+		const array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+		const array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 		  
-		node_data = (0.5*node0_data + 0.5*node1_data);		  
+		noalias(node_data) = (0.5*node0_data + 0.5*node1_data);		  
+		// node_data = (0.5*node0_data + 0.5*node1_data);		  
 	      }
 
 	  }
@@ -843,7 +858,8 @@ private:
 		  if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
 		      node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
 		      
-		    node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
+		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
 		  }
 		}
 	      }
@@ -865,7 +881,8 @@ private:
 		  if( node_data.size() == node0_data.size() &&
 		      node_data.size() == node1_data.size()) {
 		      
-		    node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
+		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
 		  }
 		}
 	      }

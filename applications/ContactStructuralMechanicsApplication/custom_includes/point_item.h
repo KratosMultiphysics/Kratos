@@ -43,7 +43,7 @@ namespace Kratos
 
 /** @brief Custom Point container to be used by the mapper
  */
-class PointItem: public Point<3>
+class PointItem: public Point
 {
 public:
 
@@ -58,30 +58,30 @@ public:
 
     /// Default constructors
     PointItem():
-        Point<3>()
+        Point()
     {}
 
     PointItem(const array_1d<double, 3> Coords):
-        Point<3>(Coords)
+        Point(Coords)
     {}
     
     PointItem(Condition::Pointer Cond):
         mpOriginCond(Cond)
     {
-        UpdatePoint();
+        UpdatePoint(0.0);
     }
     
     PointItem(
         const array_1d<double, 3> Coords,
         Condition::Pointer Cond
     ):
-        Point<3>(Coords),
+        Point(Coords),
         mpOriginCond(Cond)
     {}
 
     ///Copy constructor  (not really required)
     PointItem(const PointItem& rhs):
-        Point<3>(rhs),
+        Point(rhs),
         mpOriginCond(rhs.mpOriginCond)
     {
     }
@@ -101,9 +101,9 @@ public:
      * Returns the point
      * @return The point
      */
-    Point<3> GetPoint()
+    Point GetPoint()
     {
-        Point<3> Point(this->Coordinates());
+        Point Point(this->Coordinates());
         
         return Point;
     }
@@ -112,7 +112,7 @@ public:
      * Set the point
      * @param The point
      */
-    void SetPoint(const Point<3> Point)
+    void SetPoint(const Point Point)
     {
         this->Coordinates() = Point.Coordinates();
     }
@@ -142,9 +142,19 @@ public:
      * @return Coordinates: The coordinates of the item
      */
 
-    void UpdatePoint()
-    {
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+    void UpdatePoint(const double& DeltaTime)
+    {        
+        Point center;
+        if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true)
+        {
+            center = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
+        }
+        else
+        {
+            center = mpOriginCond->GetGeometry().Center(); // NOTE: Real center
+        }
+        
+        this->Coordinates() = center.Coordinates();
     }
 
 protected:

@@ -170,9 +170,12 @@ public:
 	      unsigned int  numinlet =0;	      
 	      unsigned int  numisolated =0;	      
 	      // unsigned int  numinsertednodes =0;	      
-
-
+	      std::vector<double > normVelocityP;
+	      normVelocityP.resize(nds);
+	      unsigned int  checkedNodes =0;
 	      box_side_element = false;
+	      unsigned int countIsolatedWallNodes=0; 
+	      // bool isolatedWallElement=true;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
 		  //set vertices
@@ -202,13 +205,26 @@ public:
 		    numisolated++;
 		  }
 
-		  if(vertices.back().Is(BOUNDARY)){
+       		  if(vertices.back().Is(BOUNDARY)){
 		    numboundary++;
 		    // std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
 		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
 		    numrigid++;
-		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		    WeakPointerVector<Node<3> >& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
+		    bool localIsolatedWallNode=true;
+		    for(unsigned int i = 0; i < rN.size(); i++)
+		      {
+			if(rN[i].IsNot(RIGID)){
+			  // isolatedWallElement=false;
+			  localIsolatedWallNode=false;
+			}
+		      }
+		    if(localIsolatedWallNode==true){
+		      countIsolatedWallNodes++;
+		    }
+		    
+       		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
 		  if(vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY)){
 		    numinternalsolid++;
@@ -220,7 +236,13 @@ public:
 		  }
 		  if(vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)){
 		    numfreesurf++;
-		    // std::cout<<"FREE SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		    const array_1d<double,3> &velocityP0=vertices.back().FastGetSolutionStepValue(VELOCITY,0);
+		    normVelocityP[pn]=norm_2(velocityP0);
+		    checkedNodes++;
+		  }else if(vertices.back().Is(ISOLATED)){
+		    checkedNodes++;
+		    const array_1d<double,3> &velocityP0=vertices.back().FastGetSolutionStepValue(VELOCITY,0);
+		    normVelocityP[pn]=norm_2(velocityP0);
 		  }
 
 		  if(vertices.back().Is(INLET)){
@@ -238,84 +260,56 @@ public:
 
 	      double Alpha =  mrRemesh.AlphaParameter; //*nds;
 
-	      // if((numinlet+numrigid)>=nds || (numinlet+numsolid)>=nds){
-	      // 	Alpha*=0;
-	      // }
-	      // if(numinlet==3){
-	      // 	Alpha*=1.5;
-	      // } else if(numinlet==2){
-	      // 	Alpha*=1.15;
-	      // }
-	 
-	      // if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-	      // 	Alpha*=0.75;
-	      // }else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
-	      // 	Alpha*=0.95;
-	      // }
-	      // if(numrigid==0 && numfreesurf==0 && numisolated==0){
-	      // 	Alpha*=1.5;
-	      // }
-
-
-	      // if(numisolated==0 && numfreesurf==0 && firstMesh==false){
-	      // if(numisolated==0 && numinlet>0 && (numfreesurf>0 && (numisolated+numfreesurf+numrigid)<nds) && firstMesh==false){
-	      // if((numfreesurf>0 && (numisolated+numfreesurf+numrigid)<nds) && firstMesh==false){
-	      // 	if(dimension==2){
-	      // 	  if(numrigid==0 && numfreesurf==0){
-	      // 	    // Alpha*=2.0;
-	      // 	    Alpha*=1.5;
-	      // 	  }else{
-	      // 	    //Alpha*=1.75;
-	      // 	    Alpha*=1.35;
-	      // 	  }
-
-	      // 	}
-	      // 	if(dimension==3){
-	      // 	  if(numrigid==0){
-	      // 	    // Alpha*=1.15;
-	      // 	    Alpha*=1.5;
-	      // 	    // std::cout<<"RIGID 0";
-	      // 	  }else{
-	      // 	    // Alpha*=1.25;
-	      // 	    Alpha*=1.5;
-	      // 	    // std::cout<<"Alpha*=1.5 "<<Alpha;
-	      // 	  }
-	      // 	}
-	      // }
-		// if(numisolated>1){
-		//   Alpha*=0;
-		// }
 	      if(dimension==2){
-		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  Alpha*=0;
-		  // Alpha*=0.8;
-		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  // Alpha*=0.9;
-		  Alpha*=0.95;
-		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
-		  // Alpha*=0.95;
-		  Alpha*=0.975;
+		if((numfreesurf==nds || (numisolated+numfreesurf)==nds) && firstMesh==false){
+		  if(checkedNodes==nds){
+		    const double maxValue=1.5;
+		    const double minValue=1.0/maxValue;
+		    if(normVelocityP[0]/normVelocityP[1]>maxValue || normVelocityP[0]/normVelocityP[1]<minValue ||
+		       normVelocityP[0]/normVelocityP[2]>maxValue || normVelocityP[0]/normVelocityP[2]<minValue ||
+		       normVelocityP[1]/normVelocityP[2]>maxValue || normVelocityP[1]/normVelocityP[2]<minValue){
+		      Alpha*=0;
+		    }
+		  }else{
+		    std::cout<<"ATTENTION!!! CHECKED NODES= "<<checkedNodes<<" and the nodes are "<<nds<<std::endl;
+		    Alpha*=0;
+		  }
 		}
+
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
-		}else if(numfreesurf==0 && numisolated==0){
-		  Alpha*=1.25;
 		}
+
 	      }else  if(dimension==3){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  // Alpha*=0.9;
-		  Alpha*=0;
-		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  // Alpha*=0.95;
-		  Alpha*=0.975;
-		}// else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
-		//   Alpha*=0.975;
-		// }
+		  if(checkedNodes==nds){
+		    const double maxValue=1.5;
+		    const double minValue=1.0/maxValue;
+		    if(normVelocityP[0]/normVelocityP[1]<minValue || normVelocityP[0]/normVelocityP[2]<minValue || normVelocityP[0]/normVelocityP[3]<minValue ||
+		       normVelocityP[0]/normVelocityP[1]>maxValue || normVelocityP[0]/normVelocityP[2]<maxValue || normVelocityP[0]/normVelocityP[3]>maxValue ||
+		       normVelocityP[1]/normVelocityP[2]<minValue || normVelocityP[1]/normVelocityP[3]<minValue ||
+		       normVelocityP[1]/normVelocityP[2]>maxValue || normVelocityP[1]/normVelocityP[3]<maxValue ||
+		       normVelocityP[2]/normVelocityP[3]<minValue ||
+		       normVelocityP[2]/normVelocityP[3]>maxValue){
+		      Alpha*=0;
+		    }
+		  }else{
+		    std::cout<<"ATTENTION!!! CHECKED NODES= "<<checkedNodes<<" and the nodes are "<<nds<<std::endl;
+		    Alpha*=0;
+		  }
+	
+		}
+
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
-		}else if(numfreesurf==0 && numisolated==0){
-		  Alpha*=1.25;
+		}else{
+		  Alpha*=1.125;
 		}
+		
+		if(numrigid==nds){
+		  Alpha*=0.95;
+		}
+
 	      }
 	      if(firstMesh==true){
 		Alpha*=1.15;
@@ -355,41 +349,59 @@ public:
 		}
 
 	      if(numrigid==nds){
-		accepted=false;
+	      	  accepted=false;
+		//   if(isolatedWallElement==true || (dimension==2 && countIsolatedWallNodes==0)){
+	      	//   accepted=false;
+	      	// }
 	      }
+	      
 	      //5.- to control that the element has a good shape
-	      if(accepted)
-		{
-		  if(dimension==2 && nds==3){
+	      if(accepted && (numfreesurf>0 || numrigid==nds))
+	      	{
+	      	  if(dimension==2 && nds==3){
 
-		    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
-		    double Area = triangle->Area();
-		    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
-		    if(Area<CriticalArea){
-		      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
-		      accepted = false;
-		      number_of_slivers++;
-		    }
-		    delete triangle;
+	      	    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
+	      	    double Area = triangle->Area();
+	      	    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
+	      	    if(Area<CriticalArea){
+	      	      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
+	      	      accepted = false;
+	      	      number_of_slivers++;
+	      	    }
+	      	    delete triangle;
 
-		  }else if(dimension==3 && nds==4){
-		    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
-		    double Volume = tetrahedron->Volume();
-		    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
-		    if(Volume<CriticalVolume){
-		      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
-		      // for( unsigned int n=0; n<nds; n++)
-		      // 	{
-		      // 	  vertices[n].Set(INTERFACE);
-		      // 	  sliverNodes++;
-       		      // 	}
-		      accepted = false;
-		      number_of_slivers++;
-		    }
-		    delete tetrahedron;
-		  }
+	      	  }else if(dimension==3 && nds==4){
+	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+	      	    double Volume = tetrahedron->Volume();
+	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+	      	    if(Volume<CriticalVolume){
+	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+	      	      // for( unsigned int n=0; n<nds; n++)
+	      	      // 	{
+	      	      // 	  vertices[n].Set(INTERFACE);
+	      	      // 	  sliverNodes++;
+       	      	      // 	}
+	      	      accepted = false;
+	      	      number_of_slivers++;
+	      	    }
+	      	    delete tetrahedron;
+	      	  }
 
-		}
+	      	}
+	      // else{
+
+	      // 	if((numisolated+numrigid+numfreesurf)<3 && (numisolated+numfreesurf)<nds && (numisolated+numrigid)<nds && numfreesurf>0 && firstMesh==false){
+	      // 	  Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
+	      // 	  double Area = triangle->Area();
+	      // 	  double CriticalArea=0.75*mrRemesh.Refine->MeanVolume;
+	      // 	  if(Area>CriticalArea && Area<2*CriticalArea){
+	      // 	    std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
+	      // 	    accepted = true;
+	      // 	    number_of_slivers--;
+	      // 	  }
+	      // 	}
+		
+	      // }
 
 	      if(accepted)
 		{

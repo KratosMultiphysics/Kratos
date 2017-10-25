@@ -496,7 +496,7 @@ if (ProjectParameters.flow_in_porous_medium_option):
 
     fluid_frac_util.AddFluidFractionField()
 
-if (ProjectParameters.flow_in_porous_DEM_medium_option):
+if ProjectParameters["flow_in_porous_DEM_medium_option"].GetBool():
     swim_proc.FixModelPart(balls_model_part)
 
 # choosing the directory in which we want to work (print to)
@@ -539,7 +539,7 @@ while (time <= final_time):
     print("\n", "TIME = ", time)
     sys.stdout.flush()
 
-    if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
+    if (ProjectParameters["coupling_scheme_type"].GetString() == "UpdatedDEM"):
         time_final_DEM_substepping = time + Dt
 
     else:
@@ -593,7 +593,7 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
+    if (output_time <= out and ProjectParameters["coupling_scheme_type"].GetString() == "UpdatedDEM"):
 
         if (ProjectParameters.projection_module_option):
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
@@ -620,7 +620,7 @@ while (time <= final_time):
 
         if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option and (ProjectParameters.project_at_every_substep_option or first_dem_iter)):
 
-            if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
+            if (ProjectParameters["coupling_scheme_type"].GetString() == "UpdatedDEM"):
                 projection_module.ProjectFromNewestFluid()
 
             else:
@@ -630,7 +630,7 @@ while (time <= final_time):
 
         balls_model_part.CloneTimeStep(time_dem)
 
-        if (not ProjectParameters.flow_in_porous_DEM_medium_option): # in porous flow particles remain static
+        if not ProjectParameters["flow_in_porous_DEM_medium_option"].GetBool(): # in porous flow particles remain static
             dem_solver.Solve()
 
         # adding DEM elements by the inlet
@@ -647,7 +647,7 @@ while (time <= final_time):
 
     # applying DEM-to-fluid coupling
 
-    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.coupling_level_type == 1):
+    if (time >= ProjectParameters.interaction_start_time and ProjectParameters["coupling_level_type"].GetInt() == 1):
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
         projection_module.ProjectFromParticles(coupling_counter.Tick())
@@ -664,7 +664,7 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedFluid"):
+    if (output_time <= out and ProjectParameters["coupling_scheme_type"].GetString() == "UpdatedFluid"):
 
         if (ProjectParameters.projection_module_option):
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
