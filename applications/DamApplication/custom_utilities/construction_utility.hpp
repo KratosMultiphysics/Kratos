@@ -426,12 +426,9 @@ void ActiveHeatFlux(std::string ThermalSubModelPartName, int phase, double phase
         
         double current_height = mReferenceCoordinate + (mHeight/mPhases)*(phase);
         double previous_height = mReferenceCoordinate + (mHeight/mPhases)*(phase-1);         
-
-        // This formulation is developed using hours as temporal variable
-        double real_time = phase_time/3600.0;
         
         // Computing the value of heat flux according the time
-        double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*real_time));
+        double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*phase_time));
 
         KRATOS_WATCH(value)
         

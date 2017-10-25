@@ -88,9 +88,7 @@ void ExecuteInitialize()
     const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
     Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-    // This formulation is developed using hours as temporal variable
     double time = mrModelPart.GetProcessInfo()[TIME];
-    time = time/3600.0;
     double value = mDensity*mSpecificHeat*mAlpha*mTMax*(exp(-mAlpha*time));
 
     if(nnodes != 0)
@@ -109,14 +107,14 @@ void ExecuteInitialize()
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
-    {
-        KRATOS_TRY;
+void ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY;
 
-        this->ExecuteInitialize();
+    this->ExecuteInitialize();
 
-        KRATOS_CATCH("");
-    }
+    KRATOS_CATCH("");
+}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
