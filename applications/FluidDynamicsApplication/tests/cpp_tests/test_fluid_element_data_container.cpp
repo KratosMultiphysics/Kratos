@@ -91,7 +91,7 @@ namespace Kratos {
 			Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
 
             for (unsigned int i = 0; i < 3; i++) {
-				r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 1.0 + i;
+                r_geometry[i].FastGetSolutionStepValue(PRESSURE) = 1.0 + i;
                 r_geometry[i].FastGetSolutionStepValue(VELOCITY_Y) = 3.0 * i;
                 r_geometry[i].FastGetSolutionStepValue(VELOCITY_Z) = i - 5.0;
             }
