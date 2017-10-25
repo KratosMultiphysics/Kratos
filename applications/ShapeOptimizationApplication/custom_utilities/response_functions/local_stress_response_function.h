@@ -41,6 +41,8 @@
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 
+#include "custom_utilities/finite_differences_utilities.h"
+
 // ==============================================================================
 
 namespace Kratos
@@ -263,12 +265,24 @@ public:
 	void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
-	{
+	{	
+
 		rResponseGradient.resize(rAdjointMatrix.size1());
 		rResponseGradient.clear();
 		
 		if(rAdjointElem.Id() == m_id_of_traced_element)
 		{
+			//------------------------------
+			/*FiniteDifferencesUtilities::Pointer FD_calculate_gradient(new FiniteDifferencesUtilities());
+			FD_calculate_gradient->SetDesignVariable("test_IY");
+
+			m_traced_pElement->SetValue(FINITE_DIFFERENCE_INFORMATION, FD_calculate_gradient);
+
+			FiniteDifferencesUtilities::Pointer FD_calculate_gradient_2 = m_traced_pElement->GetValue(FINITE_DIFFERENCE_INFORMATION);
+			
+			std::cout << "Test finite difference stuff = " << FD_calculate_gradient_2->GetDesignVariable() << std::endl;*/
+			//------------------------------
+
 			Matrix stress_displ_deriv;
 			if(m_stress_treatment == "mean" || m_stress_treatment == "GP")
 				m_traced_pElement->Calculate(STRESS_DISP_DERIV_ON_GP, stress_displ_deriv, rProcessInfo);

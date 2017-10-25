@@ -922,7 +922,7 @@ protected:
                                               elements_begin, elements_end);
             int k = OpenMPUtils::ThisThread();
 
-            std::cout << ("Inertia sensitivities:")  << std::endl;
+            //std::cout << ("Inertia sensitivities:")  << std::endl;
 
             for (auto it = elements_begin; it != elements_end; ++it)
             {
@@ -953,7 +953,7 @@ protected:
                     this->AssembleElementSensitivityContribution(
                   	        rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
 
-                    std::cout <<  sensitivity_vector[k][0] << std::endl;              
+                    //std::cout <<  sensitivity_vector[k][0] << std::endl;              
                 }
             }
         }

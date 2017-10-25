@@ -28,6 +28,8 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_schemes_to_python.h"
 
+//#include "custom_utilities/finite_differences_utilities.h" //MFusseder
+
  
 // ==============================================================================
 
@@ -100,6 +102,7 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_ON_GP); 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(STRESS_ON_NODE); 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DESIGN_VARIABLE_NAME); 
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE( FINITE_DIFFERENCE_INFORMATION );
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_ID);

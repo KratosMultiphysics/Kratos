@@ -39,8 +39,9 @@
 #include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
 #include "custom_utilities/response_functions/local_stress_response_function.h"
 #include "custom_utilities/response_functions/nodal_displacement_response_function.h"
-#include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //fusseder rename it after finishing
-
+#include "custom_utilities/response_functions/rework_strain_energy_response_function.h" //TODO: fusseder rename it after finishing
+#include "custom_utilities/response_functions/rework_eigenfrequency_response_function.h" //TODO: fusseder rename it after finishing
+#include "custom_utilities/finite_differences_utilities.h" //MFusseder
 // ==============================================================================
 
 namespace Kratos
@@ -200,7 +201,27 @@ void  AddCustomUtilitiesToPython()
       ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());    
 
     class_<ReworkStrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());            
+      ("ReworkStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());  
+
+    class_<ReworkEigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+      ("ReworkEigenfrequencyResponseFunction", init<ModelPart&, Parameters&>()); 
+
+    // ================================================================
+    // For Finite Differences TODO: is this needed?
+    // ================================================================
+    class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
+        .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
+        .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
+        .def("SetDerivedObject", &FiniteDifferencesUtilities::SetDerivedObject)
+        .def("GetDerivedObject", &FiniteDifferencesUtilities::GetDerivedObject)
+        .def("DisturbElementDesignVariable", &FiniteDifferencesUtilities::DisturbElementDesignVariable)
+        .def("UndisturbElementDesignVariable", &FiniteDifferencesUtilities::UndisturbElementDesignVariable)
+        .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
+        .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
+        .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
+        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy)
+        
+        ;                 
 
     // ========================================================================
     // For input / output
