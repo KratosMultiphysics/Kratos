@@ -10,8 +10,8 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_ELEMENTAL_DATA_HANDLER_H_INCLUDED)
-#define KRATOS_ELEMENTAL_DATA_HANDLER_H_INCLUDED
+#if !defined(KRATOS_DATA_HANDLER_H_INCLUDED)
+#define KRATOS_DATA_HANDLER_H_INCLUDED
 
 // System includes
 #include <iostream>

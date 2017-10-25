@@ -16,8 +16,8 @@
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
-#include "custom_elements/nodal_data_handler.h"
-#include "custom_elements/integration_point_data_container.h"
+#include "custom_utilities/nodal_data_handler.h"
+#include "custom_utilities/fluid_element_data_container.h"
 
 namespace Kratos {
     namespace Testing {

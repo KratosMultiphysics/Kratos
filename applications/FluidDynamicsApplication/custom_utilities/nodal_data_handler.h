@@ -23,7 +23,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_elements/elemental_data_handler.h"
+#include "custom_utilities/data_handler.h"
 
 namespace Kratos
 {
@@ -50,7 +50,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor.
     NodalDataHandler(const Variable<TDataType>& rVariable);
 
     /// Destructor.

@@ -21,7 +21,6 @@
 #include "includes/node.h"
 
 #include "fluid_dynamics_application_variables.h"
-#include "fluid_element_data.h"
 
 /**
  * Note that this file makes use of the X-macro programming technique.
