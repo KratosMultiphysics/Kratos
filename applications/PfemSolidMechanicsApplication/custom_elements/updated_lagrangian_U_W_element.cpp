@@ -1003,7 +1003,7 @@ namespace Kratos
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
 
-      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double porosity = 1.0 - (1.0-porosity0) / Variables.detF0; 
       double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
       double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
 
