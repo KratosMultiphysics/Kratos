@@ -390,8 +390,12 @@ namespace Kratos
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
-        
-        const double density = GetProperties()[DENSITY];
+
+        double density = 1.0;
+        if ( GetProperties().Has( DENSITY )) 
+        {
+            density = GetProperties()[DENSITY];
+        }
         double thickness = 1.0;
         if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
         {
@@ -681,7 +685,7 @@ namespace Kratos
             
             for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
             {
-                Point<3> global_point;
+                Point global_point;
                 GetGeometry().GlobalCoordinates(global_point, integration_points[point_number]);
                 
                 rOutput[point_number] = global_point.Coordinates();

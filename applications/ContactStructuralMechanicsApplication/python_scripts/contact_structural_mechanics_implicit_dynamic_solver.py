@@ -33,18 +33,19 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         {
             "contact_settings" :
             {
-                "mortar_type"                : "",
-                "contact_tolerance"          : 0.0e0,
-                "fancy_convergence_criterion": true,
-                "print_convergence_criterion": false,
-                "ensure_contact"             : false,
-                "adaptative_strategy"        : false,
-                "split_factor"               : 10.0,
-                "max_number_splits"          : 3,
+                "mortar_type"                            : "",
+                "contact_tolerance"                      : 0.0e0,
+                "condn_convergence_criterion"            : false,
+                "fancy_convergence_criterion"            : true,
+                "print_convergence_criterion"            : false,
+                "ensure_contact"                         : false,
+                "adaptative_strategy"                    : false,
+                "split_factor"                           : 10.0,
+                "max_number_splits"                      : 3,
                 "contact_displacement_relative_tolerance": 1.0e-4,
                 "contact_displacement_absolute_tolerance": 1.0e-9,
-                "contact_residual_relative_tolerance": 1.0e-4,
-                "contact_residual_absolute_tolerance": 1.0e-9
+                "contact_residual_relative_tolerance"    : 1.0e-4,
+                "contact_residual_absolute_tolerance"    : 1.0e-9
             }
         }
         """)
@@ -58,7 +59,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         super().__init__(self.main_model_part, self.settings)
         
         # Setting reactions true by default
-        self.settings["compute_reactions"].SetBool(True)
+        self.settings["clear_storage"].SetBool(True)
+        self.settings["reform_dofs_at_each_step"].SetBool(True)
         
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
@@ -92,18 +94,18 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         super().AddDofs()
         
         if (self.contact_settings["mortar_type"].GetString() == "ALMContactFrictionless"):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS, ContactStructuralMechanicsApplication.WEIGHTED_GAP,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS, ContactStructuralMechanicsApplication.WEIGHTED_GAP, self.main_model_part)
         elif (self.contact_settings["mortar_type"].GetString() == "ScalarMeshTying"):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER,ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER,ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
         elif (self.contact_settings["mortar_type"].GetString() == "ComponentsMeshTying"):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Z,self.main_model_part)
-                    
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
+
         print("::[Contact Mechanical Solver]:: DOF's ADDED")
     
     def Initialize(self):
-        super().Initialize()
+        super().Initialize() # The mechanical solver is created here.
     
     def AddProcessesList(self, processes_list):
         self.processes_list = ContactStructuralMechanicsApplication.ProcessFactoryUtility(processes_list)
@@ -124,6 +126,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         conv_params.AddValue("contact_residual_absolute_tolerance",self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type",self.contact_settings["mortar_type"])
         conv_params.AddValue("contact_tolerance",self.contact_settings["contact_tolerance"])
+        conv_params.AddValue("condn_convergence_criterion",self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("fancy_convergence_criterion",self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion",self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact",self.contact_settings["ensure_contact"])
@@ -135,7 +138,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         if(self.settings["line_search"].GetBool()):
             mechanical_solver = self._create_line_search_strategy()
         else:
-            if self.settings["analysis_type"].GetString() == "Linear":
+            if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solver = self._create_linear_strategy()
             else:
                 if  self.contact_settings["mortar_type"].GetString() != "":

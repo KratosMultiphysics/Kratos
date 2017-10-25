@@ -28,6 +28,7 @@ from SmallTests  import TwoDHessianTest                     as TTwoDHessianTest
 from SmallTests  import ThreeDHessianTest                   as TThreeDHessianTest
 from SmallTests  import TwoDCavityTest                      as TTwoDCavityTest
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
+from SmallTests  import TwoDDynamicBeamLineLoadTest         as TTwoDDynamicBeamLineLoadTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
 from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
 
@@ -65,6 +66,7 @@ def AssambleTestSuites():
             smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         if (missing_external_solid_dependencies == False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
+            smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
             smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
             smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
@@ -113,8 +115,9 @@ def AssambleTestSuites():
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
                     TTwoDDynamicBeamTest,
+                    TTwoDDynamicBeamLineLoadTest,
                     TThreeDDynamicBeamTest,
-                    #TTwoDDynamicPlasticBeamTest,
+                    ##TTwoDDynamicPlasticBeamTest,
                 ])
             )
     else:

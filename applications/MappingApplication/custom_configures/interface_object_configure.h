@@ -80,7 +80,7 @@ public:
      * @param PointType   Point of doubles with 3 coordinates (Dimension = 3)
      * @param PointerType Pointer to Point of doubles with 3 coordinates (Dimension = 3)
      */
-    typedef Point<Dimension, double>          PointType;
+    typedef Point          PointType;
 
     /** Additional types needed by the bins.
      * @param PointContainerType    Point Container.

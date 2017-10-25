@@ -99,7 +99,7 @@ namespace Kratos
 @see IntegrationPoint
 */
 //template<std::size_t TDimension, class TDataType = double> //always size 3!
-class Convection_Particle : public Point<3>
+class Convection_Particle : public Point
 {
 public: 
     ///@name Type Definitions
@@ -112,7 +112,7 @@ public:
 
     typedef array_1d<double,3> BaseType;
 
-    typedef Point<3, double> Type;
+    typedef Point Type;
 
     typedef BaseType CoordinatesArrayType;
 
@@ -129,13 +129,13 @@ public:
     ///@{
 
     /// Default constructor.
-    Convection_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
+    Convection_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point(NewX, NewY, NewZ)
     {
 		this->ERASE_FLAG=true; //initializing as useless particle
 		this->SCALAR1=0.0;
     }
     
-    Convection_Particle() : Point<3>(0.0, 0.0, 0.0)
+    Convection_Particle() : Point(0.0, 0.0, 0.0)
     {
 		this->ERASE_FLAG=true;
 		this->SCALAR1=0.0;

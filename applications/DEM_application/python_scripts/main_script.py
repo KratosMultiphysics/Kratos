@@ -22,22 +22,22 @@ else:
 
 class Solution(object):
 
-    def LoadParametersFile(self):
-        parameters_file = open("ProjectParametersDEM.json",'r')
-        self.DEM_parameters = Parameters(parameters_file.read())
-
-    def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
-        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
-
-    def __init__(self):
-
-        self.LoadParametersFile()
+    def __init__(self, DEM_parameters=DEM_parameters):
+        print("entering _init_ main_script")
+        if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+            def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+        else:
+            def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+                #return ModelPartIO(modelpart)                
+                return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+        self.model_part_reader = model_part_reader
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
-        #self.SetAnalyticParticleWatcher()
-
+        self.SetAnalyticParticleWatcher()
+        self.PreUtilities = PreUtilities()
 
         # Creating necessary directories:
         self.main_path = os.getcwd()
@@ -50,6 +50,11 @@ class Solution(object):
         self.materialTest  = DEM_procedures.MaterialTest()
         self.scheme = self.SetScheme()
 
+        # Define control variables
+        self.p_frequency = 100   # activate every 100 steps
+        self.step_count = 0
+        self.p_count = self.p_frequency
+    
         # Set the print function TO_DO: do this better...
         self.KRATOSprint   = self.procedures.KRATOSprint
 
@@ -75,6 +80,14 @@ class Solution(object):
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
         self.SetFinalTime()
+
+    def IsCountStep(self):
+        self.step_count += 1
+        if self.step_count == self.p_count:
+           self.p_count += self.p_frequency
+           return True
+        else:
+            return False
 
     def SetAnalyticParticleWatcher(self):
         self.main_path = os.getcwd()  #revisar
@@ -163,6 +176,12 @@ class Solution(object):
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
 
+    def FillAnalyticSubModelPartsWithNewParticles(self):
+        self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
+        self.PreUtilities.FillAnalyticSubModelPartUtility(self.spheres_model_part, self.analytic_model_part)
+        #analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
+        #self.analytic_model_part.AddElements(analytic_particle_ids)
+
     def Initialize(self):
         self.AddVariables()
 
@@ -222,8 +241,11 @@ class Solution(object):
         self.materialTest.PrintChart()
         self.materialTest.PrepareDataForGraph()
 
-        self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
-        self.report.total_steps_expected = int(self.final_time / self.dt)
+        self.post_utils = DEM_procedures.PostUtils(DEM_parameters, self.spheres_model_part)
+       
+        #self.SetFinalTime()
+        #self.Setdt()
+        self.report.total_steps_expected = int(self.final_time / self.dt)       
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def GetMpFilename(self):               
@@ -357,19 +379,23 @@ class Solution(object):
         pass
 
     def BeforeSolveOperations(self, time):
-        pass
-
+       if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
+                if self.IsCountStep():
+                    #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
+                    #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
+                        self.FillAnalyticSubModelPartsWithNewParticles()
     def BeforePrintingOperations(self, time):
         pass
 
     def AfterSolveOperations(self):
-        if "AnalyticParticle" in self.DEM_parameters.keys(): #TODO: Change the name of AnalyticParticle to something more understandable
-            if self.DEM_parameters["AnalyticParticle"].GetBool():
+        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
                 self.particle_watcher.MakeMeasurements(self.analytic_model_part)
                 time_to_print = self.time - self.time_old_print
                 if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                     self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                    #self.particle_watcher.MakeMeasurements(self.all_model_parts.Get('AnalyticParticlesPart'))
+                    self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
     def FinalizeTimeStep(self, time):
         pass
