@@ -244,9 +244,9 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         element_name = "ShellThickElementCorotational3D4N"
         displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995]
         rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.001167379835]
-        shell_stress_middle_surface_results = [2.888402606167 , -3.9172901967814 , -10.5504072853098 , 2.3194532358326 , 9.1735173861104 , 0.0]
-        shell_stress_top_surface_results    = [2.888402606167 , -3.9172901967814 , 0.0 , 2.3194532358326 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [2.888402606167 , -3.9172901967814 , 0.0 , 2.3194532358326 , 0.0 , 0.0]
+        shell_stress_middle_surface_results = [2.888402606167 , -3.9172901967814 , -10.5504072853098 , 2.3194532359131 , 9.1735173861104 , 0.0]
+        shell_stress_top_surface_results    = [2.888402606167 , -3.9172901967814 , 0.0 , 2.3194532359131 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [2.888402606167 , -3.9172901967814 , 0.0 , 2.3194532359131 , 0.0 , 0.0]
         shell_von_mises_result = 25.2873931232983
 
         self.execute_shell_test(element_name, 

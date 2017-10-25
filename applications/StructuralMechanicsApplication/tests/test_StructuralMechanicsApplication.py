@@ -254,7 +254,7 @@ def AssambleTestSuites():
     nightSuite.addTests(smallSuite)
     # Shell tests
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    # nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution')) # FIXME: Needs get up to date
+    nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
     nightSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
 
     nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
@@ -284,92 +284,8 @@ def AssambleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        TTestConstitutiveLaw,
-        TTestPatchTestSmallStrain,
-        TTestPatchTestLargeStrain,
-        TTestQuadraticElements,
-        TTestPatchTestShells,
-        TTestPatchTestShellsStressRec,
-        TTestPatchTestShellsOrthotropic,
-        TTestCrBeam3D2N,
-        TTestTruss3D2N,
-        TTestLoadingConditions,
-        TTestLineLoad,
-        TTestMultipointConstraints,
-        TSimpleMeshMovingTest,
-        TDynamicBossakTests,
-        TDynamicNewmarkTests,
-        TNodalDampingTests,
-        TSDTwoDShearQuaPatchTest,
-        TSDTwoDShearTriPatchTest,
-        TSDTwoDTensionQuaPatchTest,
-        TSDTwoDTensionTriPatchTest,
-        TSDThreeDShearHexaPatchTest,
-        TSDThreeDShearTetraPatchTest,
-        TSDThreeDTensionHexaPatchTest,
-        TSDThreeDTensionTetraPatchTest,
-        TTLTwoDShearQuaPatchTest,
-        TTLTwoDShearTriPatchTest,
-        TTLTwoDTensionQuaPatchTest,
-        TTLTwoDTensionTriPatchTest,
-        TTLThreeDShearHexaPatchTest,
-        TTLThreeDShearTetraPatchTest,
-        TTLThreeDTensionHexaPatchTest,
-        TTLThreeDTensionTetraPatchTest,
-        TULTwoDShearQuaPatchTest,
-        TULTwoDShearTriPatchTest,
-        TULTwoDTensionQuaPatchTest,
-        TULTwoDTensionTriPatchTest,
-        TULThreeDShearHexaPatchTest,
-        TULThreeDShearTetraPatchTest,
-        TULThreeDTensionHexaPatchTest,
-        TULThreeDTensionTetraPatchTest,
-        TSprismMembranePatchTests,
-        TSprismBendingPatchTests,
-        TFofi4PointTentnoCableTests,
-        TMembraneQ4PointLoadTests,
-        TShellQ4ThickBendingRollUpTests,
-        # TShellQ4ThickDrillingRollUpTests, # FIXME: Needs get up to date
-        TShellQ4ThickOrthotropicLaminateLinearStaticTests,
-        TShellT3ThinBendingRollUpTests,
-        TShellT3ThinDrillingRollUpTests,
-        TShellT3IsotropicScordelisTests,
-        TShellT3ThinOrthotropicLaminateLinearStaticTests,
-        TShellT3ThickLinearStaticTests,
-        TShellT3ThickNonLinearStaticTests,
-        TShellT3ThickLinearDynamicTests,
-        TShellT3ThickNonLinearDynamicTests,
-        TShellT3ThickOrthotropicLaminateLinearStaticTests,
-        TShellQ4ThinLinearStaticTests,
-        TShellQ4ThinNonLinearStaticTests,
-        TShellQ4ThinLinearDynamicTests,
-        TShellQ4ThinNonLinearDynamicTests,
-        TShellQ4ThinOrthotropicLaminateLinearStaticTests,
-        T3D2NTrussTest,
-        T3D2NTrussLinearTest,
-        T3D2NTrussDynamicTest,
-        T3D2NBeamCrTest,
-        T3D2NBeamCrLinearTest,
-        T3D2NBeamCrDynamicTest
-        ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
-        ####TSprismPanTests # FIXME: Needs get up to date
-    ]))
-
-    if (missing_external_dependencies == False):
-        if (hasattr(KratosMultiphysics.ExternalSolversApplication,
-                    "FEASTSolver")):
-            allSuite.addTests(
-                KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    TSpringDamperElementTests, 
-                    TEigenQ4Thick2x2PlateTests,
-                    TEigenTL3D8NCubeTests, 
-                    TEigen3D3NThinCircleTests
-                ]))
-        else:
-            print(
-                "FEASTSolver solver is not included in the compilation of the External Solvers Application"
-            )
+    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

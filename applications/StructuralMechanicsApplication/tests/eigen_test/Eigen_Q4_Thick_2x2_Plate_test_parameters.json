@@ -60,7 +60,7 @@
         "Parameters"            : {
             "model_part_name"  : "Structure",
 	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
-            "reference_values": "[138.05922354056685, 3955.0855388258715, 7796.83946434412]"
+            "reference_values": "[88.96614452368635, 3955.0855388258715, 7796.83946434412]"
         }
     }],
     "restart_options"          : {
