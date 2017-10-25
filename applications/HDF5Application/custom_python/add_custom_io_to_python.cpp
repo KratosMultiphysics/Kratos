@@ -29,6 +29,7 @@
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_mpi.h"
 #endif
+#include "custom_io/hdf5_model_part_io.h"
 
 namespace Kratos
 {
@@ -62,6 +63,10 @@ void AddCustomIOToPython()
     class_<HDF5FileMPI, HDF5FileMPI::Pointer, bases<HDF5File>, boost::noncopyable>(
         "HDF5FileMPI", init<Parameters&>());
 #endif
+
+    class_<HDF5ModelPartIO, HDF5ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
+        "HDF5ModelPartIO", init<Parameters&, HDF5File::Pointer>())
+    ;
 }
 
 } // namespace Python.
