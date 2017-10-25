@@ -14,6 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 
 #include "custom_elements/nodal_data_handler.h"
 #include "custom_elements/integration_point_data_container.h"
@@ -33,7 +34,43 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("VMS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
+        }
+
+        void InitializeCompleteElement(ModelPart& rModelPart)
+        {
+            rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+            rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            rModelPart.AddNodalSolutionStepVariable(ADVPROJ);
+            rModelPart.AddNodalSolutionStepVariable(PRESSURE);
+            rModelPart.AddNodalSolutionStepVariable(DENSITY);
+            rModelPart.AddNodalSolutionStepVariable(VISCOSITY);
+            rModelPart.AddNodalSolutionStepVariable(DIVPROJ);
+
+            rModelPart.SetBufferSize(2);
+
+            Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+
+            // Geometry creation
+            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
+            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
+
+            rModelPart.CloneTimeStep(0.1);
+
+            Element& r_element = *(rModelPart.ElementsBegin());
+            Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+
+            for (unsigned int i = 0; i < 3; i++) {
+                Node<3>& r_node = r_geometry[i];
+                r_node.FastGetSolutionStepValue(PRESSURE) = 10.0 * r_node.X();
+                r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Y();
+                r_node.FastGetSolutionStepValue(DENSITY) = 100.0;
+                r_node.FastGetSolutionStepValue(VISCOSITY) = 0.01;
+            }
         }
 
         KRATOS_TEST_CASE_IN_SUITE(FluidElementNodalDataHandler, FluidDynamicsApplicationFastSuite)
@@ -105,6 +142,28 @@ namespace Kratos {
             boost::numeric::ublas::matrix_row< Matrix > shape_functions = row(NContainer,0);
             double interpolated_pressure = DataPoint.GetPRESSURE().Interpolate(shape_functions, &r_element);
             KRATOS_CHECK_NEAR(2.0, interpolated_pressure, 1e-6);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(DSS2D3NLocalMatrix, FluidDynamicsApplicationFastSuite)
+        {
+            ModelPart model_part("Test");
+            InitializeCompleteElement(model_part);
+
+            Matrix LHS;
+            Vector RHS;
+
+            model_part.ElementsBegin()->CalculateLocalVelocityContribution(LHS,RHS,model_part.GetProcessInfo());
+
+            //KRATOS_WATCH(LHS);
+            //KRATOS_WATCH(RHS);
+
+            KRATOS_CHECK_NEAR(LHS(0,0), 5.533840, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(3,5), -0.0243628, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(0,8), 0.166667, 1e-5);
+            KRATOS_CHECK_NEAR(LHS(8,8), 0.00609399, 1e-5);
+
+            KRATOS_CHECK_NEAR(RHS[0], 0.256372, 1e-5);
+            KRATOS_CHECK_NEAR(RHS[2], 0.0609399, 1e-5);
         }
     }
 }
