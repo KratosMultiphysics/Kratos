@@ -108,9 +108,9 @@ public:
     virtual void AddPath(std::string Path);
 
     /// Write a data set to the HDF5 file.
-    /**
-     * Performs independent write in MPI. Must be called collectively with only
-     * one process having non-empty data.
+    /** 
+     *  Performs collective write in MPI. The data is written blockwise according to
+     *  processor rank.
      */
     virtual void WriteDataSet(std::string Path, const std::vector<int>& rData);
 
@@ -119,17 +119,17 @@ public:
     virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
     
-    /// Collectively write data set to the HDF5 file.
-    /** 
-     *  Performs collective write in MPI. The data is written blockwise according to
-     *  processor rank. In serial, it calls the default write.
+    /// Independently write data set to the HDF5 file.
+    /**
+     * Performs independent write in MPI. Must be called collectively with only
+     * one process having non-empty data.
      */
-    virtual void WriteDataSetCollective(std::string Path, const std::vector<int>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData);
                               
-    virtual void WriteDataSetCollective(std::string Path, const std::vector<double>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const std::vector<double>& rData);
 
-    virtual void WriteDataSetCollective(std::string Path,
-                                        const std::vector<array_1d<double, 3>>& rData);
+    virtual void WriteDataSetIndependent(std::string Path,
+                                         const std::vector<array_1d<double, 3>>& rData);
 
     virtual std::vector<unsigned> GetDataDimensions(std::string Path) const;
 
@@ -145,7 +145,7 @@ public:
 
     /// Read a data set from the HDF5 file.
     /**
-     * Performs independent read in MPI.
+     * Performs collective read in MPI.
      */
     virtual void ReadDataSet(std::string Path,
                              std::vector<int>& rData,
@@ -162,21 +162,21 @@ public:
                              unsigned StartIndex,
                              unsigned BlockSize);
 
-    // Collectively read data set from the HDF5 file.
+    // Independently read data set from the HDF5 file.
     /**
-     *  Performs collective read in MPI. In serial, it calls the default read.
+     *  Performs independent read in MPI.
      */
-    virtual void ReadDataSetCollective(std::string Path,
+    virtual void ReadDataSetIndependent(std::string Path,
                                        std::vector<int>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
 
-    virtual void ReadDataSetCollective(std::string Path,
+    virtual void ReadDataSetIndependent(std::string Path,
                                        std::vector<double>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
 
-    virtual void ReadDataSetCollective(std::string Path,
+    virtual void ReadDataSetIndependent(std::string Path,
                                        std::vector<array_1d<double, 3>>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);

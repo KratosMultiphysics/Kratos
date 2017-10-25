@@ -63,11 +63,11 @@ public:
 
     void WriteDataSet(std::string Path, const std::vector<array_1d<double, 3>>& rData) override;
 
-    void WriteDataSetCollective(std::string Path, const std::vector<int>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData) override;
 
-    void WriteDataSetCollective(std::string Path, const std::vector<double>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const std::vector<double>& rData) override;
 
-    void WriteDataSetCollective(std::string Path,
+    void WriteDataSetIndependent(std::string Path,
                                 const std::vector<array_1d<double, 3>>& rData) override;
 
     void ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize) override;
@@ -82,17 +82,17 @@ public:
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
-    void ReadDataSetCollective(std::string Path,
+    void ReadDataSetIndependent(std::string Path,
                                std::vector<int>& rData,
                                unsigned StartIndex,
                                unsigned BlockSize) override;
 
-    void ReadDataSetCollective(std::string Path,
+    void ReadDataSetIndependent(std::string Path,
                                std::vector<double>& rData,
                                unsigned StartIndex,
                                unsigned BlockSize) override;
 
-    void ReadDataSetCollective(std::string Path,
+    void ReadDataSetIndependent(std::string Path,
                                std::vector<array_1d<double, 3>>& rData,
                                unsigned StartIndex,
                                unsigned BlockSize) override;

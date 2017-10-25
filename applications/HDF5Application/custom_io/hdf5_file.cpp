@@ -190,21 +190,21 @@ void HDF5File::WriteDataSet(std::string Path, const std::vector<array_1d<double,
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetCollective(std::string Path, const std::vector<int>& rData)
+void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<int>& rData)
 {
     KRATOS_TRY;
     WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetCollective(std::string Path, const std::vector<double>& rData)
+void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<double>& rData)
 {
     KRATOS_TRY;
     WriteDataSetImpl(Path, rData);
     KRATOS_CATCH("");
 }
 
-void HDF5File::WriteDataSetCollective(std::string Path, const std::vector<array_1d<double, 3>>& rData)
+void HDF5File::WriteDataSetIndependent(std::string Path, const std::vector<array_1d<double, 3>>& rData)
 {
     KRATOS_TRY;
     WriteDataSetImpl(Path, rData);
@@ -310,21 +310,21 @@ void HDF5File::ReadDataSet(std::string Path, std::vector<array_1d<double, 3>>& r
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetCollective(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetCollective(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void HDF5File::ReadDataSetCollective(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
