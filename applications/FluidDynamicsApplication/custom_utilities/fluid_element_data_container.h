@@ -21,6 +21,7 @@
 #include "includes/node.h"
 
 #include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/nodal_data_handler.h"
 
 /**
  * Note that this file makes use of the X-macro programming technique.
@@ -100,8 +101,7 @@ public:                                                             \
                                                                     \
     ClassName()                                                     \
     : FluidElementDataContainer()                                   \
-    HANDLER_LIST(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER)                \
-    {                                                               \
+    HANDLER_LIST(CONSTRUCT_CLASS_MEMBER_FOR_HANDLER) {              \
     }                                                               \
                                                                     \
     ~ClassName() {                                                  \

@@ -19,9 +19,9 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
+#include "custom_utilities/fluid_element_data_container.h"
 #include "fluid_dynamics_application_variables.h"
 
-#include "custom_elements/integration_point_data.h"
 
 namespace Kratos
 {
@@ -47,6 +47,19 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+#define ELEMENT_VARIABLES(APPLY_MACRO)          \
+    APPLY_MACRO(VELOCITY, NodalVectorType)      \
+    APPLY_MACRO(MESH_VELOCITY, NodalVectorType) \
+    APPLY_MACRO(BODY_FORCE, NodalVectorType)    \
+    APPLY_MACRO(ADVPROJ, NodalVectorType)       \
+    APPLY_MACRO(PRESSURE, NodalScalarType)      \
+    APPLY_MACRO(DENSITY, NodalScalarType)       \
+    APPLY_MACRO(VISCOSITY, NodalScalarType)     \
+    APPLY_MACRO(DIVPROJ, NodalScalarType)
+
+MAKE_FLUID_ELEMENT_DATA_CONTAINER(DSSData2D, ELEMENT_VARIABLES)
+#undef FLUID_ELEMENT_VARIABLES
 
 template< class TElementData >
 class FluidElement : public Element
@@ -84,13 +97,21 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
+    typedef boost::numeric::ublas::row_proxy< Matrix > ShapeFunctionsType;
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
 
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
+    static constexpr unsigned int Dim = 2;
+
+    static constexpr unsigned int NumNodes = 3;
+
+    static constexpr unsigned int BlockSize = Dim + 1;
+
+    static constexpr unsigned int LocalSize = NumNodes * BlockSize;
 
     ///@}
     ///@name Life Cycle
@@ -344,7 +365,6 @@ protected:
      */
     virtual double EffectiveViscosity(
         const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIPData,
         double ElemSize,
         const ProcessInfo &rCurrentProcessInfo);
 
@@ -374,7 +394,6 @@ protected:
 
     virtual void AddSystemTerms(
         const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIPData,
         const ProcessInfo& rProcessInfo,
         MatrixType& rLHS,
         VectorType& rRHS) = 0;
@@ -382,7 +401,6 @@ protected:
 
     virtual void AddMassTerms(
         const TElementData& rData,
-        const IntegrationPointData<TElementData>& rIPData,
         const ProcessInfo& rProcessInfo,
         MatrixType& rMassMatrix) = 0;
 

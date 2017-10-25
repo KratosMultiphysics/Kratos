@@ -719,24 +719,24 @@ void DSS<TElementData>::SubscaleVelocity(
 template< class TElementData >
 void DSS<TElementData>::SubscalePressure(
     const TElementData& rData,
-    const IntegrationPointData<TElementData>& rIP,
+    const TElementData& rElementData,
     const ProcessInfo &rProcessInfo,
     double &rPressureSubscale)
 {
     //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double ElemSize = this->ElementSize();
-    double Viscosity = this->EffectiveViscosity(rData,rIP,ElemSize,rProcessInfo);
+    double Viscosity = this->EffectiveViscosity(rData,rElementData,ElemSize,rProcessInfo);
 
     double TauOne;
     double TauTwo;
-    this->CalculateStaticTau(rIP.Density,Viscosity,rIP.ConvectiveVelocity,ElemSize,rProcessInfo,TauOne,TauTwo);
+    this->CalculateStaticTau(rElementData.Density,Viscosity,rElementData.ConvectiveVelocity,ElemSize,rProcessInfo,TauOne,TauTwo);
 
     double Residual = 0.0;
 
     if (rProcessInfo[OSS_SWITCH] != 1.0)
-        this->ASGSMassResidual(rData,rIP,Residual);
+        this->ASGSMassResidual(rData,rElementData,Residual);
     else
-        this->OSSMassResidual(rData,rIP,Residual);
+        this->OSSMassResidual(rData,rElementData,Residual);
 
     rPressureSubscale = TauTwo*Residual;
 }
@@ -766,7 +766,7 @@ void DSS<TElementData>::load(Serializer& rSerializer)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-template class DSS< FluidElementData<2,3> >;
-template class DSS< FluidElementData<3,4> >;
+template class DSS< DSSData2D >;
+//template class DSS< FluidElementData<3,4> >;
 
 }

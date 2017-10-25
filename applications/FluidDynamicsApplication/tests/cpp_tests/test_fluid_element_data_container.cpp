@@ -34,7 +34,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement("VMS2D", 1, element_nodes, p_properties);
         }
 
         void InitializeCompleteElement(ModelPart& rModelPart)
@@ -57,7 +57,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-            rModelPart.CreateNewElement("DSS2D", 1, element_nodes, p_properties);
+            rModelPart.CreateNewElement("VMS2D", 1, element_nodes, p_properties);
 
             rModelPart.CloneTimeStep(0.1);
 
