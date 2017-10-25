@@ -40,7 +40,7 @@ class MechanicalSolver(object):
     def __init__(self, main_model_part, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "static",
+            "solver_type": "Static",
             "echo_level": 0,
             "buffer_size": 2,
             "analysis_type": "non_linear",
