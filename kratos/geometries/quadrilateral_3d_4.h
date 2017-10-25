@@ -846,7 +846,7 @@ public:
         IntegrationMethod ThisMethod 
         ) const override
     {
-        Matrix jacobian( 3, 2 );
+        Matrix jacobian( 3, 2, 0.0 );
          
         this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
@@ -891,7 +891,7 @@ public:
      */
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        Matrix jacobian( 3, 2 );
+        Matrix jacobian( 3, 2, 0.0 );
          
         this->Jacobian( jacobian, rPoint);
         
