@@ -64,9 +64,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_epetra_communicator(self):
         return TrilinosApplication.CreateCommunicator()
 
-    def _create_solution_scheme(self):
-        return TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()
-
     def _create_convergence_criterion(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
@@ -88,6 +85,9 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return linear_solver
 
     def _create_builder_and_solver(self):
+        if self.settings["multi_point_constraints_used"].GetBool():
+            raise Exception("MPCs not yet implemented in MPI")
+            
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
@@ -104,7 +104,21 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                                          linear_solver)
         return builder_and_solver
 
-    def _create_mechanical_solver(self):
+    def _create_linear_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        builder_and_solver = self.get_builder_and_solver()
+        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part, 
+                                                          mechanical_scheme, 
+                                                          linear_solver, 
+                                                          builder_and_solver, 
+                                                          self.settings["compute_reactions"].GetBool(), 
+                                                          self.settings["reform_dofs_at_each_step"].GetBool(), 
+                                                          False, 
+                                                          self.settings["move_mesh_flag"].GetBool())
+
+    def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         solution_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()

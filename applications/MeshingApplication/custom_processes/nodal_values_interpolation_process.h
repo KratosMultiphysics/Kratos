@@ -138,30 +138,31 @@ public:
     void Execute() override
     {
         // We create the locator
-        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
-        PointLocator.UpdateSearchDatabase();
+        BinBasedFastPointLocator<TDim> point_locator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
+        point_locator.UpdateSearchDatabase();
         
         // Iterate in the nodes
-        NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
+        auto num_nodes = nodes_array.end() - nodes_array.begin();
         
         /* Nodes */
 //         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(unsigned int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
-            Vector ShapeFunctions;
-            Element::Pointer pElement;
+            Vector shape_functions;
+            Element::Pointer p_element;
             
-            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults, 5.0e-2);
+            const array_1d<double, 3>& coordinates = it_node->Coordinates();
+            const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mMaxNumberOfResults, 5.0e-2);
             
-            if (IsFound == false)
+            if (is_found == false)
             {
                 if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
                 {
-                   std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                   std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                   std::cout << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << std::endl;
+                   std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
                    
                    if (mFramework == Lagrangian)
                    {
@@ -173,18 +174,7 @@ public:
             {
                 for(unsigned int iStep = 0; iStep < mBufferSize; iStep++)
                 {
-                    CalculateStepData(*(itNode.base()), pElement, ShapeFunctions, iStep);
-                }
-                
-                // After we interpolate the DISPLACEMENT we interpolate the initial coordinates to ensure a functioning of the simulation
-                if (mFramework == Lagrangian)
-                {
-                    if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
-                    {
-                        KRATOS_ERROR << "Missing DISPLACEMENT on node " << itNode->Id() << std::endl;
-                    }
-                    
-                    CalculateInitialCoordinates(*(itNode.base()));
+                    CalculateStepData(*(it_node.base()), p_element, shape_functions, iStep);
                 }
             }
         }
@@ -340,29 +330,6 @@ private:
 
 ///@name Explicit Specializations
 ///@{
-    
-    template<>  
-    void NodalValuesInterpolationProcess<2>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<3>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {        
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-        pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     template<>  
     void NodalValuesInterpolationProcess<2>::CalculateStepData(

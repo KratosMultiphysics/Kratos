@@ -48,7 +48,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                                                    PointType;
+    typedef Point                                                                       PointType;
     typedef Node<3>                                                                      NodeType;
     typedef Geometry<NodeType>                                                   GeometryNodeType;
     typedef Geometry<PointType>                                                 GeometryPointType;
@@ -100,9 +100,9 @@ public:
     
     typedef typename std::conditional<TBelong, AuxType5, AuxType6>::type        ArrayTriangleType;
     
-    typedef Line2D2<Point<3>>                                                            LineType;
+    typedef Line2D2<Point>                                                            LineType;
     
-    typedef Triangle3D3<Point<3>>                                                    TriangleType;
+    typedef Triangle3D3<Point>                                                    TriangleType;
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     

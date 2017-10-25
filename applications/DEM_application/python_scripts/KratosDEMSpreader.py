@@ -364,7 +364,6 @@ while time < DEM_parameters["FinalTime"].GetDouble():
         os.chdir(list_path)
         demio.PrintMultifileLists(time, post_path)
         os.chdir(main_path)
-
         os.chdir(post_path)
 
         if DEM_parameters["ContactMeshOption"].GetBool():

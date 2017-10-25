@@ -733,8 +733,8 @@ private:
                         for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size();
                                 i++ )
                         {
-                            Point<3> MasterContactLocalPoint;
-                            Point<3> SlaveContactLocalPoint;
+                           Point MasterContactLocalPoint;
+                           Point SlaveContactLocalPoint;
                             (*it)->GetValue(PENALTY)[i]=BaseType::GetModelPart().GetProperties(1)[INITIAL_PENALTY];
                             (*it)->GetValue(PENALTY_T)[i]=BaseType::GetModelPart().GetProperties(1)[INITIAL_PENALTY_T];
                             Condition::Pointer CurrentMaster ;
@@ -802,8 +802,8 @@ private:
                             for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size();
                                     i++ )
                             {
-                                Point<3> MasterContactLocalPoint;
-                                Point<3> SlaveContactLocalPoint;
+                               Point MasterContactLocalPoint;
+                               Point SlaveContactLocalPoint;
                                 Condition::Pointer CurrentMaster ;
                                 if( SearchPartner(
                                             (**it),
@@ -852,8 +852,8 @@ private:
         Condition& Slave,
         ConditionsArrayType& AllMasterElements,
         const IndexType& IntegrationPointIndex,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+       Point& MasterContactLocalPoint,
+       Point& SlaveContactLocalPoint,
         Condition::Pointer& CurrentMaster
     )
     {
@@ -870,12 +870,12 @@ private:
             = Slave.GetGeometry().IntegrationPoints()[IntegrationPointIndex];
 //                    KRATOS_WATCH(SlaveContactLocalPoint);
             //calculating global coordinates of current integration point
-            Point<3> SlaveContactGlobalPoint;
+           Point SlaveContactGlobalPoint;
             SlaveContactGlobalPoint = Slave.GetGeometry().GlobalCoordinates(
                                           SlaveContactGlobalPoint, SlaveContactLocalPoint );
 //                    KRATOS_WATCH(SlaveContactGlobalPoint);
 
-            Point<3> GlobalCandidate;
+           Point GlobalCandidate;
 //                     KRATOS_WATCH( GlobalCandidate );
 
             //defining set of possible master surface elements
@@ -920,7 +920,7 @@ private:
             }
 //                     std::cout << "number of checked master elements: " << MasterSet->size() << std::endl;
             //searching contact partner (local search)
-            Point<3> MasterContactGlobalPoint;
+           Point MasterContactGlobalPoint;
             bool LocalPartnerExists = false;
 //                    KRATOS_WATCH( GlobalCandidate );
             for( ConditionsArrayType::ptr_iterator it = MasterSet->ptr_begin(); it != MasterSet->ptr_end(); ++it )

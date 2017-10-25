@@ -266,21 +266,21 @@ public:
         return typename BaseType::Pointer( new Line2D2( ThisPoints ) );
     }
     
-    Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-            NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Line2D2< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Line2D2< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
     Vector& LumpingFactors( Vector& rResult ) const override
@@ -1152,30 +1152,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
-//   template<class TPointType>
-//   const typename Line2D2<TPointType>::IntegrationPointsContainerType Line2D2<TPointType>::msIntegrationPoints = {
-//    Quadrature<LineGaussLegendreIntegrationPoints<1>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<LineGaussLegendreIntegrationPoints<2>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<LineGaussLegendreIntegrationPoints<3>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//   };
-
-
-//   template<class TPointType>
-//   const typename Line2D2<TPointType>::ShapeFunctionsValuesContainerType
-//   Line2D2<TPointType>::msShapeFunctionsValues = {
-//    Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1),
-//    Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_2),
-//    Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3)
-//   };
-
-
-//template<class TPointType>
-//const typename GeometryData::ShapeFunctionsLocalGradientsContainerType
-//Line2D2<TPointType>::msShapeFunctionsLocalGradients = {
-// Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_1),
-// Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_2),
-// Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3)
-//};
 
 template<class TPointType>
 const GeometryData Line2D2<TPointType>::msGeometryData( 2,

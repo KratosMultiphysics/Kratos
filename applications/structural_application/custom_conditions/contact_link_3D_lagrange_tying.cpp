@@ -95,8 +95,8 @@ namespace Kratos
                                                                    PropertiesType::Pointer pProperties,
                                                                    Condition::Pointer Master,
                                                                    Condition::Pointer Slave,
-                                                                   Point<3>& MasterContactLocalPoint,
-                                                                   Point<3>& SlaveContactLocalPoint,
+                                                                  Point& MasterContactLocalPoint,
+                                                                  Point& SlaveContactLocalPoint,
                                                                    int SlaveIntegrationPointIndex
                                                                    )
     : Condition( NewId, pGeometry, pProperties )
@@ -789,7 +789,7 @@ namespace Kratos
     
     //new functions includes
     
-    Point<3>& Contact_Link_3D_Lagrange_Tying::GlobalCoordinates( Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates )
+   Point& Contact_Link_3D_Lagrange_Tying::GlobalCoordinates( Condition::Pointer Surface,Point& rResult,Point const& LocalCoordinates )
     {
         noalias( rResult ) = ZeroVector( 3 );
         
