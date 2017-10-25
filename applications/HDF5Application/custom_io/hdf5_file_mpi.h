@@ -42,13 +42,10 @@ public:
     ///@{
 
     /// Constructor.
-    HDF5FileMPI(Parameters& rParams);
+    explicit HDF5FileMPI(Parameters& rParams);
 
     // Copy constructor.
     HDF5FileMPI(const HDF5FileMPI& rOther) = delete;
-
-    /// Destructor.
-    ~HDF5FileMPI() override;
 
     /// Assignment operator.
     HDF5FileMPI& operator=(const HDF5FileMPI& rOther) = delete;
@@ -101,7 +98,6 @@ public:
 protected:
     ///@name Protected Operations
     ///@{
-
     ///@}
 
 private:
@@ -164,9 +160,11 @@ private:
                           "Unsupported data type.");
 
         // Create and write the data set.
+        hit_t file_id = GetFileId();
         hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
-        // H5Dcreate() must be called collectively for both collective and independent write.
-        hid_t dset_id = H5Dcreate(m_file_id, Path.c_str(), dtype_id, fspace_id,
+        // H5Dcreate() must be called collectively for both collective and
+        // independent write.
+        hid_t dset_id = H5Dcreate(file_id, Path.c_str(), dtype_id, fspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
 
@@ -254,12 +252,13 @@ private:
             static_assert(is_int_type || is_double_type || is_array_1d_type,
                           "Unsupported data type.");
 
+        hit_t file_id = GetFileId();        
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
         if (Mode == DataTransferMode::collective)
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
         else
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-        hid_t dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT);
+        hid_t dset_id = H5Dopen(file_id, Path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
         hid_t mem_space_id = H5Screate_simple(ndims, local_mem_dims, nullptr);

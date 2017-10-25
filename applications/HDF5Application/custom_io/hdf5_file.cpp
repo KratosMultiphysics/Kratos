@@ -20,33 +20,11 @@ HDF5File::HDF5File(Parameters& rParams)
 
     m_file_name = rParams["file_name"].GetString();
 
-    std::string file_access_mode = rParams["file_access_mode"].GetString();
     hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
-
-#if (defined(_WIN32) || defined(_WIN64))
-    KRATOS_ERROR_IF(H5Pset_fapl_windows(fapl_id) < 0)
-        << "H5Pset_fapl_windows failed." << std::endl;
-#else
     std::string file_driver = rParams["file_driver"].GetString();
-    if (file_driver == "sec2")
-    {
-        KRATOS_ERROR_IF(H5Pset_fapl_sec2(fapl_id) < 0)
-            << "H5Pset_fapl_sec2 failed." << std::endl;
-    }
-    else if (file_driver == "stdio")
-    {
-        KRATOS_ERROR_IF(H5Pset_fapl_stdio(fapl_id) < 0)
-            << "H5Pset_fapl_stdio failed." << std::endl;
-    }
-    else if (file_driver == "core")
-    {
-        KRATOS_ERROR_IF(H5Pset_fapl_core(fapl_id, 1000000, 0) < 0)
-            << "H5Pset_fapl_core failed." << std::endl;
-    }
-    else
-        KRATOS_ERROR << "Unsupported \"file_driver\": " << file_driver << std::endl;
-#endif
+    SetFileDriver(file_driver, fapl_id);
 
+    std::string file_access_mode = rParams["file_access_mode"].GetString();
     if (file_access_mode == "exclusive")
         m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, fapl_id);
     else if (file_access_mode == "truncate")
@@ -78,12 +56,6 @@ HDF5File::HDF5File(Parameters& rParams)
 
 HDF5File::~HDF5File()
 {
-#if !defined(NDEBUG)
-    // Check for open data sets, groups, datatypes, attributes before
-    // closing the file.
-    ssize_t num_open_objects = H5Fget_obj_count(m_file_id, H5F_OBJ_ALL);
-    assert(num_open_objects == 1); // 1 file object only
-#endif
     H5Fclose(m_file_id);
 }
 
@@ -289,6 +261,16 @@ std::string HDF5File::GetFileName() const
     return m_file_name;
 }
 
+int HDF5File::GetEchoLevel() const
+{
+    return m_echo_level;
+}
+
+void HDF5File::SetEchoLevel(int Level)
+{
+    m_echo_level = Level;
+}
+
 void HDF5File::ReadDataSet(std::string Path, std::vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
@@ -328,6 +310,52 @@ void HDF5File::ReadDataSetIndependent(std::string Path, std::vector<array_1d<dou
 {
     KRATOS_TRY;
     ReadDataSetImpl(Path, rData, StartIndex, BlockSize);
+    KRATOS_CATCH("");
+}
+
+hid_t HDF5File::GetFileId() const
+{ 
+    return m_file_id;
+}
+
+void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const
+{
+    KRATOS_TRY;
+#if (defined(_WIN32) || defined(_WIN64))
+    KRATOS_ERROR_IF(rDriver != "windows")
+        << "Unsupported (Windows) \"file_driver\": " << rDriver << std::endl;
+    KRATOS_ERROR_IF(H5Pset_fapl_windows(fapl_id) < 0)
+        << "H5Pset_fapl_windows failed." << std::endl;
+#else
+    if (rDriver == "sec2")
+    {
+        KRATOS_ERROR_IF(H5Pset_fapl_sec2(fapl_id) < 0)
+            << "H5Pset_fapl_sec2 failed." << std::endl;
+    }
+    else if (rDriver == "stdio")
+    {
+        KRATOS_ERROR_IF(H5Pset_fapl_stdio(fapl_id) < 0)
+            << "H5Pset_fapl_stdio failed." << std::endl;
+    }
+    else if (rDriver == "core")
+    {
+        KRATOS_ERROR_IF(H5Pset_fapl_core(fapl_id, 1000000, 0) < 0)
+            << "H5Pset_fapl_core failed." << std::endl;
+    }
+    else if (rDriver == "mpio")
+    {
+#if defined(KRATOS_USING_MPI)
+        KRATOS_ERROR_IF(H5Pset_fapl_mpio(fapl_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0)
+            << "H5Pset_fapl_mpio failed." << std::endl;
+#else
+        KRATOS_ERROR
+            << "Kratos must be built with MPI for \"file_driver\"=\"mpio\"."
+            << std::endl;
+#endif
+    }
+    else
+        KRATOS_ERROR << "Unsupported \"file_driver\": " << rDriver << std::endl;
+#endif
     KRATOS_CATCH("");
 }
 

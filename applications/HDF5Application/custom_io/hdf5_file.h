@@ -46,7 +46,7 @@ struct HDF5Utils
      * and possible underscores separated by '/'. All paths are absolute.
      */
     static bool IsPath(std::string Path)
-    { 
+    {
         return regex_match(Path, std::regex("(/\\w+)+"));
     }
 
@@ -60,7 +60,7 @@ struct HDF5Utils
         while (std::getline(ss, sub_string, Delimiter))
           if (sub_string.size() > 0)
             result.push_back(sub_string);
-      
+
         return result;
     }
 };
@@ -79,8 +79,6 @@ public:
     ///@{
 
     /// Constructor.
-    HDF5File() {}
-
     explicit HDF5File(Parameters& rParams);
 
     // Copy constructor.
@@ -108,7 +106,7 @@ public:
     virtual void AddPath(std::string Path);
 
     /// Write a data set to the HDF5 file.
-    /** 
+    /**
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank.
      */
@@ -118,14 +116,14 @@ public:
 
     virtual void WriteDataSet(std::string Path,
                               const std::vector<array_1d<double, 3>>& rData);
-    
+
     /// Independently write data set to the HDF5 file.
     /**
      * Performs independent write in MPI. Must be called collectively with only
      * one process having non-empty data.
      */
     virtual void WriteDataSetIndependent(std::string Path, const std::vector<int>& rData);
-                              
+
     virtual void WriteDataSetIndependent(std::string Path, const std::vector<double>& rData);
 
     virtual void WriteDataSetIndependent(std::string Path,
@@ -142,6 +140,10 @@ public:
     virtual unsigned GetFileSize() const;
 
     virtual std::string GetFileName() const;
+
+    int GetEchoLevel() const;
+
+    void SetEchoLevel(int Level);
 
     /// Read a data set from the HDF5 file.
     /**
@@ -184,16 +186,23 @@ public:
     ///@}
 
 protected:
+    ///@name Protected Operations
+    ///@{
+    hid_t GetFileId() const;
+    ///@}
+
+private:
     ///@name Member Variables
     ///@{
     std::string m_file_name;
     hid_t m_file_id = -1; // Default invalid file id.
-    int m_echo_level;
+    int m_echo_level = 0;
     ///@}
 
-private:
     ///@name Private Operations
     ///@{
+    void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const;
+
     template <class T>
     void WriteDataSetImpl(std::string Path, const std::vector<T>& rData)
     {
@@ -214,7 +223,7 @@ private:
         dims[0] = rData.size(); // Set first data space dimension.
         if (is_array_1d_type)
             dims[1] = 3; // Set second data space dimension (array_1d<double,3>).
-        
+
         // Set the data type.
         hid_t dtype_id;
         if (is_int_type)
@@ -310,6 +319,7 @@ private:
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
     }
     ///@}
+
 };
 
 ///@} addtogroup
