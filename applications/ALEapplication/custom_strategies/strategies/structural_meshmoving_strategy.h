@@ -174,7 +174,8 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
     // Update FEM-base
     CalculateMeshVelocities();
-    MoveMesh();
+    // Optimization iteration: MoveMesh changes the reference
+    // MoveMesh();
 
     // Clearing the system if needed
     if(mreform_dof_at_every_step == true)
@@ -192,8 +193,10 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
     double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
+    //TODO Delta Time for adjoint always negative
     if (DeltaTime <= 0.0)
-    KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
+    DeltaTime = DeltaTime*(-1.0);
+    //KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
 
     double coeff = 1/DeltaTime;
     if( mvel_order == 1)  //mesh velocity calculated as (x(n+1)-x(n))/Dt
