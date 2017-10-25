@@ -368,6 +368,8 @@ public:
             SparseSpaceType::Set(rb,0.0);
 
             //loop over all modes and initialize the material damping ratio per mode
+            boost::timer material_damping_build_time;
+        
             for( std::size_t i = 0; i < n_modes; ++i )
             {
                 // double modal_material_damping = 0.0;
@@ -376,18 +378,18 @@ public:
                 Vector modal_vector = column( rModalMatrix, i );
                 for( ModelPart::SubModelPartIterator itSubModelPart = rModelPart.SubModelPartsBegin(); itSubModelPart!= rModelPart.SubModelPartsEnd(); itSubModelPart++ )
                 {
-                    KRATOS_WATCH(itSubModelPart->Name())
+                    // KRATOS_WATCH(itSubModelPart->Name())
                     auto current_properties = itSubModelPart->rProperties();
                     double damping_coefficient = 0.0;
                     // KRATOS_WATCH(current_properties)
                     for( ModelPart::PropertiesIterator itProperty = itSubModelPart->PropertiesBegin(); itProperty != itSubModelPart->PropertiesEnd(); itProperty++ )
                     {
-                        std::cout << "hey" << std::endl;
-                        KRATOS_WATCH(*itProperty)
+                        // std::cout << "hey" << std::endl;
+                        // KRATOS_WATCH(*itProperty)
                         // KRATOS_WATCH(*itProperty.Has(SYSTEM_DAMPING_RATIO))
                         if( itProperty->Has(SYSTEM_DAMPING_RATIO) )
                         {
-                            std::cout << "haha" << std::endl;
+                            // std::cout << "haha" << std::endl;
                             damping_coefficient = itProperty->GetValue(SYSTEM_DAMPING_RATIO);
                         }
                     }
@@ -409,16 +411,21 @@ public:
                     down += strain_energy;
                     up += damping_coefficient * strain_energy;
                     // auto test = prod(*temp_stiffness_matrix,modal_vector);
-                    KRATOS_WATCH(damping_coefficient)
-                    KRATOS_WATCH(modal_vector)
-                    KRATOS_WATCH(*temp_stiffness_matrix)
-                    KRATOS_WATCH(down)
-                    KRATOS_WATCH(up)
+                    // KRATOS_WATCH(damping_coefficient)
+                    // KRATOS_WATCH(modal_vector)
+                    // KRATOS_WATCH(*temp_stiffness_matrix)
+                    // KRATOS_WATCH(down)
+                    // KRATOS_WATCH(up)
                 }
 
                 mMaterialDampingRatios(i) = up / down;
             }
-            KRATOS_WATCH(mMaterialDampingRatios)
+
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+            {
+                std::cout << "modal_matrix_build_time : " << material_damping_build_time.elapsed() << std::endl;
+                KRATOS_WATCH(mMaterialDampingRatios)
+            }
         }
         
         KRATOS_CATCH("")
