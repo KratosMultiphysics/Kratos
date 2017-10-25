@@ -228,8 +228,8 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			const GeometryType & geom = GetGeometry();
-		PropertiesType & props = GetProperties();
+		const GeometryType & geom = GetGeometry();
+		const PropertiesType & props = GetProperties();
 
 		if (geom.PointsNumber() != OPT_NUM_NODES)
 			KRATOS_THROW_ERROR(std::logic_error,
@@ -254,14 +254,14 @@ namespace Kratos
 			{
 				theSection = props[SHELL_CROSS_SECTION];
 			}
-			else if (theSection->CheckIsOrthotropic(props))
+			else if (ShellCrossSection::CheckIsOrthotropic(props))
 			{
 				// make new instance of shell cross section
 				theSection = ShellCrossSection::Pointer(new ShellCrossSection());
 
-				// Assign orthotropic material law for entire element
-				LinearElasticOrthotropic2DLaw OrthoLaw;
-				props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
+				// // Assign orthotropic material law for entire element
+				// LinearElasticOrthotropic2DLaw OrthoLaw;
+				// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 				// Parse material properties for each layer
 				Element* thisElement = this;

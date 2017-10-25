@@ -444,7 +444,7 @@ void ShellThickElement3D4N::Initialize()
     KRATOS_TRY
 
     const GeometryType & geom = GetGeometry();
-    PropertiesType & props = GetProperties();
+    const PropertiesType & props = GetProperties();
 
     if(geom.PointsNumber() != 4)
         KRATOS_THROW_ERROR(std::logic_error, "ShellThickElement3D4N Element needs a geometry with 4 nodes", geom.PointsNumber());
@@ -462,15 +462,15 @@ void ShellThickElement3D4N::Initialize()
         {
             theSection = props[SHELL_CROSS_SECTION];
         }
-		else if (theSection->CheckIsOrthotropic(props))
+		else if (ShellCrossSection::CheckIsOrthotropic(props))
 		{
 			// make new instance of shell cross section
 			theSection =
 				ShellCrossSection::Pointer(new ShellCrossSection());
 
-			// Assign orthotropic material law for entire element
-			LinearElasticOrthotropic2DLaw OrthoLaw;
-			props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
+			// // Assign orthotropic material law for entire element
+			// LinearElasticOrthotropic2DLaw OrthoLaw;
+			// props.SetValue(CONSTITUTIVE_LAW, OrthoLaw.Clone());
 
 			// Parse material properties for each layer
 			Element* thisElement = this;

@@ -444,7 +444,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
             const Properties& iPlyProps = iPly.GetProperties();
 			Properties LaminaProps;
 
-            if(CheckIsOrthotropic(iPlyProps))
+            if(this->CheckIsOrthotropic(iPlyProps))
             {
 				LaminaProps = Properties(iPlyProps);
                 iPly.RecoverOrthotropicProperties(ply_number, LaminaProps);
@@ -841,7 +841,7 @@ bool ShellCrossSection::CheckIsOrthotropic(const Properties& rProps)
     }
 }
 
-void ShellCrossSection::ParseOrthotropicPropertyMatrix(Properties& props, Element* myElement)
+void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& props, Element* myElement)
 {
     // ascertain how many plies there are and begin stacking them
     unsigned int plies = (props)[SHELL_ORTHOTROPIC_LAYERS].size1();
@@ -886,7 +886,7 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(Properties& props, Elemen
     }
 
     this->EndStack();
-    props.SetValue(THICKNESS, elementThickness);
+    // props.SetValue(THICKNESS, elementThickness);
 }
 
 void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)

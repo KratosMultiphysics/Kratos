@@ -1305,12 +1305,12 @@ public:
     * Checks if the shell is an orthotropic material
     * @return the true/false
     */
-    bool CheckIsOrthotropic(const Properties& rProps);
+    static bool CheckIsOrthotropic(const Properties& rProps);
     
     /**
     * Parses the shell orthotropic material data from properties
     */
-    void ParseOrthotropicPropertyMatrix(Properties& rProps, Element* myElement);
+    void ParseOrthotropicPropertyMatrix(const Properties& rProps, Element* myElement);
     
     /**
     * Get orientation of laminae
