@@ -851,6 +851,9 @@
 				      "CAUCHY_STRESS_TENSOR",
 				      "GREEN_LAGRANGE_STRAIN_TENSOR",
 *endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+				      "WATER_PRESSURE",
+*endif
 				      "VON_MISES_STRESS"
 				    ],
 	    "additional_list_files": [

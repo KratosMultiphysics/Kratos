@@ -257,6 +257,22 @@ protected:
           ) override;
 
     /**
+     * Volumetric loads
+     */
+    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          Vector & rVolumeForces,
+          double& rIntegrationWeight
+          ) override;
+    /**
+     * Volumetric loads
+     */
+    virtual void CalculateAndAddExternalWaterForces(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          Vector & rVolumeForces,
+          double& rIntegrationWeight
+          );
+    /**
      * Calculation of the water like  Forces. RHS
      */
     void CalculateAndAddWaterPressureForces(VectorType& rRightHandSideVector,

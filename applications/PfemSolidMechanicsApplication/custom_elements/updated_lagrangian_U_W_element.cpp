@@ -314,12 +314,12 @@ namespace Kratos
       if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
          KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUWElement" )
 
-      //verify that the variables are correctly initialized
+            //verify that the variables are correctly initialized
 
-      if ( PRESSURE.Key() == 0 )
+            if ( PRESSURE.Key() == 0 )
                KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
-      double WaterBulk = 1e+7;
+                  double WaterBulk = 1e+7;
       if ( GetProperties().Has(WATER_BULK_MODULUS)  ) {
          WaterBulk = GetProperties()[WATER_BULK_MODULUS];
       } else if ( rCurrentProcessInfo.Has(WATER_BULK_MODULUS) ) {
@@ -342,7 +342,7 @@ namespace Kratos
          density = rCurrentProcessInfo[DENSITY];
       }
       GetProperties().SetValue(DENSITY, density);
-      
+
       double density_water = 0.0;
       if ( GetProperties().Has(DENSITY_WATER)  ) {
          density_water = GetProperties()[DENSITY_WATER];
@@ -350,7 +350,18 @@ namespace Kratos
          density_water = rCurrentProcessInfo[DENSITY_WATER];
       }
       GetProperties().SetValue(DENSITY_WATER, density_water);
-      
+
+      double initial_porosity = 0.3;
+      if ( GetProperties().Has(INITIAL_POROSITY) ) {
+         initial_porosity = GetProperties()[INITIAL_POROSITY];
+      } else if ( rCurrentProcessInfo.Has(INITIAL_POROSITY) ) {
+         initial_porosity = rCurrentProcessInfo[INITIAL_POROSITY];
+      }
+      if ( initial_porosity < 1e-5)
+         initial_porosity = 0.3;
+      GetProperties().SetValue( INITIAL_POROSITY, initial_porosity);
+
+
       return correct;
 
       KRATOS_CATCH( "" );
@@ -396,7 +407,7 @@ namespace Kratos
    void UpdatedLagrangianUWElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
    {
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+      LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
 
 
@@ -456,7 +467,7 @@ namespace Kratos
          double WaterPressure = this->CalculateGaussPointWaterPressure( Variables, WaterPressure);
 
          rOutput[PointNumber] = WaterPressure;
-      
+
       }
       else if ( rVariable == VOID_RATIO) {
 
@@ -507,7 +518,7 @@ namespace Kratos
    // ****************************************************************************************
    void UpdatedLagrangianUWElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
    {
-         LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
    }
 
    // *********************** Calculate Matrix On Integration Points *************************
@@ -697,8 +708,10 @@ namespace Kratos
 
       Matrix Q = ZeroMatrix(mat_B2_size, mat_B2_size);
       double Bulk = GetProperties()[WATER_BULK_MODULUS]; 
+      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0;
+      Bulk /= porosity;
 
-      // PNA necessary the implementation of current porosity
 
       for (unsigned int i = 0; i < dimension; i++)
          for (unsigned int j = 0; j < dimension; j++){
@@ -730,14 +743,14 @@ namespace Kratos
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-	if ( dimension == 2){
-         rB2( 0, i*2*dimension) = rDN_DX(i,0);
-         rB2( 1, i*2*dimension+1) = rDN_DX(i,1);
-         rB2( 2, i*2*dimension+1) = rDN_DX(i,0);
-         rB2( 2, i*2*dimension) = rDN_DX(i,1);
-         rB2( dimension+1, i*2*dimension+2) = rDN_DX(i,0);
-         rB2( dimension+2, i*2*dimension+3) = rDN_DX(i,1);
-	}
+         if ( dimension == 2){
+            rB2( 0, i*2*dimension) = rDN_DX(i,0);
+            rB2( 1, i*2*dimension+1) = rDN_DX(i,1);
+            rB2( 2, i*2*dimension+1) = rDN_DX(i,0);
+            rB2( 2, i*2*dimension) = rDN_DX(i,1);
+            rB2( dimension+1, i*2*dimension+2) = rDN_DX(i,0);
+            rB2( dimension+2, i*2*dimension+3) = rDN_DX(i,1);
+         }
       }
 
 
@@ -762,7 +775,9 @@ namespace Kratos
 
 
 
-      //this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); //LMV
+      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
+
+      this->CalculateAndAddExternalWaterForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
 
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
@@ -776,6 +791,86 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+
+   // **************************************************************************
+   // Calculate and Add volumetric loads
+   void UpdatedLagrangianUWElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+         Vector & rVolumeForce, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      unsigned int dofs_per_node = dimension * 2;
+
+      rVolumeForce *= rVariables.detF0; 
+      double density_mixture0 = GetProperties().GetValue(DENSITY);
+      if ( density_mixture0 > 0) {
+         rVolumeForce /= density_mixture0; 
+      }
+      else {
+         return; 
+      }
+
+      double density_water =GetProperties().GetValue(DENSITY_WATER);
+      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
+
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double density_solid = (density_mixture0 - porosity0*density_water) / ( 1.0 - porosity0);
+      double density_mixture = ( 1.0 - porosity) * density_solid + porosity * density_water;
+
+
+      const VectorType & rN = rVariables.N;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+            rRightHandSideVector(i*dofs_per_node + iDim) += rIntegrationWeight * density_mixture *  rN(i) * rVolumeForce(iDim);
+         }
+      }
+
+      rVolumeForce /= rVariables.detF0; 
+      rVolumeForce *=density_mixture0;
+      return;
+
+
+      KRATOS_CATCH("")
+   }
+
+   // **************************************************************************
+   // Calculate and Add volumetric loads
+   void UpdatedLagrangianUWElement::CalculateAndAddExternalWaterForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+         Vector & rVolumeForce, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      unsigned int dofs_per_node = dimension * 2;
+
+      rVolumeForce *= rVariables.detF0; 
+      double density_mixture0 = GetProperties().GetValue(DENSITY);
+      if ( density_mixture0 > 0) {
+         rVolumeForce /= density_mixture0; 
+      }
+      else {
+         return; 
+      }
+
+      double density_water =GetProperties().GetValue(DENSITY_WATER);
+
+      const VectorType & rN = rVariables.N;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+            rRightHandSideVector(i*dofs_per_node+dimension + iDim) += rIntegrationWeight * density_water *  rN(i) * rVolumeForce(iDim);
+         }
+      }
+
+      rVolumeForce /= rVariables.detF0;
+      rVolumeForce *=density_mixture0;
+      return;
+
+
+      KRATOS_CATCH("")
+   }
 
    // **********************************************************************************
    //         CalculateAndAddInternalForces
@@ -792,7 +887,7 @@ namespace Kratos
 
       double WaterPressure = this->CalculateGaussPointWaterPressure( rVariables, WaterPressure);
 
-      
+
       Vector StressVector = rVariables.StressVector;
       for (unsigned int i = 0; i < dimension; i++)
          StressVector(i) -= WaterPressure;
@@ -822,7 +917,7 @@ namespace Kratos
 
       double WaterPressure = this->CalculateGaussPointWaterPressure( rVariables, WaterPressure);
 
-      
+
       unsigned int voigt_size = 3;
       if ( dimension == 3)
          voigt_size = 6;
@@ -830,7 +925,7 @@ namespace Kratos
       Vector WaterStressVector = ZeroVector( voigt_size);
       for (unsigned int i = 0; i < dimension; i++)
          WaterStressVector(i) -= WaterPressure;
-      
+
       //std::cout << "B = " << rVariables.B << std::endl;
       VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), WaterStressVector );
 
@@ -867,6 +962,10 @@ namespace Kratos
 
       double Bulk = GetProperties()[WATER_BULK_MODULUS]; 
 
+      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0;
+      Bulk /= porosity;
+
       rWaterPressure = - Bulk * ( divU + divW);
 
       return rWaterPressure;
@@ -900,11 +999,14 @@ namespace Kratos
       ElementVariables Variables;
       this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
-      double CurrentDensity = GetProperties()[DENSITY];
-      double   WaterDensity = GetProperties()[DENSITY_WATER];
+      double density_mixture0 = GetProperties()[DENSITY];
+      double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
+      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
 
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
+      double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
 
-      double CurrentPorosity = GetProperties()[INITIAL_POROSITY]; 
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -916,9 +1018,6 @@ namespace Kratos
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
 
-         //compute point volume change
-         double PointVolumeChange = 0;
-         PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 
 
          for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -930,7 +1029,7 @@ namespace Kratos
                   rMassMatrix( dofs_per_node*i+k, dofs_per_node*j +k  )                     += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
                   rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j +k  )           += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
                   rMassMatrix( dofs_per_node*i+k, dofs_per_node*j+dimension +k  )           += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight;
-                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight / CurrentPorosity;
+                  rMassMatrix( dofs_per_node*i+dimension+k, dofs_per_node*j+dimension +k  ) += Variables.N[i] * Variables.N[j] * WaterDensity   * IntegrationWeight / porosity;
                }
             }
          }
@@ -941,7 +1040,7 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   
+
    // *********************************************************************************
    //         Calculate the Damping matrix
    void UpdatedLagrangianUWElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
@@ -967,7 +1066,7 @@ namespace Kratos
       ElementVariables Variables;
       this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
-      
+
 
       double CurrentPermeability = GetProperties()[PERMEABILITY]; 
 
@@ -975,18 +1074,14 @@ namespace Kratos
       {
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
-	 
-	 //std::cout << "N = " << Variables.N << std::endl;
+
+         //std::cout << "N = " << Variables.N << std::endl;
 
          //getting informations for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
 
-         //compute point volume change
-         double PointVolumeChange = 0;
-         PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
-	
 
          for ( unsigned int i = 0; i < number_of_nodes; i++ )
          {
