@@ -76,7 +76,7 @@ namespace Kratos
 	  }
 
       /// Destructor 
-	  virtual ~ThreadFixedSizeMemoryPool() {
+	  ~ThreadFixedSizeMemoryPool() override {
 
 	  }
 

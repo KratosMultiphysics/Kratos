@@ -78,7 +78,7 @@ namespace Kratos
 	  }
 
       /// Destructor is not virtual. This class can not be drived.
-	  ~Chunk() noexcept {
+	  ~Chunk() noexcept override {
 			  delete[] mpData;
 	  }
 
