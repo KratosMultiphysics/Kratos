@@ -851,7 +851,7 @@ public:
     {
         Matrix jacobian( 3, 2 );
          
-        Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
+        this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
         const double& j00 = jacobian(0,0);
         const double& j01 = jacobian(0,1);
