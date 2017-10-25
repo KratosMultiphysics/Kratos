@@ -27,6 +27,7 @@ namespace Kratos
 ///@addtogroup HDF5Application
 ///@{
 
+/// A class for accessing a single shared HDF5 file across MPI processes.
 class HDF5FileMPI : public HDF5File
 {
     enum class DataTransferMode { independent, collective };

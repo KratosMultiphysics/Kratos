@@ -65,6 +65,7 @@ struct HDF5Utils
     }
 };
 
+/// A class for accessing an HDF5 file from a single process.
 class HDF5File
 {
 public:
